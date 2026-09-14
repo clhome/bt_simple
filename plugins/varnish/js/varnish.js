@@ -18,7 +18,7 @@ function varnishStatus() {
         layer.close(loadT);
         if (!data.status){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">Varnish 状态获取失败：' + data.msg + '。请检查 Varnish 服务是否已启动并正常运行。</div>';
+            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + pt('Varnish 状态获取失败：') + data.msg + '。请检查 Varnish 服务是否已启动并正常运行。</div>';
             $(".soft-man-con").html(errorCon);
             return;
         }
@@ -124,7 +124,7 @@ function varnishStatus() {
 
         if (timestamp) {
             tmp += "<tr>\
-                <td style='color: #888; font-weight: 500;'>采样时间 (timestamp)</td>\
+                <td style='color: #888; font-weight: 500;'>" + pt('采样时间 (timestamp)') + "</td>\
                 <td colspan='2' style='font-family: monospace; color: #444;'>" + timestamp + "</td>\
             </tr>";
         }
@@ -152,11 +152,11 @@ function varnishPluginConfig(_name, version, func){
         func_name = func;
     }
 
-    var con = '<p style="color: #666; margin-bottom: 7px">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!</p>\
+    var con = '<p style="color: #666; margin-bottom: 7px">' + pt('提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!') + '</p>\
                 <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
                 <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>此处为'+ _name + version +'主配置文件,若您不了解配置规则,请勿随意修改。</li>\
+                    <li>' + pt('此处为')+ _name + version +'主配置文件,若您不了解配置规则,请勿随意修改。</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 

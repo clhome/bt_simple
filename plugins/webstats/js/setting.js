@@ -8,7 +8,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 	var rdata = rdata.data;
 	var html = '<div id="webstats">\
 		<div class="ws_setting">\
-			<div class="ws_title">统计:</div>\
+			<div class="ws_title">' + pt('统计:') + '</div>\
 			<div class="ws_content">\
 				<div class="item-line">\
 					<div class="choose_title">' + pt('IP统计') + '</div>\
@@ -26,7 +26,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 		</div>\
 		<div class="dash_line"></div>\
 		<div class="ws_setting">\
-			<div class="ws_title">日志:</div>\
+			<div class="ws_title">' + pt('日志:') + '</div>\
 			<div class="ws_content">\
 				<div class="item-line">\
 					<div class="choose_title">' + pt('日志保存天数') + '</div>\
@@ -38,7 +38,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 		</div>\
 		<div class="dash_line"></div>\
 		<div class="ws_setting">\
-			<div class="ws_title">监控配置:</div>\
+			<div class="ws_title">' + pt('监控配置:') + '</div>\
 			<div class="ws_content" style="width:570px;">\
 				<div class="tab-nav">\
 					<span data-type="cdn_headers" class="on">CDN headers</span>\

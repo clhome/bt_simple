@@ -302,7 +302,7 @@ var ollama = {
         // 左栏：拉取模型卡片
         html += '  <div class="ollama-flex-col" style="flex: 0 0 320px;">';
         html += '    <div class="ollama-card">';
-        html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">拉取新模型 (Pull Model)</h4>';
+        html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('拉取新模型 (Pull Model)') + '</h4>';
         html += '      <div class="ollama-form-group">';
         html += '        <label class="ollama-form-label">' + pt('模型名 / 标签') + '</label>';
         html += '        <input type="text" id="pull_model_input" class="ollama-input" placeholder="输入如: deepseek-r1:7b">';
@@ -315,9 +315,9 @@ var ollama = {
         // 右栏：已下载模型卡片
         html += '  <div class="ollama-flex-col">';
         html += '    <div class="ollama-card">';
-        html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">本地大模型库 (Local Library)</h4>';
+        html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('本地大模型库 (Local Library)') + '</h4>';
         html += '      <div id="local_models_list" style="max-height: 250px; overflow-y: auto;">';
-        html += '        <p style="color:#64748b;">正在加载模型列表...</p>';
+        html += '        <p style="color:#64748b;">' + pt('正在加载模型列表...') + '</p>';
         html += '      </div>';
         html += '    </div>';
         html += '  </div>';
@@ -326,9 +326,9 @@ var ollama = {
 
         // 下卡片：驻留内存大模型卡片
         html += '<div class="ollama-card" style="margin-top:10px;">';
-        html += '  <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">正在内存/显存运行中模型 (Running Models)</h4>';
+        html += '  <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('正在内存/显存运行中模型 (Running Models)') + '</h4>';
         html += '  <div id="running_models_list">';
-        html += '    <p style="color:#64748b;">正在加载运行模型...</p>';
+        html += '    <p style="color:#64748b;">' + pt('正在加载运行模型...') + '</p>';
         html += '  </div>';
         html += '</div>';
 
@@ -440,8 +440,8 @@ var ollama = {
         var _this = this;
         
         var modalHtml = '<div style="padding:15px;">' +
-            '<p style="margin-bottom:10px;font-size:13px;font-weight:600;color:#334155;">正在拉取模型: <span style="color:#4f46e5;">' + model_name + '</span> (请勿关闭此窗口直到拉取完成)</p>' +
-            '<textarea id="pull_log_textarea" class="ollama-textarea" readonly>正在加载拉取进度日志...\n</textarea>' +
+            '<p style="margin-bottom:10px;font-size:13px;font-weight:600;color:#334155;">' + pt('正在拉取模型:') + ' <span style="color:#4f46e5;">' + model_name + '</span> ' + pt('(请勿关闭此窗口直到拉取完成)') + '</p>' +
+            '<textarea id="pull_log_textarea" class="ollama-textarea" readonly>' + pt('正在加载拉取进度日志...\n') + '</textarea>' +
             '</div>';
 
         var index = layer.open({
@@ -498,7 +498,7 @@ var ollama = {
     deleteModel: function (model_name) {
         var _this = this;
         
-        layer.confirm('确认要彻底删除大模型 <b style="color:#ef4444;">' + model_name + '</b> 吗？这会立刻释放其占用的磁盘空间！', {
+        layer.confirm('确认要彻底删除大模型 <b style="color:#ef4444;">' + model_name + '</b> ' + pt('吗？这会立刻释放其占用的磁盘空间！'), {
             title:  pt('删除确认'),
             icon: 3,
             btn: [pt('确认删除'), pt('取消')]
@@ -537,20 +537,20 @@ var ollama = {
                 html += '  <div class="ollama-card">';
                 html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 服务环境变量配置') + '</h4>';
                 html += '    <div style="font-size:12px;color:#64748b;background:#f8fafc;padding:10px 15px;border-radius:6px;margin-bottom:15px;border:1px dashed #cbd5e1;">';
-                html += '      <span class="glyphicon glyphicon-info-sign"></span> 系统已自动检索到配置文件: <code style="font-size:11px;">' + (config.service_file || '未找到') + '</code><br/>';
-                html += '      配置保存后，插件会自动执行 <code style="font-size:10px;">systemctl daemon-reload</code> 与服务重启，使新配置即时生效。';
+                html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + (config.service_file || '未找到') + '</code><br/>';
+                html += '      配置保存后，插件会自动执行 <code style="font-size:10px;">systemctl daemon-reload</code> ' + pt('与服务重启，使新配置即时生效。');
                 html += '    </div>';
 
                 // Host 配置
                 html += '    <div class="ollama-form-group">';
-                html += '      <label class="ollama-form-label">服务绑定 Host & 端口 (OLLAMA_HOST)</label>';
+                html += '      <label class="ollama-form-label">' + pt('服务绑定 Host & 端口 (OLLAMA_HOST)') + '</label>';
                 html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + config.host + '" placeholder="如: 127.0.0.1:11434">';
                 html += '      <p class="ollama-tip">' + pt('默认绑定') + ' <code style="font-size:11px;">127.0.0.1:11434</code>' + pt('。如果您想允许局域网或公网通过 Open WebUI 或 API 访问它，请更改为') + ' <code style="font-size:11px;">0.0.0.0:11434</code>。</p>';
                 html += '    </div>';
 
                 // Models 路径配置
                 html += '    <div class="ollama-form-group">';
-                html += '      <label class="ollama-form-label">大模型存储物理目录 (OLLAMA_MODELS)</label>';
+                html += '      <label class="ollama-form-label">' + pt('大模型存储物理目录 (OLLAMA_MODELS)') + '</label>';
                 html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + config.models_path + '" placeholder="如: /usr/share/ollama/.ollama/models">';
                 html += '      <p class="ollama-tip">' + pt('大模型文件非常庞大，默认会存放在 root 的 home 盘下。若系统根分区较小，强烈建议修改为挂载了大数据盘的路径（例如') + ' <code style="font-size:11px;">/www/server/ollama/models</code>）。</p>';
                 html += '    </div>';
@@ -622,10 +622,10 @@ var ollama = {
         var html = '<div class="ollama-container">';
         html += '  <div class="ollama-card">';
         html += '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">';
-        html += '      <h4 style="margin:0;color:#1e293b;font-weight:600;font-size:14px;">Ollama 运行系统日志 (最新 100 行)</h4>';
+        html += '      <h4 style="margin:0;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 运行系统日志 (最新 100 行)') + '</h4>';
         html += '      <button class="ollama-btn ollama-btn-default" style="padding:4px 12px;font-size:11px;" onclick="ollama.refreshLogs()"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新日志') + '</button>';
         html += '    </div>';
-        html += '    <textarea id="ollama_log_textarea" class="ollama-textarea" style="height:390px;" readonly>正在加载系统服务日志...\n</textarea>';
+        html += '    <textarea id="ollama_log_textarea" class="ollama-textarea" style="height:390px;" readonly>' + pt('正在加载系统服务日志...\n') + '</textarea>';
         html += '  </div>';
         html += '</div>';
 
@@ -665,17 +665,17 @@ var ollama = {
         readme += '        <tr><td><span class="ollama-help-code">ollama list</span></td><td>' + pt('列出所有已下载的本地大模型库。') + '</td></tr>';
         readme += '        <tr><td><span class="ollama-help-code">ollama run deepseek-r1:7b</span></td><td>' + pt('交互式启动并进入指定大模型的命令行会话终端。') + '</td></tr>';
         readme += '        <tr><td><span class="ollama-help-code">ollama ps</span></td><td>' + pt('查看当前处于显存或内存活跃加载状态的模型。') + '</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama stop &lt;模型&gt;</span></td><td>' + pt('从内存/显存中卸载释出特定大模型（不影响本地库）。') + '</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama rm &lt;模型&gt;</span></td><td>' + pt('从本地库中永久物理删除对应模型以释放磁盘存储。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">' + pt('ollama stop &lt;模型&gt;') + '</span></td><td>' + pt('从内存/显存中卸载释出特定大模型（不影响本地库）。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">' + pt('ollama rm &lt;模型&gt;') + '</span></td><td>' + pt('从本地库中永久物理删除对应模型以释放磁盘存储。') + '</td></tr>';
         readme += '      </table>';
         readme += '    </div>';
 
         readme += '    <div class="ollama-help-card" style="border-left-color: #10b981;">';
         readme += '      <strong>' + pt('🔌 API 对外集成说明：') + '</strong><br/>';
-        readme += '      Ollama 完美兼容 OpenAI 的标准的 API 通信协议，可通过配置为其他 Web UI 服务或 Python 脚本提供能力支持：<br/>';
+        readme += '      ' + pt('Ollama 完美兼容 OpenAI 的标准的 API 通信协议，可通过配置为其他 Web UI 服务或 Python 脚本提供能力支持：') + '<br/>';
         readme += '      <table class="table" style="margin-top:8px;font-size:12px;margin-bottom:0;">';
-        readme += '        <tr><td><strong>API 端点 (Base URL)</strong></td><td><span class="ollama-help-code">http://&lt;服务器IP&gt;:11434/v1</span> (外网集成请在配置中绑定 0.0.0.0)</td></tr>';
-        readme += '        <tr><td><strong>API Key (密钥)</strong></td><td>' + pt('不需要任何 API Key。如有需要，可在前台客户端输入任意非空字符。') + '</td></tr>';
+        readme += '        <tr><td><strong>' + pt('API 端点 (Base URL)') + '</strong></td><td><span class="ollama-help-code">' + pt('http://&lt;服务器IP&gt;:11434/v1') + '</span> ' + pt('(外网集成请在配置中绑定 0.0.0.0)') + '</td></tr>';
+        readme += '        <tr><td><strong>' + pt('API Key (密钥)') + '</strong></td><td>' + pt('不需要任何 API Key。如有需要，可在前台客户端输入任意非空字符。') + '</td></tr>';
         readme += '        <tr><td><strong>' + pt('测试 API 连接命令') + '</strong></td><td><span class="ollama-help-code">curl http://127.0.0.1:11434/api/tags</span></td></tr>';
         readme += '      </table>';
         readme += '    </div>';

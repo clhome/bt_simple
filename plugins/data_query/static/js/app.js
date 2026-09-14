@@ -313,14 +313,14 @@ function mysqlCommonFuncMysqlNSQL(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <div class="mr20 pull-left" style="border-right: 1px solid #ccc; padding-right: 20px;">\
                 <div class="ss-text pull-left">\
-                    <em>实时监控</em>\
+                    <em>' + pt('实时监控') + '</em>\
                     <div class="ssh-item">\
                         <input class="btswitch btswitch-ios" id="real_time_monitoring" type="checkbox">\
                         <label id="real_time_label" class="btswitch-btn" for="real_time_monitoring"></label>\
                     </div>\
                 </div>\
                 <div class="ss-text pull-left" style="padding-left:10px;">\
-                    <em>过滤数据库</em>\
+                    <em>' + pt('过滤数据库') + '</em>\
                     <div class="ssh-item">\
                         <input class="btswitch btswitch-ios" id="filter_db" type="checkbox">\
                         <label class="btswitch-btn" for="filter_db"></label>\
@@ -331,11 +331,11 @@ function mysqlCommonFuncMysqlNSQL(){
             <table class="table table-hover" id="topn_list">\
                 <thead>\
                     <th>SQL</th>\
-                    <th style="width:100px;">数据名</th>\
-                    <th>最近时间</th>\
-                    <th style="width:100px;">总次数</th>\
-                    <th style="width:100px;">最大时间</th>\
-                    <th style="width:100px;">平均时间</th>\
+                    <th style="width:100px;">' + pt('数据名') + '</th>\
+                    <th>' + pt('最近时间') + '</th>\
+                    <th style="width:100px;">' + pt('总次数') + '</th>\
+                    <th style="width:100px;">' + pt('最大时间') + '</th>\
+                    <th style="width:100px;">' + pt('平均时间') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -396,7 +396,7 @@ function mysqlCommonFuncMysqlNet(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <div class="mr20 pull-left" style="border-right: 1px solid #ccc; padding-right: 20px;">\
                 <div class="ss-text pull-left">\
-                    <em>实时监控</em>\
+                    <em>' + pt('实时监控') + '</em>\
                     <div class="ssh-item">\
                         <input class="btswitch btswitch-ios" id="real_qps_monitoring" type="checkbox">\
                         <label id="real_qps_label" class="btswitch-btn" for="real_qps_monitoring"></label>\
@@ -406,7 +406,7 @@ function mysqlCommonFuncMysqlNet(){
             <hr />\
             <table class="table table-hover" id="net_list">\
                 <thead>\
-                    <th style="width:160px;">时间</th>\
+                    <th style="width:160px;">' + pt('时间') + '</th>\
                     <th style="width:50px;">Select</th>\
                     <th style="width:50px;">Insert</th>\
                     <th style="width:50px;">Update</th>\
@@ -482,12 +482,12 @@ function mysqlCommonFuncRedundantIndexes(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <table class="table table-hover" id="redundant_indexes">\
                 <thead>\
-                    <th style="width:100px;">数据库名</th>\
-                    <th style="width:50px;">表名</th>\
-                    <th style="width:50px;">冗余索引名</th>\
-                    <th style="width:50px;">冗余索引列名</th>\
-                    <th style="width:300px;">删除冗余索引SQL</th>\
-                    <th style="width:30px;">操作</th>\
+                    <th style="width:100px;">' + pt('数据库名') + '</th>\
+                    <th style="width:50px;">' + pt('表名') + '</th>\
+                    <th style="width:50px;">' + pt('冗余索引名') + '</th>\
+                    <th style="width:50px;">' + pt('冗余索引列名') + '</th>\
+                    <th style="width:300px;">' + pt('删除冗余索引SQL') + '</th>\
+                    <th style="width:30px;">' + pt('操作') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -537,16 +537,16 @@ function mysqlCommonFuncTableInfo(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <table class="table table-hover" id="mysql_data_id">\
                 <thead>\
-                    <th style="width:100px;">库名</th>\
-                    <th style="width:50px;">表名</th>\
-                    <th style="width:80px;">储存引擎</th>\
-                    <th style="width:150px;">数据大小(GB)</th>\
-                    <th style="width:130px;">索引大小(GB)</th>\
-                    <th style="width:100px;">总计(GB)</th>\
-                    <th style="width:150px;">主键自增字段</th>\
-                    <th style="width:200px;">主键字段属性</th>\
-                    <th style="width:150px;">主键自增当前</th>\
-                    <th style="width:150px;">主键自增剩余</th>\
+                    <th style="width:100px;">' + pt('库名') + '</th>\
+                    <th style="width:50px;">' + pt('表名') + '</th>\
+                    <th style="width:80px;">' + pt('储存引擎') + '</th>\
+                    <th style="width:150px;">' + pt('数据大小(GB)') + '</th>\
+                    <th style="width:130px;">' + pt('索引大小(GB)') + '</th>\
+                    <th style="width:100px;">' + pt('总计(GB)') + '</th>\
+                    <th style="width:150px;">' + pt('主键自增字段') + '</th>\
+                    <th style="width:200px;">' + pt('主键字段属性') + '</th>\
+                    <th style="width:150px;">' + pt('主键自增当前') + '</th>\
+                    <th style="width:150px;">' + pt('主键自增剩余') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -591,7 +591,7 @@ function mysqlCommonFuncConnCount(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <div class="mr20 pull-left" style="border-right: 1px solid #ccc; padding-right: 20px;">\
                 <div class="ss-text pull-left">\
-                    <em>实时监控</em>\
+                    <em>' + pt('实时监控') + '</em>\
                     <div class="ssh-item">\
                         <input class="btswitch btswitch-ios" id="app_ip_monitoring" type="checkbox">\
                         <label id="app_ip_label" class="btswitch-btn" for="app_ip_monitoring"></label>\
@@ -601,10 +601,10 @@ function mysqlCommonFuncConnCount(){
             <hr />\
             <table class="table table-hover" id="app_ip_list">\
                 <thead>\
-                    <th style="width:160px;">连接用户</th>\
-                    <th style="width:50px;">数据库名</th>\
-                    <th style="width:50px;">应用端IP</th>\
-                    <th style="width:50px;">数量</th>\
+                    <th style="width:160px;">' + pt('连接用户') + '</th>\
+                    <th style="width:50px;">' + pt('数据库名') + '</th>\
+                    <th style="width:50px;">' + pt('应用端IP') + '</th>\
+                    <th style="width:50px;">' + pt('数量') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -657,8 +657,8 @@ function mysqlCommonFuncFpkInfo(){
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <table class="table table-hover" id="mysql_data_id">\
                 <thead>\
-                    <th style="width:100px;">库名</th>\
-                    <th style="width:50px;">表名</th>\
+                    <th style="width:100px;">' + pt('库名') + '</th>\
+                    <th style="width:50px;">' + pt('表名') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -722,15 +722,15 @@ function mysqlCommonFuncLockSQL(){
         shadeClose: false,
         content: '<div class="bt-form pd20 divtable taskdivtable">\
             <div class="mr20 pull-left" style="border-right: 1px solid #ccc; padding-right: 20px;">\
-                <button id="kill_all" type="button" class="btn btn-default btn-sm">关闭所有阻塞</button>\
+                <button id="kill_all" type="button" class="btn btn-default btn-sm">' + pt('关闭所有阻塞') + '</button>\
             </div>\
             <hr />\
             <table class="table table-hover" id="mysql_data_id">\
                 <thead>\
-                    <th style="width:80px;">事务ID</th>\
-                    <th style="width:80px;">事务状态</th>\
-                    <th style="width:220px;">执行时间</th>\
-                    <th style="width:100px;">线程ID</th>\
+                    <th style="width:80px;">' + pt('事务ID') + '</th>\
+                    <th style="width:80px;">' + pt('事务状态') + '</th>\
+                    <th style="width:220px;">' + pt('执行时间') + '</th>\
+                    <th style="width:100px;">' + pt('线程ID') + '</th>\
                     <th style="width:50px;">Info</th>\
                     <th style="width:50px;">user</th>\
                     <th style="width:50px;">host</th>\
@@ -738,7 +738,7 @@ function mysqlCommonFuncLockSQL(){
                     <th style="width:50px;">command</th>\
                     <th style="width:50px;">state</th>\
                     <th style="width:140px;">kill</th>\
-                    <th style="width:50px;">操作</th>\
+                    <th style="width:50px;">' + pt('操作') + '</th>\
                 </thead>\
                 <tbody></tbody>\
             </table>\
@@ -824,15 +824,15 @@ function mysqlCommonFunc(){
             closeBtn: 1,
             shadeClose: false,
             content: '<div class="bt-form pd20">\
-                <button style="margin-bottom: 8px;" id="mysql_top_nsql" type="button" class="btn btn-default btn-sm">查询执行次数最频繁的前N条SQL语句</button>\
-                <button style="margin-bottom: 8px;" id="mysql_net_stat" type="button" class="btn btn-default btn-sm">MySQL服务器的QPS/TPS/网络带宽指标</button>\
-                <button style="margin-bottom: 8px;" id="mysql_redundant_indexes" type="button" class="btn btn-default btn-sm">查看重复或冗余的索引</button>\
-                <button style="margin-bottom: 8px;" id="mysql_table_info" type="button" class="btn btn-default btn-sm">统计库里每个表的大小</button>\
-                <button style="margin-bottom: 8px;" id="mysql_conn_count" type="button" class="btn btn-default btn-sm">查看应用端IP连接数总和</button>\
-                <button style="margin-bottom: 8px;" id="mysql_fpk_info" type="button" class="btn btn-default btn-sm">快速找出没有主键的表</button>\
-                <button style="margin-bottom: 8px;" id="mysql_lock_sql" type="button" class="btn btn-default btn-sm">查看当前锁阻塞的SQL</button>\
-                <button style="margin-bottom: 8px;" id="mysql_deadlock_info" type="button" class="btn btn-default btn-sm">查看死锁信息</button>\
-                <button style="margin-bottom: 8px;" id="mysql_slave_status" type="button" class="btn btn-default btn-sm">查看主从复制信息</button>\
+                <button style="margin-bottom: 8px;" id="mysql_top_nsql" type="button" class="btn btn-default btn-sm">' + pt('查询执行次数最频繁的前N条SQL语句') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_net_stat" type="button" class="btn btn-default btn-sm">' + pt('MySQL服务器的QPS/TPS/网络带宽指标') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_redundant_indexes" type="button" class="btn btn-default btn-sm">' + pt('查看重复或冗余的索引') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_table_info" type="button" class="btn btn-default btn-sm">' + pt('统计库里每个表的大小') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_conn_count" type="button" class="btn btn-default btn-sm">' + pt('查看应用端IP连接数总和') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_fpk_info" type="button" class="btn btn-default btn-sm">' + pt('快速找出没有主键的表') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_lock_sql" type="button" class="btn btn-default btn-sm">' + pt('查看当前锁阻塞的SQL') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_deadlock_info" type="button" class="btn btn-default btn-sm">' + pt('查看死锁信息') + '</button>\
+                <button style="margin-bottom: 8px;" id="mysql_slave_status" type="button" class="btn btn-default btn-sm">' + pt('查看主从复制信息') + '</button>\
             </div>',
             success:function(i,l){
                 $('#mysql_top_nsql').on('click', function(){
@@ -902,7 +902,7 @@ function mysqlGetTableName(){
 }
 
 function mysqlInitField(f, data){
-    var option_html = '<option value="0">无字段</option>';
+    var option_html = '<option value="0">' + pt('无字段') + '</option>';
     for (var i = 0; i < f.length; i++) {
         if (data['soso_field'] == f[i]){
             option_html+= '<option value="'+f[i]+'" selected>'+f[i]+'</option>';
@@ -1245,7 +1245,7 @@ function memcachedGetKeyList(p){
                 tbody += '<td>'+ dlist[i]['s'] +'</td>';
 
                 if (dlist[i]['t'] == '0'){
-                    tbody += '<td>永久</td>';
+                    tbody += '<td>' + pt('永久') + '</td>';
                 } else {
                     tbody += '<td>'+ dlist[i]['t'] +'</td>';
                 }
@@ -1303,26 +1303,26 @@ function memcachedAdd(){
         btn:['确定','取消'],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>键</span>\
+                <span class='tname'>" + pt('键') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text' type='text' name='key' placeholder='键' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>值</span>\
+                <span class='tname'>" + pt('值') + "</span>\
                 <div class='info-r c4'>\
                     <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>有效期</span>\
+                <span class='tname'>" + pt('有效期') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text mr5' type='number' name='endtime' value='60' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
                 <div>\
-                    <ul class='help-info-text c7' style='margin-left:30px;'><li>有效期为0表示永久</li>\
+                    <ul class='help-info-text c7' style='margin-left:30px;'><li>" + pt('有效期为0表示永久') + "</li>\
                 </div>\
             </div>\
         </form>",
@@ -1357,7 +1357,7 @@ function mongodbGetDbName(){
 }
 
 function mongodbInitField(f, data){
-    var option_html = '<option value="0">无字段</option>';
+    var option_html = '<option value="0">' + pt('无字段') + '</option>';
     for (var i = 0; i < f.length; i++) {
         if (data['soso_field'] == f[i]){
             option_html+= '<option value="'+f[i]+'" selected>'+f[i]+'</option>';
@@ -1537,7 +1537,7 @@ function mongodbDataList(p){
             for (var i =0 ; i<fields.length ; i++) {
                 header_field += '<th>'+fields[i]+'</th>';
             }
-            header_field += '<th class="text-right">操作</th>';
+            header_field += '<th class="text-right">' + pt('操作') + '</th>';
 
             $('#mongodb .mongodb_table thead tr').html(header_field);
 
@@ -1660,7 +1660,7 @@ function redisGetKeyList(page,search = ''){
                 tbody += '<td>'+data[i].len+'</td>';
 
                 if (data[i].endtime == -1){
-                    tbody += '<td>永久</td>';
+                    tbody += '<td>' + pt('永久') + '</td>';
                 } else {
                     tbody += '<td>'+data[i].endtime+'</td>';
                 }
@@ -1719,7 +1719,7 @@ function redisAdd(){
         btn:['确定','取消'],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>数据库</span>\
+                <span class='tname'>" + pt('数据库') + "</span>\
                 <div class='info-r c4'>\
                     <select name='idx' class='bt-input-text' style='width:260px;'>\
                         <option value='0'>DB(0)</option>\
@@ -1727,26 +1727,26 @@ function redisAdd(){
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>键</span>\
+                <span class='tname'>" + pt('键') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text' type='text' name='key' placeholder='键' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>值</span>\
+                <span class='tname'>" + pt('值') + "</span>\
                 <div class='info-r c4'>\
                     <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>有效期</span>\
+                <span class='tname'>" + pt('有效期') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text mr5' type='number' name='endtime' value='60' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
                 <div>\
-                    <ul class='help-info-text c7' style='margin-left:30px;'><li>有效期为0表示永久</li>\
+                    <ul class='help-info-text c7' style='margin-left:30px;'><li>" + pt('有效期为0表示永久') + "</li>\
                 </div>\
             </div>\
         </form>",
@@ -1789,7 +1789,7 @@ function redisEditKv(name, val, endtime){
         btn:['确定','取消'],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>数据库</span>\
+                <span class='tname'>" + pt('数据库') + "</span>\
                 <div class='info-r c4'>\
                     <select name='idx' class='bt-input-text' style='width:260px;'>\
                         <option value='0'>DB(0)</option>\
@@ -1797,26 +1797,26 @@ function redisEditKv(name, val, endtime){
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>键</span>\
+                <span class='tname'>" + pt('键') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text' type='text' name='key' placeholder='键' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>值</span>\
+                <span class='tname'>" + pt('值') + "</span>\
                 <div class='info-r c4'>\
                     <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>有效期</span>\
+                <span class='tname'>" + pt('有效期') + "</span>\
                 <div class='info-r c4'>\
                     <input class='bt-input-text mr5' type='number' name='endtime' value='60' style='width:260px;'/>\
                 </div>\
             </div>\
             <div class='line'>\
                 <div>\
-                    <ul class='help-info-text c7' style='margin-left:30px;'><li>有效期为0表示永久</li>\
+                    <ul class='help-info-text c7' style='margin-left:30px;'><li>" + pt('有效期为0表示永久') + "</li>\
                 </div>\
             </div>\
         </form>",
@@ -1889,7 +1889,7 @@ function redisBatchClear(){
         btn:['确定','取消'],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>选择数据库</span>\
+                <span class='tname'>" + pt('选择数据库') + "</span>\
                 <div class='info-r'>\
                     <div id='select_db'></div>\
                 </div>\

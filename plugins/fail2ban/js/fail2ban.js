@@ -45,15 +45,15 @@ function f2bHome() {
         var html = '<div style="padding: 15px;">\
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">\
                 <div style="width: 32%; background: #fd6e1e; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(253,110,30,.2);">\
-                    <div style="font-size: 15px; margin-bottom: 10px;">今日拦截 (次)</div>\
+                    <div style="font-size: 15px; margin-bottom: 10px;">' + pt('今日拦截 (次)') + '</div>\
                     <div style="font-size: 32px; font-weight: bold;">' + todayBans + '</div>\
                 </div>\
                 <div style="width: 32%; background: #00b96b; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(0,185,107,.2);">\
-                    <div style="font-size: 15px; margin-bottom: 10px;">总拦截 (次)</div>\
+                    <div style="font-size: 15px; margin-bottom: 10px;">' + pt('总拦截 (次)') + '</div>\
                     <div style="font-size: 32px; font-weight: bold;">' + totalBans + '</div>\
                 </div>\
                 <div style="width: 32%; background: #2f69f8; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(47,105,248,.2);">\
-                    <div style="font-size: 15px; margin-bottom: 10px;">安全防护 (天)</div>\
+                    <div style="font-size: 15px; margin-bottom: 10px;">' + pt('安全防护 (天)') + '</div>\
                     <div style="font-size: 32px; font-weight: bold;">' + protectDays + '</div>\
                 </div>\
             </div>\
@@ -231,7 +231,7 @@ function f2bBanIp() {
                     </tr>\
                 </thead>\
                 <tbody id="f2b_drop_ip_list_body">\
-                    <tr><td colspan="5" style="text-align:center;">正在加载数据...</td></tr>\
+                    <tr><td colspan="5" style="text-align:center;">' + pt('正在加载数据...') + '</td></tr>\
                 </tbody>\
             </table>\
         </div>\
@@ -276,7 +276,7 @@ function f2bBanIp() {
             if (locStr) {
                 locDisplay = locStr;
             } else {
-                locDisplay = '<span style="color:#999;">正在获取...</span>';
+                locDisplay = '<span style="color:#999;">' + pt('正在获取...') + '</span>';
                 if(pendingIps.indexOf(ip) === -1) pendingIps.push(ip);
             }
 
@@ -286,7 +286,7 @@ function f2bBanIp() {
             } else {
                 var diff = expire_time - nowTimestamp;
                 if (diff <= 0) {
-                    timeRemaining = '<span style="color:#f0ad4e;">即将解封...</span>';
+                    timeRemaining = '<span style="color:#f0ad4e;">' + pt('即将解封...') + '</span>';
                 } else {
                     var hours = Math.floor(diff / 3600);
                     var minutes = Math.floor((diff % 3600) / 60);
@@ -677,13 +677,13 @@ function f2bIpDetails(ip) {
                 // 提取并美化动作
                 var actionStr = '-';
                 if (line.indexOf(' Restore Ban ') > -1) {
-                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 服务重启后继续封禁 (Restore Ban)</span>';
+                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> ' + pt('服务重启后继续封禁 (Restore Ban)') + '</span>';
                 } else if (line.indexOf(' Unban ') > -1) {
-                    actionStr = '<span style="color:#5cb85c;"><i class="glyphicon glyphicon-ok-circle"></i> 解除封禁 (Unban)</span>';
+                    actionStr = '<span style="color:#5cb85c;"><i class="glyphicon glyphicon-ok-circle"></i> ' + pt('解除封禁 (Unban)') + '</span>';
                 } else if (line.indexOf(' Ban ') > -1) {
-                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 封禁 (Ban)</span>';
+                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> ' + pt('封禁 (Ban)') + '</span>';
                 } else if (line.indexOf(' Found ') > -1) {
-                    actionStr = '<span style="color:#f0ad4e;"><i class="glyphicon glyphicon-warning-sign"></i> 发现攻击 (Found)</span>';
+                    actionStr = '<span style="color:#f0ad4e;"><i class="glyphicon glyphicon-warning-sign"></i> ' + pt('发现攻击 (Found)') + '</span>';
                 } else {
                     var actMatch = line.match(/\]:\s+\w+\s+\[[^\]]+\]\s+(.*)$/);
                     if(actMatch) {
@@ -742,7 +742,7 @@ function f2bSiteHistory(){
     var html = '<div>\
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
                     <div style="display: flex; align-items: center;">\
-                        <span style="margin-left:10px">时间: </span>\
+                        <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                             <div id="search_time" class="input-group-btn btn-group-sm">\
                                 <button data-name="today" type="button" class="btn btn-default cur">' + pt('今日') + '</button>\

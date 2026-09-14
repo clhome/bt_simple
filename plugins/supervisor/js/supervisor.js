@@ -339,12 +339,12 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
     }
 
 
-    var con = '<p style="color: #666; margin-bottom: 7px">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!</p>\
+    var con = '<p style="color: #666; margin-bottom: 7px">' + pt('提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!') + '</p>\
     			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + pt('请选择') + '</option></select>\
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
                 <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>此处为'+ _name + version +'配置文件,若您不了解配置规则,请勿随意修改。</li>\
+                    <li>' + pt('此处为')+ _name + version +'配置文件,若您不了解配置规则,请勿随意修改。</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 

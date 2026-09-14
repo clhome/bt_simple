@@ -203,7 +203,7 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20'>\
                     <div class='line'>\
-	                    <span class='tname'>节点服务:</span>\
+	                    <span class='tname'>" + pt('节点服务:') + "</span>\
 	                    <div class='info-r'>\
 	                        <input class='bt-input-text mr5' type='text' name='node' style='width:330px' value='"+host+"'/>\
 	                    </div>\
@@ -697,7 +697,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">' + pt('您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?') + '</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.post('del_db', arr[idx]);
@@ -768,10 +768,10 @@ function repTools(db_name, res){
             shadeClose: false,
             content: '<div class="pd15" id="mongodb_list">\
                             <div class="db_list">\
-                                <span><a>数据库名称：'+ db_name + '</a>\
-                                <a>集合：'+ rdata.collections + '</a>\
-                                <a class="tools_size">存储大小：'+ toSize(rdata.storageSize) + '</a>\
-                                <a class="tools_size">索引大小：'+ toSize(rdata.indexSize) + '</a>\
+                                <span><a>' + pt('数据库名称：')+ db_name + '</a>\
+                                <a>' + pt('集合：')+ rdata.collections + '</a>\
+                                <a class="tools_size">' + pt('存储大小：')+ toSize(rdata.storageSize) + '</a>\
+                                <a class="tools_size">' + pt('索引大小：')+ toSize(rdata.indexSize) + '</a>\
                                 </span>\
                                 <span id="db_tools" style="float: right;"></span>\
                             </div >\
@@ -1042,7 +1042,7 @@ function setLocalImport(db_name){
                     <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                     <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                     <span style="float:right;margin-top: 9px;">\
-                    <font>文件编码:</font>\
+                    <font>' + pt('文件编码:') + '</font>\
                     <select id="fileCodeing" >\
                         <option value="byte">' + pt('二进制') + '</option>\
                         <option value="utf-8">UTF-8</option>\
@@ -1126,7 +1126,7 @@ function setLocalImport(db_name){
                     </table>\
                     </div>\
                     <ul class="help-info-text c7">\
-                        <li>仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)</li>\
+                        <li>' + pt('仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)') + '</li>\
                         <li>' + pt('zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql') + '</li>\
                         <li>' + pt('若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import') + '</li>\
                     </ul>\

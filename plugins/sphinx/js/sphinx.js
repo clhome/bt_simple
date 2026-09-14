@@ -12,7 +12,7 @@ function autoMakeConf(){
     var xm_db_list;
 
     var con = '<ul class="help-info-text c7">';
-    con += '<li style="color:red;">如果数据量比较大,第一次启动会失败!(可通过手动建立索引)</li>';
+    con += '<li style="color:red;">' + pt('如果数据量比较大,第一次启动会失败!(可通过手动建立索引)') + '</li>';
     con += '<li style="color:red;">' + pt('以下内容,需手动加入计划任务。') + '</li>';
     layer.open({
         type: 1,
@@ -231,21 +231,21 @@ function readme(){
         // console.log(rdata['data']);
         var con = '<ul class="help-info-text c7">';
 
-        con += '<li style="color:red;">如果数据量比较大,第一次启动会失败!(可通过手动建立索引)</li>';
+        con += '<li style="color:red;">' + pt('如果数据量比较大,第一次启动会失败!(可通过手动建立索引)') + '</li>';
         con += '<li style="color:red;">' + pt('以下内容,需手动加入计划任务。') + '</li>';
 
-        con += '<li>全量:' + rdata['data']['cmd'] + ' --all --rotate</li>';
+        con += '<li>' + pt('全量:') + rdata['data']['cmd'] + ' --all --rotate</li>';
 
         //主索引
         for (var i = 0; i < rdata['data']['index'].length; i++) {
             var index_kv = rdata['data']['index'][i];
             var index = index_kv['index'];
             // console.log(index);
-            con += '<li>主索引 :' + rdata['data']['cmd'] + ' '+ index +' --rotate</li>';
+            con += '<li>' + pt('主索引 :') + rdata['data']['cmd'] + ' '+ index +' --rotate</li>';
             if (typeof(index_kv['delta']) != 'undefined'){
                 var delta = index_kv['delta'];
-                con += '<li>增量索引 :' + rdata['data']['cmd'] + ' '+ delta +' --rotate</li>';
-                con += '<li>合并索引 :' + rdata['data']['cmd'] + ' --merge '+ index  + ' ' + delta +' --rotate</li>';
+                con += '<li>' + pt('增量索引 :') + rdata['data']['cmd'] + ' '+ delta +' --rotate</li>';
+                con += '<li>' + pt('合并索引 :') + rdata['data']['cmd'] + ' --merge '+ index  + ' ' + delta +' --rotate</li>';
             }
         }
         con += '</ul>';

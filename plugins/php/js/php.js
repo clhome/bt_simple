@@ -187,12 +187,12 @@ function phpFpmConfigFile(version, func, pool = 'www'){
                 <option value='backup' " + (pool == 'backup' ? 'selected' : '') + ">backup</option>\
             </select>";
 
-    var con = '<p style="color: #666; margin-bottom: 7px">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!</p>\
+    var con = '<p style="color: #666; margin-bottom: 7px">' + pt('提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!') + '</p>\
                 <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
                 <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 '+poolSelect+'\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>此处为'+ _name + version +'应用池配置文件,若您不了解配置规则,请勿随意修改。</li>\
+                    <li>' + pt('此处为')+ _name + version +'应用池配置文件,若您不了解配置规则,请勿随意修改。</li>\
                 </ul>';
     
 
@@ -278,7 +278,7 @@ function getFpmConfig(version, pool = 'www'){
             "<option value='backup' " + (pool == 'backup' ? 'selected' : '') + ">backup</option>";
 
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>应用池[pool]：</span><select class='bt-input-text' name='pool' style='width:100px;'>" + poolHtml + "</select></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('应用池[pool]：') + "</span><select class='bt-input-text' name='pool' style='width:100px;'>" + poolHtml + "</select></p>" +
             "<p class='line'><span class='span_tit'>' + pt('并发方案：') + '</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
             "<p class='line'><span class='span_tit'>' + pt('运行模式：') + '</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>' + pt('*PHP-FPM运行模式') + '</span></p>" +
             "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>' + pt('*允许创建的最大子进程数') + '</span></p>" +
@@ -455,19 +455,19 @@ function getFpmStatus(version, pool = 'www'){
                         </select>\
                     </p>\
                     <table class='table table-hover table-bordered get_fpm_status' style='margin:0;padding:0'>\
-                        <tr><th>应用池(pool)</th><td>" + rdata.pool + "</td></tr>\
-                        <tr><th>进程管理方式(process manager)</th><td>" + php_fpm_status + "</td></tr>\
-                        <tr><th>启动日期(start time)</th><td>" + rdata['start time'] + "</td></tr>\
-                        <tr><th>请求数(accepted conn)</th><td>" + rdata['accepted conn'] + "</td></tr>\
-                        <tr><th>请求队列(listen queue)</th><td>" + rdata['listen queue'] + "</td></tr>\
-                        <tr><th>最大等待队列(max listen queue)</th><td>" + rdata['max listen queue'] + "</td></tr>\
-                        <tr><th>socket队列长度(listen queue len)</th><td>" + rdata['listen queue len'] + "</td></tr>\
-                        <tr><th>空闲进程数量(idle processes)</th><td>" + rdata['idle processes'] + "</td></tr>\
-                        <tr><th>活跃进程数量(active processes)</th><td>" + rdata['active processes'] + "</td></tr>\
-                        <tr><th>总进程数量(total processes)</th><td>" + rdata['total processes'] + "</td></tr>\
-                        <tr><th>最大活跃进程数量(max active processes)</th><td>" + rdata['max active processes'] + "</td></tr>\
-                        <tr><th>到达进程上限次数(max children reached)</th><td>" + rdata['max children reached'] + "</td></tr>\
-                        <tr><th>慢请求数量(slow requests)</th><td>" + rdata['slow requests'] + "</td></tr>\
+                        <tr><th>" + pt('应用池(pool)') + "</th><td>" + rdata.pool + "</td></tr>\
+                        <tr><th>" + pt('进程管理方式(process manager)') + "</th><td>" + php_fpm_status + "</td></tr>\
+                        <tr><th>" + pt('启动日期(start time)') + "</th><td>" + rdata['start time'] + "</td></tr>\
+                        <tr><th>" + pt('请求数(accepted conn)') + "</th><td>" + rdata['accepted conn'] + "</td></tr>\
+                        <tr><th>" + pt('请求队列(listen queue)') + "</th><td>" + rdata['listen queue'] + "</td></tr>\
+                        <tr><th>" + pt('最大等待队列(max listen queue)') + "</th><td>" + rdata['max listen queue'] + "</td></tr>\
+                        <tr><th>" + pt('socket队列长度(listen queue len)') + "</th><td>" + rdata['listen queue len'] + "</td></tr>\
+                        <tr><th>" + pt('空闲进程数量(idle processes)') + "</th><td>" + rdata['idle processes'] + "</td></tr>\
+                        <tr><th>" + pt('活跃进程数量(active processes)') + "</th><td>" + rdata['active processes'] + "</td></tr>\
+                        <tr><th>" + pt('总进程数量(total processes)') + "</th><td>" + rdata['total processes'] + "</td></tr>\
+                        <tr><th>" + pt('最大活跃进程数量(max active processes)') + "</th><td>" + rdata['max active processes'] + "</td></tr>\
+                        <tr><th>" + pt('到达进程上限次数(max children reached)') + "</th><td>" + rdata['max children reached'] + "</td></tr>\
+                        <tr><th>" + pt('慢请求数量(slow requests)') + "</th><td>" + rdata['slow requests'] + "</td></tr>\
                     </table>\
                 </div>";
         $(".soft-man-con").html(con);
@@ -645,8 +645,8 @@ function disableFunc(version) {
             "</table></div>";
 
         con += '<ul class="help-info-text">\
-                    <li>在此处可以禁用指定函数的调用,以增强环境安全性!</li>\
-                    <li>强烈建议禁用如exec,system等危险函数!</li>\
+                    <li>' + pt('在此处可以禁用指定函数的调用,以增强环境安全性!') + '</li>\
+                    <li>' + pt('强烈建议禁用如exec,system等危险函数!') + '</li>\
                 </ul>';
 
         $(".soft-man-con").html(con);
@@ -756,7 +756,7 @@ function phpLibConfig(version){
             if (libs[i]['task'] == '-1' && libs[i].phpversions.indexOf(version) != -1) {
                 opt = '<a style="color:green;" href="javascript:messageBox();">' + pt('安装') + '</a>'
             } else if (libs[i]['task'] == '0' && libs[i].phpversions.indexOf(version) != -1) {
-                opt = '<a style="color:#C0C0C0;" href="javascript:messageBox();">等待安装...</a>'
+                opt = '<a style="color:#C0C0C0;" href="javascript:messageBox();">' + pt('等待安装...') + '</a>'
             } else if (libs[i].status) {
                 opt = '<a style="color:red;" href="javascript:uninstallPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">' + pt('卸载') + '</a>'
             } else {
@@ -789,7 +789,7 @@ function phpLibConfig(version){
             '</div>' +
             '<ul class="help-info-text c7 pull-left">\
                 <li>' + pt('请按实际需求安装扩展,不要安装不必要的PHP扩展,这会影响PHP执行效率,甚至出现异常') + '</li>\
-                <li>Redis扩展只允许在1个PHP版本中使用,安装到其它PHP版本请在[软件管理]重装Redis</li>\
+                <li>' + pt('Redis扩展只允许在1个PHP版本中使用,安装到其它PHP版本请在[软件管理]重装Redis') + '</li>\
                 <li>' + pt('opcache/xcache/apc等脚本缓存扩展,请只安装其中1个,否则可能导致您的站点程序异常') + '</li>\
                 <li>' + pt('ioncube要在ZendGuardLoader/opcache前安装,否则可能导致您的站点程序异常') + '</li>\
             </ul>';

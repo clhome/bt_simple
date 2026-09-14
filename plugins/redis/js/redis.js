@@ -58,7 +58,7 @@ function redisStatus(version) {
                             <tr><th>keyspace_hits</th><td>' + rdata.keyspace_hits + '</td><td>' + pt('查找数据库键成功的次数') + '</td></tr>\
                             <tr><th>keyspace_misses</th><td>' + rdata.keyspace_misses + '</td><td>' + pt('查找数据库键失败的次数') + '</td></tr>\
                             <tr><th>hit</th><td>' + hit + '%</td><td>' + pt('查找数据库键命中率') + '</td></tr>\
-                            <tr><th>latest_fork_usec</th><td>' + rdata.latest_fork_usec + '</td><td>最近一次 fork() 操作耗费的微秒数</td></tr>\
+                            <tr><th>latest_fork_usec</th><td>' + rdata.latest_fork_usec + '</td><td>' + pt('最近一次 fork() 操作耗费的微秒数') + '</td></tr>\
                         <tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -308,9 +308,9 @@ function redisReadme(){
         var cmd_02 = redis_bin_dir + '/redis-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1';
 
         var readme = '<ul class="help-info-text c7">';
-        readme += '<li style="margin-top: 10px;"><strong>💡 动态集群创建示例 1 (不带副本)：</strong></li>';
+        readme += '<li style="margin-top: 10px;"><strong>' + pt('💡 动态集群创建示例 1 (不带副本)：') + '</strong></li>';
         readme += '<li style="background-color: #f7f9fa; padding: 12px; border-radius: 6px; font-family: monospace; word-break: break-all; margin: 8px 0 16px 0; border: 1px solid #e1e4e6; color: #2c3e50; font-size: 13px; line-height: 1.5;">' + cmd_01 + '</li>';
-        readme += '<li><strong>💡 动态集群创建示例 2 (带 1 个副本)：</strong></li>';
+        readme += '<li><strong>' + pt('💡 动态集群创建示例 2 (带 1 个副本)：') + '</strong></li>';
         readme += '<li style="background-color: #f7f9fa; padding: 12px; border-radius: 6px; font-family: monospace; word-break: break-all; margin: 8px 0 8px 0; border: 1px solid #e1e4e6; color: #2c3e50; font-size: 13px; line-height: 1.5;">' + cmd_02 + '</li>';
         readme += '</ul>';
 

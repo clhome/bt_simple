@@ -239,7 +239,7 @@ resetPluginWinHeight(520);
         },
         install: function(version, url) {
             var _that = this;
-            var confirmTitle = pt('确认安装【{1}】？<br>将从国内镜像源后台下载并解压。').replace('{1}', version);
+            var confirmTitle = pt('确认安装【{1}】？').replace('{1}', version) + '<br>' + pt('将从国内镜像源后台下载并解压。');
             layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.tip) || t('public.tip', '提示') }, function (index) {
                 layer.close(index);
                 _that.send('install_jdk', { version: version, download_url: url }, function (res) {

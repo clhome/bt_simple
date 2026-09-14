@@ -383,11 +383,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:300px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -397,7 +397,7 @@ var html = '<div>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
-                    <span style="margin-left:10px">时段: </span>\
+                    <span style="margin-left:10px">' + pt('时段:') + ' </span>\
                     <div class="input-group" style="width:100px;margin-left:10px;display: inline-table;vertical-align: top;">\
                         <div id="time_order" class="input-group-btn btn-group-sm">\
                             <button data-name="hour" type="button" class="btn btn-default">' + pt('按时') + '</button>\
@@ -413,11 +413,11 @@ var html = '<div>\
                 <!-- stat --->\
                 <div class="overview_list" style="padding-top:10px;">\
                     <div class="overview_box">\
-                        <p class="ov_title">浏览量(PV)<i class="tips" data-toggle="tooltip" data-placement="top" title="用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。">?</i></p>\
+                        <p class="ov_title">' + pt('浏览量(PV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">访客量(UV)<i class="tips" data-toggle="tooltip" data-placement="top" title="访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。">?</i></p>\
+                        <p class="ov_title">' + pt('访客量(UV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
@@ -443,14 +443,14 @@ var html = '<div>\
                 </div>\
                 <div class="indicators">\
                     <div class="indicators-container">\
-                        <span>趋势指标: </span>\
+                        <span>' + pt('趋势指标:') + ' </span>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="pv">\
                             <input type="radio" id="check_pv" name="check_pv" checked="">\
-                            <span class="check_pv" style="font-weight:normal">浏览量(PV)</span>\
+                            <span class="check_pv" style="font-weight:normal">' + pt('浏览量(PV)') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="uv">\
                             <input type="radio" id="check_uv" name="check_uv">\
-                            <span class="check_uv" style="font-weight:normal">访客量(UV)</span>\
+                            <span class="check_uv" style="font-weight:normal">' + pt('访客量(UV)') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="ip">\
                             <input type="radio" id="check_ip" name="check_ip">\
@@ -458,7 +458,7 @@ var html = '<div>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="length">\
                             <input type="radio" id="check_length" name="check_length">\
-                            <span class="check_length" style="font-weight:normal">流量(KB)</span>\
+                            <span class="check_length" style="font-weight:normal">' + pt('流量(KB)') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="req">\
                             <input type="radio" id="check_req" name="check_req">\
@@ -910,11 +910,11 @@ var html = '<div>\
                 <!-- stat --->\
                 <div class="overview_list" style="padding-top:10px;">\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">总浏览量(PV)</p>\
+                        <p class="ov_title">' + pt('总浏览量(PV)') + '</p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">总访客量(UV)</p>\
+                        <p class="ov_title">' + pt('总访客量(UV)') + '</p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
@@ -1214,11 +1214,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -1610,11 +1610,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -1742,7 +1742,7 @@ function wsIpStatLogRequest(page){
                             <thead><tr>\
                             <th>' + pt('序号') + '</th>\
                             <th>IP</th>\
-                            <th>归属地(仅供参考)</th>\
+                            <th>' + pt('归属地(仅供参考)') + '</th>\
                             <th>' + pt('请求数') + '</th>\
                             <th>' + pt('流量') + '</th>\
                             <th>' + pt('流量占比图') + '</th>\
@@ -1763,11 +1763,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -1878,11 +1878,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -2040,11 +2040,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px;">状态码: </span>\
+                    <span style="margin-left:10px;">' + pt('状态码:') + ' </span>\
                     <select class="bt-input-text" name="status_code" style="margin-left:4px">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="50x">50x</option>\
@@ -2057,7 +2057,7 @@ var html = '<div>\
                         <option value="404">404</option>\
                         <option value="499">499</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -2332,11 +2332,11 @@ var randstr = getRandomString(10);
 
 var html = '<div>\
                 <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
+                    <span>' + pt('网站:') + ' </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
                         <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
-                    <span style="margin-left:10px">时间: </span>\
+                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                     <div class="input-group" style="margin-left:10px;width:550px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
                             <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -2348,7 +2348,7 @@ var html = '<div>\
                     </div>\
                 </div>\
                 <div style="padding-bottom:10px;">\
-                    <span>请求类型: </span>\
+                    <span>' + pt('请求类型:') + ' </span>\
                     <select class="bt-input-text" name="method" style="margin-left:4px">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="GET">GET</option>\
@@ -2357,7 +2357,7 @@ var html = '<div>\
                         <option value="PUT">PUT</option>\
                         <option value="DELETE">DELETE</option>\
                     </select>\
-                    <span style="margin-left:10px;">状态码: </span>\
+                    <span style="margin-left:10px;">' + pt('状态码:') + ' </span>\
                     <select class="bt-input-text" name="status_code" style="margin-left:4px">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="500">500</option>\
@@ -2372,13 +2372,13 @@ var html = '<div>\
                         <option value="206">206</option>\
                         <option value="200">200</option>\
                     </select>\
-                    <span style="margin-left:10px;">来源: </span>\
+                    <span style="margin-left:10px;">' + pt('来源:') + ' </span>\
                     <select class="bt-input-text" name="referer" style="margin-left:4px">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="-1">' + pt('无') + '</option>\
                         <option value="1">' + pt('有') + '</option>\
                     </select>\
-                    <span style="margin-left:10px;">蜘蛛过滤: </span>\
+                    <span style="margin-left:10px;">' + pt('蜘蛛过滤:') + ' </span>\
                     <select class="bt-input-text" name="spider_type" style="margin-left:4px">\
                         <option value="normal">' + pt('不过滤') + '</option>\
                         <option value="only_spider">' + pt('仅显示蜘蛛') + '</option>\
@@ -2402,7 +2402,7 @@ var html = '<div>\
                     </div>\
                 </div>\
                 <div style="padding-bottom:10px;">\
-                    <span>耗时: </span>\
+                    <span>' + pt('耗时:') + ' </span>\
                     <select class="bt-input-text" name="request_time" style="margin-left:5px;">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="0-50">0-50(ms)</option>\
@@ -2411,7 +2411,7 @@ var html = '<div>\
                         <option value="500-1000">500ms-1s</option>\
                         <option value="1000">' + pt('大于1s') + '</option>\
                     </select>\
-                    <span style="margin-left:10px;">大小: </span>\
+                    <span style="margin-left:10px;">' + pt('大小:') + ' </span>\
                     <select class="bt-input-text" name="request_size" style="margin-left:5px;">\
                         <option value="all">' + pt('所有') + '</option>\
                         <option value="0-1">0-1(kb)</option>\
@@ -2420,7 +2420,7 @@ var html = '<div>\
                         <option value="50-100">50-100(kb)</option>\
                         <option value="100">' + pt('大于100kb') + '</option>\
                     </select>\
-                    <span style="margin-left:10px;">URL过滤: </span>\
+                    <span style="margin-left:10px;">' + pt('URL过滤:') + ' </span>\
                     <div class="input-group" style="width:210px;display:inline-flex;">\
                         <input type="text" name="search_uri" class="form-control btn-group-sm" autocomplete="off" placeholder="URI搜索" style="font-size: 12px;padding: 0 10px;height:30px;">\
                         <div class="input-group-btn btn-group-sm">\

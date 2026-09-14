@@ -144,7 +144,7 @@ function myPerfOpt() {
         var queryCacheHtml = isMdb8 ? '' : '<p><span>query_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="query_cache_size" value="' + query_cache_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_query_cache_size + '</font></p>';
 
         var memCon = '<div class="conf_p" style="margin-bottom:0">\
-                        <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>最大使用内存: </b></span>\
+                        <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>' + pt('最大使用内存:') + ' </b></span>\
                         <select class="bt-input-text" name="mysql_set" style="margin-left:-4px">\
                             <option value="0">' + pt('请选择') + '</option>\
                             <option value="1">1-2GB</option>\
@@ -207,7 +207,7 @@ function setMySQLConf() {
         var setSize = parseInt($("input[name='memSize']").val());
         
         if(memSize < setSize){
-            var errMsg = "错误,内存分配过高!<p style='color:red;'>物理内存: {1}MB<br>最大使用内存: {2}MB<br>可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!";
+            var errMsg = "错误,内存分配过高!<p style='color:red;'>" + pt('物理内存: {1}MB') + "<br>" + pt('最大使用内存: {2}MB') + "<br>" + pt('可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!');
             var msg = errMsg.replace('{1}',memSize).replace('{2}',setSize);
             layer.msg(msg,{icon:2,time:5000});
             return;
@@ -784,7 +784,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">' + pt('您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?') + '</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.postAsync('del_db', arr[idx]);
@@ -976,7 +976,7 @@ function setLocalImport(db_name){
                     <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                     <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                     <span style="float:right;margin-top: 9px;">\
-                    <font>文件编码:</font>\
+                    <font>' + pt('文件编码:') + '</font>\
                     <select id="fileCodeing" >\
                         <option value="byte">' + pt('二进制') + '</option>\
                         <option value="utf-8">UTF-8</option>\
@@ -1064,7 +1064,7 @@ function setLocalImport(db_name){
                     </table>\
                     </div>\
                     <ul class="help-info-text c7">\
-                        <li>仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)</li>\
+                        <li>' + pt('仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)') + '</li>\
                         <li>' + pt('zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql') + '</li>\
                         <li>' + pt('若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import') + '</li>\
                     </ul>\
@@ -1593,8 +1593,8 @@ function repTools(db_name, res){
             shadeClose: false,
             content: '<div class="pd15">\
                             <div class="db_list">\
-                                <span><a>数据库名称：'+ db_name + '</a>\
-                                <a class="tools_size">大小：'+ rdata.data_size + '</a></span>\
+                                <span><a>' + pt('数据库名称：')+ db_name + '</a>\
+                                <a class="tools_size">' + pt('大小：')+ rdata.data_size + '</a></span>\
                                 <span id="db_tools" style="float: right;"></span>\
                             </div >\
                             <div class="divtable">\
@@ -2155,7 +2155,7 @@ function addSlaveSSH(ip=''){
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
                 <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>同步账户[DB]</span><div class='info-r'><input name='db_user'  placeholder='为空则取第一个!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('同步账户[DB]') + "</span><div class='info-r'><input name='db_user'  placeholder='为空则取第一个!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
@@ -2302,7 +2302,7 @@ function addSlaveSyncUser(ip=''){
                     </div>\
                 </div>\
                 <div class='line'>\
-                <span class='tname'>CMD[必填]</span>\
+                <span class='tname'>" + pt('CMD[必填]') + "</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='30' name='cmd' style='width:330px;height:150px;'></textarea></div>\
                 </div>\
                 <input type='hidden' name='mode' value='"+mode+"' />\
@@ -2701,7 +2701,7 @@ function masterOrSlaveConf(version=''){
 
             // <div id="databasePage_slave" class="dataTables_paginate paging_bootstrap page"></div>\
             // <div class="table_toolbar">\
-            //     <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveList()" title="">添加</span>\
+            //     <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveList()" title="">' + pt('添加') + '</span>\
             // </div>
             $(".table_slave_status_list").html(con);
 
@@ -2865,7 +2865,7 @@ function masterOrSlaveConf(version=''){
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Master[主]配置</span><span class="f14 c6 mr20"></span>\
+                    <span class="f14 c6 mr20">' + pt('Master[主]配置') + '</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
                     <button class="btn btn-success btn-xs" onclick="resetMaster()">' + pt('重置') + '</button>\
                 </p>\
@@ -2875,7 +2875,7 @@ function masterOrSlaveConf(version=''){
                 <hr/>\
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Slave[从]配置</span><span class="f14 c6 mr20"></span>\
+                    <span class="f14 c6 mr20">' + pt('Slave[从]配置') + '</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >' + pt('同步配置') + '</button>\
                     <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >' + pt('初始化') + '</button>\

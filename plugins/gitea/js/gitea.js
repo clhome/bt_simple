@@ -107,7 +107,7 @@ function gogsEdit(){
     api.post('gogs_edit_tpl',{} , function(data){
         // console.log(data);
         var rdata = JSON.parse(data.data);
-        var edit = '<p class="status">通用的手动编辑:</p>';
+        var edit = '<p class="status">' + pt('通用的手动编辑:') + '</p>';
         edit +='<div class="sfm-opt">\
                 <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+rdata['post_receive']+'\');">post-receive.tpl</button>\
                 <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+rdata['commit']+'\');">commit.tpl</button>\
@@ -146,7 +146,7 @@ function giteaUserList(page, search) {
         content += '<th>' + pt('序号') + '</th>';
         content += '<th>' + pt('用户或组织') + '</th>';
         content += '<th>' + pt('邮件地址') + '</th>';
-        content += '<th>操作(<a href="'+rdata['data']['root_url']+'" class="btlink" target="_blank">' + pt('WEB管理') + '</a>)</th>';
+        content += '<th>' + pt('操作(') + '<a href="'+rdata['data']['root_url']+'" class="btlink" target="_blank">' + pt('WEB管理') + '</a>)</th>';
         content += '</tr></thead>';
 
         content += '<tbody>';

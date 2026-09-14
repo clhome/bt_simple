@@ -35,11 +35,11 @@ function apaPostCallbak(method, version, args,callback){
 function apaReadme(){
     var readme = '<ul class="help-info-text c7">';
     readme += '<li>' + pt('ACME泛域名SSL申请/管理/HOOK') + '</li>';
-    readme += '<li>通过DNS验证获取SSL证书!</li>';
-    readme += '<li>HOOK: ssl发生变动时调用!</li>';
-    readme += '<li>暂时仅支持1000个域名管理!</li>';
+    readme += '<li>' + pt('通过DNS验证获取SSL证书!') + '</li>';
+    readme += '<li>' + pt('HOOK: ssl发生变动时调用!') + '</li>';
+    readme += '<li>' + pt('暂时仅支持1000个域名管理!') + '</li>';
     readme += '<li>' + pt('DNSAPI文档: https://github.com/acmesh-official/acme.sh/wiki/dnsapi') + '</li>';
-    readme += '<li>默认7天强制更新!</li>';
+    readme += '<li>' + pt('默认7天强制更新!') + '</li>';
 
     
     readme += '</ul>';

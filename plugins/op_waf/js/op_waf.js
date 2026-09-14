@@ -252,7 +252,7 @@ function setSafeVerify(auto, cpu, time, mode,siteName) {
                 </div>\
                 <ul class="help-info-text c7 ptb10">\
                     <li><font style="color:red;">' + pt('全局设置强制安全验证') + '</font></li>\
-                    <li>开启自动后:cpu超过['+cpu+'%]后，强制验证。</li>\
+                    <li>' + pt('开启自动后:cpu超过[')+cpu+'%]后，强制验证。</li>\
                 </ul>\
                 <div class="bt-form-submit-btn">\
                     <button type="button" class="btn btn-success btn-sm btn_sv_present">' + pt('应用') + '</button>\
@@ -1091,15 +1091,15 @@ function wafScreen(){
         
         con += '<div class="waf-top-cards">\
             <div class="waf-card-warning">\
-                <div class="waf-card-title">今日拦截 (次)</div>\
+                <div class="waf-card-title">' + pt('今日拦截 (次)') + '</div>\
                 <div class="waf-card-val">' + today_total + '</div>\
             </div>\
             <div class="waf-card-primary">\
-                <div class="waf-card-title">总拦截 (次)</div>\
+                <div class="waf-card-title">' + pt('总拦截 (次)') + '</div>\
                 <div class="waf-card-val">' + rdata.total + '</div>\
             </div>\
             <div class="waf-card-info">\
-                <div class="waf-card-title">安全防护 (天)</div>\
+                <div class="waf-card-title">' + pt('安全防护 (天)') + '</div>\
                 <div class="waf-card-val">' + cos_day + '</div>\
             </div>\
         </div>';
@@ -1121,7 +1121,7 @@ function wafScreen(){
 
         con += '<ul class="waf-help-list">\
             <li>' + pt('在此处关闭防火墙后，所有站点将失去保护') + '</li>\
-            <li>网站防火墙会使nginx有一定的性能损失（&lt;5% 10C静态并发测试结果）</li>\
+            <li>' + pt('网站防火墙会使nginx有一定的性能损失（&lt;5% 10C静态并发测试结果）') + '</li>\
             <li>' + pt('网站防火墙主要针对网站渗透攻击，暂时不具备系统加固功能') + '</li>\
         </ul></div>';
 
@@ -1253,7 +1253,7 @@ function wafGloabl(){
 
         con += '<div style="width:645px;margin-top:10px;"><ul class="help-info-text c7">\
             <li>' + pt('继承: 全局设置将在站点配置中自动继承为默认值') + '</li>\
-            <li>优先级: IP白名单>IP黑名单>URL白名单>URL黑名单>CC防御>User-Agent>URI过滤>URL参数>Cookie>POST</li>\
+            <li>' + pt('优先级: IP白名单>IP黑名单>URL白名单>URL黑名单>CC防御>User-Agent>URI过滤>URL参数>Cookie>POST') + '</li>\
             </ul></div>';
         $(".soft-man-con").html(con);
     });
@@ -1711,7 +1711,7 @@ function siteWafConfig(siteName, type) {
                     </div>\
                 </div>\
                 <ul class="help-info-text c7">\
-                    <li>注意: 此处大部分配置,仅对当前站点有效!</li>\
+                    <li>' + pt('注意: 此处大部分配置,仅对当前站点有效!') + '</li>\
                 </ul>\
             </div>';
         $("#s_w_c").html(con);
@@ -2116,11 +2116,11 @@ function wafLogs(site){
     var html = '<div>\
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
                     <div style="display: flex; align-items: center;">\
-                        <span>网站: </span>\
+                        <span>' + pt('网站:') + ' </span>\
                         <select class="bt-input-text" name="site" style="margin-left:4px;width:160px;">\
                             <option value="ALL">ALL</option>\
                         </select>\
-                        <span style="margin-left:10px">时间: </span>\
+                        <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                             <div id="search_time" class="input-group-btn btn-group-sm">\
                                 <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
@@ -2312,7 +2312,7 @@ function wafDropIpList() {
                     </tr>\
                 </thead>\
                 <tbody id="drop_ip_list_body">\
-                    <tr><td colspan="3" style="text-align:center;">正在加载数据...</td></tr>\
+                    <tr><td colspan="3" style="text-align:center;">' + pt('正在加载数据...') + '</td></tr>\
                 </tbody>\
             </table>\
         </div>\
@@ -2323,7 +2323,7 @@ function wafDropIpList() {
     api.post('getDropIpList', {}, function(res_raw) {
         var res = JSON.parse(res_raw.data);
         if (!res.status) {
-            $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center; color:red;">获取失败: ' + res.msg + '</td></tr>');
+            $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center; color:red;">' + pt('获取失败:') + ' ' + res.msg + '</td></tr>');
             return;
         }
 
@@ -2351,7 +2351,7 @@ function wafDropIpList() {
             if (locStr) {
                 locDisplay = locStr;
             } else {
-                locDisplay = '<span style="color:#999;">正在获取...</span>';
+                locDisplay = '<span style="color:#999;">' + pt('正在获取...') + '</span>';
                 pendingIps.push(ip);
             }
 

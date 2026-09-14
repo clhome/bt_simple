@@ -266,7 +266,7 @@ function createConTemplate() {
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname" style="height: auto;line-height: 20px;">' + pt('环境变量') + '<br>(每行一个)</span>\
+                            <span class="tname" style="height: auto;line-height: 20px;">' + pt('环境变量') + '<br>' + pt('(每行一个)') + '</span>\
                             <div class="info-r c4" style="margin-bottom: 0;">\
                                 <div class="type-volumes">\
                                     <textarea placeholder="Add variables format as following, one per line:\nJAVA_HOME=/usr/local/java8&#10;HOSTNAME=master" name="environments" class="docker-environments"></textarea>\
@@ -605,21 +605,21 @@ function dockerPullImagesFileTemplate() {
             '</div>' +
             '<div class="bt-form bt-docker-con">' +
                         '<div class="conter official_pull pd15"><div class="line">' +
-            '<span class="tname">镜像名称:</span>\
+            '<span class="tname">' + pt('镜像名称:') + '</span>\
                             <div class="info-r c4">\
                                 <input class="bt-input-text mr5" type="text" name="official_pull_name" style="width:218px" value="" placeholder="例如: cloudreve:latest">\
                                 <button type="button" class="btn btn-sm btn-success official_pull_btn">' + pt('获取') + '</button>\
                             </div>' +
             '</div><div id="pull_progress_log" style="margin-top:10px; font-size:12px; color:#666; max-height:150px; overflow-y:auto; line-height: 1.6;"></div></div>' +
             '<div class="conter public_pull pd15" style="display: none;"><div class="line">' +
-            '<span class="tname">镜像名:</span>\
+            '<span class="tname">' + pt('镜像名:') + '</span>\
                             <div class="info-r c4">\
                                 <input class="bt-input-text mr5" type="text" name="public_pull_path" style="width:218px" value="" placeholder="memcached:latest">\
                                 <button type="button" class="btn btn-sm btn-success public_pull_btn">' + pt('获取') + '</button>\
                             </div>' +
             '</div></div>' +
             '<div class="conter private_pull pd15" style="display: none;">' +
-            '<div class="line"><span class="tname">镜像地址:</span>\
+            '<div class="line"><span class="tname">' + pt('镜像地址:') + '</span>\
                                 <div class="info-r c4">\
                                     <input class="bt-input-text mr5" type="text" name="private_pull_path" style="width:218px" value="">\
                                     <button type="button" class="btn btn-sm btn-success private_pull_btn">' + pt('获取') + '</button>\
@@ -846,7 +846,7 @@ function uploadImageFiles(upload_dir) {
                 <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                 <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                 <span style="float:right;margin-top: 9px;">\
-                <font>文件编码:</font>\
+                <font>' + pt('文件编码:') + '</font>\
                 <select id="fileCodeing" >\
                     <option value="byte">' + pt('二进制') + '</option>\
                     <option value="utf-8">UTF-8</option>\
@@ -1412,11 +1412,11 @@ function conDetails(id) {
         '<tr><th>' + pt('IP 地址') + '</th><td>' + ipStr + '</td></tr>' +
         '<tr><th>' + pt('入口命令') + '</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmd + '</div></td></tr>' +
         '<tr><th>' + pt('资源限制') + '</th><td>' +
-            '<span class="label label-success" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px; margin-right:15px;"><i class="glyphicon glyphicon-tasks" style="margin-right:5px;"></i>内存限制: ' + memStr + '</span>' +
-            '<span class="label label-info" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px;"><i class="glyphicon glyphicon-dashboard" style="margin-right:5px;"></i>CPU配额: ' + cpuStr + '</span>' +
+            '<span class="label label-success" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px; margin-right:15px;"><i class="glyphicon glyphicon-tasks" style="margin-right:5px;"></i>' + pt('内存限制:') + ' ' + memStr + '</span>' +
+            '<span class="label label-info" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px;"><i class="glyphicon glyphicon-dashboard" style="margin-right:5px;"></i>' + pt('CPU配额:') + ' ' + cpuStr + '</span>' +
         '</td></tr>' +
         '<tr><th>' + pt('端口映射') + '</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
-        '<tr><th>' + pt('目录挂载') + '</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">' + pt('* 提示：此处展示了 Docker 底层全部真实挂载。出现的') + ' <code>/var/lib/docker/volumes/...</code> (匿名卷) 或 <code>/sys/...</code> ' + pt('是由于镜像原生要求或容器特权自动生成的挂载，并非错误。') + '</div></td></tr>' +
+        '<tr><th>' + pt('目录挂载') + '</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">' + pt('* 提示：此处展示了 Docker 底层全部真实挂载。出现的') + ' <code>/var/lib/docker/volumes/...</code> ' + pt('(匿名卷) 或') + ' <code>/sys/...</code> ' + pt('是由于镜像原生要求或容器特权自动生成的挂载，并非错误。') + '</div></td></tr>' +
         '</table>' +
     '</div>';
 
@@ -1510,7 +1510,7 @@ function dockerMigrate() {
         
         var req = rdata.data.required;
         var avail = rdata.data.available;
-        var msg = '当前Docker占用总空间为 <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到 ' + new_path + ' 吗？';
+        var msg = '当前Docker占用总空间为 <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>' + pt('迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到') + ' ' + new_path + ' 吗？';
         
         safeMessage(pt('确认迁移 Docker 目录'), msg, function() {
             var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });

@@ -124,31 +124,31 @@ function getHttpdStatus() {
             }
 
             var con = "<div><table class='table table-hover table-bordered'>\
-                            <tr><th>服务器版本(ServerVersion)</th><td>" + (rdata.ServerVersion || '-') + "</td></tr>\
-                            <tr><th>服务器MPM(ServerMPM)</th><td>" + (rdata.ServerMPM || '-') + "</td></tr>\
-                            <tr><th>服务器构建时间(Server Built)</th><td>" + (rdata['Server Built'] || '-') + "</td></tr>\
-                            <tr><th>当前时间(CurrentTime)</th><td>" + (rdata.CurrentTime || '-') + "</td></tr>\
-                            <tr><th>重启时间(RestartTime)</th><td>" + (rdata.RestartTime || '-') + "</td></tr>\
-                            <tr><th>服务器运行时间(ServerUptime)</th><td>" + (rdata.ServerUptime || '-') + "</td></tr>\
-                            <tr><th>服务器运行秒数(ServerUptimeSeconds)</th><td>" + (rdata.ServerUptimeSeconds || '-') + "</td></tr>\
-                            <tr><th>1分钟负载(Load1)</th><td>" + (rdata.Load1 || '-') + "</td></tr>\
-                            <tr><th>5分钟负载(Load5)</th><td>" + (rdata.Load5 || '-') + "</td></tr>\
-                            <tr><th>15分钟负载(Load15)</th><td>" + (rdata.Load15 || '-') + "</td></tr>\
-                            <tr><th>总访问次数(Total Accesses)</th><td>" + (rdata['Total Accesses'] || '-') + "</td></tr>\
-                            <tr><th>总流量(Total kBytes)</th><td>" + (rdata['Total kBytes'] || '-') + " KB</td></tr>\
-                            <tr><th>总请求时间(Total Duration)</th><td>" + (rdata['Total Duration'] || '-') + "</td></tr>\
-                            <tr><th>CPU用户时间(CPUUser)</th><td>" + (rdata.CPUUser || '-') + "</td></tr>\
-                            <tr><th>CPU系统时间(CPUSystem)</th><td>" + (rdata.CPUSystem || '-') + "</td></tr>\
-                            <tr><th>CPU负载(CPULoad)</th><td>" + (rdata.CPULoad || '-') + "</td></tr>\
-                            <tr><th>每秒请求数(ReqPerSec)</th><td>" + (rdata.ReqPerSec || '-') + "</td></tr>\
-                            <tr><th>每秒流量(BytesPerSec)</th><td>" + (rdata.BytesPerSec || '-') + "</td></tr>\
-                            <tr><th>每请求流量(BytesPerReq)</th><td>" + (rdata.BytesPerReq || '-') + "</td></tr>\
-                            <tr><th>每请求时间(DurationPerReq)</th><td>" + (rdata.DurationPerReq || '-') + "</td></tr>\
-                            <tr><th>活动工作进程(BusyWorkers)</th><td>" + (rdata.BusyWorkers || '-') + "</td></tr>\
-                            <tr><th>优雅关闭进程(GracefulWorkers)</th><td>" + (rdata.GracefulWorkers || '-') + "</td></tr>\
-                            <tr><th>空闲工作进程(IdleWorkers)</th><td>" + (rdata.IdleWorkers || '-') + "</td></tr>\
-                            <tr><th>进程数(Processes)</th><td>" + (rdata.Processes || '-') + "</td></tr>\
-                            <tr><th>总连接数(ConnsTotal)</th><td>" + (rdata.ConnsTotal || '-') + "</td></tr>\
+                            <tr><th>" + pt('服务器版本(ServerVersion)') + "</th><td>" + (rdata.ServerVersion || '-') + "</td></tr>\
+                            <tr><th>" + pt('服务器MPM(ServerMPM)') + "</th><td>" + (rdata.ServerMPM || '-') + "</td></tr>\
+                            <tr><th>" + pt('服务器构建时间(Server Built)') + "</th><td>" + (rdata['Server Built'] || '-') + "</td></tr>\
+                            <tr><th>" + pt('当前时间(CurrentTime)') + "</th><td>" + (rdata.CurrentTime || '-') + "</td></tr>\
+                            <tr><th>" + pt('重启时间(RestartTime)') + "</th><td>" + (rdata.RestartTime || '-') + "</td></tr>\
+                            <tr><th>" + pt('服务器运行时间(ServerUptime)') + "</th><td>" + (rdata.ServerUptime || '-') + "</td></tr>\
+                            <tr><th>" + pt('服务器运行秒数(ServerUptimeSeconds)') + "</th><td>" + (rdata.ServerUptimeSeconds || '-') + "</td></tr>\
+                            <tr><th>" + pt('1分钟负载(Load1)') + "</th><td>" + (rdata.Load1 || '-') + "</td></tr>\
+                            <tr><th>" + pt('5分钟负载(Load5)') + "</th><td>" + (rdata.Load5 || '-') + "</td></tr>\
+                            <tr><th>" + pt('15分钟负载(Load15)') + "</th><td>" + (rdata.Load15 || '-') + "</td></tr>\
+                            <tr><th>" + pt('总访问次数(Total Accesses)') + "</th><td>" + (rdata['Total Accesses'] || '-') + "</td></tr>\
+                            <tr><th>" + pt('总流量(Total kBytes)') + "</th><td>" + (rdata['Total kBytes'] || '-') + " KB</td></tr>\
+                            <tr><th>" + pt('总请求时间(Total Duration)') + "</th><td>" + (rdata['Total Duration'] || '-') + "</td></tr>\
+                            <tr><th>" + pt('CPU用户时间(CPUUser)') + "</th><td>" + (rdata.CPUUser || '-') + "</td></tr>\
+                            <tr><th>" + pt('CPU系统时间(CPUSystem)') + "</th><td>" + (rdata.CPUSystem || '-') + "</td></tr>\
+                            <tr><th>" + pt('CPU负载(CPULoad)') + "</th><td>" + (rdata.CPULoad || '-') + "</td></tr>\
+                            <tr><th>" + pt('每秒请求数(ReqPerSec)') + "</th><td>" + (rdata.ReqPerSec || '-') + "</td></tr>\
+                            <tr><th>" + pt('每秒流量(BytesPerSec)') + "</th><td>" + (rdata.BytesPerSec || '-') + "</td></tr>\
+                            <tr><th>" + pt('每请求流量(BytesPerReq)') + "</th><td>" + (rdata.BytesPerReq || '-') + "</td></tr>\
+                            <tr><th>" + pt('每请求时间(DurationPerReq)') + "</th><td>" + (rdata.DurationPerReq || '-') + "</td></tr>\
+                            <tr><th>" + pt('活动工作进程(BusyWorkers)') + "</th><td>" + (rdata.BusyWorkers || '-') + "</td></tr>\
+                            <tr><th>" + pt('优雅关闭进程(GracefulWorkers)') + "</th><td>" + (rdata.GracefulWorkers || '-') + "</td></tr>\
+                            <tr><th>" + pt('空闲工作进程(IdleWorkers)') + "</th><td>" + (rdata.IdleWorkers || '-') + "</td></tr>\
+                            <tr><th>" + pt('进程数(Processes)') + "</th><td>" + (rdata.Processes || '-') + "</td></tr>\
+                            <tr><th>" + pt('总连接数(ConnsTotal)') + "</th><td>" + (rdata.ConnsTotal || '-') + "</td></tr>\
                          </table></div>";
             $(".soft-man-con").html(con);
         }catch(err){

@@ -92,7 +92,7 @@ var yufeng_systemd = {
                     '<span class="tname">' + pt('配置模式') + '</span>' +
                     '<div class="info-r">' +
                         '<select class="bt-input-text mr5" name="mode" onchange="yufeng_systemd.toggle_mode(this.value)">' +
-                            '<option value="simple">极简向导模式 (推荐)</option>' +
+                            '<option value="simple">' + pt('极简向导模式 (推荐)') + '</option>' +
                             '<option value="advanced">' + pt('高级代码模式') + '</option>' +
                         '</select>' +
                         '<span class="c9" style="margin-left: 10px;">' + pt('无论哪种模式，底层均会强制接管并注入 YuFeng 标签') + '</span>' +
@@ -105,8 +105,8 @@ var yufeng_systemd = {
                         '<span class="tname">' + pt('运行用户') + '</span>' +
                         '<div class="info-r">' +
                             '<select class="bt-input-text" name="run_user">' +
-                                '<option value="www">www (推荐)</option>' +
-                                '<option value="root">root (最高权限，极不推荐Web服务使用)</option>' +
+                                '<option value="www">' + pt('www (推荐)') + '</option>' +
+                                '<option value="root">' + pt('root (最高权限，极不推荐Web服务使用)') + '</option>' +
                             '</select>' +
                         '</div>' +
                     '</div>' +
@@ -140,7 +140,7 @@ var yufeng_systemd = {
                         '<span class="tname">' + pt('服务配置') + '</span>' +
                         '<div class="info-r">' +
                             '<textarea name="service_content" class="bt-input-text" style="width: 440px; height: 290px; background:#222; color:#0f0; padding:10px; font-family: Consolas, monospace; line-height: 1.3;"></textarea>' +
-                            '<p class="c9 mt10">请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。</p>' +
+                            '<p class="c9 mt10">' + pt('请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。') + '</p>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +

@@ -27,7 +27,7 @@ function ftpList(page, search){
 
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
-        content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>当前FTP地址为：ftp://'+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
+        content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>' + pt('当前FTP地址为：ftp://')+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
         content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">' + pt('修改端口') + '</button></div>';
         content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
         content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">' + pt('查找') + '</button>';

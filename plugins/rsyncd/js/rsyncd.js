@@ -216,9 +216,9 @@ function createSendTask(name = ''){
                 $("select[name='delete']").on('change', function(){
                     if($(this).val() == 'true'){
                         var mpath = $('input[name="path"]').val();
-                        var msg = '<div><span style="color:orangered;">警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，'
-                            +'<br />请确认目录设置是否有误，一但设置错误，可能导致目标机器的目录文件被删除!</span>'
-                            +'<br /><br /> <span style="color:red;">注意： 同步程序将本机目录：'
+                        var msg = '<div><span style="color:orangered;">' + pt('警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，')
+                            +'<br />' + pt('请确认目录设置是否有误，一但设置错误，可能导致目标机器的目录文件被删除!') + '</span>'
+                            +'<br /><br /> <span style="color:red;">' + pt('注意： 同步程序将本机目录：')
                             +mpath+'的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!</span> <br /><br /> ' + pt('已了解风险，请按确定继续') + '</div>';
 
                         layer.confirm(msg,{title: pt('数据安全风险警告'),icon:2,closeBtn: 1,shift: 5,
@@ -482,7 +482,7 @@ function lsyncdSend(){
 
         con += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         con += '<thead><tr>';
-        con += '<th>名称(标识)</th>';
+        con += '<th>' + pt('名称(标识)') + '</th>';
         con += '<th>' + pt('源目录') + '</th>';
         con += '<th>' + pt('同步到') + '</th>';
         con += '<th>' + pt('模式') + '</th>';
@@ -572,7 +572,7 @@ function rsyncdReceive(){
         con += '<th>' + pt('服务名') + '</th>';
         con += '<th>' + pt('路径') + '</th>';
         con += '<th>' + pt('备注') + '</th>';
-        con += '<th>操作(<a class="btlink" onclick="addReceive()">' + pt('添加') + '</a>)</th>';
+        con += '<th>' + pt('操作(') + '<a class="btlink" onclick="addReceive()">' + pt('添加') + '</a>)</th>';
         con += '</tr></thead>';
 
         con += '<tbody>';
@@ -709,7 +709,7 @@ function cmdRecCmd(name){
 
 function rsRead(){
 	var readme = '<ul class="help-info-text c7">';
-    readme += '<li>如需将其他服务器数据同步到本地服务器，请在接受配置中 "创建接收任务" </li>';
+    readme += '<li>' + pt('如需将其他服务器数据同步到本地服务器，请在接受配置中 "创建接收任务"') + ' </li>';
     readme += '<li>' + pt('如果开启防火墙,需要放行873端口') + '</li>';
     readme += '</ul>';
 

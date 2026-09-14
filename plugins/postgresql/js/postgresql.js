@@ -517,7 +517,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">' + pt('您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?') + '</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.postAsync('del_db', arr[idx]);
@@ -593,7 +593,7 @@ function uploadDbFiles(upload_dir, callback){
                 <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                 <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                 <span style="float:right;margin-top: 9px;">\
-                <font>文件编码:</font>\
+                <font>' + pt('文件编码:') + '</font>\
                 <select id="fileCodeing" >\
                     <option value="byte">' + pt('二进制') + '</option>\
                     <option value="utf-8">UTF-8</option>\
@@ -1335,7 +1335,7 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>主[服务]</th>\
+                        <th>' + pt('主[服务]') + '</th>\
                         <th>' + pt('端口') + '</th>\
                         <th>' + pt('用户') + '</th>\
                         <th>' + pt('日志') + '</th>\
@@ -1369,16 +1369,16 @@ function masterOrSlaveConf(version=''){
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Master[主]配置</span><span class="f14 c6 mr20"></span>\
+                    <span class="f14 c6 mr20">' + pt('Master[主]配置') + '</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getMasterRepSlaveListPage()" >' + pt('同步账户') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">Slave[从]配置</span><span class="f14 c6 mr20"></span>\
+                    <span class="f14 c6 mr20">' + pt('Slave[从]配置') + '</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
-                    <button class="btn btn-success btn-xs" onclick="getSlaveSSHList()" >[主]SSH配置</button>\
+                    <button class="btn btn-success btn-xs" onclick="getSlaveSSHList()" >' + pt('[主]SSH配置') + '</button>\
                     <button class="btn btn-success btn-xs" onclick="slaveSyncCmd()" >' + pt('同步命令') + '</button>\
                 </p>\
                 <hr/>\
