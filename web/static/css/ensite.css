@@ -4720,3 +4720,213 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     border-radius: var(--radius-sm, 4px) !important;
     box-sizing: border-box;
 }
+
+/* =========================================================
+   【公共组件模块】重启/修复服务器 现代轻拟态风格 (Soft UI / Neumorphism)
+   ========================================================= */
+.rebt-con {
+    padding: 18px 22px 20px !important;
+    background: #f8fafc !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+}
+
+/* 拟态操作条目卡片 */
+.rebt-btn-item {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 54px !important;
+    margin-bottom: 12px !important;
+    padding: 0 16px !important;
+    background: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.95) !important;
+    border-radius: 12px !important;
+    box-shadow: 4px 4px 10px rgba(148, 163, 184, 0.16), -4px -4px 10px #ffffff !important;
+    text-decoration: none !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+    transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    position: relative !important;
+}
+
+/* Hover 状态：拟态内凹陷落反馈与主题微光边框 */
+.rebt-btn-item:hover {
+    box-shadow: inset 3px 3px 6px rgba(148, 163, 184, 0.18), inset -3px -3px 6px #ffffff !important;
+    transform: translateY(-1px) !important;
+    text-decoration: none !important;
+    color: #1e293b !important;
+}
+
+/* 各类型专属微光描边 */
+.rebt-btn-item.rebt-server:hover {
+    border-color: rgba(239, 68, 68, 0.45) !important;
+}
+.rebt-btn-item.rebt-panel:hover {
+    border-color: rgba(245, 158, 11, 0.45) !important;
+}
+.rebt-btn-item.rebt-repair:hover {
+    border-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+/* Active 状态：真实物理机械按压下沉反馈 */
+.rebt-btn-item:active {
+    box-shadow: inset 4px 4px 8px rgba(148, 163, 184, 0.28), inset -4px -4px 8px #ffffff !important;
+    transform: scale(0.985) !important;
+}
+
+/* 拟态图标底座托盘 */
+.rebt-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    background: #f1f5f9 !important;
+    box-shadow: inset 2px 2px 4px rgba(148, 163, 184, 0.2), inset -2px -2px 4px #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    font-size: 15px !important;
+    transition: transform 0.2s ease !important;
+}
+
+.rebt-btn-item:hover .rebt-icon-wrapper {
+    transform: scale(1.05) !important;
+}
+
+/* 图标主题色彩 */
+.rebt-server .rebt-icon-wrapper {
+    color: #ef4444 !important;
+}
+.rebt-panel .rebt-icon-wrapper {
+    color: #f59e0b !important;
+}
+.rebt-repair .rebt-icon-wrapper {
+    color: #3b82f6 !important;
+}
+
+/* 操作文本主体 */
+.rebt-btn-text {
+    flex: 1 !important;
+    margin-left: 14px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    letter-spacing: 0.2px !important;
+}
+
+/* 右侧指示小箭头 */
+.rebt-btn-arrow {
+    color: #94a3b8 !important;
+    font-size: 13px !important;
+    transition: transform 0.2s ease, color 0.2s ease !important;
+}
+
+.rebt-btn-item:hover .rebt-btn-arrow {
+    transform: translateX(3px) !important;
+    color: #64748b !important;
+}
+
+/* 底部柔和轻拟态警示卡片 */
+.rebt-warning-box {
+    display: flex !important;
+    align-items: center !important;
+    margin-top: 10px !important;
+    padding: 10px 14px !important;
+    background: rgba(254, 242, 242, 0.85) !important;
+    border: 1px solid rgba(252, 165, 165, 0.5) !important;
+    border-radius: 10px !important;
+    box-shadow: inset 1px 1px 3px rgba(239, 68, 68, 0.08), inset -1px -1px 3px #ffffff !important;
+    box-sizing: border-box !important;
+}
+
+.rebt-warning-icon {
+    color: #ef4444 !important;
+    font-size: 14px !important;
+    margin-right: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+.rebt-warning-text {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #b91c1c !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+}
+
+/* 安全重启弹窗拟态化适配 */
+.bt-window-restart {
+    background: #f8fafc !important;
+    padding: 6px !important;
+}
+
+.bt-window-restart .SafeRestart {
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 14px 18px !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: inset 2px 2px 5px rgba(148, 163, 184, 0.12), inset -2px -2px 5px #ffffff !important;
+    margin-top: 10px !important;
+}
+
+.bt-window-restart .SafeRestart p {
+    margin: 4px 0 !important;
+    color: #475569 !important;
+    font-size: 13px !important;
+}
+
+.bt-window-restart .bt-form-submit-btn {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+    padding: 12px 18px 16px !important;
+    background: transparent !important;
+    border-top: none !important;
+}
+
+.bt-window-restart .btn-neu-cancel {
+    padding: 7px 20px !important;
+    border-radius: 8px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid rgba(203, 213, 225, 0.8) !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    box-shadow: 2px 2px 6px rgba(148, 163, 184, 0.15), -2px -2px 6px #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+
+.bt-window-restart .btn-neu-cancel:hover {
+    background: #e2e8f0 !important;
+    color: #334155 !important;
+    box-shadow: inset 1px 1px 3px rgba(148, 163, 184, 0.2), inset -1px -1px 3px #ffffff !important;
+}
+
+.bt-window-restart .btn-neu-confirm {
+    padding: 7px 22px !important;
+    border-radius: 8px !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: 1px solid #059669 !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.bt-window-restart .btn-neu-confirm:hover {
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.45) !important;
+    transform: translateY(-1px) !important;
+}
+
+.bt-window-restart .btn-neu-confirm:active {
+    transform: scale(0.97) !important;
+}
+

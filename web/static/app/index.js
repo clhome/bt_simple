@@ -877,30 +877,63 @@ function pluginIndexService(pname,pfunc, callback){
 
 //重启服务器
 function reBoot() {
+    var title = t('index.reboot_server_title', '重启/修复 服务器');
+    var btnServer = t('index.reboot_server', '重启服务器');
+    var btnPanel = t('index.reboot_panel', '重启面板');
+    var btnRepair = t('index.reboot_repair_btn', '修复服务器');
+    var repairTip = t('index.reboot_repair_tip', '注意：修复服务器会覆盖安装bt_simple面板');
+
+    var contentHtml = '<div class="rebt-con">\
+        <a data-id="panel" class="rebt-btn-item rebt-panel btn-reboot-panel" href="javascript:;" title="' + btnPanel + '">\
+            <div class="rebt-icon-wrapper">\
+                <span class="glyphicon glyphicon-refresh"></span>\
+            </div>\
+            <span class="rebt-btn-text">' + btnPanel + '</span>\
+            <span class="rebt-btn-arrow glyphicon glyphicon-chevron-right"></span>\
+        </a>\
+        <a data-id="server" class="rebt-btn-item rebt-server btn-reboot-server" href="javascript:;" title="' + btnServer + '">\
+            <div class="rebt-icon-wrapper">\
+                <span class="glyphicon glyphicon-off"></span>\
+            </div>\
+            <span class="rebt-btn-text">' + btnServer + '</span>\
+            <span class="rebt-btn-arrow glyphicon glyphicon-chevron-right"></span>\
+        </a>\
+        <a data-id="repair" class="rebt-btn-item rebt-repair btn-reboot-repair" href="javascript:;" title="' + btnRepair + '">\
+            <div class="rebt-icon-wrapper">\
+                <span class="glyphicon glyphicon-wrench"></span>\
+            </div>\
+            <span class="rebt-btn-text">' + btnRepair + '</span>\
+            <span class="rebt-btn-arrow glyphicon glyphicon-chevron-right"></span>\
+        </a>\
+        <div class="rebt-warning-box">\
+            <span class="glyphicon glyphicon-alert rebt-warning-icon"></span>\
+            <span class="rebt-warning-text">' + repairTip + '</span>\
+        </div>\
+    </div>';
+
     layer.open({
         type: 1,
-        title: (lan?.index?.reboot_server_title || '重启/修复 服务器'),
-        area: ['350px', '250px'],
+        title: title,
+        area: ['420px', 'auto'],
         closeBtn: 1,
         shadeClose: false,
-        content: '<div class="rebt-con">\
-                <div class="rebt-li"><a data-id="server" class="btn-reboot-server" href="javascript:;"><span class="glyphicon glyphicon-off" style="margin-right: 5px;"></span>重启服务器</a></div>\
-                <div class="rebt-li"><a data-id="panel" class="btn-reboot-panel" href="javascript:;"><span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>重启面板</a></div>\
-                <div class="rebt-li"><a data-id="repair" class="btn-reboot-repair" href="javascript:;"><span class="glyphicon glyphicon-wrench" style="margin-right: 5px;"></span>修复服务器</a></div>\
-                <div style="color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;">注意：修复服务器会覆盖安装bt_simple面板</div>\
-            </div>'
+        content: contentHtml
     });
 
     $('.rebt-con a').on('click', function () {
         var type = $(this).attr('data-id');
         switch (type) {
             case 'panel':
-                layer.confirm('即将重启面板服务，继续吗？', { title: '重启面板服务', closeBtn: 1, icon: 3 }, function () {
+                var panelConfirmTitle = t('index.reboot_panel_title', '重启面板服务');
+                var panelConfirmMsg = t('index.reboot_panel_confirm', '即将重启面板服务，继续吗？');
+                layer.confirm(panelConfirmMsg, { title: panelConfirmTitle, closeBtn: 1, icon: 3 }, function () {
                     var loadT = layer.load();
-                    $.post('/system/restart','',function (rdata) {
+                    $.post('/system/restart', '', function (rdata) {
                         layer.close(loadT);
                         var count = 10;
-                        var msgBox = layer.msg('面板正在重启中，请等待... <span id="restart-countdown">' + count + '</span> 秒', { icon: 16, time: 0, shade: [0.3, '#000'] });
+                        var waitTpl = t('index.reboot_panel_wait_msg', '面板正在重启中，请等待... <span id="restart-countdown">{1}</span> 秒');
+                        var initialMsg = waitTpl.replace('{1}', count);
+                        var msgBox = layer.msg(initialMsg, { icon: 16, time: 0, shade: [0.3, '#000'] });
                         var timer = setInterval(function() {
                             count--;
                             if (count <= 0) {
@@ -911,75 +944,102 @@ function reBoot() {
                                 $('#restart-countdown').text(count);
                             }
                         }, 1000);
-                    },'json');
+                    }, 'json');
                 });
                 break;
             case 'repair':
-                layer.confirm('确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。', { title: '修复服务器', closeBtn: 1, icon: 3 }, function () {
+                var repairDialogTitle = t('index.reboot_repair_dialog_title', '修复服务器');
+                var repairConfirmMsg = t('index.reboot_repair_confirm', '确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。');
+                var repairBadge = t('index.reboot_repair_badge', '系统修复');
+                var repairPreparing = t('index.reboot_repair_preparing', '正在准备修复系统核心文件...');
+                layer.confirm(repairConfirmMsg, { title: repairDialogTitle, closeBtn: 1, icon: 3 }, function () {
                     var version = $("#version").text();
-                    showUpdateUI(version, '<span class="badge badge-inverse">系统修复 ['+version+']</span>', '正在准备修复系统核心文件...');
+                    showUpdateUI(version, '<span class="badge badge-inverse">' + repairBadge + ' [' + version + ']</span>', repairPreparing);
                 });
                 break;
             case 'server':
+                var safeTitle = t('index.reboot_server_safe_title', '安全重启服务器');
+                var containerTip = t('index.reboot_server_container_tip', '注意：若您的服务器是一个容器，请取消。');
+                var safeDesc = t('index.reboot_server_safe_desc', '安全重启有利于保障文件安全，将执行以下操作：');
+                var step1 = t('index.reboot_step_stop_web', '1. 停止Web服务');
+                var step2 = t('index.reboot_step_stop_mysql', '2. 停止MySQL服务');
+                var step3 = t('index.reboot_step_reboot_server', '3. 开始重启服务器');
+                var step4 = t('index.reboot_step_wait_server', '4. 等待服务器启动');
+                var cancelText = t('public.cancel', '取消');
+                var confirmText = t('public.confirm', '确定');
+
+                var serverContent = "<div class='bt-form bt-window-restart'>\
+                        <div class='pd15'>\
+                            <div class='rebt-warning-box' style='margin-top:0; margin-bottom:12px;'>\
+                                <span class='glyphicon glyphicon-alert rebt-warning-icon'></span>\
+                                <span class='rebt-warning-text'>" + containerTip + "</span>\
+                            </div>\
+                            <div class='SafeRestart' style='line-height:26px'>\
+                                <p style='font-weight:600; margin-bottom:6px; color:#334155;'>" + safeDesc + "</p>\
+                                <p>" + step1 + "</p>\
+                                <p>" + step2 + "</p>\
+                                <p>" + step3 + "</p>\
+                                <p>" + step4 + "</p>\
+                            </div>\
+                        </div>\
+                        <div class='bt-form-submit-btn'>\
+                            <button type='button' class='btn btn-sm btn-neu-cancel btn-reboot'>" + cancelText + "</button>\
+                            <button type='button' class='btn btn-sm btn-neu-confirm WSafeRestart'>" + confirmText + "</button>\
+                        </div>\
+                    </div>";
+
                 var rebootbox = layer.open({
                     type: 1,
-                    title: '安全重启服务器',
-                    area: ['500px', '280px'],
+                    title: safeTitle,
+                    area: ['480px', 'auto'],
                     closeBtn: 1,
                     shadeClose: false,
-                    content: "<div class='bt-form bt-window-restart'>\
-                            <div class='pd15'>\
-                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>\
-                            <div class='SafeRestart' style='line-height:26px'>\
-                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>\
-                                <p>1.停止Web服务</p>\
-                                <p>2.停止MySQL服务</p>\
-                                <p>3.开始重启服务器</p>\
-                                <p>4.等待服务器启动</p>\
-                            </div>\
-                            </div>\
-                            <div class='bt-form-submit-btn'>\
-                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>\
-                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>\
-                            </div>\
-                        </div>"
+                    content: serverContent
                 });
+
+                var statusStopWeb = t('index.reboot_status_stopping_web', '正在停止Web服务...');
+                var statusStopMysql = t('index.reboot_status_stopping_mysql', '正在停止MySQL服务...');
+                var statusStartReboot = t('index.reboot_status_starting_reboot', '开始重启服务器...');
+                var statusWaitStart = t('index.reboot_status_waiting_start', '等待服务器启动...');
+                var statusSuccess = t('index.reboot_status_success', '服务器重启成功!...');
+
                 setTimeout(function () {
                     $(".btn-reboot").on('click', function () {
-                        rebootbox.close();
-                    })
+                        layer.close(rebootbox);
+                    });
                     $(".WSafeRestart").on('click', function () {
                         var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
                         $(".bt-window-restart").html(body);
-                        $(".SafeRestartCode").append("<p>正在停止Web服务</p>");
+                        $(".SafeRestartCode").append("<p>" + statusStopWeb + "</p>");
                         pluginIndexService('openresty', 'stop', function (r1) {
                             $(".SafeRestartCode p").addClass('c9');
-                            $(".SafeRestartCode").append("<p>正在停止MySQL服务...</p>");
-                            pluginIndexService('mysql','stop', function (r2) {
+                            $(".SafeRestartCode").append("<p>" + statusStopMysql + "</p>");
+                            pluginIndexService('mysql', 'stop', function (r2) {
                                 $(".SafeRestartCode p").addClass('c9');
-                                $(".SafeRestartCode").append("<p>开始重启服务器...</p>");
-                                $.post('/system/restart_server', '',function (rdata) {
+                                $(".SafeRestartCode").append("<p>" + statusStartReboot + "</p>");
+                                $.post('/system/restart_server', '', function (rdata) {
                                     $(".SafeRestartCode p").addClass('c9');
-                                    $(".SafeRestartCode").append("<p>等待服务器启动...</p>");
+                                    $(".SafeRestartCode").append("<p>" + statusWaitStart + "</p>");
                                     var sEver = setInterval(function () {
-                                       $.get("/system/system_total", function(info) {
+                                        $.get("/system/system_total", function (info) {
                                             clearInterval(sEver);
                                             $(".SafeRestartCode p").addClass('c9');
-                                            $(".SafeRestartCode").append("<p>服务器重启成功!...</p>");
+                                            $(".SafeRestartCode").append("<p>" + statusSuccess + "</p>");
                                             setTimeout(function () {
                                                 layer.closeAll();
                                             }, 3000);
-                                        })
+                                        });
                                     }, 3000);
-                                })
-                            })
-                        })
-                    })
+                                });
+                            });
+                        });
+                    });
                 }, 100);
                 break;
         }
     });
 }
+
 
 //修复面板
 function repPanel() {

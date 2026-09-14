@@ -816,8 +816,11 @@
   - 增强 `getPort`、`getHomePage` 与 `pluginsDbSupport` 的异常容错与全局降级，确保永远返回合法 JSON。
 - [x] 382. 编写专项自动化测试验证 `pluginsDbSupport` 在 `server_ip=None` 场景下的可靠性并回归全量测试。
 
+## 重启/修复服务器多语言支持与拟态风格样式重构
 
-
-
-
-
+- [x] 383. 扩充并对齐 6 国语言词典（`template.index.json`、`lan.js`、`template.json` 与 `i18n.js`）：补齐重启/修复主弹窗、确认框、等待提示及安全重启流程等全部 23 个标准多语言键值。
+- [x] 384. 在 `web/static/css/site.css` 与 `web/static/css/ensite.css` 中注入拟态实体按键及配套样式规则（`.rebt-con`、`.rebt-btn-item`、`.rebt-icon-wrapper`、`.rebt-warning-box`、步骤卡片与拟态按钮）。
+- [x] 385. 重构 `web/static/app/index.js` 中的 `reBoot` 函数及相关回调：全面接入 `t()` 动态多语言渲染，升级为轻拟态实体按键与柔和警示条 DOM 结构，消除全部硬编码中文。
+- [x] 386. 编写专项自动化测试套件（`test/test_reboot_modal_i18n_style.py`），验证 6 国语言词条完整性、JS/JSON 语法零错误及 CSS 规则对齐。
+- [x] 387. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+- [x] 388. 调整重启/修复服务器弹窗按键排布顺序：将高频轻量的“重启面板”调整至首位，系统级“重启服务器”置于第二位，保持更佳的操作便利性与防误触安全体验。
