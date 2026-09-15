@@ -2495,26 +2495,59 @@ def setDbMasterAccess():
     data = checkArgs(args, ['username', 'access'])
     if not data[0]:
         return data[1]
-    username = args['username']
-    access = args['access']
+    username = args['username'].strip()
+    access = args['access'].strip()
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
-    password = psdb.where("username=?", (username,)).getField('password')
-    users = pdb.query("select Host from mysql.user where User='" +
-                      username + "' AND Host!='localhost'")
-    for us in users:
-        pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
 
-    dbname = '*'
-    for a in access.split(','):
-        pdb.execute(
-            "CREATE USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, password))
-        pdb.execute(
-            "grant all privileges on %s.* to `%s`@`%s`" % (dbname, username, a))
+    try:
+        user_info = psdb.where("username=?", (username,)).find()
+        if not user_info:
+            return yf.returnJson(False, '主从复制用户[' + username + ']不存在!')
 
-    pdb.execute("flush privileges")
-    psdb.where('username=?', (username,)).save('accept', (access,))
-    return yf.returnJson(True, '设置成功!')
+        password = user_info.get('password') or ''
+        if not password:
+            return yf.returnJson(False, '主从复制用户[' + username + ']密码为空!')
+
+        safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
+
+        users = pdb.query("select Host from mysql.user where User='" +
+                          username + "' AND Host!='localhost'")
+        err = checkSqlExec(users)
+        if err is not None:
+            return err
+
+        if isinstance(users, list):
+            for us in users:
+                h = us.get("Host") if isinstance(us, dict) else us[0]
+                pdb.execute("drop user '" + username + "'@'" + str(h) + "'")
+
+        target_hosts = []
+        for a in access.split(','):
+            a = a.strip()
+            if a and a not in target_hosts:
+                target_hosts.append(a)
+
+        if not target_hosts:
+            target_hosts = ['127.0.0.1']
+
+        for a in target_hosts:
+            r_create = pdb.execute(
+                "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+            if checkSqlExec(r_create) is not None:
+                pdb.execute(
+                    "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+            r_grant = pdb.execute(
+                "grant all privileges on *.* to `%s`@`%s` with grant option" % (username, a))
+            err_grant = checkSqlExec(r_grant)
+            if err_grant is not None:
+                return err_grant
+
+        pdb.execute("flush privileges")
+        psdb.where('username=?', (username,)).setField('accept', access)
+        return yf.returnJson(True, '设置成功!')
+    except Exception as ex:
+        return yf.returnJson(False, '设置复制用户权限异常: ' + str(ex))
 
 
 def resetMaster(version=''):
@@ -4240,6 +4273,11 @@ def fullSync(version=''):
 
 
 def installPreInspection(version):
+    # 互斥检查：MariaDB 已安装时不允许同时安装 MySQL
+    mariadb_path = yf.getServerDir() + "/mariadb"
+    if os.path.exists(mariadb_path) and os.path.exists(mariadb_path + "/bin"):
+        return "检测到 MariaDB 已安装，MySQL 与 MariaDB 不能同时共存，请先卸载 MariaDB 再安装 MySQL！"
+
     import psutil
     mem = psutil.virtual_memory()
     memTotal = mem.total

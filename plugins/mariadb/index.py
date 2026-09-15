@@ -3593,6 +3593,11 @@ def doFullSyncSSH(version=''):
 
 
 def installPreInspection(version):
+    # 互斥检查：MySQL 已安装时不允许同时安装 MariaDB
+    mysql_path = yf.getServerDir() + "/mysql"
+    if os.path.exists(mysql_path) and os.path.exists(mysql_path + "/bin"):
+        return "检测到 MySQL 已安装，MariaDB 与 MySQL 不能同时共存，请先卸载 MySQL 再安装 MariaDB！"
+
     swap_path = yf.getServerDir() + "/swap"
     if not os.path.exists(swap_path):
         return "为了稳定安装MariaDB,先安装swap插件!"

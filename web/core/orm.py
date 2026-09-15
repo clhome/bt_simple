@@ -184,7 +184,10 @@ class ORM:
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            result = self.__DB_CUR.execute(sql, params or ())
+            if params:
+                result = self.__DB_CUR.execute(sql, params)
+            else:
+                result = self.__DB_CUR.execute(sql)
             self.__DB_CONN.commit()
             return result
         except Exception as ex:
@@ -211,7 +214,10 @@ class ORM:
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            self.__DB_CUR.execute(sql, params or ())
+            if params:
+                self.__DB_CUR.execute(sql, params)
+            else:
+                self.__DB_CUR.execute(sql)
             result = self.__DB_CUR.fetchall()
             # print(result)
             # 将元组转换成列表

@@ -858,3 +858,11 @@
 - [x] 396. 优化底层 `__createUser` 辅助函数：增加数据库名反引号包裹与用户已存在时的容错机制。
 - [x] 397. 编写专项自动化测试套件（`test/test_mariadb_set_db_access.py`），覆盖普通用户、ROOT 用户在各种权限下的回显、字面量无泄漏、参数组装、SQL 语法反引号包裹与异常处理验证。
 - [x] 398. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+
+## MySQL/MariaDB修改访问权限报not enough arguments for format string缺陷修复与加固
+
+- [x] 399. 修复底层 ORM（`web/core/orm.py`）中 `execute` 和 `query` 方法的空参数判定机制：仅在 `params` 存在且非空时传递实参给底层 PyMySQL 游标，彻底避免 `params or ()` 传递空元组导致 PyMySQL 误触发 `%` 占位符字符串格式化引发 `TypeError: not enough arguments for format string`。
+- [x] 400. 加固 `plugins/mysql/index.py` 中 `setDbMasterAccess` 复制用户权限配置：补齐反引号包裹、密码转义、`CREATE USER IF NOT EXISTS` / `ALTER USER` 兼容与 `checkSqlExec` 状态检查。
+- [x] 401. 扩展自动化测试套件（`test/test_mysql_set_db_access.py`）：增加对包含 `%` 通配符的 SQL 语句在 ORM/PyMySQL 真实环境下的执行测试，验证无参数、空参数元组、空列表、非空参数下的执行稳定性；端到端验证权限设置为所有人（`%`）时不再抛错。
+- [x] 402. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时排查文件。
+
