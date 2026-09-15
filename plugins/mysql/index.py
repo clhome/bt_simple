@@ -1395,6 +1395,15 @@ def importDbExternal():
     log_lines.append("==================================================")
     full_log = "\n".join(log_lines)
 
+    # 持久化最近一次导入日志
+    try:
+        log_dir = os.path.join(import_dir, '.logs')
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+        yf.writeFile(os.path.join(log_dir, file + '.log'), full_log)
+    except Exception:
+        pass
+
     msg = '导入成功!' if is_success else '导入失败或存在异常!'
     return yf.returnJson(is_success, msg, {'log': full_log, 'exit_code': returncode, 'has_error': not is_success})
 
@@ -1407,9 +1416,29 @@ def importDbExternalProgress():
     file = args['file']
     name = args['name']
 
-    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && '
-    cmd += 'python3 '+yf.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_external_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
-    return yf.returnJson(True, 'ok',cmd)
+    import_dir = (yf.getBackupDir() if hasattr(yf, 'getBackupDir') else yf.getFatherDir() + '/backup') + '/import/'
+    log_dir = os.path.join(import_dir, '.logs')
+    log_file = os.path.join(log_dir, file + '.log')
+
+    if os.path.exists(log_file):
+        content = yf.readFile(log_file)
+        if content and content.strip():
+            return yf.returnJson(True, 'ok', {'log': content, 'has_log': True})
+
+    # 无记录时的友好提示
+    file_path = os.path.join(import_dir, file)
+    file_size_str = yf.toSize(os.path.getsize(file_path)) if os.path.exists(file_path) else '未知大小'
+    empty_log = f"==================================================\n" \
+                f"【MySQL 外部数据库导入日志】\n" \
+                f"目标数据库: {name}\n" \
+                f"导入源文件: {file} ({file_size_str})\n" \
+                f"查询时间: {time.strftime('%Y-%m-%d %H:%M:%S')}\n" \
+                f"--------------------------------------------------\n" \
+                f"[状态提示]:\n" \
+                f"该文件暂无执行导入的历史日志记录。\n" \
+                f"请点击操作列的【导入】按钮执行导入，执行后将在此实时展示完整日志。\n" \
+                f"=================================================="
+    return yf.returnJson(True, 'ok', {'log': empty_log, 'has_log': False})
 
 def importDbExternalProgressBar():
     args = getArgs()
@@ -1614,7 +1643,11 @@ def getDbBackupImportList():
     rr = []
     for x in range(0, len(blist)):
         name = blist[x]
+        if name.startswith('.'):
+            continue
         p = bkImportDir + '/' + name
+        if os.path.isdir(p):
+            continue
         data = {}
         data['name'] = name
 

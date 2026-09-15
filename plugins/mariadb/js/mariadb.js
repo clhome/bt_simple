@@ -996,26 +996,16 @@ function importDbExternal(file,name){
 
 function importDbExternalProgress(file,name){
     api.post('import_db_external_progress',{file:file,name:name}, function(data){
-        var rdata = JSON.parse(data.data);
-        layer.open({
-            title:  pt("手动导入命令CMD【显示进度】"),
-            area: ['600px', '180px'],
-            type:1,
-            closeBtn: 1,
-            shadeClose: false,
-            btn: [pt("复制"), pt("取消")],
-            content: '<div class="pd15">\
-                        <div class="divtable">\
-                            <pre class="layui-code">'+rdata.data+'</pre>\
-                        </div>\
-                    </div>',
-            success:function(){
-                copyText(rdata.data);
-            },
-            yes:function(){
-                copyText(rdata.data);
-            }
-        });
+        var rdata = {};
+        try {
+            rdata = (typeof data.data === 'string') ? JSON.parse(data.data) : (data.data || data);
+        } catch(e) {
+            rdata = data;
+        }
+
+        var logText = (rdata && rdata.data && rdata.data.log) ? rdata.data.log : (rdata.msg || '');
+        var isSuccess = logText.indexOf('执行结论: 数据库导入执行完毕！') > -1;
+        showImportLogModal(name, file, isSuccess, logText);
     });
 }
 

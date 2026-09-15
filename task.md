@@ -899,5 +899,13 @@
 - [x] 422. 扩展自动化测试套件（`test/test_mysql_mariadb_import_log.py`），增加对 `plugin_api.js` 参数解析与前后端参数传递的覆盖验证。
 - [x] 423. 执行测试回归验证，更新 `task.md` 与 `walkthrough.md`。
 
+## MySQL/MariaDB导入进度展示最近一次导入日志优化
+
+- [x] 424. 后端 `plugins/mysql/index.py` 与 `plugins/mariadb/index.py` 中 `importDbExternal` 执行完成时持久化存储最近一次导入日志至 `.logs/{file}.log`，并在 `getDbBackupImportList` 过滤隐藏目录。
+- [x] 425. 重构后端 `plugins/mysql/index.py` 与 `plugins/mariadb/index.py` 中的 `importDbExternalProgress` 接口：读取并返回该文件最近一次导入日志（若无记录则返回指引说明）。
+- [x] 426. 重构前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 中的 `importDbExternalProgress`：废除原命令展示弹窗，复用 `showImportLogModal` 弹窗展示最近一次导入日志。
+- [x] 427. 扩展自动化测试套件（`test/test_mysql_mariadb_import_log.py`），覆盖日志持久化存储、`importDbExternalProgress` 接口与前端弹窗联动。
+- [x] 428. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`。
+
 
 
