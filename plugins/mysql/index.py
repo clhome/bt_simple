@@ -1700,6 +1700,8 @@ def getDbList():
         clist[x]['is_backup'] = False
         if len(blist) > 0:
             clist[x]['is_backup'] = True
+        if not clist[x].get('rw'):
+            clist[x]['rw'] = 'all'
 
     count = conn.where(condition, ()).count()
     _page = {}
@@ -2039,8 +2041,8 @@ def addDb():
     __createUser(dbname, dbuser, password, address)
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
-    psdb.add('pid,name,username,password,accept,ps,addtime',
-             (0, dbname, dbuser, password, address, ps, addTime))
+    psdb.add('pid,name,username,password,accept,rw,ps,addtime',
+             (0, dbname, dbuser, password, address, 'all', ps, addTime))
     return yf.returnJson(True, '添加成功!')
 
 
@@ -2223,7 +2225,11 @@ def setDbAccess():
             dbname = db_info.get('name') or name
             name = db_info.get('username') or name
             password = db_info.get('password') or ''
-            rw = db_info.get('rw') or 'rw'
+            req_rw = args.get('rw', '').strip()
+            if req_rw in ['all', 'rw', 'r']:
+                rw = req_rw
+            else:
+                rw = db_info.get('rw') or 'all'
 
             if not password:
                 return yf.returnJson(False, '数据库用户[' + name + ']密码为空，请先修改或重置密码!')
@@ -2269,7 +2275,10 @@ def setDbAccess():
             if is_root:
                 grant_sql = "GRANT ALL PRIVILEGES ON *.* TO `%s`@`%s` WITH GRANT OPTION" % (name, a)
             else:
-                if rw == 'r':
+                pdb.execute("REVOKE ALL PRIVILEGES ON " + db_target + " FROM `" + name + "`@`" + a + "`")
+                if rw == 'rw':
+                    grant_sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON %s TO `%s`@`%s`" % (db_target, name, a)
+                elif rw == 'r':
                     grant_sql = "GRANT SELECT ON %s TO `%s`@`%s`" % (db_target, name, a)
                 else:
                     grant_sql = "GRANT ALL PRIVILEGES ON %s TO `%s`@`%s`" % (db_target, name, a)
@@ -2286,16 +2295,20 @@ def setDbAccess():
             if checkSqlExec(r_local) is not None:
                 pdb.execute(
                     "ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (name, safe_pwd))
-            if rw == 'r':
+            pdb.execute("REVOKE ALL PRIVILEGES ON " + db_target + " FROM `" + name + "`@`localhost`")
+            if rw == 'rw':
+                pdb.execute("GRANT SELECT, INSERT, UPDATE, DELETE ON %s TO `%s`@`localhost`" % (db_target, name))
+            elif rw == 'r':
                 pdb.execute("GRANT SELECT ON %s TO `%s`@`localhost`" % (db_target, name))
             else:
                 pdb.execute("GRANT ALL PRIVILEGES ON %s TO `%s`@`localhost`" % (db_target, name))
 
         pdb.execute("flush privileges")
 
-        # 更新 sqlite，仅更新 accept 字段，保留原有的 rw 权限配置
+        # 更新 sqlite，同步更新 accept 与 rw 字段
         if not is_root:
             psdb.where('username=?', (name,)).setField('accept', access)
+            psdb.where('username=?', (name,)).setField('rw', rw)
 
         return yf.returnJson(True, '设置成功!')
     except Exception as ex:

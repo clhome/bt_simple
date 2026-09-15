@@ -914,6 +914,12 @@
 - [x] 431. 增强 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js`：使 `setLocalImport` 导入大窗口同样支持直接拖入文件并自动调起上传队列。
 - [x] 432. 编写专项自动化测试套件（`test/test_import_drag_drop_upload.py`），全量验证拖拽事件绑定、文件注入与前后端联动。
 - [x] 433. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`。
+- [x] 434. 优化后端 `plugins/mysql/index.py` 与 `plugins/mariadb/index.py`：`addDb` 创建数据库时显式默认 `rw='all'`，`getDbList` 兜底补齐历史空值。
+- [x] 435. 重构后端 `plugins/mysql/index.py` 与 `plugins/mariadb/index.py` 中 `setDbAccess` 接口：支持接收 `rw`（all/rw/r），先 `REVOKE` 后精准 `GRANT` 并持久化更新 SQLite。
+- [x] 436. 优化前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 表格：去除操作列独立的“读写”按钮，数据库名后展示红色 `A` / `RW` / `RO` 权限标识并可点击，调整列宽优化长名称展示。
+- [x] 437. 重构前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 中 `setDbAccess` 权限弹窗：增加数据权限（全部、读写、只读）下拉框与动态简短释义，与访问权限一并提交保存。
+- [x] 438. 编写专项自动化测试套件（`test/test_mysql_mariadb_rw_access_modal.py`），全量验证新建默认权限、弹窗下拉选项、授权语句生成、红字标识与语法规范。
+- [x] 439. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`。
 
 
 

@@ -562,12 +562,28 @@ function setDbRw(id,username,val){
     });
 }
 
-function setDbAccess(username){
+function setDbAccess(username, current_rw){
     api.post('get_db_access','username='+username, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
             return;
+        }
+
+        var isRoot = (username === 'root');
+        var rwHtml = '';
+        if (!isRoot){
+            rwHtml = '<div class="line" style="margin-top:15px;">' +
+                        '<span class="tname">' + pt('数据权限') + '</span>' +
+                        '<div class="info-r ">' +
+                            '<select class="bt-input-text mr5" name="dbRw" style="width:260px">' +
+                                '<option value="all">' + pt('全部 (A) - 读写及修改表结构') + '</option>' +
+                                '<option value="rw">' + pt('读写 (RW) - 仅增删改查数据') + '</option>' +
+                                '<option value="r">' + pt('只读 (RO) - 仅查询数据') + '</option>' +
+                            '</select>' +
+                            '<div id="rw_tip_desc" style="color:#777; font-size:12px; margin-top:6px; line-height:18px;"></div>' +
+                        '</div>' +
+                    '</div>';
         }
         
         var index = layer.open({
@@ -589,6 +605,7 @@ function setDbAccess(username){
                                 '</select>' +
                             '</div>' +
                         '</div>' +
+                        rwHtml +
                       '</form>',
             success:function(){
                 var $sel = $('select[name="dataAccess"]');
@@ -616,6 +633,29 @@ function setDbAccess(username){
                         $('#dataAccess_subid').remove();
                     }
                 });
+
+                if (!isRoot){
+                    var initRw = (current_rw || 'all').trim();
+                    var $rwSel = $('select[name="dbRw"]');
+                    $rwSel.val(initRw);
+
+                    function updateRwTip(rwVal){
+                        var tip = '';
+                        if (rwVal === 'all'){
+                            tip = pt('【全部 (A)】拥有数据库全部权限，允许增删改查数据及创建/修改/删除表结构（默认推荐）。');
+                        } else if (rwVal === 'rw'){
+                            tip = pt('【读写 (RW)】仅允许对现有表数据进行增删改查，禁止创建、删除或修改表结构（防误删表）。');
+                        } else if (rwVal === 'r'){
+                            tip = pt('【只读 (RO)】仅允许执行查询操作，禁止任何数据写入与表结构修改（适合只读从库与报表）。');
+                        }
+                        $('#rw_tip_desc').text(tip);
+                    }
+                    updateRwTip(initRw);
+
+                    $rwSel.off('change').on('change', function(){
+                        updateRwTip($(this).val());
+                    });
+                }
             },
             yes:function(index){
                 var data = $("#set_db_access").serialize();
@@ -630,6 +670,9 @@ function setDbAccess(username){
                     dataObj['access'] = addr;
                 } else {
                     dataObj['access'] = dataObj['dataAccess'];
+                }
+                if (!isRoot){
+                    dataObj['rw'] = $('select[name="dbRw"]').val() || 'all';
                 }
                 dataObj['username'] = username;
                 api.post('set_db_access', dataObj, function(data){
@@ -1326,48 +1369,42 @@ function dbList(page, search){
             var accept = (rdata.data[i]['accept'] || '').trim();
             if (accept && accept !== '127.0.0.1' && accept !== 'localhost'){
                 var accTitle = pt('访问权限') + ': ' + (accept === '%' ? pt('所有人') : accept);
-                accessIco = '<span class="cursor" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="' + accTitle + '" style="display:inline-block; margin-left:6px; color:#20a53a; vertical-align:middle; line-height:1;">' +
+                accessIco = '<span class="cursor" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+(rdata.data[i]['rw'] || 'all')+'\')" title="' + accTitle + '" style="display:inline-block; margin-left:6px; color:#20a53a; vertical-align:middle; line-height:1;">' +
                                 '<span class="glyphicon glyphicon-user" style="font-size:11px; opacity:0.8; margin-right:-6px;"></span>' +
                                 '<span class="glyphicon glyphicon-user" style="font-size:12px;"></span>' +
                             '</span>';
             }
-            list += '<td>' + rdata.data[i]['name'] + accessIco + '</td>';
-            list += '<td>' + rdata.data[i]['username'] +'</td>';
-            list += '<td>' + 
+
+            var currentRw = (rdata.data[i]['rw'] || 'all').trim();
+            var rwCode = 'A';
+            var rwTitle = pt('全部权限(A): 允许数据读写与创建/修改/删除表结构');
+            if (currentRw === 'rw') {
+                rwCode = 'RW';
+                rwTitle = pt('读写权限(RW): 仅允许数据增删改查，禁止修改表结构');
+            } else if (currentRw === 'r') {
+                rwCode = 'RO';
+                rwTitle = pt('只读权限(RO): 仅允许数据查询，禁止任何写入');
+            }
+            var rwTag = '<span class="cursor rw-perm-badge" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+currentRw+'\')" title="' + rwTitle + '" style="display:inline-block; margin-left:6px; color:#e02020; font-weight:bold; font-size:11px; vertical-align:middle; line-height:1;">' + rwCode + '</span>';
+
+            list += '<td style="word-break:break-all;"><span title="' + rdata.data[i]['name'] + '">' + rdata.data[i]['name'] + '</span>' + accessIco + rwTag + '</td>';
+            list += '<td style="width:100px;">' + rdata.data[i]['username'] +'</td>';
+            list += '<td style="width:110px;">' + 
                         '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
                         '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>'+
-                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
+                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="' + pt('复制密码') + '" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
                     '</td>';
         
-            list += '<td>' + rdata.data[i]['addtime'] +'</td>';
+            list += '<td style="width:145px;">' + rdata.data[i]['addtime'] +'</td>';
 
-            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
-            list += '<td style="text-align:right; min-width:270px; white-space:nowrap;">';
+            list += '<td style="width:90px; max-width:110px;"><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle;" title="'+rdata.data[i]['ps']+'">'+rdata.data[i]['ps']+'</span></td>';
+            list += '<td style="text-align:right; width:230px; min-width:230px; white-space:nowrap;">';
 
             list += '<a href="javascript:;" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="' + pt('数据库备份') + '">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
-            var rw = '';
-            var rw_change = 'all';
-            if (typeof(rdata.data[i]['rw'])!='undefined'){
-                var rw_val = pt('读写');
-                if (rdata.data[i]['rw'] == 'all'){
-                    rw_val = pt('所有');
-                    rw_change = 'rw';
-                } else if (rdata.data[i]['rw'] == 'rw'){
-                    rw_val = pt('读写');
-                    rw_change = 'r';
-                } else if (rdata.data[i]['rw'] == 'r'){
-                    rw_val = pt('只读');
-                    rw_change = 'all';
-                }
-                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="' + pt('设置读写') + '">'+rw_val+'</a> | ';
-            }
-
-
             list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="' + pt('数据库管理') + '">' + pt('管理') + '</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="' + pt('MySQL优化修复工具') + '">' + pt('工具') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="' + pt('设置数据库权限') + '">' + pt('权限') + '</a> | ' +
-                        rw +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+currentRw+'\')" title="' + pt('设置数据库权限') + '">' + pt('权限') + '</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="' + pt('删除数据库') + '">' + pt('删除') + '</a>' +
                     '</td>';
@@ -1393,11 +1430,11 @@ function dbList(page, search){
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
                     <th>' + pt('数据库名') + '</th>\
-                    <th>' + pt('用户名') + '</th>\
-                    <th>' + pt('密码') + '</th>\
-                    <th>' + pt('创建时间') + '</th>\
-                    <th>' + pt('备注') + '</th>\
-                    <th style="text-align:right; min-width:270px; white-space:nowrap;">' + pt('操作') + '</th></tr></thead>\
+                    <th style="width:100px;">' + pt('用户名') + '</th>\
+                    <th style="width:110px;">' + pt('密码') + '</th>\
+                    <th style="width:145px;">' + pt('创建时间') + '</th>\
+                    <th style="width:90px; max-width:110px;">' + pt('备注') + '</th>\
+                    <th style="text-align:right; width:230px; min-width:230px; white-space:nowrap;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
