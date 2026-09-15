@@ -64,15 +64,15 @@ function uploadStart(d) {
     this.num = 0;
   };
   a.prototype = {
-    SelectFile: function () {
+    SelectFile: function (filesList) {
       if (this.FilesArrayLength === 0) {
         this.up_box.innerHTML = "";
         this.un();
       }
-      var h = this.file_input.files,
+      var h = filesList || this.file_input.files,
         e,
         g,
-        f = h.length;
+        f = h ? h.length : 0;
       if (this.filesalllength + f > this.MaxUpNum) {
         f = this.MaxUpNum - this.filesalllength;
         layer.msg(t('update_num', [this.MaxUpNum]), {
@@ -88,6 +88,7 @@ function uploadStart(d) {
             layer.msg(t('upload.file_type_err'), {
               icon: 5
             });
+            if (this.FilesArrayLength === 0) this.showEmptyTip();
             return;
           }
         }
@@ -108,6 +109,22 @@ function uploadStart(d) {
       }
       this.filesalllength += f;
       this.FilesArrayLength = this.FilesArray.length;
+      if (this.FilesArrayLength === 0) {
+        this.showEmptyTip();
+      }
+    },
+    showEmptyTip: function () {
+      if (!this.up_box || this.FilesArrayLength > 0) return;
+      var tipText = '可将文件拖拽至此处添加';
+      if (typeof t === 'function') {
+        tipText = t('files.please_drag_and_drop', tipText);
+      } else if (window.YfI18n && YfI18n.get) {
+        tipText = YfI18n.get(tipText);
+      }
+      this.up_box.innerHTML = '<div class="up-box-empty-tip" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#a0a6b5;user-select:none;pointer-events:none;padding:20px 0;">\
+        <span class="glyphicon glyphicon-cloud-upload" style="font-size:32px;color:#c0c6d5;margin-bottom:8px;"></span>\
+        <span style="font-size:13px;font-weight:500;">' + tipText + '</span>\
+      </div>';
     },
     read: function () {
       if (this.filesalllength == 0) {
@@ -130,7 +147,7 @@ function uploadStart(d) {
       }
     },
     un: function () {
-      this.opt.disabled = this.up.disabled = this.file_input.disabled;
+      this.opt.disabled = this.up.disabled = this.file_input.disabled = false;
       this.filesalllength = this.FilesArrayLength = this.up_box_li = 0;
       this.FilesArray = new Array();
     },
@@ -230,6 +247,60 @@ function uploadStart(d) {
     c.file_input.addEventListener("change", function () {
       c.SelectFile();
     }, false);
+
+    // 空白框体初始提示
+    c.showEmptyTip();
+
+    // 拖拽支持：为 up_box 及父容器绑定 Drag & Drop 事件
+    var dropTarget = c.up_box;
+    var uploadContainer = dropTarget ? (dropTarget.closest ? dropTarget.closest('.fileUploadDiv') : dropTarget.parentElement) : null;
+    var bindTarget = uploadContainer || dropTarget;
+
+    if (bindTarget && dropTarget) {
+      var dragCounter = 0;
+
+      bindTarget.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter++;
+        dropTarget.classList.add("drag-over");
+      }, false);
+
+      bindTarget.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!dropTarget.classList.contains("drag-over")) {
+          dropTarget.classList.add("drag-over");
+        }
+      }, false);
+
+      bindTarget.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter--;
+        if (dragCounter <= 0) {
+          dragCounter = 0;
+          dropTarget.classList.remove("drag-over");
+        }
+      }, false);
+
+      bindTarget.addEventListener("drop", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter = 0;
+        dropTarget.classList.remove("drag-over");
+
+        var dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+          try {
+            c.file_input.files = dt.files;
+          } catch (ex) {}
+          c.SelectFile(dt.files);
+        }
+      }, false);
+    }
+
+    return c;
   } catch (b) {
     c.opt.disabled = true;
     c.up.disabled = true;
@@ -237,6 +308,7 @@ function uploadStart(d) {
     layer.msg(lan && lan.upload && t('upload.sorry_ie_is_not') || "", {
       icon: 5
     });
+    return null;
   }
 }
 ;

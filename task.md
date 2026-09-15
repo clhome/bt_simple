@@ -907,5 +907,13 @@
 - [x] 427. 扩展自动化测试套件（`test/test_mysql_mariadb_import_log.py`），覆盖日志持久化存储、`importDbExternalProgress` 接口与前端弹窗联动。
 - [x] 428. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`。
 
+## 数据库外部导入支持本地文件拖拽上传
+
+- [x] 429. 改造 `web/static/app/upload.js`：使 `SelectFile` 支持外部传入 `FileList`，并在 `uploadStart` 中为 `#up_box` 及父容器绑定 `dragenter`, `dragover`, `dragleave`, `drop` 事件与拖拽视觉反馈。
+- [x] 430. 优化 `#up_box` 视觉提示与样式（`web/static/css/site.css` 与 `web/static/css/ensite.css`）：增加 `.drag-over` 拖拽高亮样式与空白状态居中拖拽引导提示。
+- [x] 431. 增强 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js`：使 `setLocalImport` 导入大窗口同样支持直接拖入文件并自动调起上传队列。
+- [x] 432. 编写专项自动化测试套件（`test/test_import_drag_drop_upload.py`），全量验证拖拽事件绑定、文件注入与前后端联动。
+- [x] 433. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`。
+
 
 

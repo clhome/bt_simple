@@ -579,7 +579,7 @@ function importBackup(file,name){
     });
 }
 
-function uploadDbFiles(upload_dir, callback){
+function uploadDbFiles(upload_dir, callback, initialFiles){
     var up_db = layer.open({
         type:1,
         closeBtn: 1,
@@ -607,10 +607,13 @@ function uploadDbFiles(upload_dir, callback){
             $('#filesClose').on('click', function(){
                 layer.close(up_db);
             });
-            uploadStart(function(){
+            var uploadObj = uploadStart(function(){
                 if(typeof(callback) == 'function') callback();
                 layer.close(up_db);
             });
+            if (initialFiles && initialFiles.length > 0 && uploadObj && uploadObj.SelectFile) {
+                uploadObj.SelectFile(initialFiles);
+            }
         }
     });
 }

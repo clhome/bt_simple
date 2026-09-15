@@ -1012,7 +1012,7 @@ function importDbExternalProgress(file,name){
 function setLocalImport(db_name){
 
     //上传文件
-    function uploadDbFiles(upload_dir){
+    function uploadDbFiles(upload_dir, initialFiles){
         var up_db = layer.open({
             type:1,
             closeBtn: 1,
@@ -1043,10 +1043,13 @@ function setLocalImport(db_name){
             }
 
         });
-        uploadStart(function(){
+        var uploadObj = uploadStart(function(){
             getList();
             layer.close(up_db);
         });
+        if (initialFiles && initialFiles.length > 0 && uploadObj && uploadObj.SelectFile) {
+            uploadObj.SelectFile(initialFiles);
+        }
     }
 
     function getList(){
@@ -1122,6 +1125,29 @@ function setLocalImport(db_name){
                 var upload_dir = $('input[name="upload_dir"]').val();
                 uploadDbFiles(upload_dir);
             });
+
+            var $importFix = $('#database_fix');
+            $importFix.on('dragenter dragover', function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                $importFix.css({'border': '2px dashed #20a53a', 'background-color': '#f6ffed'});
+            });
+            $importFix.on('dragleave', function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                $importFix.css({'border': '#ddd 1px solid', 'background-color': ''});
+            });
+            $importFix.on('drop', function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                $importFix.css({'border': '#ddd 1px solid', 'background-color': ''});
+                var files = e.originalEvent && e.originalEvent.dataTransfer ? e.originalEvent.dataTransfer.files : null;
+                if (files && files.length > 0) {
+                    var upload_dir = $('input[name="upload_dir"]').val();
+                    uploadDbFiles(upload_dir, files);
+                }
+            });
+
             getList();
         },
     });    
