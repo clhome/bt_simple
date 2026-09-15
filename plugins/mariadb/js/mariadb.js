@@ -867,37 +867,36 @@ function openPhpmyadmin(name,username,password){
             return;
         }
 
-        if (rdata.data['cfg'] && rdata.data['cfg']['choose'] != 'mariadb'){
+        if (rdata.data['cfg'] && rdata.data['cfg']['choose'] && rdata.data['cfg']['choose'] != 'mariadb'){
             layer.msg(pt('当前为') + ' [' + rdata.data['cfg']['choose'] + '] ' + pt('模式,若要使用请修改phpMyAdmin访问切换.'), {icon: 2, shade: [0.3, '#000']});
             return;
         }
-        var home_page = rdata.data['home_page'];
-        $("#toPHPMyAdmin").attr('action', home_page);
-        if(!$("#toPHPMyAdmin").attr('action') || $("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
-            layer.msg(pt('请先安装phpMyAdmin'), {icon: 2, shade: [0.3, '#000']});
-            setTimeout(function(){ window.location.href = '/soft'; }, 3000);
+        var home_page = (rdata.data['home_page'] || '').trim();
+        if (!home_page){
+            layer.msg(pt('获取phpMyAdmin访问地址失败!'), {icon: 2, shade: [0.3, '#000']});
             return;
         }
-        //检查版本
-        var bigVer = rdata.data['version'];
-        if (parseFloat(bigVer) >= 4.5){
-            setTimeout(function(){
-                $("#toPHPMyAdmin").submit();
-            }, 2000);
-            layer.msg(pt('正在打开phpMyAdmin...'), {icon: 16, shade: [0.3, '#000'], time: 4000});
-        } else {
-            var murl = $("#toPHPMyAdmin").attr('action');
-            $("#pma_username").val(username);
-            $("#pma_password").val(password);
-            $("#db").val(name);
 
-            layer.msg(pt('正在打开phpMyAdmin'), {icon: 16, shade: [0.3, '#000'], time: 2000});
-
-            setTimeout(function(){
-                $("#toPHPMyAdmin").submit();
-            }, 2000);
+        // 确保隐藏跳转表单存在
+        if ($("#toPHPMyAdmin").length === 0){
+            $('body').append('<form id="toPHPMyAdmin" action="" method="post" style="display: none;" target="_blank">\
+                <input type="text" name="pma_username" id="pma_username" value="">\
+                <input type="password" name="pma_password" id="pma_password" value="">\
+                <input type="text" name="server" value="1">\
+                <input type="text" name="target" value="index.php">\
+                <input type="text" name="db" id="db" value="">\
+            </form>');
         }
 
+        $("#toPHPMyAdmin").attr('action', home_page);
+        $("#pma_username").val(username || 'root');
+        $("#pma_password").val(password || '');
+        $("#db").val(name || '');
+
+        layer.msg(pt('正在打开phpMyAdmin...'), {icon: 16, shade: [0.3, '#000'], time: 2000});
+        setTimeout(function(){
+            $("#toPHPMyAdmin").submit();
+        }, 500);
     },'json');
 }
 
@@ -1286,7 +1285,7 @@ function dbList(page, search){
             var accept = (rdata.data[i]['accept'] || '').trim();
             if (accept && accept !== '127.0.0.1' && accept !== 'localhost'){
                 var accTitle = pt('访问权限') + ': ' + (accept === '%' ? pt('所有人') : accept);
-                accessIco = '<span class="cursor" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+(rdata.data[i]['rw'] || 'all')+'\')" title="' + accTitle + '" style="display:inline-block; margin-left:6px; color:#20a53a; vertical-align:middle; line-height:1;">' +
+                accessIco = '<span class="cursor" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+(rdata.data[i]['rw'] || 'all')+'\')" title="' + accTitle + '" style="display:inline-block; color:#20a53a; vertical-align:middle; line-height:1;">' +
                                 '<span class="glyphicon glyphicon-user" style="font-size:11px; opacity:0.8; margin-right:-6px;"></span>' +
                                 '<span class="glyphicon glyphicon-user" style="font-size:12px;"></span>' +
                             '</span>';
@@ -1302,20 +1301,23 @@ function dbList(page, search){
                 rwCode = 'RO';
                 rwTitle = pt('只读权限(RO): 仅允许数据查询，禁止任何写入');
             }
-            var rwTag = '<span class="cursor rw-perm-badge" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+currentRw+'\')" title="' + rwTitle + '" style="display:inline-block; margin-left:6px; color:#e02020; font-weight:bold; font-size:11px; vertical-align:middle; line-height:1;">' + rwCode + '</span>';
+            var rwMarginLeft = accessIco ? '5px' : '0';
+            var rwTag = '<span class="cursor rw-perm-badge" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+currentRw+'\')" title="' + rwTitle + '" style="display:inline-block; margin-left:' + rwMarginLeft + '; color:#e02020; font-weight:bold; font-size:11px; vertical-align:middle; line-height:1;">' + rwCode + '</span>';
 
-            list += '<td style="word-break:break-all;"><span title="' + rdata.data[i]['name'] + '">' + rdata.data[i]['name'] + '</span>' + accessIco + rwTag + '</td>';
-            list += '<td style="width:100px;">' + rdata.data[i]['username'] +'</td>';
-            list += '<td style="width:110px;">' + 
+            var badges = '<span style="white-space:nowrap; display:inline-flex; align-items:center; flex-shrink:0; vertical-align:middle; margin-left:6px;">' + accessIco + rwTag + '</span>';
+
+            list += '<td><div style="display:flex; align-items:center; justify-content:flex-start; flex-wrap:nowrap;"><span title="' + rdata.data[i]['name'] + '" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:calc(100% - 48px); display:inline-block;">' + rdata.data[i]['name'] + '</span>' + badges + '</div></td>';
+            list += '<td style="width:100px; white-space:nowrap;">' + rdata.data[i]['username'] +'</td>';
+            list += '<td style="width:105px; white-space:nowrap;">' + 
                         '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
-                        '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>'+
-                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="' + pt('复制密码') + '" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
+                        '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:8px"></span>'+
+                        '<span class="ico-copy cursor btcopy" style="margin-left:8px" title="' + pt('复制密码') + '" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
                     '</td>';
         
-            list += '<td style="width:145px;">' + rdata.data[i]['addtime'] +'</td>';
+            list += '<td style="width:140px; white-space:nowrap;">' + rdata.data[i]['addtime'] +'</td>';
 
-            list += '<td style="width:90px; max-width:110px;"><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle;" title="'+rdata.data[i]['ps']+'">'+rdata.data[i]['ps']+'</span></td>';
-            list += '<td style="text-align:right; width:230px; min-width:230px; white-space:nowrap;">';
+            list += '<td style="width:80px; max-width:100px;"><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle;" title="'+rdata.data[i]['ps']+'">'+rdata.data[i]['ps']+'</span></td>';
+            list += '<td style="text-align:right; width:220px; min-width:220px; white-space:nowrap;">';
 
             list += '<a href="javascript:;" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="' + pt('数据库备份') + '">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
@@ -1347,12 +1349,12 @@ function dbList(page, search){
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>' + pt('数据库名') + '</th>\
-                    <th style="width:100px;">' + pt('用户名') + '</th>\
-                    <th style="width:110px;">' + pt('密码') + '</th>\
-                    <th style="width:145px;">' + pt('创建时间') + '</th>\
-                    <th style="width:90px; max-width:110px;">' + pt('备注') + '</th>\
-                    <th style="text-align:right; width:230px; min-width:230px; white-space:nowrap;">' + pt('操作') + '</th></tr></thead>\
+                    <th style="min-width:130px; white-space:nowrap;">' + pt('数据库名') + '</th>\
+                    <th style="width:100px; white-space:nowrap;">' + pt('用户名') + '</th>\
+                    <th style="width:105px; white-space:nowrap;">' + pt('密码') + '</th>\
+                    <th style="width:140px; white-space:nowrap;">' + pt('创建时间') + '</th>\
+                    <th style="width:80px; max-width:100px; white-space:nowrap;">' + pt('备注') + '</th>\
+                    <th style="text-align:right; width:220px; min-width:220px; white-space:nowrap;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
@@ -1631,39 +1633,56 @@ function repCheckeds(tables) {
 }
 
 function repDatabase(db_name, tables) {
-    dbs = repCheckeds(tables);
-    
+    var dbs = repCheckeds(tables);
+    if (!dbs || dbs.length === 0) {
+        return;
+    }
     api.post('repair_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    },'已送修复指令,请稍候...');
+    }, pt('正在执行修复指令,请稍候...'));
 }
 
-
 function optDatabase(db_name, tables) {
-    dbs = repCheckeds(tables);
-    
+    var dbs = [];
+    if (tables === 'ALL') {
+        var db_tools = $("input[value^='dbtools_']");
+        for (var i = 0; i < db_tools.length; i++) {
+            dbs.push(db_tools[i].value.replace('dbtools_', ''));
+        }
+    } else {
+        dbs = repCheckeds(tables);
+    }
+    if (!dbs || dbs.length === 0) {
+        return;
+    }
     api.post('opt_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    },'已送优化指令,请稍候...');
+    }, pt('正在优化数据表碎片,请稍候...'));
 }
 
 function toDatabaseType(db_name, tables, type){
-    dbs = repCheckeds(tables);
-    api.post('alter_table', { db_name: db_name, tables: JSON.stringify(dbs),table_type: type }, function(data){
+    var dbs = repCheckeds(tables);
+    if (!dbs || dbs.length === 0) {
+        return;
+    }
+    api.post('alter_table', { db_name: db_name, tables: JSON.stringify(dbs), table_type: type }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
-    }, '已送引擎转换指令,请稍候...');
+    }, pt('正在转换引擎类型,请稍候...'));
 }
 
+function renderDefaultDbTools(db_name){
+    var default_btns = '<button class="btn btn-success btn-sm" onclick="optDatabase(\'' + db_name + '\',\'ALL\')" title="' + pt('对该数据库下所有数据表执行碎片整理') + '">' + pt('优化全库碎片') + '</button>';
+    $("#db_tools").html(default_btns);
+}
 
 function selectedTools(my_obj, db_name) {
-    var is_checked = false
-
+    var is_checked = false;
     if (my_obj) is_checked = my_obj.checked;
     var db_tools = $("input[value^='dbtools_']");
     var n = 0;
@@ -1672,13 +1691,13 @@ function selectedTools(my_obj, db_name) {
         if (db_tools[i].checked) n++;
     }
     if (n > 0) {
-        var my_btns = '<button class="btn btn-default btn-sm" onclick="repDatabase(\'' + db_name + '\',null)">' + pt('修复') + '</button>\
-            <button class="btn btn-default btn-sm" onclick="optDatabase(\'' + db_name + '\',null)">' + pt('优化') + '</button>\
-            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'InnoDB\')">' + pt('转为InnoDB') + '</button></button>\
-            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'MyISAM\')">' + pt('转为MyISAM') + '</button>'
+        var my_btns = '<button class="btn btn-default btn-sm mr5" onclick="repDatabase(\'' + db_name + '\',null)">' + pt('修复') + '</button>\
+            <button class="btn btn-default btn-sm mr5" onclick="optDatabase(\'' + db_name + '\',null)">' + pt('优化') + '</button>\
+            <button class="btn btn-default btn-sm mr5" onclick="toDatabaseType(\'' + db_name + '\',null,\'InnoDB\')">' + pt('转为InnoDB') + '</button>\
+            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'MyISAM\')">' + pt('转为MyISAM') + '</button>';
         $("#db_tools").html(my_btns);
     } else {
-        $("#db_tools").html('');
+        renderDefaultDbTools(db_name);
     }
 }
 
@@ -1689,6 +1708,8 @@ function repTools(db_name, res){
         var tbody = '';
         for (var i = 0; i < rdata.tables.length; i++) {
             if (!types[rdata.tables[i].type]) continue;
+            var targetType = types[rdata.tables[i].type];
+            var targetTypeLabel = targetType === 'InnoDB' ? pt('转为InnoDB') : pt('转为MyISAM');
             tbody += '<tr>\
                     <td><input value="dbtools_' + rdata.tables[i].table_name + '" class="check" onclick="selectedTools(null,\'' + db_name + '\');" type="checkbox"></td>\
                     <td><span style="width:220px;"> ' + rdata.tables[i].table_name + '</span></td>\
@@ -1699,24 +1720,24 @@ function repTools(db_name, res){
                     <td style="text-align: right;">\
                         <a class="btlink" onclick="repDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">' + pt('修复') + '</a> |\
                         <a class="btlink" onclick="optDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">' + pt('优化') + '</a> |\
-                        <a class="btlink" onclick="toDatabaseType(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\',\'' + types[rdata.tables[i].type] + '\')">转为' + types[rdata.tables[i].type] + '</a>\
+                        <a class="btlink" onclick="toDatabaseType(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\',\'' + targetType + '\')">' + targetTypeLabel + '</a>\
                     </td>\
-                </tr> '
+                </tr> ';
         }
 
         if (res) {
             $(".gztr").html(tbody);
-            $("#db_tools").html('');
             $("input[type='checkbox']").attr("checked", false);
-            $(".tools_size").html('大小：' + rdata.data_size);
+            $(".tools_size").html(pt('大小：') + rdata.data_size);
+            renderDefaultDbTools(db_name);
             return;
         }
 
         layer.open({
             type: 1,
-            title: "MariaDB工具箱【" + db_name + "】",
+            title: pt('MariaDB工具箱') + ' [' + db_name + ']',
             area: ['780px', '580px'],
-            closeBtn: 2,
+            closeBtn: 1,
             shadeClose: false,
             content: '<div class="pd15">\
                             <div class="db_list">\
@@ -1743,12 +1764,13 @@ function repTools(db_name, res){
                             </div>\
                         </div>\
                         <ul class="help-info-text c7">\
-                            <li>' + pt('【修复】尝试使用REPAIR命令修复损坏的表，仅能做简单修复，若修复不成功请考虑使用myisamchk工具') + '</li>\
-                            <li>' + pt('【优化】执行OPTIMIZE命令，可回收未释放的磁盘空间，建议每月执行一次') + '</li>\
-                            <li>' + pt('【转为InnoDB/MyISAM】转换数据表引擎，建议将所有表转为InnoDB') + '</li>\
+                            <li>' + pt('【修复】尝试使用 REPAIR TABLE 修复损坏的数据表（注：仅 MyISAM 引擎生效，InnoDB 表具备事务自愈机制无需修复）。') + '</li>\
+                            <li>' + pt('【优化】执行 OPTIMIZE TABLE 回收删除或更新产生的未释放磁盘空间与碎片，建议定期执行。') + '</li>\
+                            <li>' + pt('【转为InnoDB】将 MyISAM 表升级为 InnoDB 事务引擎，获得行级锁与高并发抗崩溃保护。') + '</li>\
                         </ul></div>'
         });
         tableFixed('database_fix');
+        renderDefaultDbTools(db_name);
     });
 }
 

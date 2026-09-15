@@ -2510,19 +2510,28 @@ def repairTable():
     tables = json.loads(args['tables'])
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
+    err = isSqlError(mtable)
+    if err:
+        return err
 
     ret = []
     key = "Tables_in_" + db_name
     for i in mtable:
         for tn in tables:
-            if tn == i[key]:
+            if tn == i.get(key):
                 ret.append(tn)
 
     if len(ret) > 0:
+        err_list = []
         for i in ret:
-            pdb.execute('REPAIR TABLE `%s`.`%s`' % (db_name, i))
-        return yf.returnJson(False, "修复失败!")
-    return yf.returnJson(False, "修复失败!")
+            r = pdb.execute('REPAIR TABLE `%s`.`%s`' % (db_name, i))
+            sql_err = isSqlError(r)
+            if sql_err:
+                err_list.append("%s: %s" % (i, r))
+        if err_list:
+            return yf.returnJson(False, "部分表修复未完成: " + "; ".join(err_list))
+        return yf.returnJson(True, "数据表修复操作执行完毕!")
+    return yf.returnJson(False, "未找到指定的有效数据表!")
 
 
 def optTable():
@@ -2535,45 +2544,67 @@ def optTable():
     tables = json.loads(args['tables'])
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
+    err = isSqlError(mtable)
+    if err:
+        return err
+
     ret = []
     key = "Tables_in_" + db_name
     for i in mtable:
         for tn in tables:
-            if tn == i[key]:
+            if tn == i.get(key):
                 ret.append(tn)
 
     if len(ret) > 0:
+        err_list = []
         for i in ret:
-            pdb.execute('OPTIMIZE TABLE `%s`.`%s`' % (db_name, i))
-        return yf.returnJson(False, "优化失败或者已经优化过了!")
-    return yf.returnJson(False, "优化失败或者已经优化过了!")
+            r = pdb.execute('OPTIMIZE TABLE `%s`.`%s`' % (db_name, i))
+            sql_err = isSqlError(r)
+            if sql_err:
+                err_list.append("%s: %s" % (i, r))
+        if err_list:
+            return yf.returnJson(False, "部分表优化失败: " + "; ".join(err_list))
+        return yf.returnJson(True, "数据表优化完成，磁盘碎片已回收整理!")
+    return yf.returnJson(False, "未找到指定的有效数据表!")
 
 
 def alterTable():
     args = getArgs()
-    data = checkArgs(args, ['db_name', 'tables'])
+    data = checkArgs(args, ['db_name', 'tables', 'table_type'])
     if not data[0]:
         return data[1]
 
     db_name = args['db_name']
     tables = json.loads(args['tables'])
-    table_type = args['table_type']
+    table_type = args['table_type'].strip()
+    if table_type not in ['InnoDB', 'MyISAM']:
+        return yf.returnJson(False, "不支持的目标存储引擎类型!")
+
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
+    err = isSqlError(mtable)
+    if err:
+        return err
 
     ret = []
     key = "Tables_in_" + db_name
     for i in mtable:
         for tn in tables:
-            if tn == i[key]:
+            if tn == i.get(key):
                 ret.append(tn)
 
     if len(ret) > 0:
+        err_list = []
         for i in ret:
-            pdb.execute('alter table `%s`.`%s` ENGINE=`%s`' %
+            r = pdb.execute('ALTER TABLE `%s`.`%s` ENGINE=%s' %
                         (db_name, i, table_type))
-        return yf.returnJson(False, "更改失败!")
-    return yf.returnJson(False, "更改失败!")
+            sql_err = isSqlError(r)
+            if sql_err:
+                err_list.append("%s: %s" % (i, r))
+        if err_list:
+            return yf.returnJson(False, "部分表引擎转换失败: " + "; ".join(err_list))
+        return yf.returnJson(True, "数据表引擎已成功转换为 %s!" % table_type)
+    return yf.returnJson(False, "未找到指定的有效数据表!")
 
 
 def getTotalStatistics():
