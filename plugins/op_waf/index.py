@@ -230,10 +230,14 @@ def initTotalInfo(conf_reload=False):
     path_domains = getJsonPath('domains')
 
     domain_contents = yf.readFile(path_domains)
+    if not domain_contents or type(domain_contents) == bool:
+        domain_contents = "[]"
     domain_contents = json.loads(domain_contents)
 
     try:
         total_contents = yf.readFile(path_total)
+        if not total_contents or type(total_contents) == bool:
+            total_contents = "{}"
     except Exception as e:
         total_contents = "{}"
 
@@ -281,6 +285,11 @@ def contentReplace(content):
 
 def autoMakeLuaConfSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/rule/" + file + ".json"
+    if not os.path.exists(path):
+        plugin_src = getPluginDir() + "/waf/rule/" + file + ".json"
+        if os.path.exists(plugin_src):
+            yf.makeDirs(os.path.dirname(path))
+            yf.writeFile(path, yf.readFile(plugin_src))
     dst_path = getServerDir() + "/waf/conf/rule_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = yf.readFile(path)
@@ -288,6 +297,7 @@ def autoMakeLuaConfSingle(file, conf_reload=False):
             content = "[]"
         # print(content)
         content = json.loads(content)
+        yf.makeDirs(os.path.dirname(dst_path))
         listToLuaFile(dst_path, content)
 
 
@@ -300,6 +310,11 @@ def autoCpImport(file):
 
 def autoMakeLuaImportSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/" + file + ".json"
+    if not os.path.exists(path):
+        plugin_src = getPluginDir() + "/waf/" + file + ".json"
+        if os.path.exists(plugin_src):
+            yf.makeDirs(os.path.dirname(path))
+            yf.writeFile(path, yf.readFile(plugin_src))
     dst_path = getServerDir() + "/waf/conf/waf_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = yf.readFile(path)
@@ -307,14 +322,23 @@ def autoMakeLuaImportSingle(file, conf_reload=False):
             content = "{}"
         # print(content)
         content = json.loads(content)
+        yf.makeDirs(os.path.dirname(dst_path))
         listToLuaFile(dst_path, content)
 
 
 def autoMakeLuaHtmlSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/html/" + file + ".html"
+    if not os.path.exists(path):
+        plugin_src = getPluginDir() + "/waf/html/" + file + ".html"
+        if os.path.exists(plugin_src):
+            yf.makeDirs(os.path.dirname(path))
+            yf.writeFile(path, yf.readFile(plugin_src))
     dst_path = getServerDir() + "/waf/html/html_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = yf.readFile(path)
+        if type(content) == bool or not content:
+            content = ""
+        yf.makeDirs(os.path.dirname(dst_path))
         htmlToLuaFile(dst_path, content)
 
 
@@ -1852,6 +1876,221 @@ def setHoneypotPaths():
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
+
+def getSpiderConf():
+    conf_path = getJsonPath('config')
+    rule_path = getRuleJsonPath('spider_ip')
+    if not os.path.exists(rule_path):
+        plugin_rule_path = getPluginDir() + "/waf/rule/spider_ip.json"
+        if os.path.exists(plugin_rule_path):
+            rule_path = plugin_rule_path
+
+    spider_conf = {
+        'open': True,
+        'mode': 'downgrade',
+        'status': 444,
+        'ps': '智能蜘蛛识别与伪造拦截'
+    }
+    if os.path.exists(conf_path):
+        try:
+            cobj = json.loads(yf.readFile(conf_path))
+            if 'spider' in cobj:
+                spider_conf.update(cobj['spider'])
+        except Exception:
+            pass
+
+    ip_list = []
+    if os.path.exists(rule_path):
+        try:
+            ip_list = json.loads(yf.readFile(rule_path))
+        except Exception:
+            pass
+
+    engine_stats = {
+        'baidu': 0,
+        'google': 0,
+        'bing': 0,
+        'bytedance': 0,
+        'huawei': 0,
+        'sogou': 0,
+        '360': 0,
+        'shenma': 0,
+        'yandex': 0,
+        'custom': 0,
+        'total': len(ip_list)
+    }
+    for item in ip_list:
+        ps = item[1] if len(item) > 1 else ''
+        if '百度' in ps:
+            engine_stats['baidu'] += 1
+        elif '谷歌' in ps:
+            engine_stats['google'] += 1
+        elif '必应' in ps:
+            engine_stats['bing'] += 1
+        elif '字节' in ps:
+            engine_stats['bytedance'] += 1
+        elif '华为' in ps:
+            engine_stats['huawei'] += 1
+        elif '搜狗' in ps:
+            engine_stats['sogou'] += 1
+        elif '360' in ps:
+            engine_stats['360'] += 1
+        elif '神马' in ps:
+            engine_stats['shenma'] += 1
+        elif 'Yandex' in ps or 'yandex' in ps:
+            engine_stats['yandex'] += 1
+        else:
+            engine_stats['custom'] += 1
+
+    return yf.returnJson(True, 'ok', {
+        'config': spider_conf,
+        'stats': engine_stats,
+        'total_rules': len(ip_list)
+    })
+
+
+def setSpiderMode():
+    args = getArgs()
+    data = checkArgs(args, ['mode'])
+    if not data[0]:
+        return data[1]
+    mode = args['mode'].strip().lower()
+    if mode not in ['downgrade', 'block']:
+        return yf.returnJson(False, '模式不支持，仅支持 downgrade 或 block')
+
+    conf = getJsonPath('config')
+    if not os.path.exists(conf):
+        src_conf = getPluginDir() + '/waf/config.json'
+        if os.path.exists(src_conf):
+            yf.makeDirs(os.path.dirname(conf))
+            yf.writeFile(conf, yf.readFile(src_conf))
+    content = yf.readFile(conf)
+    if type(content) == bool or not content:
+        content = '{}'
+    cobj = json.loads(content)
+    if 'spider' not in cobj:
+        cobj['spider'] = {
+            "open": True,
+            "mode": "downgrade",
+            "status": 444,
+            "ps": "智能蜘蛛识别与伪造拦截"
+        }
+    cobj['spider']['mode'] = mode
+    yf.writeFile(conf, json.dumps(cobj))
+    setConfRestartWeb()
+    return yf.returnJson(True, '设置成功!')
+
+
+def getSpiderIpList():
+    rule_path = getRuleJsonPath('spider_ip')
+    if not os.path.exists(rule_path):
+        plugin_rule_path = getPluginDir() + "/waf/rule/spider_ip.json"
+        if os.path.exists(plugin_rule_path):
+            rule_path = plugin_rule_path
+    ip_list = []
+    if os.path.exists(rule_path):
+        try:
+            content = yf.readFile(rule_path)
+            if type(content) != bool and content:
+                ip_list = json.loads(content)
+        except Exception:
+            pass
+    return yf.returnJson(True, 'ok', ip_list)
+
+
+def addSpiderIp():
+    args = getArgs()
+    data = checkArgs(args, ['ip', 'ps'])
+    if not data[0]:
+        return data[1]
+    ip = args['ip'].strip()
+    ps = args['ps'].strip() or '自定义蜘蛛'
+
+    rule_path = getRuleJsonPath('spider_ip')
+    if not os.path.exists(rule_path):
+        plugin_rule_path = getPluginDir() + "/waf/rule/spider_ip.json"
+        if os.path.exists(plugin_rule_path):
+            yf.makeDirs(os.path.dirname(rule_path))
+            yf.writeFile(rule_path, yf.readFile(plugin_rule_path))
+    ip_list = []
+    if os.path.exists(rule_path):
+        try:
+            content = yf.readFile(rule_path)
+            if type(content) != bool and content:
+                ip_list = json.loads(content)
+        except Exception:
+            pass
+
+    for item in ip_list:
+        if item[0] == ip:
+            return yf.returnJson(False, '该 IP/网段 已存在!')
+
+    ip_list.append([ip, ps])
+    yf.makeDirs(os.path.dirname(rule_path))
+    yf.writeFile(rule_path, json.dumps(ip_list))
+    autoMakeLuaConfSingle('spider_ip', True)
+    setConfRestartWeb()
+    return yf.returnJson(True, '添加成功!')
+
+
+def removeSpiderIp():
+    args = getArgs()
+    data = checkArgs(args, ['index'])
+    if not data[0]:
+        return data[1]
+    index = int(args['index'])
+    rule_path = getRuleJsonPath('spider_ip')
+    if not os.path.exists(rule_path):
+        return yf.returnJson(False, '规则文件不存在!')
+    try:
+        content = yf.readFile(rule_path)
+        if type(content) == bool or not content:
+            return yf.returnJson(False, '规则文件为空!')
+        ip_list = json.loads(content)
+        if 0 <= index < len(ip_list):
+            ip_list.pop(index)
+            yf.writeFile(rule_path, json.dumps(ip_list))
+            autoMakeLuaConfSingle('spider_ip', True)
+            setConfRestartWeb()
+            return yf.returnJson(True, '删除成功!')
+    except Exception as e:
+        return yf.returnJson(False, '删除失败: ' + str(e))
+    return yf.returnJson(False, '指定的索引不存在!')
+
+
+def syncSpiderIp():
+    src_file = getPluginDir() + "/waf/rule/spider_ip.json"
+    dst_file = getServerDir() + "/waf/rule/spider_ip.json"
+    if os.path.exists(src_file):
+        content = yf.readFile(src_file)
+        custom_rules = []
+        if os.path.exists(dst_file):
+            try:
+                curr_content = yf.readFile(dst_file)
+                if type(curr_content) != bool and curr_content:
+                    curr_rules = json.loads(curr_content)
+                    for r in curr_rules:
+                        ps = r[1] if len(r) > 1 else ''
+                        if '自定义' in ps or ps == '':
+                            custom_rules.append(r)
+            except Exception:
+                pass
+
+        base_rules = json.loads(content)
+        existing_ips = {r[0] for r in base_rules}
+        for cr in custom_rules:
+            if cr[0] not in existing_ips:
+                base_rules.append(cr)
+                existing_ips.add(cr[0])
+
+        yf.makeDirs(os.path.dirname(dst_file))
+        yf.writeFile(dst_file, json.dumps(base_rules))
+        autoMakeLuaConfSingle('spider_ip', True)
+        setConfRestartWeb()
+        return yf.returnJson(True, '同步成功，当前共 ' + str(len(base_rules)) + ' 条权威蜘蛛规则（已保留自定义规则）!')
+    return yf.returnJson(False, '内置规则文件不存在!')
+
+
 def testRun():
     # args = getArgs()
     # data = checkArgs(args, ['siteName'])
@@ -2004,5 +2243,17 @@ if __name__ == "__main__":
         print(getIpLocationBatch())
     elif func == 'getIpLocation':
         print(getIpLocation())
+    elif func == 'get_spider_conf' or func == 'getSpiderConf':
+        print(getSpiderConf())
+    elif func == 'set_spider_mode' or func == 'setSpiderMode':
+        print(setSpiderMode())
+    elif func == 'get_spider_ip_list' or func == 'getSpiderIpList':
+        print(getSpiderIpList())
+    elif func == 'add_spider_ip' or func == 'addSpiderIp':
+        print(addSpiderIp())
+    elif func == 'remove_spider_ip' or func == 'removeSpiderIp':
+        print(removeSpiderIp())
+    elif func == 'sync_spider_ip' or func == 'syncSpiderIp':
+        print(syncSpiderIp())
     else:
         print('error')

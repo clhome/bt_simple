@@ -147,6 +147,23 @@ def pSqliteDb(dbname='logs'):
     conn.execute("PRAGMA journal_size_limit = 1073741824")
     return conn
 
+def checkAndSyncSpiderIp():
+    try:
+        import index
+        src_file = index.getPluginDir() + "/waf/rule/spider_ip.json"
+        dst_file = index.getServerDir() + "/waf/rule/spider_ip.json"
+        if os.path.exists(src_file) and os.path.exists(dst_file):
+            src_len = len(json.loads(yf.readFile(src_file)))
+            dst_len = len(json.loads(yf.readFile(dst_file)))
+            if dst_len < src_len:
+                print("检测到蜘蛛 IP 库需同步，执行自动合并同步...")
+                index.syncSpiderIp()
+        elif os.path.exists(src_file) and not os.path.exists(dst_file):
+            index.syncSpiderIp()
+    except Exception as e:
+        print("checkAndSyncSpiderIp error: " + str(e))
+
+
 def run():
     now_t = int(time.time())
     expire_time = now_t - 86400 * 30
@@ -154,6 +171,7 @@ def run():
     del_hot_log = "delete from logs where time<{}".format(expire_time)
     print(del_hot_log)
     r = logs_conn.execute(del_hot_log)
+    checkAndSyncSpiderIp()
     return 'ok'
 
 

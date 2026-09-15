@@ -304,20 +304,35 @@ local function waf_spider()
                     matched = true
                     break
                 end
-            elseif type(rule) == "table" and C:compare_ip(rule) then 
-                matched = true
-                break
+            elseif type(rule) == "table" then
+                if type(rule[1]) == "string" and rule[1] == params['ip'] then
+                    matched = true
+                    break
+                elseif C:compare_ip(rule) then 
+                    matched = true
+                    break
+                end
             end
         end
     end
     
     if matched then
+        -- 命中权威蜘蛛白名单，放行绿色直通通道（直接 bypass 其它安全防御）
         return true
-    else
+    end
+
+    -- 未在蜘蛛白名单中：根据防护模式决定策略
+    local mode = config['spider']['mode'] or 'downgrade'
+    if mode == 'block' then
+        -- 严格阻断模式：伪造蜘蛛直接拦截
         C:write_log('spider', '伪造蜘蛛已被拦截')
         local status = config['spider']['status'] or 444
         ngx.exit(status)
         return true
+    else
+        -- 宽松降级模式 (downgrade, 默认推荐)：
+        -- 不走绿色通道，但也不直接444断开，降级为普通流量继续进行常规 WAF 检查，防止误杀
+        return false
     end
 end
 

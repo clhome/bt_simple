@@ -123,6 +123,8 @@ function _M.get_ipmatcher(self, rules, cache_key)
                 if rule[1] == 1 then
                     table.insert(ips, rule[2])
                 end
+            elseif type(rule[1]) == "string" then
+                table.insert(ips, rule[1])
             elseif type(rule[1]) == "table" and type(rule[2]) == "table" then
                 local start_num = self:ip2num(rule[1])
                 local end_num = self:ip2num(rule[2])

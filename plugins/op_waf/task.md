@@ -123,3 +123,21 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
 - `[x]` 任务 1：在 `plugins/op_waf/index.html` 中引入 `resetPluginWinHeight(620)`，并为 `.bt-w-main`、`.bt-w-con`、`.bt-w-menu` 锁定固定高度与统一纵向滚动。
 - `[x]` 任务 2：在 `plugins/op_waf/index.html` 中优化左侧菜单栏样式（全高灰色底纹 `#f8fafc`，选中项高亮为 `#ffffff` 卡片），并去掉“功能介绍”的 490px 内部滚动。
 - `[x]` 任务 3：更新测试用例并运行验证。
+
+### 需求 21：主流搜索引擎优化与防误杀（分步实现三点）
+- `[x]` 任务 1：第一步 - 降级防误杀策略与底层引擎修复
+  - `[x]` 1.1 修复 `waf/lua/waf_common.lua` 中 `get_ipmatcher` 对字符串/单元素 CIDR 列表的解析支持，确保 Radix 树正确加载所有蜘蛛 IP
+  - `[x]` 1.2 在 `waf/config.json` 中增加 `"mode": "downgrade"`
+  - `[x]` 1.3 重构 `waf/lua/init.lua` 中 `waf_spider()` 函数，支持 `downgrade`（宽松降级）与 `block`（严格拦截）双模式
+- `[x]` 任务 2：第二步 - 扩充并动态同步蜘蛛 IP 库
+  - `[x]` 2.1 扩充内置 `waf/rule/spider_ip.json`，补齐字节跳动、华为花瓣、百度、谷歌、必应、360、搜狗等官方最新网段
+  - `[x]` 2.2 在 `index.py` 中增加 `getSpiderConf`、`setSpiderMode`、`syncSpiderIp`、`getSpiderIpList`、`addSpiderIp`、`removeSpiderIp` API 接口
+  - `[x]` 2.3 在 `tool_task.py` 中增加蜘蛛 IP 定期校验与维护支持
+- `[x]` 任务 3：第三步 - 面板前端可视化与交互管理
+  - `[x]` 3.1 在 `op_waf.js` 的 `wafGloabl` 全局配置表格中增加“智能蜘蛛白名单”行（开关、状态码、设置按钮）
+  - `[x]` 3.2 实现 `setSpiderDialog()` 弹窗：防御模式单选切换（降级防误杀/严格阻断）、IP统计、自定义添加/删除、一键同步官方库
+  - `[x]` 3.3 完善语言包国际化词条（zh-CN, zh-TW, en 等）
+- `[x]` 任务 4：自动化测试验证与收尾
+  - `[x]` 4.1 在 `test/` 编写测试脚本验证 Lua 引擎解析、后端 API 交互及规则重新编译
+  - `[x]` 4.2 清理测试阶段临时文件并验收
+

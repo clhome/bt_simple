@@ -1221,6 +1221,12 @@ function wafGloabl(){
                         </div></td><td class="text-right"><a class="btlink" onclick="setHoneypotDialog()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
+                        <td><span style="color:#20a53a; font-weight:bold;">' + pt('智能蜘蛛白名单') + '</span><br><span style="font-size:10px;color:#999;">' + pt('引擎加速/防伪造') + '</span></td><td>' + pt('对主流搜索引擎爬虫放行免检（穿透CC/拦截），并提供伪造蜘蛛校验与降级模式') + '</td><td><a class="btlink" onclick="setRequestCode(\'spider\',' + ((rdata.spider && rdata.spider.status) ? rdata.spider.status : 444) + ')">' + ((rdata.spider && rdata.spider.status) ? rdata.spider.status : 444) + '</a></td><td><div class="ssh-item">\
+                            <input class="btswitch btswitch-ios" id="closespider" type="checkbox" '+ ((rdata.spider && rdata.spider.open) ? 'checked' : '') + '>\
+                            <label class="btswitch-btn" for="closespider" onclick="setObjOpen(\'spider\')"></label>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setSpiderDialog()">' + pt('设置') + '</a></td>\
+                    </tr>\
+                    <tr>\
                         <td style="color:#fc6d26;font-weight:bold;">' + pt('CDN增强检测') + '</td><td>' + pt('未开启时，站点开启CDN将会放行部分包含X-Forwarded-For的IP') + '</td><td style="text-align: center;">--</td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecdn_enhanced" type="checkbox" '+ (rdata.cdn_enhanced && rdata.cdn_enhanced.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closecdn_enhanced" onclick="setObjOpen(\'cdn_enhanced\')"></label>\
@@ -2538,3 +2544,205 @@ function restoreHoneypotDefault() {
     var defaultPaths = ['/.env', '/admin_test.php', '/backup.zip', '/config.php.bak', '/.git/'];
     $('#honeypot_paths_input').val(defaultPaths.join('\n'));
 }
+
+function setSpiderDialog() {
+    api.post('get_spider_conf', {}, function(res) {
+        var raw = res.data;
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch(e) {}
+        }
+        var rdata = (raw && raw.data !== undefined) ? raw.data : raw;
+        if (typeof rdata === 'string') {
+            try { rdata = JSON.parse(rdata); } catch(e) {}
+        }
+        var conf = (rdata && rdata.config) ? rdata.config : { open: true, mode: 'downgrade', status: 444 };
+        var stats = (rdata && rdata.stats) ? rdata.stats : {};
+        var total = (rdata && rdata.total_rules !== undefined) ? rdata.total_rules : 0;
+
+        var html = '<div style="padding: 20px; font-size: 13px; color: #333;">\
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px;">\
+                <div style="font-weight: bold; margin-bottom: 6px; color: #0f172a;">🛡️ ' + pt('伪造蜘蛛与未知节点防御模式') + '</div>\
+                <div style="margin-bottom: 10px; color: #64748b; font-size: 12px;">' + pt('当访客 User-Agent 声称是主流搜索引擎，但请求 IP 未在官方权威白名单中时的处理方式：') + '</div>\
+                <div style="display: flex; gap: 12px; margin-top: 8px;">\
+                    <label style="flex: 1; border: 1px solid ' + (conf.mode !== 'block' ? '#20a53a' : '#cbd5e1') + '; background: ' + (conf.mode !== 'block' ? '#f0fdf4' : '#fff') + '; border-radius: 6px; padding: 10px 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 8px;">\
+                        <input type="radio" name="spider_mode" value="downgrade" ' + (conf.mode !== 'block' ? 'checked' : '') + ' onchange="changeSpiderMode(\'downgrade\')" style="margin-top: 3px;">\
+                        <div>\
+                            <div style="font-weight: bold; color: ' + (conf.mode !== 'block' ? '#166534' : '#334155') + ';">' + pt('宽松降级模式 (推荐，防误杀)') + '</div>\
+                            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">' + pt('不走直通绿色免检，降级为普通请求执行常规 WAF 检测。绝不误杀搜索引擎新节点或未收录的官方爬虫。') + '</div>\
+                        </div>\
+                    </label>\
+                    <label style="flex: 1; border: 1px solid ' + (conf.mode === 'block' ? '#ef4444' : '#cbd5e1') + '; background: ' + (conf.mode === 'block' ? '#fef2f2' : '#fff') + '; border-radius: 6px; padding: 10px 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 8px;">\
+                        <input type="radio" name="spider_mode" value="block" ' + (conf.mode === 'block' ? 'checked' : '') + ' onchange="changeSpiderMode(\'block\')" style="margin-top: 3px;">\
+                        <div>\
+                            <div style="font-weight: bold; color: ' + (conf.mode === 'block' ? '#991b1b' : '#334155') + ';">' + pt('严格阻断模式 (高安全)') + '</div>\
+                            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">' + pt('未在白名单的蜘蛛 UA 一律判定为假蜘蛛并直接 444 拒绝连接。如果搜索引擎分配了新节点可能存在误杀。') + '</div>\
+                        </div>\
+                    </label>\
+                </div>\
+            </div>\
+            <div style="margin-bottom: 12px; font-weight: bold; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">\
+                <span>🌐 ' + pt('当前权威蜘蛛 IP 池分布') + ' (' + pt('共') + ' <span style="color:#20a53a; font-weight:bold;">' + total + '</span> ' + pt('条网段') + ')</span>\
+                <div>\
+                    <button class="btn btn-default btn-xs" onclick="manageSpiderIpDialog()">' + pt('查看/编辑规则') + '</button>\
+                    <button class="btn btn-success btn-xs" style="margin-left: 6px;" onclick="syncSpiderIpAction()">' + pt('一键同步官方库') + '</button>\
+                </div>\
+            </div>\
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('百度 (Baiduspider)') + '</span><strong style="color:#2563eb;">' + (stats.baidu || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('谷歌 (Googlebot)') + '</span><strong style="color:#2563eb;">' + (stats.google || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('必应 (bingbot)') + '</span><strong style="color:#2563eb;">' + (stats.bing || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('字节/抖音 (Bytespider)') + '</span><strong style="color:#2563eb;">' + (stats.bytedance || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('华为花瓣 (PetalBot)') + '</span><strong style="color:#2563eb;">' + (stats.huawei || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('搜狗 (Sogou)') + '</span><strong style="color:#2563eb;">' + (stats.sogou || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('360 (360Spider)') + '</span><strong style="color:#2563eb;">' + (stats['360'] || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('神马 (YisouSpider)') + '</span><strong style="color:#2563eb;">' + (stats.shenma || 0) + '</strong></div>\
+                <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between;"><span>' + pt('其它/自定义') + '</span><strong style="color:#2563eb;">' + ((stats.custom || 0) + (stats.yandex || 0)) + '</strong></div>\
+            </div>\
+            <div style="font-size: 11px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px;">\
+                💡 ' + pt('提示：命中白名单的真实爬虫将享有专属绿色通道（自动豁免CC高频限制、人机JS验证等所有阻断），全力加速SEO索引收录。') + '\
+            </div>\
+        </div>';
+
+        layer.open({
+            type: 1,
+            title: pt('智能搜索引擎蜘蛛与防伪造配置'),
+            area: ['620px', '460px'],
+            closeBtn: 1,
+            shadeClose: false,
+            content: html
+        });
+    });
+}
+
+function changeSpiderMode(mode) {
+    api.post('set_spider_mode', { mode: mode }, function(res) {
+        var raw = res.data;
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch(e) {}
+        }
+        var isSuccess = raw ? (raw.status !== undefined ? raw.status : (raw.data && raw.data.status)) : false;
+        var msg = (raw && raw.msg) || (raw && raw.data && raw.data.msg) || '';
+        if (isSuccess) {
+            layer.msg(pt('切换模式成功!'), { icon: 1, time: 1000 });
+            layer.closeAll();
+            setTimeout(function(){ setSpiderDialog(); }, 200);
+        } else {
+            layer.msg(msg || pt('设置失败!'), { icon: 2 });
+        }
+    });
+}
+
+function syncSpiderIpAction() {
+    var loadT = layer.load(1, { shade: [0.1, '#fff'] });
+    api.post('sync_spider_ip', {}, function(res) {
+        layer.close(loadT);
+        var raw = res.data;
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch(e) {}
+        }
+        var isSuccess = raw ? (raw.status !== undefined ? raw.status : (raw.data && raw.data.status)) : false;
+        var msg = (raw && raw.msg) || (raw && raw.data && raw.data.msg) || pt('同步成功!');
+        if (isSuccess) {
+            layer.msg(msg, { icon: 1, time: 1500 });
+            layer.closeAll();
+            setTimeout(function(){ setSpiderDialog(); }, 200);
+        } else {
+            layer.msg(msg || pt('同步失败!'), { icon: 2 });
+        }
+    });
+}
+
+function manageSpiderIpDialog() {
+    api.post('get_spider_ip_list', {}, function(res) {
+        var raw = res.data;
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch(e) {}
+        }
+        var rdata = (raw && raw.data !== undefined) ? raw.data : raw;
+        if (typeof rdata === 'string') {
+            try { rdata = JSON.parse(rdata); } catch(e) {}
+        }
+        var ipList = Array.isArray(rdata) ? rdata : (Array.isArray(raw) ? raw : []);
+        var rows = '';
+        for (var i = 0; i < ipList.length; i++) {
+            var item = ipList[i];
+            var ip = item[0] || '';
+            var ps = item[1] || pt('无备注');
+            rows += '<tr>\
+                <td>' + ip + '</td>\
+                <td><span class="label label-info" style="font-weight:normal;">' + ps + '</span></td>\
+                <td style="text-align: right;"><a class="btlink" onclick="removeSpiderIpItem(' + i + ')">' + pt('删除') + '</a></td>\
+            </tr>';
+        }
+
+        var html = '<div style="padding: 15px;">\
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">\
+                <input type="text" id="new_spider_ip" class="bt-input-text" style="flex: 2; height: 32px;" placeholder="' + pt('输入 IP 或 CIDR (如 110.249.201.0/24)') + '">\
+                <input type="text" id="new_spider_ps" class="bt-input-text" style="flex: 1; height: 32px;" placeholder="' + pt('备注 (如 字节跳动)') + '">\
+                <button class="btn btn-success btn-sm" onclick="addSpiderIpItem()">' + pt('添加') + '</button>\
+            </div>\
+            <div class="divtable" style="max-height: 320px; overflow-y: auto; border: 1px solid #eee;">\
+                <table class="table table-hover">\
+                    <thead><tr><th>' + pt('IP / 网段 (CIDR)') + '</th><th>' + pt('所属引擎 / 备注') + '</th><th style="text-align: right;">' + pt('操作') + '</th></tr></thead>\
+                    <tbody>' + (rows || '<tr><td colspan="3" style="text-align:center; color:#999;">' + pt('暂无规则') + '</td></tr>') + '</tbody>\
+                </table>\
+            </div>\
+        </div>';
+
+        layer.open({
+            type: 1,
+            title: pt('搜索引擎蜘蛛 IP 库管理') + ' (' + ipList.length + ')',
+            area: ['560px', '460px'],
+            closeBtn: 1,
+            shadeClose: false,
+            content: html
+        });
+    });
+}
+
+function addSpiderIpItem() {
+    var ip = $('#new_spider_ip').val().trim();
+    var ps = $('#new_spider_ps').val().trim();
+    if (!ip) {
+        layer.msg(pt('请输入 IP 或 CIDR 网段!'), { icon: 2 });
+        return;
+    }
+    api.post('add_spider_ip', { ip: ip, ps: ps }, function(res) {
+        var raw = res.data;
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch(e) {}
+        }
+        var isSuccess = raw ? (raw.status !== undefined ? raw.status : (raw.data && raw.data.status)) : false;
+        var msg = (raw && raw.msg) || (raw && raw.data && raw.data.msg) || pt('添加失败!');
+        if (isSuccess) {
+            layer.msg(pt('添加成功!'), { icon: 1, time: 1000 });
+            layer.closeAll();
+            setTimeout(function(){ manageSpiderIpDialog(); }, 200);
+        } else {
+            layer.msg(msg, { icon: 2 });
+        }
+    });
+}
+
+function removeSpiderIpItem(index) {
+    layer.confirm(pt('确定要删除该蜘蛛网段吗？'), { title: pt('删除确认'), icon: 3 }, function(lIdx) {
+        layer.close(lIdx);
+        api.post('remove_spider_ip', { index: index }, function(res) {
+            var raw = res.data;
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch(e) {}
+            }
+            var isSuccess = raw ? (raw.status !== undefined ? raw.status : (raw.data && raw.data.status)) : false;
+            var msg = (raw && raw.msg) || (raw && raw.data && raw.data.msg) || pt('删除失败!');
+            if (isSuccess) {
+                layer.msg(pt('删除成功!'), { icon: 1, time: 1000 });
+                layer.closeAll();
+                setTimeout(function(){ manageSpiderIpDialog(); }, 200);
+            } else {
+                layer.msg(msg, { icon: 2 });
+            }
+        });
+    });
+}
+
+

@@ -75,6 +75,7 @@
     },
     "spider": {
         "open": true,
+        "mode": "downgrade",
         "status": 444,
         "ps": "智能蜘蛛识别与伪造拦截"
     },
