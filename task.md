@@ -874,4 +874,23 @@
 - [x] 406. 扩展自动化测试套件（`test/test_mysql_set_db_access.py` 与 `test/test_mariadb_set_db_access.py`）：增加对 `dbList` 渲染中权限图标条件的匹配逻辑、HTML 结构及双人图标样式的单元测试。
 - [x] 407. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
 
+## MySQL/MariaDB导航菜单布局优化与管理列表端口配置支持
+
+- [x] 408. 优化 `plugins/mysql/index.html` 与 `plugins/mariadb/index.html` 左侧导航菜单：移除独立的“端口”菜单项，并将“管理列表”上移至“服务”正下方（第二位）。
+- [x] 409. 后端 `plugins/mysql/index.py` 与 `plugins/mariadb/index.py` 中 `getDbList` 数据接口透传当前数据库端口（`info['port'] = getDbPort()`）。
+- [x] 410. 前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 管理列表顶部右侧增加端口号配置和显示控件（输入框、修改按钮、Enter 快捷键提交、合法范围校验与修改服务重启交互）。
+- [x] 411. 编写专项自动化测试用例，覆盖菜单布局顺序、管理列表端口回显与修改交互、后端端口字段透传验证。
+- [x] 412. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+
+## MySQL/MariaDB外部导入SQL日志弹窗与执行可靠性加固
+
+- [x] 413. 优化后端 `plugins/mysql/index.py` 中 `importDbExternal`：记录导入耗时、文件信息，安全传递命令行参数，捕获完整 stdout/stderr 与退出码，返回结构化日志 `data.log`。
+- [x] 414. 同步优化后端 `plugins/mariadb/index.py` 中 `importDbExternal`：完善文件大小与耗时计算，捕获完整 stdout/stderr 与退出码，返回结构化日志 `data.log`。
+- [x] 415. 重构前端 `plugins/mysql/js/mysql.js` 中 `importDbExternal`：增加 loading 加载遮罩，请求完成后弹出不可自动关闭的控制台日志弹窗（`time: 0`, `shadeClose: false`），提供手动关闭与日志复制。
+- [x] 416. 同步重构前端 `plugins/mariadb/js/mariadb.js` 中 `importDbExternal`：增加 loading 加载遮罩与手动关闭的日志控制台弹窗。
+- [x] 417. 增补 `plugins/mysql` 与 `plugins/mariadb` 语言包中导入日志、复制日志等词条。
+- [x] 418. 编写专项自动化测试套件（`test/test_mysql_mariadb_import_log.py`），覆盖前后端日志结构、异常捕获、弹窗参数与手动关闭特性。
+- [x] 419. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+
+
 

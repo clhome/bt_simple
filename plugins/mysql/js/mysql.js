@@ -908,11 +908,90 @@ function downloadBackup(file){
     window.open('/files/download?filename='+encodeURIComponent(file));
 }
 
+function showImportLogModal(dbName, fileName, isSuccess, logText, onFinish){
+    var statusHtml = isSuccess 
+        ? '<span style="color:#20a53a;font-weight:bold;">[' + pt('导入成功') + ']</span>'
+        : '<span style="color:#ff5722;font-weight:bold;">[' + pt('导入失败/异常') + ']</span>';
+    var title = pt('数据库导入执行日志') + ' - ' + dbName + ' ' + statusHtml;
+
+    var safeLog = $('<div>').text(logText || '').html();
+
+    var content = '<div style="padding:15px;background:#2b2b2b;">\
+        <div style="margin-bottom:10px;color:#bbb;font-size:12px;">\
+            <span>' + pt('目标数据库') + ': <b style="color:#fff;">' + $('<div>').text(dbName).html() + '</b></span> | \
+            <span>' + pt('源文件') + ': <b style="color:#fff;">' + $('<div>').text(fileName).html() + '</b></span>\
+        </div>\
+        <pre id="import_log_box" style="background:#181818;color:#00ff66;font-family:Consolas, Monaco, monospace, Courier New;font-size:12px;padding:12px;height:300px;overflow:auto;border:1px solid #444;border-radius:4px;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.6;">' + safeLog + '</pre>\
+    </div>';
+
+    layer.open({
+        type: 1,
+        title: title,
+        area: ['680px', '440px'],
+        closeBtn: 1,
+        shadeClose: false,
+        time: 0,
+        btn: [pt('关闭'), pt('复制日志')],
+        content: content,
+        success: function(layero, index){
+            var $pre = layero.find('#import_log_box');
+            if ($pre.length > 0) {
+                $pre.scrollTop($pre[0].scrollHeight);
+            }
+        },
+        yes: function(index){
+            layer.close(index);
+            if (typeof onFinish === 'function') {
+                onFinish();
+            }
+        },
+        btn2: function(index){
+            if (typeof copyText === 'function') {
+                copyText(logText);
+            } else {
+                var $temp = $('<textarea>');
+                $('body').append($temp);
+                $temp.val(logText).select();
+                document.execCommand('copy');
+                $temp.remove();
+            }
+            layer.msg(pt('日志已复制到剪贴板!'), {icon: 1, time: 1500});
+            return false;
+        },
+        cancel: function(index){
+            if (typeof onFinish === 'function') {
+                onFinish();
+            }
+        }
+    });
+}
+
 function importBackup(file,name){
     safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+        var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
+            icon: 16,
+            shade: [0.3, '#000'],
+            time: 0
+        });
         api.post('import_db_backup',{file:file,name:name}, function(data){
-            // console.log(data);
-            layer.msg(pt('执行成功!'));
+            layer.close(loading);
+            var rdata = {};
+            try {
+                rdata = (typeof data.data === 'string') ? JSON.parse(data.data) : (data.data || data);
+            } catch(e) {
+                rdata = data;
+            }
+            var isSuccess = rdata && (rdata.status === true || rdata.status === 'true');
+            var logText = (rdata && rdata.data && rdata.data.log) ? rdata.data.log : (rdata.msg || (isSuccess ? pt('导入成功!') : pt('导入失败!')));
+            showImportLogModal(name, file, isSuccess, logText, function(){
+                setBackupReq(name);
+            });
+        }, function(err){
+            layer.close(loading);
+            var errMsg = pt('导入请求失败: ') + (err && err.responseText ? err.responseText : JSON.stringify(err));
+            showImportLogModal(name, file, false, errMsg, function(){
+                setBackupReq(name);
+            });
         });
     });
 }
@@ -945,8 +1024,46 @@ function importBackupProgress(file,name){
 
 function importDbExternal(file,name){
     safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+        var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
+            icon: 16,
+            shade: [0.3, '#000'],
+            time: 0
+        });
+
         api.post('import_db_external',{file:file,name:name}, function(data){
-            layer.msg(pt('执行成功!'));
+            layer.close(loading);
+            var rdata = {};
+            try {
+                rdata = (typeof data.data === 'string') ? JSON.parse(data.data) : (data.data || data);
+            } catch(e) {
+                rdata = data;
+            }
+
+            var isSuccess = rdata && (rdata.status === true || rdata.status === 'true');
+            var logText = '';
+            if (rdata && rdata.data && rdata.data.log) {
+                logText = rdata.data.log;
+            } else if (rdata && rdata.msg) {
+                logText = rdata.msg;
+            } else if (typeof data === 'string') {
+                logText = data;
+            } else {
+                logText = JSON.stringify(data);
+            }
+
+            showImportLogModal(name, file, isSuccess, logText, function(){
+                if (typeof setLocalImport === 'function') {
+                    setLocalImport(name);
+                }
+            });
+        }, function(err){
+            layer.close(loading);
+            var errMsg = pt('导入请求失败: ') + (err && err.responseText ? err.responseText : JSON.stringify(err));
+            showImportLogModal(name, file, false, errMsg, function(){
+                if (typeof setLocalImport === 'function') {
+                    setLocalImport(name);
+                }
+            });
         });
     });
 }
@@ -1263,9 +1380,12 @@ function dbList(page, search){
                 <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="' + pt('打开phpMyadmin') + '" class="btn btn-default btn-sm" type="button">phpMyAdmin</button>\
                 <button onclick="setDbAccess(\'root\')" title="' + pt('ROOT权限') + '" class="btn btn-default btn-sm" type="button">' + pt('ROOT权限') + '</button>\
                 <button onclick="fixDbAccess(\'root\')" title="' + pt('修复') + '" class="btn btn-default btn-sm" type="button">' + pt('修复') + '</button>\
-                <span style="margin-left:auto;">\
-                    <button batch="true" style="display:none;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
-                </span>\
+                <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">\
+                    <button batch="true" style="display:none;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm mr5">' + pt('删除选中') + '</button>\
+                    <span style="font-size:13px; color:#555; white-space:nowrap;">' + (pt('端口号') || pt('端口')) + ':</span>\
+                    <input id="db_port_val" class="bt-input-text port" type="number" min="1" max="65535" style="width:75px; height:30px; line-height:30px; font-size:12px; padding:0 6px;" value="' + (rdata.info && rdata.info['port'] ? rdata.info['port'] : '3306') + '">\
+                    <button id="btn_save_db_port" onclick="changeDbPort()" title="' + pt('修改数据库端口') + '" class="btn btn-success btn-sm" style="height:30px; line-height:18px;">' + pt('修改') + '</button>\
+                </div>\
             </div>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
@@ -1301,7 +1421,34 @@ function dbList(page, search){
         $(".soft-man-con").html(con);
         $('#databasePage').html(rdata.page);
 
+        $('#db_port_val').off('keydown').on('keydown', function(e){
+            if (e.keyCode === 13){
+                changeDbPort();
+            }
+        });
+
         readerTableChecked();
+    });
+}
+
+function changeDbPort(){
+    var port = ($('#db_port_val').val() || '').trim();
+    if (!port || isNaN(port) || parseInt(port) < 1 || parseInt(port) > 65535){
+        layer.msg(pt('端口范围为1-65535!'), {icon: 2, shade: [0.3, '#000']});
+        return;
+    }
+    var loadT = layer.msg(pt('正在修改端口并重启服务...'), {icon: 16, time: 0, shade: [0.3, '#000']});
+    api.post('set_my_port', 'port=' + port, function(data){
+        layer.close(loadT);
+        var rdata = JSON.parse(data.data);
+        if (rdata.status){
+            layer.msg(pt('修改成功!'), {icon: 1, time: 2000, shade: [0.3, '#000']});
+            setTimeout(function(){
+                dbList();
+            }, 1000);
+        } else {
+            layer.msg(rdata.msg, {icon: 2, time: 2000, shade: [0.3, '#000']});
+        }
     });
 }
 

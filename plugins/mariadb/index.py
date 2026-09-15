@@ -889,86 +889,205 @@ def importDbExternal():
     file = args['file']
     name = args['name']
 
-    if not re.match(r"^[\w\.-]+$", name):
-        return yf.returnJson(False, '数据库名称不合法!')
-    if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
-        return yf.returnJson(False, '文件名不合法!')
+    if '..' in file or '..' in name:
+        return yf.returnJson(False, '路径参数不合法!')
 
     import_dir = yf.getBackupDir() + '/import/'
-
-    file_path = import_dir + file
+    file_path = os.path.join(import_dir, file)
     if not os.path.exists(file_path):
-        return yf.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, '源文件不存在: ' + file, {'log': '错误: 文件未找到: ' + file_path})
 
     exts = ['sql', 'gz', 'zip']
-    tmp = file.split('.')
-    ext = tmp[len(tmp) - 1]
+    ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return yf.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, '导入数据库格式不对!', {'log': '错误: 不支持的文件格式 .' + str(ext)})
 
-    tmpFile = file.split('/')[-1]
-    tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
-    tmpFile = tmpFile.replace('.' + ext, '.sql')
-    tmpFile = tmpFile.replace('tar.', '')
+    file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+    file_size_str = yf.toSize(file_size) if hasattr(yf, 'toSize') else str(file_size) + ' B'
+
+    tmp = file.split('/')[-1]
+    tmpFile = tmp.replace('.sql.' + ext, '.sql').replace('.' + ext, '.sql').replace('tar.', '')
 
     import_sql = ""
-    import subprocess
+    extract_msg = ""
+    start_time = time.time()
 
-    if file.find("sql.gz") > -1:
+    if file.find("sql.gz") > -1 or file.endswith('.gz'):
         try:
-            with open(import_dir + tmpFile, 'wb') as out_f:
-                p = subprocess.Popen(['gzip', '-dc', file_path], stdout=out_f, stderr=subprocess.PIPE)
-                p.communicate()
-            import_sql = import_dir + tmpFile
+            import gzip
+            target_sql = os.path.join(import_dir, tmpFile)
+            with gzip.open(file_path, 'rb') as f_in:
+                with open(target_sql, 'wb') as f_out:
+                    import shutil
+                    shutil.copyfileobj(f_in, f_out)
+            import_sql = target_sql
+            extract_msg = "解压 gzip 完成 -> " + tmpFile
         except Exception as e:
-            return yf.returnJson(False, '解压 gzip 发生异常: ' + str(e))
+            extract_msg = "解压 gzip 失败: " + str(e)
 
     elif file.find(".zip") > -1:
         try:
-            p = subprocess.Popen(['unzip', '-o', file_path, '-d', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.communicate()
-            import_sql = import_dir + tmpFile
+            import zipfile
+            target_sql = os.path.join(import_dir, tmpFile)
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                sql_members = [m for m in zf.namelist() if m.lower().endswith('.sql') and not m.startswith('__MACOSX')]
+                if sql_members:
+                    chosen = sql_members[0]
+                    zf.extract(chosen, import_dir)
+                    import_sql = os.path.join(import_dir, chosen)
+                else:
+                    zf.extractall(import_dir)
+                    if os.path.exists(target_sql):
+                        import_sql = target_sql
+            extract_msg = "解压 zip 完成 -> " + (os.path.basename(import_sql) if import_sql else tmpFile)
         except Exception as e:
-            return yf.returnJson(False, '解压 zip 发生异常: ' + str(e))
+            extract_msg = "解压 zip 失败: " + str(e)
 
-    elif file.find("tar.gz") > -1:
+    elif file.find("tar.gz") > -1 or file.endswith('.tgz'):
         try:
-            p = subprocess.Popen(['tar', '-zxvf', file_path, '-C', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.communicate()
-            import_sql = import_dir + tmpFile
+            import tarfile
+            target_sql = os.path.join(import_dir, tmpFile)
+            with tarfile.open(file_path, 'r:gz') as tf:
+                sql_members = [m for m in tf.getnames() if m.lower().endswith('.sql') and not m.startswith('._')]
+                if sql_members:
+                    chosen = sql_members[0]
+                    tf.extract(chosen, import_dir)
+                    import_sql = os.path.join(import_dir, chosen)
+                else:
+                    tf.extractall(import_dir)
+                    if os.path.exists(target_sql):
+                        import_sql = target_sql
+            extract_msg = "解压 tar.gz 完成 -> " + (os.path.basename(import_sql) if import_sql else tmpFile)
         except Exception as e:
-            return yf.returnJson(False, '解压 tar.gz 发生异常: ' + str(e))
+            extract_msg = "解压 tar.gz 失败: " + str(e)
 
-    elif file.find(".sql") > -1 and file.find(".sql.gz") == -1:
-        import_sql = import_dir + file
+    elif file.lower().endswith('.sql'):
+        import_sql = file_path
 
-    if import_sql == "" or not os.path.exists(import_sql):
-        return yf.returnJson(False, '未找到SQL文件')
+    if not import_sql or not os.path.exists(import_sql):
+        err_log = f"==================================================\n" \
+                  f"【MariaDB 外部数据库导入日志】\n" \
+                  f"目标数据库: {name}\n" \
+                  f"导入源文件: {file} ({file_size_str})\n" \
+                  f"执行时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}\n" \
+                  f"解压结果: {extract_msg}\n" \
+                  f"错误提示: 未找到有效的 SQL 文件，导入终止！\n" \
+                  f"=================================================="
+        return yf.returnJson(False, '未找到SQL文件', {'log': err_log, 'exit_code': 1, 'has_error': True})
+
+    sql_file_size = os.path.getsize(import_sql)
+    if sql_file_size == 0:
+        err_log = f"==================================================\n" \
+                  f"【MariaDB 外部数据库导入日志】\n" \
+                  f"目标数据库: {name}\n" \
+                  f"导入源文件: {file} ({file_size_str})\n" \
+                  f"SQL 文件大小: 0 字节 (空文件)\n" \
+                  f"执行时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}\n" \
+                  f"错误提示: 待导入的 SQL 文件内容为空 (0 字节)，无需导入！\n" \
+                  f"=================================================="
+        if ext != 'sql' and os.path.exists(import_sql):
+            try:
+                os.remove(import_sql)
+            except Exception:
+                pass
+        return yf.returnJson(False, 'SQL文件内容为空', {'log': err_log, 'exit_code': 1, 'has_error': True})
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
+    my_cnf = getConf()
 
     mysql_bin = getServerDir() + '/bin/mariadb'
     if not os.path.exists(mysql_bin):
         mysql_bin = getServerDir() + '/bin/mysql'
+    if not os.path.exists(mysql_bin):
+        import shutil
+        which_bin = shutil.which('mariadb') or shutil.which('mysql')
+        if which_bin:
+            mysql_bin = which_bin
 
-    cmd = [mysql_bin, '-S', sock, '-uroot', '-p' + pwd, name]
+    cmd = [mysql_bin]
+    if os.path.exists(my_cnf):
+        cmd.append('--defaults-file=' + my_cnf)
+    cmd.append('--default-character-set=utf8mb4')
+    if sock and os.path.exists(sock):
+        cmd.extend(['-S', sock])
+    cmd.extend(['-uroot', '-p' + str(pwd), '-f', name])
+
+    stdout_text = ""
+    stderr_text = ""
+    returncode = 0
+
+    import subprocess
     try:
-        with open(import_sql, 'r', encoding='utf-8', errors='ignore') as f:
-            p = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
-            if p.returncode != 0:
-                return yf.returnJson(False, '导入失败: ' + stderr.decode('utf-8', errors='ignore'))
-    except Exception as e:
-        return yf.returnJson(False, '导入过程发生异常: ' + str(e))
+        with open(import_sql, 'rb') as f_in:
+            p = subprocess.Popen(cmd, stdin=f_in, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout_bytes, stderr_bytes = p.communicate()
+            returncode = p.returncode
 
-    if ext != 'sql':
+        try:
+            stdout_text = stdout_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            stdout_text = stdout_bytes.decode('gbk', errors='replace')
+
+        try:
+            stderr_text = stderr_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            stderr_text = stderr_bytes.decode('gbk', errors='replace')
+    except Exception as e:
+        returncode = 1
+        stderr_text = "执行命令发生异常: " + str(e)
+
+    duration = round(time.time() - start_time, 2)
+
+    if ext != 'sql' and os.path.exists(import_sql):
         try:
             os.remove(import_sql)
-        except:
+        except Exception:
             pass
 
-    return yf.returnJson(True, 'ok')
+    # 分析执行状态与错误
+    stderr_clean = stderr_text.replace('[Warning] Using a password on the command line interface can be insecure.', '').strip()
+    is_success = (returncode == 0)
+    if returncode != 0:
+        is_success = False
+    elif 'error' in stderr_clean.lower() and not ('unknown collation' in stderr_clean.lower() and is_success):
+        is_success = False
+
+    log_lines = []
+    log_lines.append("==================================================")
+    log_lines.append("【MariaDB 外部数据库导入日志】")
+    log_lines.append(f"目标数据库: {name}")
+    log_lines.append(f"导入源文件: {file} ({file_size_str})")
+    if extract_msg:
+        log_lines.append(f"解压记录: {extract_msg}")
+    log_lines.append(f"执行时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+    log_lines.append(f"执行耗时: {duration} 秒")
+    log_lines.append(f"进程退出码: {returncode}")
+    log_lines.append("--------------------------------------------------")
+    if stdout_text.strip():
+        log_lines.append("[标准输出 (stdout)]:")
+        log_lines.append(stdout_text.strip())
+    else:
+        log_lines.append("[标准输出 (stdout)]: (无输出内容)")
+    log_lines.append("")
+    if stderr_text.strip():
+        log_lines.append("[控制台提示 / 错误 (stderr)]:")
+        log_lines.append(stderr_text.strip())
+    else:
+        log_lines.append("[控制台提示 / 错误 (stderr)]: (无错误或警告信息)")
+    log_lines.append("--------------------------------------------------")
+    if is_success:
+        log_lines.append("执行结论: 数据库导入执行完毕！")
+        if not stdout_text.strip() and not stderr_clean:
+            log_lines.append("提示: MariaDB 未返回任何异常信息，数据已成功写入数据库。")
+    else:
+        log_lines.append("执行结论: 数据库导入失败或存在异常！")
+        log_lines.append("排查建议: 请检查上方控制台输出，核对 SQL 文件内容格式、表结构权限或字符集。若 SQL 内包含 USE/CREATE DATABASE 语句，可能导入至了其他数据库中。")
+    log_lines.append("==================================================")
+    full_log = "\n".join(log_lines)
+
+    msg = '导入成功!' if is_success else '导入失败或存在异常!'
+    return yf.returnJson(is_success, msg, {'log': full_log, 'exit_code': returncode, 'has_error': not is_success})
 
 def importDbExternalProgress():
     args = getArgs()
@@ -1194,6 +1313,10 @@ def getDbList():
     info = {}
     info['root_pwd'] = pSqliteDb('config').where(
         'id=?', (1,)).getField('mysql_root')
+    try:
+        info['port'] = getDbPort()
+    except Exception:
+        info['port'] = '3306'
     data['info'] = info
 
     return yf.getJson(data)
