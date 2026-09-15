@@ -866,3 +866,12 @@
 - [x] 401. 扩展自动化测试套件（`test/test_mysql_set_db_access.py`）：增加对包含 `%` 通配符的 SQL 语句在 ORM/PyMySQL 真实环境下的执行测试，验证无参数、空参数元组、空列表、非空参数下的执行稳定性；端到端验证权限设置为所有人（`%`）时不再抛错。
 - [x] 402. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时排查文件。
 
+## MySQL/MariaDB管理列表增加多人绿色权限图标
+
+- [x] 403. 构思方案与审核确认：针对 MySQL 及 MariaDB 数据库管理列表增加“多人绿色图标”显示逻辑，采用系统内置双 `glyphicon-user` 错落层叠方案呈现立体多人视觉，支持悬停显示访问权限且可点击直接修改权限。
+- [x] 404. 在 `plugins/mysql/js/mysql.js` 中的 `dbList` 数据库列表渲染逻辑中增加远程访问权限（`所有人 %` 或 `指定IP`）判断：在数据库名称后添加带有标题提示与可点击快速修改权限的多人绿色图标。
+- [x] 405. 同步在 `plugins/mariadb/js/mariadb.js` 中的 `dbList` 渲染逻辑中增加相同的多人群组绿色图标与交互能力。
+- [x] 406. 扩展自动化测试套件（`test/test_mysql_set_db_access.py` 与 `test/test_mariadb_set_db_access.py`）：增加对 `dbList` 渲染中权限图标条件的匹配逻辑、HTML 结构及双人图标样式的单元测试。
+- [x] 407. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+
+

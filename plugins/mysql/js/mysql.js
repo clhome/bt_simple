@@ -1204,7 +1204,16 @@ function dbList(page, search){
         for(i in rdata.data){
             list += '<tr>';
             list +='<td><input value="'+rdata.data[i]['id']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
-            list += '<td>' + rdata.data[i]['name'] +'</td>';
+            var accessIco = '';
+            var accept = (rdata.data[i]['accept'] || '').trim();
+            if (accept && accept !== '127.0.0.1' && accept !== 'localhost'){
+                var accTitle = pt('访问权限') + ': ' + (accept === '%' ? pt('所有人') : accept);
+                accessIco = '<span class="cursor" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="' + accTitle + '" style="display:inline-block; margin-left:6px; color:#20a53a; vertical-align:middle; line-height:1;">' +
+                                '<span class="glyphicon glyphicon-user" style="font-size:11px; opacity:0.8; margin-right:-6px;"></span>' +
+                                '<span class="glyphicon glyphicon-user" style="font-size:12px;"></span>' +
+                            '</span>';
+            }
+            list += '<td>' + rdata.data[i]['name'] + accessIco + '</td>';
             list += '<td>' + rdata.data[i]['username'] +'</td>';
             list += '<td>' + 
                         '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
