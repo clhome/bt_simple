@@ -824,3 +824,37 @@
 - [x] 386. 编写专项自动化测试套件（`test/test_reboot_modal_i18n_style.py`），验证 6 国语言词条完整性、JS/JSON 语法零错误及 CSS 规则对齐。
 - [x] 387. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
 - [x] 388. 调整重启/修复服务器弹窗按键排布顺序：将高频轻量的“重启面板”调整至首位，系统级“重启服务器”置于第二位，保持更佳的操作便利性与防误触安全体验。
+- [x] 389. 修复前端 `plugins/mysql/js/mysql.js` 中 `setDbAccess` 与 `setDbMasterAccess` 的弹窗回显与提交逻辑：
+  - 弃用失效的 `.attr("selected", true)`，使用 `selectEl.val(targetVal)` 确保“本地服务器（127.0.0.1）”、“所有人（%）”和“指定IP（ip）”精准回显与显示；
+  - 修复指定 IP 时填入原 IP 地址并正确关联 `address` 输入框；
+  - 优化表单序列化与提交数据组装逻辑，提交时精准匹配模式与 IP，校验非空并杜绝错误覆盖；
+  - 接口返回失败时阻止关闭弹窗，展示明确报错。
+- [x] 390. 重构后端 `plugins/mysql/index.py` 中 `setDbAccess` 权限设置核心逻辑：
+  - 准确支持 `root` 用户与普通用户的权限设置，解决 `root` 在 `databases` 表中查不到记录的缺陷；
+  - 普通用户同时支持通过 `username` 与 `name` 检索库名与密码，避免用户名与库名不一致导致获取不到密码；
+  - 全面检查 SQL 执行返回值（使用 `isSqlError` 与 `checkSqlExec`），严禁静默吞没异常，报错时友好返回具体原因；
+  - 修复授权语句语法缺陷，数据库名全面添加反引号（` `dbname`.* `），解决包含 `-` 连字符的数据库授权报错；
+  - 适配 MySQL 5.5/5.6/5.7/8.0+ 语法，使用 `CREATE USER IF NOT EXISTS` / `ALTER USER`，并对 root 授予 `WITH GRANT OPTION`；
+  - 保护原读写配置，仅更新 `accept` 权限字段，杜绝写死破坏用户的只读（`r`）配置。
+- [x] 391. 优化底层 `__createUser` 辅助函数：增加数据库名反引号包裹与用户已存在时的容错机制。
+- [x] 392. 编写专项自动化测试套件（`test/test_mysql_set_db_access.py`），覆盖普通用户、ROOT 用户在各种权限（127.0.0.1, %, 指定IP）下的回显、参数组装、SQL 语法反引号包裹与异常处理验证。
+- [x] 393. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
+
+## MariaDB修改数据库权限缺陷同步修复与加固
+
+- [x] 394. 修复前端 `plugins/mariadb/js/mariadb.js` 中 `setDbAccess` 与 `setDbMasterAccess` 的弹窗 HTML 拼接与回显提交逻辑：
+  - 修复双引号字符串中单引号拼接导致的字面量泄漏问题（消除页面出现 `' + pt(...) + '` 原文）；
+  - 弃用失效的 `.attr("selected", true)`，改用 `$sel.val(targetVal)` 实现精准回显与显示；
+  - 修复指定 IP 时填入原 IP 地址并正确关联 `address` 输入框；
+  - 优化表单序列化与提交数据组装逻辑，提交时精准匹配模式与 IP，校验非空并杜绝错误覆盖；
+  - 接口返回失败时阻止关闭弹窗，展示明确报错。
+- [x] 395. 重构后端 `plugins/mariadb/index.py` 中 `setDbAccess` 权限设置核心逻辑：
+  - 准确支持 `root` 用户与普通用户的权限设置，解决 `root` 在 `databases` 表中查不到记录的缺陷；
+  - 普通用户同时支持通过 `username` 与 `name` 检索库名与密码，避免用户名与库名不一致导致获取不到密码；
+  - 全面检查 SQL 执行返回值（使用 `isSqlError` 与 `checkSqlExec`），严禁静默吞没异常，报错时友好返回具体原因；
+  - 修复授权语句语法缺陷，数据库名全面添加反引号（` `dbname`.* `），解决包含 `-` 连字符的数据库授权报错；
+  - 适配 MariaDB 各版本语法，使用 `CREATE USER IF NOT EXISTS` / `ALTER USER`，并对 root 授予 `WITH GRANT OPTION`；
+  - 保护原读写配置，仅更新 `accept` 权限字段，杜绝写死破坏用户的只读（`r`）配置。
+- [x] 396. 优化底层 `__createUser` 辅助函数：增加数据库名反引号包裹与用户已存在时的容错机制。
+- [x] 397. 编写专项自动化测试套件（`test/test_mariadb_set_db_access.py`），覆盖普通用户、ROOT 用户在各种权限下的回显、字面量无泄漏、参数组装、SQL 语法反引号包裹与异常处理验证。
+- [x] 398. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。

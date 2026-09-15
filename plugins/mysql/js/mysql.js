@@ -591,22 +591,27 @@ function setDbAccess(username){
                         '</div>' +
                       '</form>',
             success:function(){
-                if (rdata.msg == '127.0.0.1'){
-                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
-                } else if (rdata.msg == '%'){
-                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
-                } else if ( rdata.msg == 'ip' ){
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                var $sel = $('select[name="dataAccess"]');
+                var acc = (rdata.msg || '127.0.0.1').trim();
+                if (acc === '127.0.0.1'){
+                    $sel.val('127.0.0.1');
+                } else if (acc === '%'){
+                    $sel.val('%');
                 } else {
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after('<input value="' + rdata.msg + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    $sel.val('ip');
+                    if ($('#dataAccess_subid').length === 0){
+                        $sel.after('<input value="' + acc + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    } else {
+                        $('#dataAccess_subid').val(acc);
+                    }
                 }
 
-                 $('select[name="dataAccess"]').on('change', function(){
+                $sel.off('change').on('change', function(){
                     var v = $(this).val();
-                    if (v == 'ip'){
-                        $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    if (v === 'ip'){
+                        if ($('#dataAccess_subid').length === 0){
+                            $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                        }
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -616,22 +621,24 @@ function setDbAccess(username){
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
                 var dataObj = toArrayObject(data);
-                if(!dataObj['access']){
-                    dataObj['access'] = dataObj['dataAccess'];
-                    if ( dataObj['dataAccess'] == 'ip'){
-                        if (dataObj['address']==''){
-                            layer.msg('IP地址不能空!',{icon:2,shade: [0.3, '#000']});
-                            return;
-                        }
-                        dataObj['access'] = dataObj['address'];
+                if (dataObj['dataAccess'] === 'ip'){
+                    var addr = (dataObj['address'] || '').trim();
+                    if (addr === ''){
+                        layer.msg(pt('IP地址不能空!'), {icon:2, shade: [0.3, '#000']});
+                        return;
                     }
+                    dataObj['access'] = addr;
+                } else {
+                    dataObj['access'] = dataObj['dataAccess'];
                 }
                 dataObj['username'] = username;
                 api.post('set_db_access', dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
-                        layer.close(index);
-                        dbList();
+                        if (rdata.status){
+                            layer.close(index);
+                            dbList();
+                        }
                     },{icon: rdata.status ? 1 : 2});   
                 });
             }
@@ -1815,22 +1822,27 @@ function setDbMasterAccess(username){
                         '</div>' +
                       '</form>',
             success:function(){
-                if (rdata.msg == '127.0.0.1'){
-                    $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
-                } else if (rdata.msg == '%'){
-                    $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
-                } else if ( rdata.msg == 'ip' ){
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                var $sel = $('select[name="dataAccess"]');
+                var acc = (rdata.msg || '127.0.0.1').trim();
+                if (acc === '127.0.0.1'){
+                    $sel.val('127.0.0.1');
+                } else if (acc === '%'){
+                    $sel.val('%');
                 } else {
-                    $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after('<input value="' + rdata.msg + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    $sel.val('ip');
+                    if ($('#dataAccess_subid').length === 0){
+                        $sel.after('<input value="' + acc + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    } else {
+                        $('#dataAccess_subid').val(acc);
+                    }
                 }
 
-                 $('select[name="dataAccess"]').on('change', function(){
+                $sel.off('change').on('change', function(){
                     var v = $(this).val();
-                    if (v == 'ip'){
-                        $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                    if (v === 'ip'){
+                        if ($('#dataAccess_subid').length === 0){
+                            $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
+                        }
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -1840,21 +1852,23 @@ function setDbMasterAccess(username){
                 var data = $("#set_db_access").serialize();
                 data = decodeURIComponent(data);
                 var dataObj = toArrayObject(data);
-                if(!dataObj['access']){
-                    dataObj['access'] = dataObj['dataAccess'];
-                    if ( dataObj['dataAccess'] == 'ip'){
-                        if (dataObj['address']==''){
-                            layer.msg('IP地址不能空!',{icon:2,shade: [0.3, '#000']});
-                            return;
-                        }
-                        dataObj['access'] = dataObj['address'];
+                if (dataObj['dataAccess'] === 'ip'){
+                    var addr = (dataObj['address'] || '').trim();
+                    if (addr === ''){
+                        layer.msg(pt('IP地址不能空!'), {icon:2, shade: [0.3, '#000']});
+                        return;
                     }
+                    dataObj['access'] = addr;
+                } else {
+                    dataObj['access'] = dataObj['dataAccess'];
                 }
                 dataObj['username'] = username;
                 api.post('set_dbmaster_access', dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
-                        layer.close(index);
+                        if (rdata.status){
+                            layer.close(index);
+                        }
                     },{icon: rdata.status ? 1 : 2});   
                 });
             }

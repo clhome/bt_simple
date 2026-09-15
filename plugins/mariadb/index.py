@@ -726,21 +726,51 @@ def isSqlError(mysqlMsg):
     return None
 
 
+def checkSqlExec(result):
+    if result is None:
+        return None
+    err = isSqlError(result)
+    if err is not None:
+        return err
+    if isinstance(result, Exception):
+        return yf.returnJson(False, 'SQL执行失败: ' + str(result))
+    return None
+
+
 def __createUser(dbname, username, password, address):
     pdb = pMysqlDb('mysql')
 
-    if username == 'root':
-        dbname = '*'
+    is_root = (username == 'root' or dbname == '*')
+    db_target = '*.*' if is_root else ('`' + dbname + '`.*')
+    safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
-    pdb.execute(
-        "CREATE USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, password))
-    pdb.execute(
-        "grant all privileges on %s.* to `%s`@`localhost`" % (dbname, username))
+    # 1. 创建或更新 localhost 用户
+    r_local = pdb.execute(
+        "CREATE USER IF NOT EXISTS `%s`@`localhost` IDENTIFIED BY '%s'" % (username, safe_pwd))
+    if isSqlError(r_local) is not None or isinstance(r_local, Exception):
+        pdb.execute(
+            "ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, safe_pwd))
+
+    grant_local = "grant all privileges on %s to `%s`@`localhost`" % (db_target, username)
+    if is_root:
+        grant_local += " with grant option"
+    pdb.execute(grant_local)
+
+    # 2. 遍历各 host 创建与授权
     for a in address.split(','):
-        pdb.execute(
-            "CREATE USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, password))
-        pdb.execute(
-            "grant all privileges on %s.* to `%s`@`%s`" % (dbname, username, a))
+        a = a.strip()
+        if not a or a == 'localhost':
+            continue
+        r_host = pdb.execute(
+            "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+        if isSqlError(r_host) is not None or isinstance(r_host, Exception):
+            pdb.execute(
+                "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+        grant_host = "grant all privileges on %s to `%s`@`%s`" % (db_target, username, a)
+        if is_root:
+            grant_host += " with grant option"
+        pdb.execute(grant_host)
+
     pdb.execute("flush privileges")
 
 
@@ -1485,29 +1515,108 @@ def setDbAccess():
     data = checkArgs(args, ['username', 'access'])
     if not data[0]:
         return data[1]
-    name = args['username']
-    access = args['access']
+    name = args['username'].strip()
+    access = args['access'].strip()
     pdb = pMysqlDb('mysql')
     psdb = pSqliteDb('databases')
 
-    dbname = psdb.where('username=?', (name,)).getField('name')
+    try:
+        is_root = (name == 'root')
+        if is_root:
+            password = pSqliteDb('config').where(
+                'id=?', (1,)).getField('mysql_root')
+            if not password:
+                return yf.returnJson(False, '获取ROOT数据库密码失败!')
+            dbname = '*'
+            rw = 'all'
+        else:
+            # 兼容按 username 或 name 查询
+            db_info = psdb.where('username=?', (name,)).field('name,username,password,accept,rw').find()
+            if not db_info:
+                db_info = psdb.where('name=?', (name,)).field('name,username,password,accept,rw').find()
+            if not db_info:
+                return yf.returnJson(False, '数据库用户[' + name + ']不存在!')
 
-    if name == 'root':
-        password = pSqliteDb('config').where(
-            'id=?', (1,)).getField('mysql_root')
-    else:
-        password = psdb.where("username=?", (name,)).getField('password')
+            dbname = db_info.get('name') or name
+            name = db_info.get('username') or name
+            password = db_info.get('password') or ''
+            rw = db_info.get('rw') or 'rw'
 
-    users = pdb.query("select Host from user where User='" +
-                      name + "' AND Host!='localhost'")
+            if not password:
+                return yf.returnJson(False, '数据库用户[' + name + ']密码为空，请先修改或重置密码!')
 
-    for us in users:
-        pdb.execute("drop user '" + name + "'@'" + us["Host"] + "'")
+        safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
-    __createUser(dbname, name, password, access)
+        # 查询已有非 localhost 的 Host
+        users = pdb.query("select Host from user where User='" +
+                          name + "' AND Host!='localhost'")
+        err = checkSqlExec(users)
+        if err is not None:
+            return err
 
-    psdb.where('username=?', (name,)).save('accept,rw', (access, 'rw',))
-    return yf.returnJson(True, '设置成功!')
+        if isinstance(users, list):
+            for us in users:
+                h = us.get("Host") if isinstance(us, dict) else us[0]
+                pdb.execute("drop user '" + name + "'@'" + str(h) + "'")
+
+        # 解析目标 host 列表
+        target_hosts = []
+        for a in access.split(','):
+            a = a.strip()
+            if a and a not in target_hosts:
+                target_hosts.append(a)
+
+        if not target_hosts:
+            target_hosts = ['127.0.0.1']
+
+        db_target = '*.*' if is_root else ('`' + dbname + '`.*')
+
+        # 为每个 host 创建用户并授权
+        for a in target_hosts:
+            r_create = pdb.execute(
+                "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+            if checkSqlExec(r_create) is not None:
+                r_alt = pdb.execute(
+                    "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+                if checkSqlExec(r_alt) is not None:
+                    # 兼容老版本
+                    pdb.execute(
+                        "GRANT USAGE ON *.* TO `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+
+            if is_root:
+                grant_sql = "GRANT ALL PRIVILEGES ON *.* TO `%s`@`%s` WITH GRANT OPTION" % (name, a)
+            else:
+                if rw == 'r':
+                    grant_sql = "GRANT SELECT ON %s TO `%s`@`%s`" % (db_target, name, a)
+                else:
+                    grant_sql = "GRANT ALL PRIVILEGES ON %s TO `%s`@`%s`" % (db_target, name, a)
+
+            r_grant = pdb.execute(grant_sql)
+            err_grant = checkSqlExec(r_grant)
+            if err_grant is not None:
+                return err_grant
+
+        # 对非 root 用户，同时确保 localhost 正常授权
+        if not is_root:
+            r_local = pdb.execute(
+                "CREATE USER IF NOT EXISTS `%s`@`localhost` IDENTIFIED BY '%s'" % (name, safe_pwd))
+            if checkSqlExec(r_local) is not None:
+                pdb.execute(
+                    "ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (name, safe_pwd))
+            if rw == 'r':
+                pdb.execute("GRANT SELECT ON %s TO `%s`@`localhost`" % (db_target, name))
+            else:
+                pdb.execute("GRANT ALL PRIVILEGES ON %s TO `%s`@`localhost`" % (db_target, name))
+
+        pdb.execute("flush privileges")
+
+        # 更新 sqlite，仅更新 accept 字段，保留原有的 rw 权限配置
+        if not is_root:
+            psdb.where('username=?', (name,)).setField('accept', access)
+
+        return yf.returnJson(True, '设置成功!')
+    except Exception as ex:
+        return yf.returnJson(False, '设置数据库权限异常: ' + str(ex))
 
 def openSkipGrantTables():
     mycnf = getConf()
@@ -1846,26 +1955,58 @@ def setDbMasterAccess():
     data = checkArgs(args, ['username', 'access'])
     if not data[0]:
         return data[1]
-    username = args['username']
-    access = args['access']
-    pdb = pMysqlDb()
+    username = args['username'].strip()
+    access = args['access'].strip()
+    pdb = pMysqlDb('mysql')
     psdb = pSqliteDb('master_replication_user')
-    password = psdb.where("username=?", (username,)).getField('password')
-    users = pdb.query("select Host from user where User='" +
-                      username + "' AND Host!='localhost'")
-    for us in users:
-        pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
 
-    dbname = '*'
-    for a in access.split(','):
-        pdb.execute(
-            "CREATE USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, password))
-        pdb.execute(
-            "grant all privileges on %s.* to `%s`@`%s`" % (dbname, username, a))
+    try:
+        user_info = psdb.where("username=?", (username,)).find()
+        if not user_info:
+            return yf.returnJson(False, '复制用户[' + username + ']不存在!')
+        password = user_info.get('password') or ''
+        if not password:
+            return yf.returnJson(False, '复制用户密码为空!')
 
-    pdb.execute("flush privileges")
-    psdb.where('username=?', (username,)).save('accept', (access,))
-    return yf.returnJson(True, '设置成功!')
+        safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
+
+        users = pdb.query("select Host from user where User='" +
+                          username + "' AND Host!='localhost'")
+        err = checkSqlExec(users)
+        if err is not None:
+            return err
+
+        if isinstance(users, list):
+            for us in users:
+                h = us.get("Host") if isinstance(us, dict) else us[0]
+                pdb.execute("drop user '" + username + "'@'" + str(h) + "'")
+
+        target_hosts = []
+        for a in access.split(','):
+            a = a.strip()
+            if a and a not in target_hosts:
+                target_hosts.append(a)
+
+        if not target_hosts:
+            target_hosts = ['127.0.0.1']
+
+        for a in target_hosts:
+            r_create = pdb.execute(
+                "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+            if checkSqlExec(r_create) is not None:
+                pdb.execute(
+                    "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+            r_grant = pdb.execute(
+                "grant all privileges on *.* to `%s`@`%s` with grant option" % (username, a))
+            err_grant = checkSqlExec(r_grant)
+            if err_grant is not None:
+                return err_grant
+
+        pdb.execute("flush privileges")
+        psdb.where('username=?', (username,)).setField('accept', access)
+        return yf.returnJson(True, '设置成功!')
+    except Exception as ex:
+        return yf.returnJson(False, '设置复制用户权限异常: ' + str(ex))
 
 def resetMaster(version=''):
     pdb = pMysqlDb()
