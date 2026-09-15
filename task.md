@@ -892,5 +892,12 @@
 - [x] 418. 编写专项自动化测试套件（`test/test_mysql_mariadb_import_log.py`），覆盖前后端日志结构、异常捕获、弹窗参数与手动关闭特性。
 - [x] 419. 执行全量测试回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性临时测试文件。
 
+## MySQL/MariaDB外部导入SQL参数丢失与API传参修复
+
+- [x] 420. 修复 `web/static/app/plugin_api.js` 中 `_parseCallArgs`：智能识别传参模式，当第 3 个参数为回调函数时，禁止将第 2 个参数误解析为版本号 `version`，杜绝参数错位导致 `args` 被清空。
+- [x] 421. 修复前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 中 `importDbExternal` 与 `importBackup` 的 `api.post` 调用规范，使用标准的 `(method, args, callback)` 模式。
+- [x] 422. 扩展自动化测试套件（`test/test_mysql_mariadb_import_log.py`），增加对 `plugin_api.js` 参数解析与前后端参数传递的覆盖验证。
+- [x] 423. 执行测试回归验证，更新 `task.md` 与 `walkthrough.md`。
+
 
 

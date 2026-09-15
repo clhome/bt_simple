@@ -952,12 +952,6 @@ function importBackup(file,name){
             showImportLogModal(name, file, isSuccess, logText, function(){
                 setBackupReq(name);
             });
-        }, function(err){
-            layer.close(loading);
-            var errMsg = pt('导入请求失败: ') + (err && err.responseText ? err.responseText : JSON.stringify(err));
-            showImportLogModal(name, file, false, errMsg, function(){
-                setBackupReq(name);
-            });
         });
     });
 }
@@ -992,14 +986,6 @@ function importDbExternal(file,name){
             }
 
             showImportLogModal(name, file, isSuccess, logText, function(){
-                if (typeof setLocalImport === 'function') {
-                    setLocalImport(name);
-                }
-            });
-        }, function(err){
-            layer.close(loading);
-            var errMsg = pt('导入请求失败: ') + (err && err.responseText ? err.responseText : JSON.stringify(err));
-            showImportLogModal(name, file, false, errMsg, function(){
                 if (typeof setLocalImport === 'function') {
                     setLocalImport(name);
                 }

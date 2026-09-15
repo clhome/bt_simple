@@ -47,7 +47,7 @@
         // 使用 i18n 引擎进行 loading 翻译
         var pt = (window.YfI18n && YfI18n.createPluginTranslator) ? YfI18n.createPluginTranslator(pluginName) : function(k) { return k; };
 
-        function _basePost(url, method, version, args, callback, silent) {
+        function _basePost(url, method, version, args, callback, silent, failCallback) {
             var loadT = null;
             if (!silent) {
                 // 智能遮罩感知：若当前已有可见的 layer 遮罩或 loading（如上层函数已弹出提示），避免重复叠加
@@ -74,6 +74,7 @@
 
                 if (!data.status) {
                     layer.msg(data.msg, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+                    if (typeof failCallback === 'function') failCallback(data);
                     return;
                 }
 
@@ -83,6 +84,7 @@
             }, 'json').fail(function(xhr) {
                 if (!silent && loadT) layer.close(loadT);
                 layer.msg('请求失败: ' + xhr.status, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+                if (typeof failCallback === 'function') failCallback(xhr);
             });
         }
 
@@ -91,6 +93,7 @@
             var version = null;
             var args = {};
             var callback = null;
+            var failCallback = null;
 
             if (argsArray.length === 2) {
                 if (typeof argsArray[1] === 'function') {
@@ -107,11 +110,21 @@
                     args = argsArray[2];
                 }
             } else if (argsArray.length >= 4) {
-                version = argsArray[1];
-                args = argsArray[2];
-                callback = argsArray[3];
+                if (typeof argsArray[2] === 'function') {
+                    // post(method, args, callback, failCallback)
+                    args = argsArray[1];
+                    callback = argsArray[2];
+                    if (typeof argsArray[3] === 'function') {
+                        failCallback = argsArray[3];
+                    }
+                } else {
+                    // post(method, version, args, callback)
+                    version = argsArray[1];
+                    args = argsArray[2];
+                    callback = argsArray[3];
+                }
             }
-            return { method: method, version: version, args: args, callback: callback };
+            return { method: method, version: version, args: args, callback: callback, failCallback: failCallback };
         }
 
         return {
@@ -121,10 +134,11 @@
              * - post(method, callback)
              * - post(method, args, callback)
              * - post(method, version, args, callback)
+             * - post(method, args, callback, failCallback)
              */
             post: function() {
                 var p = _parseCallArgs(arguments);
-                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, false);
+                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, false, p.failCallback);
             },
             
             /**
@@ -132,7 +146,7 @@
              */
             postSilent: function() {
                 var p = _parseCallArgs(arguments);
-                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, true);
+                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, true, p.failCallback);
             },
 
             /**
@@ -140,7 +154,7 @@
              */
             postCallback: function() {
                 var p = _parseCallArgs(arguments);
-                _basePost('/plugins/callback', p.method, p.version, p.args, p.callback, false);
+                _basePost('/plugins/callback', p.method, p.version, p.args, p.callback, false, p.failCallback);
             },
 
             /**
