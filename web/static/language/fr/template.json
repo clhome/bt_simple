@@ -3080,8 +3080,8 @@
       "ps": "Serveur Web open source puissant de niveau entreprise avec HTTPS automatique écrit en Go"
     },
     "clean": {
-      "title": "Nettoyeur de journaux",
-      "ps": "Nettoyeur de journaux"
+      "title": "Nettoyage de disque",
+      "ps": "Analyse et nettoyage approfondis des journaux système et du cache temporaire pour libérer de l'espace disque."
     },
     "data_query": {
       "title": "Gestionnaire de données",
@@ -3225,8 +3225,8 @@
     "apache.ps": "Serveur Web leader mondial, rapide, fiable et extensible via de simples API",
     "caddy.title": "Caddy",
     "caddy.ps": "Serveur Web open source puissant de niveau entreprise avec HTTPS automatique écrit en Go",
-    "clean.title": "Nettoyeur de journaux",
-    "clean.ps": "Nettoyeur de journaux",
+    "clean.title": "Nettoyage de disque",
+    "clean.ps": "Analyse et nettoyage approfondis des journaux système et du cache temporaire pour libérer de l'espace disque.",
     "data_query.title": "Gestionnaire de données",
     "data_query.ps": "Gestion simple des données (Memcached, Redis, MongoDB) pour visualiser et maintenir les bases clé-valeur",
     "docker.title": "Gestionnaire Docker YuFeng",

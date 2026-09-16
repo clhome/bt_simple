@@ -3080,8 +3080,8 @@
       "ps": "Potente server Web open source di livello enterprise con HTTPS automatico scritto in Go"
     },
     "clean": {
-      "title": "Pulizia log",
-      "ps": "Pulizia log"
+      "title": "Pulizia disco",
+      "ps": "Scansione approfondita e pulizia dei log di sistema e della cache temporanea per liberare spazio su disco."
     },
     "data_query": {
       "title": "Gestione dati",
@@ -3225,8 +3225,8 @@
     "apache.ps": "Il software per server Web leader a livello mondiale, veloce, affidabile ed estensibile tramite una semplice API",
     "caddy.title": "Caddy",
     "caddy.ps": "Un potente server Web open source di livello aziendale con HTTPS automatizzato scritto in Go",
-    "clean.title": "Pulizia del registro",
-    "clean.ps": "Pulisci i file inutili come file di sistema temporanei, registri del pannello, registri dei siti Web, ecc. per liberare spazio su disco",
+    "clean.title": "Pulizia disco",
+    "clean.ps": "Scansione approfondita e pulizia dei log di sistema e della cache temporanea per liberare spazio su disco.",
     "data_query.title": "Gestione dei dati",
     "data_query.ps": "Gestione semplice dei dati (Memcached, Redis, MongoDB), visualizzazione e manutenzione rapida del database chiave-valore",
     "docker.title": "Direttore di Yufeng Docker",

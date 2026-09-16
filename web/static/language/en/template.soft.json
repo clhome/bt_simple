@@ -199,8 +199,8 @@
       "ps": "Powerful, enterprise-grade, open-source web server with automatic HTTPS written in Go"
     },
     "clean": {
-      "title": "Log Cleaner",
-      "ps": "Log Cleaner"
+      "title": "Disk Cleaner",
+      "ps": "Deep scan and clean system logs, temporary cache and rotation archives to free disk space safely."
     },
     "data_query": {
       "title": "Data Manager",
@@ -344,8 +344,8 @@
     "apache.ps": "world-leading,fast,reliable and can be easily APIextended Web serversoftware",
     "caddy.title": "Caddy",
     "caddy.ps": "a powerful ,Enterprise-grade,open-source Web server,with Go written inautomatic HTTPS",
-    "clean.title": "logclean",
-    "clean.ps": "cleansystemtemporaryfile,panellog,Websitelogand other junk files,releasediskspace",
+    "clean.title": "Disk Cleaner",
+    "clean.ps": "Deep scan and clean system logs, temporary cache and rotation archives to free disk space safely.",
     "data_query.title": "Data Management",
     "data_query.ps": "Simple data management (Memcached, Redis, MongoDB),quickly view and manage key-value pairsdatabase",
     "docker.title": "YufengDockerManager",

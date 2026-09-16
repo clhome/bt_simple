@@ -3079,8 +3079,8 @@
       "ps": "一款功能强大、企业级、开源 Web 服务器，具有用 Go 编写的自动 HTTPS"
     },
     "clean": {
-      "title": "日志清理",
-      "ps": "清理系统临时文件、面板日志、网站日志等无用文件，释放磁盘空间"
+      "title": "磁盘清理",
+      "ps": "深度体检系统日志与临时缓存，支持活跃日志安全截断与过期归档轮转，瞬间释放磁盘空间"
     },
     "data_query": {
       "title": "数据管理",
@@ -3224,8 +3224,8 @@
     "apache.ps": "世界排名领先，快速、可靠并且可通过简单的API扩充的 Web 服务器软件",
     "caddy.title": "Caddy",
     "caddy.ps": "一款功能强大、企业级、开源 Web 服务器，具有用 Go 编写的自动 HTTPS",
-    "clean.title": "日志清理",
-    "clean.ps": "清理系统临时文件、面板日志、网站日志等无用文件，释放磁盘空间",
+    "clean.title": "磁盘清理",
+    "clean.ps": "深度体检系统日志与临时缓存，支持活跃日志安全截断与过期归档轮转，瞬间释放磁盘空间",
     "data_query.title": "数据管理",
     "data_query.ps": "数据简单管理 (Memcached, Redis, MongoDB)，快捷查看与维护键值数据库",
     "docker.title": "御风Docker管理器",

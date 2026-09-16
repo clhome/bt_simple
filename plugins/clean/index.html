@@ -13,22 +13,22 @@
 
 /* 左侧统一灰色底纹与优雅选中项 */
 .bt-w-menu {
-    width: 125px !important;
+    width: 145px !important;
     height: 100% !important;
     flex-shrink: 0 !important;
     background-color: #f8fafc !important;
     border-right: 1px solid #e2e8f0 !important;
     box-sizing: border-box !important;
     overflow-y: auto !important;
-    padding: 8px 6px !important;
+    padding: 10px 6px !important;
     float: none !important;
 }
 
 .bt-w-menu p {
     height: 38px !important;
     line-height: 38px !important;
-    padding: 0 14px !important;
-    margin: 3px 0 !important;
+    padding: 0 10px !important;
+    margin: 4px 0 !important;
     border-radius: 6px !important;
     color: #4b5563 !important;
     font-size: 13px !important;
@@ -37,7 +37,23 @@
     border: 1px solid transparent !important;
     text-align: left !important;
     background: transparent !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.bt-w-menu p i {
+    flex-shrink: 0 !important;
+    margin-right: 7px !important;
+}
+
+.bt-w-menu p .tab-txt {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: inline-block !important;
 }
 
 .bt-w-menu p:hover {
@@ -53,7 +69,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* 右侧内容区域固定高度与纵向平滑滚动 */
+/* 右侧内容区域 */
 .bt-w-con {
     flex: 1 !important;
     height: 100% !important;
@@ -61,90 +77,916 @@
     overflow-y: auto !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
-    padding: 15px 20px 45px 20px !important;
+    padding: 14px 18px 16px 18px !important;
     background-color: #ffffff !important;
     float: none !important;
 }
+
+/* 现代化卡片与仪表盘 */
+.clean-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.clean-stat-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.clean-stat-card .card-title {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.clean-stat-card .card-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.clean-stat-card .card-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 3px;
+}
+
+.clean-stat-card.card-highlight {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #bbf7d0;
+}
+.clean-stat-card.card-highlight .card-val {
+    color: #15803d;
+}
+
+.clean-stat-card.card-shield {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-color: #bae6fd;
+}
+.clean-stat-card.card-shield .card-val {
+    color: #0369a1;
+}
+
+/* 分类列表 */
+.clean-cat-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.clean-cat-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.clean-cat-table td {
+    padding: 6.5px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.clean-cat-table tr:last-child td {
+    border-bottom: none;
+}
+
+.clean-cat-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.clean-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.clean-badge-green {
+    background-color: #dcfce7;
+    color: #166534;
+}
+.clean-badge-blue {
+    background-color: #e0f2fe;
+    color: #075985;
+}
+.clean-badge-gray {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* 底部操作条 */
+.clean-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.clean-btn-primary {
+    background-color: #20a53a !important;
+    border-color: #20a53a !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 7px 22px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s !important;
+}
+.clean-btn-primary:hover {
+    background-color: #168a2e !important;
+    box-shadow: 0 2px 6px rgba(32, 165, 58, 0.3) !important;
+}
+
+/* 策略表单 */
+.strategy-form-group {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+}
+.strategy-form-group label {
+    width: 140px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+.strategy-form-group .form-control {
+    width: 240px;
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+}
+.strategy-form-group .help-tip {
+    margin-left: 12px;
+    font-size: 12px;
+    color: #94a3b8;
+}
 </style>
+
 <div class="bt-form">
-	<div class="bt-w-main">
-		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('clean');">服务</p>
-			<p onclick="pluginConfig('clean');">配置修改</p>
-			<p onclick="commonFunc();">常用功能</p>
-			<p onclick="pluginLogs('clean',null,'run_log');">运行日志</p>
-			<p onclick="pRead()">说明</p>
-		</div>
-		<div class="bt-w-con pd15">
-			<div class="soft-man-con"></div>
-		</div>
-	</div>
+    <div class="bt-w-main">
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="switchCleanTab('overview', this);" title="空间体检"><i class="glyphicon glyphicon-dashboard"></i><span class="tab-txt">空间体检</span></p>
+            <p onclick="switchCleanTab('top_logs', this);" title="大文件榜"><i class="glyphicon glyphicon-stats"></i><span class="tab-txt">大文件榜</span></p>
+            <p onclick="switchCleanTab('strategy', this);" title="自动清理"><i class="glyphicon glyphicon-time"></i><span class="tab-txt">自动清理</span></p>
+            <p onclick="switchCleanTab('history', this);" title="清理战报"><i class="glyphicon glyphicon-list-alt"></i><span class="tab-txt">清理战报</span></p>
+            <p onclick="switchCleanTab('service', this);" title="服务状态"><i class="glyphicon glyphicon-cog"></i><span class="tab-txt">服务状态</span></p>
+            <p onclick="switchCleanTab('readme', this);" title="合规说明"><i class="glyphicon glyphicon-info-sign"></i><span class="tab-txt">合规说明</span></p>
+        </div>
+        <div class="bt-w-con pd15">
+            <div id="clean-content-body" class="soft-man-con"></div>
+        </div>
+    </div>
 </div>
+
 <script type="text/javascript">
 var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
     ? window.YfI18n.createPluginTranslator('clean') 
     : function(k) { return k; };
 
-resetPluginWinWidth(800);
-resetPluginWinHeight(520);
+// 扩展弹窗高度与宽度，保证首屏“disk check”一屏完整呈现，无垂直滚动条
+resetPluginWinWidth(980);
+resetPluginWinHeight(720);
 
-pluginService('clean');
-
-function cleanPost(method, version, args, callback){
-    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'clean';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
+// 初始化翻译左侧菜单栏，并赋予 tooltip
+$('.bt-w-menu p').each(function() {
+    var $txt = $(this).find('.tab-txt');
+    var raw = $txt.text().trim();
+    if (raw) {
+        var trans = pt(raw);
+        $txt.text(trans);
+        $(this).attr('title', trans);
     }
+});
 
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
+// API 请求封装
+function cleanApi(func, args, callback) {
+    var req_data = {
+        name: 'clean',
+        func: func,
+        version: '',
+        args: JSON.stringify(args || {})
+    };
+
+    $.post('/plugins/run', req_data, function(resp) {
+        var rdata = resp;
+        if (typeof resp.data === 'string') {
+            try {
+                rdata = JSON.parse(resp.data);
+            } catch(e) {}
+        }
+        if (typeof callback === 'function') {
+            callback(rdata);
+        }
+    }, 'json').fail(function() {
+        layer.msg(pt('网络请求失败'), { icon: 2 });
+    });
+}
+
+function switchCleanTab(tabName, elem) {
+    $('.bt-w-menu p').removeClass('bgw');
+    $(elem).addClass('bgw');
+
+    if (tabName === 'overview') {
+        renderOverviewTab();
+    } else if (tabName === 'top_logs') {
+        renderTopLogsTab();
+    } else if (tabName === 'strategy') {
+        renderStrategyTab();
+    } else if (tabName === 'history') {
+        renderHistoryTab();
+    } else if (tabName === 'service') {
+        renderServiceTab();
+    } else if (tabName === 'readme') {
+        renderReadmeTab();
+    }
+}
+
+// ---------------- 1. 空间体检与瘦身 Tab ----------------
+var currentScanData = null;
+
+function renderOverviewTab() {
+    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+        <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('磁盘空间占用体检与清理') + '</h4>\
+        <div>\
+            <button class="btn btn-default btn-sm" onclick="renderOverviewTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('重新扫描') + '</button>\
+        </div>\
+    </div>\
+    <div id="overview-loading" style="text-align:center; padding:50px 0; color:#64748b;"><i class="fa fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">' + pt('正在深度体检全盘日志与缓存占用...') + '</p></div>\
+    <div id="overview-content" style="display:none;"></div>';
+
+    $('#clean-content-body').html(html);
+
+    cleanApi('get_scan_overview', {}, function(res) {
+        $('#overview-loading').hide();
+        $('#overview-content').show();
+
+        if (!res.status) {
+            $('#overview-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
             return;
         }
 
-        if(typeof(callback) == 'function'){
-            callback(data);
+        currentScanData = res.data;
+        var d = res.data;
+
+        // 统计总可清理
+        var totalCleanable = 0;
+        var totalProtected = 0;
+        for (var k in d.categories) {
+            totalCleanable += d.categories[k].cleanable_size;
+            totalProtected += d.categories[k].protected_count;
         }
-    },'json'); 
+
+        var viewHtml = '\
+        <div class="clean-stat-grid">\
+            <div class="clean-stat-card">\
+                <div class="card-title">' + pt('日志与缓存总占用') + '</div>\
+                <div class="card-val">' + d.total_size_format + '</div>\
+                <div class="card-sub">' + pt('共扫描') + ' ' + d.total_files + ' ' + pt('个日志文件') + '</div>\
+            </div>\
+            <div class="clean-stat-card card-highlight">\
+                <div class="card-title">' + pt('建议可瘦身空间') + '</div>\
+                <div class="card-val" id="total-cleanable-val">' + (totalCleanable > 0 ? formatBytes(totalCleanable) : '0 B') + '</div>\
+                <div class="card-sub">' + pt('截断活跃大日志 + 清除过期归档') + '</div>\
+            </div>\
+            <div class="clean-stat-card card-shield">\
+                <div class="card-title">' + pt('安全合规受控保护') + '</div>\
+                <div class="card-val">' + totalProtected + ' <span style="font-size:13px;font-weight:normal;">' + pt('项') + '</span></div>\
+                <div class="card-sub">' + pt('等保 2.0 / CIS 核心审计文件免受误删') + '</div>\
+            </div>\
+        </div>\
+        \
+        <table class="clean-cat-table">\
+            <thead>\
+                <tr>\
+                    <th style="width:40px;"><input type="checkbox" id="check-all-cats" checked onchange="toggleSelectAll(this)"></th>\
+                    <th style="width:220px;">' + pt('日志类别') + '</th>\
+                    <th>' + pt('包含范围说明') + '</th>\
+                    <th style="width:110px;text-align:right;">' + pt('当前占用') + '</th>\
+                    <th style="width:110px;text-align:right;">' + pt('可瘦身') + '</th>\
+                </tr>\
+            </thead>\
+            <tbody>';
+
+        for (var catKey in d.categories) {
+            var cat = d.categories[catKey];
+            viewHtml += '\
+                <tr>\
+                    <td><input type="checkbox" class="cat-checkbox" value="' + catKey + '" checked onchange="updateSelectedCleanable()"></td>\
+                    <td><strong style="color:#0f172a;">' + pt(cat.name) + '</strong></td>\
+                    <td style="color:#64748b;font-size:12px;">' + pt(cat.desc) + '</td>\
+                    <td style="text-align:right;"><span class="clean-badge clean-badge-gray">' + cat.total_size_format + '</span></td>\
+                    <td style="text-align:right;"><span class="clean-badge clean-badge-green">' + cat.cleanable_size_format + '</span></td>\
+                </tr>';
+        }
+
+        viewHtml += '\
+            </tbody>\
+        </table>\
+        \
+        <div class="clean-action-bar">\
+            <div style="display:flex; align-items:center; gap:16px;">\
+                <label style="margin:0; font-size:13px; font-weight:normal; color:#475569;">\
+                    ' + pt('历史归档保留') + ':\
+                    <select id="clean-retention-select" class="form-control input-sm" style="display:inline-block; width:100px; margin-left:6px;">\
+                        <option value="7" selected>7 ' + pt('天前') + '</option>\
+                        <option value="15">15 ' + pt('天前') + '</option>\
+                        <option value="30">30 ' + pt('天前') + '</option>\
+                        <option value="60">60 ' + pt('天前') + '</option>\
+                    </select>\
+                </label>\
+                <label style="margin:0; font-size:13px; font-weight:normal; color:#475569;">\
+                    <input type="checkbox" id="clean-journal-chk" checked> ' + pt('清理 Systemd Journal (保留100M)') + '\
+                </label>\
+            </div>\
+            <div>\
+                <button class="btn clean-btn-primary" onclick="startCleanAction()"><i class="glyphicon glyphicon-trash" style="margin-right:6px;"></i> ' + pt('开始安全瘦身') + '</button>\
+            </div>\
+        </div>';
+
+        $('#overview-content').html(viewHtml);
+    });
 }
 
-function cleanRun(){
-	cleanPost('clean_run', '', {}, function(rdata){
-		// var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
-        // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-	});
-
-	layer.msg(pt("执行成功!"), { icon: 1});
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-function commonFunc(){
-
-    con = '<hr/><p class="conf_p" style="text-align:center;">\
-        	<button class="btn btn-default btn-sm" onclick="cleanRun()">手动执行</button>  \
-    	</p>';
-
-    $(".soft-man-con").html(con);
+function toggleSelectAll(elem) {
+    $('.cat-checkbox').prop('checked', $(elem).is(':checked'));
+    updateSelectedCleanable();
 }
 
-function pRead(){
-	var readme = '<ul class="help-info-text c7">';
-    readme += '<li>启动后,加入到计划任务每隔7天[0:15]执行。</li>';
-    readme += '<li>【*】代表要删除。</li>';
-    readme += '<li>添加/删除清除日志，可在`配置修改`中添加/删除。</li>';
-    readme += '<li>如果是目录,会寻找【.log】后缀的文件清空。</li>';
-    readme += '</ul>';
-
-    $('.soft-man-con').html(readme);   
+function updateSelectedCleanable() {
+    if (!currentScanData) return;
+    var sum = 0;
+    $('.cat-checkbox:checked').each(function() {
+        var key = $(this).val();
+        if (currentScanData.categories[key]) {
+            sum += currentScanData.categories[key].cleanable_size;
+        }
+    });
+    $('#total-cleanable-val').text(formatBytes(sum));
 }
+
+function startCleanAction() {
+    var selected = [];
+    $('.cat-checkbox:checked').each(function() {
+        selected.push($(this).val());
+    });
+
+    if (selected.length === 0) {
+        layer.msg(pt('请至少勾选一个需要清理的日志分类'), { icon: 0 });
+        return;
+    }
+
+    var retentionDays = $('#clean-retention-select').val();
+    var cleanJournal = $('#clean-journal-chk').is(':checked');
+
+    layer.confirm(pt('确定开始执行安全清理？') + '<br><small style="color:#64748b;">' + pt('将安全截断所选活跃日志，并删除已归档超过 ') + retentionDays + pt(' 天的历史压缩包。<br>核心安全审计日志严格保护，无 Inode 泄露风险。') + '</small>', {
+        title: pt('安全瘦身确认'),
+        icon: 3
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('正在执行安全瘦身与日志截断...'), { icon: 16, time: 0, shade: 0.3 });
+
+        cleanApi('do_clean', {
+            categories: selected,
+            retention_days: retentionDays,
+            truncate_active: true,
+            delete_rotated: true,
+            clean_journal: cleanJournal,
+            clean_pkg_cache: true
+        }, function(resp) {
+            layer.close(loadT);
+            if (resp.status) {
+                var r = resp.data;
+                var msgHtml = '<div style="padding:15px 20px;">\
+                    <h4 style="color:#16a34a; margin-top:0;"><i class="glyphicon glyphicon-ok-circle"></i> ' + pt('清理执行成功！') + '</h4>\
+                    <p style="font-size:14px; margin-bottom:8px;">' + pt('成功释放空间') + ': <strong style="color:#16a34a; font-size:18px;">' + r.freed_format + '</strong></p>\
+                    <p style="font-size:12px; color:#64748b; margin-bottom:4px;">' + pt('处理日志文件数') + ': ' + r.cleaned_files + ' ' + pt('个') + ' / ' + pt('扫描总数') + ': ' + r.scanned_files + '</p>\
+                    <p style="font-size:12px; color:#64748b;">' + pt('安全审计合规跳过') + ': ' + r.skipped_protected + ' ' + pt('项') + ' (等保保护)</p>\
+                </div>';
+
+                layer.open({
+                    type: 1,
+                    title: pt('瘦身完成战报'),
+                    area: ['380px', '220px'],
+                    content: msgHtml,
+                    btn: [pt('确定')],
+                    yes: function(i) {
+                        layer.close(i);
+                        renderOverviewTab();
+                    }
+                });
+            } else {
+                layer.msg(resp.msg, { icon: 2 });
+            }
+        });
+    });
+}
+
+// ---------------- 2. Top 10 大文件榜 Tab ----------------
+function renderTopLogsTab() {
+    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+        <div>\
+            <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('Top 10 巨型日志大文件榜单') + '</h4>\
+            <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">' + pt('精准揪出磁盘吞噬者，支持单文件即时截断清零') + '</p>\
+        </div>\
+        <div>\
+            <button class="btn btn-default btn-sm" onclick="renderTopLogsTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新排行') + '</button>\
+        </div>\
+    </div>\
+    <div id="toplogs-loading" style="text-align:center; padding:50px 0; color:#64748b;"><i class="fa fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">' + pt('正在检索大日志文件...') + '</p></div>\
+    <div id="toplogs-content" style="display:none;"></div>';
+
+    $('#clean-content-body').html(html);
+
+    cleanApi('get_top_logs', {}, function(res) {
+        $('#toplogs-loading').hide();
+        $('#toplogs-content').show();
+
+        if (!res.status) {
+            $('#toplogs-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            return;
+        }
+
+        var list = res.data;
+        if (!list || list.length === 0) {
+            $('#toplogs-content').html('<div style="text-align:center; padding:40px; color:#94a3b8;">' + pt('未发现占用过大的日志文件，系统状态良好！') + '</div>');
+            return;
+        }
+
+        var tHtml = '<table class="clean-cat-table">\
+            <thead>\
+                <tr>\
+                    <th style="width:40px;">#</th>\
+                    <th>' + pt('日志文件名 / 路径') + '</th>\
+                    <th style="width:100px;text-align:right;">' + pt('文件大小') + '</th>\
+                    <th style="width:150px;">' + pt('最后修改时间') + '</th>\
+                    <th style="width:100px;text-align:center;">' + pt('操作') + '</th>\
+                </tr>\
+            </thead>\
+            <tbody>';
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            var actionBtn = '';
+            if (item.is_protected) {
+                actionBtn = '<span class="clean-badge clean-badge-blue" title="' + pt('等保安全审计要求，禁止直接删除') + '"><i class="glyphicon glyphicon-lock"></i> ' + pt('等保受控') + '</span>';
+            } else {
+                actionBtn = '<button class="btn btn-xs btn-warning" onclick="truncateSingleFile(\'' + escape(item.path) + '\')">' + pt('截断清零') + '</button>';
+            }
+
+            tHtml += '<tr>\
+                <td style="color:#94a3b8; font-weight:bold;">' + (i + 1) + '</td>\
+                <td>\
+                    <div style="font-weight:600; color:#0f172a;">' + item.name + '</div>\
+                    <div style="font-size:11px; color:#94a3b8; word-break:break-all;">' + item.path + '</div>\
+                </td>\
+                <td style="text-align:right;"><span class="clean-badge clean-badge-green">' + item.size_format + '</span></td>\
+                <td style="font-size:12px; color:#64748b;">' + item.mtime + '</td>\
+                <td style="text-align:center;">' + actionBtn + '</td>\
+            </tr>';
+        }
+
+        tHtml += '</tbody></table>';
+        $('#toplogs-content').html(tHtml);
+    });
+}
+
+function truncateSingleFile(encodedPath) {
+    var realPath = unescape(encodedPath);
+    layer.confirm(pt('确定立即将该日志文件截断清零？') + '<br><small style="color:#e11d48; word-break:break-all;">' + realPath + '</small><br><small style="color:#64748b;">' + pt('大小将置为 0，保留文件句柄与权限，不会中断服务。') + '</small>', {
+        title: pt('单文件截断清零'),
+        icon: 3
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('正在截断文件...'), { icon: 16, time: 0, shade: 0.3 });
+        cleanApi('do_truncate_file', { path: realPath }, function(res) {
+            layer.close(loadT);
+            if (res.status) {
+                layer.msg(res.msg, { icon: 1 });
+                renderTopLogsTab();
+            } else {
+                layer.msg(res.msg, { icon: 2 });
+            }
+        });
+    });
+}
+
+// ---------------- 3. 自动清理策略 Tab ----------------
+function renderStrategyTab() {
+    var html = '<div style="margin-bottom:18px;">\
+        <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('自动清理与轮转策略设置') + '</h4>\
+        <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">' + pt('利用面板计划任务系统，低峰期全自动清理过期历史归档与大日志截断') + '</p>\
+    </div>\
+    <div id="strategy-loading" style="text-align:center; padding:40px 0;"><i class="fa fa-spinner fa-spin fa-2x"></i></div>\
+    <div id="strategy-form" style="display:none;"></div>';
+
+    $('#clean-content-body').html(html);
+
+    cleanApi('get_task_config', {}, function(res) {
+        $('#strategy-loading').hide();
+        $('#strategy-form').show();
+
+        if (!res.status) {
+            $('#strategy-form').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            return;
+        }
+
+        var cfg = res.data;
+        var isEnabled = cfg.is_active || cfg.status;
+
+        var formHtml = '\
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:22px 24px; margin-bottom:20px;">\
+            <div class="strategy-form-group">\
+                <label>' + pt('自动任务开关') + ':</label>\
+                <div>\
+                    <label class="radio-inline"><input type="radio" name="strategy_enable" value="1" ' + (isEnabled ? 'checked' : '') + '> ' + pt('启用') + '</label>\
+                    <label class="radio-inline"><input type="radio" name="strategy_enable" value="0" ' + (!isEnabled ? 'checked' : '') + '> ' + pt('停用') + '</label>\
+                </div>\
+                <span class="help-tip">' + pt('启用后将自动注册到面板后台 Crontab 定时执行') + '</span>\
+            </div>\
+            \
+            <div class="strategy-form-group">\
+                <label>' + pt('执行周期') + ':</label>\
+                <select id="cfg_period_select" class="form-control" onchange="changePeriodUI(this.value)">\
+                    <option value="day" ' + (cfg.period === 'day' ? 'selected' : '') + '>' + pt('每天执行') + '</option>\
+                    <option value="day-n" ' + (cfg.period === 'day-n' ? 'selected' : '') + '>' + pt('每隔 N 天执行') + '</option>\
+                </select>\
+            </div>\
+            \
+            <div class="strategy-form-group" id="cfg_where1_group" style="' + (cfg.period === 'day-n' ? '' : 'display:none;') + '">\
+                <label>' + pt('间隔天数') + ':</label>\
+                <input type="number" id="cfg_where1" class="form-control" value="' + (cfg.where1 || 7) + '" min="1" max="90">\
+                <span class="help-tip">' + pt('推荐每隔 7 天执行一次') + '</span>\
+            </div>\
+            \
+            <div class="strategy-form-group">\
+                <label>' + pt('执行时间点') + ':</label>\
+                <div style="display:flex; align-items:center; gap:8px;">\
+                    <input type="number" id="cfg_hour" class="form-control" style="width:80px;" value="' + (cfg.hour || 3) + '" min="0" max="23"> ' + pt('时') + '\
+                    <input type="number" id="cfg_minute" class="form-control" style="width:80px;" value="' + (cfg.minute || 15) + '" min="0" max="59"> ' + pt('分') + '\
+                </div>\
+                <span class="help-tip">' + pt('建议设在凌晨 03:00~05:00 业务低谷期') + '</span>\
+            </div>\
+            \
+            <div class="strategy-form-group">\
+                <label>' + pt('历史归档保留') + ':</label>\
+                <div style="display:flex; align-items:center; gap:8px;">\
+                    <input type="number" id="cfg_retention_days" class="form-control" style="width:100px;" value="' + (cfg.retention_days || 7) + '" min="1" max="365"> ' + pt('天') + '\
+                </div>\
+                <span class="help-tip">' + pt('早于此天数的 .gz/.xz/.1 压缩历史日志才会被清理') + '</span>\
+            </div>\
+            \
+            <div class="strategy-form-group">\
+                <label>' + pt('附加清理选项') + ':</label>\
+                <div>\
+                    <label style="margin-right:16px; font-weight:normal;"><input type="checkbox" id="cfg_clean_journal" ' + (cfg.clean_journal !== false ? 'checked' : '') + '> ' + pt('清理 Systemd Journal (保留100M)') + '</label>\
+                    <label style="font-weight:normal;"><input type="checkbox" id="cfg_clean_pkg_cache" ' + (cfg.clean_pkg_cache !== false ? 'checked' : '') + '> ' + pt('清理 Yum / Apt 软件安装缓存') + '</label>\
+                </div>\
+            </div>\
+        </div>\
+        \
+        <div style="text-align:right;">\
+            <button class="btn clean-btn-primary" onclick="saveStrategyConfig()"><i class="glyphicon glyphicon-floppy-disk"></i> ' + pt('保存并应用策略') + '</button>\
+        </div>';
+
+        $('#strategy-form').html(formHtml);
+    });
+}
+
+function changePeriodUI(val) {
+    if (val === 'day-n') {
+        $('#cfg_where1_group').show();
+    } else {
+        $('#cfg_where1_group').hide();
+    }
+}
+
+function saveStrategyConfig() {
+    var enable = $('input[name="strategy_enable"]:checked').val() === '1';
+    var period = $('#cfg_period_select').val();
+    var where1 = $('#cfg_where1').val();
+    var hour = $('#cfg_hour').val();
+    var minute = $('#cfg_minute').val();
+    var retentionDays = $('#cfg_retention_days').val();
+    var cleanJournal = $('#cfg_clean_journal').is(':checked');
+    var cleanPkgCache = $('#cfg_clean_pkg_cache').is(':checked');
+
+    var loadT = layer.msg(pt('正在应用配置...'), { icon: 16, time: 0, shade: 0.3 });
+    cleanApi('save_task_config', {
+        enable: enable,
+        period: period,
+        where1: where1,
+        hour: hour,
+        minute: minute,
+        retention_days: retentionDays,
+        clean_journal: cleanJournal,
+        clean_pkg_cache: cleanPkgCache
+    }, function(res) {
+        layer.close(loadT);
+        if (res.status) {
+            layer.msg(res.msg, { icon: 1 });
+            renderStrategyTab();
+        } else {
+            layer.msg(res.msg, { icon: 2 });
+        }
+    });
+}
+
+// ---------------- 4. 清理战报与历史 Tab ----------------
+function renderHistoryTab() {
+    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+        <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('清理审计与历史战报') + '</h4>\
+        <div>\
+            <button class="btn btn-default btn-sm" onclick="renderHistoryTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新历史') + '</button>\
+        </div>\
+    </div>\
+    <div id="history-loading" style="text-align:center; padding:40px 0;"><i class="fa fa-spinner fa-spin fa-2x"></i></div>\
+    <div id="history-content" style="display:none;"></div>';
+
+    $('#clean-content-body').html(html);
+
+    cleanApi('get_history', {}, function(res) {
+        $('#history-loading').hide();
+        $('#history-content').show();
+
+        if (!res.status) {
+            $('#history-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            return;
+        }
+
+        var list = res.data;
+        if (!list || list.length === 0) {
+            $('#history-content').html('<div style="text-align:center; padding:40px; color:#94a3b8;">' + pt('暂无历史清理记录') + '</div>');
+            return;
+        }
+
+        var tHtml = '<table class="clean-cat-table">\
+            <thead>\
+                <tr>\
+                    <th style="width:160px;">' + pt('执行时间') + '</th>\
+                    <th style="width:100px;">' + pt('释放空间') + '</th>\
+                    <th style="width:90px;">' + pt('处理文件数') + '</th>\
+                    <th style="width:80px;">' + pt('耗时') + '</th>\
+                    <th>' + pt('等保跳过保护') + '</th>\
+                    <th style="width:90px;text-align:center;">' + pt('详情') + '</th>\
+                </tr>\
+            </thead>\
+            <tbody>';
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            tHtml += '<tr>\
+                <td style="color:#0f172a; font-weight:500;">' + item.time + '</td>\
+                <td><strong style="color:#16a34a;">' + item.freed_format + '</strong></td>\
+                <td>' + item.cleaned_files + ' ' + pt('个') + '</td>\
+                <td style="color:#64748b;">' + (item.duration_seconds || 0) + 's</td>\
+                <td><span class="clean-badge clean-badge-blue">' + (item.skipped_protected || 0) + ' ' + pt('项受控') + '</span></td>\
+                <td style="text-align:center;"><button class="btn btn-xs btn-default" onclick="showHistoryDetail(' + i + ')">' + pt('查看明细') + '</button></td>\
+            </tr>';
+        }
+
+        tHtml += '</tbody></table>';
+        $('#history-content').html(tHtml);
+        window._historyCache = list;
+    });
+}
+
+function showHistoryDetail(index) {
+    if (!window._historyCache || !window._historyCache[index]) return;
+    var rec = window._historyCache[index];
+    var details = rec.details || [];
+
+    var dHtml = '<div style="padding:16px 20px; max-height:480px; overflow-y:auto;">';
+    
+    // 汇总指标卡片
+    dHtml += '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+        <div>\
+            <div style="font-size:12px; color:#64748b;">' + pt('实际累计释放总容量') + '</div>\
+            <div style="font-size:20px; font-weight:700; color:#16a34a; margin-top:2px;">' + rec.freed_format + '</div>\
+        </div>\
+        <div style="text-align:right;">\
+            <div style="font-size:12px; color:#64748b;">' + pt('累计处理文件数') + '</div>\
+            <div style="font-size:15px; font-weight:600; color:#334155; margin-top:2px;">' + rec.cleaned_files + ' ' + pt('个') + ' <span style="font-size:12px; color:#94a3b8;">(' + pt('扫描') + ' ' + rec.scanned_files + ')</span></div>\
+        </div>\
+    </div>';
+
+    if (details.length === 0) {
+        dHtml += '<p style="color:#94a3b8; text-align:center; padding:20px 0;">' + pt('无详细文件变动记录') + '</p>';
+    } else {
+        dHtml += '<div style="margin-bottom:8px; font-size:12px; color:#64748b; display:flex; justify-content:space-between;">\
+            <span>' + pt('已按单文件释放容量降序排列（展示前') + ' ' + details.length + ' ' + pt('项高释放明细）：') + '</span>\
+            ' + (rec.cleaned_files > details.length ? '<span style="color:#94a3b8;">' + pt('其余微小文件已汇总入总容量') + '</span>' : '') + '\
+        </div>';
+        dHtml += '<table class="table table-striped table-condensed" style="font-size:12px; margin-bottom:0;">\
+            <thead><tr><th style="width:50px;">' + pt('动作') + '</th><th>' + pt('文件路径') + '</th><th style="width:90px; text-align:right;">' + pt('释放') + '</th></tr></thead>\
+            <tbody>';
+        for (var j = 0; j < details.length; j++) {
+            var d = details[j];
+            dHtml += '<tr>\
+                <td><span class="label label-' + (d.action === 'truncate' ? 'warning' : 'danger') + '">' + (d.action === 'truncate' ? pt('截断') : pt('删除')) + '</span></td>\
+                <td style="word-break:break-all; font-family:Consolas, monospace; font-size:11px;">' + d.path + '</td>\
+                <td style="text-align:right; font-weight:600; color:#16a34a;">' + d.freed_format + '</td>\
+            </tr>';
+        }
+        dHtml += '</tbody></table>';
+    }
+    dHtml += '</div>';
+
+    layer.open({
+        type: 1,
+        title: pt('清理明细') + ' - ' + rec.time,
+        area: ['650px', '500px'],
+        content: dHtml
+    });
+}
+
+// ---------------- 5. 后台守护服务与计划任务状态 Tab ----------------
+function renderServiceTab() {
+    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+        <div>\
+            <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('后台守护服务与计划任务状态') + '</h4>\
+            <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">' + pt('实时查看自动清理服务运行状态、控制服务启停与查看最新运行日志') + '</p>\
+        </div>\
+        <div>\
+            <button class="btn btn-default btn-sm" onclick="renderServiceTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新状态') + '</button>\
+        </div>\
+    </div>\
+    <div id="service-loading" style="text-align:center; padding:40px 0;"><i class="fa fa-spinner fa-spin fa-2x"></i></div>\
+    <div id="service-content" style="display:none;"></div>';
+
+    $('#clean-content-body').html(html);
+
+    cleanApi('get_service_detail', {}, function(res) {
+        $('#service-loading').hide();
+        $('#service-content').show();
+
+        if (!res.status) {
+            $('#service-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            return;
+        }
+
+        var d = res.data;
+        var isActive = d.is_active;
+
+        var periodTxt = d.period_desc;
+        if (d.period === 'day') {
+            periodTxt = pt('每天 {0}').replace('{0}', d.hour + ':' + d.minute);
+        } else if (d.period === 'day-n') {
+            periodTxt = pt('每隔 {0} 天 ({1})').replace('{0}', d.where1).replace('{1}', d.hour + ':' + d.minute);
+        } else if (d.period === 'hour') {
+            periodTxt = pt('每小时整点');
+        } else if (d.period_desc) {
+            periodTxt = pt(d.period_desc);
+        }
+
+        var sHtml = '\
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:20px 24px; margin-bottom:20px;">\
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">\
+                <div style="display:flex; align-items:center;">\
+                    <div style="width:14px; height:14px; border-radius:50%; background:' + (isActive ? '#22c55e' : '#94a3b8') + '; margin-right:10px; box-shadow:0 0 0 3px ' + (isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(148, 163, 184, 0.2)') + ';"></div>\
+                    <div>\
+                        <span style="font-size:16px; font-weight:700; color:#0f172a;">' + (isActive ? pt('服务运行中 (Active)') : pt('服务已停止 (Inactive)')) + '</span>\
+                        <div style="font-size:12px; color:#64748b; margin-top:2px;">' + (isActive ? pt('后台定时守护已就绪，将在指定周期自动执行磁盘瘦身') : pt('计划任务未激活，不会进行自动清理')) + '</div>\
+                    </div>\
+                </div>\
+                <div style="display:flex; gap:10px;">\
+                    ' + (isActive ? '\
+                        <button class="btn btn-sm btn-danger" onclick="toggleCleanService(\'stop\')"><i class="glyphicon glyphicon-stop"></i> ' + pt('停止服务') + '</button>\
+                        <button class="btn btn-sm btn-default" onclick="toggleCleanService(\'restart\')"><i class="glyphicon glyphicon-repeat"></i> ' + pt('重启服务') + '</button>\
+                    ' : '\
+                        <button class="btn btn-sm btn-success" onclick="toggleCleanService(\'start\')"><i class="glyphicon glyphicon-play"></i> ' + pt('启动服务') + '</button>\
+                    ') + '\
+                    <button class="btn btn-sm btn-warning" onclick="triggerCleanNow()"><i class="glyphicon glyphicon-flash"></i> ' + pt('立即执行一次') + '</button>\
+                </div>\
+            </div>\
+            \
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; font-size:13px;">\
+                <div><span style="color:#64748b;">' + pt('计划任务名称') + ':</span> <strong style="color:#1e293b;">' + pt(d.task_name) + '</strong></div>\
+                <div><span style="color:#64748b;">' + pt('系统 Crontab ID') + ':</span> <strong style="color:#1e293b;">' + (d.task_id > 0 ? ('#' + d.task_id) : pt('未注册')) + '</strong></div>\
+                <div><span style="color:#64748b;">' + pt('执行时间周期') + ':</span> <strong style="color:#0284c7;">' + periodTxt + '</strong></div>\
+                <div><span style="color:#64748b;">' + pt('历史归档保留天数') + ':</span> <strong style="color:#1e293b;">' + d.retention_days + ' ' + pt('天') + '</strong></div>\
+                <div><span style="color:#64748b;">' + pt('大日志截断阈值') + ':</span> <strong style="color:#1e293b;">' + (d.size_threshold_mb > 0 ? (d.size_threshold_mb + ' MB') : pt('无限制 (全量截断)')) + '</strong></div>\
+                <div><span style="color:#64748b;">' + pt('运行日志文件体积') + ':</span> <strong style="color:#1e293b;">' + d.log_size + '</strong></div>\
+            </div>\
+        </div>\
+        \
+        <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">\
+            <div style="background:#f1f5f9; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0;">\
+                <span style="font-weight:600; font-size:13px; color:#334155;"><i class="glyphicon glyphicon-console" style="margin-right:6px;"></i> ' + pt('服务运行日志') + ' (clean.log)</span>\
+                <div>\
+                    <button class="btn btn-xs btn-default" onclick="fetchServiceLog()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新日志') + '</button>\
+                    <button class="btn btn-xs btn-default" style="margin-left:6px;" onclick="clearServiceLog()"><i class="glyphicon glyphicon-trash"></i> ' + pt('清空日志') + '</button>\
+                </div>\
+            </div>\
+            <pre id="clean-run-log-pre" style="margin:0; padding:14px; background:#0f172a; color:#f8fafc; font-size:12px; line-height:1.5; height:200px; overflow-y:auto; border:none; border-radius:0; font-family:Consolas, Monaco, monospace;"></pre>\
+        </div>';
+
+        $('#service-content').html(sHtml);
+        fetchServiceLog();
+    });
+}
+
+function fetchServiceLog() {
+    $('#clean-run-log-pre').text(pt('正在拉取日志...'));
+    cleanApi('get_run_log', {}, function(res) {
+        if (res.status && res.data) {
+            $('#clean-run-log-pre').text(res.data);
+            var pre = document.getElementById('clean-run-log-pre');
+            if (pre) pre.scrollTop = pre.scrollHeight;
+        } else {
+            $('#clean-run-log-pre').text(pt('暂无日志记录'));
+        }
+    });
+}
+
+function clearServiceLog() {
+    layer.confirm(pt('确定清空运行日志文件？'), { title: pt('提示'), icon: 3 }, function(i) {
+        layer.close(i);
+        cleanApi('clear_run_log', {}, function(res) {
+            layer.msg(res.msg, { icon: res.status ? 1 : 2 });
+            fetchServiceLog();
+        });
+    });
+}
+
+function toggleCleanService(action) {
+    var loadT = layer.msg(pt('正在操作服务...'), { icon: 16, time: 0, shade: 0.3 });
+    cleanApi(action, {}, function(res) {
+        layer.close(loadT);
+        layer.msg(pt('操作完成'), { icon: 1 });
+        renderServiceTab();
+    });
+}
+
+function triggerCleanNow() {
+    layer.confirm(pt('确定立即在后台触发执行一次全自动清理？'), { title: pt('触发执行'), icon: 3 }, function(i) {
+        layer.close(i);
+        var loadT = layer.msg(pt('正在执行清理任务...'), { icon: 16, time: 0, shade: 0.3 });
+        cleanApi('clean_run', {}, function(res) {
+            layer.close(loadT);
+            layer.msg(res.msg, { icon: res.status ? 1 : 2 });
+            renderServiceTab();
+        });
+    });
+}
+
+// ---------------- 6. 插件说明与等保合规 Tab ----------------
+function renderReadmeTab() {
+    var html = '<div style="line-height:1.8; color:#334155; font-size:13px; padding-right:10px;">\
+        <h4 style="font-size:16px; font-weight:700; color:#0f172a; margin-top:0;">' + pt('日志管理与磁盘瘦身原理解析与安全合规指南') + '</h4>\
+        <hr style="margin:12px 0 16px 0; border-color:#e2e8f0;">\
+        \
+        <div style="background:#eff6ff; border-left:4px solid #3b82f6; padding:12px 16px; border-radius:0 6px 6px 0; margin-bottom:18px;">\
+            <strong style="color:#1e40af;">' + pt('核心安全机制：标准截断（Truncate）杜绝 Inode 锁死') + '</strong><br>\
+            ' + pt('在 Linux 系统中，如果直接使用 rm -rf 删除被 Nginx/MySQL/PHP 等服务持有的活动日志文件，内核 Inode 并不会释放，磁盘占用依旧为 100%（即 deleted 状态）。本插件采用安全的系统级截断（os.truncate），瞬间将文件体积置为 0，保留原有句柄、文件属主与权限，无需中断业务即可完全释放磁盘空间！') + '\
+        </div>\
+        \
+        <div style="background:#f0fdf4; border-left:4px solid #22c55e; padding:12px 16px; border-radius:0 6px 6px 0; margin-bottom:18px;">\
+            <strong style="color:#166534;">' + pt('网络安全等保 2.0 / CIS Benchmark 合规审计保护') + '</strong><br>\
+            ' + pt('根据我国网络安全法与等保 2.0 规范，主机的系统认证与审计日志（如 /var/log/audit/audit.log、secure、auth.log、wtmp、lastlog）强制要求至少留存 180 天以备事故溯源。本插件严格设立白名单安全保护区，自动跳过上述关键审计文件，严禁粗暴清空，保护系统安全与溯源能力。') + '\
+        </div>\
+        \
+        <h5 style="font-weight:700; color:#0f172a; margin-top:16px;">' + pt('建议运维最佳实践：') + '</h5>\
+        <ul style="padding-left:20px; color:#475569;">\
+            <li>' + pt('启用【自动清理】，设置每 7 天凌晨 03:15 执行，保留最近 7~15 天的历史归档压缩包。') + '</li>\
+            <li>' + pt('当服务器磁盘告警时，先在【Top 10 大文件榜】排查单个异常膨胀的日志（如未限制的 debug 日志或 slow.log），点击【截断清零】即可快速解救磁盘。') + '</li>\
+            <li>' + pt('定期在【清理战报】中核验释放容量与清理明细。') + '</li>\
+        </ul>\
+    </div>';
+
+    $('#clean-content-body').html(html);
+}
+
+// 初始化加载第一页
+renderOverviewTab();
 
 if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
     window.YfI18n.translatePluginDOM($('.bt-form'), 'clean');

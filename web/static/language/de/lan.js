@@ -4833,8 +4833,8 @@ var lan = {
 				"ps": "Leistungsstarker Open-Source-Webserver für Unternehmen mit automatischem HTTPS in Go geschrieben"
 			},
 			"clean": {
-				"title": "Protokollbereiniger",
-				"ps": "Protokollbereiniger"
+				"title": "Festplattenbereinigung",
+				"ps": "Tiefenprüfung von Systemprotokollen und temporären Caches zur sicheren Freigabe von Festplattenspeicher."
 			},
 			"data_query": {
 				"title": "Datenmanager",

@@ -4833,8 +4833,8 @@ var lan = {
 				"ps": "Serveur Web open source puissant de niveau entreprise avec HTTPS automatique écrit en Go"
 			},
 			"clean": {
-				"title": "Nettoyeur de journaux",
-				"ps": "Nettoyeur de journaux"
+				"title": "Nettoyage de disque",
+				"ps": "Analyse et nettoyage approfondis des journaux système et du cache temporaire pour libérer de l'espace disque."
 			},
 			"data_query": {
 				"title": "Gestionnaire de données",

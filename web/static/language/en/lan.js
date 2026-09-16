@@ -4833,8 +4833,8 @@ var lan = {
 				"ps": "Powerful, enterprise-grade, open-source web server with automatic HTTPS written in Go"
 			},
 			"clean": {
-				"title": "Log Cleaner",
-				"ps": "Log Cleaner"
+				"title": "Disk Cleaner",
+				"ps": "Deep scan and clean system logs, temporary cache and rotation archives to free disk space safely."
 			},
 			"data_query": {
 				"title": "Data Manager",

@@ -1,17 +1,17 @@
 {
     "sort": 60,
-    "title": "日志清理",
+    "title": "磁盘清理",
     "tip": "soft",
     "name": "clean",
     "type": "tool",
-    "ps": "日志清理",
-    "versions": "1.0",
+    "ps": "深度体检系统日志与临时缓存，支持活跃日志安全截断与过期归档轮转，瞬间释放磁盘空间",
+    "versions": "2.0",
     "shell": "install.sh",
     "checks": "server/clean",
     "path": "server/clean",
-    "author": "clean",
-    "home": "",
+    "author": "御风科技",
+    "home": "https://github.com/clhome/bt_simple",
     "display": 2,
-    "date": "2021-11-23",
+    "date": "2026-09-16",
     "pid": "5"
 }

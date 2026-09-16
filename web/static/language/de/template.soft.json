@@ -199,8 +199,8 @@
       "ps": "Leistungsstarker Open-Source-Webserver für Unternehmen mit automatischem HTTPS in Go geschrieben"
     },
     "clean": {
-      "title": "Protokollbereiniger",
-      "ps": "Protokollbereiniger"
+      "title": "Festplattenbereinigung",
+      "ps": "Tiefenprüfung von Systemprotokollen und temporären Caches zur sicheren Freigabe von Festplattenspeicher."
     },
     "data_query": {
       "title": "Datenmanager",
@@ -344,8 +344,8 @@
     "apache.ps": "Weltweit führend, schnell, zuverlässig und über einfacheAPIerweiterte Web Server-Software",
     "caddy.title": "Caddy",
     "caddy.ps": "Ein leistungsstarkes Open-Source-Produkt auf Unternehmensniveau Web Server, mit Go geschriebene automatische HTTPS",
-    "clean.title": "Protokollbereinigung",
-    "clean.ps": "Bereinigt temporäre Systemdateien, Panel-Protokolle, Website-Protokolle und andere nutzlose Dateien und gibt Speicherplatz frei.",
+    "clean.title": "Festplattenbereinigung",
+    "clean.ps": "Tiefenprüfung von Systemprotokollen und temporären Caches zur sicheren Freigabe von Festplattenspeicher.",
     "data_query.title": "Datenverwaltung",
     "data_query.ps": "Einfache Datenverwaltung (Memcached, Redis, MongoDB), schnelles Anzeigen und Pflegen der Key-Value-Datenbank",
     "docker.title": "YufengDockerManager",
