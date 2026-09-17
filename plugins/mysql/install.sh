@@ -247,16 +247,22 @@ if [ "${action}" == "uninstall" ]; then
     fi
 fi
 
-if [ "${action}" == "install" ]; then
+if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" == "upgrade" ]; then
     if [ -d $serverPath/mysql ]; then
         if [ -f $serverPath/mysql/bin/mysql ]; then
-            echo 'MySQL 服务已存在，跳过安装。'
+            echo "检测到 MySQL 已存在部署实例，正在执行平滑无损升级与环境自愈 (版本: ${type})..."
+            # 执行平滑升级与大版本自愈迁移（配置重载、服务守护进程注册、SQLite结构幂等补齐、状态对齐）
+            cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py check_plugin_upgrade ${type}
+            cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py upgrade_self_healing ${type}
+            cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
+            echo "MySQL 平滑无损升级与环境自愈完成！"
             exit 0
         else
             echo '检测到残留的不完整 MySQL 目录，正在清理...'
             rm -rf $serverPath/mysql
         fi
     fi
+
 
     if [ "${is_fast}" == "true" ]; then
         Install_fast_mysql "${type}"

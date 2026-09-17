@@ -214,14 +214,32 @@ def pSqliteDb(dbname='databases'):
     else:
         yf.writeFile(save_md5_file, md5_sql)
 
-    if not os.path.exists(file) or import_sql:
+    if not os.path.exists(file) or import_sign:
         conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
-            conn.execute(csql_list[index], ())
+            sql_item = csql_list[index].strip()
+            if sql_item:
+                try:
+                    conn.execute(sql_item, ())
+                except Exception:
+                    pass
 
     conn = yf.M(dbname).dbPos(getServerDir(), name)
+    # 幂等自愈：为 databases 表自动补齐缺失的 rw 字段，确保老版本数据库无损升级兼容
+    try:
+        col_res = conn.query("PRAGMA table_info('databases')")
+        existing_cols = []
+        if col_res and not isinstance(col_res, str):
+            for c in col_res:
+                col_name = c.get('name') if isinstance(c, dict) else c[1]
+                existing_cols.append(col_name)
+        if existing_cols and 'rw' not in existing_cols:
+            conn.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
+    except Exception:
+        pass
     return conn
+
 
 
 def pMysqlDb():
@@ -278,35 +296,52 @@ def initDreplace(version=''):
 
     my_conf = conf_dir + '/my.cnf'
     if not os.path.exists(my_conf):
-        tpl = getPluginDir() + '/conf/my' + version + '.cnf'
+        target_ver = str(version).strip()
+        if not target_ver:
+            version_pl = getServerDir() + "/version.pl"
+            if os.path.exists(version_pl):
+                target_ver = yf.readFile(version_pl).strip()
+            else:
+                target_ver = '5.7'
+        tpl = getPluginDir() + '/conf/my' + target_ver + '.cnf'
+        if not os.path.exists(tpl):
+            tpl = getPluginDir() + '/conf/my5.7.cnf'
         content = yf.readFile(tpl)
-        content = contentReplace(content)
-        yf.writeFile(my_conf, content)
+        if content:
+            content = contentReplace(content)
+            yf.writeFile(my_conf, content)
 
     classic_conf = mode_dir + '/classic.cnf'
     if not os.path.exists(classic_conf):
         tpl = getPluginDir() + '/conf/classic.cnf'
         content = yf.readFile(tpl)
-        content = contentReplace(content)
-        yf.writeFile(classic_conf, content)
+        if content:
+            content = contentReplace(content)
+            yf.writeFile(classic_conf, content)
 
     gtid_conf = mode_dir + '/gtid.cnf'
     if not os.path.exists(gtid_conf):
         tpl = getPluginDir() + '/conf/gtid.cnf'
         content = yf.readFile(tpl)
-        content = contentReplace(content)
-        yf.writeFile(gtid_conf, content)
+        if content:
+            content = contentReplace(content)
+            yf.writeFile(gtid_conf, content)
 
-    # systemd
+    # systemd 自愈写入
     system_dir = yf.systemdCfgDir()
     service = system_dir + '/mysql.service'
-    if os.path.exists(system_dir) and not os.path.exists(service):
+    need_reload = False
+    if os.path.exists(system_dir):
         tpl = getPluginDir() + '/init.d/mysql.service.tpl'
         service_path = yf.getServerDir()
         content = yf.readFile(tpl)
-        content = content.replace('{$SERVER_PATH}', service_path)
-        yf.writeFile(service, content)
-        yf.execShell('systemctl daemon-reload')
+        if content:
+            content = content.replace('{$SERVER_PATH}', service_path)
+            if not os.path.exists(service) or yf.readFile(service) != content:
+                yf.writeFile(service, content)
+                need_reload = True
+        if need_reload:
+            yf.execShell('systemctl daemon-reload')
 
     if not yf.isAppleSystem():
         yf.execShell('chown -R mysql:mysql ' + getServerDir())
@@ -319,30 +354,134 @@ def initDreplace(version=''):
     if not os.path.exists(file_bin):
         initd_tpl = getInitdTpl(version)
         content = yf.readFile(initd_tpl)
-        content = contentReplace(content)
-        yf.writeFile(file_bin, content)
-        yf.execShell('chmod +x ' + file_bin)
+        if content:
+            content = contentReplace(content)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + file_bin)
     return file_bin
 
 
+def getMysqldPid():
+    """
+    精准检测系统中正在运行的 mysqld 守护进程 PID
+    """
+    try:
+        # 1. 优先使用 pgrep 精准获取
+        res = yf.execShell("pgrep -f '[m]ysqld'")
+        if res and res[0].strip():
+            pids = [p.strip() for p in res[0].strip().split() if p.strip().isdigit()]
+            for p in reversed(pids):
+                pid_int = int(p)
+                if yf.checkPid(pid_int):
+                    return pid_int
+
+        # 2. 回退使用 ps 查询
+        ps_cmd = "ps -eo pid,comm,args | grep -E '[m]ysqld' | grep -v 'grep' | grep -v 'python' | awk '{print $1}'"
+        res = yf.execShell(ps_cmd)
+        if res and res[0].strip():
+            pids = [p.strip() for p in res[0].strip().split() if p.strip().isdigit()]
+            for p in reversed(pids):
+                pid_int = int(p)
+                if yf.checkPid(pid_int):
+                    return pid_int
+    except Exception:
+        pass
+    return None
+
+
+def cleanOrphanSockets():
+    """
+    安全清理残留的孤儿套接字（仅在没有任何存活 mysqld 进程时生效，防止启动死锁）
+    """
+    if getMysqldPid() is not None:
+        return
+    candidate_socks = [
+        getSocketFile(),
+        '/tmp/mysql.sock',
+        '/tmp/mysql.sock.lock',
+        '/var/run/mysqld/mysqld.sock',
+        getServerDir() + '/mysql.sock'
+    ]
+    for s in candidate_socks:
+        if s and os.path.exists(s):
+            try:
+                os.remove(s)
+            except Exception:
+                pass
+
+
 def process_status():
-    cmd = "ps -ef|grep mysql |grep -v grep | grep -v python | awk '{print $2}'"
-    data = yf.execShell(cmd)
-    if data[0] == '':
-        return 'stop'
-    return 'start'
+    live_pid = getMysqldPid()
+    return 'start' if live_pid is not None else 'stop'
 
 
 def status(version=''):
-    path = getConf()
-    if not os.path.exists(path):
-        return 'stop'
+    """
+    多模态精准健康状态检查与 PID 自动自愈
+    """
+    # 0. 升级守卫：仅在检测到版本升级时静默自愈一次，之后 0 开销放行
+    try:
+        checkPluginUpgrade(version)
+    except Exception:
+        pass
 
-    pid = getPidFile()
-    if not os.path.exists(pid):
-        return 'stop'
+    # 1. 优先检查标准 PID 文件中的进程真实存活性
+    pid_file = getPidFile()
+    if os.path.exists(pid_file):
+        try:
+            pid_str = yf.readFile(pid_file).strip()
+            if pid_str and pid_str.isdigit():
+                pid_int = int(pid_str)
+                if yf.checkPid(pid_int):
+                    return 'start'
+        except Exception:
+            pass
 
-    return 'start'
+    # 2. 多模态探活：PID 文件失效或丢失时，探测系统真实运行中的 mysqld
+    live_pid = getMysqldPid()
+    if live_pid is not None:
+        # 自动自愈：将真实存活的 PID 写回 pid_file，保证后续快速探针直接命中
+        try:
+            if pid_file:
+                p_dir = os.path.dirname(pid_file)
+                if not os.path.exists(p_dir):
+                    os.makedirs(p_dir, exist_ok=True)
+                yf.writeFile(pid_file, str(live_pid))
+        except Exception:
+            pass
+        return 'start'
+
+    # 3. Socket 响应探针（验证套接字是否能正常建立连接）
+    sock_path = getSocketFile()
+    if sock_path and os.path.exists(sock_path):
+        import socket
+        try:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect(sock_path)
+            s.close()
+            # 能握手说明 mysqld 绝对存活
+            live_pid = getMysqldPid()
+            if live_pid and pid_file:
+                try:
+                    yf.writeFile(pid_file, str(live_pid))
+                except Exception:
+                    pass
+            return 'start'
+        except Exception:
+            pass
+
+    # 4. systemctl 探针
+    if yf.isSupportSystemctl():
+        try:
+            sys_res = yf.execShell('systemctl is-active mysql')
+            if sys_res and sys_res[0].strip() == 'active':
+                return 'start'
+        except Exception:
+            pass
+
+    return 'stop'
+
 
 
 def getDataDir():
@@ -550,16 +689,37 @@ def pGetDbUser():
     return 'mysql'
 
 
+def isMysqlDataInited(datadir):
+    """
+    智能判定数据目录是否已经初始化，防止任何日常启动或升级对已有数据目录造成误伤
+    """
+    if not os.path.exists(datadir):
+        return False
+    # 1. 存在核心系统库或核心存储引擎文件，直接判定为已初始化
+    if os.path.exists(datadir + '/mysql') or os.path.exists(datadir + '/ibdata1') or os.path.exists(datadir + '/undo_001'):
+        return True
+    try:
+        # 2. 检查目录下是否存在任何用户数据库子目录（排除系统日志与证书文件）
+        valid_items = [f for f in os.listdir(datadir) if not f.startswith('.') and f not in ['mysql.pem', 'mysql.pub', 'error.log', 'mysql-slow.log']]
+        for item in valid_items:
+            sub_p = os.path.join(datadir, item)
+            if os.path.isdir(sub_p):
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def initMysqlData():
     datadir = getDataDir()
-    if not os.path.exists(datadir + '/mysql'):
-        serverdir = getServerDir()
-        myconf = serverdir + "/etc/my.cnf"
-        user = pGetDbUser()
-        cmd = 'cd ' + serverdir + ' && ./scripts/mysql_install_db --defaults-file=' + myconf
-        yf.execShell(cmd)
-        return False
-    return True
+    if isMysqlDataInited(datadir):
+        return True
+
+    serverdir = getServerDir()
+    myconf = serverdir + "/etc/my.cnf"
+    cmd = 'cd ' + serverdir + ' && ./scripts/mysql_install_db --defaults-file=' + myconf
+    yf.execShell(cmd)
+    return False
 
 
 def initMysql57Data():
@@ -567,57 +727,54 @@ def initMysql57Data():
     cd /www/server/mysql && /www/server/mysql/bin/mysqld --defaults-file=/www/server/mysql/etc/my.cnf  --initialize-insecure --explicit_defaults_for_timestamp
     '''
     datadir = getDataDir()
-    if not os.path.exists(datadir + '/mysql'):
-        serverdir = getServerDir()
-        
-        # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
-        # 极度危险：不再直接 removeDir，而是改名备份，避免意外清空用户现存的其他数据库
-        if datadir == serverdir + '/data' and os.path.exists(datadir):
+    if isMysqlDataInited(datadir):
+        return True
+
+    serverdir = getServerDir()
+    # 仅在数据目录确实没有任何有效数据且非空时，进行初次安装兜底整理
+    if datadir == serverdir + '/data' and os.path.exists(datadir):
+        items = [f for f in os.listdir(datadir) if not f.startswith('.')]
+        if len(items) > 0:
             import time
             backup_dir = datadir + '_backup_' + str(int(time.time()))
             os.rename(datadir, backup_dir)
             yf.makeDirs(datadir)
             yf.execShell('chown -R mysql:mysql ' + datadir)
 
-        myconf = serverdir + "/etc/my.cnf"
-        user = pGetDbUser()
-        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + \
-            ' --initialize-insecure --explicit_defaults_for_timestamp --user=mysql'
-        data = yf.execShell(cmd)
-        # print(data)
-        return False
-    return True
+    myconf = serverdir + "/etc/my.cnf"
+    cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + \
+        ' --initialize-insecure --explicit_defaults_for_timestamp --user=mysql'
+    data = yf.execShell(cmd)
+    return False
 
 
 def initMysql8Data():
     datadir = getDataDir()
-    if not os.path.exists(datadir + '/mysql'):
-        serverdir = getServerDir()
-        
-        # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
-        # 极度危险：不再直接 removeDir，而是改名备份，避免意外清空用户现存的其他数据库
-        if datadir == serverdir + '/data' and os.path.exists(datadir):
+    if isMysqlDataInited(datadir):
+        return True
+
+    serverdir = getServerDir()
+    # 仅在数据目录确实没有任何有效数据且非空时，进行初次安装兜底整理
+    if datadir == serverdir + '/data' and os.path.exists(datadir):
+        items = [f for f in os.listdir(datadir) if not f.startswith('.')]
+        if len(items) > 0:
             import time
             backup_dir = datadir + '_backup_' + str(int(time.time()))
             os.rename(datadir, backup_dir)
             yf.makeDirs(datadir)
             yf.execShell('chown -R mysql:mysql ' + datadir)
 
-        user = pGetDbUser()
-        # cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
-        #     datadir + ' --initialize'
+    user = pGetDbUser()
+    myconf = serverdir + "/etc/my.cnf"
+    cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + ' --basedir=' + serverdir + ' --datadir=' + \
+        datadir + ' --user=' + user + ' --initialize-insecure'
 
-        myconf = serverdir + "/etc/my.cnf"
-        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + ' --basedir=' + serverdir + ' --datadir=' + \
-            datadir + ' --user=' + user + ' --initialize-insecure'
+    data = yf.execShell(cmd)
+    
+    # 记录初始化命令及其输出到日志，用于诊断
+    yf.writeFile('/tmp/mysql8_init_debug.log', f"CMD: {cmd}\nSTDOUT: {data[0]}\nSTDERR: {data[1]}")
+    return False
 
-        data = yf.execShell(cmd)
-        
-        # 记录初始化命令及其输出到日志，用于诊断
-        yf.writeFile('/tmp/mysql8_init_debug.log', f"CMD: {cmd}\nSTDOUT: {data[0]}\nSTDERR: {data[1]}")
-        
-        return False
-    return True
 
 
 def initMysqlPwd(version='5.7'):
@@ -836,23 +993,57 @@ def appCMD(version, action):
 
 
 def start(version=''):
-    stop(version)
-    yf.execShell('pkill -9 mysqld')
-    yf.execShell('pkill -9 mariadbd')
-    time.sleep(1)
-    return appCMD(version, 'start')
+    # 1. 状态自愈与防误杀：若服务已在正常运行，坚决禁止 pkill -9 强杀！
+    if status(version) == 'start':
+        return 'ok'
+
+    # 2. 清理残留孤儿套接字（防死锁）
+    cleanOrphanSockets()
+
+    # 3. 启动并检测就绪
+    res = appCMD(version, 'start')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    return res
 
 
 def stop(version=''):
-    return appCMD(version, 'stop')
+    res = appCMD(version, 'stop')
+    # 等待进程平稳退出最多 5 秒
+    for _ in range(5):
+        if status(version) == 'stop':
+            break
+        time.sleep(1)
+    return res
 
 
 def restart(version=''):
+    # 1. 平滑优雅停止
     stop(version)
-    yf.execShell('pkill -9 mysqld')
-    yf.execShell('pkill -9 mariadbd')
-    time.sleep(1)
-    return appCMD(version, 'restart')
+
+    # 2. 检查如果停止超时，优雅发送 TERM 信号
+    live_pid = getMysqldPid()
+    if live_pid is not None:
+        try:
+            import signal
+            os.kill(live_pid, signal.SIGTERM)
+            time.sleep(2)
+        except Exception:
+            pass
+
+    # 3. 清理残留的孤儿套接字文件
+    cleanOrphanSockets()
+
+    # 4. 重新拉起
+    res = appCMD(version, 'restart')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    return res
+
 
 
 def reload(version=''):
@@ -4573,6 +4764,213 @@ def checkAnomalyBackup():
             valid_dirs.append(d.replace('\\', '/'))
     return yf.returnJson(True, 'ok', valid_dirs)
 
+
+def upgradeSelfHealing(version=''):
+    """
+    全自动平滑无损升级与环境自愈接口：
+    1. 确保配置目录与 my.cnf 存在；
+    2. 刷新与校准 systemd 服务配置 (mysql.service)；
+    3. 幂等迁移与补齐 SQLite 表结构 (databases.rw 等)；
+    4. 同步 root 密码快照 (mysql_root.pl, default.pl)；
+    5. 清理孤儿套接字，检测并确保服务平稳运行，自愈写回真实 PID；
+    6. 返回自愈报告。
+    """
+    logs = []
+    logs.append("开始执行 MySQL 插件平滑无损升级与环境自愈流程...")
+
+    target_ver = str(version).strip()
+    if not target_ver:
+        version_pl = getServerDir() + "/version.pl"
+        if os.path.exists(version_pl):
+            target_ver = yf.readFile(version_pl).strip()
+        else:
+            target_ver = '5.7'
+
+    # 1. 刷新配置文件与服务配置
+    try:
+        initDreplace(target_ver)
+        logs.append("服务配置与 systemd 脚本已完成检查与自愈。")
+    except Exception as ex:
+        logs.append(f"服务配置自愈警告: {ex}")
+
+    # 2. 检查并修复目录权限
+    try:
+        if not yf.isAppleSystem():
+            yf.execShell('chown -R mysql:mysql ' + getServerDir())
+            ddir = getDataDir()
+            if os.path.exists(ddir):
+                yf.execShell('chown -R mysql:mysql ' + ddir)
+                yf.execShell('chmod 750 ' + ddir)
+        logs.append("MySQL 运行目录权限已校准。")
+    except Exception as ex:
+        logs.append(f"目录权限校准警告: {ex}")
+
+    # 3. 幂等补齐 SQLite 数据库字段与密码同步
+    try:
+        psdb = pSqliteDb('databases')
+        # 同步 root 密码至快照文件
+        root_pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root') or ''
+        if root_pwd:
+            root_pl = getServerDir() + '/mysql_root.pl'
+            default_pl = getServerDir() + '/default.pl'
+            if not os.path.exists(root_pl):
+                yf.writeFile(root_pl, root_pwd)
+            if not os.path.exists(default_pl):
+                yf.writeFile(default_pl, root_pwd)
+        logs.append("SQLite 元数据与 root 密码快照已自动同步。")
+    except Exception as ex:
+        logs.append(f"元数据同步警告: {ex}")
+
+    # 4. 健康状态自愈
+    st = status(target_ver)
+    if st != 'start':
+        logs.append("检测到 MySQL 服务未处于运行状态，正在尝试安全拉起...")
+        start_res = start(target_ver)
+        logs.append(f"启动结果: {start_res}")
+    else:
+        logs.append("MySQL 服务正在稳定运行中，PID 已自动对齐校准。")
+
+    final_status = status(target_ver)
+    is_ok = (final_status == 'start')
+    logs.append(f"升级自愈完成，最终服务运行状态: {final_status}")
+
+    return yf.returnJson(is_ok, "\n".join(logs), {'status': final_status, 'version': target_ver})
+
+
+CURRENT_PLUGIN_VERSION = '2.0'
+_MYSQL_UPGRADE_CHECKING = False
+
+
+def getPluginVersionFile():
+    """获取插件大版本标记文件路径"""
+    return getPluginDir() + '/plugin_version.pl'
+
+
+def getInstalledPluginVersion():
+    """读取当前本地已持久化的插件版本（老版本若无此文件默认返回 1.0）"""
+    vfile = getPluginVersionFile()
+    if os.path.exists(vfile):
+        try:
+            v = yf.readFile(vfile).strip()
+            if v:
+                return v
+        except Exception:
+            pass
+    # 兼容服务端运行目录可能存放的标记
+    server_vfile = getServerDir() + '/plugin_version.pl'
+    if os.path.exists(server_vfile):
+        try:
+            v = yf.readFile(server_vfile).strip()
+            if v:
+                return v
+        except Exception:
+            pass
+    return '1.0'
+
+
+def setInstalledPluginVersion(ver):
+    """持久化保存插件版本标记"""
+    vfile = getPluginVersionFile()
+    try:
+        yf.writeFile(vfile, str(ver).strip())
+    except Exception:
+        pass
+    try:
+        server_vfile = getServerDir() + '/plugin_version.pl'
+        if os.path.exists(getServerDir()):
+            yf.writeFile(server_vfile, str(ver).strip())
+    except Exception:
+        pass
+
+
+def comparePluginVersion(v1, v2):
+    """
+    语义化版本号比较
+    返回值: -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)
+    """
+    def parse_ver(v):
+        parts = []
+        for p in str(v).strip().split('.'):
+            if p.isdigit():
+                parts.append(int(p))
+            else:
+                nums = re.findall(r'\d+', p)
+                parts.append(int(nums[0]) if nums else 0)
+        return parts
+
+    p1 = parse_ver(v1)
+    p2 = parse_ver(v2)
+    max_len = max(len(p1), len(p2))
+    p1 += [0] * (max_len - len(p1))
+    p2 += [0] * (max_len - len(p2))
+    if p1 < p2:
+        return -1
+    elif p1 > p2:
+        return 1
+    return 0
+
+
+def _migrate_mysql_1_to_2(version=''):
+    """1.x 升级至 2.0 阶段自愈迁移"""
+    return upgradeSelfHealing(version)
+
+
+# 迁移流水线配置：(目标大版本, 迁移执行函数)
+# 后续升级（如升级至 2.1, 3.0 等指定版本）只需在此注册新的迁移函数即可平滑扩展！
+MYSQL_MIGRATION_STEPS = [
+    ('2.0', _migrate_mysql_1_to_2),
+]
+
+
+def checkPluginUpgrade(version=''):
+    """
+    大版本升级检测与单次自愈迁移函数：
+    1. 检查已持久化的版本号，若已达到当前版本直接放行（耗时微秒级，零损耗）；
+    2. 当检测到从 1.x 升级到 2.x 时，自动触发且仅触发一次自愈；
+    3. 成功后更新版本号到本地文件，保证升级后只执行一次；
+    4. 保留未来版本迁移路由接口。
+    """
+    global _MYSQL_UPGRADE_CHECKING
+    if _MYSQL_UPGRADE_CHECKING:
+        return {'status': True, 'msg': 'Upgrade checking already in progress'}
+
+    installed_ver = getInstalledPluginVersion()
+    target_ver = CURRENT_PLUGIN_VERSION
+
+    if comparePluginVersion(installed_ver, target_ver) >= 0:
+        return {'status': True, 'msg': 'Already up to date', 'version': installed_ver}
+
+    _MYSQL_UPGRADE_CHECKING = True
+    migration_logs = []
+    success = True
+    current_v = installed_ver
+
+    try:
+        for step_ver, step_func in MYSQL_MIGRATION_STEPS:
+            if comparePluginVersion(current_v, step_ver) < 0:
+                try:
+                    res = step_func(version)
+                    migration_logs.append(f"升级迁移 {current_v} -> {step_ver} 执行成功: {res}")
+                    current_v = step_ver
+                    setInstalledPluginVersion(step_ver)
+                except Exception as ex:
+                    success = False
+                    migration_logs.append(f"升级迁移 {current_v} -> {step_ver} 发生异常: {ex}")
+                    break
+
+        if success and comparePluginVersion(current_v, target_ver) < 0:
+            setInstalledPluginVersion(target_ver)
+    finally:
+        _MYSQL_UPGRADE_CHECKING = False
+
+    return {
+        'status': success,
+        'installed_version': installed_ver,
+        'target_version': target_ver,
+        'logs': migration_logs
+    }
+
+
 if __name__ == "__main__":
     func = sys.argv[1]
 
@@ -4581,8 +4979,13 @@ if __name__ == "__main__":
     if os.path.exists(version_pl):
         version = yf.readFile(version_pl).strip()
 
-    if func == 'status':
+    if func == 'check_plugin_upgrade':
+        print(checkPluginUpgrade(version))
+    elif func == 'upgrade_self_healing':
+        print(upgradeSelfHealing(version))
+    elif func == 'status':
         print(status(version))
+
     elif func == 'start':
         print(start(version))
     elif func == 'stop':

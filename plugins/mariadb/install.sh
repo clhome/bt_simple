@@ -47,6 +47,17 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
+if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" == "upgrade" ]; then
+    if [ -d $serverPath/mariadb ] && [ -f $serverPath/mariadb/bin/mysql ]; then
+        echo "检测到 MariaDB 已存在部署实例，正在执行平滑无损升级与环境自愈 (版本: ${type})..."
+        cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py check_plugin_upgrade ${type}
+        cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py upgrade_self_healing ${type}
+        cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py initd_install ${type}
+        echo "MariaDB 平滑无损升级与环境自愈完成！"
+        exit 0
+    fi
+fi
+
 sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mariadb ];then

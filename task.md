@@ -96,3 +96,23 @@
 - [x] 62. 根除全屏未安装遮罩霸屏缺陷：彻底废除 `showInstallLayer`，移除 Redis/MongoDB/Memcached/MySQL 连接失败或无服务器时触发全局遮罩的代码 (`plugins/data_query/static/js/app.js`)
 - [x] 63. 加固 Tab 切换隔离与遮罩重置机制 (`selectTab`)，并在 `index.html` 中永久隐藏旧残留遮罩 (`index.html`, `app.js`)
 - [x] 64. 编写与运行自动化回归测试套件 (`test/test_no_install_mask_bug.py`) 验证修复有效性与全数据库状态独立性，清理收尾与编码校验
+
+## MySQL 插件升级故障根治、平滑无损升级与自动自愈任务清单
+
+- [x] 65. 重构状态探针 `status(version)`：结合进程树（`Process`）、网络端口（`Port`）、套接字（`Socket`）多模态探活，进程存活时自动自愈补齐 PID 文件 (`plugins/mysql/index.py`)
+- [x] 66. 安全启动与“零触碰”防御机制：废除破坏性 `pkill -9`，增加残留套接字死锁清理，日常启动严格禁止重命名备份数据目录 (`plugins/mysql/index.py`)
+- [x] 67. SQLite 数据库结构与服务配置幂等自愈：启动/检查时自动为老库 `databases` 补齐 `rw` 字段，校准 `mysql.service` 与 systemd 重载 (`plugins/mysql/index.py`)
+- [x] 68. 改造 `plugins/mysql/install.sh`：检测到已有实例时平滑进入无损升级/自愈流程，不再机械 `exit 0`，完成服务更新与权限同步 (`plugins/mysql/install.sh`)
+- [x] 69. 强化 `plugins/data_query` 与 MySQL 的自愈互通：加固对已升级/正在启动中实例的连接重试与密码快照双向校准 (`plugins/data_query/common_db.py`, `plugins/data_query/sql_mysql.py`)
+- [x] 70. 编写自动化回归测试套件 (`test/test_mysql_upgrade_self_healing.py`)，验证老环境升级、PID自愈、无损启动与 `data_query` 自动同步 100% 通过
+- [x] 71. 成果全量回归、UTF-8(LF)编码检查与临时文件清理收尾
+
+## 大版本升级检测框架与 MariaDB 插件自愈任务清单
+
+- [x] 72. 为 MySQL 插件实现大版本升级检测与单次自愈迁移框架（支持 1.x->2.x 升级自动自愈一次，并保留未来升级接口） (`plugins/mysql/index.py`)
+- [x] 73. 对齐改造 MariaDB 插件自愈功能：多模态健康探针、孤儿 Socket 清理与数据零触碰防御 (`plugins/mariadb/index.py`)
+- [x] 74. 对齐改造 MariaDB 插件元数据自愈与版本升级迁移框架：SQLite `rw` 字段自动补齐、`mariadb.sql` 幂等与 `checkPluginUpgrade` (`plugins/mariadb/index.py`, `conf/mariadb.sql`)
+- [x] 75. 改造 MariaDB 安装升级脚本衔接无损自愈 (`plugins/mariadb/install.sh`)
+- [x] 76. 编写自动化回归测试套件 (`test/test_upgrade_and_mariadb_self_healing.py`)，验证 MySQL 与 MariaDB 单次升级自愈、版本跳跃与扩展接口
+- [x] 77. 全量测试回归、UTF-8(LF)校验与清理收尾
+

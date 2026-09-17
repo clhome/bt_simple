@@ -526,7 +526,34 @@ class nosqlMySQL():
                     except Exception:
                         pass
 
+        # 3. 智能自愈：如果是本机环境且报错网络拒绝连接，自动探测可用 UNIX Socket 免网络穿透直连
+        if is_local:
+            candidate_socks = [
+                '/tmp/mysql.sock',
+                os.path.join(yf.getServerDir(), 'mysql', 'mysql.sock'),
+                '/var/run/mysqld/mysqld.sock',
+                os.path.join(yf.getServerDir(), 'mariadb', 'mysql.sock')
+            ]
+            for csock in candidate_socks:
+                if csock and os.path.exists(csock) and csock != self.__DB_SOCKET:
+                    try:
+                        db_sock = PluginORM()
+                        db_sock.setHost('localhost')
+                        db_sock.setSocket(csock)
+                        db_sock.setTimeout(4)
+                        db_sock.setPort(self.__DB_PORT)
+                        db_sock.setPwd(self.__DB_PASS)
+                        db_sock.setUser(self.__DB_USER)
+                        db_sock.setDbName(auth_db)
+                        if db_sock.connect():
+                            self.__DB_SOCKET = csock
+                            self.__DB_ERR = ''
+                            return db_sock
+                    except Exception:
+                        pass
+
         return False
+
 
 
     def sqliteDb(self, db_pos_name, dbname='databases'):

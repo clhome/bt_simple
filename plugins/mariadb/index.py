@@ -153,8 +153,8 @@ def contentReplace(content):
 
 
 def pSqliteDb(dbname='databases'):
-    file = getServerDir() + '/mariadb.db'
-    name = 'mysql'
+    name = 'mariadb' if os.path.exists(getServerDir() + '/mariadb.db') else 'mysql'
+    file = getServerDir() + '/' + name + '.db'
 
     import_sql = yf.readFile(getPluginDir() + '/conf/mariadb.sql')
     md5_sql = yf.md5(import_sql)
@@ -168,14 +168,48 @@ def pSqliteDb(dbname='databases'):
             yf.writeFile(save_md5_file, md5_sql)
     else:
         yf.writeFile(save_md5_file, md5_sql)
+        import_sign = True
 
-    if not os.path.exists(file) or import_sql:
+    if not os.path.exists(file) or import_sign:
         conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
-            conn.execute(csql_list[index], ())
+            sql_item = csql_list[index].strip()
+            if sql_item:
+                try:
+                    conn.execute(sql_item, ())
+                except Exception:
+                    pass
 
     conn = yf.M(dbname).dbPos(getServerDir(), name)
+    # 幂等自愈：为老版本数据库 databases 表自动补齐缺失的 rw 权限列
+    try:
+        col_res = conn.query("PRAGMA table_info('databases')")
+        existing_cols = []
+        if col_res and not isinstance(col_res, str):
+            for c in col_res:
+                col_name = c.get('name') if isinstance(c, dict) else (c[1] if isinstance(c, (list, tuple)) and len(c) > 1 else None)
+                if col_name:
+                    existing_cols.append(col_name)
+        if existing_cols and 'rw' not in existing_cols:
+            conn.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
+    except Exception:
+        pass
+
+    # 原生 sqlite3 终极兜底，确保在各种运行环境下均能 100% 幂等加列成功
+    try:
+        if os.path.exists(file):
+            import sqlite3 as raw_sqlite3
+            s_conn = raw_sqlite3.connect(file)
+            s_cur = s_conn.cursor()
+            s_cur.execute("PRAGMA table_info('databases')")
+            raw_cols = [r[1] for r in s_cur.fetchall() if len(r) > 1]
+            if raw_cols and 'rw' not in raw_cols:
+                s_cur.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
+                s_conn.commit()
+            s_conn.close()
+    except Exception:
+        pass
     return conn
 
 
@@ -260,13 +294,333 @@ def initDreplace(version=''):
     return file_bin
 
 
-def status(version=''):
+CURRENT_PLUGIN_VERSION = '2.0'
+_MARIADB_UPGRADE_CHECKING = False
+
+
+def getPluginVersionFile():
+    """获取 MariaDB 插件版本标记文件路径"""
+    return getPluginDir() + '/plugin_version.pl'
+
+
+def getInstalledPluginVersion():
+    """读取本地已持久化的插件版本（老版本若无此文件默认返回 1.0）"""
+    vfile = getPluginVersionFile()
+    if os.path.exists(vfile):
+        try:
+            v = yf.readFile(vfile).strip()
+            if v:
+                return v
+        except Exception:
+            pass
+    server_vfile = getServerDir() + '/plugin_version.pl'
+    if os.path.exists(server_vfile):
+        try:
+            v = yf.readFile(server_vfile).strip()
+            if v:
+                return v
+        except Exception:
+            pass
+    return '1.0'
+
+
+def setInstalledPluginVersion(ver):
+    """持久化保存插件版本标记"""
+    vfile = getPluginVersionFile()
     try:
-        pid = getPidFile()
-        if os.path.exists(pid):
+        yf.writeFile(vfile, str(ver).strip())
+    except Exception:
+        pass
+    try:
+        server_vfile = getServerDir() + '/plugin_version.pl'
+        if os.path.exists(getServerDir()):
+            yf.writeFile(server_vfile, str(ver).strip())
+    except Exception:
+        pass
+
+
+def comparePluginVersion(v1, v2):
+    """语义化版本号比较"""
+    def parse_ver(v):
+        parts = []
+        for p in str(v).strip().split('.'):
+            if p.isdigit():
+                parts.append(int(p))
+            else:
+                nums = re.findall(r'\d+', p)
+                parts.append(int(nums[0]) if nums else 0)
+        return parts
+
+    p1 = parse_ver(v1)
+    p2 = parse_ver(v2)
+    max_len = max(len(p1), len(p2))
+    p1 += [0] * (max_len - len(p1))
+    p2 += [0] * (max_len - len(p2))
+    if p1 < p2:
+        return -1
+    elif p1 > p2:
+        return 1
+    return 0
+
+
+def getMariadbPid():
+    """
+    精准检测系统中正在运行的 mariadbd / mariadb / mysqld 守护进程 PID
+    """
+    try:
+        # 1. 优先使用 pgrep
+        for proc in ['[m]ariadbd', '[m]ariadb', '[m]ysqld']:
+            res = yf.execShell(f"pgrep -f '{proc}'")
+            if res and res[0].strip():
+                pids = [p.strip() for p in res[0].strip().split() if p.strip().isdigit()]
+                for p in reversed(pids):
+                    pid_int = int(p)
+                    if yf.checkPid(pid_int):
+                        return pid_int
+
+        # 2. ps 过滤识别
+        ps_cmd = "ps -ef | grep -E 'mariadbd|mariadb|mysqld' | grep -v grep | awk '{print $2}'"
+        ps_res = yf.execShell(ps_cmd)
+        if ps_res and ps_res[0].strip():
+            pids = [p.strip() for p in ps_res[0].strip().split() if p.strip().isdigit()]
+            for p in reversed(pids):
+                pid_int = int(p)
+                if yf.checkPid(pid_int):
+                    return pid_int
+    except Exception:
+        pass
+    return None
+
+
+def cleanOrphanSockets():
+    """
+    仅在确认没有任何 mariadb/mysqld 进程存活时，安全清理残留孤儿套接字死锁
+    """
+    if getMariadbPid() is not None:
+        return
+    candidate_socks = [
+        getSocketFile(),
+        '/tmp/mysql.sock',
+        '/tmp/mysql.sock.lock',
+        '/tmp/mariadb.sock',
+        getServerDir() + '/mysql.sock',
+        getServerDir() + '/data/mysql.sock'
+    ]
+    for s in candidate_socks:
+        if s and os.path.exists(s):
+            try:
+                os.remove(s)
+            except Exception:
+                pass
+
+
+def upgradeSelfHealing(version=''):
+    """
+    MariaDB 平滑无损升级与环境自愈核心接口：
+    1. 刷新 systemd 服务配置与重载；
+    2. 幂等补齐 SQLite databases.rw 权限字段；
+    3. 同步 root 密码快照 (mysql_root.pl, default.pl)；
+    4. 清理孤儿套接字死锁，多模态检测状态并自愈写回 PID。
+    """
+    logs = []
+    logs.append("开始执行 MariaDB 插件平滑无损升级与环境自愈流程...")
+
+    target_ver = str(version).strip()
+    if not target_ver:
+        version_pl = getServerDir() + "/version.pl"
+        if os.path.exists(version_pl):
+            target_ver = yf.readFile(version_pl).strip()
+        else:
+            target_ver = '10.6'
+
+    # 1. 刷新 systemd 服务配置
+    try:
+        initDreplace()
+        system_dir = yf.systemdCfgDir()
+        service = system_dir + '/mariadb.service'
+        if os.path.exists(system_dir):
+            tpl = getPluginDir() + '/init.d/mariadb.service.tpl'
+            if os.path.exists(tpl):
+                content = yf.readFile(tpl).replace('{$SERVER_PATH}', yf.getServerDir())
+                if not os.path.exists(service) or yf.readFile(service) != content:
+                    yf.writeFile(service, content)
+                    yf.execShell('systemctl daemon-reload')
+        logs.append("MariaDB systemd 服务配置已自愈校准。")
+    except Exception as ex:
+        logs.append(f"服务配置自愈警告: {ex}")
+
+    # 2. 检查目录权限
+    try:
+        if not yf.isAppleSystem():
+            yf.execShell('chown -R mysql:mysql ' + getServerDir())
+            ddir = getDataDir()
+            if os.path.exists(ddir):
+                yf.execShell('chown -R mysql:mysql ' + ddir)
+                yf.execShell('chmod 750 ' + ddir)
+        logs.append("MariaDB 目录权限已校准。")
+    except Exception as ex:
+        logs.append(f"权限校准警告: {ex}")
+
+    # 3. 幂等迁移 SQLite 数据库字段与密码同步
+    try:
+        psdb = pSqliteDb('databases')
+        root_pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root') or ''
+        if root_pwd:
+            root_pl = getServerDir() + '/mysql_root.pl'
+            default_pl = getServerDir() + '/default.pl'
+            if not os.path.exists(root_pl):
+                yf.writeFile(root_pl, root_pwd)
+            if not os.path.exists(default_pl):
+                yf.writeFile(default_pl, root_pwd)
+        logs.append("SQLite 元数据与 root 密码快照已自动同步。")
+    except Exception as ex:
+        logs.append(f"元数据同步警告: {ex}")
+
+    # 4. 健康状态自愈
+    st = status(target_ver)
+    if st != 'start':
+        logs.append("检测到 MariaDB 服务未处于运行状态，正在尝试安全拉起...")
+        start_res = start(target_ver)
+        logs.append(f"启动结果: {start_res}")
+    else:
+        logs.append("MariaDB 服务正在稳定运行中，PID 已自动对齐校准。")
+
+    final_status = status(target_ver)
+    is_ok = (final_status == 'start')
+    logs.append(f"自愈完成，最终服务运行状态: {final_status}")
+    return yf.returnJson(is_ok, "\n".join(logs), {'status': final_status, 'version': target_ver})
+
+
+def _migrate_mariadb_1_to_2(version=''):
+    """MariaDB 1.x -> 2.0 升级自愈迁移"""
+    return upgradeSelfHealing(version)
+
+
+# 迁移流水线配置：(目标大版本, 迁移执行函数)
+# 保留后续扩展接口：未来升级至 2.1, 3.0 等只需在此追加注册
+MARIADB_MIGRATION_STEPS = [
+    ('2.0', _migrate_mariadb_1_to_2),
+]
+
+
+def checkPluginUpgrade(version=''):
+    """
+    MariaDB 大版本升级检测与单次自愈迁移函数：
+    1. 检查已持久化的版本号，若已达到当前版本直接放行（耗时微秒级，零损耗）；
+    2. 当检测到从 1.x 升级到 2.x 时，自动触发且仅触发一次自愈；
+    3. 成功后更新版本号到本地文件，保证升级后只执行一次；
+    4. 保留未来版本迁移路由接口。
+    """
+    global _MARIADB_UPGRADE_CHECKING
+    if _MARIADB_UPGRADE_CHECKING:
+        return {'status': True, 'msg': 'Upgrade checking already in progress'}
+
+    installed_ver = getInstalledPluginVersion()
+    target_ver = CURRENT_PLUGIN_VERSION
+
+    if comparePluginVersion(installed_ver, target_ver) >= 0:
+        return {'status': True, 'msg': 'Already up to date', 'version': installed_ver}
+
+    _MARIADB_UPGRADE_CHECKING = True
+    migration_logs = []
+    success = True
+    current_v = installed_ver
+
+    try:
+        for step_ver, step_func in MARIADB_MIGRATION_STEPS:
+            if comparePluginVersion(current_v, step_ver) < 0:
+                try:
+                    res = step_func(version)
+                    migration_logs.append(f"升级迁移 {current_v} -> {step_ver} 执行成功: {res}")
+                    current_v = step_ver
+                    setInstalledPluginVersion(step_ver)
+                except Exception as ex:
+                    success = False
+                    migration_logs.append(f"升级迁移 {current_v} -> {step_ver} 发生异常: {ex}")
+                    break
+
+        if success and comparePluginVersion(current_v, target_ver) < 0:
+            setInstalledPluginVersion(target_ver)
+    finally:
+        _MARIADB_UPGRADE_CHECKING = False
+
+    return {
+        'status': success,
+        'installed_version': installed_ver,
+        'target_version': target_ver,
+        'logs': migration_logs
+    }
+
+
+def status(version=''):
+    """
+    多模态精准健康状态检查与 PID 自动自愈
+    """
+    # 0. 升级守卫：仅在检测到版本升级时静默自愈一次，之后 0 开销放行
+    try:
+        checkPluginUpgrade(version)
+    except Exception:
+        pass
+
+    # 1. 优先检查标准 PID 文件中的进程真实存活性
+    pid_file = getPidFile()
+    if os.path.exists(pid_file):
+        try:
+            pid_str = yf.readFile(pid_file).strip()
+            if pid_str and pid_str.isdigit():
+                pid_int = int(pid_str)
+                if yf.checkPid(pid_int):
+                    return 'start'
+        except Exception:
+            pass
+
+    # 2. 多模态探活：PID 文件失效或丢失时，探测系统真实运行中的 mariadb
+    live_pid = getMariadbPid()
+    if live_pid is not None:
+        try:
+            if pid_file:
+                p_dir = os.path.dirname(pid_file)
+                if not os.path.exists(p_dir):
+                    os.makedirs(p_dir, exist_ok=True)
+                yf.writeFile(pid_file, str(live_pid))
+        except Exception:
+            pass
+        return 'start'
+
+    # 3. Socket 响应探针
+    sock_path = getSocketFile()
+    if sock_path and os.path.exists(sock_path):
+        import socket
+        try:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect(sock_path)
+            s.close()
+            live_pid = getMariadbPid()
+            if live_pid and pid_file:
+                try:
+                    yf.writeFile(pid_file, str(live_pid))
+                except Exception:
+                    pass
             return 'start'
-    except Exception as e:
-        return 'stop'
+        except Exception:
+            pass
+
+    # 4. systemctl 兜底状态确认
+    if not yf.isAppleSystem():
+        try:
+            sc_res = yf.execShell('systemctl is-active mariadb')
+            if sc_res and sc_res[0].strip() == 'active':
+                live_pid = getMariadbPid()
+                if live_pid and pid_file:
+                    try:
+                        yf.writeFile(pid_file, str(live_pid))
+                    except Exception:
+                        pass
+                return 'start'
+        except Exception:
+            pass
+
     return 'stop'
 
 
@@ -505,6 +859,10 @@ def appCMD(version, action):
 
 
 def start(version=''):
+    st = status(version)
+    if st == 'start':
+        return 'ok'
+    cleanOrphanSockets()
     return appCMD(version, 'start')
 
 
@@ -513,7 +871,10 @@ def stop(version=''):
 
 
 def restart(version=''):
-    return appCMD(version, 'restart')
+    stop(version)
+    time.sleep(1)
+    cleanOrphanSockets()
+    return appCMD(version, 'start')
 
 
 def reload(version=''):
@@ -3819,7 +4180,11 @@ if __name__ == "__main__":
     if os.path.exists(version_pl):
         version = yf.readFile(version_pl).strip()
 
-    if func == 'status':
+    if func == 'check_plugin_upgrade':
+        print(checkPluginUpgrade(version))
+    elif func == 'upgrade_self_healing':
+        print(upgradeSelfHealing(version))
+    elif func == 'status':
         print(status(version))
     elif func == 'start':
         print(start(version))
