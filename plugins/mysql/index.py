@@ -1395,8 +1395,104 @@ def setDbBackup():
 
     scDir = yf.getPanelDir() + '/scripts/backup.py'
     cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
-    os.system(cmd)
-    return yf.returnJson(True, 'ok')
+    out, err = yf.execShell(cmd)
+
+    if '备份失败' in str(out):
+        return yf.returnJson(False, '数据库备份失败: ' + args['name'])
+
+    bk_file = ''
+    try:
+        import re
+        fn_match = re.search(r'文件名:(.*)', str(out))
+        if fn_match:
+            cand_file = fn_match.group(1).strip()
+            if os.path.exists(cand_file):
+                bk_file = cand_file
+
+        if not bk_file:
+            bk_dir = yf.getBackupDir() + '/database'
+            matched = getDbBackupListFunc(args['name'])
+            if matched:
+                full_paths = [os.path.join(bk_dir, f) for f in matched if os.path.exists(os.path.join(bk_dir, f))]
+                if full_paths:
+                    full_paths.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                    bk_file = full_paths[0]
+    except Exception as e:
+        pass
+
+    return yf.returnJson(True, 'ok', {'file': bk_file, 'name': args['name']})
+
+
+def packageDbBackups():
+    args = getArgs()
+    files_val = args.get('files', '')
+    import json
+    import zipfile
+
+    file_items = []
+    if isinstance(files_val, str):
+        try:
+            file_items = json.loads(files_val)
+        except Exception:
+            file_items = [f.strip() for f in files_val.split(',') if f.strip()]
+    elif isinstance(files_val, list):
+        file_items = files_val
+
+    if not file_items:
+        return yf.returnJson(False, '未选择或未提供有效的备份文件!')
+
+    bk_dir = yf.getBackupDir() + '/database'
+    if not os.path.exists(bk_dir):
+        yf.makeDirs(bk_dir)
+
+    try:
+        now_ts = time.time()
+        for f in os.listdir(bk_dir):
+            if f.startswith('mysql_batch_backup_') and f.endswith('.zip'):
+                f_path = os.path.join(bk_dir, f)
+                if now_ts - os.path.getmtime(f_path) > 86400 * 3:
+                    try:
+                        os.remove(f_path)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+    zip_filename = 'mysql_batch_backup_' + time.strftime('%Y%m%d_%H%M%S') + '.zip'
+    zip_full_path = os.path.join(bk_dir, zip_filename)
+
+    valid_count = 0
+    with zipfile.ZipFile(zip_full_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+        for item in file_items:
+            target_path = ''
+            if os.path.isabs(item) and os.path.isfile(item):
+                target_path = item
+            elif os.path.isfile(os.path.join(bk_dir, item)):
+                target_path = os.path.join(bk_dir, item)
+            else:
+                matched = getDbBackupListFunc(item)
+                if matched:
+                    cand = [os.path.join(bk_dir, m) for m in matched if os.path.isfile(os.path.join(bk_dir, m))]
+                    if cand:
+                        cand.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                        target_path = cand[0]
+
+            if target_path and os.path.isfile(target_path):
+                arcname = os.path.basename(target_path)
+                if arcname not in zf.namelist():
+                    zf.write(target_path, arcname=arcname)
+                    valid_count += 1
+
+    if valid_count == 0:
+        if os.path.exists(zip_full_path):
+            os.remove(zip_full_path)
+        return yf.returnJson(False, '未找到任何有效的备份文件可供打包!')
+
+    return yf.returnJson(True, '打包成功', {
+        'zip_file': zip_full_path,
+        'zip_name': zip_filename,
+        'count': valid_count
+    })
 
 
 # 数据库密码处理
@@ -5038,6 +5134,8 @@ if __name__ == "__main__":
         print(getDbList())
     elif func == 'set_db_backup':
         print(setDbBackup())
+    elif func == 'package_db_backups':
+        print(packageDbBackups())
     elif func == 'import_db_backup':
         print(importDbBackup())
     elif func == 'import_db_backup_progress':

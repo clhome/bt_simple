@@ -127,3 +127,12 @@
 - [x] 84. 修复「上传镜像」点击报 `dPostOrgin is not defined` 缺陷，对齐统一 `api.post('image_pick_dir')` (`plugins/docker/js/docker.js`)
 - [x] 85. 彻底修复 Docker 插件 3 处多语言缺失与匹配缺陷（默认路径裸文、加速器前导空格、出品方署名绑定与 6 大语言包全量补齐） (`docker.js`, `index.html`, `lang/*.json`)
 
+## MySQL 插件多选数据库批量独立备份与打包下载任务清单
+
+- [x] 86. 重构前端按钮与交互逻辑：移除「删除选中」，替换为「备份并下载选中」，实现多选精准提取、串行独立备份与实时进度弹窗 (`plugins/mysql/js/mysql.js`)
+- [x] 87. 增强后端备份与新增打包接口：优化 `setDbBackup` 返回最新备份文件路径，实现 `packageDbBackups` 高效 ZIP 归档与清理 (`plugins/mysql/index.py`)
+- [x] 88. 补齐 6 大国际化语言包词条：备份并下载选中、多库进度与状态提示 (`plugins/mysql/lang/*.json`)
+- [x] 89. 编写与运行自动化测试套件 (`test/test_mysql_batch_backup.py`) 验证打包、路径提取、ZIP 结构与容错机制
+- [x] 90. 成果全量回归、UTF-8(LF)编码校验与清理收尾
+- [x] 91. 精简非中文多语言文案（英文改为 `Backup & Download`，德/法/意同步精简）并拓宽管理弹窗尺寸至 1180px，彻底消除多语言下操作栏按钮折行缺陷 (`lang/*.json`, `plugins/mysql/index.html`)
+- [x] 92. 彻底根除 `setDbBackup` 使用 `os.system` 导致子进程控制台日志泄露污染 API JSON 返回缺陷，并在前端实现鲁棒的自愈提取解析与全流程错误阻断 (`plugins/mysql/index.py`, `plugins/mysql/js/mysql.js`)

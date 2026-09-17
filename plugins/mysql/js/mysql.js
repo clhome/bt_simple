@@ -824,32 +824,185 @@ function delDb(id, name){
     }, '', name);
 }
 
-function delDbBatch(){
+function backupDbBatch(){
     var arr = [];
     $('input[type="checkbox"].check:checked').each(function () {
         var _val = $(this).val();
-        var _name = $(this).parent().next().text();
-        if (!isNaN(_val)) {
-            arr.push({'id':_val,'name':_name});
+        var _name = $(this).attr('data-name') || $(this).parent().next().find('span[title]').first().attr('title') || $(this).parent().next().text().trim();
+        if (_val && !isNaN(_val) && _name) {
+            arr.push({'id': _val, 'name': _name});
         }
     });
 
-    safeMessage(pt('批量删除数据库'),'<a style="color:red;">' + pt('您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?') + '</a>', async function(){
-        var i = 0;
-        for (var idx = 0; idx < arr.length; idx++) {
-            var data  = await api.postAsync('del_db', arr[idx]);
-            var rdata = JSON.parse(data.data);
-            if (!rdata.status){
-                layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
-            }
-            i++;
+    if (arr.length === 0) {
+        layer.msg(pt('请先勾选需要备份的数据库!'), {icon: 0, shade: [0.3, '#000']});
+        return;
+    }
+
+    var confirmTip = pt('您共选择了 {1} 个数据库，系统将对选中的每个数据库分别独立生成备份文件，并在完成后统一打包下载到本地。是否立即开始？').replace('{1}', '<b style="color:#20a53a; font-size:15px;">' + arr.length + '</b>');
+
+    layer.confirm(confirmTip, {
+        title: pt('批量独立备份与下载'),
+        icon: 3,
+        btn: [pt('开始备份并下载'), pt('取消')]
+    }, function(confirmIndex){
+        layer.close(confirmIndex);
+
+        var progressHtml = '<div style="padding: 16px 20px;">\
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">\
+                <span id="batch_backup_cur_text" style="font-weight: 500; color: #333; font-size: 13px;">' + pt('正在准备备份...') + '</span>\
+                <span id="batch_backup_count" style="font-size: 13px; color: #666; font-weight: bold;">0/' + arr.length + '</span>\
+            </div>\
+            <div style="background:#f0f0f0; border-radius:4px; height:16px; overflow:hidden; margin-bottom:10px; box-shadow:inset 0 1px 2px rgba(0,0,0,.1);">\
+                <div id="batch_backup_bar" style="background:#20a53a; width:0%; height:100%; transition:width 0.3s ease; border-radius:4px;"></div>\
+            </div>\
+            <div id="batch_backup_log" style="height:140px; overflow-y:auto; background:#1e1e1e; border:1px solid #333; border-radius:4px; padding:8px 10px; font-size:12px; color:#ddd; font-family:Consolas, Monaco, monospace; line-height:1.7;"></div>\
+        </div>';
+
+        var pLayer = layer.open({
+            type: 1,
+            title: pt('批量备份与下载进度'),
+            area: ['520px', '280px'],
+            closeBtn: 0,
+            shade: [0.4, '#000'],
+            content: progressHtml
+        });
+
+        function appendLog(text, color) {
+            var $log = $('#batch_backup_log');
+            var colorStyle = color ? ' style="color:' + color + ';"' : '';
+            $log.append('<div' + colorStyle + '>' + text + '</div>');
+            $log.scrollTop($log[0].scrollHeight);
         }
-        
-        var msg = '成功删除['+i+']个数据库!';
-        showMsg(msg,function(){
-            dbList();
-        },{icon: 1}, 600);
+
+        setTimeout(async function(){
+            var successFiles = [];
+            var failedDbs = [];
+
+            for (var i = 0; i < arr.length; i++) {
+                var item = arr[i];
+                var curIdx = i + 1;
+                var percent = Math.round((curIdx / arr.length) * 80);
+                $('#batch_backup_cur_text').text(pt('正在备份数据库: ') + item.name + ' (' + curIdx + '/' + arr.length + ')');
+                $('#batch_backup_count').text(curIdx + '/' + arr.length);
+                $('#batch_backup_bar').css('width', percent + '%');
+                appendLog('▶ ' + pt('正在导出备份: ') + '<span style="color:#61afef;font-weight:bold;">' + item.name + '</span>...');
+
+                try {
+                    var res = await api.postAsync('set_db_backup', {name: item.name});
+                    var rawData = res.data;
+                    var rdata = null;
+                    if (typeof rawData === 'string') {
+                        try {
+                            rdata = JSON.parse(rawData);
+                        } catch (parseErr) {
+                            var jsonMatch = rawData.match(/\{[\s\S]*"status"[\s\S]*\}/);
+                            if (jsonMatch) {
+                                try {
+                                    rdata = JSON.parse(jsonMatch[0]);
+                                } catch (e2) {}
+                            }
+                            if (!rdata && rawData.indexOf('备份成功') > -1) {
+                                var fileMatch = rawData.match(/文件名:(.*)/);
+                                var detectedFile = fileMatch ? fileMatch[1].trim() : '';
+                                rdata = {status: true, msg: 'ok', data: {file: detectedFile, name: item.name}};
+                            }
+                        }
+                    } else {
+                        rdata = rawData;
+                    }
+
+                    if (rdata && rdata.status) {
+                        appendLog('✔ ' + item.name + ' ' + pt('备份成功!'), '#98c379');
+                        if (rdata.data && rdata.data.file) {
+                            successFiles.push(rdata.data.file);
+                        } else {
+                            successFiles.push(item.name);
+                        }
+                    } else {
+                        var errMsg = (rdata && rdata.msg) ? rdata.msg : pt('备份异常');
+                        appendLog('✖ ' + item.name + ' ' + pt('备份失败: ') + errMsg, '#e06c75');
+                        failedDbs.push(item.name);
+                    }
+                } catch(e) {
+                    appendLog('✖ ' + item.name + ' ' + pt('网络或执行异常: ') + e.message, '#e06c75');
+                    failedDbs.push(item.name);
+                }
+            }
+
+            if (successFiles.length === 0) {
+                $('#batch_backup_bar').css({'width': '100%', 'background': '#e06c75'});
+                $('#batch_backup_cur_text').text(pt('所有数据库备份均失败!'));
+                appendLog('❌ ' + pt('未生成任何有效备份文件，无法打包下载。'), '#e06c75');
+                setTimeout(function(){
+                    layer.close(pLayer);
+                    layer.msg(pt('备份失败，请检查数据库状态!'), {icon: 2});
+                    dbList();
+                }, 2500);
+                return;
+            }
+
+            $('#batch_backup_cur_text').text(pt('正在打包归档为 ZIP 压缩包...'));
+            $('#batch_backup_bar').css('width', '90%');
+            appendLog('▶ ' + pt('正在将') + ' [' + successFiles.length + '] ' + pt('个备份文件打包压缩为 ZIP...'), '#e5c07b');
+
+            try {
+                var pkgRes = await api.postAsync('package_db_backups', {files: JSON.stringify(successFiles)});
+                var pkgRaw = pkgRes.data;
+                var pkgData = null;
+                if (typeof pkgRaw === 'string') {
+                    try {
+                        pkgData = JSON.parse(pkgRaw);
+                    } catch (pkgErr) {
+                        var pkgJsonMatch = pkgRaw.match(/\{[\s\S]*"status"[\s\S]*\}/);
+                        if (pkgJsonMatch) {
+                            try { pkgData = JSON.parse(pkgJsonMatch[0]); } catch (e3) {}
+                        }
+                    }
+                } else {
+                    pkgData = pkgRaw;
+                }
+                if (pkgData && pkgData.status && pkgData.data && pkgData.data.zip_file) {
+                    $('#batch_backup_bar').css('width', '100%');
+                    $('#batch_backup_cur_text').text(pt('打包成功，开始下载!'));
+                    appendLog('✔ ' + pt('打包完成: ') + pkgData.data.zip_name, '#98c379');
+                    appendLog('★ ' + pt('正在触发浏览器下载...'), '#61afef');
+
+                    downloadBackup(pkgData.data.zip_file);
+
+                    setTimeout(function(){
+                        layer.close(pLayer);
+                        var summaryMsg = pt('批量备份完成! 成功: {1} 个').replace('{1}', successFiles.length);
+                        if (failedDbs.length > 0) {
+                            summaryMsg += '，' + pt('失败: {1} 个').replace('{1}', failedDbs.length);
+                            layer.alert(summaryMsg + '<br>' + pt('浏览器已触发归档包下载，请妥善保存。'), {icon: 0, title: pt('备份完成提示')});
+                        } else {
+                            layer.msg(summaryMsg + '，' + pt('已开始下载!'), {icon: 1, time: 3000});
+                        }
+                        dbList();
+                    }, 1200);
+                } else {
+                    var pkgErr = (pkgData && pkgData.msg) ? pkgData.msg : pt('打包失败');
+                    $('#batch_backup_bar').css({'width': '100%', 'background': '#e06c75'});
+                    $('#batch_backup_cur_text').text(pt('ZIP打包失败'));
+                    appendLog('✖ ' + pt('ZIP打包异常: ') + pkgErr, '#e06c75');
+                    setTimeout(function(){
+                        layer.close(pLayer);
+                        layer.alert(pt('备份已生成，但自动打包 ZIP 失败: ') + pkgErr, {icon: 2});
+                        dbList();
+                    }, 2500);
+                }
+            } catch (err) {
+                layer.close(pLayer);
+                layer.msg(pt('打包请求异常: ') + err.message, {icon: 2});
+                dbList();
+            }
+        }, 100);
     });
+}
+
+function delDbBatch(){
+    backupDbBatch();
 }
 
 
@@ -1363,7 +1516,7 @@ function dbList(page, search){
         var list = '';
         for(i in rdata.data){
             list += '<tr>';
-            list +='<td><input value="'+rdata.data[i]['id']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
+            list +='<td><input value="'+rdata.data[i]['id']+'" data-name="'+rdata.data[i]['name']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
             var accessIco = '';
             var accept = (rdata.data[i]['accept'] || '').trim();
             if (accept && accept !== '127.0.0.1' && accept !== 'localhost'){
@@ -1418,7 +1571,7 @@ function dbList(page, search){
                 <button onclick="setDbAccess(\'root\')" title="' + pt('ROOT权限') + '" class="btn btn-default btn-sm" type="button">' + pt('ROOT权限') + '</button>\
                 <button onclick="fixDbAccess(\'root\')" title="' + pt('修复') + '" class="btn btn-default btn-sm" type="button">' + pt('修复') + '</button>\
                 <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">\
-                    <button batch="true" style="display:none;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm mr5">' + pt('删除选中') + '</button>\
+                    <button batch="true" style="display:none;" onclick="backupDbBatch();" title="' + pt('对选中数据库独自进行备份并一起下载') + '" class="btn btn-default btn-sm mr5">' + pt('备份并下载选中') + '</button>\
                     <span style="font-size:13px; color:#555; white-space:nowrap;">' + (pt('端口号') || pt('端口')) + ':</span>\
                     <input id="db_port_val" class="bt-input-text port" type="number" min="1" max="65535" style="width:75px; height:30px; line-height:30px; font-size:12px; padding:0 6px;" value="' + (rdata.info && rdata.info['port'] ? rdata.info['port'] : '3306') + '">\
                     <button id="btn_save_db_port" onclick="changeDbPort()" title="' + pt('修改数据库端口') + '" class="btn btn-success btn-sm" style="height:30px; line-height:18px;">' + pt('修改') + '</button>\
