@@ -772,17 +772,32 @@ def updateLocalConnectionPassword(db_type, new_password, cid=None):
             print(f"[common_db] updateLocalConnectionPassword error: {e}")
         return False
 
+def _clean_compose_env_val(val):
+    """
+    清洗 Docker Compose 环境变量值，去除行内注释及成对引号，确保提取密码/用户/库名无污染：
+    例如: '"Xdx8026555" # 请在此处直接修改为您的数据库密码' -> 'Xdx8026555'
+    """
+    if not val:
+        return ''
+    val = str(val).strip()
+    # 剥离行内注释：例如 "pass" # 注释 或 pass # 注释
+    val = re.sub(r'\s+#.*$', '', val).strip()
+    # 剥离成对双引号或单引号
+    if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+        val = val[1:-1]
+    return val.strip()
+
 def _upsert_auto_connection(name, db_type, host, port, username='', password='', auth_db='', notes='__auto_local__'):
     """插入或更新自动同步的本地或容器数据库连接"""
     try:
         conn = getSqliteConn()
         cur = conn.cursor()
         now = int(time.time())
-        # 先查是否已存在同名或同备注的记录
+        # 先查是否已存在同名或同专属备注的记录
         cur.execute("""
             SELECT id, password FROM db_connections
-            WHERE db_type = ? AND name = ?
-        """, (db_type, name))
+            WHERE db_type = ? AND (name = ? OR (notes = ? AND notes != '__auto_docker_pg__'))
+        """, (db_type, name, notes))
         row = cur.fetchone()
         if row:
             cid = row['id']
@@ -898,44 +913,54 @@ def scanCurrentLocalConfigs(target_db_type=None):
             for inst_name, base_dir in list(instances_data.items()):
                 inst_path = os.path.join(base_dir, inst_name)
                 compose_file = os.path.join(inst_path, "docker-compose.yml")
-                c_port = 5432
-                c_user = 'postgres'
-                c_pass = ''
-                c_db = 'postgres'
-                if os.path.exists(compose_file):
-                    try:
-                        c_text = yf.readFile(compose_file) or ''
-                        pm = re.search(r'ports:\s*\n\s*-\s*"(?:(?:127\.0\.0\.1):)?(\d+):5432"', c_text)
-                        if pm:
-                            c_port = int(pm.group(1).strip())
-                        usm = re.search(r'POSTGRES_USER:\s*"?(.*?)"?\n', c_text)
-                        if usm:
-                            c_user = usm.group(1).strip()
-                        pwm = re.search(r'POSTGRES_PASSWORD:\s*"?(.*?)"?\n', c_text)
-                        if pwm:
-                            c_pass = pwm.group(1).strip()
-                        dbm = re.search(r'POSTGRES_DB:\s*"?(.*?)"?\n', c_text)
-                        if dbm:
-                            c_db = dbm.group(1).strip()
-                    except Exception:
-                        pass
+                if not os.path.exists(compose_file):
+                    continue
 
-                clean_name = inst_name
-                if clean_name.startswith('pg-') or clean_name.startswith('pg_'):
-                    clean_name = clean_name[3:]
-                conn_name = f"local_{clean_name}"
+                try:
+                    c_text = yf.readFile(compose_file) or ''
+                    # 仅识别 pg_docker 插件管理的容器实例 (严格对齐 plugins/pg_docker 官方标准)
+                    if 'container_name: pg-' not in c_text and 'container_name: "pg-' not in c_text:
+                        continue
 
-                scanned.append({
-                    'db_type': 'postgresql',
-                    'name': conn_name,
-                    'host': '127.0.0.1',
-                    'port': int(c_port),
-                    'username': c_user,
-                    'password': c_pass,
-                    'auth_db': c_db,
-                    'notes': '__auto_docker_pg__',
-                    'instance_type': 'docker'
-                })
+                    c_port = 5432
+                    c_user = 'postgres'
+                    c_pass = ''
+                    c_db = 'postgres'
+
+                    pm = re.search(r'ports:\s*\n\s*-\s*"(?:(?:127\.0\.0\.1):)?(\d+):5432"', c_text)
+                    if pm:
+                        c_port = int(pm.group(1).strip())
+
+                    usm = re.search(r'POSTGRES_USER:\s*(.*?)(?:\r?\n|$)', c_text)
+                    if usm:
+                        c_user = _clean_compose_env_val(usm.group(1)) or 'postgres'
+
+                    pwm = re.search(r'POSTGRES_PASSWORD:\s*(.*?)(?:\r?\n|$)', c_text)
+                    if pwm:
+                        c_pass = _clean_compose_env_val(pwm.group(1))
+
+                    dbm = re.search(r'POSTGRES_DB:\s*(.*?)(?:\r?\n|$)', c_text)
+                    if dbm:
+                        c_db = _clean_compose_env_val(dbm.group(1)) or 'postgres'
+
+                    clean_name = inst_name
+                    if clean_name.startswith('pg-') or clean_name.startswith('pg_'):
+                        clean_name = clean_name[3:]
+                    conn_name = f"local_{clean_name}"
+
+                    scanned.append({
+                        'db_type': 'postgresql',
+                        'name': conn_name,
+                        'host': '127.0.0.1',
+                        'port': int(c_port),
+                        'username': c_user,
+                        'password': c_pass,
+                        'auth_db': c_db,
+                        'notes': f'__auto_docker_pg_{clean_name}__',
+                        'instance_type': 'docker'
+                    })
+                except Exception:
+                    pass
 
         # 3. Redis 自动探测
         elif dt == 'redis':
@@ -1052,20 +1077,31 @@ def previewLocalSyncDiff(args=None):
     conn.close()
 
     diff_result = []
+    used_existing_ids = set()
 
     for scanned in scanned_items:
         matched = None
         for ex in existing_list:
-            if ex['db_type'] == scanned['db_type']:
-                # 优先按特定 notes 匹配
-                if ex.get('notes') == scanned['notes'] and (ex['notes'].startswith('__auto_') or ex['name'] == scanned['name']):
+            if ex['id'] in used_existing_ids:
+                continue
+            if ex['db_type'] != scanned['db_type']:
+                continue
+
+            # 对于容器化 PostgreSQL 实例
+            if scanned.get('instance_type') == 'docker':
+                # 必须容器专属 notes 匹配，或者连接名称完全相同
+                # 若旧数据为老旧的 __auto_docker_pg__，则严格按 ex['name'] == scanned['name'] 匹配，绝不跨容器混淆
+                if (ex.get('notes') == scanned['notes'] and scanned['notes'] != '__auto_docker_pg__') or ex['name'] == scanned['name']:
                     matched = ex
                     break
-                elif ex['name'] == scanned['name']:
+            else:
+                # 对于本地单实例服务
+                if ex.get('notes') == scanned['notes'] or ex.get('notes') == '__auto_local__' or ex['name'] == scanned['name']:
                     matched = ex
                     break
 
         if matched:
+            used_existing_ids.add(matched['id'])
             diffs = []
             exist_pwd = decodePassword(matched['password']) if matched['password'] else ''
             
@@ -1093,6 +1129,7 @@ def previewLocalSyncDiff(args=None):
                 'db_type': scanned['db_type'],
                 'name': matched['name'],
                 'target_name': scanned['name'],
+                'notes': scanned.get('notes', ''),
                 'status': status,
                 'instance_type': scanned.get('instance_type', 'local'),
                 'old_config': {
@@ -1119,6 +1156,7 @@ def previewLocalSyncDiff(args=None):
                 'db_type': scanned['db_type'],
                 'name': scanned['name'],
                 'target_name': scanned['name'],
+                'notes': scanned.get('notes', ''),
                 'status': 'new',
                 'instance_type': scanned.get('instance_type', 'local'),
                 'old_config': None,
@@ -1177,7 +1215,15 @@ def applyLocalSync(args=None):
         username = new_conf.get('username', '')
         password = new_conf.get('password', '')
         auth_db = new_conf.get('auth_db', '')
-        notes = '__auto_docker_pg__' if item.get('instance_type') == 'docker' else '__auto_local__'
+
+        # 专属 notes 生成或继承
+        notes = item.get('notes')
+        if not notes or notes == '__auto_docker_pg__':
+            if item.get('instance_type') == 'docker':
+                clean_n = name.replace('local_', '')
+                notes = f"__auto_docker_pg_{clean_n}__"
+            else:
+                notes = '__auto_local__'
 
         if c_id and int(c_id) > 0:
             if not password:
@@ -1189,21 +1235,31 @@ def applyLocalSync(args=None):
 
             c.execute("""
                 UPDATE db_connections 
-                SET host = ?, port = ?, username = ?, password = ?, auth_db = ?, name = ?, updated_at = ?
+                SET host = ?, port = ?, username = ?, password = ?, auth_db = ?, name = ?, notes = ?, updated_at = ?
                 WHERE id = ?
-            """, (host, port, username, password, auth_db, name, int(time.time()), int(c_id)))
+            """, (host, port, username, password, auth_db, name, notes, int(time.time()), int(c_id)))
             updated_count += 1
         else:
-            _upsert_auto_connection(
-                name=name,
-                db_type=db_type,
-                host=host,
-                port=port,
-                username=username,
-                password=password,
-                auth_db=auth_db,
-                notes=notes
-            )
+            # 新增或根据唯一特征更新，保持在同一事务中完成
+            c.execute("""
+                SELECT id, password FROM db_connections
+                WHERE db_type = ? AND (name = ? OR (notes = ? AND notes != '__auto_docker_pg__'))
+            """, (db_type, name, notes))
+            ex_row = c.fetchone()
+            now = int(time.time())
+            if ex_row:
+                cid = ex_row[0]
+                pwd_to_save = password if password else ex_row[1]
+                c.execute("""
+                    UPDATE db_connections
+                    SET host = ?, port = ?, username = ?, password = ?, auth_db = ?, name = ?, notes = ?, updated_at = ?
+                    WHERE id = ?
+                """, (host, port, username, pwd_to_save, auth_db, notes, now, cid))
+            else:
+                c.execute("""
+                    INSERT INTO db_connections (name, db_type, host, port, username, password, auth_db, notes, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (name, db_type, host, port, username, password, auth_db, notes, now, now))
             updated_count += 1
 
     conn.commit()
@@ -1280,9 +1336,8 @@ def getUnifiedServerList(args=None):
                 if item['name'] == '本机配置' or item.get('notes') == '__auto_local__':
                     entry['group'] = 'local'
                     entry['name'] = f"本机配置 ({item['host']}:{item['port']})"
-                    entry['is_default'] = True
                     local_auto.append(entry)
-                elif item.get('notes') == '__auto_docker_pg__' or item['name'].startswith('local_'):
+                elif (item.get('notes') and str(item.get('notes')).startswith('__auto_docker_pg')) or item['name'].startswith('local_'):
                     entry['group'] = 'docker'
                     entry['name'] = f"容器: {item['name']} ({item['host']}:{item['port']})"
                     docker_auto.append(entry)
@@ -1290,6 +1345,14 @@ def getUnifiedServerList(args=None):
                     entry['group'] = 'remote'
                     entry['name'] = f"远程: {item['name']} ({item['host']}:{item['port']})"
                     remote_custom.append(entry)
+
+            # 标记默认选中项：优先本地配置，其次 Docker 容器第一项，最后自定义连接第一项
+            if local_auto:
+                local_auto[0]['is_default'] = True
+            elif docker_auto:
+                docker_auto[0]['is_default'] = True
+            elif remote_custom:
+                remote_custom[0]['is_default'] = True
 
             # 依序组合
             data.extend(local_auto)
@@ -1299,9 +1362,8 @@ def getUnifiedServerList(args=None):
         if yf.isDebugMode():
             print(f"[common_db] load connections error: {str(e)}")
 
-    # 2. 如果数据库中尚无「本机配置」（例如尚未安装或探测为空），补充原生兜底项以防下拉列表空白
-    has_local = any(x.get('group') == 'local' for x in data)
-    if not has_local:
+    # 2. 仅当完全没有任何可用配置（既无本地服务、无容器也无保存连接）时，补充原生兜底项以防下拉列表空白
+    if len(data) == 0:
         fallback_map = {
             'mysql': [{'name': '本地服务器 (127.0.0.1)', 'val': 'mysql', 'group': 'local', 'port': 3306}],
             'postgresql': [{'name': '本地 PostgreSQL (127.0.0.1)', 'val': 'pgsql', 'group': 'local', 'port': 5432}],
@@ -1311,7 +1373,7 @@ def getUnifiedServerList(args=None):
         }
         for item in fallback_map.get(db_type, []):
             item['is_default'] = True
-            data.insert(0, item)
+            data.append(item)
 
     return yf.returnData(True, 'ok', data)
 

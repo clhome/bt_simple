@@ -1083,10 +1083,15 @@ function renderSyncServersDialog(items) {
             diffStr = '<span style="color:#94a3b8;">' + pt('无变动') + '</span>';
         }
 
+        var connNameDisplay = it.target_name || it.name;
+        if (it.name && it.target_name && it.name !== it.target_name) {
+            connNameDisplay = it.name + ' ➔ ' + it.target_name;
+        }
+
         rowsHtml += '<tr data-idx="' + i + '">' +
             '<td style="text-align:center;"><input type="checkbox" class="sync_item_chk" data-idx="' + i + '" ' + isChecked + '></td>' +
             '<td><span style="text-transform:uppercase; font-weight:600; color:#475569;">' + it.db_type + '</span></td>' +
-            '<td>' + (it.name || it.target_name) + '</td>' +
+            '<td>' + connNameDisplay + '</td>' +
             '<td>' + badgeHtml + '</td>' +
             '<td>' + oldStr + '</td>' +
             '<td style="font-weight:500;">' + newStr + '</td>' +

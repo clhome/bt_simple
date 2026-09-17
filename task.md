@@ -69,3 +69,17 @@
 - [x] 47. 重构 MySQL 常用功能系列弹窗结构 (`plugins/data_query/static/js/app.js`)：为最频繁前 N 条 SQL 等弹窗增加滚动容器与 SQL 折行展示，补齐 i18n 标题
 - [x] 48. 规范常用功能其他弹窗（网络指标、冗余索引、表空间统计、连接统计、锁阻塞 SQL 等）的防截断与自动换行处理 (`static/js/app.js`)
 - [x] 49. 编写与运行前端样式与结构静态分析/回归验证脚本，检查 UTF-8 无 BOM、LF 换行符，清理临时测试文件
+
+## 容器化部署 PostgreSQL 探测与多实例同步差异比对 Bug 根治
+
+- [x] 50. 重构容器化 PostgreSQL 探测逻辑：对齐 `pg_docker` 有效容器过滤标准，增强 Docker 环境变量密码/注释清洗 (`common_db.py`)
+- [x] 51. 彻底修复多容器同步差异比对算法：禁止跨容器混淆匹配、增加已匹配排重集合、为多容器生成实例级唯一标识 (`common_db.py`)
+- [x] 52. 优化前端同步差异对话框名称呈现逻辑 (`plugins/data_query/static/js/app.js`)
+- [x] 53. 编写与执行自动化回归测试套件 (`test/test_pg_docker_sync_fix.py`) 验证多容器比对零重合、密码零污染，完成 UTF-8/LF 校验与收尾
+
+## 容器化 PostgreSQL 默认选中修复、认证库支持与多路由穿透连接自愈
+
+- [x] 54. 修复数据源列表生成逻辑 (`common_db.py`)：消除已存在容器配置时被虚假「本地 PostgreSQL」霸占默认项缺陷，优先默认选中第一个有效本地/容器配置
+- [x] 55. 增强 PostgreSQL 实例解析与认证库配置 (`sql_postgresql.py`)：在物理服务未安装时将 `sid=pgsql` 智能自愈对齐到容器，连接优先使用 `auth_db`
+- [x] 56. 实现 Docker 容器多路由网络自愈与 IP 直连容灾 (`sql_postgresql.py`)：解决 127.0.0.1 回环被拒导致端口不通问题，支持 localhost/网关/容器IP 智能穿透
+- [x] 57. 编写与执行自动化回归测试套件 (`test/test_pg_connection_and_routing.py`)，验证默认选择、认证库连接与网络容灾，完成编码检查与收尾

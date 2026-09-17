@@ -209,6 +209,11 @@ class nosqlPostgreSQL:
                     result['username'] = c_data.get('username', 'postgres')
                     result['password'] = c_data.get('password', '')
                     result['auth_db'] = c_data.get('auth_db', '')
+                    c_notes = str(c_data.get('notes', ''))
+                    c_name = str(c_data.get('name', ''))
+                    if '__auto_docker_pg' in c_notes or c_name.startswith('local_'):
+                        d_name = c_notes.replace('__auto_docker_pg_', '').replace('__', '') if '__auto_docker_pg_' in c_notes else c_name.replace('local_', '')
+                        result['docker_instance'] = d_name
                     return result
             except Exception:
                 pass
@@ -224,6 +229,8 @@ class nosqlPostgreSQL:
                         result['port'] = 5432
                     result['username'] = inst.get('dbuser', 'postgres')
                     result['password'] = inst.get('dbpass', '')
+                    result['auth_db'] = inst.get('dbname', 'postgres')
+                    result['docker_instance'] = inst['name']
                     return result
 
         # 本地 PostgreSQL 配置（读取自定义端口持久化）
@@ -255,6 +262,15 @@ class nosqlPostgreSQL:
                                 result['port'] = int(m.group(1).strip())
                             except Exception:
                                 pass
+        else:
+            # 物理 pgsql 目录不存在时，智能回退到数据库已保存的有效 Docker 容器或本地连接配置
+            try:
+                conn_res = common_db.getConnectionList({'db_type': 'postgresql'})
+                if conn_res.get('status') and conn_res.get('data') and len(conn_res['data']) > 0:
+                    first_saved = conn_res['data'][0]
+                    return self.get_options(f"conn_{first_saved['id']}")
+            except Exception:
+                pass
 
         return result
 
@@ -280,7 +296,7 @@ class nosqlPostgreSQL:
             return f'数据库不存在: {err}'
         return f'{err}'
 
-    def conn(self, db_name='postgres'):
+    def conn(self, db_name=None):
         if psycopg2 is None:
             self.__DB_ERR = '未安装 psycopg2 驱动，请先在终端安装: pip install psycopg2-binary'
             return False
@@ -291,43 +307,98 @@ class nosqlPostgreSQL:
         port = int(self.__config.get('port', 5432))
         user = self.__config.get('username', 'postgres')
         password = self.__config.get('password', '')
-        host = self.__config.get('host', '127.0.0.1')
+        primary_host = self.__config.get('host', '127.0.0.1')
+        auth_db = self.__config.get('auth_db', '')
+        docker_inst = self.__config.get('docker_instance')
 
-        try:
-            # 优先尝试 TCP/IP 连接
-            conn = psycopg2.connect(
-                database=db_name,
-                user=user,
-                password=password,
-                host=host,
-                port=port,
-                connect_timeout=5
-            )
-            conn.autocommit = True
-            return PgConnectionWrapper(conn)
-        except Exception as ex:
-            # 记录最后一次连接错误信息
-            self.__DB_ERR = str(ex)
-            # 仅在本地且非远程配置时尝试 socket 连接
-            if host in ['127.0.0.1', 'localhost']:
-                socket_paths = [
-                    f"/tmp/.s.PGSQL.{port}",
-                    yf.getServerDir() + f"/pgsql/.s.PGSQL.{port}",
-                    "/tmp"
-                ]
-                for sock in socket_paths:
-                    if os.path.exists(sock):
+        # 确定目标连接库：显式指定的库名优先；其次配置中的 auth_db；最后回退到 postgres
+        db_candidates = []
+        if db_name and db_name != 'postgres':
+            db_candidates.append(db_name)
+        if auth_db and auth_db not in db_candidates:
+            db_candidates.append(auth_db)
+        if 'postgres' not in db_candidates:
+            db_candidates.append('postgres')
+
+        # 构造多路由网络容灾列表（彻底解决 Linux 下 127.0.0.1 回环无法访问 Docker 映射端口缺陷）
+        host_candidates = [(primary_host, port)]
+        if primary_host in ['127.0.0.1', 'localhost', '::1']:
+            alt_host = 'localhost' if primary_host == '127.0.0.1' else '127.0.0.1'
+            if (alt_host, port) not in host_candidates:
+                host_candidates.append((alt_host, port))
+
+            # 若为 Docker 容器实例，尝试获取容器内网 IP 进行 5432 端口直连穿透
+            if docker_inst:
+                try:
+                    for c_name in [f"pg-{docker_inst}", docker_inst]:
+                        cmd = f"docker inspect --format '{{{{range .NetworkSettings.Networks}}}}{{{{.IPAddress}}}}{{{{end}}}}' {c_name}"
+                        out = yf.execShell(cmd)
+                        c_ip = out[0].strip() if out and isinstance(out, (list, tuple)) else ''
+                        if c_ip and re.match(r'^\d+\.\d+\.\d+\.\d+$', c_ip):
+                            if (c_ip, 5432) not in host_candidates:
+                                host_candidates.append((c_ip, 5432))
+                            break
+                except Exception:
+                    pass
+
+            # 宿主机局域网 IP 容灾
+            try:
+                local_ip = yf.getLocalIp()
+                if local_ip and local_ip not in ('127.0.0.1', primary_host):
+                    if (local_ip, port) not in host_candidates:
+                        host_candidates.append((local_ip, port))
+            except Exception:
+                pass
+
+        last_exception = None
+        for cur_host, cur_port in host_candidates:
+            for cur_db in db_candidates:
+                try:
+                    conn_obj = psycopg2.connect(
+                        database=cur_db,
+                        user=user,
+                        password=password,
+                        host=cur_host,
+                        port=cur_port,
+                        connect_timeout=3
+                    )
+                    conn_obj.autocommit = True
+                    # 容灾成功后将有效 host 与 port 回写缓存，加速后续查询
+                    if (cur_host, cur_port) != (primary_host, port):
+                        self.__config['host'] = cur_host
+                        self.__config['port'] = cur_port
+                    return PgConnectionWrapper(conn_obj)
+                except Exception as ex:
+                    last_exception = ex
+                    err_str = str(ex)
+                    # 密码认证错误说明网络层已通，不必再尝试其他网络路由
+                    if 'password authentication failed' in err_str:
+                        self.__DB_ERR = err_str
+                        return False
+
+        self.__DB_ERR = str(last_exception) if last_exception else '无法连接数据库'
+
+        # 本地非 Docker 环境最后尝试 socket 文件
+        if primary_host in ['127.0.0.1', 'localhost'] and not docker_inst:
+            socket_paths = [
+                f"/tmp/.s.PGSQL.{port}",
+                yf.getServerDir() + f"/pgsql/.s.PGSQL.{port}",
+                "/tmp"
+            ]
+            for sock in socket_paths:
+                if os.path.exists(sock):
+                    for cur_db in db_candidates:
                         try:
-                            conn = psycopg2.connect(
-                                database=db_name,
+                            conn_obj = psycopg2.connect(
+                                database=cur_db,
                                 user=user,
                                 password=password,
                                 host=sock,
                                 port=port,
                                 connect_timeout=3
                             )
-                            conn.autocommit = True
-                            return PgConnectionWrapper(conn)
+                            conn_obj.autocommit = True
+                            return PgConnectionWrapper(conn_obj)
                         except Exception as ex2:
                             self.__DB_ERR = str(ex2)
         return False
@@ -340,10 +411,23 @@ class nosqlPostgreSQLCtr:
         pass
 
     def resolveSid(self, sid):
-        if not sid or sid == '0' or sid == 'None':
-            servers = nosqlPostgreSQL().getServerList().get('data', [])
-            if servers:
-                return servers[0]['val']
+        server_list = nosqlPostgreSQL().getServerList().get('data', [])
+        valid_vals = [s['val'] for s in server_list] if server_list else []
+        
+        # 智能自愈：若传入为空、0、None，或者在物理环境未安装 pgsql 时传入了 'pgsql'
+        if not sid or sid in ('0', 'None', 'pgsql', 'default'):
+            pg_server_dir = yf.getServerDir() + '/pgsql'
+            is_real_pg_installed = os.path.exists(pg_server_dir) and (
+                os.path.exists(f"{pg_server_dir}/pgsql.db") or
+                os.path.exists(f"{pg_server_dir}/bin/postgres") or
+                os.path.exists("/etc/init.d/postgresql")
+            )
+            if not is_real_pg_installed or sid in ('0', 'None', 'default'):
+                for s in server_list:
+                    if s['val'] != 'pgsql':
+                        return s['val']
+                if valid_vals:
+                    return valid_vals[0]
         return sid
 
     def getInstanceBySid(self, sid):
@@ -385,7 +469,7 @@ class nosqlPostgreSQLCtr:
             return yf.returnData(False, '未检测到运行中的 PostgreSQL 服务')
 
         pg_obj = self.getInstanceBySid(resolved_sid)
-        pg_instance = pg_obj.conn('postgres')
+        pg_instance = pg_obj.conn()
         if pg_instance is False:
             return yf.returnData(False, f'无法连接 PostgreSQL 服务: {pg_obj.getLastError()}')
 
@@ -393,9 +477,17 @@ class nosqlPostgreSQLCtr:
         rows = pg_instance.query(sql)
         pg_instance.close()
         if rows is None:
+            cfg = getattr(pg_obj, '_nosqlPostgreSQL__config', {}) or {}
+            cfg_auth_db = cfg.get('auth_db')
+            if cfg_auth_db:
+                return yf.returnData(True, 'ok', {'list': [cfg_auth_db]})
             return yf.returnData(False, '查询数据库列表失败')
 
         rlist = [r['datname'] for r in rows]
+        cfg = getattr(pg_obj, '_nosqlPostgreSQL__config', {}) or {}
+        cfg_auth_db = cfg.get('auth_db')
+        if cfg_auth_db and cfg_auth_db not in rlist:
+            rlist.insert(0, cfg_auth_db)
         return yf.returnData(True, 'ok', {'list': rlist})
 
     def getTableList(self, args=None):
