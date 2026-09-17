@@ -83,3 +83,16 @@
 - [x] 55. 增强 PostgreSQL 实例解析与认证库配置 (`sql_postgresql.py`)：在物理服务未安装时将 `sid=pgsql` 智能自愈对齐到容器，连接优先使用 `auth_db`
 - [x] 56. 实现 Docker 容器多路由网络自愈与 IP 直连容灾 (`sql_postgresql.py`)：解决 127.0.0.1 回环被拒导致端口不通问题，支持 localhost/网关/容器IP 智能穿透
 - [x] 57. 编写与执行自动化回归测试套件 (`test/test_pg_connection_and_routing.py`)，验证默认选择、认证库连接与网络容灾，完成编码检查与收尾
+
+## 数据管理插件全量多国语言适配与界面死角彻底本地化
+
+- [x] 58. 重构前端翻译核心与本地字典加速机制 (`static/js/app.js` 中的 `pt` 函数)，优先调用插件专属字典并实现 0ms 本地字典缓存
+- [x] 59. 增强前端 `translateDataQueryDOM` 与服务下拉框动态前缀多语言适配 (`app.js`)：全面覆盖搜索按钮、底部选项卡、表头与下拉框 `容器:`/`本机配置`/`远程:`
+- [x] 60. 全量补齐 6 大语言包中的界面、按钮、选项卡与表头词条 (`plugins/data_query/lang/*.json`)
+- [x] 61. 编写与运行自动化回归测试套件 (`test/test_data_query_i18n.py`) 验证 6 大语言完整覆盖并校验编码与清理收尾
+
+## 标签页未安装遮罩霸屏与 Tab 状态隔离 Bug 彻底修复
+
+- [x] 62. 根除全屏未安装遮罩霸屏缺陷：彻底废除 `showInstallLayer`，移除 Redis/MongoDB/Memcached/MySQL 连接失败或无服务器时触发全局遮罩的代码 (`plugins/data_query/static/js/app.js`)
+- [x] 63. 加固 Tab 切换隔离与遮罩重置机制 (`selectTab`)，并在 `index.html` 中永久隐藏旧残留遮罩 (`index.html`, `app.js`)
+- [x] 64. 编写与运行自动化回归测试套件 (`test/test_no_install_mask_bug.py`) 验证修复有效性与全数据库状态独立性，清理收尾与编码校验

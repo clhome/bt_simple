@@ -1,22 +1,65 @@
-// 全局插件国际化翻译安全兜底（采用函数声明保证变量提升与零引用异常）
+// 全局插件国际化翻译安全核心（插件字典最高优先级 + 内存/Storage 二级缓存）
+var _dq_plugin_dict = null;
+function getDqPluginDict() {
+    if (_dq_plugin_dict) return _dq_plugin_dict;
+    var lang = (window.YfI18n && typeof window.YfI18n.getLanguage === 'function') ? window.YfI18n.getLanguage() : (localStorage.getItem('yf_lang') || 'zh-CN');
+    // 1. 全局字典直出
+    if (window._pluginDicts && window._pluginDicts['data_query']) {
+        _dq_plugin_dict = window._pluginDicts['data_query'];
+        return _dq_plugin_dict;
+    }
+    // 2. 本地缓存读取
+    try {
+        var raw = localStorage.getItem('yf_dict_data_query_' + lang);
+        if (raw) {
+            _dq_plugin_dict = JSON.parse(raw);
+            return _dq_plugin_dict;
+        }
+    } catch(e){}
+    // 3. 同步拉取语言包
+    if (window.$) {
+        window.$.ajax({
+            url: '/plugins/file?name=data_query&f=lang/' + lang + '.json',
+            dataType: 'json',
+            async: false,
+            success: function(d) {
+                _dq_plugin_dict = d || {};
+                try { localStorage.setItem('yf_dict_data_query_' + lang, JSON.stringify(_dq_plugin_dict)); } catch(e){}
+            }
+        });
+    }
+    return _dq_plugin_dict || {};
+}
+
 function pt(str) {
-    if (window._raw_pt && typeof window._raw_pt === 'function') {
-        try { return window._raw_pt(str); } catch(e){}
-    }
-    if (typeof window.pt === 'function' && window.pt !== pt) {
-        try { return window.pt(str); } catch(e){}
-    }
+    if (!str || typeof str !== 'string') return str;
+    // 1. 优先调用 YfI18n 插件专属翻译器
     if (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') {
         try {
             if (!window._dq_translator) {
                 window._dq_translator = window.YfI18n.createPluginTranslator('data_query');
             }
-            return window._dq_translator(str);
+            var res = window._dq_translator(str);
+            if (res && res !== str) return res;
+        } catch(e){}
+    }
+    // 2. 查本地插件字典
+    try {
+        var dict = getDqPluginDict();
+        if (dict && typeof dict[str] !== 'undefined' && dict[str] !== '') {
+            return dict[str];
+        }
+    } catch(e){}
+    // 3. 查全局 _raw_pt
+    if (window._raw_pt && typeof window._raw_pt === 'function') {
+        try {
+            var rawRes = window._raw_pt(str);
+            if (rawRes && rawRes !== str) return rawRes;
         } catch(e){}
     }
     return str;
 }
-if (typeof window.pt === 'function') {
+if (typeof window.pt === 'function' && window.pt !== pt) {
     window._raw_pt = window.pt;
 }
 window.pt = pt;
@@ -29,7 +72,7 @@ $(function() {
 });
 
 function redisPostCB(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'data_query';
@@ -60,7 +103,7 @@ function redisPostCB(method, args, callback){
 }
 
 function mgdbPostCB(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'data_query';
@@ -91,7 +134,7 @@ function mgdbPostCB(method, args, callback){
 }
 
 function memPostCB(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'data_query';
@@ -122,7 +165,7 @@ function memPostCB(method, args, callback){
 }
 
 function myPostCB(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'data_query';
@@ -183,7 +226,7 @@ function myPostCBN(method, args, callback){
 }
 
 function pgPostCB(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'data_query';
@@ -284,7 +327,7 @@ function bindSaveDbPort(dbType, containerSelector, getSidFunc){
         }
         var portVal = $(containerSelector + ' input[name="db_port"]').val();
         if (!portVal || isNaN(portVal) || parseInt(portVal) < 1 || parseInt(portVal) > 65535){
-            layer.msg('请输入有效的端口号(1-65535)!', {icon: 2});
+            layer.msg(pt('请输入有效的端口号(1-65535)!'), {icon: 2});
             return;
         }
 
@@ -309,14 +352,14 @@ function bindSaveDbPort(dbType, containerSelector, getSidFunc){
             req_data.func = 'set_db_port';
         }
 
-        var loadT = layer.msg('正在保存端口...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在保存端口...'), { icon: 16, time: 0, shade: 0.3 });
         $.post('/plugins/callback', req_data, function(res){
             layer.close(loadT);
             if (res && res.data){
                 var d = res.data;
                 layer.msg(d.msg, {icon: d.status ? 1 : 2});
             } else {
-                layer.msg('保存端口完成', {icon: 1});
+                layer.msg(pt('保存端口完成'), {icon: 1});
             }
         }, 'json');
     });
@@ -329,12 +372,14 @@ function mongodbGetSid(){ return $('#mongodb select[name=sid]').val() || 'local'
 function memcachedGetSid(){ return $('#memcached select[name=sid]').val() || 'local'; }
 
 function selectTab(tab = 'redis'){
+    closeInstallLayer();
     $('.tab-view-box .tab-con').addClass('hide').removeClass('show').removeClass('w-full');
     $('#'+tab).removeClass('hide').addClass('w-full');
 }
 
 function showInstallLayer(){
-    $('.mask_layer').css('display','block');
+    // 彻底废除全屏霸屏遮罩，避免阻断其他正常 Tab 或远程连接
+    $('.mask_layer').css('display','none');
 }
 
 function closeInstallLayer(){
@@ -350,12 +395,31 @@ var dqConnectionStates = {
     memcached: { connected: false, status: 'disconnected', sid: 'local' }
 };
 
+// 格式化并翻译服务器下拉框选项名称（容器/本机/远程动态前缀适配）
+function formatServerOptionName(name) {
+    if (!name || typeof name !== 'string') return name;
+    if (name === '本机配置') return pt('本机配置');
+    if (name.indexOf('容器: ') === 0) {
+        return pt('容器: ') + name.substring(4);
+    }
+    if (name.indexOf('容器:') === 0) {
+        return pt('容器: ') + name.substring(3);
+    }
+    if (name.indexOf('远程: ') === 0) {
+        return pt('远程: ') + name.substring(4);
+    }
+    if (name.indexOf('远程:') === 0) {
+        return pt('远程: ') + name.substring(3);
+    }
+    return pt(name);
+}
+
 // 数据管理专属 DOM 翻译增强器（确保全量元素与控制栏精准多语言适配）
 function translateDataQueryDOM($container) {
     if (!$container || $container.length === 0) return;
 
     // 1. 控制栏文字标签（如 "数据库连接:", "端口:" 等）
-    $container.find('.dq-conn-item > span:not(.glyphicon)').each(function() {
+    $container.find('.dq-conn-item > span:not(.glyphicon), .db_port_box > span:not(.glyphicon)').each(function() {
         var $sp = $(this);
         if ($sp.children().length > 0) return;
         var orig = $sp.attr('data-i18n-orig');
@@ -384,8 +448,8 @@ function translateDataQueryDOM($container) {
         }
     });
 
-    // 3. 按钮文字、按钮 title 与输入框 placeholder
-    $container.find('.btn_sync_servers .btn-text, .btn_create_conn span:not(.glyphicon), .btn_manage_conn span:not(.glyphicon)').each(function() {
+    // 3. 控制栏按钮文字（同步、连接、新建连接、管理连接、保存等）
+    $container.find('.btn_sync_servers .btn-text, .btn_toggle_conn .btn-text, .btn_create_conn span:not(.glyphicon), .btn_manage_conn span:not(.glyphicon), .btn_empty_connect, .btn_save_port').each(function() {
         var $el = $(this);
         var orig = $el.attr('data-i18n-orig');
         if (!orig) {
@@ -394,11 +458,92 @@ function translateDataQueryDOM($container) {
         }
         if (orig) {
             var trans = pt(orig);
-            if (trans && trans !== orig) $el.text(trans);
+            if (trans && trans !== orig) {
+                var $icon = $el.children('.glyphicon');
+                if ($icon.length > 0) {
+                    $el.html($icon[0].outerHTML + ' ' + trans);
+                } else {
+                    $el.text(trans);
+                }
+            }
         }
     });
 
-    $container.find('button, .btn, input[placeholder]').each(function() {
+    // 4. 工具栏操作按钮（查找、刷新、常用功能、添加key、清空、清空数据库、批量删除）
+    $container.find('#mysql_find, #mysql_common, #pg_find, #pg_refresh, .mongodb_find, .mongodb_refresh, #redis_add_key, #redis_clear_all, #redis_batch_del, #memcached_add_key, #memcached_clear_all, #memcached_batch_del').each(function() {
+        var $btn = $(this);
+        var $span = $btn.find('span:not(.glyphicon)');
+        var $target = $span.length ? $span : $btn;
+        var orig = $target.attr('data-i18n-orig');
+        if (!orig) {
+            orig = $target.text().trim();
+            if (orig) $target.attr('data-i18n-orig', orig);
+        }
+        if (orig) {
+            var trans = pt(orig);
+            if (trans && trans !== orig) {
+                var $icon = $btn.children('.glyphicon');
+                if ($target === $btn && $icon.length > 0) {
+                    $btn.html($icon[0].outerHTML + ' ' + trans);
+                } else {
+                    $target.text(trans);
+                }
+            }
+        }
+    });
+
+    // 5. 底部选项卡导航（进程、状态、统计、变量、常用、慢日志）
+    $container.find('.tab-nav span').each(function() {
+        var $sp = $(this);
+        var orig = $sp.attr('data-i18n-orig');
+        if (!orig) {
+            orig = $sp.text().trim();
+            if (orig) $sp.attr('data-i18n-orig', orig);
+        }
+        if (orig) {
+            var trans = pt(orig);
+            if (trans && trans !== orig) $sp.text(trans);
+        }
+    });
+
+    // 6. 表头 th 文本（编号、操作类型、详情、键、值、数据类型、数据长度、有效期、操作等）
+    $container.find('thead th').each(function() {
+        var $th = $(this);
+        if ($th.find('input[type="checkbox"]').length > 0) return;
+        var $sp = $th.find('span');
+        var $target = $sp.length ? $sp : $th;
+        var orig = $target.attr('data-i18n-orig');
+        if (!orig) {
+            orig = $target.text().trim();
+            if (orig) $target.attr('data-i18n-orig', orig);
+        }
+        if (orig) {
+            var trans = pt(orig);
+            if (trans && trans !== orig) $target.text(trans);
+        }
+    });
+
+    // 7. 下拉框静态选项（数据表空、数据库空、无字段、空、无可用服务器等）
+    $container.find('select option').each(function() {
+        var $opt = $(this);
+        var text = $opt.text().trim();
+        var staticKeywords = [
+            '数据表空', '数据库空', '无字段', '空', '无可用服务器',
+            '本地服务器 (127.0.0.1)', '本地 MongoDB (127.0.0.1)', '本地 Memcached (127.0.0.1)'
+        ];
+        var orig = $opt.attr('data-i18n-orig');
+        if (!orig && staticKeywords.indexOf(text) !== -1) {
+            orig = text;
+            $opt.attr('data-i18n-orig', orig);
+        }
+        if (orig) {
+            var trans = pt(orig);
+            if (trans && trans !== orig) $opt.text(trans);
+        }
+    });
+
+    // 8. 按钮 title 与输入框 placeholder
+    $container.find('button, .btn, input[placeholder], textarea[placeholder]').each(function() {
         var $el = $(this);
         var title = $el.attr('title');
         if (title) {
@@ -422,7 +567,7 @@ function translateDataQueryDOM($container) {
         }
     });
 
-    // 4. 下拉框 optgroup 分组标签
+    // 9. 下拉框 optgroup 分组标签
     $container.find('optgroup').each(function() {
         var $og = $(this);
         var origLabel = $og.attr('data-i18n-label-orig');
@@ -436,7 +581,7 @@ function translateDataQueryDOM($container) {
         }
     });
 
-    // 5. 联动全局插件翻译器
+    // 10. 联动全局插件翻译器
     if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
         window.YfI18n.translatePluginDOM($container, 'data_query');
     }
@@ -539,7 +684,7 @@ function loadUnifiedServerList(dbType, callback) {
             html += '<optgroup label="' + pt('本地与容器配置') + '">';
             for (var j = 0; j < localGroup.length; j++) {
                 var pAttr = localGroup[j].port ? (' data-port="' + localGroup[j].port + '"') : '';
-                html += '<option value="' + localGroup[j].val + '"' + pAttr + '>' + localGroup[j].name + '</option>';
+                html += '<option value="' + localGroup[j].val + '"' + pAttr + '>' + formatServerOptionName(localGroup[j].name) + '</option>';
             }
             html += '</optgroup>';
         }
@@ -548,7 +693,7 @@ function loadUnifiedServerList(dbType, callback) {
             html += '<optgroup label="' + pt('已保存连接记录') + '">';
             for (var k = 0; k < remoteGroup.length; k++) {
                 var rpAttr = remoteGroup[k].port ? (' data-port="' + remoteGroup[k].port + '"') : '';
-                html += '<option value="' + remoteGroup[k].val + '"' + rpAttr + '>' + remoteGroup[k].name + '</option>';
+                html += '<option value="' + remoteGroup[k].val + '"' + rpAttr + '>' + formatServerOptionName(remoteGroup[k].name) + '</option>';
             }
             html += '</optgroup>';
         }
@@ -2133,7 +2278,7 @@ function mysqlInitField(f, data){
     $('#mysql_find').off('click').on('click', function(){
         var val = $('input[name="mysql_field_value"]').val();
         if (val == ''){
-            layer.msg('搜索不能为空!',{icon:7});
+            layer.msg(pt('搜索不能为空!'),{icon:7});
             return;
         }
         mysqlGetDataList(1);
@@ -2167,7 +2312,7 @@ function mysqlGetServerList(call_func){
             }
             closeInstallLayer();
         } else {
-            showInstallLayer();
+            closeInstallLayer();
         }
     });
 }
@@ -2504,7 +2649,7 @@ function memcachedGetList(call_back){
                 call_back(true);
             }
         } else {
-            showInstallLayer();
+            closeInstallLayer();
             var emsg = (rdata && rdata.data && rdata.data.msg) ? rdata.data.msg : pt('无法连接 Memcached 服务');
             if (typeof(call_back) === 'function') {
                 call_back(false, emsg);
@@ -2564,7 +2709,7 @@ function memcachedGetKeyList(p){
 }
 
 function memcachedDeleteKey(key){
-    layer.confirm('确定要删除?', {btn: ['确定', '取消']}, function(){
+    layer.confirm(pt('确定要删除?'), {btn: [pt('确定'), pt('取消')]}, function(){
         var data = {};
         data['sid'] = memcachedGetSid();
         data['key'] = key;
@@ -2583,11 +2728,11 @@ function memcachedAdd(){
     layer.open({
         type: 1,
         area: '480px',
-        title: '添加Key至服务器',
+        title: pt('添加Key至服务器'),
         closeBtn: 1,
         shift: 0,
         shadeClose: false,
-        btn:['确定','取消'],
+        btn:[pt('确定'), pt('取消')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
                 <span class='tname'>" + pt('键') + "</span>\
@@ -2660,7 +2805,7 @@ function mongodbInitField(f, data){
     $('#mongodb .mongodb_find').off('click').on('click', function(){
         var val = $('input[name="mongodb_field_value"]').val();
         if (val == ''){
-            layer.msg('搜索不能为空!',{icon:7});
+            layer.msg(pt('搜索不能为空!'),{icon:7});
             return;
         }
         mongodbDataList(1);
@@ -2715,7 +2860,7 @@ function mongodbGetList(call_back){
                 call_back(true);
             }
         } else {
-            showInstallLayer();
+            closeInstallLayer();
             var emsg = (rdata && rdata.data && rdata.data.msg) ? rdata.data.msg : pt('无法连接 MongoDB 服务');
             if (typeof(call_back) === 'function') {
                 call_back(false, emsg);
@@ -2929,7 +3074,7 @@ function redisGetList(call_back){
                 call_back(true);
             }
         } else {
-            showInstallLayer();
+            closeInstallLayer();
             var emsg = (rdata && rdata.data && rdata.data.msg) ? rdata.data.msg : pt('无法连接 Redis 服务');
             if (typeof(call_back) === 'function') {
                 call_back(false, emsg);
@@ -2999,7 +3144,7 @@ function redisGetKeyList(page,search = ''){
 }
 
 function redisDeleteKey(name){
-    layer.confirm('确定要删除?', {btn: ['确定', '取消']}, function(){
+    layer.confirm(pt('确定要删除?'), {btn: [pt('确定'), pt('取消')]}, function(){
         var data = {};
         data['idx'] = redisGetIdx();
         data['sid'] = redisGetSid();
@@ -3018,11 +3163,11 @@ function redisAdd(){
     layer.open({
         type: 1,
         area: '480px',
-        title: '添加Key至服务器',
+        title: pt('添加Key至服务器'),
         closeBtn: 1,
         shift: 0,
         shadeClose: false,
-        btn:['确定','取消'],
+        btn:[pt('确定'), pt('取消')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
                 <span class='tname'>" + pt('数据库') + "</span>\
@@ -3088,11 +3233,11 @@ function redisEditKv(name, val, endtime){
     layer.open({
         type: 1,
         area: '480px',
-        title: '编辑['+name+']Key',
+        title: pt('编辑Key: ') + name,
         closeBtn: 1,
         shift: 0,
         shadeClose: false,
-        btn:['确定','取消'],
+        btn:[pt('确定'), pt('取消')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
                 <span class='tname'>" + pt('数据库') + "</span>\
@@ -3164,11 +3309,11 @@ function redisBatchDel(){
         keys.push($(this).val());
     });
     if (keys.length == 0){
-        layer.msg('没有选中数据!',{icon:7});
+        layer.msg(pt('没有选中数据!'),{icon:7});
         return;
     } 
 
-    layer.confirm('确定要批量删除?', {btn: ['确定', '取消']}, function(){
+    layer.confirm(pt('确定要批量删除?'), {btn: [pt('确定'), pt('取消')]}, function(){
         var data = {};
         data['idx'] = redisGetIdx();
         data['sid'] = redisGetSid();
@@ -3188,11 +3333,11 @@ function redisBatchClear(){
     layer.open({
         type: 1,
         area: ['480px','180px'],
-        title: '清空【本地服务器】数据库',
+        title: pt('清空【本地服务器】数据库'),
         closeBtn: 1,
         shift: 0,
         shadeClose: false,
-        btn:['确定','取消'],
+        btn:[pt('确定'), pt('取消')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
                 <span class='tname'>" + pt('选择数据库') + "</span>\
@@ -3224,7 +3369,7 @@ function redisBatchClear(){
         },
         yes: function(index){
             var xm_db_val = xm_db_list.getValue('value');
-            layer.confirm('确定要批量清空?', {btn: ['确定', '取消']}, function(){
+            layer.confirm(pt('确定要批量清空?'), {btn: [pt('确定'), pt('取消')]}, function(){
                 var data = {};
                 data['sid'] = redisGetSid();
                 data['idxs'] = xm_db_val;
@@ -3305,6 +3450,8 @@ function initTabPostgresql(){
     $('#pg_refresh').off('click').on('click', function(){
         pgGetDataList(1);
     });
+
+    translateDataQueryDOM($('#postgresql'));
 }
 
 function pgRunPgTab(name){
@@ -3369,16 +3516,16 @@ function showInstallPgDriverDialog() {
     var timer = null;
     layer.open({
         type: 1,
-        title: "安装 PostgreSQL (psycopg2-binary) 驱动",
+        title: pt("安装 PostgreSQL (psycopg2-binary) 驱动"),
         area: ['750px', '480px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="bt-form pd20" style="background:#1e1e1e;color:#eee;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">' +
             '<div style="margin-bottom:10px;font-size:13px;color:#bbb;display:flex;justify-content:space-between;align-items:center;">' +
-                '<span><i class="glyphicon glyphicon-console"></i> 正在调用后台 pip 安装 psycopg2-binary 驱动，请稍候...</span>' +
-                '<span id="pg_install_status_badge" class="badge" style="background:#f0ad4e;">准备中</span>' +
+                '<span><i class="glyphicon glyphicon-console"></i> ' + pt('正在调用后台 pip 安装 psycopg2-binary 驱动，请稍候...') + '</span>' +
+                '<span id="pg_install_status_badge" class="badge" style="background:#f0ad4e;">' + pt('准备中') + '</span>' +
             '</div>' +
-            '<pre id="pg_driver_log_view" style="flex:1;background:#121212;color:#00ff66;font-family:Consolas,Menlo,monospace;font-size:12px;padding:12px;border:1px solid #333;overflow-y:auto;white-space:pre-wrap;word-break:break-all;border-radius:4px;margin-bottom:10px;">正在连接安装任务...\n</pre>' +
+            '<pre id="pg_driver_log_view" style="flex:1;background:#121212;color:#00ff66;font-family:Consolas,Menlo,monospace;font-size:12px;padding:12px;border:1px solid #333;overflow-y:auto;white-space:pre-wrap;word-break:break-all;border-radius:4px;margin-bottom:10px;">' + pt('正在连接安装任务...') + '\n</pre>' +
             '<div style="text-align:right;">' +
                 '<button id="btn_pg_driver_close" class="btn btn-default btn-sm" style="display:none;">关闭</button>' +
             '</div>' +
@@ -3403,18 +3550,18 @@ function showInstallPgDriverDialog() {
                                 }
                                 $('#btn_pg_driver_close').show();
                                 if (logData.success) {
-                                    $('#pg_install_status_badge').css('background', '#5cb85c').text('安装成功');
-                                    layer.msg('PostgreSQL 驱动安装成功！', {icon: 1, time: 2000});
+                                    $('#pg_install_status_badge').css('background', '#5cb85c').text(pt('安装成功'));
+                                    layer.msg(pt('PostgreSQL 驱动安装成功！'), {icon: 1, time: 2000});
                                     setTimeout(function() {
                                         layer.close(index);
                                         $('#postgresql .btn_install_pg_driver').remove();
                                         pgGetDbList();
                                     }, 1800);
                                 } else {
-                                    $('#pg_install_status_badge').css('background', '#d9534f').text('安装失败');
+                                    $('#pg_install_status_badge').css('background', '#d9534f').text(pt('安装失败'));
                                 }
                             } else {
-                                $('#pg_install_status_badge').css('background', '#0275d8').text('安装中...');
+                                $('#pg_install_status_badge').css('background', '#0275d8').text(pt('安装中...'));
                             }
                         }
                     });
