@@ -576,5 +576,9 @@
     "no_matches_found": "Nessun risultato",
     "panel_address_format_err": "Formato indirizzo non valido. Esempio: http://192.168.0.1:8888",
     "management_action": "Gestisci",
-    "manage": "Gestisci"
+    "manage": "Gestisci",
+    "tip_use_ctrl_to_2": "Suggerimento: Ctrl+F cerca parole chiave, Ctrl+G trova successivo, Ctrl+S salva, Ctrl+H trova e sostituisce!",
+    "this_is_2": "Ecco [",
+    "main_configuration_file_if_1": "] File di configurazione principale, se non capisci le regole di configurazione, non modificarlo a piacimento.",
+    "retrieving_configuration_template": "Recupero del modello di configurazione in corso..."
 }

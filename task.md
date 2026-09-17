@@ -207,4 +207,11 @@
 - [x] 136. 更新自动化测试套件 (`test/test_redis_resp_socket_and_uniform_inputs.py`) 加入用户真实数据字典解析测试，4 项测试全部通过
 - [x] 137. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
 
+## Redis 主从/集群状态多语言补全、配置修改提示本地化与菜单防截断清单
 
+- [x] 138. 优化公共配置模板多语言机制与回退链条 (`web/static/app/public.js` 中的 `pluginConfigTpl`)
+- [x] 139. 补全 6 国公共语言包配置修改提示词条 (`web/static/language/*/public.json`)：`tip_use_ctrl_to_2`, `this_is_2`, `main_configuration_file_if_1`, `retrieving_configuration_template`
+- [x] 140. 优化 Redis 左侧菜单栏宽度 (140px) 与精炼 6 国语言导航词条 (`plugins/redis/index.html`, `plugins/redis/lang/*.json`)，彻底根除英文截断 (Configurat..., Performan..., master-)
+- [x] 141. 注入与校准 6 国语言包中 21 个主从状态与 13 个集群状态说明词条 (`plugins/redis/lang/*.json`)，采用 Redis 官方权威术语
+- [x] 142. 编写自动化回归测试套件 (`test/test_redis_i18n_completion.py`) 验证 6 国语言包词条 100% 覆盖、JSON 合法性与 `pluginConfigTpl` 渲染
+- [x] 143. 全量测试回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾

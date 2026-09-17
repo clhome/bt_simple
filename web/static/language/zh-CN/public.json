@@ -582,5 +582,9 @@
     "no_matches_found": "未找到匹配项",
     "panel_address_format_err": "面板地址格式不正确，示例：http://192.168.0.1:8888",
     "management_action": "管理",
-    "manage": "管理"
+    "manage": "管理",
+    "tip_use_ctrl_to_2": "提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!",
+    "this_is_2": "此处为【",
+    "main_configuration_file_if_1": "】主配置文件,若您不了解配置规则,请勿随意修改。",
+    "retrieving_configuration_template": "配置模版获取中..."
 }

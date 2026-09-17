@@ -3322,12 +3322,18 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var con = '<p style="color: #666; margin-bottom: 7px">' + t('public.tip_use_ctrl_to_2', '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>\
-    <select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + t('public.please', '请选择') + '</option></select>\
+  var tipText = t('public.tip_use_ctrl_to_2') || t('public.editor_tip') || t('template.tip_use_ctrl_to_2') || t('tip_use_ctrl_to_2') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!';
+  var thisIsText = t('public.this_is_2') || t('template.this_is_2') || t('this_is_2') || '此处为【';
+  var mainCfgText = t('public.main_configuration_file_if_1') || t('template.main_configuration_file_if_1') || t('main_configuration_file_if_1') || '】主配置文件,若您不了解配置规则,请勿随意修改。';
+  var pleaseText = t('public.please') || '请选择';
+  var saveText = t('public.save_5') || t('public.save') || '保存';
+
+  var con = '<p style="color: #666; margin-bottom: 7px">' + tipText + '</p>\
+    <select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + pleaseText + '</option></select>\
     <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-    <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + t('public.save_5', '保存') + '</button>\
+    <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + saveText + '</button>\
     <ul class="help-info-text c7 ptb15">\
-      <li>' + t('public.this_is_2', '此处为【') + _name + (version ? ' ' + version : '') + t('public.main_configuration_file_if_1', '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>\
+      <li>' + thisIsText + _name + (version ? ' ' + version : '') + mainCfgText + '</li>\
     </ul>';
   $(".soft-man-con").html(con);
   function getFileName(file) {
@@ -3353,7 +3359,8 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     $('#config_tpl').on('change', function () {
       var selected = $(this).val();
       if (selected != '0') {
-        var loadT = layer.msg(t('public.retrieving_configuration_template', '正在获取配置模版...'), {
+        var loadMsg = t('public.retrieving_configuration_template') || t('template.retrieving_configuration_template') || '正在获取配置模版...';
+        var loadT = layer.msg(loadMsg, {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']

@@ -112,25 +112,27 @@ function replStatus(version){
             'slave_priority':'同步优先级',
         }
 
+        var getReplDesc = function(key) {
+            return (key in kv) ? pt(kv[key]) : key;
+        };
+
         var tbody_text = '';
         for (k in rdata){
+            var desc = getReplDesc(k);
             if (k == 'master_replid'){
-                tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;">' + rdata[k] + '</td><td>'+kv[k]+'</td></tr>';
+                tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;" title="' + rdata[k] + '">' + rdata[k] + '</td><td>'+desc+'</td></tr>';
             } else{
-
                 if (k.substring(0,5) == 'slave' && !isNaN(k.substring(5))){
                     tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;" title="'+rdata[k]+'">' + rdata[k] + '</td><td>' + pt('从库配置信息') + '</td></tr>';
                 } else{
-                    tbody_text += '<tr><th>'+k+'</th><td>' + rdata[k] + '</td><td>'+kv[k]+'</td></tr>';
+                    tbody_text += '<tr><th>'+k+'</th><td>' + rdata[k] + '</td><td>'+desc+'</td></tr>';
                 }
-
-                
             }   
         }
 
         var con = '<div class="divtable">\
-                        <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;">' + pt('字段') + '</th><th style="width:90px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
+                        <table class="table table-hover table-bordered" style="width: 100%; max-width: 680px;">\
+                        <thead><th style="width: 200px;">' + pt('字段') + '</th><th style="width: 160px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -161,15 +163,15 @@ function clusterStatus(version){
             'total_cluster_links_buffer_limit_exceeded':'超出缓冲区总数',
         }
 
+        var getClusterDesc = function(key) {
+            return (key in kv) ? pt(kv[key]) : key;
+        };
+
         var tbody_text = '';
         for (k in rdata){
-            var desc = k;
-            if (k in kv){
-                desc = kv[k];
-            }
-
+            var desc = getClusterDesc(k);
             if (k == 'master_replid'){
-                tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;">' + rdata[k] + '</td><td>'+desc+'</td></tr>';
+                tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;" title="' + rdata[k] + '">' + rdata[k] + '</td><td>'+desc+'</td></tr>';
             } else{
                 tbody_text += '<tr><th>'+k+'</th><td>' + rdata[k] + '</td><td>'+desc+'</td></tr>';
             }   
@@ -180,8 +182,8 @@ function clusterStatus(version){
         }
 
         var con = '<div class="divtable">\
-                        <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;">' + pt('字段') + '</th><th style="width:90px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
+                        <table class="table table-hover table-bordered" style="width: 100%; max-width: 680px;">\
+                        <thead><th style="width: 200px;">' + pt('字段') + '</th><th style="width: 160px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -208,8 +210,8 @@ function clusterNodes(version){
         }
 
         var con = '<div class="divtable">\
-                        <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;text-align:center;">' + pt('节点信息') + '</th></thead>\
+                        <table class="table table-hover table-bordered" style="width: 100%; max-width: 680px;">\
+                        <thead><th style="width: 100%; text-align: center;">' + pt('节点信息') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);

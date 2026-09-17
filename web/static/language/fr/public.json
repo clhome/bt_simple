@@ -576,5 +576,9 @@
     "no_matches_found": "Aucun résultat",
     "panel_address_format_err": "Format d'adresse invalide. Exemple : http://192.168.0.1:8888",
     "management_action": "Gérer",
-    "manage": "Gérer"
+    "manage": "Gérer",
+    "tip_use_ctrl_to_2": "Astuce : Ctrl+F Rechercher, Ctrl+G Suivant, Ctrl+S Enregistrer, Ctrl+H Remplacer !",
+    "this_is_2": "Ici se trouve [",
+    "main_configuration_file_if_1": "] Fichier de configuration principal. Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier.",
+    "retrieving_configuration_template": "Récupération du modèle de configuration en cours..."
 }

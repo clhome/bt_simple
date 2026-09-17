@@ -576,5 +576,9 @@
     "no_matches_found": "未找到相符項目",
     "panel_address_format_err": "面板位址格式不正確，範例：http://192.168.0.1:8888",
     "management_action": "管理",
-    "manage": "管理"
+    "manage": "管理",
+    "tip_use_ctrl_to_2": "提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!",
+    "this_is_2": "此处為【",
+    "main_configuration_file_if_1": "】主設定檔案,若您不了解設定規則,请勿随意修改。",
+    "retrieving_configuration_template": "設定模版獲取中..."
 }

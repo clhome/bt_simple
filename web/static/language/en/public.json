@@ -576,5 +576,9 @@
     "no_matches_found": "No matches found",
     "panel_address_format_err": "Panel address format invalid. Example: http://192.168.0.1:8888",
     "management_action": "Manage",
-    "manage": "Manage"
+    "manage": "Manage",
+    "tip_use_ctrl_to_2": "Tip: Ctrl+F Search, Ctrl+G Find Next, Ctrl+S Save, Ctrl+H Replace!",
+    "this_is_2": "This is [",
+    "main_configuration_file_if_1": "] main configuration file. If you do not understand configuration rules, please do not modify it.",
+    "retrieving_configuration_template": "Retrieving configuration template..."
 }

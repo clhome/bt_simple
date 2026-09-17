@@ -576,5 +576,9 @@
     "no_matches_found": "Keine Treffer",
     "panel_address_format_err": "Panel-Adressformat ungültig. Beispiel: http://192.168.0.1:8888",
     "management_action": "Verwalten",
-    "manage": "Verwalten"
+    "manage": "Verwalten",
+    "tip_use_ctrl_to_2": "Hinweis: Ctrl+F Suchbegriff, Ctrl+G Nächstes suchen, Ctrl+S Speichern, Ctrl+H Suchen und Ersetzen!",
+    "this_is_2": "Dies ist [",
+    "main_configuration_file_if_1": "] Hauptkonfigurationsdatei, wenn Sie die Konfigurationsregeln nicht kennen, bitte nicht willkürlich ändern.",
+    "retrieving_configuration_template": "Konfigurationsvorlage wird abgerufen..."
 }
