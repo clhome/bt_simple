@@ -1140,7 +1140,10 @@ def inArray(arrays, searchStr):
 
 def getJson(data):
     import json
-    return json.dumps(data)
+    try:
+        return json.dumps(data)
+    except Exception:
+        return json.dumps(data, default=str)
 
 def getObjectByJson(data):
     import json

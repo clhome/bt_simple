@@ -16,7 +16,18 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import functools
     
+
+try:
+    import common_db
+except Exception:
+    from . import common_db
+
+try:
+    import pymemcache
+except Exception:
+    pymemcache = None
 
 def singleton(cls):
     _instance = {}
@@ -36,11 +47,18 @@ class nosqlMemcached():
     __DB_HOST = '127.0.0.1'
     __DB_CONN = None
     __DB_ERR = None
+    __sid = 0
 
     __DB_LOCAL = None
 
     def __init__(self):
         self.__config = self.get_options(None)
+
+    def setSid(self, sid):
+        self.__sid = sid
+        self.__config = self.get_options(sid=sid)
+        self.__DB_HOST = self.__config.get('host', '127.0.0.1')
+        self.__DB_PORT = int(self.__config.get('port', 11211))
 
     def close(self):
         if self.__DB_CONN:
@@ -52,16 +70,21 @@ class nosqlMemcached():
 
 
     def conn(self):
-        import pymemcache
-
-        if self.__DB_HOST in ['127.0.0.1', 'localhost']:
-            mem_path = "{}/memcached".format(yf.getServerDir())
-            if not os.path.exists(mem_path): return False
+        if pymemcache is None:
+            return False
 
         if not self.__DB_LOCAL:
-            self.__DB_PORT = int(self.__config['port'])
+            if isinstance(self.__config, dict) and 'port' in self.__config:
+                self.__DB_PORT = int(self.__config['port'])
+            if isinstance(self.__config, dict) and 'host' in self.__config:
+                self.__DB_HOST = self.__config['host']
         try:
-            self.__DB_CONN = pymemcache.client.base.PooledClient((self.__DB_HOST,self.__DB_PORT), max_pool_size=4)
+            self.__DB_CONN = pymemcache.client.base.PooledClient(
+                (self.__DB_HOST, self.__DB_PORT),
+                max_pool_size=4,
+                connect_timeout=4,
+                timeout=4
+            )
             return self.__DB_CONN
         except pymemcache.exceptions.MemcacheError:
             return False
@@ -70,19 +93,47 @@ class nosqlMemcached():
         return False
 
     # 获取配置项
-    def get_options(self, get=None):
+    def get_options(self, get=None, sid=None):
+        if sid is None and isinstance(get, dict) and 'sid' in get:
+            sid = get['sid']
+        if sid is None:
+            sid = getattr(self, '_nosqlMemcached__sid', 0)
 
+        # 识别自定义远程连接 Profile
+        if sid and str(sid).startswith('conn_'):
+            try:
+                c_id = int(str(sid)[5:])
+                conn_res = common_db.getConnection({'id': c_id}, raw_password=True)
+                if conn_res.get('status') and conn_res.get('data'):
+                    c_data = conn_res['data']
+                    return {
+                        'host': c_data.get('host', '127.0.0.1'),
+                        'port': int(c_data.get('port', 11211))
+                    }
+            except Exception:
+                pass
+
+        port_info = common_db.getDbPort('memcached')
         result = {}
-        mem_content = yf.readFile("{}/memcached/memcached.env".format(yf.getServerDir()))
-        if not mem_content: return False
+        result['host'] = '127.0.0.1'
+        result['port'] = port_info.get('port', 11211)
 
-        keys = ["bind", "PORT"]
-        rep = r'PORT\s*=\s*(.*)'
-        port_re = re.search(rep, mem_content)
-        if port_re:
-            result['port'] = int(port_re.groups()[0].strip())
-        else:
-            result['port'] = 11211
+        mem_env = "{}/memcached/memcached.env".format(yf.getServerDir())
+        if not os.path.exists(mem_env):
+            return result
+
+        mem_content = yf.readFile(mem_env)
+        if not mem_content:
+            return result
+
+        if not port_info.get('is_custom'):
+            rep = r'PORT\s*=\s*(.*)'
+            port_re = re.search(rep, mem_content)
+            if port_re:
+                try:
+                    result['port'] = int(port_re.groups()[0].strip())
+                except Exception:
+                    pass
         return result
 
     def set_host(self, host, port, prefix=''):
@@ -101,13 +152,28 @@ class nosqlMemcachedCtr():
 
     def getInstanceBySid(self, sid = 0):
         instance = nosqlMemcached()
+        instance.setSid(sid)
         return instance
 
-    def getItems(self, args):
-        sid = args['sid']
+    def getServerList(self, args=None):
+        return common_db.getUnifiedServerList('memcached')
+
+    def getDbPort(self, args=None):
+        return yf.returnData(True, 'ok', common_db.getDbPort('memcached'))
+
+    def setDbPort(self, args=None):
+        if not args or not isinstance(args, dict):
+            return yf.returnData(False, '缺少必要参数')
+        port = args.get('port')
+        return common_db.setDbPort('memcached', port)
+
+    def getItems(self, args=None):
+        if not isinstance(args, dict):
+            args = {}
+        sid = args.get('sid', 0)
         mem_instance = self.getInstanceBySid(sid).conn()
         if mem_instance is False:
-            return yf.returnData(False,'无法链接')
+            return yf.returnData(False, '无法连接 Memcached 服务，请确认服务已启动或端口设置正确')
 
         result = {}
         m_items = mem_instance.stats('items')
@@ -235,6 +301,7 @@ class nosqlMemcachedCtr():
 # ---------------------------------- run ----------------------------------
 
 def close_connection_after(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -245,39 +312,69 @@ def close_connection_after(func):
                 pass
     return wrapper
 
+def _normalize_args(args=None, kwargs=None):
+    if args is None:
+        res = {}
+    elif isinstance(args, dict):
+        res = dict(args)
+    else:
+        res = {'raw_args': args}
+    if kwargs:
+        res.update(kwargs)
+    return res
+
 # 获取 memcached 列表
 @close_connection_after
-def get_items(args):
+def get_items(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlMemcachedCtr()
     return t.getItems(args)
 
 @close_connection_after
-def get_key_list(args):
+def get_key_list(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlMemcachedCtr()
     return t.getKeyList(args)
 
 @close_connection_after
-def del_val(args):
+def del_val(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlMemcachedCtr()
     return t.delVal(args)
 
 @close_connection_after
-def set_kv(args):
+def set_kv(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlMemcachedCtr()
     return t.setKv(args)
 
 @close_connection_after
-def clear(args):
+def clear(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlMemcachedCtr()
     return t.clear(args)
 
+def get_db_port(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlMemcachedCtr()
+    return t.getDbPort(args)
+
+def set_db_port(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlMemcachedCtr()
+    return t.setDbPort(args)
+
+def get_server_list(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlMemcachedCtr()
+    return t.getServerList(args)
+
 # 测试
 @close_connection_after
-def test(args):
-    sid = args['sid']
+def test(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    sid = args.get('sid', 0)
     t = nosqlMemcachedCtr()
-    print(t.get_options())
-    print("test")
     return 'ok'
 
 # ---------------------------------- run ----------------------------------

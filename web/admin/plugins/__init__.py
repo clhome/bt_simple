@@ -405,14 +405,19 @@ def callback():
             except Exception:
                 pass
 
+        from flask import Response
         if data[0]:
-            return yf.returnData(True, "OK", data[1])
-        return yf.returnData(False, data[1])
+            json_str = yf.returnJson(True, "OK", data[1])
+        else:
+            json_str = yf.returnJson(False, data[1])
+        return Response(json_str, mimetype='application/json')
     except Exception as e:
         if yf.isDebugMode():
             print(yf.getTracebackInfo())
         yf.writeLog('插件管理', f"插件[{request.form.get('name', '') or request.args.get('name', '')}]回调操作[{request.form.get('func', '') or request.args.get('func', '')}]异常: {str(e)}")
-        return {'status': False, 'msg': f"操作执行异常: {str(e)}", 'data': ''}
+        from flask import Response
+        err_json = yf.returnJson(False, f"操作执行异常: {str(e)}")
+        return Response(err_json, mimetype='application/json')
 
 # 插件统一批量回调入口API (专门用于前端聚合查询等性能优化场景)
 @blueprint.route('/run_batch', endpoint='run_batch', methods=['POST'])

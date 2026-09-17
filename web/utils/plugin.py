@@ -38,6 +38,9 @@ class pg_thread(threading.Thread):
     def getResult(self):
         return self.result
 
+_PLUGIN_MODULE_LOCK = threading.RLock()
+_PLUGIN_MODULE_MTIME = {}
+
 class plugin(object):
 
     def_plugin_type = [
@@ -1531,12 +1534,18 @@ class plugin(object):
         package = self.__plugin_dir + '/' + name
         if not os.path.exists(package):
             return (False, "插件不存在!")
-        if package in sys.path:
-            sys.path.remove(package)
-        sys.path.insert(0, package)
-        
-        if script in sys.modules:
-            del sys.modules[script]
+
+        # 线程安全维护 sys.path
+        if package not in sys.path:
+            with _PLUGIN_MODULE_LOCK:
+                if package not in sys.path:
+                    sys.path.insert(0, package)
+
+        script_file = os.path.join(package, f"{script}.py")
+        if not os.path.exists(script_file):
+            alt_file = os.path.join(package, f"{name}.py")
+            if os.path.exists(alt_file):
+                script_file = alt_file
 
         if yf.isDebugMode():
             print('callback safe reflection:', script, func, args)
@@ -1544,7 +1553,24 @@ class plugin(object):
         data = None
         try:
             import importlib
-            mod = importlib.import_module(script)
+            # 线程安全加载或复用模块，杜绝多线程并发 del sys.modules 导致的 KeyError 竞态
+            with _PLUGIN_MODULE_LOCK:
+                if script in sys.modules:
+                    mod = sys.modules[script]
+                    if os.path.exists(script_file):
+                        cur_mtime = os.path.getmtime(script_file)
+                        last_mtime = _PLUGIN_MODULE_MTIME.get((name, script), 0)
+                        if cur_mtime > last_mtime:
+                            try:
+                                mod = importlib.reload(mod)
+                                _PLUGIN_MODULE_MTIME[(name, script)] = cur_mtime
+                            except Exception:
+                                pass
+                else:
+                    mod = importlib.import_module(script)
+                    if os.path.exists(script_file):
+                        _PLUGIN_MODULE_MTIME[(name, script)] = os.path.getmtime(script_file)
+
             if not hasattr(mod, func):
                 return (False, f"方法 {func} 不存在!")
             target_func = getattr(mod, func)
@@ -1557,41 +1583,77 @@ class plugin(object):
 
                 if isinstance(parsed_args, dict):
                     try:
-                        sig = inspect.signature(target_func)
+                        # 穿透装饰器解包获取底层真实函数
+                        real_func = inspect.unwrap(target_func)
+                        sig = inspect.signature(real_func)
                         params = list(sig.parameters.values())
+
+                        # 过滤出显式普通位置/关键字形参（排除 *args 和 **kwargs）
+                        explicit_params = [
+                            p for p in params 
+                            if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                        ]
+
                         if len(params) == 0:
-                            data = target_func()
-                        elif len(params) == 1 and params[0].kind not in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL) and params[0].name not in parsed_args:
-                            data = target_func(parsed_args)
+                            # 目标函数为无参定义 def func():
+                            call_args = ()
+                            call_kwargs = {}
+                        elif len(explicit_params) >= 2:
+                            # 目标函数明确声明了多个独立的具名形参（如 def func(a, b):）
+                            try:
+                                sig.bind(**parsed_args)
+                                call_args = ()
+                                call_kwargs = parsed_args
+                            except TypeError:
+                                # 关键字无法完全匹配时，降级作为单字典传给首参数
+                                call_args = (parsed_args,)
+                                call_kwargs = {}
                         else:
-                            try:
-                                data = target_func(**parsed_args)
-                            except TypeError:
-                                data = target_func(parsed_args)
+                            # 目标函数接收单参数（如 def func(args=None): 或 def func(get):），或是变长参数包装
+                            # 面板插件体系核心规范：统一将前端参数字典作为单位置参数传入
+                            call_args = (parsed_args,)
+                            call_kwargs = {}
                     except Exception:
-                        try:
-                            data = target_func(parsed_args)
-                        except TypeError:
-                            try:
-                                data = target_func(**parsed_args)
-                            except TypeError:
-                                data = target_func()
+                        call_args = (parsed_args,)
+                        call_kwargs = {}
                 elif isinstance(parsed_args, (list, tuple)):
                     try:
-                        data = target_func(*parsed_args)
-                    except TypeError:
-                        data = target_func(parsed_args)
+                        sig = inspect.signature(target_func)
+                        params = list(sig.parameters.values())
+                        if len(params) == 1 and params[0].kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                            call_args = (parsed_args,)
+                        else:
+                            call_args = tuple(parsed_args)
+                    except Exception:
+                        call_args = tuple(parsed_args)
+                    call_kwargs = {}
                 else:
-                    data = target_func(parsed_args)
+                    call_args = (parsed_args,)
+                    call_kwargs = {}
             else:
                 try:
-                    data = target_func()
-                except TypeError:
-                    data = target_func({})
+                    sig = inspect.signature(target_func)
+                    params = list(sig.parameters.values())
+                    if len(params) == 0:
+                        call_args = ()
+                    elif len(params) >= 1 and params[0].default is inspect.Parameter.empty and params[0].kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                        # 首个位置参数无默认值，默认传递空字典以兼容单参数插件接口
+                        call_args = ({},)
+                    else:
+                        call_args = ()
+                except Exception:
+                    call_args = ()
+                call_kwargs = {}
+
+            # 真正执行调用，内部抛出的业务异常直接向上冒泡，杜绝错误降级掩盖真相
+            data = target_func(*call_args, **call_kwargs)
         except Exception as e:
             if yf.isDebugMode():
                 print(yf.getTracebackInfo())
-            return (False, str(e))        
+            err_msg = str(e)
+            if isinstance(e, KeyError):
+                err_msg = f"缺少参数或配置: {err_msg}"
+            return (False, err_msg)        
         return (True, data)
 
 

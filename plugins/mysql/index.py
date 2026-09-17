@@ -109,39 +109,58 @@ def checkArgs(data, ck=[]):
 
 def getConf():
     path = getServerDir() + '/etc/my.cnf'
+    if not os.path.exists(path):
+        for p in ['/etc/my.cnf', '/etc/mysql/my.cnf', '/etc/mysql/mysql.conf.d/mysqld.cnf']:
+            if os.path.exists(p):
+                return p
     return path
 
 
 def getDbPort():
     file = getConf()
     content = yf.readFile(file)
-    rep = r'port\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if content:
+        rep = r'port\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    return '3306'
 
 
 def getDbServerId():
     file = getConf()
     content = yf.readFile(file)
-    rep = r'server-id\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if content:
+        rep = r'server-id\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    return '1'
 
 
 def getSocketFile():
     file = getConf()
     content = yf.readFile(file)
-    rep = r'socket\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if content:
+        rep = r'socket\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    for s in ['/tmp/mysql.sock', '/var/run/mysqld/mysqld.sock', getServerDir() + '/mysql.sock']:
+        if os.path.exists(s):
+            return s
+    return '/tmp/mysql.sock'
 
 
 def getErrorLogsFile():
     file = getConf()
     content = yf.readFile(file)
-    rep = r'log-error\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if content:
+        rep = r'log-error\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    return getServerDir() + '/data/error.log'
 
 def getAuthPolicy():
     file = getConf()
@@ -328,26 +347,49 @@ def status(version=''):
 
 def getDataDir():
     file = getConf()
-    content = yf.readFile(file)
-    rep = r'datadir\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    content = yf.readFile(file) if os.path.exists(file) else ""
+    if not content:
+        for f in ['/etc/my.cnf', '/etc/mysql/my.cnf', '/etc/mysql/mysql.conf.d/mysqld.cnf']:
+            if os.path.exists(f):
+                content = yf.readFile(f)
+                if content:
+                    break
+    if content:
+        rep = r'datadir\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+
+    # 兜底默认数据目录路径
+    for d in [getServerDir() + '/data', '/var/lib/mysql', '/www/server/data']:
+        if os.path.exists(d):
+            return d
+    return getServerDir() + '/data'
 
 
 def getLogBinName():
     file = getConf()
-    content = yf.readFile(file)
-    rep = r'log-bin\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    content = yf.readFile(file) if os.path.exists(file) else ""
+    if content:
+        rep = r'log-bin\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    return 'mysql-bin'
 
 
 def getPidFile():
     file = getConf()
-    content = yf.readFile(file)
-    rep = r'pid-file\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    content = yf.readFile(file) if os.path.exists(file) else ""
+    if content:
+        rep = r'pid-file\s*=\s*(.*)'
+        tmp = re.search(rep, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    for p in [getServerDir() + '/data/mysql.pid', '/var/run/mysqld/mysqld.pid', '/tmp/mysql.pid']:
+        if os.path.exists(p):
+            return p
+    return getServerDir() + '/data/mysql.pid'
 
 
 def binLog(version = ''):

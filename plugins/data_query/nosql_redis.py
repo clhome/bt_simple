@@ -12,6 +12,12 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import functools
+
+try:
+    import common_db
+except Exception:
+    from . import common_db
 
 def singleton(cls):
     _instance = {}
@@ -33,9 +39,17 @@ class nosqlRedis():
     __DB_ERR = None
 
     __DB_LOCAL = None
+    __sid = 0
 
     def __init__(self):
         self.__config = self.get_options(None)
+
+    def setSid(self, sid):
+        self.__sid = sid
+        self.__config = self.get_options(sid=sid)
+        self.__DB_HOST = self.__config.get('bind', self.__config.get('host', '127.0.0.1'))
+        self.__DB_PORT = int(self.__config.get('port', 6379))
+        self.__DB_PASS = self.__config.get('requirepass', self.__config.get('password', ''))
 
     def close(self):
         if self.__DB_CONN:
@@ -50,53 +64,105 @@ class nosqlRedis():
             self.__DB_CONN = None
 
     def redis_conn(self, db_idx=0):
-        import redis
-
-        if self.__DB_HOST in ['127.0.0.1', 'localhost']:
-            redis_path = "{}/redis".format(yf.getServerDir())
-            if not os.path.exists(redis_path):
-                return False
+        try:
+            import redis
+        except Exception:
+            return False
 
         if not self.__DB_LOCAL:
-            self.__DB_PASS = self.__config['requirepass']
-            self.__DB_PORT = int(self.__config['port'])
+            if isinstance(self.__config, dict) and 'requirepass' in self.__config:
+                self.__DB_PASS = self.__config['requirepass']
+            if isinstance(self.__config, dict) and 'port' in self.__config:
+                try:
+                    self.__DB_PORT = int(self.__config['port'])
+                except Exception:
+                    pass
+            if isinstance(self.__config, dict) and 'bind' in self.__config:
+                self.__DB_HOST = self.__config['bind']
 
-        # print(self.__DB_HOST,self.__DB_PORT, self.__DB_PASS)
         try:
-            redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=self.__DB_PASS, db=db_idx, socket_timeout=3)
+            redis_pool = redis.ConnectionPool(
+                host=self.__DB_HOST,
+                port=self.__DB_PORT,
+                password=self.__DB_PASS if self.__DB_PASS else None,
+                db=db_idx,
+                socket_timeout=5
+            )
             self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
             self.__DB_CONN.ping()
             return self.__DB_CONN
-        except redis.exceptions.ConnectionError:
-            return False
         except Exception:
             self.__DB_ERR = yf.getTracebackInfo()
         return False
 
     # 获取配置项
-    def get_options(self, get=None):
+    def get_options(self, get=None, sid=None):
+        if sid is None and isinstance(get, dict) and 'sid' in get:
+            sid = get['sid']
+        if sid is None:
+            sid = getattr(self, '_nosqlRedis__sid', 0)
 
+        # 识别自定义远程连接 Profile
+        if sid and str(sid).startswith('conn_'):
+            try:
+                c_id = int(str(sid)[5:])
+                conn_res = common_db.getConnection({'id': c_id}, raw_password=True)
+                if conn_res.get('status') and conn_res.get('data'):
+                    c_data = conn_res['data']
+                    return {
+                        'bind': c_data.get('host', '127.0.0.1'),
+                        'host': c_data.get('host', '127.0.0.1'),
+                        'port': int(c_data.get('port', 6379)),
+                        'requirepass': c_data.get('password', ''),
+                        'password': c_data.get('password', ''),
+                        'timeout': 0,
+                        'maxclients': 10000,
+                        'databases': 16,
+                        'maxmemory': 0
+                    }
+            except Exception:
+                pass
+
+        port_info = common_db.getDbPort('redis')
         result = {}
-        redis_conf = yf.readFile("{}/redis/redis.conf".format(yf.getServerDir()))
-        if not redis_conf: return False
+        result['bind'] = '127.0.0.1'
+        result['port'] = port_info.get('port', 6379)
+        result['timeout'] = 0
+        result['maxclients'] = 10000
+        result['databases'] = 16
+        result['requirepass'] = ''
+        result['maxmemory'] = 0
+
+        redis_conf_path = "{}/redis/redis.conf".format(yf.getServerDir())
+        if not os.path.exists(redis_conf_path):
+            return result
+
+        redis_conf = yf.readFile(redis_conf_path)
+        if not redis_conf:
+            return result
 
         keys = ["bind", "port", "timeout", "maxclients", "databases", "requirepass", "maxmemory"]
         for k in keys:
             v = ""
-            rep = r"\n%s\s+(.+)" % k
+            rep = r"(?:^|\n)\s*%s\s+(.+)" % k
             group = re.search(rep, redis_conf)
             if not group:
                 if k == "maxmemory":
-                    v = "0"
-                if k == "maxclients":
-                    v = "10000"
-                if k == "requirepass":
+                    v = 0
+                elif k == "maxclients":
+                    v = 10000
+                elif k == "requirepass":
                     v = ""
             else:
                 if k == "maxmemory":
                     v = int(group.group(1).strip("mb"))
+                elif k == "port":
+                    if not port_info.get('is_custom'):
+                        v = int(group.group(1).strip())
+                    else:
+                        v = result['port']
                 else:
-                    v = group.group(1)
+                    v = group.group(1).strip()
             result[k] = v
         return result
 
@@ -121,14 +187,28 @@ class nosqlRedisCtr():
 
     def getInstanceBySid(self, sid = 0):
         instance = nosqlRedis()
+        instance.setSid(sid)
         return instance
 
-    def getList(self, args):
+    def getServerList(self, args=None):
+        return common_db.getUnifiedServerList('redis')
 
-        sid = args['sid']
+    def getDbPort(self, args=None):
+        return yf.returnData(True, 'ok', common_db.getDbPort('redis'))
+
+    def setDbPort(self, args=None):
+        if not args or not isinstance(args, dict):
+            return yf.returnData(False, '缺少必要参数')
+        port = args.get('port')
+        return common_db.setDbPort('redis', port)
+
+    def getList(self, args=None):
+        if not isinstance(args, dict):
+            args = {}
+        sid = args.get('sid', 0)
         redis_instance = self.getInstanceBySid(sid).redis_conn(0)
         if redis_instance is False:
-            return yf.returnData(False,'无法链接')
+            return yf.returnData(False, '无法连接 Redis 服务，请确认服务已启动或端口设置正确')
 
 
         redis_info = redis_instance.info()
@@ -322,6 +402,7 @@ class nosqlRedisCtr():
 # ---------------------------------- run ----------------------------------
 
 def close_connection_after(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -332,47 +413,76 @@ def close_connection_after(func):
                 pass
     return wrapper
 
+def _normalize_args(args=None, kwargs=None):
+    if args is None:
+        res = {}
+    elif isinstance(args, dict):
+        res = dict(args)
+    else:
+        res = {'raw_args': args}
+    if kwargs:
+        res.update(kwargs)
+    return res
+
 # 获取 redis databases 列表
 @close_connection_after
-def get_list(args):
+def get_list(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.getList(args)
 
 # 获取 redis key 列表
 @close_connection_after
-def get_dbkey_list(args):
+def get_dbkey_list(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.getDbKeyList(args)
 
-
 @close_connection_after
-def set_kv(args):
+def set_kv(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.setKv(args)
 
-
 @close_connection_after
-def del_val(args):
+def del_val(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.delVal(args)
 
 @close_connection_after
-def batch_del_val(args):
+def batch_del_val(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.batchDelVal(args)
 
 @close_connection_after
-def clear_flushdb(args):
+def clear_flushdb(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
     t = nosqlRedisCtr()
     return t.clearFlushDB(args)
 
+def get_db_port(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlRedisCtr()
+    return t.getDbPort(args)
+
+def set_db_port(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlRedisCtr()
+    return t.setDbPort(args)
+
+def get_server_list(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    t = nosqlRedisCtr()
+    return t.getServerList(args)
+
 # 测试
 @close_connection_after
-def test(args):
-    sid = args['sid']
+def test(args=None, **kwargs):
+    args = _normalize_args(args, kwargs)
+    sid = args.get('sid', 0)
     t = nosqlRedis()
-    print(t.get_options())
-    print("test")
     return 'ok'
 
 # ---------------------------------- run ----------------------------------

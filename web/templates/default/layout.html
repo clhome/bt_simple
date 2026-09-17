@@ -87,7 +87,8 @@
                 <a
                   class="menu_plugin_{{menu['name']}}"
                   href="/plugins/menu?tag={{menu['name']}}"
-                  >{{menu['title']}}</a
+                  data-i18n="plugins.{{menu['name']}}.title"
+                  >{{ t('plugins.' + menu['name'] + '.title', menu['title']) if t else menu['title'] }}</a
                 >
               </li>
               {% endfor %}

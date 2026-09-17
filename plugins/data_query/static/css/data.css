@@ -1,3 +1,5 @@
+/* 数据管理插件现代响应式样式规范 (UTF-8, LF) */
+
 .main-content .safe {
     position: relative;
 }
@@ -8,7 +10,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgb(255 255 255 / 60%);
+    background: rgba(255, 255, 255, 0.7);
     z-index: 9998;
 }
 
@@ -20,13 +22,277 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    margin-top: -25px;
-    margin-left: -175px;
+    transform: translate(-50%, -50%);
     background: #fff;
-    box-shadow: 1px 1px 50px rgb(0 0 0 / 30%);
-    border: 1px solid #eee;
-    border-radius: 2px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
     font-size: 13px;
+    color: #334155;
+}
+
+/* 统一连接控制条 (Connection Bar) */
+.dq-conn-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+}
+
+.dq-conn-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+}
+
+.dq-conn-item .bt-input-text,
+.dq-conn-item select {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 12px;
+    color: #1e293b;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.dq-conn-item select:focus,
+.dq-conn-item .bt-input-text:focus {
+    border-color: #20a53a;
+    outline: none;
+}
+
+/* 状态指示徽章 (Status Badge) */
+.dq-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.dq-status-badge .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* 未连接状态 (Disconnected) */
+.dq-status-badge.disconnected {
+    background: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
+.dq-status-badge.disconnected .dot {
+    background: #94a3b8;
+}
+
+/* 连接中状态 (Connecting) */
+.dq-status-badge.connecting {
+    background: #fef9c3;
+    color: #854d0e;
+    border-color: #fde047;
+}
+.dq-status-badge.connecting .dot {
+    background: #eab308;
+    animation: dq-pulse 1.2s infinite;
+}
+
+/* 已连接状态 (Connected) */
+.dq-status-badge.connected {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+.dq-status-badge.connected .dot {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+/* 连接错误 (Error) */
+.dq-status-badge.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+.dq-status-badge.error .dot {
+    background: #ef4444;
+}
+
+@keyframes dq-pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+
+/* 未连接 Empty State 导引视图 */
+.dq-empty-state {
+    padding: 45px 20px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.dq-empty-state .empty-icon {
+    font-size: 46px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.dq-empty-state .empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.dq-empty-state .empty-desc {
+    font-size: 13px;
+    color: #64748b;
+    max-width: 500px;
+    margin: 0 auto 18px auto;
+    line-height: 1.6;
+}
+
+/* 现代化弹性工具栏 (Flex Toolbar) */
+.dq-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin-bottom: 12px;
+}
+
+.dq-toolbar-left,
+.dq-toolbar-right {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+}
+
+.dq-toolbar select,
+.dq-toolbar input.bt-input-text {
+    height: 30px;
+    line-height: 30px;
+    padding: 0 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+}
+
+/* Navicat 式连接管理对话框 */
+.dq-modal-form {
+    padding: 15px 25px;
+}
+
+.dq-form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.dq-form-row label {
+    width: 110px;
+    text-align: right;
+    margin-right: 12px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 500;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.dq-form-row .form-con {
+    flex: 1;
+    position: relative;
+}
+
+.dq-form-row .form-con input,
+.dq-form-row .form-con select {
+    width: 100%;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.dq-form-row .form-con input:focus,
+.dq-form-row .form-con select:focus {
+    border-color: #20a53a;
+    outline: none;
+}
+
+.dq-pwd-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.dq-pwd-toggle:hover {
+    color: #334155;
+}
+
+/* 表格增强 */
+.divtable {
+    overflow-x: auto;
+    border-radius: 4px;
+}
+
+.divtable table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.divtable table thead th {
+    white-space: nowrap;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.divtable table tbody td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.overflow_hide {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
 #mongodb_search xm-select {
@@ -34,37 +300,271 @@
     line-height: 30px;
 }
 
-#mongodb_search xm-select .xm-label .xm-label-block{
+#mongodb_search xm-select .xm-label .xm-label-block {
     height: 20px;
     line-height: 20px;
 }
 
 #mongodb td:last-child, th:last-child {
-    width: 44px;
-    position:sticky;
-    right:0; /* 首行永远固定在左侧 */
-    z-index:1;
-    background-color:white;
+    min-width: 60px;
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background-color: white;
 }
 
-.divtable {
-    overflow: auto;
-    /*border: 1px solid #ddd;*/
+/* 顶部 Tab 栏弹性布局与同步按钮 */
+#cutTab {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-right: 15px !important;
 }
 
-.divtable table {
-    margin-bottom: 0;
+.btn_sync_servers {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    line-height: 28px;
+    padding: 0 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    border-color: #cbd5e1;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
 }
 
-.divtable table thead th {
-    white-space: nowrap;
+.btn_sync_servers:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.btn_sync_servers .glyphicon {
+    font-size: 11px;
+    color: #20a53a;
+}
+
+/* 服务器同步差异对比模态框样式 */
+.dq-sync-dialog {
+    padding: 15px 20px;
+}
+
+.dq-sync-dialog .sync-tip-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: #475569;
+    line-height: 20px;
+}
+
+.dq-sync-table {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.divtable table tbody td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
+.dq-sync-table th {
+    background: #f1f5f9;
+    padding: 8px 10px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dq-sync-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.dq-badge-new {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.dq-badge-modified {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.dq-badge-identical {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    font-size: 11px;
+}
+
+.dq-sync-diff-text {
+    color: #ea580c;
+    font-weight: 500;
+}
+
+/* Layer 消息提示框自适应与抗截断加固 */
+.layui-layer-msg {
+    min-width: 220px !important;
+    max-width: 80vw !important;
+    width: auto !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18) !important;
+    border-radius: 6px !important;
+}
+
+.layui-layer-msg .layui-layer-content {
+    white-space: normal !important;
+    word-break: break-all !important;
+    line-height: 22px !important;
+    max-width: 720px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+
+.layui-layer-msg .layui-layer-padding {
+    padding: 14px 24px 14px 58px !important;
+}
+
+.layui-layer-msg .layui-layer-ico {
+    top: 10px !important;
+    left: 16px !important;
+}
+
+/* MySQL及常用功能弹窗布局加固 (解决无滚动条及内容截断) */
+.layui-layer-page:has(.dq-common-dialog) .layui-layer-content {
+    overflow: hidden !important;
+}
+
+.dq-common-dialog {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    padding: 15px 20px !important;
+    overflow: hidden !important;
+}
+
+.dq-common-header {
+    flex-shrink: 0 !important;
+    margin-bottom: 12px !important;
+}
+
+.dq-common-header hr {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 表格独立滚动包装容器 */
+.dq-common-table-wrap {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    min-height: 0 !important;
+    position: relative !important;
+}
+
+/* 美化滚动条 */
+.dq-common-table-wrap::-webkit-scrollbar,
+.dq-common-buttons-grid::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+}
+.dq-common-table-wrap::-webkit-scrollbar-thumb,
+.dq-common-buttons-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 4px !important;
+}
+.dq-common-table-wrap::-webkit-scrollbar-thumb:hover,
+.dq-common-buttons-grid::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}
+.dq-common-table-wrap::-webkit-scrollbar-track,
+.dq-common-buttons-grid::-webkit-scrollbar-track {
+    background: #f8fafc !important;
+}
+
+/* 常用功能表格布局 */
+.dq-common-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    margin-bottom: 0 !important;
+}
+
+.dq-common-table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: #f8fafc !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding: 10px 12px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dq-common-table tbody td {
+    font-size: 12px !important;
+    color: #334155 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 9px 12px !important;
+    vertical-align: middle !important;
+}
+
+/* SQL长语句及命令单元格自动换行（关键需求：过长命令换行显示） */
+.dq-sql-cell,
+.dq-common-table td.dq-sql-cell {
+    white-space: normal !important;
+    word-break: break-all !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.5 !important;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    color: #0f172a !important;
+}
+
+/* 常用功能主入口多按钮栅格/弹性换行加固 */
+.dq-common-buttons-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    align-items: center !important;
+    overflow-y: auto !important;
+    max-height: 100% !important;
+    padding: 10px 5px !important;
+    box-sizing: border-box !important;
+}
+
+.dq-common-buttons-grid button {
+    margin: 0 !important;
+    white-space: normal !important;
+    text-align: center !important;
 }
