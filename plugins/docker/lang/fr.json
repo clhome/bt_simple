@@ -233,5 +233,20 @@
     "项目": "Projet",
     "默认": "Défaut",
     "，目标目录可用空间为": ", l'espace disponible dans le répertoire cible est",
-    "🌟 核心定位：": "🌟 Positionnement de base :"
+    "🌟 核心定位：": "🌟 Positionnement de base :",
+    "导入镜像": "Importer l'image",
+    "选择镜像打包": "Sélectionner les images à empaqueter",
+    "请先勾选需要打包的镜像!": "Veuillez d'abord sélectionner les images à empaqueter !",
+    "所选镜像无效，请重新选择!": "Image sélectionnée invalide, veuillez choisir à nouveau !",
+    "当前无可用镜像": "Aucune image disponible",
+    "暂无离线镜像归档包，可点击上方「镜像打包」或「上传镜像」": "Aucune archive d'image hors-ligne. Cliquez sur 'Empaqueter l'image' ou 'Téléverser une image' ci-dessus.",
+    "正在打包并压缩镜像，过程可能需要较长时间，请稍候...": "Empaquetage et compression de l'image en cours, veuillez patienter...",
+    "正在解压并导入镜像，请稍候...": "Décompression et importation de l'image en cours, veuillez patienter...",
+    "上传导入镜像包[": "Téléverser l'archive d'image [",
+    "(支持 .tar, .tar.gz, .tgz)": "(Prend en charge .tar, .tar.gz, .tgz)",
+    "Docker 默认安装路径为": "Le chemin d'installation par défaut de Docker est",
+    "开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Activer la reprise après sinistre automatique pour le téléchargement des images (en cas d'échec du téléchargement, le système tente automatiquement d'utiliser les accélérateurs ci-dessus)",
+    " 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)": "Activer la reprise après sinistre automatique pour le téléchargement des images (en cas d'échec du téléchargement, le système tente automatiquement d'utiliser les accélérateurs ci-dessus)",
+    " 开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Activer la reprise après sinistre automatique pour le téléchargement des images (en cas d'échec du téléchargement, le système tente automatiquement d'utiliser les accélérateurs ci-dessus)",
+    "衢州御风科技有限公司出品": "Produit par Quzhou Yufeng Technology Co., Ltd."
 }

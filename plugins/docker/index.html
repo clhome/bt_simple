@@ -157,7 +157,7 @@
 			<div class="soft-man-con"></div>
 		</div>
 	</div>
-	<div style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #ccc; pointer-events: none;">衢州御风科技有限公司 出品</div>
+	<div class="plugin-copyright docker-footer-info" data-i18n="衢州御风科技有限公司 出品" style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #ccc; pointer-events: none;">衢州御风科技有限公司 出品</div>
 </div>
 <script type="text/javascript">
 resetPluginWinWidth(850);
@@ -165,6 +165,9 @@ resetPluginWinHeight(580);
 
 var v = new Date().getTime();
 $.getScript( "/plugins/file?name=docker&f=js/docker.js&v=" + v, function(){
+    if (typeof pt === 'function') {
+        $('.docker-footer-info').text(pt('衢州御风科技有限公司 出品'));
+    }
 	dockerService($('.plugin_version').attr('version'));
 });
 </script>

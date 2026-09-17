@@ -792,11 +792,16 @@ function dockerDeleteFile(fileName) {
 }
 
 function dockerLoadFile(fileName) {
-    api.post('image_pick_load', '', { file: fileName }, function(rdata) {
-        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
-        showMsg(rdata.msg, function() {
-            dockerImageOutputRender();
-        }, { icon: rdata.status ? 1 : 2 });
+    var shortName = fileName.replace(/\\/g, '/').split('/').pop();
+    layer.confirm(pt('确定要导入离线镜像包 [') + shortName + pt('] 吗？<br><small style="color:#999;">注意：导入大镜像包耗时较长，请勿刷新页面</small>'), { title: pt('导入镜像'), closeBtn: 2, icon: 3 }, function() {
+        var loadIdx = layer.msg(pt('正在解压并导入镜像，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
+        api.post('image_pick_load', '', { file: fileName }, function(rdata) {
+            layer.close(loadIdx);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+            showMsg(rdata.msg, function() {
+                dockerImageOutputRender();
+            }, { icon: rdata.status ? 1 : 2 });
+        });
     });
 }
 
@@ -808,21 +813,29 @@ function dockerImageOutputRender() {
             return;
         }
 
-        var list = '';
         var rlist = rdata.data;
         window.docker_con_data = rlist;
 
+        if (!rlist || rlist.length === 0) {
+            $('#con_list tbody').html(dockerTableEmptyHtml(4, pt('暂无离线镜像归档包，可点击上方「镜像打包」或「上传镜像」')));
+            return;
+        }
+
+        var list = '';
         for (var i = 0; i < rlist.length; i++) {
+            var item = rlist[i];
+            var safeFile = $('<div>').text(item['file']).html().replace(/'/g, "\\'");
+            var safeName = $('<div>').text(item['name']).html();
 
             var op = '';
-            op += '<a href="javascript:;" onclick="dockerGetFileBytes(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('下载') + '</a> | ';
-            op += '<a href="javascript:;" onclick="dockerLoadFile(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('导入') + '</a> | ';
-            op += '<a href="javascript:;" onclick="dockerDeleteFile(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('删除') + '</a>';
+            op += '<a href="javascript:;" onclick="dockerGetFileBytes(\'' + safeFile + '\')" class="btlink">' + pt('下载') + '</a> | ';
+            op += '<a href="javascript:;" onclick="dockerLoadFile(\'' + safeFile + '\')" class="btlink">' + pt('导入') + '</a> | ';
+            op += '<a href="javascript:;" onclick="dockerDeleteFile(\'' + safeFile + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + rlist[i]['name'] + '</td>';
-            list += '<td>' + rlist[i]['size'] + '</td>';
-            list += '<td>' + rlist[i]['time'] + '</td>';
+            list += '<td>' + safeName + '</td>';
+            list += '<td>' + item['size'] + '</td>';
+            list += '<td>' + item['time'] + '</td>';
             list += '<td class="text-right">' + op + '</td>';
             list += '</tr>';
         }
@@ -836,12 +849,12 @@ function uploadImageFiles(upload_dir) {
     var image_layer = layer.open({
         type: 1,
         closeBtn: 1,
-        title: pt("上传导入文件[") + upload_dir + ']',
+        title: pt("上传导入镜像包[") + upload_dir + '] ' + pt('(支持 .tar, .tar.gz, .tgz)'),
         area: ['500px', '300px'],
         shadeClose: false,
         content: '<div class="fileUploadDiv">\
                 <input type="hidden" id="input-val" value="' + upload_dir + '" />\
-                <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
+                <input type="file" id="file_input" accept=".tar,.tar.gz,.tgz" multiple="true" autocomplete="off" />\
                 <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
                 <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                 <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
@@ -876,27 +889,32 @@ function dockerImagePick() {
     api.post('image_list', '', {}, function(rdata) {
         var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var imageList = rdata.data;
-        // console.log(imageList);
         var _tbody = '';
-        for (var i = 0; i < imageList.length; i++) {
-            if (imageList[i] == null) {
-                _tbody = '<tr><td colspan="5" align="center">' + pt('当前无镜像') + '</td></tr>';
-                continue;
+        if (!imageList || imageList.length === 0) {
+            _tbody = '<tr><td colspan="4" align="center">' + pt('当前无可用镜像') + '</td></tr>';
+        } else {
+            for (var i = 0; i < imageList.length; i++) {
+                if (imageList[i] == null) {
+                    continue;
+                }
+                var versionData = imageList[i].RepoTags,
+                    version, reg = new RegExp('((?<=:)[0-9A-z/.-]*)$');
+                version = versionData.match(reg) || ['latest'];
+                var tagName = imageList[i].RepoTags || '';
+                _tbody += "<tr><td><input data-name='" + tagName + "' type='checkbox' name='images'></td>\
+                        <td><span class='max_span' title='" + tagName + "'>" + tagName + "</span></td>\
+                        <td>" + version[0] + "</td>\
+                        <td>" + toSize(imageList[i].Size) + "</td></tr>";
             }
-            var versionData = imageList[i].RepoTags,
-                version, reg = new RegExp('((?<=:)[0-9A-z/.-]*)$');
-            version = versionData.match(reg);
-            _tbody += "<tr><td><input data-name='" + imageList[i].RepoTags + "' type='checkbox' name='images'></td>\
-                    <td><span class='max_span' title='" + imageList[i].RepoTags + "'>" + imageList[i].RepoTags + "</span></td>\
-                    <td>" + version[0] + "</td>\
-                    <td>" + toSize(imageList[i].Size) + "</td></tr>";
+            if (!_tbody) {
+                _tbody = '<tr><td colspan="4" align="center">' + pt('当前无可用镜像') + '</td></tr>';
+            }
         }
-
 
         var layerS = layer.open({
             type: 1,
-            title:  pt("选择镜像"),
-            area: '500px',
+            title:  pt("选择镜像打包"),
+            area: '520px',
             closeBtn: 1,
             btn: [pt('打包'), pt('取消')],
             shadeClose: false,
@@ -916,24 +934,37 @@ function dockerImagePick() {
                 tableFixed('images_table');
             },
             yes: function(layers, index) {
-                var data = '',
-                    tit = '\xa0',
-                    choose_num = $(".images_pull tbody [name=images]:checked").length;
-                for (var i = 0; i < choose_num; i++) {
-                    if (choose_num == 0) {
-                        layer.msg('Please choose the images which need to pack', { icon: 2 });
-                        return false;
-                    }
-                    data += $(".images_pull tbody [name=images]:checked").eq(i).attr('data-name');
-                    if (i != (choose_num - 1)) data += ' ';
+                var checkedBoxes = $(".images_pull tbody [name=images]:checked");
+                if (checkedBoxes.length === 0) {
+                    layer.msg(pt('请先勾选需要打包的镜像!'), { icon: 2 });
+                    return false;
                 }
 
+                var imgList = [];
+                checkedBoxes.each(function() {
+                    var imgName = $(this).attr('data-name');
+                    if (imgName && imgName !== '<none>:<none>') {
+                        imgList.push(imgName);
+                    }
+                });
+
+                if (imgList.length === 0) {
+                    layer.msg(pt('所选镜像无效，请重新选择!'), { icon: 2 });
+                    return false;
+                }
+
+                var data = imgList.join(' ');
+                var loadIdx = layer.msg(pt('正在打包并压缩镜像，过程可能需要较长时间，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
+
                 api.post('image_pick_save', '', { images: data }, function(rdata) {
-                    var rdata = JSON.parse(rdata['data']);
-                    showMsg(rdata.msg, function() {
-                        dockerImageOutputRender();
-                        layer.close(layerS);
-                    }, { icon: rdata.status ? 1 : 2, time: 2000 });
+                    layer.close(loadIdx);
+                    var res = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+                    showMsg(res.msg, function() {
+                        if (res.status) {
+                            dockerImageOutputRender();
+                            layer.close(layerS);
+                        }
+                    }, { icon: res.status ? 1 : 2, time: 2000 });
                 });
             }
         });
@@ -962,13 +993,17 @@ function dockerImageOutput() {
 
 
     $('#btn_image_upload').on('click', function() {
-        dPostOrgin({
-            name: 'docker',
-            func: 'image_pick_dir',
-            version: '',
-        }, function(rdata) {
-            var rdata = JSON.parse(rdata['data']);
-            var upload_dir = rdata['data'];
+        api.post('image_pick_dir', '', {}, function(rdata) {
+            var res = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+            if (res && res.status === false) {
+                layer.msg(res.msg || pt('获取上传目录失败'), { icon: 2 });
+                return;
+            }
+            var upload_dir = (res && res.data) ? res.data : (typeof res === 'string' ? res : '');
+            if (!upload_dir) {
+                layer.msg(pt('获取上传目录失败'), { icon: 2 });
+                return;
+            }
             uploadImageFiles(upload_dir);
         });
     });
@@ -1244,7 +1279,7 @@ function dockerAccelerator() {
             '</div>' +
             '<div class="help-info-text c7" style="margin-bottom:10px;">' + pt('注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。') + '</div>' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
-            '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)">' + pt(' 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)') + '</label>' +
+            '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> ' + pt('开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)') + '</label>' +
             '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">' + pt('保存并重启 Docker') + '</button>' +
             '</div>' +
             '</div>';
@@ -1442,7 +1477,7 @@ function dockerDir() {
         <div style="margin: 15px 0;">\
             <h4 style="margin-bottom: 12px; font-weight: normal; color: #333;">' + pt('一键迁移 Docker 目录') + '</h4>\
             <div class="form-inline">\
-                <input type="text" id="new_docker_dir" class="bt-input-text mr5" placeholder="请输入新的Docker目录路径，如 /www/docker" style="width:300px;">\
+                <input type="text" id="new_docker_dir" class="bt-input-text mr5" placeholder="' + pt('请输入新的Docker目录路径，如 /www/docker') + '" style="width:300px;">\
                 <button onclick="dockerMigrate()" class="btn btn-success btn-sm" type="button">' + pt('开始迁移') + '</button>\
             </div>\
             <ul class="help-info-text c7 mtb15">\
@@ -1452,7 +1487,7 @@ function dockerDir() {
             </ul>\
             <div style="margin-top: 10px; font-size: 13px; color: #666;">\
                 <span class="glyphicon glyphicon-info-sign" style="margin-right: 5px;"></span>\
-                Docker 默认安装路径为 <a href="javascript:openPath(\'/var/lib/docker/\');" class="btlink">/var/lib/docker/</a>\
+                ' + pt('Docker 默认安装路径为') + ' <a href="javascript:openPath(\'/var/lib/docker/\');" class="btlink">/var/lib/docker/</a>\
             </div>\
         </div>\
     </div>';

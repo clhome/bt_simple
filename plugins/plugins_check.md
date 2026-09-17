@@ -7,14 +7,14 @@
 | 1   | apache          |            |                    |
 | 2   | clean           | 完成       |                    |
 | 3   | data_query      | 基本完成   | 缺一部分多语言适配 |
-| 4   | docker          |            |                    |
+| 4   | docker          | 完成       |                    |
 | 5   | fail2ban        |            |                    |
 | 6   | gitea           |            |                    |
 | 7   | jdk             |            |                    |
 | 8   | linux_sys_opt   |            |                    |
 | 9   | mariadb         |            |                    |
 | 10  | mongodb         |            |                    |
-| 11  | mysql           | 进行中     |                    |
+| 11  | mysql           | 自愈修复   | 未测试             |
 | 12  | ollama          |            |                    |
 | 13  | op_load_balance |            |                    |
 | 14  | op_waf          |            |                    |

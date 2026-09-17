@@ -519,52 +519,110 @@ def getImageListFunc(dbname=''):
 
 def dockerImagePickDir():
     bkDir = yf.getFatherDir() + '/backup/docker'
+    if not os.path.exists(bkDir):
+        os.makedirs(bkDir, exist_ok=True)
     return yf.returnJson(True, 'ok', bkDir)
 
 
 def dockerImagePickList():
-
     bkDir = yf.getFatherDir() + '/backup/docker'
     if not os.path.exists(bkDir):
-        os.mkdir(bkDir)
+        try:
+            os.makedirs(bkDir, exist_ok=True)
+        except Exception:
+            pass
 
-    r = os.listdir(bkDir)
+    # 严格限定支持的镜像归档扩展名
+    allowed_exts = ('.tar', '.tar.gz', '.tgz')
+
     rr = []
-    for x in range(0, len(r)):
-        p = bkDir + '/' + r[x]
-        data = {}
-        data['name'] = r[x]
+    try:
+        if os.path.exists(bkDir):
+            filenames = os.listdir(bkDir)
+            for fname in filenames:
+                if fname.startswith('.'):
+                    continue
+                lower_name = fname.lower()
+                if not any(lower_name.endswith(ext) for ext in allowed_exts):
+                    continue
 
-        rsize = os.path.getsize(p)
-        data['size'] = yf.toSize(rsize)
+                p = os.path.join(bkDir, fname).replace('\\', '/')
+                if not os.path.isfile(p):
+                    continue
 
-        t = os.path.getctime(p)
-        t = time.localtime(t)
+                rsize = os.path.getsize(p)
+                mtime = os.path.getmtime(p)
+                t_struct = time.localtime(mtime)
 
-        data['time'] = time.strftime('%Y-%m-%d %H:%M:%S', t)
-        rr.append(data)
+                data = {
+                    'name': fname,
+                    'size': yf.toSize(rsize),
+                    'raw_size': rsize,
+                    'mtime': mtime,
+                    'time': time.strftime('%Y-%m-%d %H:%M:%S', t_struct),
+                    'file': p
+                }
+                rr.append(data)
 
-        data['file'] = p
+            # 按修改时间倒序排列（最新备份排在前面）
+            rr.sort(key=lambda x: x['mtime'], reverse=True)
+    except Exception as ex:
+        return yf.returnJson(False, '获取镜像备份列表失败: ' + str(ex))
 
     return yf.returnJson(True, 'ok', rr)
 
 
 def dockerImagePickSave():
-    # image 导出
+    # image 导出打包
     args = getArgs()
     data = checkArgs(args, ['images'])
     if not data[0]:
         return data[1]
 
-    bkDir = yf.getFatherDir() + '/backup/docker/'
-    images = args['images']
+    raw_images = args.get('images', '').strip()
+    if not raw_images:
+        return yf.returnJson(False, '请至少选择一个需要导出的镜像')
+
+    img_list = raw_images.split()
+    if not img_list:
+        return yf.returnJson(False, '请选择有效的镜像名称')
+
+    # 分别安全转义每一个镜像名称并以空格连接
+    quoted_images = ' '.join(shlex.quote(img) for img in img_list)
+
+    bkDir = yf.getFatherDir() + '/backup/docker'
+    if not os.path.exists(bkDir):
+        try:
+            os.makedirs(bkDir, exist_ok=True)
+        except Exception:
+            pass
+
+    file_name = bkDir + '/' + str(time.strftime('%Y%m%d_%H%M%S', time.localtime())) + '.tar.gz'
+    quoted_file = shlex.quote(file_name)
+
     try:
-        file_name = bkDir + \
-            str(time.strftime('%Y%m%d_%H%M%S', time.localtime())) + '.tar.gz'
-        yf.execShell('docker image save %s | gzip > %s' %
-                     (shlex.quote(images), shlex.quote(file_name)))
-        return yf.returnJson(True, '导出镜像 {} 成功!'.format(file_name))
-    except docker.errors.APIError as ex:
+        cmd = 'docker image save %s | gzip > %s' % (quoted_images, quoted_file)
+        out, err = yf.execShell(cmd)
+
+        # 检查是否成功生成文件且大小大于0
+        if not os.path.exists(file_name) or os.path.getsize(file_name) == 0:
+            if os.path.exists(file_name):
+                try:
+                    os.remove(file_name)
+                except Exception:
+                    pass
+            err_msg = (err or '').strip() or (out or '').strip()
+            if not err_msg:
+                err_msg = '导出镜像失败，请检查 Docker 服务状态及镜像是否存在'
+            return yf.returnJson(False, '导出镜像失败: ' + err_msg)
+
+        return yf.returnJson(True, '导出镜像 {} 成功!'.format(os.path.basename(file_name)))
+    except Exception as ex:
+        if os.path.exists(file_name) and os.path.getsize(file_name) == 0:
+            try:
+                os.remove(file_name)
+            except Exception:
+                pass
         return yf.returnJson(False, '操作失败: ' + str(ex))
 
 
@@ -574,19 +632,59 @@ def dockerImagePickLoad():
     data = checkArgs(args, ['file'])
     if not data[0]:
         return data[1]
+
+    file_path = args.get('file', '').strip()
+    if not file_path:
+        return yf.returnJson(False, '缺少文件路径参数')
+
+    bkDir = os.path.abspath(yf.getFatherDir() + '/backup/docker')
+    abs_file = os.path.abspath(file_path)
+
+    # 路径安全检查：防止路径遍历，限制在 backup/docker 目录下
     try:
-        file_path = args['file']
-        if not os.path.exists(file_path):
-            return yf.returnJson(False, '文件不存在')
-        if file_path.endswith('.tar'):
-            yf.execShell('docker image load < %s' % shlex.quote(file_path))
-        elif file_path.endswith('.tar.gz'):
-            yf.execShell('gunzip -c %s | docker image load' % shlex.quote(file_path))
+        common = os.path.commonpath([abs_file, bkDir])
+        if common != bkDir:
+            return yf.returnJson(False, '非法的镜像文件路径，仅允许导入备份目录下的文件')
+    except Exception:
+        return yf.returnJson(False, '文件路径校验失败')
+
+    if not os.path.exists(abs_file) or not os.path.isfile(abs_file):
+        return yf.returnJson(False, '镜像文件不存在: ' + os.path.basename(file_path))
+
+    lower_path = abs_file.lower()
+    allowed_exts = ('.tar', '.tar.gz', '.tgz')
+    if not any(lower_path.endswith(ext) for ext in allowed_exts):
+        return yf.returnJson(False, '不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件')
+
+    try:
+        quoted_path = shlex.quote(abs_file)
+        if lower_path.endswith('.tar'):
+            cmd = 'docker image load < %s' % quoted_path
         else:
-            return yf.returnJson(True, '导入镜像文件成功!')
-        return yf.returnJson(True, '导入镜像文件成功!')
-    except docker.errors.APIError as ex:
+            cmd = 'gunzip -c %s | docker image load' % quoted_path
+
+        out, err = yf.execShell(cmd)
+        err_str = (err or '').strip()
+        out_str = (out or '').strip()
+
+        # 检查是否包含明确的错误响应
+        lower_err = err_str.lower()
+        if 'error response from daemon' in lower_err or 'error' in lower_err or 'not in gzip format' in lower_err or 'invalid tar' in lower_err:
+            return yf.returnJson(False, '导入镜像失败: ' + (err_str or out_str))
+
+        if 'error response from daemon' in out_str.lower():
+            return yf.returnJson(False, '导入镜像失败: ' + out_str)
+
+        msg = '导入镜像文件成功!'
+        if 'Loaded image' in out_str:
+            loaded_lines = [line.strip() for line in out_str.split('\n') if 'Loaded image' in line]
+            if loaded_lines:
+                msg = '导入成功: ' + ', '.join(loaded_lines)
+
+        return yf.returnJson(True, msg)
+    except Exception as ex:
         return yf.returnJson(False, '操作失败: ' + str(ex))
+
 
 
 def dockerLoginCheck(user_name, user_pass, registry):

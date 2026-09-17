@@ -233,5 +233,20 @@
     "项目": "Progetto",
     "默认": "Predefinito",
     "，目标目录可用空间为": ", lo spazio disponibile nella directory di destinazione è",
-    "🌟 核心定位：": "🌟 Posizionamento principale:"
+    "🌟 核心定位：": "🌟 Posizionamento principale:",
+    "导入镜像": "Importa immagine",
+    "选择镜像打包": "Seleziona le immagini da impacchettare",
+    "请先勾选需要打包的镜像!": "Seleziona prima le immagini da impacchettare!",
+    "所选镜像无效，请重新选择!": "Immagine selezionata non valida, seleziona di nuovo!",
+    "当前无可用镜像": "Nessuna immagine disponibile",
+    "暂无离线镜像归档包，可点击上方「镜像打包」或「上传镜像」": "Nessun archivio di immagini offline. Fai clic su 'Impacchetta immagine' o 'Carica immagine' in alto.",
+    "正在打包并压缩镜像，过程可能需要较长时间，请稍候...": "Impacchettamento e compressione dell'immagine in corso, attendere...",
+    "正在解压并导入镜像，请稍候...": "Decompressione e importazione dell'immagine in corso, attendere...",
+    "上传导入镜像包[": "Carica archivio immagine [",
+    "(支持 .tar, .tar.gz, .tgz)": "(Supporta .tar, .tar.gz, .tgz)",
+    "Docker 默认安装路径为": "Il percorso di installazione predefinito di Docker è",
+    "开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Attiva il ripristino automatico in caso di errore durante il download dell'immagine (in caso di fallimento del download, il sistema proverà automaticamente a utilizzare gli acceleratori sopra indicati)",
+    " 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)": "Attiva il ripristino automatico in caso di errore durante il download dell'immagine (in caso di fallimento del download, il sistema proverà automaticamente a utilizzare gli acceleratori sopra indicati)",
+    " 开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Attiva il ripristino automatico in caso di errore durante il download dell'immagine (in caso di fallimento del download, il sistema proverà automaticamente a utilizzare gli acceleratori sopra indicati)",
+    "衢州御风科技有限公司出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd."
 }

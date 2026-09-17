@@ -233,5 +233,20 @@
     "项目": "Projekt",
     "默认": "Standard",
     "，目标目录可用空间为": ", der verfügbare Speicherplatz im Zielverzeichnis beträgt",
-    "🌟 核心定位：": "🌟 Kernpositionierung:"
+    "🌟 核心定位：": "🌟 Kernpositionierung:",
+    "导入镜像": "Image importieren",
+    "选择镜像打包": "Images zum Packen auswählen",
+    "请先勾选需要打包的镜像!": "Bitte wählen Sie zuerst die zu packenden Images aus!",
+    "所选镜像无效，请重新选择!": "Das ausgewählte Image ist ungültig, bitte erneut auswählen!",
+    "当前无可用镜像": "Keine Images verfügbar",
+    "暂无离线镜像归档包，可点击上方「镜像打包」或「上传镜像」": "Keine Offline-Image-Archive vorhanden. Klicken Sie oben auf 'Image packen' oder 'Image hochladen'.",
+    "正在打包并压缩镜像，过程可能需要较长时间，请稍候...": "Image wird gepackt und komprimiert, bitte warten...",
+    "正在解压并导入镜像，请稍候...": "Image wird dekomprimiert und importiert, bitte warten...",
+    "上传导入镜像包[": "Image-Archiv hochladen [",
+    "(支持 .tar, .tar.gz, .tgz)": "(Unterstützt .tar, .tar.gz, .tgz)",
+    "Docker 默认安装路径为": "Der Standardinstallationspfad für Docker ist",
+    "开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Automatische Ausfallsicherung beim Abrufen von Images aktivieren (bei fehlgeschlagenem Abruf werden die oben genannten Beschleuniger automatisch ausprobiert)",
+    " 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)": "Automatische Ausfallsicherung beim Abrufen von Images aktivieren (bei fehlgeschlagenem Abruf werden die oben genannten Beschleuniger automatisch ausprobiert)",
+    " 开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Automatische Ausfallsicherung beim Abrufen von Images aktivieren (bei fehlgeschlagenem Abruf werden die oben genannten Beschleuniger automatisch ausprobiert)",
+    "衢州御风科技有限公司出品": "Produziert von Quzhou Yufeng Technology Co., Ltd."
 }

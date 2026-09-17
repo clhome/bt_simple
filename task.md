@@ -116,3 +116,14 @@
 - [x] 76. 编写自动化回归测试套件 (`test/test_upgrade_and_mariadb_self_healing.py`)，验证 MySQL 与 MariaDB 单次升级自愈、版本跳跃与扩展接口
 - [x] 77. 全量测试回归、UTF-8(LF)校验与清理收尾
 
+## Docker 管理器离线镜像导出/导入功能 Bug 修复与优化任务清单
+
+- [x] 78. 重构后端离线镜像列表与过滤排序 (`plugins/docker/index.py` 中的 `dockerImagePickList`)
+- [x] 79. 修复后端多镜像打包参数拼接与真实 Shell 错误捕获 (`plugins/docker/index.py` 中的 `dockerImagePickSave`)
+- [x] 80. 加固后端镜像导入校验、路径安全防护与假成功根除 (`plugins/docker/index.py` 中的 `dockerImagePickLoad`)
+- [x] 81. 修复前端打包弹窗未选镜像校验、增加上传格式限制、空状态与 loading 交互 (`plugins/docker/js/docker.js`)
+- [x] 82. 编写与运行自动化回归测试套件 (`test/test_docker_image_pick.py`)，验证过滤、排序、多镜像打包命令构造与导入校验
+- [x] 83. 成果全量回归、UTF-8(LF)编码校验与清理收尾
+- [x] 84. 修复「上传镜像」点击报 `dPostOrgin is not defined` 缺陷，对齐统一 `api.post('image_pick_dir')` (`plugins/docker/js/docker.js`)
+- [x] 85. 彻底修复 Docker 插件 3 处多语言缺失与匹配缺陷（默认路径裸文、加速器前导空格、出品方署名绑定与 6 大语言包全量补齐） (`docker.js`, `index.html`, `lang/*.json`)
+

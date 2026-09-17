@@ -233,5 +233,20 @@
     "项目": "Project",
     "默认": "Default",
     "，目标目录可用空间为": ", the available space in the target directory is",
-    "🌟 核心定位：": "🌟 Core positioning:"
+    "🌟 核心定位：": "🌟 Core positioning:",
+    "导入镜像": "Import Image",
+    "选择镜像打包": "Select Images to Pack",
+    "请先勾选需要打包的镜像!": "Please select the images you need to pack!",
+    "所选镜像无效，请重新选择!": "The selected image is invalid, please choose again!",
+    "当前无可用镜像": "No images available",
+    "暂无离线镜像归档包，可点击上方「镜像打包」或「上传镜像」": "No offline image archives found. Click 'Image Packaging' or 'Upload Image' above.",
+    "正在打包并压缩镜像，过程可能需要较长时间，请稍候...": "Packing and compressing image(s), this may take a while, please wait...",
+    "正在解压并导入镜像，请稍候...": "Decompressing and importing image, please wait...",
+    "上传导入镜像包[": "Upload Image Archive [",
+    "(支持 .tar, .tar.gz, .tgz)": "(Supports .tar, .tar.gz, .tgz)",
+    "Docker 默认安装路径为": "The default installation path for Docker is",
+    "开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Enable automatic disaster recovery for image pulls (automatically attempts the above accelerators if the pull fails)",
+    " 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)": "Enable automatic disaster recovery for image pulls (automatically attempts the above accelerators if the pull fails)",
+    " 开启拉取镜像自动容灾（拉取失败时自动尝试以上加速器）": "Enable automatic disaster recovery for image pulls (automatically attempts the above accelerators if the pull fails)",
+    "衢州御风科技有限公司出品": "Produced by Quzhou Yufeng Technology Co., Ltd."
 }
