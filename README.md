@@ -238,6 +238,28 @@ root@debian:/root# bs
 请输入命令编号：
 ```
 
+### 4. 插件无损升级与版本自愈检测
+
+为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判”等问题，御风面板为核心数据库插件（MySQL、MariaDB 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
+
+- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 服务并清理孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
+- **命令行主动触发与排查**：
+  若您希望在终端拉取代码后立即执行版本升级检测与环境自愈，可直接调用对应插件的 `check_plugin_upgrade` 函数：
+
+  ```bash
+  # MySQL 插件：检测版本跃迁并执行单次自愈迁移（已是最新版本则 0 开销放行）
+  python3 plugins/mysql/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/mysql/index.py upgrade_self_healing
+
+  # MariaDB 插件：检测版本跃迁并执行单次自愈迁移
+  python3 plugins/mariadb/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/mariadb/index.py upgrade_self_healing
+  ```
+
+- **生产数据零触碰防护**：自愈引擎搭载 `isMysqlDataInited` 防御层，只要检测到系统库或用户业务库，**坚决禁止清空或重命名用户数据目录**（如 `/www/server/mysql/data`），确保 100% 平滑无损。
+
 ---
 
 ## 👨‍💻 开发方法
@@ -256,6 +278,35 @@ root@debian:/root# bs
 2. 编写 `info.json` 定义插件元数据。
 3. 编写 `install.sh` 实现自动化安装逻辑。
 4. 编写 `index.py` 处理插件的后端业务逻辑。
+
+### 插件大版本升级迁移规范 (Migration Pipeline)
+
+在插件开发中，若涉及配置微调、SQLite 数据库表结构升级（如增删字段）或 Systemd 守护进程重载，推荐遵循与 MySQL/MariaDB 对齐的**版本跃迁单次自愈模式**，避免每次接口请求都进行重复低效检查：
+
+1. **定义插件大版本与标记文件**：
+   ```python
+   CURRENT_PLUGIN_VERSION = '2.0'
+
+   def getPluginVersionFile():
+       return getPluginDir() + '/plugin_version.pl'
+   ```
+2. **注册迁移流水线 (支持后续平滑扩充)**：
+   ```python
+   def _migrate_1_to_2(version=''):
+       # 执行从 1.x 升级到 2.0 所需的数据库 ALTER TABLE、配置校准等自愈动作
+       return upgradeSelfHealing(version)
+
+   # 迁移流水线：(目标大版本, 迁移执行函数)
+   # 后续升级（如 2.1、3.0）只需按版本递增顺序在此追加注册，扩展性极佳
+   PLUGIN_MIGRATION_STEPS = [
+       ('2.0', _migrate_1_to_2),
+       # ('3.0', _migrate_2_to_3),
+   ]
+   ```
+3. **实现升级检测函数 `checkPluginUpgrade`**：
+   - 读取已安装版本，若 `installed_version < target_version`，按版本流水线依次执行迁移；
+   - 迁移顺利完成后原子写回新版本号，确保**跨版本升级后只执行一次**；
+   - 在 `status()` 入口、初始化函数及 `install.sh` 升级分支中调用。
 
 ### 编码原则
 
