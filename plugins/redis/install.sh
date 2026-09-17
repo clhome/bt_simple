@@ -14,12 +14,27 @@ VERSION=$2
 
 Install_App()
 {
+	if [ -d $serverPath/redis ] && [ -f $serverPath/redis/bin/redis-server ]; then
+		echo "检测到 Redis 已存在部署实例，正在执行平滑无损升级与环境自愈 (版本: ${VERSION})..."
+		if [ -n "${VERSION}" ]; then
+			echo "${VERSION}" > $serverPath/redis/version.pl
+		fi
+		# 执行平滑升级与大版本自愈迁移（配置校验、服务守护进程注册、状态对齐）
+		cd ${rootPath} && python3 ${rootPath}/plugins/redis/index.py detect_version
+		cd ${rootPath} && python3 ${rootPath}/plugins/redis/index.py check_plugin_upgrade
+		cd ${rootPath} && python3 ${rootPath}/plugins/redis/index.py upgrade_self_healing
+		cd ${rootPath} && python3 ${rootPath}/plugins/redis/index.py initd_install
+		echo "Redis 平滑无损升级与环境自愈完成！"
+		exit 0
+	fi
+
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/source/redis
 
 	FILE_TGZ=redis-${VERSION}.tar.gz
 	REDIS_DIR=$serverPath/source/redis
+
 
 	if [ ! -f $REDIS_DIR/${FILE_TGZ} ];then
 		wget -nv --no-check-certificate -O $REDIS_DIR/${FILE_TGZ} https://download.redis.io/releases/${FILE_TGZ}
@@ -112,9 +127,9 @@ Uninstall_App()
 	echo "卸载redis成功"
 }
 
-action=$1
-if [ "${1}" == 'install' ];then
+action="${1//$'\r'/}"
+if [ "${action}" == 'install' ] || [ "${action}" == 'update' ] || [ "${action}" == 'upgrade' ];then
 	Install_App
 else
 	Uninstall_App
-fi
+fi

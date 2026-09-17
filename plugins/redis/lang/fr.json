@@ -92,5 +92,20 @@
     "集群状态": "État du cluster",
     "集群节点": "nœud de cluster",
     "💡 动态集群创建示例 1 (不带副本)：": "💡 Exemple 1 de création de cluster dynamique (sans réplicas) :",
-    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Exemple 2 de création de cluster dynamique (avec 1 réplica) :"
+    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Exemple 2 de création de cluster dynamique (avec 1 réplica) :",
+    "绑定IP(修改绑定IP可能会存在安全隐患)": "IP de liaison (la modification de l'IP de liaison peut présenter des risques de sécurité)",
+    "获取负载状态失败": "Échec de la récupération de l'état de la charge",
+    "日志文件": "Fichier journal",
+    "刷新日志": "Actualiser le journal",
+    "清空日志": "Effacer le journal",
+    "确认清空当前 Redis 运行日志吗？": "Voulez-vous vraiment effacer le journal de Redis ?",
+    "正在获取运行日志...": "Récupération du journal...",
+    "获取日志失败": "Échec de récupération du journal",
+    "清空运行日志失败": "Échec de l'effacement du journal",
+    "日志已清空": "Journal effacé avec succès",
+    "说明": "Remarque",
+    "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Le journal Redis enregistre uniquement le cycle de vie (démarrage/arrêt), les instantanés RDB/AOF et les erreurs. Les écritures/lectures de données normales n'y sont pas inscrites.",
+    "当前暂无新增运行日志": "Aucun nouveau journal pour le moment",
+    "提示": "Indication",
+    "正在清空...": "Effacement en cours..."
 }

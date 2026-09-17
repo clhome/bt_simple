@@ -44,12 +44,24 @@ class nosqlRedis():
     def __init__(self):
         self.__config = self.get_options(None)
 
+    def getLastError(self):
+        return getattr(self, '_nosqlRedis__DB_ERR', '')
+
     def setSid(self, sid):
         self.__sid = sid
         self.__config = self.get_options(sid=sid)
-        self.__DB_HOST = self.__config.get('bind', self.__config.get('host', '127.0.0.1'))
+        raw_host = self.__config.get('bind', self.__config.get('host', '127.0.0.1'))
+        # 智能提取单个有效 Host，过滤 IPv6 -::1 及 0.0.0.0
+        if not sid or sid == 0 or raw_host in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_host):
+            self.__DB_HOST = '127.0.0.1'
+        else:
+            self.__DB_HOST = str(raw_host).split()[0].strip()
+
         self.__DB_PORT = int(self.__config.get('port', 6379))
-        self.__DB_PASS = self.__config.get('requirepass', self.__config.get('password', ''))
+        raw_pass = self.__config.get('requirepass', self.__config.get('password', ''))
+        if isinstance(raw_pass, str):
+            raw_pass = raw_pass.strip().strip('"').strip("'")
+        self.__DB_PASS = raw_pass
 
     def close(self):
         if self.__DB_CONN:
@@ -66,33 +78,84 @@ class nosqlRedis():
     def redis_conn(self, db_idx=0):
         try:
             import redis
-        except Exception:
+        except Exception as e:
+            self.__DB_ERR = f"Python 环境缺少 redis 扩展模块: {e}"
             return False
 
         if not self.__DB_LOCAL:
             if isinstance(self.__config, dict) and 'requirepass' in self.__config:
-                self.__DB_PASS = self.__config['requirepass']
+                p = self.__config['requirepass']
+                if isinstance(p, str):
+                    p = p.strip().strip('"').strip("'")
+                self.__DB_PASS = p
             if isinstance(self.__config, dict) and 'port' in self.__config:
                 try:
                     self.__DB_PORT = int(self.__config['port'])
                 except Exception:
                     pass
             if isinstance(self.__config, dict) and 'bind' in self.__config:
-                self.__DB_HOST = self.__config['bind']
+                raw_bind = self.__config['bind']
+                if not self.__sid or self.__sid == 0 or raw_bind in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_bind):
+                    self.__DB_HOST = '127.0.0.1'
+                else:
+                    self.__DB_HOST = str(raw_bind).split()[0].strip()
 
         try:
+            # 兼容密码中的特殊字符
+            conn_pass = self.__DB_PASS if (self.__DB_PASS and self.__DB_PASS != "''" and self.__DB_PASS != '""') else None
             redis_pool = redis.ConnectionPool(
                 host=self.__DB_HOST,
                 port=self.__DB_PORT,
-                password=self.__DB_PASS if self.__DB_PASS else None,
+                password=conn_pass,
                 db=db_idx,
                 socket_timeout=5
             )
             self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
             self.__DB_CONN.ping()
+            self.__DB_ERR = None
             return self.__DB_CONN
-        except Exception:
-            self.__DB_ERR = yf.getTracebackInfo()
+        except Exception as e:
+            err_str = str(e)
+            is_local = (not self.__sid or self.__sid == 0 or self.__DB_HOST in ['127.0.0.1', 'localhost'])
+            # 针对本地连接出现认证不匹配（WRONGPASS / invalid username-password / NOAUTH）触发全自动自愈
+            if is_local and any(k in err_str.lower() for k in ['invalid username-password', 'wrongpass', 'noauth', 'without any password configured']):
+                # 尝试自愈策略 1：若当前 Redis 处于无密码状态，在线热同步为 redis.conf 中的密码
+                if conn_pass:
+                    try:
+                        temp_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=None, socket_timeout=3)
+                        temp_conn = redis.Redis(connection_pool=temp_pool)
+                        temp_conn.ping()
+                        temp_conn.config_set('requirepass', conn_pass)
+                        try:
+                            temp_conn.config_rewrite()
+                        except:
+                            pass
+                        temp_conn.close()
+                        # 热同步成功后立即以新密码重连
+                        redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=conn_pass, db=db_idx, socket_timeout=5)
+                        self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
+                        self.__DB_CONN.ping()
+                        self.__DB_ERR = None
+                        return self.__DB_CONN
+                    except Exception:
+                        pass
+
+                # 尝试自愈策略 2：平滑重启本地 Redis 重新挂载权威 redis.conf
+                try:
+                    import plugins.redis.index as redis_mgr
+                    if hasattr(redis_mgr, 'restart'):
+                        redis_mgr.restart()
+                        time.sleep(1)
+                        redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=conn_pass, db=db_idx, socket_timeout=5)
+                        self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
+                        self.__DB_CONN.ping()
+                        self.__DB_ERR = None
+                        return self.__DB_CONN
+                except Exception:
+                    pass
+
+            self.__DB_ERR = err_str
+            yf.writeLog('数据管理', f"连接 Redis 失败 [{self.__DB_HOST}:{self.__DB_PORT}]: {str(e)}")
         return False
 
     # 获取配置项
@@ -135,6 +198,13 @@ class nosqlRedis():
 
         redis_conf_path = "{}/redis/redis.conf".format(yf.getServerDir())
         if not os.path.exists(redis_conf_path):
+            # 候选路径自愈检索
+            for alt_conf in ['/etc/redis/redis.conf', '/etc/redis.conf']:
+                if os.path.exists(alt_conf):
+                    redis_conf_path = alt_conf
+                    break
+
+        if not os.path.exists(redis_conf_path):
             return result
 
         redis_conf = yf.readFile(redis_conf_path)
@@ -154,15 +224,30 @@ class nosqlRedis():
                 elif k == "requirepass":
                     v = ""
             else:
+                raw_str = group.group(1).strip()
                 if k == "maxmemory":
-                    v = int(group.group(1).strip("mb"))
+                    try:
+                        v = int(raw_str.lower().strip("mb").strip("m").strip())
+                    except:
+                        v = 0
                 elif k == "port":
                     if not port_info.get('is_custom'):
-                        v = int(group.group(1).strip())
+                        try:
+                            v = int(raw_str.split()[0].strip())
+                        except:
+                            v = 6379
                     else:
                         v = result['port']
+                elif k in ["requirepass"]:
+                    # 剥离外层双引号/单引号
+                    v = raw_str
+                    if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+                        v = v[1:-1].strip()
+                elif k == "bind":
+                    # 规范本地 host
+                    v = raw_str
                 else:
-                    v = group.group(1).strip()
+                    v = raw_str
             result[k] = v
         return result
 
@@ -206,8 +291,19 @@ class nosqlRedisCtr():
         if not isinstance(args, dict):
             args = {}
         sid = args.get('sid', 0)
-        redis_instance = self.getInstanceBySid(sid).redis_conn(0)
+        ins = self.getInstanceBySid(sid)
+        redis_instance = ins.redis_conn(0)
         if redis_instance is False:
+            err_msg = ins.getLastError()
+            if err_msg:
+                if 'WRONGPASS' in err_msg or 'invalid password' in err_msg.lower() or 'invalid username-password' in err_msg.lower():
+                    return yf.returnData(False, f'Redis 密码错误，请在连接设置中校准密码 ({err_msg})')
+                elif 'Connection refused' in err_msg or '连接被拒绝' in err_msg:
+                    return yf.returnData(False, f'连接被拒绝，请确认 Redis 服务已启动且端口正确 ({err_msg})')
+                elif "No module named 'redis'" in err_msg or '缺少 redis 扩展' in err_msg:
+                    return yf.returnData(False, '未安装 redis 驱动模块，请在终端执行: pip install redis', {'driver_missing': True})
+                else:
+                    return yf.returnData(False, f'连接 Redis 失败: {err_msg}')
             return yf.returnData(False, '无法连接 Redis 服务，请确认服务已启动或端口设置正确')
 
 

@@ -53,15 +53,14 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* 右侧内容区域固定高度与纵向平滑滚动 */
+/* 右侧内容区域固定高度与单层滚动保护 */
 .bt-w-con {
     flex: 1 !important;
     height: 100% !important;
     margin-left: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     box-sizing: border-box !important;
-    padding: 15px 20px 45px 20px !important;
+    padding: 16px 20px !important;
     background-color: #ffffff !important;
     float: none !important;
 }
@@ -71,6 +70,45 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: middle;
+}
+
+/* 性能调整独立表单与宽屏全舒展防换行规则 */
+.redis-conf-wrap {
+    width: 100% !important;
+}
+.redis-form-row {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-bottom: 14px !important;
+}
+.redis-form-label {
+    width: 115px !important;
+    min-width: 115px !important;
+    text-align: right !important;
+    padding-right: 14px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+}
+.redis-form-body {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+    flex-wrap: nowrap !important;
+    margin: 0 !important;
+}
+.redis-field-desc {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: none !important;
+    text-align: left !important;
+    margin-left: 14px !important;
+    color: #6b7280 !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    line-height: 1.5 !important;
 }
 </style>
 
@@ -86,18 +124,18 @@
 			<p onclick="replStatus($('.plugin_version').attr('version'));">主从状态</p>
 			<p onclick="clusterStatus($('.plugin_version').attr('version'));">集群状态</p>
 			<p onclick="clusterNodes($('.plugin_version').attr('version'));">集群节点</p>
-			<p onclick="pluginLogs('redis','','run_log');">运行日志</p>
+			<p onclick="redisRunLog();">运行日志</p>
 			<p onclick="redisReadme();">相关说明</p>
 			
 		</div>
-		<div class="bt-w-con pd15">
-			<div class="soft-man-con" style="height: 520px; overflow: auto;"></div>
+		<div class="bt-w-con">
+			<div class="soft-man-con" style="height: 100% !important; width: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; box-sizing: border-box !important;"></div>
 		</div>
 	</div>
 </div>
 <script type="text/javascript">
 resetPluginWinWidth(1050);
-resetPluginWinHeight(620);
+resetPluginWinHeight(640);
 
 $.getScript( "/plugins/file?name=redis&f=js/redis.js", function(){
 	pluginService('redis', $('.plugin_version').attr('version'));

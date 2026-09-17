@@ -92,5 +92,20 @@
     "集群状态": "Cluster-Status",
     "集群节点": "Clusterknoten",
     "💡 动态集群创建示例 1 (不带副本)：": "💡 Dynamisches Cluster-Erstellungsbeispiel 1 (ohne Replikate):",
-    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Dynamisches Cluster-Erstellungsbeispiel 2 (mit 1 Replikat):"
+    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Dynamisches Cluster-Erstellungsbeispiel 2 (mit 1 Replikat):",
+    "绑定IP(修改绑定IP可能会存在安全隐患)": "Bind-IP (Änderung der Bind-IP kann Sicherheitsrisiken bergen)",
+    "获取负载状态失败": "Fehler beim Abrufen des Laststatus",
+    "日志文件": "Protokolldatei",
+    "刷新日志": "Protokoll aktualisieren",
+    "清空日志": "Protokoll leeren",
+    "确认清空当前 Redis 运行日志吗？": "Möchten Sie das Redis-Ausführungsprotokoll wirklich leeren?",
+    "正在获取运行日志...": "Ausführungsprotokoll wird abgerufen...",
+    "获取日志失败": "Abrufen des Protokolls fehlgeschlagen",
+    "清空运行日志失败": "Leeren des Protokolls fehlgeschlagen",
+    "日志已清空": "Protokoll erfolgreich geleert",
+    "说明": "Hinweis",
+    "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Das Redis-Protokoll zeichnet nur Lebenszyklusereignisse (Start/Stopp), RDB/AOF-Snapshots und Fehler auf. Reguläre Lese-/Schreibvorgänge von Schlüsseln werden hier nicht protokolliert.",
+    "当前暂无新增运行日志": "Derzeit keine neuen Protokolleinträge vorhanden",
+    "提示": "Hinweis",
+    "正在清空...": "Wird geleert..."
 }

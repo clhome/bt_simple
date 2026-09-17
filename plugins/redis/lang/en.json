@@ -92,5 +92,20 @@
     "集群状态": "Cluster status",
     "集群节点": "cluster node",
     "💡 动态集群创建示例 1 (不带副本)：": "💡 Dynamic cluster creation example 1 (without replicas):",
-    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Dynamic cluster creation example 2 (with 1 replica):"
+    "💡 动态集群创建示例 2 (带 1 个副本)：": "💡 Dynamic cluster creation example 2 (with 1 replica):",
+    "绑定IP(修改绑定IP可能会存在安全隐患)": "Binding IP (modifying binding IP may pose security risks)",
+    "获取负载状态失败": "Failed to retrieve load status",
+    "日志文件": "Log File",
+    "刷新日志": "Refresh Log",
+    "清空日志": "Clear Log",
+    "确认清空当前 Redis 运行日志吗？": "Are you sure you want to clear the Redis run log?",
+    "正在获取运行日志...": "Retrieving run log...",
+    "获取日志失败": "Failed to get run log",
+    "清空运行日志失败": "Failed to clear run log",
+    "日志已清空": "Log cleared successfully",
+    "说明": "Notice",
+    "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Redis run log only records service lifecycle events (start/stop), RDB/AOF snapshots, and errors. Regular key-value read/write records are not recorded here.",
+    "当前暂无新增运行日志": "No new run logs at this time",
+    "提示": "Prompt",
+    "正在清空...": "Clearing..."
 }

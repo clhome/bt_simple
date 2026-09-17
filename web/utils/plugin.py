@@ -508,7 +508,36 @@ class plugin(object):
     def getVersion(self, path):
         version_pl = path + '/version.pl'
         if os.path.exists(version_pl):
-            return yf.readFile(version_pl).strip()
+            v = yf.readFile(version_pl).strip()
+            if v:
+                return v
+
+        # 自愈探测机制：如果 version.pl 缺失，尝试根据对应软件二进制探测并自动写回
+        try:
+            # 1. 探测 Redis
+            redis_bin = path + '/bin/redis-server'
+            if os.path.exists(redis_bin):
+                data = yf.execShell(f"{redis_bin} -v")
+                out = data[0] if data and len(data) > 0 else ''
+                m = re.search(r'v=([0-9]+\.[0-9]+(?:\.[0-9]+)?)', out)
+                if m:
+                    ver = m.group(1).strip()
+                    yf.writeFile(version_pl, ver)
+                    return ver
+
+            # 2. 探测 MySQL / MariaDB
+            mysql_bin = path + '/bin/mysql'
+            if os.path.exists(mysql_bin):
+                data = yf.execShell(f"{mysql_bin} -V")
+                out = data[0] if data and len(data) > 0 else ''
+                m = re.search(r'Distrib\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)', out)
+                if m:
+                    ver = m.group(1).strip()
+                    yf.writeFile(version_pl, ver)
+                    return ver
+        except Exception:
+            pass
+
         return ''
 
     def checkIndexList(self, name, version):

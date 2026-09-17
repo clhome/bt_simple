@@ -136,3 +136,75 @@
 - [x] 90. 成果全量回归、UTF-8(LF)编码校验与清理收尾
 - [x] 91. 精简非中文多语言文案（英文改为 `Backup & Download`，德/法/意同步精简）并拓宽管理弹窗尺寸至 1180px，彻底消除多语言下操作栏按钮折行缺陷 (`lang/*.json`, `plugins/mysql/index.html`)
 - [x] 92. 彻底根除 `setDbBackup` 使用 `os.system` 导致子进程控制台日志泄露污染 API JSON 返回缺陷，并在前端实现鲁棒的自愈提取解析与全流程错误阻断 (`plugins/mysql/index.py`, `plugins/mysql/js/mysql.js`)
+
+## Redis 插件启动故障根治与平滑无损升级自愈任务清单
+
+- [x] 93. 重构 Redis systemd 服务模板 (`plugins/redis/init.d/redis.service.tpl`)：添加标准 `PIDFile`，废除暴力强杀 `pkill -9`，配置启动超时与重启策略
+- [x] 94. 重构状态探针 `status()` 与多模态探活自愈 (`plugins/redis/index.py`)：整合 PID 文件、进程树探针 (`pgrep`)、端口监听与 systemd 状态，存活时自动写回真实 PID，彻底消除假死误判
+- [x] 95. 生产配置与密码“零触碰”防御与初始化加固 (`plugins/redis/index.py` 中的 `initDreplace`)：已有 `redis.conf` 绝对禁止覆盖重置，保留密码与端口，补齐 `init.pl` 与运行目录自愈
+- [x] 96. 启动闭环校验与假成功彻底拦截 (`plugins/redis/index.py` 中的 `start` / `redisOp`)：拉起后同步探活，未成功拉起时提取真实日志报错返回，避免假阳性
+- [x] 97. 实现大版本升级检测与单次自愈流水线 (`plugins/redis/index.py` 中的 `checkPluginUpgrade` 与 `upgradeSelfHealing`)：支持 1.x->2.0 自动单次自愈，清理 apt 冲突服务、重置 systemd 失败状态、对齐版本标记
+- [x] 98. 改造安装升级脚本 (`plugins/redis/install.sh`)：检测到已有实例时平滑进入无损升级自愈，不再重复编译
+- [x] 99. 更新 `README.md` 中的自愈命令文档，添加 Redis 插件的 `check_plugin_upgrade` 与 `upgrade_self_healing` 使用说明
+- [x] 100. 编写自动化回归测试套件 (`test/test_redis_upgrade_self_healing.py`)，验证多模态探针、PID 自愈、配置保护、升级检测与单次执行特性 100% 通过
+- [x] 101. 成果全量回归、UTF-8(LF)编码检查与临时文件清理收尾
+
+## Redis 插件版本丢失、配置为空与传参缺陷自愈任务清单
+
+- [x] 102. 彻底修复 `getArgs()` 参数解析与偏移缺陷 (`plugins/redis/index.py`)：智能支持无版本传参 (`sys.argv[2]`) 与多版本传参 (`sys.argv[3]`)，根除 `参数:(file)没有!`
+- [x] 103. 实现配置多源智能探测与自愈同步 (`plugins/redis/index.py` 中的 `getConf` / `detectAndFixConf`)：支持从运行进程参数、`/etc/redis/redis.conf`、`/etc/redis.conf` 自愈，保证 `redis.conf` 绝不为空
+- [x] 104. 重构性能调整配置正则提取与保存逻辑 (`plugins/redis/index.py` 中的 `getRedisConfInfo` / `submitRedisConf`)：支持特殊字符密码、IPv6、引号包裹与行尾注释，杜绝配置读出为空
+- [x] 105. 实现 Redis 二进制版本自愈与面板版本探测增强 (`plugins/redis/index.py`, `web/utils/plugin.py`)：通过 `redis-server -v` 自动探测并写回 `version.pl`
+- [x] 106. 优化前端弹窗标题格式化逻辑 (`web/static/app/soft.js`)：彻底消除 `Redis [] Manage` 空白方括号
+- [x] 107. 编写与运行自动化回归测试套件 (`test/test_redis_config_and_version_fix.py`) 验证版本探测、参数解析与正则匹配 100% 通过
+- [x] 108. 成果全量回归、UTF-8(LF)编码检查与收尾
+
+## Redis 弹窗细节美化、状态值修复、双滚动条消除与 Data Manager 连接自愈任务清单
+
+- [x] 109. 优化性能调整 input 宽度与 Flex 对齐排版 (`plugins/redis/js/redis.js`)：IP 与密码扩至 260px，去除生硬逗号，优化布局结构
+- [x] 110. 补齐性能调整说明文字多语言字典与翻译调用 (`plugins/redis/js/redis.js`, `plugins/redis/lang/*.json`)：支持中英法德意繁全面多语言
+- [x] 111. 修复负载状态（load status）全部 undefined 根因 (`plugins/redis/index.py` 中的 `getRedisCmd` / `runInfo`)：精准识别密码与端口，避免未认证返回空
+- [x] 112. 优化弹窗布局样式与消除双滚动条 (`plugins/redis/index.html`, `web/static/app/soft.js`)：消除重复标题版本，解决滚动条重叠与高度不足
+- [x] 113. 优化运行日志获取逻辑与空日志自愈 (`plugins/redis/index.py` 中的 `runLog`)：动态解析配置文件中的真实 `logfile` 路径
+- [x] 114. 修复 Data Manager 连接 Redis 失败根因 (`plugins/data_query/nosql_redis.py`)：智能解析带 IPv6 的 bind 与双引号密码，提供详尽异常诊断
+- [x] 115. 编写自动化回归测试套件 (`test/test_redis_ui_and_datamanager_fix.py`) 验证状态读取、参数提取、密码处理与 Data Manager 连接 100% 通过
+
+## Redis 性能配置宽屏自适应、内存密码热同步与负载状态全自动自愈任务清单
+
+- [x] 116. 性能调整表单 CSS 隔离与宽屏舒展 (`plugins/redis/js/redis.js`, `plugins/redis/index.html`)：废除受污染的 `.conf_p span` 样式，说明文字单行完整舒展铺开，彻底消除换行
+- [x] 117. 配置提交真实生效机制修复 (`plugins/redis/index.py` 中的 `submitRedisConf`)：将无效的 `reload()` 替换为平滑安全的 `restart()`，确保配置与内存 100% 同步生效
+- [x] 118. Data Manager 本地 Redis 连接在线热同步与自愈重连 (`plugins/data_query/nosql_redis.py`)：检测到 `invalid username-password` 时尝试在线 CONFIG SET 或自动平滑自愈重连
+- [x] 119. 负载状态读取失败自动自愈与精准诊断 (`plugins/redis/index.py` 中的 `runInfo` 与 `getRedisCmd`)：对齐命令转义，当密码分歧时自动触发自愈并重试提取，杜绝“未能读取到有效状态数据”
+- [x] 120. 编写与运行自动化回归测试套件 (`test/test_redis_hot_sync_and_full_width.py`) 验证宽屏排版、热同步自愈与状态提取 100% 通过
+- [x] 121. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+## Redis 性能配置 input 统一等宽与原生 RESP/Socket 零依赖状态读取自愈清单
+
+- [x] 122. 性能调整所有配置项 input 框宽度统一为 200px (`plugins/redis/js/redis.js`)
+- [x] 123. 重构 Redis 状态获取机制：实现三级执行器（Python redis 模块 -> 原生 Socket RESP 零依赖直连 -> redis-cli 回退） (`plugins/redis/index.py`)
+- [x] 124. 同步升级 `infoReplication`、`clusterInfo`、`clusterNodes` 为三级可靠执行器 (`plugins/redis/index.py`)
+- [x] 125. 编写与运行自动化回归测试套件 (`test/test_redis_resp_socket_and_uniform_inputs.py`)
+- [x] 126. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+## Redis 运行日志空白彻底根除、专属现代化日志视图与业务说明自愈清单
+
+- [x] 127. 彻底移除 `restart()` 中粗暴清空日志文件缺陷，改为安全追加重启活跃记录 (`plugins/redis/index.py`)
+- [x] 128. 增强后端日志接口：实现 `getRunLog()` 与 `clearRunLog()`，支持多模态日志自愈（物理文件 -> systemd journalctl 提取 -> 格式化健康诊断），并动态确保 `redis.conf` 具备有效绝对路径 `logfile` (`plugins/redis/index.py`)
+- [x] 129. 前端构建专属现代化日志视图 `redisRunLog()` (`plugins/redis/js/redis.js`, `plugins/redis/index.html`)：
+  - 路径与状态实时展示；
+  - 提供【刷新日志】与【清空日志】便捷控制；
+  - 增加醒目的绿色多语言业务提示条：明确说明“Redis 为内存数据库，默认仅记录生命周期、快照与告警事件，常规键值读写记录不写入运行日志”；
+  - 等宽代码字体、暗色终端高对比配色、高度自适应，彻底杜绝黑屏空白。
+- [x] 130. 补充 6 国国际化多语言词条 (`plugins/redis/lang/*.json`)：日志文件、刷新日志、清空日志、说明等全面适配
+- [x] 131. 编写与运行自动化回归测试套件 (`test/test_redis_run_log_fix.py`) 6 项测试全部通过
+- [x] 132. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+## Redis 状态数据解析字典格式兼容与误报根治清单
+
+- [x] 133. 修复 Python `redis` 客户端返回 dict 字典导致 `runInfo()`、`infoReplication()` 与 `clusterInfo()` 解析失败并误判触发重启的缺陷 (`plugins/redis/index.py`)
+- [x] 134. 在 `execRedisCommand` 增加 `format_redis_res` 将 Python 字典转为标准多行键值字符串，保持协议一致性 (`plugins/redis/index.py`)
+- [x] 135. 在 `runInfo()`、`infoReplication()`、`clusterInfo()` 中构建三重容灾提取（标准换行 -> `ast.literal_eval` -> 正则匹配），彻底杜绝“未能读取到有效的 Redis 状态数据” (`plugins/redis/index.py`)
+- [x] 136. 更新自动化测试套件 (`test/test_redis_resp_socket_and_uniform_inputs.py`) 加入用户真实数据字典解析测试，4 项测试全部通过
+- [x] 137. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+

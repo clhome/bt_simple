@@ -16,7 +16,11 @@ function resetPluginWinHeight(height) {
 
 //软件管理窗口
 function softMain(name, title, version) {
-  var _title = title.replace('-' + version, '');
+  var _title = title;
+  if (version && String(version).trim() !== '' && String(version).trim() !== 'undefined') {
+    var vStr = String(version).trim();
+    _title = _title.replace('-' + vStr, '').replace(' ' + vStr, '').replace(vStr, '').trim();
+  }
   if (window.YfI18n && typeof window.YfI18n.loadPluginLangAsync === 'function') {
     window.YfI18n.loadPluginLangAsync(name);
   }
@@ -30,7 +34,10 @@ function softMain(name, title, version) {
     var currentLang = (window.YfI18n && typeof window.YfI18n.getLanguage === 'function' ? window.YfI18n.getLanguage() : null) || (window.YfI18n && window.YfI18n.currentLang) || 'zh-CN';
     var isZh = currentLang === 'zh-CN' || currentLang === 'zh-TW';
     var manageText = (window.t && (window.t('soft.management_action') || window.t('management_action') || window.t('public.manage') || window.t('public.management_action'))) || 'Manage';
-    var winTitle = isZh ? (_title + '【' + version + '】管理') : (_title + ' [' + version + '] ' + manageText);
+    var hasVer = (version && String(version).trim() !== '' && String(version).trim() !== 'undefined');
+    var winTitle = isZh
+      ? (hasVer ? (_title + '【' + version + '】管理') : (_title + '管理'))
+      : (hasVer ? (_title + ' [' + version + '] ' + manageText) : (_title + ' ' + manageText));
     layer.open({
       type: 1,
       area: '640px',

@@ -240,9 +240,9 @@ root@debian:/root# bs
 
 ### 4. 插件无损升级与版本自愈检测
 
-为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判”等问题，御风面板为核心数据库插件（MySQL、MariaDB 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
+为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判、守护进程锁死”等问题，御风面板为核心数据库插件（MySQL、MariaDB、Redis 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
 
-- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 服务并清理孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
+- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 守护进程与 PID 文件、清理冲突服务与孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
 - **命令行主动触发与排查**：
   若您希望在终端拉取代码后立即执行版本升级检测与环境自愈，可直接调用对应插件的 `check_plugin_upgrade` 函数：
 
@@ -256,9 +256,17 @@ root@debian:/root# bs
   python3 plugins/mariadb/index.py check_plugin_upgrade
   # 或直接手动触发全量环境自愈报告
   python3 plugins/mariadb/index.py upgrade_self_healing
+
+  # Redis 插件：检测版本跃迁并执行单次自愈迁移（校准 systemd、清理 apt 冲突、PID 自愈）
+  python3 plugins/redis/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/redis/index.py upgrade_self_healing
   ```
 
-- **生产数据零触碰防护**：自愈引擎搭载 `isMysqlDataInited` 防御层，只要检测到系统库或用户业务库，**坚决禁止清空或重命名用户数据目录**（如 `/www/server/mysql/data`），确保 100% 平滑无损。
+- **生产数据与配置零触碰防护**：自愈引擎搭载严密的零触碰防御层：
+  - MySQL / MariaDB 检测到系统库或用户业务库时，**坚决禁止清空或重命名用户数据目录**（如 `/www/server/mysql/data`）；
+  - Redis 检测到已有配置文件时，**坚决禁止覆盖重写 `redis.conf`，100% 完整保留用户已有密码、端口与自定义参数**。
+
 
 ---
 
