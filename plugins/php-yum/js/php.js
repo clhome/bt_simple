@@ -146,18 +146,18 @@ function getFpmConfig(version, pool = 'www'){
         // console.log(data);
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
-        var limitList = "<option value='0'>' + pt('自定义') + '</option>" +
-            "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">' + pt('2并发') + '</option>" +
-            "<option value='1' " + (rdata.max_children == 5 ? 'selected' : '') + ">' + pt('5并发') + '</option>" +
-            "<option value='2' " + (rdata.max_children == 10 ? 'selected' : '') + ">' + pt('10并发') + '</option>" +
-            "<option value='3' " + (rdata.max_children == 30 ? 'selected' : '') + ">' + pt('30并发') + '</option>" +
-            "<option value='4' " + (rdata.max_children == 50 ? 'selected' : '') + ">' + pt('50并发') + '</option>" +
-            "<option value='5' " + (rdata.max_children == 100 ? 'selected' : '') + ">' + pt('100并发') + '</option>" +
-            "<option value='6' " + (rdata.max_children == 200 ? 'selected' : '') + ">' + pt('200并发') + '</option>" +
-            "<option value='7' " + (rdata.max_children == 300 ? 'selected' : '') + ">' + pt('300并发') + '</option>" +
-            "<option value='8' " + (rdata.max_children == 500 ? 'selected' : '') + ">' + pt('500并发') + '</option>" +
-            "<option value='9' " + (rdata.max_children == 2000 ? 'selected' : '') + ">' + pt('2000并发') + '</option>";
-        var pms = [{ 'name': 'static', 'title': '静态' }, { 'name': 'dynamic', 'title': '动态' },{ 'name': 'ondemand', 'title': '按需' }];
+        var limitList = "<option value='0'>" + pt('自定义') + "</option>" +
+            "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">" + pt('2并发') + "</option>" +
+            "<option value='1' " + (rdata.max_children == 5 ? 'selected' : '') + ">" + pt('5并发') + "</option>" +
+            "<option value='2' " + (rdata.max_children == 10 ? 'selected' : '') + ">" + pt('10并发') + "</option>" +
+            "<option value='3' " + (rdata.max_children == 30 ? 'selected' : '') + ">" + pt('30并发') + "</option>" +
+            "<option value='4' " + (rdata.max_children == 50 ? 'selected' : '') + ">" + pt('50并发') + "</option>" +
+            "<option value='5' " + (rdata.max_children == 100 ? 'selected' : '') + ">" + pt('100并发') + "</option>" +
+            "<option value='6' " + (rdata.max_children == 200 ? 'selected' : '') + ">" + pt('200并发') + "</option>" +
+            "<option value='7' " + (rdata.max_children == 300 ? 'selected' : '') + ">" + pt('300并发') + "</option>" +
+            "<option value='8' " + (rdata.max_children == 500 ? 'selected' : '') + ">" + pt('500并发') + "</option>" +
+            "<option value='9' " + (rdata.max_children == 2000 ? 'selected' : '') + ">" + pt('2000并发') + "</option>";
+        var pms = [{ 'name': 'static', 'title': pt('静态') }, { 'name': 'dynamic', 'title': pt('动态') },{ 'name': 'ondemand', 'title': pt('按需') }];
         var pmList = '';
         for (var i = 0; i < pms.length; i++) {
             pmList += '<option value="' + pms[i].name + '" ' + ((pms[i].name == rdata.pm) ? 'selected' : '') + '>' + pms[i].title + '</option>';
@@ -167,14 +167,14 @@ function getFpmConfig(version, pool = 'www'){
             "<option value='backup' " + (pool == 'backup' ? 'selected' : '') + ">backup</option>";
 
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>" + pt('应用池[pool]：') + "</span><select class='bt-input-text' name='pool' style='width:100px;'>" + poolHtml + "</select></p>" +
-            "<p class='line'><span class='span_tit'>' + pt('并发方案：') + '</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>' + pt('运行模式：') + '</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>' + pt('*PHP-FPM运行模式') + '</span></p>" +
-            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>' + pt('*允许创建的最大子进程数') + '</span></p>" +
-            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>' + pt('*起始进程数（服务启动后初始进程数量）') + '</span></p>" +
-            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>' + pt('*最小空闲进程数（清理空闲进程后的保留数量）') + '</span></p>" +
-            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>' + pt('*最大空闲进程数（当空闲进程达到此值时清理）') + '</span></p>" +
-            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>' + pt('保存') + '</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>' + pt('一键调优') + '</button></div>" +
+            "<p class='line'><span class='span_tit'>" + pt('应用池[pool]：') + "</span><select class='bt-input-text' name='pool'>" + poolHtml + "</select></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('并发方案：') + "</span><select class='bt-input-text' name='limit'>" + limitList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('运行模式：') + "</span><select class='bt-input-text' name='pm'>" + pmList + "</select><span class='c9'>" + pt('*PHP-FPM运行模式') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>" + pt('*允许创建的最大子进程数') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>" + pt('*起始进程数（服务启动后初始进程数量）') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>" + pt('*最小空闲进程数（清理空闲进程后的保留数量）') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>" + pt('*最大空闲进程数（当空闲进程达到此值时清理）') + "</span></p>" +
+            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>" + pt('保存') + "</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>" + pt('一键调优') + "</button></div>" +
             "</div>";
 
         $(".soft-man-con").html(body);
@@ -362,16 +362,16 @@ function getSessionConfig(version){
 
         var info = rdata.save_path.split(":");
         var con = "<div class='conf_p'>" +
-            "<p class='line'><span class='span_tit'>' + pt('存储模式：') + '</span><select class='bt-input-text' name='save_handler' style='width:200px;'>" + cacheList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>' + pt('IP地址：') + '</span><input class='bt-input-text' type='text' name='ip' style='width:200px;' value='"+ info[0] +"' /></p>" +
-            "<p class='line'><span class='span_tit'>' + pt('端口：') + '</span><input class='bt-input-text' type='text' name='port' style='width:200px;' value='"+rdata.port+"' /></p>" +
-            "<p class='line'><span class='span_tit'>' + pt('密码：') + '</span><input class='bt-input-text' type='text' name='passwd' style='width:200px;' value='"+rdata.passwd+"' /></p>" +
-            "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>' + pt('保存') + '</button></div></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('存储模式：') + "</span><select class='bt-input-text' name='save_handler' style='width:240px;'>" + cacheList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('IP地址：') + "</span><input class='bt-input-text' type='text' name='ip' style='width:240px;' value='"+ info[0] +"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('端口：') + "</span><input class='bt-input-text' type='text' name='port' style='width:240px;' value='"+rdata.port+"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('密码：') + "</span><input class='bt-input-text' type='text' name='passwd' style='width:240px;' value='"+rdata.passwd+"' /></p>" +
+            "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>" + pt('保存') + "</button></div></p>" +
             "</div>\
             <ul class='help-info-text c7'>\
-                <li>' + pt('若你的站点并发比较高，使用Redis，Memcache能有效提升PHP并发能力') + '</li>\
-                <li>' + pt('若调整Session模式后，网站访问异常，请切换回原来的模式') + '</li>\
-                <li>' + pt('切换Session模式会使在线的用户会话丢失，请在流量小的时候切换') + '</li>\
+                <li>" + pt('若你的站点并发比较高，使用Redis，Memcache能有效提升PHP并发能力') + "</li>\
+                <li>" + pt('若调整Session模式后，网站访问异常，请切换回原来的模式') + "</li>\
+                <li>" + pt('切换Session模式会使在线的用户会话丢失，请在流量小的时候切换') + "</li>\
             </ul>\
             <div id='session_clear' class='session_clear' style='border-top: #ccc 1px dashed;padding-top: 15px;margin-top: 15px;'>\
             </div>\
@@ -382,7 +382,7 @@ function getSessionConfig(version){
         if (rdata.save_handler == 'files'){
             $('input[name="ip"]').attr('disabled','disabled');
             $('input[name="port"]').attr('disabled','disabled');
-            $('input[name="passwd"]').attr('placeholder','如果没有密码留空');
+            $('input[name="passwd"]').attr('placeholder', pt('如果没有密码留空'));
             $('input[name="passwd"]').attr('disabled','disabled');
         }
 
@@ -392,7 +392,7 @@ function getSessionConfig(version){
 
             var passwd = $('input[name="passwd"]').val();
             if (passwd == ""){
-                $('input[name="passwd"]').attr('placeholder','如果没有密码留空');
+                $('input[name="passwd"]').attr('placeholder', pt('如果没有密码留空'));
             }
 
             var ip = $('input[name="ip"]').val();
@@ -445,13 +445,13 @@ function getSessionConfig(version){
             }
             var rdata = rdata.data;
 
-            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>' + pt('清理Session文件') + '</div>\
+            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>" + pt('清理Session文件') + "</div>\
                 <div class='clear_conter'>\
                     <div class='session_clear_list'>\
-                        <div class='line'><span>' + pt('总Session文件数量') + '</span><span>"+rdata.total+"</span></div>\
-                        <div class='line'><span>' + pt('可清理的Session文件数量') + '</span><span>"+rdata.oldfile+"</span></div>\
+                        <div class='line'><span>" + pt('总Session文件数量') + "</span><span>"+rdata.total+"</span></div>\
+                        <div class='line'><span>" + pt('可清理的Session文件数量') + "</span><span>"+rdata.oldfile+"</span></div>\
                     </div>\
-                <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>' + pt('清理session文件') + '</button>";
+                <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>" + pt('清理session文件') + "</button>";
 
             $("#session_clear").html(html_var);
 
@@ -494,15 +494,15 @@ function disableFunc(version) {
         var dbody = ''
         for (var i = 0; i < disable_functions.length; i++) {
             if (disable_functions[i] == '') continue;
-            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">' + pt('删除') + '</a></td></tr>";
+            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">" + pt('删除') + "</a></td></tr>";
         }
 
         var con = "<div class='dirBinding'>" +
-            "<input class='bt-input-text mr5' type='text' placeholder='' + pt('添加要被禁止的函数名,如: exec') + '' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
-            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">' + pt('添加') + '</button>" +
+            "<input class='bt-input-text mr5' type='text' placeholder=\"" + pt('添加要被禁止的函数名,如: exec') + "\" id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
+            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">" + pt('添加') + "</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
-            "<thead><tr><th>' + pt('名称') + '</th><th width='100' class='text-right'>' + pt('操作') + '</th></tr></thead>" +
+            "<thead><tr><th>" + pt('名称') + "</th><th width='100' class='text-right'>" + pt('操作') + "</th></tr></thead>" +
             "<tbody id='blacktable'>" + dbody + "</tbody>" +
             "</table></div>";
 
@@ -696,4 +696,14 @@ function tunePhpConfig(version) {
             },{ icon: rdata.status ? 1 : 2 });
         });
     });
+}
+
+function phpSelfHealing(version) {
+    if (typeof pluginSelfHealing === 'function') {
+        pluginSelfHealing('php-yum', version);
+    } else {
+        api.post('upgrade_self_healing', version, '', function(data){
+            layer.msg((data && data.msg) || 'Self-healing completed', { icon: (data && data.status) ? 1 : 2 });
+        });
+    }
 }

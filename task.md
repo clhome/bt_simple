@@ -215,3 +215,46 @@
 - [x] 141. 注入与校准 6 国语言包中 21 个主从状态与 13 个集群状态说明词条 (`plugins/redis/lang/*.json`)，采用 Redis 官方权威术语
 - [x] 142. 编写自动化回归测试套件 (`test/test_redis_i18n_completion.py`) 验证 6 国语言包词条 100% 覆盖、JSON 合法性与 `pluginConfigTpl` 渲染
 - [x] 143. 全量测试回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+## PHP 插件三剑客（php、php-apt、php-yum）大版本升级自愈与全链路健壮性重构任务清单
+
+- [x] 144. 批量清理 `plugins/php/versions/*/install.sh` 中的 `------` 语法事故尾缀 (14 个版本)
+- [x] 145. 加固 `plugins/php/init.d/php.service.tpl` 与 `php.service.52.tpl`：注入完整高可用动态库 `LD_LIBRARY_PATH` 并规范守护参数
+- [x] 146. 重构 `plugins/php/index.py`：实现大版本单次自愈流水线 (`checkPluginUpgrade`, `upgradeSelfHealing`)、三级容灾拉起 (Systemd/SysVInit/直接执行) 与双模态精准探活
+- [x] 147. 修复 `plugins/php/index_php.py` 中的 `sock.find(':')` 逻辑判断 Bug 并替换不安全 `os.system` 为安全目录清理
+- [x] 148. 对齐重构 `plugins/php-apt/index.py`：实现大版本单次自愈、`/run/php` 运行目录自愈补全、重置 failed 与安全命令加固
+- [x] 149. 对齐重构 `plugins/php-yum/index.py`：实现大版本单次自愈、Remi 运行目录自愈补全、重置 failed 与安全命令加固
+- [x] 150. 前端服务管理界面升级：为 `php`、`php-apt`、`php-yum` 增设【自愈修复】功能与详细自愈报告弹窗 (`index.html`, `js/php.js`)
+- [x] 151. 全面补齐 6 国语言包词条 (`zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it`) 覆盖自愈与错误诊断
+- [x] 152. 更新 `README.md` 与 `plugins/plugins_check.md` 中的自愈命令与插件完成状态
+- [x] 153. 编写与运行自动化回归测试套件 (`test/test_php_plugins_self_healing.py`) 验证版本跃迁、单次自愈、三级拉起与精准探活 100% 通过
+- [x] 154. 成果全量回归、UTF-8(LF)编码检查与临时测试文件清理收尾
+
+## PHP 插件配置正则提取崩溃、FPM 语法错误根治与前端界面整体修复清单
+
+- [x] 155. 根治全局正则提取致命崩溃 (`AttributeError: 'NoneType' object has no attribute 'groups'`)：重构 `getDisableFunc`、`getFpmConfig`、`getLimitConf`、`getPhpConf`、`getSessionConf`，建立全量判空防御与智能默认值兜底 (`plugins/php/index.py`, `plugins/php-apt/index.py`, `plugins/php-yum/index.py`)
+- [x] 156. 根治 PHP-FPM 配置语法错误：清理 `php-fpm.conf` 中非法的 `php_value[auto_prepend_file]`（PHP-FPM global 段禁止包含 php_value），并在自愈迁移与池配置中安全收口
+- [x] 157. 修复 `plugins/php/index.py` 中 `phpOp` 的目录混淆笔误：修正 `server_dir = yf.getServerDir()` 为 `getServerDir()`，彻底消除 `/www/server/80` 错误路径
+- [x] 158. 实现配置文件自动健全与缺失自愈：当 `php.ini` 或池配置不存在时，自动从模板生成，彻底解决配置修改空白与编辑文件为空
+- [x] 159. 优化左侧菜单宽度与英文截断：将 `plugins/php*/index.html` 的 `.bt-w-menu` 宽度从 125px 调整至 140px，窗口宽度调至 880px，精炼 6 国语言菜单文案
+- [x] 160. 修复性能调整等界面的中英混杂文案与多语言模板插值 (`plugins/php*/js/php.js`, `plugins/php*/lang/*.json`)
+- [x] 161. 编写与运行自动化回归测试套件 (`test/test_php_config_robustness_and_startup.py`) 验证正则判空防御、FPM 语法自愈、路径校准与界面数据加载 100% 通过
+- [x] 162. 成果全量回归、UTF-8(LF)编码检查与临时测试文件清理收尾
+
+## PHP 插件 No pool defined 启动失败根治与前端多页面翻译代码裸露修复清单
+
+- [x] 163. 重构 `phpFpmReplace` 与 `phpFpmPoolReplace`：实现 `include` 指令绝对路径自愈、去除注释，以及 `www.conf` 核心工作池缺损自愈，彻底根治 `No pool defined` (`plugins/php/index.py`, `plugins/php-apt/index.py`, `plugins/php-yum/index.py`)
+- [x] 164. 加固启动预检与自愈流水线 (`phpOp`, `upgradeSelfHealing`)：启动前强制预检工作池与主配置健全性，并在升级自愈中建立池自愈闭环 (`plugins/php*/index.py`)
+- [x] 165. 彻底修复前端 `js/php.js` 模板引号混淆与代码裸露 (`plugins/php/js/php.js`, `plugins/php-apt/js/php.js`, `plugins/php-yum/js/php.js`)：全面校准双引号模板内部插值 `" + pt(...) + "`，消除 `' + pt(...) + '` 裸露
+- [x] 166. 精炼 6 国语言包中“常用功能”文案（`Common Tools` -> `Common`），彻底消除 140px 菜单截断 (`plugins/php*/lang/*.json`)
+- [x] 167. 编写与运行自动化回归测试套件 (`test/test_php_pool_healing_and_ui_quotes.py`)，验证池自愈与前端引号 100% 通过，UTF-8(LF)编码检查与收尾
+
+## PHP 插件配置文件与禁用函数空白自愈、性能排版与会话表格多语言适配清单
+
+- [x] 168. 修复 `plugins/php/index.py` 中 `makePhpIni` 与 `getConf` 的相互递归调用缺陷，建立缺损/0字节损坏物理文件自愈生成机制，彻底解决配置文件为空与禁用函数列表为空
+- [x] 169. 对齐加固 `plugins/php-apt` 与 `plugins/php-yum` 的 `getConf` 与 `getDisableFunc` 缺损自愈
+- [x] 170. 重构性能调整（Performance）表单排版：隔离并拓宽 `.bingfa .line .span_tit` 弹性适配（165px~180px）、拓宽并发方案下拉框（150px），杜绝多语言截断与挤压 (`plugins/php*/index.html`, `plugins/php*/js/php.js`)
+- [x] 171. 重构会话管理（Session）清理文件表格 `.session_clear_list`：使用 Flex 自适应弹性布局替代写死 270px 宽度与固定高度，彻底杜绝多语言换行重叠与按钮拥挤 (`plugins/php*/index.html`)
+- [x] 172. 补齐 6 国公共语言包（`web/static/language/*/public.json`）中配置文件编辑界面的提示词条（`tip_use_ctrl_to_1`, `this_is_1`, `main_configuration_file_if`, `save_4`），消除中文裸露
+- [x] 173. 编写与运行自动化回归测试套件 (`test/test_php_ini_self_healing_and_i18n_layout.py`) 验证配置自愈、禁用函数加载、表单排版与公共词条 100% 通过，UTF-8(LF)编码校验与收尾
+

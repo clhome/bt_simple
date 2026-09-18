@@ -556,6 +556,7 @@
     "recommended_for_use_after": ", empfohlen nach Konfigurationsänderungen.",
     "restart_the_service_restart": "Dienst neustarten (Restart)",
     "forcibly_terminates_and_restarts": ": Beendet alle Prozesse und startet sie neu. Laufende Anfragen können abgebrochen werden.",
+    "note": "Hinweis",
     "kill_all_php_processes": "Alle PHP-Prozesse beenden",
     "forcefully_terminate_all_php": ": Beendet gewaltsam alle PHP-FPM-Prozesse auf dem Server. Dies unterbricht den Zugriff auf alle PHP-Sites.",
     "after_execution_you_ll": "Nach der Ausführung müssen Sie jede PHP-Version manuell wieder starten.",
@@ -580,5 +581,18 @@
     "tip_use_ctrl_to_2": "Hinweis: Ctrl+F Suchbegriff, Ctrl+G Nächstes suchen, Ctrl+S Speichern, Ctrl+H Suchen und Ersetzen!",
     "this_is_2": "Dies ist [",
     "main_configuration_file_if_1": "] Hauptkonfigurationsdatei, wenn Sie die Konfigurationsregeln nicht kennen, bitte nicht willkürlich ändern.",
-    "retrieving_configuration_template": "Konfigurationsvorlage wird abgerufen..."
+    "retrieving_configuration_template": "Konfigurationsvorlage wird abgerufen...",
+    "self_healing": "Selbstheilung",
+    "self_healing_title": "Dienst-Selbstheilung",
+    "self_healing_confirm": "Umfassende Selbstheilung für {1}{2} durchführen? Dies stellt Laufzeitverzeichnisse wieder her, bereinigt verwaiste Sockets und Deadlock-PIDs, setzt Systemd-Fehler zurück und prüft dynamische Bibliotheken.",
+    "start_repair": "Selbstheilung starten",
+    "self_healing_running": "Führe tiefe Selbstheilungsdiagnose und Reparatur durch, bitte warten...",
+    "self_healing_success": "Selbstheilungsreparatur abgeschlossen!",
+    "self_healing_failed": "Bei der Selbstheilungsreparatur sind Probleme aufgetreten",
+    "diagnostic_report": "Diagnosebericht",
+    "refresh_service": "Dienststatus aktualisieren",
+    "tip_use_ctrl_to_1": "Hinweis: Strg+F Suchen, Strg+G Weitersuchen, Strg+S Speichern, Strg+H Ersetzen!",
+    "this_is_1": "Dies ist",
+    "main_configuration_file_if": "Hauptkonfigurationsdatei. Wenn Sie die Konfigurationsregeln nicht verstehen, ändern Sie sie bitte nicht willkürlich.",
+    "save_4": "Speichern"
 }

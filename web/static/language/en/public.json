@@ -556,6 +556,7 @@
     "recommended_for_use_after": ", recommended for daily configuration changes.",
     "restart_the_service_restart": "Restart Service",
     "forcibly_terminates_and_restarts": ": Forcibly terminates and restarts all processes. Active requests may be interrupted with 502 errors.",
+    "note": "Note",
     "kill_all_php_processes": "Kill all PHP processes",
     "forcefully_terminate_all_php": ": Forcibly kill all PHP-FPM processes on the server. This will interrupt access to all PHP sites.",
     "after_execution_you_ll": "You will need to manually start each PHP version again after execution.",
@@ -580,5 +581,18 @@
     "tip_use_ctrl_to_2": "Tip: Ctrl+F Search, Ctrl+G Find Next, Ctrl+S Save, Ctrl+H Replace!",
     "this_is_2": "This is [",
     "main_configuration_file_if_1": "] main configuration file. If you do not understand configuration rules, please do not modify it.",
-    "retrieving_configuration_template": "Retrieving configuration template..."
+    "retrieving_configuration_template": "Retrieving configuration template...",
+    "self_healing": "Self-Healing",
+    "self_healing_title": "Service Self-Healing",
+    "self_healing_confirm": "Perform comprehensive self-healing repair on {1}{2}? This will auto-create runtime directories, clean orphan sockets and stale PIDs, reset systemd failed states, and verify dynamic libraries.",
+    "start_repair": "Start Self-Healing",
+    "self_healing_running": "Performing deep self-healing diagnosis and repair, please wait...",
+    "self_healing_success": "Self-healing repair completed!",
+    "self_healing_failed": "Self-healing repair encountered issues",
+    "diagnostic_report": "Diagnostic Report",
+    "refresh_service": "Refresh Service Status",
+    "tip_use_ctrl_to_1": "Tip: Ctrl+F Search, Ctrl+G Find Next, Ctrl+S Save, Ctrl+H Replace!",
+    "this_is_1": "This is",
+    "main_configuration_file_if": "main configuration file. If you do not understand configuration rules, please do not modify arbitrarily.",
+    "save_4": "Save"
 }

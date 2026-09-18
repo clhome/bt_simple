@@ -2977,6 +2977,7 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + statusBtnText + '</button>\
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.restart_1', '重启') + '</button>\
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.reload_configuration', '重载配置') + '</button>\
+    ' + (isPhpRuntime ? '<button class="btn btn-warning btn-sm" style="margin-left: 6px;" onclick="pluginSelfHealing(\'' + _name + '\',\'' + version + '\',\'' + _suffix_name + '\')"><span class="glyphicon glyphicon-wrench" style="margin-right: 3px;"></span>' + t('public.self_healing', '自愈修复') + '</button>' : '') + '\
   </div>\
   ' + pluginInitDSwitchHtml(_name, version, _suffix_name);
 
@@ -2998,6 +2999,89 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
   $(".soft-man-con").html(serviceCon);
   pluginInitDSwitchRender(_name, version, _suffix_name);
 }
+
+// 通用插件大版本升级与异常拉起自愈修复流水线
+function pluginSelfHealing(_name, version, _suffix_name = '') {
+  var verText = version ? '【' + version + '】' : '';
+  var confirmTitle = t('public.self_healing_title', '服务自愈修复');
+  var confirmMsg = t('public.self_healing_confirm', '是否对 {1}{2} 执行全面服务自愈修复？自愈将自动健全运行目录、清理孤儿 Socket 与死锁 PID、重置服务异常状态并检测动态库。');
+  confirmMsg = msgTpl(confirmMsg, [_name, verText]);
+
+  layer.confirm('<div style="line-height:22px; font-size:13px; color:#475569;">' + confirmMsg + '</div>', {
+    title: confirmTitle,
+    icon: 3,
+    area: '480px',
+    btn: [t('public.start_repair', '开始自愈'), t('public.cancel', '取消')]
+  }, function(index) {
+    layer.close(index);
+    var loadT = layer.msg(t('public.self_healing_running', '正在执行深度自愈诊断与修复，请稍候...'), {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+
+    var postData = {
+      name: _name,
+      func: 'upgrade_self_healing'
+    };
+    if (version) {
+      postData['version'] = version;
+    }
+
+    $.post('/plugins/run', postData, function(res) {
+      layer.close(loadT);
+      var isOk = (res && res.status);
+      var reportHtml = '<div style="padding:15px; font-size:13px; line-height:1.6; max-height:360px; overflow-y:auto;">';
+      
+      if (isOk) {
+        reportHtml += '<div style="color:#20a53a; font-weight:600; font-size:14px; margin-bottom:10px;"><span class="glyphicon glyphicon-ok-circle" style="margin-right:6px;"></span>' + (res.msg || t('public.self_healing_success', '自愈修复完成！')) + '</div>';
+        if (res.data && typeof res.data === 'object') {
+          reportHtml += '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 12px; margin-top:8px;">';
+          for (var verKey in res.data) {
+            var items = res.data[verKey];
+            reportHtml += '<div style="margin-bottom:6px;"><b style="color:#1e293b;">版本/模块: ' + verKey + '</b>';
+            if (Array.isArray(items)) {
+              reportHtml += '<ul style="margin:4px 0 0 16px; color:#475569; font-size:12px; list-style-type:disc;">';
+              for (var i = 0; i < items.length; i++) {
+                reportHtml += '<li>' + items[i] + '</li>';
+              }
+              reportHtml += '</ul>';
+            } else if (typeof items === 'string') {
+              reportHtml += '<div style="color:#475569; font-size:12px; margin-left:8px;">' + items + '</div>';
+            }
+            reportHtml += '</div>';
+          }
+          reportHtml += '</div>';
+        }
+      } else {
+        reportHtml += '<div style="color:#dc2626; font-weight:600; font-size:14px; margin-bottom:10px;"><span class="glyphicon glyphicon-remove-circle" style="margin-right:6px;"></span>' + ((res && res.msg) || t('public.self_healing_failed', '自愈修复遇到问题')) + '</div>';
+        if (res && res.data) {
+          reportHtml += '<pre style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; padding:10px; font-size:12px; border-radius:4px; white-space:pre-wrap;">' + JSON.stringify(res.data, null, 2) + '</pre>';
+        }
+      }
+      reportHtml += '</div>';
+
+      layer.open({
+        type: 1,
+        title: confirmTitle + ' - ' + t('public.diagnostic_report', '诊断报告'),
+        area: '540px',
+        content: reportHtml,
+        btn: [t('public.refresh_service', '刷新服务状态')],
+        yes: function(idx) {
+          layer.close(idx);
+          pluginService(_name, version, _suffix_name);
+        }
+      });
+      if (typeof window.refreshExternalPluginStatus === 'function') {
+        window.refreshExternalPluginStatus(_name, null);
+      }
+    }, 'json').fail(function() {
+      layer.close(loadT);
+      layer.msg(t('public.system_error', '系统错误，无法连接到自愈接口'), { icon: 2, time: 3000 });
+    });
+  });
+}
+
 // 全局即时刷新外部插件状态（支持软件管理页与首页概览，0ms 精准DOM乐观更新 + 意图锁保护 + 异步穿透校验）
 window.refreshExternalPluginStatus = function(plugin_name, target_status) {
   // 1. 0ms 纯 DOM 驱动乐观更新 + 3秒意图锁保护（消除物理耗时与异步网络颠簸）

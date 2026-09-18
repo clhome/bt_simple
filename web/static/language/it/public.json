@@ -556,6 +556,7 @@
     "recommended_for_use_after": ", consigliato dopo modifiche alla configurazione.",
     "restart_the_service_restart": "Riavvia servizio (Restart)",
     "forcibly_terminates_and_restarts": ": Termina forzatamente e riavvia tutti i processi. Le richieste attive potrebbero essere interrotte.",
+    "note": "Nota",
     "kill_all_php_processes": "Termina tutti i processi PHP",
     "forcefully_terminate_all_php": ": Termina forzatamente tutti i processi PHP-FPM sul server. Ciò interromperà l'accesso a tutti i siti PHP.",
     "after_execution_you_ll": "Dovrai riavviare manualmente ogni versione di PHP dopo l'esecuzione.",
@@ -580,5 +581,18 @@
     "tip_use_ctrl_to_2": "Suggerimento: Ctrl+F cerca parole chiave, Ctrl+G trova successivo, Ctrl+S salva, Ctrl+H trova e sostituisce!",
     "this_is_2": "Ecco [",
     "main_configuration_file_if_1": "] File di configurazione principale, se non capisci le regole di configurazione, non modificarlo a piacimento.",
-    "retrieving_configuration_template": "Recupero del modello di configurazione in corso..."
+    "retrieving_configuration_template": "Recupero del modello di configurazione in corso...",
+    "self_healing": "Auto-riparazione",
+    "self_healing_title": "Auto-riparazione del servizio",
+    "self_healing_confirm": "Eseguire l'auto-riparazione completa per {1}{2}? Verranno ripristinate le directory di runtime, eliminati socket orfani e PID bloccati, reimpostato lo stato systemd e verificate le librerie dinamiche.",
+    "start_repair": "Avvia auto-riparazione",
+    "self_healing_running": "Esecuzione diagnosi e riparazione di auto-guarigione profonda, attendere...",
+    "self_healing_success": "Riparazione di auto-guarigione completata!",
+    "self_healing_failed": "Si sono verificati problemi durante l'auto-guarigione",
+    "diagnostic_report": "Rapporto diagnostico",
+    "refresh_service": "Aggiorna stato del servizio",
+    "tip_use_ctrl_to_1": "Suggerimento: Ctrl+F Cerca, Ctrl+G Trova successivo, Ctrl+S Salva, Ctrl+H Sostituisci!",
+    "this_is_1": "Questo è",
+    "main_configuration_file_if": "file di configurazione principale. Se non si comprendono le regole di configurazione, si prega di non modificarlo arbitrariamente.",
+    "save_4": "Salva"
 }

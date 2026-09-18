@@ -240,9 +240,9 @@ root@debian:/root# bs
 
 ### 4. 插件无损升级与版本自愈检测
 
-为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判、守护进程锁死”等问题，御风面板为核心数据库插件（MySQL、MariaDB、Redis 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
+为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判、守护进程锁死、动态库缺失”等问题，御风面板为核心服务插件（MySQL、MariaDB、Redis、PHP、PHP-APT、PHP-YUM 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
 
-- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 守护进程与 PID 文件、清理冲突服务与孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
+- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 守护进程与 PID 文件、注入全量高可用动态库路径（`LD_LIBRARY_PATH`）、健全运行目录（如 `/run/php`）、清理冲突服务与孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
 - **命令行主动触发与排查**：
   若您希望在终端拉取代码后立即执行版本升级检测与环境自愈，可直接调用对应插件的 `check_plugin_upgrade` 函数：
 
@@ -261,11 +261,26 @@ root@debian:/root# bs
   python3 plugins/redis/index.py check_plugin_upgrade
   # 或直接手动触发全量环境自愈报告
   python3 plugins/redis/index.py upgrade_self_healing
+
+  # PHP 源码版插件：检测版本跃迁并执行单次自愈迁移（三级容灾拉起、动态库环境加固、孤儿 Socket 清理）
+  python3 plugins/php/index.py check_plugin_upgrade
+  # 或直接手动触发全量/指定版本环境自愈报告（支持如 74、80、81）
+  python3 plugins/php/index.py upgrade_self_healing
+
+  # PHP-APT 插件 (Debian/Ubuntu)：运行环境健全、重置 systemd 失败状态、清理孤儿套接字
+  python3 plugins/php-apt/index.py check_plugin_upgrade
+  python3 plugins/php-apt/index.py upgrade_self_healing
+
+  # PHP-YUM 插件 (RHEL/CentOS/Rocky)：Remi 运行目录健全、重置 systemd 失败状态、清理孤儿套接字
+  python3 plugins/php-yum/index.py check_plugin_upgrade
+  python3 plugins/php-yum/index.py upgrade_self_healing
   ```
 
 - **生产数据与配置零触碰防护**：自愈引擎搭载严密的零触碰防御层：
   - MySQL / MariaDB 检测到系统库或用户业务库时，**坚决禁止清空或重命名用户数据目录**（如 `/www/server/mysql/data`）；
-  - Redis 检测到已有配置文件时，**坚决禁止覆盖重写 `redis.conf`，100% 完整保留用户已有密码、端口与自定义参数**。
+  - Redis 检测到已有配置文件时，**坚决禁止覆盖重写 `redis.conf`，100% 完整保留用户已有密码、端口与自定义参数**；
+  - PHP 家族插件自愈时，**绝不覆盖用户已有的 `php.ini`、`php-fpm.conf` 及站点池配置，并保持用户已编译/安装扩展的完整可用**。
+
 
 
 ---

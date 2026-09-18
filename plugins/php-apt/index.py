@@ -22,16 +22,28 @@ app_debug = False
 if yf.isAppleSystem():
     app_debug = True
 
+CURRENT_PLUGIN_VERSION = '2.0'
+_PHP_APT_UPGRADE_CHECKING = False
 
-def localVersion(v):
-    return v[0:1]+v[2:3]
+
+def formatVersion(v):
+    v = str(v).strip()
+    if not v:
+        return ''
+    if '.' in v:
+        return v
+    if len(v) >= 2:
+        return v[0] + '.' + v[1:]
+    return v
+
 
 def getPluginName():
     return 'php-apt'
 
 
 def getAppDir():
-    return yf.getServerDir()+'/'+getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
+
 
 def getServerDir():
     return '/etc/php'
@@ -39,6 +51,36 @@ def getServerDir():
 
 def getPluginDir():
     return yf.getPluginDir() + '/' + getPluginName()
+
+
+def getPluginVersionFile():
+    return getPluginDir() + '/plugin_version.pl'
+
+
+def _compare_version(v1, v2):
+    p1 = [int(x) for x in re.sub(r'[^\d.]', '', str(v1)).split('.') if x.isdigit()]
+    p2 = [int(x) for x in re.sub(r'[^\d.]', '', str(v2)).split('.') if x.isdigit()]
+    max_len = max(len(p1), len(p2))
+    p1 += [0] * (max_len - len(p1))
+    p2 += [0] * (max_len - len(p2))
+    if p1 < p2:
+        return -1
+    elif p1 > p2:
+        return 1
+    return 0
+
+
+def getInstalledPhpVersions():
+    """获取系统 apt 安装的已就绪 PHP 版本列表（如 ['7.4', '8.1']）"""
+    php_dir = getServerDir()
+    if not os.path.exists(php_dir):
+        return []
+    versions = []
+    for item in os.listdir(php_dir):
+        full_path = os.path.join(php_dir, item)
+        if os.path.isdir(full_path) and re.match(r'^\d+\.\d+$', item):
+            versions.append(item)
+    return sorted(versions)
 
 
 def getArgs():
@@ -69,8 +111,29 @@ def checkArgs(data, ck=[]):
     return (True, yf.returnJson(True, 'ok'))
 
 
+DEFAULT_DISABLE_FUNCTIONS = (
+    'passthru,exec,system,chroot,chgrp,chown,shell_exec,popen,proc_open,pcntl_exec,'
+    'ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,pcntl_alarm,'
+    'pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,'
+    'pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,'
+    'pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,'
+    'pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,'
+    'imap_open,apache_setenv'
+)
+
+
 def getConf(version):
     path = getServerDir() + '/' + version + '/fpm/php.ini'
+    if not os.path.exists(path) or os.path.getsize(path) < 50:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        content = (
+            "[PHP]\nengine = On\nshort_open_tag = On\nprecision = 14\n"
+            "output_buffering = 4096\nzlib.output_compression = Off\n"
+            f"disable_functions = {DEFAULT_DISABLE_FUNCTIONS}\n"
+            "max_execution_time = 300\nupload_max_filesize = 50M\npost_max_size = 50M\n"
+            "date.timezone = PRC\n"
+        )
+        yf.writeFile(path, content)
     return path
 
 
@@ -83,11 +146,36 @@ def getFpmFile(version):
 def status(version):
     if yf.isAppleSystem():
         return 'stop'
-    # 使用 systemctl is-active 精准判定服务状态，防止 grep 模糊匹配造成的误判
+
+    version = formatVersion(version)
+    try:
+        checkPluginUpgrade(version)
+    except Exception:
+        pass
+
+    # 1. 优先采用 systemctl is-active
     cmd = "systemctl is-active php" + version + "-fpm"
     data = yf.execShell(cmd)
     if data[0].strip() == 'active':
         return 'start'
+
+    # 2. 降级通过 pid 文件校验
+    pid_file = '/run/php/php' + version + '-fpm.pid'
+    if os.path.exists(pid_file):
+        try:
+            pid_str = yf.readFile(pid_file).strip()
+            if pid_str and pid_str.isdigit():
+                pid = int(pid_str)
+                os.kill(pid, 0)
+                return 'start'
+        except Exception:
+            pass
+
+    # 3. 降级通过进程树特征匹配
+    chk = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({version})' | grep -v grep")
+    if chk and chk[0].strip():
+        return 'start'
+
     return 'stop'
 
 
@@ -169,9 +257,19 @@ def phpFpmWwwReplace(version):
                      ' ' + service_php_fpmwww + '.bak')
 
     service_php_fpm_yf = service_php_fpm_dir + '/yf.conf'
+    need_regenerate = False
     if not os.path.exists(service_php_fpm_yf):
+        need_regenerate = True
+    else:
+        raw = yf.readFile(service_php_fpm_yf)
+        if not raw or not re.search(r'(?m)^\s*\[[^\]]+\]', raw):
+            need_regenerate = True
+
+    if need_regenerate:
         tpl_php_fpmwww = getPluginDir() + '/conf/www.conf'
         content = yf.readFile(tpl_php_fpmwww)
+        if not content:
+            content = f"[yf]\nuser = www-data\ngroup = www-data\nlisten = /run/php/php{version}-fpm.sock\npm = dynamic\npm.max_children = 30\npm.start_servers = 5\npm.min_spare_servers = 5\npm.max_spare_servers = 20\n"
         content = contentReplace(content, version)
         
         # 动态根据内存计算 FPM 进程数
@@ -198,6 +296,7 @@ def phpFpmWwwReplace(version):
             yf.writeLog('php-apt', '动态配置 FPM 进程数失败: ' + str(e))
 
         yf.writeFile(service_php_fpm_yf, content)
+    return True
 
 
 def deleteConfList(version):
@@ -370,26 +469,91 @@ def tuneAllPhpConfig():
 
 
 def phpOp(version, method):
-    if method == 'start':
+    version = formatVersion(version)
+    if method in ['start', 'restart']:
         initReplace(version)
 
     if yf.isAppleSystem():
         return 'fail'
-    
-    if method in ['start', 'restart', 'reload']:
+
+    service_name = 'php' + version + '-fpm'
+
+    # 1. 确保系统 run 目录健全
+    run_php = '/run/php'
+    if not os.path.exists(run_php):
+        yf.makeDirs(run_php)
+    if not yf.isAppleSystem() and not yf.getOs().startswith('freebsd'):
+        yf.execShell(f'chown -R www-data:www-data {run_php} 2>/dev/null || chown -R www:www {run_php} 2>/dev/null')
+        yf.execShell(f'chmod 755 {run_php}')
+
+    if method in ['stop', 'restart']:
+        yf.execShell(f'systemctl stop {service_name} 2>/dev/null')
+        if method == 'restart':
+            time.sleep(0.5)
+
+    if method in ['start', 'restart']:
+        # 2. 清理残留孤儿 socket（仅在无活动 master 进程时清理）
         sock_file = getFpmAddress(version)
         if isinstance(sock_file, str) and os.path.exists(sock_file):
-            os.system('rm -f ' + sock_file)
+            chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({version})' | grep -v grep")
+            if not chk_m[0].strip():
+                try:
+                    os.remove(sock_file)
+                except Exception:
+                    yf.execShell(f'rm -f {sock_file}')
+
+        # 3. 清理无效僵尸 PID 文件
         pid_file = '/run/php/php' + version + '-fpm.pid'
         if os.path.exists(pid_file):
-            pid = yf.readFile(pid_file).strip()
-            if pid:
-                os.system('kill -9 ' + pid)
-    
-    data = yf.execShell('systemctl ' + method + ' ' +'php' + version + '-fpm')
-    if data[1] == '':
+            try:
+                pid_str = yf.readFile(pid_file).strip()
+                if pid_str and pid_str.isdigit():
+                    pid = int(pid_str)
+                    try:
+                        os.kill(pid, 0)
+                    except OSError:
+                        os.remove(pid_file)
+            except Exception:
+                pass
+
+        # 4. 重置 systemd 失败状态
+        yf.execShell(f'systemctl reset-failed {service_name} 2>/dev/null')
+
+        # 5. 拉起服务
+        res = yf.execShell(f'systemctl {method} {service_name}')
+        time.sleep(0.5)
+        if status(version) == 'start':
+            return 'ok'
+
+        # 降级尝试 service 命令拉起
+        yf.execShell(f'service {service_name} {method} 2>/dev/null')
+        time.sleep(0.5)
+        if status(version) == 'start':
+            return 'ok'
+
+        # 收集诊断日志
+        err_msg = res[1].strip() if res and len(res) > 1 and res[1] else ''
+        fpm_log_path = f'/var/log/php{version}-fpm.log'
+        if os.path.exists(fpm_log_path):
+            log_tail = yf.execShell(f'tail -n 6 {fpm_log_path}')[0].strip()
+            if log_tail:
+                err_msg = f"{err_msg}\n[php-fpm.log]:\n{log_tail}".strip()
+        if not err_msg:
+            err_msg = f"PHP-{version} (APT) 启动失败，请检查配置或点击【自愈修复】！"
+        return err_msg
+
+    elif method == 'stop':
+        time.sleep(0.3)
+        if status(version) == 'stop':
+            return 'ok'
+        yf.execShell(f'systemctl stop {service_name} 2>/dev/null')
         return 'ok'
-    return data[1]
+    elif method == 'reload':
+        data = yf.execShell(f'systemctl reload {service_name}')
+        return 'ok' if data[1] == '' else data[1]
+
+    data = yf.execShell(f'systemctl {method} {service_name}')
+    return 'ok' if data[1] == '' else data[1]
 
 
 def start(version):
@@ -397,9 +561,9 @@ def start(version):
 
 
 def stop(version):
-    status = phpOp(version, 'stop')
+    status_res = phpOp(version, 'stop')
     deleteConfList(version)
-    return status
+    return status_res
 
 
 def restart(version):
@@ -409,9 +573,144 @@ def restart(version):
 def reload(version):
     return phpOp(version, 'reload')
 
+
 def killAllPhp(version):
-    yf.execShell('pkill -f php-fpm')
+    yf.execShell('pkill -9 -f php-fpm')
     return 'ok'
+
+
+def upgradeSelfHealing(version=''):
+    """
+    全自动平滑无损升级与环境自愈接口（PHP-APT版）：
+    1. 确保 /run/php 目录存在并校准权限；
+    2. 清理无效僵死 PID 与孤儿 socket 死锁；
+    3. 重置 systemd 失败锁定状态并重载；
+    4. 探活已有存活进程，未运行则通过高可用拉起；
+    5. 输出详细自愈诊断报告。
+    """
+    logs = []
+    logs.append("开始执行 PHP-APT 插件平滑无损升级与全链路环境自愈流程...")
+
+    try:
+        run_php = '/run/php'
+        if not os.path.exists(run_php):
+            yf.makeDirs(run_php)
+        if not yf.isAppleSystem() and not yf.getOs().startswith('freebsd'):
+            yf.execShell(f'chown -R www-data:www-data {run_php} 2>/dev/null || chown -R www:www {run_php} 2>/dev/null')
+            yf.execShell(f'chmod 755 {run_php}')
+        logs.append("/run/php 临时套接字与 PID 目录已校准健全。")
+    except Exception as ex:
+        logs.append(f"/run/php 目录校准异常: {ex}")
+
+    target_versions = [formatVersion(version)] if version and str(version).strip() else getInstalledPhpVersions()
+    if not target_versions:
+        logs.append("未发现已安装的 PHP-APT 版本，完成基础环境自愈。")
+        return yf.returnJson(True, "\n".join(logs), {'status': 'ok', 'versions': []})
+
+    results = {}
+    for ver in target_versions:
+        logs.append(f"\n--- 正在对 PHP-{ver} (APT) 执行环境自愈 ---")
+        service_name = f'php{ver}-fpm'
+
+        try:
+            initReplace(ver)
+            # 清理 /etc/php/{ver}/fpm/php-fpm.conf 中非法的全局 php_value[auto_prepend_file] 指令
+            fpm_main_conf = getFpmFile(ver)
+            if os.path.exists(fpm_main_conf):
+                fpm_txt = yf.readFile(fpm_main_conf)
+                if fpm_txt and re.search(r'(?m)^\s*php_value\[auto_prepend_file\]', fpm_txt):
+                    cleaned_fpm = re.sub(r'(?m)^\s*php_value\[auto_prepend_file\].*$', '', fpm_txt)
+                    yf.writeFile(fpm_main_conf, cleaned_fpm)
+                    logs.append(f"已清理 PHP-{ver} 主配置中非法的全局 php_value[auto_prepend_file] 指令。")
+            logs.append(f"PHP-{ver} 配置模板与 Web 整合已同步刷新。")
+        except Exception as ex:
+            logs.append(f"PHP-{ver} 配置自愈异常: {ex}")
+
+        try:
+            yf.execShell(f'systemctl reset-failed {service_name} 2>/dev/null')
+            yf.execShell('systemctl daemon-reload 2>/dev/null')
+        except Exception as ex:
+            logs.append(f"Systemd 状态重置异常: {ex}")
+
+        try:
+            sock_file = getFpmAddress(ver)
+            pid_file = f'/run/php/php{ver}-fpm.pid'
+            st = status(ver)
+            if st != 'start':
+                if isinstance(sock_file, str) and os.path.exists(sock_file):
+                    chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({ver})' | grep -v grep")
+                    if not chk_m[0].strip():
+                        try:
+                            os.remove(sock_file)
+                        except Exception:
+                            yf.execShell(f'rm -f {sock_file}')
+                        logs.append(f"已清理残留的孤儿套接字: {sock_file}")
+                if os.path.exists(pid_file):
+                    try:
+                        os.remove(pid_file)
+                    except Exception:
+                        yf.execShell(f'rm -f {pid_file}')
+                    logs.append(f"已清理残留的僵死 PID 文件: {pid_file}")
+        except Exception as ex:
+            logs.append(f"PHP-{ver} 死锁排查异常: {ex}")
+
+        cur_status = status(ver)
+        if cur_status != 'start':
+            logs.append(f"检测到 PHP-{ver} 未运行，正在尝试高可用拉起...")
+            start_ret = start(ver)
+            logs.append(f"拉起结果: {start_ret}")
+        else:
+            logs.append(f"PHP-{ver} 当前正在稳定运行中。")
+
+        final_st = status(ver)
+        results[ver] = final_st
+        logs.append(f"PHP-{ver} 最终服务运行状态: {final_st}")
+
+    is_all_ok = all(v == 'start' for v in results.values()) if results else True
+    logs.append("\nPHP-APT 全链路平滑升级与环境自愈完成。")
+    return yf.returnJson(is_all_ok, "\n".join(logs), {'results': results})
+
+
+def _migrate_php_apt_1_to_2(version=''):
+    """1.x 升级至 2.0 阶段单次自愈迁移"""
+    return upgradeSelfHealing(version)
+
+
+PHP_APT_MIGRATION_STEPS = [
+    ('2.0', _migrate_php_apt_1_to_2),
+]
+
+
+def checkPluginUpgrade(version=''):
+    global _PHP_APT_UPGRADE_CHECKING
+    if _PHP_APT_UPGRADE_CHECKING:
+        return yf.returnJson(True, '升级自愈正在执行中...')
+
+    ver_file = getPluginVersionFile()
+    installed_ver = '1.0'
+    if os.path.exists(ver_file):
+        try:
+            content = yf.readFile(ver_file).strip()
+            if content:
+                installed_ver = content
+        except Exception:
+            installed_ver = '1.0'
+
+    if _compare_version(installed_ver, CURRENT_PLUGIN_VERSION) >= 0:
+        return yf.returnJson(True, '已是最新版本，无需自愈。')
+
+    _PHP_APT_UPGRADE_CHECKING = True
+    try:
+        for target_ver, mig_func in PHP_APT_MIGRATION_STEPS:
+            if _compare_version(installed_ver, target_ver) < 0:
+                mig_func(version)
+        try:
+            yf.writeFile(ver_file, CURRENT_PLUGIN_VERSION)
+        except Exception:
+            pass
+        return yf.returnJson(True, '大版本迁移升级自愈成功完成。')
+    finally:
+        _PHP_APT_UPGRADE_CHECKING = False
 
 
 def initdStatus(version):
@@ -468,14 +767,36 @@ def getPhpConf(version):
         {'name': 'cgi.fix_pathinfo', 'type': 0, 'ps': '是否开启pathinfo'},
         {'name': 'date.timezone', 'type': 3, 'ps': '时区'}
     ]
-    phpini = yf.readFile(getConf(version))
+    defaults_map = {
+        'short_open_tag': 'On',
+        'asp_tags': 'Off',
+        'max_execution_time': '300',
+        'max_input_time': '60',
+        'max_input_vars': '1000',
+        'memory_limit': '128M',
+        'post_max_size': '50M',
+        'file_uploads': 'On',
+        'upload_max_filesize': '50M',
+        'max_file_uploads': '20',
+        'default_socket_timeout': '60',
+        'error_reporting': 'E_ALL & ~E_NOTICE',
+        'display_errors': 'Off',
+        'cgi.fix_pathinfo': '1',
+        'date.timezone': 'PRC'
+    }
+    ini_path = getConf(version)
+    phpini = yf.readFile(ini_path)
+    if not phpini or isinstance(phpini, bool):
+        phpini = ''
+
     result = []
     for g in gets:
-        rep = g['name'] + r'\s*=\s*([0-9A-Za-z_& ~]+)(\s*;?|\r?\n)'
+        rep = r'(?m)^\s*;?\s*' + re.escape(g['name']) + r'\s*=\s*([0-9A-Za-z_& ~|!^/.-]+)'
         tmp = re.search(rep, phpini)
-        if not tmp:
-            continue
-        g['value'] = tmp.groups()[0]
+        if tmp:
+            g['value'] = tmp.group(1).strip()
+        else:
+            g['value'] = defaults_map.get(g['name'], '')
         result.append(g)
     return yf.getJson(result)
 
@@ -488,11 +809,16 @@ def submitPhpConf(version):
     args = getArgs()
     filename = getConf(version)
     phpini = yf.readFile(filename)
+    if not phpini or isinstance(phpini, bool):
+        phpini = ''
     for g in gets:
         if g in args:
-            rep = g + r'\s*=\s*(.+)\r?\n'
-            val = g + ' = ' + args[g] + '\n'
-            phpini = re.sub(rep, val, phpini)
+            rep = r'(?m)^\s*;?\s*' + re.escape(g) + r'\s*=.*'
+            val = f'{g} = {args[g]}'
+            if re.search(rep, phpini):
+                phpini = re.sub(rep, val, phpini)
+            else:
+                phpini += f'\n{val}\n'
     yf.writeFile(filename, phpini)
     reload(version)
     return yf.returnJson(True, '设置成功')
@@ -501,37 +827,26 @@ def submitPhpConf(version):
 def getLimitConf(version):
     fileini = getConf(version)
     phpini = yf.readFile(fileini)
+    if not phpini or isinstance(phpini, bool):
+        phpini = ''
+
     filefpm = getFpmConfFile(version)
     phpfpm = yf.readFile(filefpm)
+    if not phpfpm or isinstance(phpfpm, bool):
+        phpfpm = ''
 
-    # print fileini, filefpm
     data = {}
-    try:
-        rep = r"upload_max_filesize\s*=\s*([0-9]+)M"
-        tmp = re.search(rep, phpini).groups()
-        data['max'] = tmp[0]
-    except:
-        data['max'] = '50'
+    m1 = re.search(r'(?m)^\s*;?\s*upload_max_filesize\s*=\s*([0-9]+)M', phpini)
+    data['max'] = m1.group(1).strip() if m1 else '50'
 
-    try:
-        rep = r"request_terminate_timeout\s*=\s*([0-9]+)\n"
-        tmp = re.search(rep, phpfpm).groups()
-        data['maxTime'] = tmp[0]
-    except:
-        data['maxTime'] = 0
+    m2 = re.search(r'(?m)^\s*;?\s*request_terminate_timeout\s*=\s*([0-9]+)', phpfpm)
+    data['maxTime'] = m2.group(1).strip() if m2 else 0
 
-    try:
-        rep = r"\n;*\s*cgi\.fix_pathinfo\s*=\s*([0-9]+)\s*\n"
-        tmp = re.search(rep, phpini).groups()
-
-        if tmp[0] == '1':
-            data['pathinfo'] = True
-        else:
-            data['pathinfo'] = False
-    except:
-        data['pathinfo'] = False
+    m3 = re.search(r'(?m)^\s*;?\s*cgi\.fix_pathinfo\s*=\s*([0-9]+)', phpini)
+    data['pathinfo'] = (m3.group(1).strip() == '1') if m3 else False
 
     return yf.getJson(data)
+
 
 
 def setMaxTime(version):
@@ -584,68 +899,70 @@ def setMaxSize(version):
 
 
 def getFpmConfig(version):
-
     filefpm = getFpmConfFile(version)
+    if not os.path.exists(filefpm):
+        phpFpmWwwReplace(version)
     conf = yf.readFile(filefpm)
+    if not conf:
+        conf = ""
     data = {}
-    rep = r"\s*pm.max_children\s*=\s*([0-9]+)\s*"
-    tmp = re.search(rep, conf).groups()
-    data['max_children'] = tmp[0]
 
-    rep = r"\s*pm.start_servers\s*=\s*([0-9]+)\s*"
-    tmp = re.search(rep, conf).groups()
-    data['start_servers'] = tmp[0]
+    rep = r"(?m)^\s*pm\.max_children\s*=\s*([0-9]+)"
+    m = re.search(rep, conf)
+    data['max_children'] = m.group(1) if m else '30'
 
-    rep = r"\s*pm.min_spare_servers\s*=\s*([0-9]+)\s*"
-    tmp = re.search(rep, conf).groups()
-    data['min_spare_servers'] = tmp[0]
+    rep = r"(?m)^\s*pm\.start_servers\s*=\s*([0-9]+)"
+    m = re.search(rep, conf)
+    data['start_servers'] = m.group(1) if m else '5'
 
-    rep = r"\s*pm.max_spare_servers \s*=\s*([0-9]+)\s*"
-    tmp = re.search(rep, conf).groups()
-    data['max_spare_servers'] = tmp[0]
+    rep = r"(?m)^\s*pm\.min_spare_servers\s*=\s*([0-9]+)"
+    m = re.search(rep, conf)
+    data['min_spare_servers'] = m.group(1) if m else '5'
 
-    rep = r"\s*pm\s*=\s*(\w+)\s*"
-    tmp = re.search(rep, conf).groups()
-    data['pm'] = tmp[0]
+    rep = r"(?m)^\s*pm\.max_spare_servers\s*=\s*([0-9]+)"
+    m = re.search(rep, conf)
+    data['max_spare_servers'] = m.group(1) if m else '10'
+
+    rep = r"(?m)^\s*pm\s*=\s*(\w+)"
+    m = re.search(rep, conf)
+    data['pm'] = m.group(1) if m else 'dynamic'
     return yf.getJson(data)
 
 
 def setFpmConfig(version):
     args = getArgs()
-    # if not 'max' in args:
-    #     return 'missing time args!'
-
-    # version = args['version']
-    max_children = args['max_children']
-    start_servers = args['start_servers']
-    min_spare_servers = args['min_spare_servers']
-    max_spare_servers = args['max_spare_servers']
-    pm = args['pm']
+    max_children = str(args.get('max_children', '30')).strip()
+    start_servers = str(args.get('start_servers', '5')).strip()
+    min_spare_servers = str(args.get('min_spare_servers', '5')).strip()
+    max_spare_servers = str(args.get('max_spare_servers', '10')).strip()
+    pm = str(args.get('pm', 'dynamic')).strip()
 
     filefpm = getFpmConfFile(version)
+    if not os.path.exists(filefpm):
+        phpFpmWwwReplace(version)
     conf = yf.readFile(filefpm)
+    if not conf:
+        conf = ""
 
-    rep = r"\s*pm.max_children\s*=\s*([0-9]+)\s*"
-    conf = re.sub(rep, "\npm.max_children = " + max_children, conf)
+    def update_or_append(content, key, val):
+        pat = rf'(?m)^\s*;?\s*{re.escape(key)}\s*=.*$'
+        repl = f'{key} = {val}'
+        if re.search(pat, content):
+            return re.sub(pat, repl, content)
+        return content.rstrip() + f'\n{repl}\n'
 
-    rep = r"\s*pm.start_servers\s*=\s*([0-9]+)\s*"
-    conf = re.sub(rep, "\npm.start_servers = " + start_servers, conf)
-
-    rep = r"\s*pm.min_spare_servers\s*=\s*([0-9]+)\s*"
-    conf = re.sub(rep, "\npm.min_spare_servers = " + min_spare_servers, conf)
-
-    rep = r"\s*pm.max_spare_servers \s*=\s*([0-9]+)\s*"
-    conf = re.sub(rep, "\npm.max_spare_servers = " + max_spare_servers + "\n", conf)
-
-    rep = r"\s*pm\s*=\s*(\w+)\s*"
-    conf = re.sub(rep, "\npm = " + pm + "\n", conf)
+    conf = update_or_append(conf, 'pm.max_children', max_children)
+    conf = update_or_append(conf, 'pm.start_servers', start_servers)
+    conf = update_or_append(conf, 'pm.min_spare_servers', min_spare_servers)
+    conf = update_or_append(conf, 'pm.max_spare_servers', max_spare_servers)
+    conf = update_or_append(conf, 'pm', pm)
 
     yf.writeFile(filefpm, conf)
     reload(version)
 
     msg = yf.getInfo('设置PHP-{1}并发设置,max_children={2},start_servers={3},min_spare_servers={4},max_spare_servers={5}',
                      (version, max_children, start_servers, min_spare_servers, max_spare_servers,))
-    yf.writeLog('插件管理[PHP]', msg)
+    yf.writeLog('插件管理[PHP-APT]', msg)
     return yf.returnJson(True, '设置成功!')
 
 
@@ -654,19 +971,21 @@ def getFpmAddress(version):
     php_fpm_file = getFpmConfFile(version)
     try:
         content = yf.readFile(php_fpm_file)
+        if not content:
+            return fpm_address
         tmp = re.findall(r"^(?!\s*;)\s*listen\s*=\s*(.+)", content, re.M)
         if not tmp:
             return fpm_address
-        if tmp[0].find('sock') != -1:
-            return fpm_address
-        if tmp[0].find(':') != -1:
-            listen_tmp = tmp[0].split(':')
-            if bind:
-                fpm_address = (listen_tmp[0], int(listen_tmp[1]))
-            else:
-                fpm_address = ('127.0.0.1', int(listen_tmp[1]))
-        else:
-            fpm_address = ('127.0.0.1', int(tmp[0]))
+        raw_listen = tmp[0].strip()
+        if 'sock' in raw_listen:
+            return raw_listen
+        if ':' in raw_listen:
+            listen_tmp = raw_listen.split(':')
+            ip = listen_tmp[0].strip()
+            port = int(listen_tmp[1].strip())
+            fpm_address = (ip if ip else '127.0.0.1', port)
+        elif raw_listen.isdigit():
+            fpm_address = ('127.0.0.1', int(raw_listen))
         return fpm_address
     except:
         return fpm_address
@@ -698,35 +1017,35 @@ def getFpmStatus(version):
 def getSessionConf(version):
     filename = getConf(version)
     if not os.path.exists(filename):
-        return yf.returnJson(False, '指定PHP版本不存在!')
+        return yf.returnJson(True, 'ok', {"save_handler": "files", "save_path": "", "passwd": "", "port": ""})
 
     phpini = yf.readFile(filename)
+    if not phpini:
+        phpini = ""
 
-    rep = r'session.save_handler\s*=\s*([0-9A-Za-z_& ~]+)(\s*;?|\r?\n)'
-    save_handler = re.search(rep, phpini)
-    if save_handler:
-        save_handler = save_handler.group(1)
-    else:
-        save_handler = "files"
+    rep = r'(?m)^\s*session\.save_handler\s*=\s*([0-9A-Za-z_& ~]+)'
+    m_handler = re.search(rep, phpini)
+    save_handler = m_handler.group(1).strip() if m_handler else "files"
 
-    reppath = r'\nsession.save_path\s*=\s*"tcp\:\/\/([\d\.]+):(\d+).*\r?\n'
-    passrep = r'\nsession.save_path\s*=\s*"tcp://[\w\.\?\:]+=(.*)"\r?\n'
-    memcached = r'\nsession.save_path\s*=\s*"([\d\.]+):(\d+)"'
-    save_path = re.search(reppath, phpini)
-    if not save_path:
-        save_path = re.search(memcached, phpini)
-    passwd = re.search(passrep, phpini)
+    reppath = r'(?m)^\s*session\.save_path\s*=\s*"tcp\:\/\/([\d\.]+):(\d+)'
+    memcached = r'(?m)^\s*session\.save_path\s*=\s*"([\d\.]+):(\d+)"'
+    passrep = r'(?m)^\s*session\.save_path\s*=\s*"tcp://[^=]+=(.*)"'
+
+    m_path = re.search(reppath, phpini)
+    if not m_path:
+        m_path = re.search(memcached, phpini)
+
+    m_pass = re.search(passrep, phpini)
+    passwd = m_pass.group(1).strip() if m_pass else ""
+
+    save_path = ""
     port = ""
-    if passwd:
-        passwd = passwd.group(1)
-    else:
-        passwd = ""
-    if save_path:
-        port = save_path.group(2)
-        save_path = save_path.group(1)
-
-    else:
-        save_path = ""
+    if m_path:
+        try:
+            save_path = m_path.group(1).strip()
+            port = m_path.group(2).strip()
+        except Exception:
+            pass
 
     data = {"save_handler": save_handler, "save_path": save_path,
             "passwd": passwd, "port": port}
@@ -871,14 +1190,26 @@ def cleanSessionOld(version):
 
 def getDisableFunc(version):
     filename = getConf(version)
-    if not os.path.exists(filename):
-        return yf.returnJson(False, '指定PHP版本不存在!')
+    phpini = yf.readFile(filename) if os.path.exists(filename) else ''
+    if not phpini:
+        phpini = ''
 
-    phpini = yf.readFile(filename)
     data = {}
-    rep = r"disable_functions\s*=\s{0,1}(.*)\n"
-    tmp = re.search(rep, phpini).groups()
-    data['disable_functions'] = tmp[0]
+    rep = r"(?m)^\s*;?\s*disable_functions\s*=\s*(.*)$"
+    m = re.search(rep, phpini)
+    if m and m.group(1).strip():
+        data['disable_functions'] = m.group(1).strip()
+    else:
+        data['disable_functions'] = DEFAULT_DISABLE_FUNCTIONS
+        if os.path.exists(filename):
+            try:
+                if m:
+                    phpini = re.sub(rep, f'disable_functions = {DEFAULT_DISABLE_FUNCTIONS}', phpini)
+                else:
+                    phpini = phpini.rstrip() + f'\ndisable_functions = {DEFAULT_DISABLE_FUNCTIONS}\n'
+                yf.writeFile(filename, phpini)
+            except Exception:
+                pass
     return yf.getJson(data)
 
 
@@ -888,15 +1219,20 @@ def setDisableFunc(version):
         return yf.returnJson(False, '指定PHP版本不存在!')
 
     args = getArgs()
-    disable_functions = args['disable_functions']
+    disable_functions = str(args.get('disable_functions', '')).strip()
 
     phpini = yf.readFile(filename)
-    rep = r"disable_functions\s*=\s*.*\n"
-    phpini = re.sub(rep, 'disable_functions = ' +
-                    disable_functions + "\n", phpini)
+    if not phpini:
+        phpini = ""
+
+    rep = r"(?m)^\s*;?\s*disable_functions\s*=.*$"
+    if re.search(rep, phpini):
+        phpini = re.sub(rep, 'disable_functions = ' + disable_functions, phpini)
+    else:
+        phpini = phpini.rstrip() + '\ndisable_functions = ' + disable_functions + '\n'
 
     msg = yf.getInfo('修改PHP-{1}的禁用函数为[{2}]', (version, disable_functions,))
-    yf.writeLog('插件管理[PHP-YUM]', msg)
+    yf.writeLog('插件管理[PHP-APT]', msg)
     yf.writeFile(filename, phpini)
     reload(version)
     return yf.returnJson(True, '设置成功!')
@@ -914,14 +1250,14 @@ def getPhpinfo(version):
     yf.makeDirs(root_dir)
     yf.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = yf.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
-    os.system("rm -rf " + root_dir)
+    yf.removeDir(root_dir)
     phpinfo = str(sock_data, encoding='utf-8')
     return phpinfo
 
 
 def get_php_info(args):
     inputVer = args['version']
-    version = inputVer[0] + '.' + inputVer[1]
+    version = formatVersion(inputVer)
     return getPhpinfo(version)
 
 
@@ -1038,6 +1374,16 @@ if __name__ == "__main__":
         print(tuneAllPhpConfig())
         exit(0)
 
+    if func == 'check_plugin_upgrade':
+        ver = formatVersion(sys.argv[2]) if len(sys.argv) > 2 else ''
+        print(checkPluginUpgrade(ver))
+        exit(0)
+
+    if func == 'upgrade_self_healing':
+        ver = formatVersion(sys.argv[2]) if len(sys.argv) > 2 else ''
+        print(upgradeSelfHealing(ver))
+        exit(0)
+
     if len(sys.argv) < 3:
         if func == 'kill_all_php':
             print(killAllPhp(''))
@@ -1046,10 +1392,14 @@ if __name__ == "__main__":
         exit(0)
 
     inputVer = sys.argv[2]
-    version = inputVer[0] + '.' + inputVer[1]
+    version = formatVersion(inputVer)
 
     if func == 'status':
         print(status(version))
+    elif func == 'upgrade_self_healing':
+        print(upgradeSelfHealing(version))
+    elif func == 'check_plugin_upgrade':
+        print(checkPluginUpgrade(version))
     elif func == 'start':
         print(start(version))
     elif func == 'stop':

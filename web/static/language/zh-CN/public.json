@@ -562,6 +562,7 @@
     "recommended_for_use_after": "，推荐日常修改配置后使用。",
     "restart_the_service_restart": "重启服务 (Restart)",
     "forcibly_terminates_and_restarts": "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。",
+    "note": "注意",
     "kill_all_php_processes": "kill所有php进程",
     "forcefully_terminate_all_php": "：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，",
     "after_execution_you_ll": "执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。",
@@ -586,5 +587,18 @@
     "tip_use_ctrl_to_2": "提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!",
     "this_is_2": "此处为【",
     "main_configuration_file_if_1": "】主配置文件,若您不了解配置规则,请勿随意修改。",
-    "retrieving_configuration_template": "配置模版获取中..."
+    "retrieving_configuration_template": "配置模版获取中...",
+    "self_healing": "自愈修复",
+    "self_healing_title": "服务自愈修复",
+    "self_healing_confirm": "是否对 {1}{2} 执行全面服务自愈修复？自愈将自动健全运行目录、清理孤儿 Socket 与死锁 PID、重置服务异常状态并检测动态库。",
+    "start_repair": "开始自愈",
+    "self_healing_running": "正在执行深度自愈诊断与修复，请稍候...",
+    "self_healing_success": "自愈修复完成！",
+    "self_healing_failed": "自愈修复遇到问题",
+    "diagnostic_report": "诊断报告",
+    "refresh_service": "刷新服务状态",
+    "tip_use_ctrl_to_1": "提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!",
+    "this_is_1": "此处为",
+    "main_configuration_file_if": "主配置文件,若您不了解配置规则,请勿随意修改。",
+    "save_4": "保存"
 }

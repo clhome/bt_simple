@@ -63,45 +63,57 @@ def status_progress(version):
 
 def getPhpSocket(version):
     path = getFpmConfFile(version)
+    if not os.path.exists(path):
+        return ""
     content = yf.readFile(path)
+    if not content:
+        return ""
     rep = r'listen\s*=\s*(.*)'
     tmp = re.search(rep, content)
+    if not tmp:
+        return ""
     return tmp.groups()[0].strip()
 
 
 def status(version):
     '''
-    sock文件判断是否启动
+    统一对齐双模态精准探活
     '''
-    sock = getPhpSocket(version)
-    if sock.find(':'):
-        return status_progress(version)
-
-    if not os.path.exists(sock):
-        return 'stop'
-    return 'start'
+    try:
+        import plugins.php.index as php_main
+        return php_main.status(version)
+    except Exception:
+        sock = getPhpSocket(version)
+        if not sock:
+            return 'stop'
+        if sock.find(':') != -1:
+            return status_progress(version)
+        if not os.path.exists(sock):
+            return 'stop'
+        return 'start'
 
 
 def getFpmAddress(version):
     fpm_address = '/tmp/php-cgi-{}.sock'.format(version)
     php_fpm_file = getFpmConfFile(version)
+    if not os.path.exists(php_fpm_file):
+        return fpm_address
     try:
-        content = readFile(php_fpm_file)
+        content = yf.readFile(php_fpm_file)
         tmp = re.findall(r"listen\s*=\s*(.+)", content)
         if not tmp:
             return fpm_address
-        if tmp[0].find('sock') != -1:
-            return fpm_address
-        if tmp[0].find(':') != -1:
-            listen_tmp = tmp[0].split(':')
-            if bind:
-                fpm_address = (listen_tmp[0], int(listen_tmp[1]))
-            else:
-                fpm_address = ('127.0.0.1', int(listen_tmp[1]))
+        raw_addr = tmp[0].strip()
+        if raw_addr.find('sock') != -1:
+            return raw_addr
+        if raw_addr.find(':') != -1:
+            listen_tmp = raw_addr.split(':')
+            host = listen_tmp[0].strip() if listen_tmp[0].strip() else '127.0.0.1'
+            fpm_address = (host, int(listen_tmp[1].strip()))
         else:
-            fpm_address = ('127.0.0.1', int(tmp[0]))
+            fpm_address = ('127.0.0.1', int(raw_addr))
         return fpm_address
-    except:
+    except Exception:
         return fpm_address
 
 
@@ -117,7 +129,7 @@ def getPhpinfo(version):
     yf.makeDirs(root_dir)
     yf.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = yf.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
-    os.system("rm -rf " + root_dir)
+    yf.removeDir(root_dir)
     phpinfo = str(sock_data, encoding='utf-8')
     return phpinfo
 

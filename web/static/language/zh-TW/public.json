@@ -556,6 +556,7 @@
     "recommended_for_use_after": "，推薦日常修改配置後使用。",
     "restart_the_service_restart": "重啟服務 (Restart)",
     "forcibly_terminates_and_restarts": "：強制終止並重啟所有進程。會導致進行中的請求瞬間中斷並拋出 502 錯誤，僅在極少數異常恢復時使用。",
+    "note": "注意",
     "kill_all_php_processes": "kill所有php進程",
     "forcefully_terminate_all_php": "：強制殺掉伺服器上所有的 PHP-FPM 進程（包括其他正常運行的 PHP 版本）。這會中斷所有 PHP 網站的訪問。",
     "after_execution_you_ll": "執行後需要手動回到各個 PHP 版本中重新點擊【啟動】服務。",
@@ -580,5 +581,18 @@
     "tip_use_ctrl_to_2": "提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!",
     "this_is_2": "此处為【",
     "main_configuration_file_if_1": "】主設定檔案,若您不了解設定規則,请勿随意修改。",
-    "retrieving_configuration_template": "設定模版獲取中..."
+    "retrieving_configuration_template": "設定模版獲取中...",
+    "self_healing": "自癒修復",
+    "self_healing_title": "服務自癒修復",
+    "self_healing_confirm": "是否對 {1}{2} 執行全面服務自癒修復？自癒將自動健全運行目錄、清理孤兒 Socket 與死鎖 PID、重置服務異常狀態並檢測動態庫。",
+    "start_repair": "開始自癒",
+    "self_healing_running": "正在執行深度自癒診斷與修復，請稍候...",
+    "self_healing_success": "自癒修復完成！",
+    "self_healing_failed": "自癒修復遇到問題",
+    "diagnostic_report": "診斷報告",
+    "refresh_service": "刷新服務狀態",
+    "tip_use_ctrl_to_1": "提示：Ctrl+F 搜尋關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!",
+    "this_is_1": "此處為",
+    "main_configuration_file_if": "主設定檔,若您不瞭解設定規則,請勿隨意修改。",
+    "save_4": "儲存"
 }

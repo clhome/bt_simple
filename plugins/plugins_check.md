@@ -21,15 +21,16 @@
 | 15  | openresty       |                        |                                      |
 | 16  | pg_docker       |                        |                                      |
 | 17  | pgadmin         |                        |                                      |
-| 18  | php             |                        |                                      |
-| 19  | php-apt         |                        |                                      |
+| 18  | php             | 完成                   | 已实现大版本无损升级单次自愈、三级容灾拉起、编译脚本语法修复与多语言适配 |
+| 19  | php-apt         | 完成                   | 已实现大版本无损升级自愈、/run/php 目录自愈、孤儿套接字清理与多语言适配 |
 | 20  | php-guard       |                        |                                      |
-| 21  | php-yum         |                        |                                      |
+| 21  | php-yum         | 完成                   | 已实现大版本无损升级自愈、Remi 目录自愈、孤儿套接字清理与多语言适配 |
+
 | 22  | phpmyadmin      |                        |                                      |
 | 23  | postgresql      |                        |                                      |
 | 24  | pureftp         |                        |                                      |
 | 25  | python_yf       |                        |                                      |
-| 26  | redis           |                        |                                      |
+| 26  | redis           | 完成                   |                                      |
 | 27  | rsyncd          |                        |                                      |
 | 28  | sphinx          |                        |                                      |
 | 29  | supervisor      |                        |                                      |

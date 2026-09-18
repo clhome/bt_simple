@@ -556,6 +556,7 @@
     "recommended_for_use_after": ", recommandé après modification de la configuration.",
     "restart_the_service_restart": "Redémarrer le service (Restart)",
     "forcibly_terminates_and_restarts": ": Termine de force et redémarre tous les processus. Les requêtes en cours peuvent être interrompues.",
+    "note": "Remarque",
     "kill_all_php_processes": "Tuer tous les processus PHP",
     "forcefully_terminate_all_php": ": Tue de force tous les processus PHP-FPM sur le serveur. Cela interrompt l'accès à tous les sites PHP.",
     "after_execution_you_ll": "Vous devrez redémarrer manuellement chaque version de PHP après l'exécution.",
@@ -580,5 +581,18 @@
     "tip_use_ctrl_to_2": "Astuce : Ctrl+F Rechercher, Ctrl+G Suivant, Ctrl+S Enregistrer, Ctrl+H Remplacer !",
     "this_is_2": "Ici se trouve [",
     "main_configuration_file_if_1": "] Fichier de configuration principal. Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier.",
-    "retrieving_configuration_template": "Récupération du modèle de configuration en cours..."
+    "retrieving_configuration_template": "Récupération du modèle de configuration en cours...",
+    "self_healing": "Auto-guérison",
+    "self_healing_title": "Auto-guérison du service",
+    "self_healing_confirm": "Exécuter une auto-guérison complète pour {1}{2} ? Cela créera les répertoires d'exécution manquants, nettoiera les sockets orphelins et les PID bloqués, réinitialisera l'état systemd et vérifiera les bibliothèques partagées.",
+    "start_repair": "Démarrer l'auto-guérison",
+    "self_healing_running": "Diagnostic et réparation d'auto-guérison en cours, veuillez patienter...",
+    "self_healing_success": "Réparation d'auto-guérison terminée !",
+    "self_healing_failed": "Des problèmes sont survenus lors de l'auto-guérison",
+    "diagnostic_report": "Rapport de diagnostic",
+    "refresh_service": "Actualiser l'état du service",
+    "tip_use_ctrl_to_1": "Astuce : Ctrl+F Rechercher, Ctrl+G Suivant, Ctrl+S Enregistrer, Ctrl+H Remplacer !",
+    "this_is_1": "Ceci est",
+    "main_configuration_file_if": "fichier de configuration principal. Si vous ne comprenez pas les règles de configuration, veuillez ne pas le modifier arbitrairement.",
+    "save_4": "Enregistrer"
 }
