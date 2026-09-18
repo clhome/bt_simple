@@ -39,7 +39,7 @@ Install_lib()
 
 		cd ${rootPath}/plugins/php/lib && /bin/bash icu.sh
 		if [ -d $php_lib/${LIBNAME}-${LIBV} ];then
-			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
+			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz https://pecl.php.net/get/${LIBNAME}-${LIBV}.tgz
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
 		fi
 		cd $php_lib/${LIBNAME}-${LIBV}

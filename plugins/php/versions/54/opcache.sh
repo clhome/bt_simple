@@ -37,7 +37,7 @@ Install_lib()
 		mkdir -p $php_lib
 
 		if [ ! -d  $php_lib/zendopcache-7.0.5 ];then
-			wget -O $php_lib/zendopcache-7.0.5.tgz http://pecl.php.net/get/zendopcache-7.0.5.tgz
+			wget -O $php_lib/zendopcache-7.0.5.tgz https://pecl.php.net/get/zendopcache-7.0.5.tgz
 			cd $php_lib && tar xvf zendopcache-7.0.5.tgz
 		fi
 		cd $php_lib/zendopcache-7.0.5

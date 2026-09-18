@@ -2,9 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source
 sysName=`uname`

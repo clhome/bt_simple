@@ -62,9 +62,9 @@ Install_lib()
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
 		make -j${cpuCore:-1} && make install && make clean
 
-		if [ -d $sourcePath/php${version} ];then
-			cd ${sourcePath} && rm -rf $sourcePath/php${version}
-		fi
+		# if [ -d $sourcePath/php${version} ];then
+		# cd ${sourcePath} && rm -rf $sourcePath/php${version}
+		# fi
 		
 	fi
 

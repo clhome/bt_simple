@@ -283,5 +283,16 @@
 - [x] 188. 编写与运行自动化回归测试套件 (`test/test_php_yum_install_fixes.py`) 验证频控抑制、版本截取、reset-failed 与脚本健壮性 100% 通过
 - [x] 189. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
 
+## PHP 插件三剑客（php、php-apt、php-yum）安装脚本全链路优化（中美双轨、速度爆发与安全加固）清单
 
+- [x] 190. 优化 `plugins/php-apt/install.sh`：实现 `curPath` 跨路径安全解析、dpkg 锁等待、中美双轨选源、GPG 原子下载与批量扩展合并安装
+- [x] 191. 优化 `plugins/php-apt/versions/common.sh` 与 `versions/*/install.sh`：修复路径与过滤内置无包扩展
+- [x] 192. 优化 `plugins/php-yum/install.sh`：补全 `epel-release`、拓宽主流发行版识别、中美双轨选源、消除管道高危代码与批量扩展合并安装
+- [x] 193. 优化 `plugins/php-yum/versions/lib.sh`、`common.sh` 与 `versions/*/install.sh`：清理代码混乱与修复路径
+- [x] 194. 优化 `plugins/php/install.sh` 与各扩展脚本（`versions/common/*.sh`）：根除误删主源码死循环、引入频控重启抑制、HTTPS 升级
+- [x] 195. 编写与运行自动化回归测试套件 (`test/test_php_install_optimization.py`) 验证语法、双轨选源、批量安装与防回退机制 100% 通过
+- [x] 196. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+- [x] 197. 彻底根治 `plugins/php` 源码版空目录阻断解压缺陷：将 15 个子版本判断从 `[ ! -d ... ]` 改为 `[ ! -f .../main/php_version.h ]`，杜绝 `cannot find sources` 致命中断
+- [x] 198. 彻底根治 `plugins/php-apt` 与 `plugins/php-yum` 子版本路径浅层计算缺陷：校准 `rootPath=$(cd "$curPath/../../../.."; pwd)` 深度至 4 级，根除错建目录与外层误判跳出
+- [x] 199. 增加子版本路径深度与头文件存在性回归测试（`test_09`、`test_10`），全量回归 100% 通过与收尾
 

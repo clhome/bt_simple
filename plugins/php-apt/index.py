@@ -330,7 +330,7 @@ def initReplace(version):
     makeOpConf(version)
     phpFpmWwwReplace(version)
 
-    install_ok = getAppDir() + "/" + localVersion(version) + "/install.ok"
+    install_ok = getAppDir() + "/" + version + "/install.ok"
     if not os.path.exists(install_ok):
         phpFpmReplace(version)
 

@@ -96,9 +96,9 @@ Install_lib()
 		# --enable-gd-native-ttf
 		make clean && make -j${cpuCore:-1} && make install && make clean
 		
-		if [ -d $sourcePath/php${version} ];then
-			cd ${sourcePath} && rm -rf $sourcePath/php${version}
-		fi
+		# if [ -d $sourcePath/php${version} ];then
+		# cd ${sourcePath} && rm -rf $sourcePath/php${version}
+		# fi
 	fi
 
 	if [ ! -f "$extFile" ];then

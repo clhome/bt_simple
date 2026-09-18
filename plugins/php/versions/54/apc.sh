@@ -37,7 +37,7 @@ Install_lib()
 		php_lib=$sourcePath/php_lib
 		mkdir -p $php_lib
 		if [ ! -d $php_lib/${_LIBNAME}-${LIBV} ];then
-			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz http://pecl.php.net/get/${_LIBNAME}-${LIBV}.tgz
+			wget -O $php_lib/${LIBNAME}-${LIBV}.tgz https://pecl.php.net/get/${_LIBNAME}-${LIBV}.tgz
 			cd $php_lib && tar xvf ${LIBNAME}-${LIBV}.tgz
 		fi 
 		cd $php_lib/${_LIBNAME}-${LIBV}

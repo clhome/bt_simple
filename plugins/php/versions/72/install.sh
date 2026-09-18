@@ -63,7 +63,7 @@ mkdir -p $serverPath/php
 cd ${rootPath}/plugins/php/lib && /bin/bash freetype_old.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 
-if [ ! -d $sourcePath/php/php${PHP_VER} ];then
+if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ];then
 	if ! command -v xz >/dev/null 2>&1; then
 		which apt-get >/dev/null 2>&1 && apt-get update && apt-get install -y xz-utils
 		which yum >/dev/null 2>&1 && yum install -y xz

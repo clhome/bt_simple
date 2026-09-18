@@ -9,6 +9,10 @@ serverPath=$(dirname "$rootPath")
 version=$1
 action=$2
 
+if [ "$PHP_EXT_NO_RESTART" == "1" ] && [ "${action}" == "restart" ]; then
+	exit 0
+fi
+
 if [ -f /lib/systemd/system/php${version}.service ];then
 	systemctl ${action} php${version}
 elif [ -f /usr/lib/systemd/system/php${version}.service ]; then

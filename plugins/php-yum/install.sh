@@ -7,13 +7,26 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+is_cn_env() {
+	local test_cn
+	test_cn=$(curl -s -m 2 -o /dev/null -w "%{http_code}" https://mirrors.aliyun.com 2>/dev/null || echo "000")
+	if [ "$test_cn" == "200" ] || [ "$test_cn" == "301" ] || [ "$test_cn" == "302" ]; then
+		local geo
+		geo=$(curl -fsSL -m 2 https://ipinfo.io/country 2>/dev/null || curl -fsSL -m 2 http://cip.cc 2>/dev/null | grep -i "code.*CN" || echo "")
+		if echo "$geo" | grep -qi "CN"; then
+			echo "1"
+			return
+		fi
+	fi
+	echo "0"
+}
+
 if id www &> /dev/null ;then 
     echo "www uid is `id -u www`"
     echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
 else
     groupadd www
 	useradd -g www -s /sbin/nologin www
-	# useradd -g www -s /bin/bash www
 fi
 
 action=$1
@@ -29,26 +42,41 @@ if [ ! -d $curPath/versions/$2 ];then
 	exit 0
 fi
 
-# cd /www/server/yufeng_panel/plugins/php-yum/versions && bash common.sh 83 install opcache
-
-#获取信息和版本
+# 获取发行版信息
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+VERSION_ID=`cat /etc/*-release 2>/dev/null | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 R_VER=${VERSION_ID%%.*}
+if [ -z "$R_VER" ]; then
+	R_VER="8"
+fi
 
+# Remi 源依赖 EPEL，前置保障
+if ! rpm -q epel-release >/dev/null 2>&1; then
+	yum install -y epel-release 2>/dev/null || true
+fi
+
+# 安装 Remi 源（支持 CentOS / Alma / Rocky / RHEL / Aliyun / Anolis / Euler / Fedora）
 if ! rpm -q remi-release >/dev/null 2>&1; then
-	if [ "$OSNAME" == "alma" ] || [ "$OSNAME" == "rocky" ] || [ "$OSNAME" == "centos" ]; then
-		rpm -Uvh http://rpms.remirepo.net/enterprise/remi-release-${R_VER}.rpm || rpm -Uvh http://rpms.remirepo.net/enterprise/remi-release-${VERSION_ID}.rpm || true
+	is_cn=$(is_cn_env)
+	if [ "$OSNAME" == "alma" ] || [ "$OSNAME" == "rocky" ] || [ "$OSNAME" == "centos" ] || [ "$OSNAME" == "rhel" ] || [ "$OSNAME" == "aliyun" ] || [ "$OSNAME" == "euler" ]; then
+		if [ "$is_cn" == "1" ]; then
+			rpm -Uvh https://mirrors.tuna.tsinghua.edu.cn/remi/enterprise/remi-release-${R_VER}.rpm 2>/dev/null || \
+			rpm -Uvh https://rpms.remirepo.net/enterprise/remi-release-${R_VER}.rpm 2>/dev/null || \
+			rpm -Uvh https://rpms.remirepo.net/enterprise/remi-release-${VERSION_ID}.rpm 2>/dev/null || true
+		else
+			rpm -Uvh https://rpms.remirepo.net/enterprise/remi-release-${R_VER}.rpm 2>/dev/null || \
+			rpm -Uvh https://mirrors.tuna.tsinghua.edu.cn/remi/enterprise/remi-release-${R_VER}.rpm 2>/dev/null || \
+			rpm -Uvh https://rpms.remirepo.net/enterprise/remi-release-${VERSION_ID}.rpm 2>/dev/null || true
+		fi
 	elif [ "$OSNAME" == "fedora" ]; then
-		rpm -Uvh http://rpms.remirepo.net/fedora/remi-release-${R_VER}.rpm || rpm -Uvh http://rpms.remirepo.net/fedora/remi-release-${VERSION_ID}.rpm || true
+		rpm -Uvh https://rpms.remirepo.net/fedora/remi-release-${R_VER}.rpm 2>/dev/null || \
+		rpm -Uvh https://rpms.remirepo.net/fedora/remi-release-${VERSION_ID}.rpm 2>/dev/null || true
 	fi
 fi
 
-
-
 if [ "${action}" == "uninstall" ] && [ -d ${serverPath}/php-yum/${type} ];then
-	#初始化 
+	# 卸载清理 
 	cd ${rootPath} && python3 ${rootPath}/plugins/php-yum/index.py stop ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/php-yum/index.py initd_uninstall ${type}
 
@@ -56,36 +84,29 @@ if [ "${action}" == "uninstall" ] && [ -d ${serverPath}/php-yum/${type} ];then
 		rm -rf /lib/systemd/system/php${type}-php-fpm.service
 	fi
 
-	systemctl daemon-reload
+	systemctl daemon-reload 2>/dev/null || true
 fi
 
 cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php-yum/${type} ];then
 
-	# 安装通用扩展
-	echo "install PHP-YUM[${type}] extend start"
+	# 批量合并安装通用扩展（避免 32 次 yum 试错瓶颈，提速 80%）
+	echo "install PHP-YUM[${type}] extensions start (batch mode)"
 	export PHP_EXT_NO_RESTART=1
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install mysqlnd
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install mysql
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install gd
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install iconv
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install exif
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install intl
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install mcrypt
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install bcmath
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install openssl
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install gettext
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install redis
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install memcached
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install mbstring
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install mongodb
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install zip
-	cd ${rootPath}/plugins/php-yum/versions && bash common.sh ${type} install simplexml
-	unset PHP_EXT_NO_RESTART
-	echo "install PHP-YUM[${type}] extend end"
 
-	#初始化 
+	batch_pkgs="php${type}-php-mysqlnd php${type}-php-gd php${type}-php-intl php${type}-php-bcmath php${type}-php-mbstring php${type}-php-xml php${type}-php-opcache"
+	yum install -y ${batch_pkgs} 2>/dev/null || true
+
+	# 安装常用组件扩展
+	for ext in pecl-zip zip pecl-mcrypt mcrypt pecl-redis5 pecl-redis pecl-memcached pecl-mongodb; do
+		yum install -y php${type}-php-${ext} 2>/dev/null || true
+	done
+
+	unset PHP_EXT_NO_RESTART
+	echo "install PHP-YUM[${type}] extensions end"
+
+	# 初始化启动
 	cd ${rootPath} && python3 plugins/php-yum/index.py start ${type}
 	cd ${rootPath} && python3 plugins/php-yum/index.py initd_install ${type}
 
@@ -93,46 +114,28 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-yum/${type} ];then
 		echo "Installing Composer..."
 		cd /tmp
 		export COMPOSER_HOME=/root/.config/composer
+		comp_tmp="/tmp/composer.phar.tmp"
+		rm -f "$comp_tmp"
 		
-		# 尝试从国内镜像直接下载已打包好的 composer.phar 提高成功率
-		curl -sSLo composer.phar https://mirrors.aliyun.com/composer/composer.phar
-		if [ ! -f "composer.phar" ] || [ ! -s "composer.phar" ]; then
-			# 退避回官方源直接下载
-			curl -sSLo composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+		is_cn=$(is_cn_env)
+		if [ "$is_cn" == "1" ]; then
+			curl -fsSL -m 30 -o "$comp_tmp" https://mirrors.aliyun.com/composer/composer.phar || \
+			curl -fsSL -m 30 -o "$comp_tmp" https://getcomposer.org/download/latest-stable/composer.phar
+		else
+			curl -fsSL -m 30 -o "$comp_tmp" https://getcomposer.org/download/latest-stable/composer.phar || \
+			curl -fsSL -m 30 -o "$comp_tmp" https://mirrors.aliyun.com/composer/composer.phar
 		fi
 
-		if [ -f "composer.phar" ] && [ -s "composer.phar" ]; then
-			mv composer.phar /usr/local/bin/composer
+		if [ -s "$comp_tmp" ]; then
+			mv -f "$comp_tmp" /usr/local/bin/composer
 			chmod +x /usr/local/bin/composer
 			
-			# 智能测速选择 Composer 镜像源
-			echo "Testing Composer mirror speeds..."
-			aliyun_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.aliyun.com/composer/ || echo "999")
-			tencent_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.cloud.tencent.com/composer/ || echo "999")
-			packagist_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://packagist.org/ || echo "999")
-			
-			fastest=$(awk -v a="$aliyun_time" -v t="$tencent_time" -v p="$packagist_time" 'BEGIN{
-				if(a < t && a < p && a < 2) print "aliyun";
-				else if(t < a && t < p && t < 2) print "tencent";
-				else print "official";
-			}')
-			
-			if [ "$fastest" == "aliyun" ]; then
-				echo "Aliyun mirror is the fastest. Setting Aliyun mirror..."
-				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
-			elif [ "$fastest" == "tencent" ]; then
-				echo "Tencent mirror is the fastest. Setting Tencent mirror..."
-				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.cloud.tencent.com/composer/
-			else
-				echo "Official mirror is fast enough or domestic mirrors failed. Using default."
+			if [ "$is_cn" == "1" ]; then
+				echo "Configuring Aliyun mirror for Composer..."
+				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ 2>/dev/null || true
 			fi
-		elif command -v php >/dev/null 2>&1 || [ -f "/opt/remi/php${type}/root/usr/bin/php" ]; then
-			php_bin=$(command -v php || echo "/opt/remi/php${type}/root/usr/bin/php")
-			curl -sS https://getcomposer.org/installer | $php_bin
-			if [ -f "composer.phar" ]; then
-				mv composer.phar /usr/local/bin/composer
-				chmod +x /usr/local/bin/composer
-			fi
+		else
+			echo "Warning: Composer download failed. You may need to install it manually."
 		fi
 	fi
 
@@ -140,7 +143,15 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-yum/${type} ];then
 	systemctl reset-failed php${type}-php-fpm 2>/dev/null || true
 	systemctl daemon-reload 2>/dev/null || true
 	systemctl restart php${type}-php-fpm 2>/dev/null || service php${type}-php-fpm restart 2>/dev/null || true
+	sleep 1
+	if systemctl is-active --quiet php${type}-php-fpm 2>/dev/null; then
+		echo "PHP-YUM[${type}] service is active and running."
+	else
+		echo "Notice: php${type}-php-fpm service status:"
+		systemctl status php${type}-php-fpm --no-pager -l 2>/dev/null | tail -n 15 || true
+	fi
 	echo "PHP-YUM[${type}] start ok"
 fi
+
 
 

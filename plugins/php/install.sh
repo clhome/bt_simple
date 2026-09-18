@@ -69,13 +69,8 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 # --- yf adaptive clamp (1C512M -> -j1) ---
 if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
 
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash iconv.sh install 53
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash intl.sh install 73
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash gd.sh install 56
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash openssl.sh install 56
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash fileinfo.sh install 81
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash pgsql.sh install 84
-	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash pdo_pgsql.sh install 84
+	export PHP_EXT_NO_RESTART=1
+
 	cd ${rootPath}/plugins/php/versions/common && bash curl.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash gd.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash readline.sh install ${type}
@@ -92,49 +87,54 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	cd ${rootPath}/plugins/php/versions/common && bash zip.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash zlib.sh install ${type}
 
+	unset PHP_EXT_NO_RESTART
 	echo "install PHP${type} extend end"
+
+	# 统筹清理中间编译临时解压源码，释放磁盘空间
+	rm -rf ${serverPath}/source/php/php${type} 2>/dev/null || true
+	rm -rf ${serverPath}/source/php${type} 2>/dev/null || true
+
+	# 统一执行一次最终重启并探活
+	systemctl reset-failed php${type} 2>/dev/null || true
+	systemctl daemon-reload 2>/dev/null || true
+	systemctl restart php${type} 2>/dev/null || service php${type} restart 2>/dev/null || bash ${rootPath}/plugins/php/versions/lib.sh ${type} restart 2>/dev/null || true
+	sleep 1
+	if systemctl is-active --quiet php${type} 2>/dev/null; then
+		echo "PHP${type} service is active and running."
+	else
+		echo "Notice: PHP${type} service status:"
+		systemctl status php${type} --no-pager -l 2>/dev/null | tail -n 15 || true
+	fi
 
 	if [ ! -f /usr/local/bin/composer ] && [ "$sysName" != "Darwin" ] ;then
 		echo "Installing Composer..."
 		cd /tmp
 		export COMPOSER_HOME=/root/.config/composer
 		export PATH=${serverPath}/php/${type}/bin:$PATH
+		comp_tmp="/tmp/composer.phar.tmp"
+		rm -f "$comp_tmp"
 		
-		# 尝试从国内镜像直接下载已打包好的 composer.phar 提高成功率
-		curl -sSLo composer.phar https://mirrors.aliyun.com/composer/composer.phar
-		if [ ! -f "composer.phar" ] || [ ! -s "composer.phar" ]; then
-			# 退避回官方源直接下载
-			curl -sSLo composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+		is_cn=$(curl -s -m 2 -o /dev/null -w "%{http_code}" https://mirrors.aliyun.com 2>/dev/null || echo "000")
+		if [ "$is_cn" == "200" ] || [ "$is_cn" == "301" ] || [ "$is_cn" == "302" ]; then
+			curl -fsSL -m 30 -o "$comp_tmp" https://mirrors.aliyun.com/composer/composer.phar || \
+			curl -fsSL -m 30 -o "$comp_tmp" https://getcomposer.org/download/latest-stable/composer.phar
+		else
+			curl -fsSL -m 30 -o "$comp_tmp" https://getcomposer.org/download/latest-stable/composer.phar || \
+			curl -fsSL -m 30 -o "$comp_tmp" https://mirrors.aliyun.com/composer/composer.phar
 		fi
 
-		if [ -f "composer.phar" ] && [ -s "composer.phar" ]; then
-			mv composer.phar /usr/local/bin/composer
+		if [ -s "$comp_tmp" ]; then
+			mv -f "$comp_tmp" /usr/local/bin/composer
 			chmod +x /usr/local/bin/composer
 			
-			# 智能测速选择 Composer 镜像源
-			echo "Testing Composer mirror speeds..."
-			aliyun_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.aliyun.com/composer/ || echo "999")
-			tencent_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.cloud.tencent.com/composer/ || echo "999")
-			packagist_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://packagist.org/ || echo "999")
-			
-			fastest=$(awk -v a="$aliyun_time" -v t="$tencent_time" -v p="$packagist_time" 'BEGIN{
-				if(a < t && a < p && a < 2) print "aliyun";
-				else if(t < a && t < p && t < 2) print "tencent";
-				else print "official";
-			}')
-			
-			if [ "$fastest" == "aliyun" ]; then
-				echo "Aliyun mirror is the fastest. Setting Aliyun mirror..."
-				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
-			elif [ "$fastest" == "tencent" ]; then
-				echo "Tencent mirror is the fastest. Setting Tencent mirror..."
-				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.cloud.tencent.com/composer/
-			else
-				echo "Official mirror is fast enough or domestic mirrors failed. Using default."
+			if [ "$is_cn" == "200" ] || [ "$is_cn" == "301" ] || [ "$is_cn" == "302" ]; then
+				echo "Configuring Aliyun mirror for Composer..."
+				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ 2>/dev/null || true
 			fi
 		else
 			echo "Warning: Composer download failed. You may need to install it manually."
 		fi
 	fi
 fi
+
 
