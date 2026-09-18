@@ -275,5 +275,13 @@
 - [x] 183. 编写与运行自动化回归测试套件 (`test/test_php_install_fixes.py`) 验证解压容灾、内存探测、APT 频控保护与全版本语法 100% 通过
 - [x] 184. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
 
+## PHP-YUM 扩展安装死锁触发器防频降级与 Remi 源大版本适配清单
+
+- [x] 185. 解决 `php-yum` 批量安装扩展高频重启：在扩展循环安装前后导出 `PHP_EXT_NO_RESTART=1` / `unset PHP_EXT_NO_RESTART`，并在 `common.sh` 中跳过重启，末尾统一执行 `systemctl reset-failed` + `systemctl restart` (`plugins/php-yum/install.sh`, `plugins/php-yum/versions/common.sh`)
+- [x] 186. 优化 `plugins/php-yum/install.sh` 中 Remi 源安装：增加 `${VERSION_ID%%.*}` 大版本截取与已安装判断，防止次版本号 (如 8.5/9.4) 请求 404；Composer 下载增加国内/官方容灾双回退
+- [x] 187. 在 `plugins/php-yum/versions/common.sh` 单扩展独立安装重启逻辑中加入 `systemctl reset-failed` 恢复保障
+- [x] 188. 编写与运行自动化回归测试套件 (`test/test_php_yum_install_fixes.py`) 验证频控抑制、版本截取、reset-failed 与脚本健壮性 100% 通过
+- [x] 189. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
 
 

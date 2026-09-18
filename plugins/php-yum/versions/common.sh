@@ -60,10 +60,13 @@ echo "yum remove -y php${version}-php-${extName}"
 echo "yum remove -y php${version}-php-pecl-${extName}"
 
 
-echo "systemctl restart php${version}-php-fpm"
-php_status=`systemctl status php${version}-php-fpm | grep inactive`
-echo "php_status:${php_status}"
-if [ "$php_status" == "" ];then
-	systemctl restart php${version}-php-fpm
+if [ "$PHP_EXT_NO_RESTART" != "1" ]; then
+	echo "systemctl restart php${version}-php-fpm"
+	php_status=`systemctl status php${version}-php-fpm 2>/dev/null | grep -E "inactive|failed"`
+	echo "php_status:${php_status}"
+	if [ "$php_status" == "" ];then
+		systemctl reset-failed php${version}-php-fpm 2>/dev/null || true
+		systemctl restart php${version}-php-fpm 2>/dev/null || service php${version}-php-fpm restart 2>/dev/null || true
+	fi
 fi
 
