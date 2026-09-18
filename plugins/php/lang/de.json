@@ -168,5 +168,13 @@
     "诊断报告": "Diagnosebericht",
     "刷新服务状态": "Dienststatus aktualisieren",
     "自愈修复完成！": "Selbstheilungsreparatur abgeschlossen!",
-    "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。": "Dies ist die Konfigurationsdatei für den Anwendungspool {1}. Wenn Sie die Konfigurationsregeln nicht kennen, nehmen Sie bitte keine Änderungen vor."
+    "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。": "Dies ist die Konfigurationsdatei für den Anwendungspool {1}. Wenn Sie die Konfigurationsregeln nicht kennen, nehmen Sie bitte keine Änderungen vor.",
+    "还原默认值": "Auf Standard zurücksetzen",
+    "还原默认配置": "Standardkonfiguration wiederherstellen",
+    "确定要将当前 PHP 核心配置还原为系统推荐的默认值吗？此操作将平滑重启 PHP 服务。": "Möchten Sie die PHP-Kernkonfiguration wirklich auf die Systemstandards zurücksetzen? Dadurch wird der PHP-Dienst reibungslos neu gestartet.",
+    "确定要将禁用函数列表恢复为系统默认的安全推荐配置吗？": "Möchten Sie die Liste der deaktivierten Funktionen wirklich auf die empfohlenen Sicherheitsstandards zurücksetzen?",
+    "正在还原默认配置...": "Standardkonfiguration wird wiederhergestellt...",
+    "正在还原默认禁用函数...": "Standardmäßig deaktivierte Funktionen werden wiederhergestellt...",
+    "配置已成功还原为默认值": "Die Konfiguration wurde erfolgreich auf die Standardwerte zurückgesetzt",
+    "已成功还原为默认禁用函数列表!": "Erfolgreich auf die Standardliste deaktivierter Funktionen zurückgesetzt!"
 }

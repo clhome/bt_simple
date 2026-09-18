@@ -35,36 +35,56 @@ function phpPostCallback(method, version, args,callback){
 //配置修改
 function phpSetConfig(version) {
     api.post('get_php_conf', version,'',function(data){
-        // console.log(data);
         var rdata = JSON.parse(data.data);
-        // console.log(rdata);
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
-            var w = '70'
-            if (rdata[i].name == 'error_reporting') w = '250';
+            var w = '100';
+            if (rdata[i].name == 'error_reporting') w = '240';
             var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + rdata[i].name + '" value="' + rdata[i].value + '" type="text" >';
             switch (rdata[i].type) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>' + pt('开启') + '</option><option value="0" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>' + pt('开启') + '</option><option value="0" ' + selected_0 + '>' + pt('关闭') + '</option></select>';
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'On') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'Off') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>' + pt('开启') + '</option><option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>' + pt('开启') + '</option><option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>';
                     break;
             }
-            mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + rdata[i].ps + '</font></p>';
+            mlist += '<div class="conf_item"><span class="conf_name">' + rdata[i].name + '</span>' + ibody + '<span class="conf_tips">' + pt(rdata[i].ps) + '</span></div>';
         }
-        var phpCon = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
+        var phpCon = '<div class="conf_p">\
                         ' + mlist + '\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right">\
-                            <button class="btn btn-success btn-sm mr5" onclick="phpSetConfig(' + version + ')">' + pt('刷新') + '</button>\
+                        <div style="margin-top:15px; padding-right:15px" class="text-right">\
+                            <button class="btn btn-warning btn-sm mr5" onclick="resetPhpConf(' + version + ')">' + pt('还原默认值') + '</button>\
+                            <button class="btn btn-default btn-sm mr5" onclick="phpSetConfig(' + version + ')">' + pt('刷新') + '</button>\
                             <button class="btn btn-success btn-sm" onclick="submitConf(' + version + ')">' + pt('保存') + '</button>\
                         </div>\
-                    </div>'
+                    </div>';
         $(".soft-man-con").html(phpCon);
+    });
+}
+
+
+//还原PHP默认配置
+function resetPhpConf(version) {
+    layer.confirm(pt('确定要将当前 PHP 核心配置还原为系统推荐的默认值吗？此操作将平滑重启 PHP 服务。'), {
+        title: pt('还原默认配置'),
+        icon: 0,
+        btn: [pt('确定'), pt('取消')]
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('正在还原默认配置...'), { icon: 16, time: 0, shade: 0.3 });
+        api.post('reset_php_conf', version, {}, function(ret_data) {
+            layer.close(loadT);
+            var rdata = JSON.parse(ret_data.data);
+            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            if (rdata.status) {
+                phpSetConfig(version);
+            }
+        });
     });
 }
 
@@ -93,7 +113,6 @@ function submitConf(version) {
 
     api.post('submit_php_conf', version, data, function(ret_data){
         var rdata = JSON.parse(ret_data.data);
-        // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -636,9 +655,10 @@ function disableFunc(version) {
             dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">" + pt('删除') + "</a></td></tr>";
         }
 
-        var con = "<div class='dirBinding'>" +
-            "<input class='bt-input-text mr5' type='text' placeholder=\"" + pt('添加要被禁止的函数名,如: exec') + "\" id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
-            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">" + pt('添加') + "</button>" +
+        var con = "<div class='dirBinding' style='display:flex;align-items:center;'>" +
+            "<input class='bt-input-text mr5' type='text' placeholder=\"" + pt('添加要被禁止的函数名,如: exec') + "\" id='disable_function_val' style='height: 30px; border-radius: 3px; width: 360px;' />" +
+            "<button class='btn btn-success btn-sm mr5' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">" + pt('添加') + "</button>" +
+            "<button class='btn btn-warning btn-sm' onclick=\"resetDisableFunc('" + version + "')\">" + pt('还原默认值') + "</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
             "<thead><tr><th>" + pt('名称') + "</th><th width='100' class='text-right'>" + pt('操作') + "</th></tr></thead>" +
@@ -651,6 +671,27 @@ function disableFunc(version) {
                 </ul>';
 
         $(".soft-man-con").html(con);
+    });
+}
+
+
+//还原默认禁用函数
+function resetDisableFunc(version) {
+    layer.confirm(pt('确定要将禁用函数列表恢复为系统默认的安全推荐配置吗？'), {
+        title: pt('还原默认配置'),
+        icon: 0,
+        btn: [pt('确定'), pt('取消')]
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('正在还原默认禁用函数...'), { icon: 16, time: 0, shade: 0.3 });
+        api.post('reset_disable_func', version, {}, function(ret_data) {
+            layer.close(loadT);
+            var rdata = JSON.parse(ret_data.data);
+            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            if (rdata.status) {
+                disableFunc(version);
+            }
+        });
     });
 }
 //设置禁用函数

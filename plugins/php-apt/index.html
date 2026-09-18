@@ -11,9 +11,9 @@
     box-sizing: border-box !important;
 }
 
-/* 左侧统一灰色底纹与优雅选中项，拓宽至 140px 防止多语言截断 */
+/* 左侧统一灰色底纹与优雅选中项，拓宽至 155px 彻底杜绝多语言截断 */
 .bt-w-menu {
-    width: 140px !important;
+    width: 155px !important;
     height: 100% !important;
     flex-shrink: 0 !important;
     background-color: #f8fafc !important;
@@ -167,6 +167,42 @@
     background-color: #ffffff !important;
     float: none !important;
     height: auto !important;
+}
+
+/* 配置修改现代排版与多语言自适应舒展 */
+.conf_p {
+    margin-bottom: 0 !important;
+    padding-top: 5px !important;
+}
+
+.conf_p .conf_item {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 5px !important;
+    height: 32px !important;
+}
+
+.conf_p .conf_item > span.conf_name {
+    width: 165px !important;
+    min-width: 165px !important;
+    text-align: right !important;
+    margin-right: 12px !important;
+    font-family: Consolas, Monaco, monospace !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    font-weight: 500 !important;
+    float: none !important;
+}
+
+.conf_p .conf_item .conf_tips {
+    margin-left: 12px !important;
+    color: #64748b !important;
+    font-size: 12px !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: 32px !important;
 }
 </style>
 

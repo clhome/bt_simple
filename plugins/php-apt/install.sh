@@ -99,6 +99,7 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 
 	# 安装通用扩展
 	echo "install PHP-APT[${type}] extend start"
+	export PHP_EXT_NO_RESTART=1
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install curl
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install gd
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install iconv
@@ -116,6 +117,7 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install zip
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install mongodb
 	cd ${rootPath}/plugins/php-apt/versions && bash common.sh ${apt_ver} install opcache
+	unset PHP_EXT_NO_RESTART
 	echo "install PHP-APT[${type}] extend end"
 
 	if [ ! -f /usr/local/bin/composer ];then
@@ -160,7 +162,9 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 		fi
 	fi
 
-	systemctl restart php${apt_ver}-fpm
+	systemctl reset-failed php${apt_ver}-fpm 2>/dev/null || true
+	systemctl daemon-reload 2>/dev/null || true
+	systemctl restart php${apt_ver}-fpm 2>/dev/null || service php${apt_ver}-fpm restart 2>/dev/null || true
 fi
 
 

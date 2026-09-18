@@ -31,6 +31,11 @@ mkdir -p $serverPath/php
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
+	if ! command -v xz >/dev/null 2>&1; then
+		which apt-get >/dev/null 2>&1 && apt-get update && apt-get install -y xz-utils
+		which yum >/dev/null 2>&1 && yum install -y xz
+	fi
+
 	
 	# ----------------------------------------------------------------------- #
 	# 中国优化安装
@@ -65,12 +70,22 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	fi
 
 
-	if [ ! -f $sourcePath/php/php-${version}.tar.xz ]; then
+	if [ ! -f $sourcePath/php/php-${version}.tar.gz ] && [ ! -f $sourcePath/php/php-${version}.tar.xz ]; then
 		echo "PHP source file missing!"
 		exit 1
 	fi
-	cd $sourcePath/php && tar -zxf $sourcePath/php/php-${version}.tar.gz
-	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
+	rm -rf $sourcePath/php/php${PHP_VER}
+	mkdir -p $sourcePath/php/php${PHP_VER}
+	if [ -f $sourcePath/php/php-${version}.tar.gz ]; then
+		tar -zxf $sourcePath/php/php-${version}.tar.gz -C $sourcePath/php/php${PHP_VER} --strip-components=1 2>/dev/null
+	elif [ -f $sourcePath/php/php-${version}.tar.xz ]; then
+		tar -xf $sourcePath/php/php-${version}.tar.xz -C $sourcePath/php/php${PHP_VER} --strip-components=1 2>/dev/null
+	fi
+	if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ]; then
+		echo "Error: PHP source extraction failed, main/php_version.h not found!"
+		rm -rf $sourcePath/php/php${PHP_VER}
+		exit 1
+	fi
 
 
 	cd $sourcePath/php
@@ -108,6 +123,36 @@ fi
 if [ "${SYS_ARCH}" == "aarch64" ];then
 	OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
 fi
+
+# ----- cpu start ------
+if [ -z "${cpuCore}" ]; then
+	cpuCore="1"
+fi
+
+if [ -f /proc/cpuinfo ];then
+	cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
+fi
+
+MEM_INFO=$(which free > /dev/null 2>&1 && LC_ALL=C free -m | awk '/Mem|内存/{printf("%.f",($2)/1024)}' || echo "0")
+if [ -z "${MEM_INFO}" ] || [ "${MEM_INFO}" == "0" ]; then
+    MEM_INFO="1"
+fi
+if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
+    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
+        cpuCore="${MEM_INFO}"
+    fi
+else
+    cpuCore="1"
+fi
+
+if [ "$cpuCore" -gt "2" ];then
+	cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
+else
+	cpuCore="1"
+fi
+# ----- cpu end ------
+# --- yf adaptive clamp (1C512M -> -j1) ---
+if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then
 

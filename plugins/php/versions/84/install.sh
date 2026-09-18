@@ -29,6 +29,11 @@ if [ "$?" == "0" ];then
 fi
 
 if [ ! -d $sourcePath/php/php${PHP_VER} ];then
+	if ! command -v xz >/dev/null 2>&1; then
+		which apt-get >/dev/null 2>&1 && apt-get update && apt-get install -y xz-utils
+		which yum >/dev/null 2>&1 && yum install -y xz
+	fi
+
 
 	# ----------------------------------------------------------------------- #
 	# 中国优化安装
@@ -64,8 +69,25 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 		echo "PHP source file missing!"
 		exit 1
 	fi
-	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
-	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
+	rm -rf $sourcePath/php/php${PHP_VER}
+	mkdir -p $sourcePath/php/php${PHP_VER}
+	tar -xf $sourcePath/php/php-${version}.tar.xz -C $sourcePath/php/php${PHP_VER} --strip-components=1 2>/dev/null
+	if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ]; then
+		echo "Direct tar extraction failed, trying xz pipeline..."
+		xz -dc $sourcePath/php/php-${version}.tar.xz | tar -xf - -C $sourcePath/php/php${PHP_VER} --strip-components=1 2>/dev/null
+	fi
+	if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ]; then
+		echo "Trying fallback to tar.gz format..."
+		wget -nv --no-check-certificate -O $sourcePath/php/php-${version}.tar.gz https://mirrors.nju.edu.cn/php/php-${version}.tar.gz 2>/dev/null
+		if [ -f "$sourcePath/php/php-${version}.tar.gz" ]; then
+			tar -zxf $sourcePath/php/php-${version}.tar.gz -C $sourcePath/php/php${PHP_VER} --strip-components=1 2>/dev/null
+		fi
+	fi
+	if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ]; then
+		echo "Error: PHP source extraction failed, main/php_version.h not found!"
+		rm -rf $sourcePath/php/php${PHP_VER}
+		exit 1
+	fi
 fi
 
 cd $sourcePath/php/php${PHP_VER}
@@ -95,7 +117,10 @@ if [ -f /proc/cpuinfo ];then
 	cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 fi
 
-MEM_INFO=$(which free > /dev/null && free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+MEM_INFO=$(which free > /dev/null 2>&1 && LC_ALL=C free -m | awk '/Mem|内存/{printf("%.f",($2)/1024)}' || echo "0")
+if [ -z "${MEM_INFO}" ] || [ "${MEM_INFO}" == "0" ]; then
+    MEM_INFO="1"
+fi
 if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
     if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
         cpuCore="${MEM_INFO}"

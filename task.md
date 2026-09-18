@@ -258,3 +258,22 @@
 - [x] 172. 补齐 6 国公共语言包（`web/static/language/*/public.json`）中配置文件编辑界面的提示词条（`tip_use_ctrl_to_1`, `this_is_1`, `main_configuration_file_if`, `save_4`），消除中文裸露
 - [x] 173. 编写与运行自动化回归测试套件 (`test/test_php_ini_self_healing_and_i18n_layout.py`) 验证配置自愈、禁用函数加载、表单排版与公共词条 100% 通过，UTF-8(LF)编码校验与收尾
 
+## PHP 插件配置修改多语言说明补齐、宽屏舒展排版与还原默认值全链路落地清单
+
+- [x] 174. 彻底修复配置修改说明文字中文裸露与生硬逗号，并将下拉框与输入项宽度拓宽至 100px 消除 `Turn o` 截断 (`plugins/php*/js/php.js`, `plugins/php*/index.html`)
+- [x] 175. 左侧菜单栏宽度由 140px 拓宽至 155px，精炼 6 国语言菜单词条，彻底杜绝 `Configurati...` 截断 (`plugins/php*/index.html`, `plugins/php*/lang/*.json`)
+- [x] 176. 后端实现 `reset_php_conf(version)` 接口与命令行派发：支持将 15 项核心配置重置为官方安全优化默认基准值并自动 reload 重载生效 (`plugins/php/index.py`, `plugins/php-apt/index.py`, `plugins/php-yum/index.py`)
+- [x] 177. 前端在【配置修改】与【禁用函数】页面增设【还原默认值】按钮与二次确认交互弹窗 (`plugins/php*/js/php.js`)
+- [x] 178. 补全 6 国语言包中“还原默认值”、“确定要将 PHP 配置还原为推荐的默认值吗？”等国际化词条 (`plugins/php*/lang/*.json`)
+- [x] 179. 编写与运行自动化回归测试套件 (`test/test_php_reset_defaults_and_full_i18n.py`) 验证多语言翻译、排版布局、还原默认值接口与前端交互 100% 通过，收尾验证
+
+## PHP-APT 扩展安装死锁触发器防频降级与 PHP 源码版解压编译容灾加固清单
+
+- [x] 180. 解决 `php-apt` 安装失败：在扩展安装时抑制高频 restart（设置 `PHP_EXT_NO_RESTART=1`），并在启动/重启前执行 `systemctl reset-failed` 彻底根除 `start-limit-hit` 崩溃 (`plugins/php-apt/install.sh`, `plugins/php-apt/versions/common.sh`, `plugins/php-apt/index.py`)
+- [x] 181. 修复 PHP 源码版安装全版本 `MEM_INFO` 内存探测缺陷，兼容非英文环境，杜绝 `[: : 需要整数表达式` 语法崩溃 (`plugins/php/versions/*/install.sh`)
+- [x] 182. 根治 PHP 源码版解压异常 EOF 与源码嵌套缺陷：自动检测补全 `xz-utils`/`xz` 依赖，改用 `--strip-components=1 -C` 原地解压根除 `mv` 目录嵌套，引入 `xz -dc` 管道与 `.tar.gz` 容灾回退，增加 `main/php_version.h` 完整性校验 (`plugins/php/versions/*/install.sh`)
+- [x] 183. 编写与运行自动化回归测试套件 (`test/test_php_install_fixes.py`) 验证解压容灾、内存探测、APT 频控保护与全版本语法 100% 通过
+- [x] 184. 成果全量回归、UTF-8(LF)编码校验、临时文件清理与打勾收尾
+
+
+

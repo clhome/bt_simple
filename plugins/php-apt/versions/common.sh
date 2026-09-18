@@ -53,8 +53,11 @@ fi
 echo "apt install -y php${version}-${extName}"
 echo "apt remove -y php${version}-${extName}"
 
-php_status=`systemctl status php${version}-fpm | grep inactive`
-echo "status:$php_status"
-if [ "$php_status" == "" ];then
-	systemctl restart php${version}-fpm
+if [ "$PHP_EXT_NO_RESTART" != "1" ]; then
+	php_status=`systemctl status php${version}-fpm 2>/dev/null | grep -E "inactive|failed"`
+	echo "status:$php_status"
+	if [ "$php_status" == "" ];then
+		systemctl reset-failed php${version}-fpm 2>/dev/null || true
+		systemctl restart php${version}-fpm 2>/dev/null || service php${version}-fpm restart 2>/dev/null || true
+	fi
 fi

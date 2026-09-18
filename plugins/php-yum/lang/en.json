@@ -160,5 +160,13 @@
     "诊断报告": "Diagnostic Report",
     "刷新服务状态": "Refresh Service Status",
     "自愈修复完成！": "Self-healing repair completed!",
-    "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。": "This is the {1} application pool configuration file. If you are unfamiliar with the configuration rules, please do not modify it arbitrarily."
+    "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。": "This is the {1} application pool configuration file. If you are unfamiliar with the configuration rules, please do not modify it arbitrarily.",
+    "还原默认值": "Reset to Default",
+    "还原默认配置": "Restore Default Configuration",
+    "确定要将当前 PHP 核心配置还原为系统推荐的默认值吗？此操作将平滑重启 PHP 服务。": "Are you sure you want to restore the PHP core configuration to system defaults? This will smoothly restart the PHP service.",
+    "确定要将禁用函数列表恢复为系统默认的安全推荐配置吗？": "Are you sure you want to restore the disabled functions list to the recommended security defaults?",
+    "正在还原默认配置...": "Restoring default configuration...",
+    "正在还原默认禁用函数...": "Restoring default disabled functions...",
+    "配置已成功还原为默认值": "Configuration has been successfully restored to defaults",
+    "已成功还原为默认禁用函数列表!": "Successfully restored to default disabled functions list!"
 }

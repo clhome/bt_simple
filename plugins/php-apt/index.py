@@ -824,6 +824,40 @@ def submitPhpConf(version):
     return yf.returnJson(True, '设置成功')
 
 
+def resetPhpConf(version):
+    defaults_map = {
+        'short_open_tag': 'On',
+        'asp_tags': 'Off',
+        'max_execution_time': '300',
+        'max_input_time': '60',
+        'max_input_vars': '1000',
+        'memory_limit': '128M',
+        'post_max_size': '50M',
+        'file_uploads': 'On',
+        'upload_max_filesize': '50M',
+        'max_file_uploads': '20',
+        'default_socket_timeout': '60',
+        'error_reporting': 'E_ALL & ~E_NOTICE',
+        'display_errors': 'Off',
+        'cgi.fix_pathinfo': '1',
+        'date.timezone': 'PRC'
+    }
+    filename = getConf(version)
+    phpini = yf.readFile(filename) if os.path.exists(filename) else ''
+    if not phpini or isinstance(phpini, bool):
+        phpini = ''
+    for k, v in defaults_map.items():
+        rep = r'(?m)^\s*;?\s*' + re.escape(k) + r'\s*=.*'
+        val = f'{k} = {v}'
+        if re.search(rep, phpini):
+            phpini = re.sub(rep, val, phpini)
+        else:
+            phpini += f'\n{val}\n'
+    yf.writeFile(filename, phpini)
+    reload(version)
+    return yf.returnJson(True, '配置已成功还原为默认值')
+
+
 def getLimitConf(version):
     fileini = getConf(version)
     phpini = yf.readFile(fileini)
@@ -1238,6 +1272,23 @@ def setDisableFunc(version):
     return yf.returnJson(True, '设置成功!')
 
 
+def resetDisableFunc(version):
+    filename = getConf(version)
+    if not os.path.exists(filename):
+        return yf.returnJson(False, '指定PHP版本不存在!')
+    phpini = yf.readFile(filename) if os.path.exists(filename) else ''
+    if not phpini:
+        phpini = ""
+    rep = r"(?m)^\s*;?\s*disable_functions\s*=.*$"
+    if re.search(rep, phpini):
+        phpini = re.sub(rep, 'disable_functions = ' + DEFAULT_DISABLE_FUNCTIONS, phpini)
+    else:
+        phpini = phpini.rstrip() + '\ndisable_functions = ' + DEFAULT_DISABLE_FUNCTIONS + '\n'
+    yf.writeFile(filename, phpini)
+    reload(version)
+    return yf.returnJson(True, '已成功还原为默认禁用函数列表!')
+
+
 def getPhpinfo(version):
     stat = status(version)
     if stat == 'stop':
@@ -1438,6 +1489,8 @@ if __name__ == "__main__":
         print(getFpmFile(version))
     elif func == 'submit_php_conf':
         print(submitPhpConf(version))
+    elif func == 'reset_php_conf':
+        print(resetPhpConf(version))
     elif func == 'get_limit_conf':
         print(getLimitConf(version))
     elif func == 'set_max_time':
@@ -1462,6 +1515,8 @@ if __name__ == "__main__":
         print(getDisableFunc(version))
     elif func == 'set_disable_func':
         print(setDisableFunc(version))
+    elif func == 'reset_disable_func':
+        print(resetDisableFunc(version))
     elif func == 'get_phpinfo':
         print(getPhpinfo(version))
     elif func == 'get_lib_conf':
