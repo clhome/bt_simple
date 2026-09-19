@@ -54,8 +54,17 @@ Install_lib()
 	echo "opcache.revalidate_freq=60" >> $serverPath/php/$version/etc/php.ini
 	echo "opcache.fast_shutdown=1" >> $serverPath/php/$version/etc/php.ini
 	echo "opcache.enable_cli=1" >> $serverPath/php/$version/etc/php.ini
-	echo "opcache.jit=1205" >> $serverPath/php/$version/etc/php.ini
-	echo "opcache.jit_buffer_size=64M" >> $serverPath/php/$version/etc/php.ini
+
+	# JIT 配置：PHP 8.0+ 支持 JIT，PHP 8.4+ 需要使用字符串语法
+	if [ "$version" -ge "80" ] 2>/dev/null; then
+		if [ "$version" -ge "84" ] 2>/dev/null; then
+			echo "opcache.jit=tracing" >> $serverPath/php/$version/etc/php.ini
+		else
+			echo "opcache.jit=1205" >> $serverPath/php/$version/etc/php.ini
+		fi
+		echo "opcache.jit_buffer_size=64M" >> $serverPath/php/$version/etc/php.ini
+	fi
+
 	echo "opcache.save_comments=0" >> $serverPath/php/$version/etc/php.ini
 	echo "opcache.blacklist_filename=${OP_BL}" >> $serverPath/php/$version/etc/php.ini
 

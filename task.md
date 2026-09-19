@@ -296,3 +296,12 @@
 - [x] 198. 彻底根治 `plugins/php-apt` 与 `plugins/php-yum` 子版本路径浅层计算缺陷：校准 `rootPath=$(cd "$curPath/../../../.."; pwd)` 深度至 4 级，根除错建目录与外层误判跳出
 - [x] 199. 增加子版本路径深度与头文件存在性回归测试（`test_09`、`test_10`），全量回归 100% 通过与收尾
 
+## PHP 插件三剑客安装脚本深度审计、BUG修复与安全加固清单
+
+- [x] 200. 修复 `php-apt` 与 `php-yum` 的 `opcache.sh` 黑名单路径重复拼接 `${serverPath}/server/...` 致命 Bug (`plugins/php-apt/versions/common/opcache.sh`, `plugins/php-yum/versions/common/opcache.sh`)
+- [x] 201. 修复三个 PHP 插件 opcache JIT 语法与 PHP 8.4+ 字符串模式兼容（`opcache.jit=tracing`），并增强 `opcache.enable` 幂等检测防止多次安装重复追加配置 (`plugins/php*/versions/common/opcache.sh`)
+- [x] 202. 补充 `php-apt` 与 `php-yum` 的 `index.py` 路由派发：新增 `get_php_info` 分支与前端 JS 命名对齐，彻底解决点击查看 phpinfo 返回 fail (`plugins/php-apt/index.py`, `plugins/php-yum/index.py`)
+- [x] 203. 加固 `php-apt` 5 个 PECL 扩展脚本（`swoole.sh`, `brotli.sh`, `seaslog.sh`, `yaf.sh`, `yar.sh`）：全面升级为 HTTPS 下载链接、增加 `--no-check-certificate` 与压缩包本地存在性缓存检测，防止网络重下与中间人风险
+- [x] 204. 编写与运行自动化回归测试套件 (`test/test_php_installer_security_and_bugs.py`)，验证路由派发、路径拼接、JIT 语法、幂等性与 HTTPS 校验 100% 通过
+- [x] 205. 全量测试回归、UTF-8(LF)编码校验与清理收尾
+
