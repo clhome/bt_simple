@@ -201,10 +201,27 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 		fi
 	fi
 
+	systemctl stop php${apt_ver}-fpm 2>/dev/null || true
+	sleep 0.5
 	systemctl reset-failed php${apt_ver}-fpm 2>/dev/null || true
 	systemctl daemon-reload 2>/dev/null || true
-	systemctl restart php${apt_ver}-fpm 2>/dev/null || service php${apt_ver}-fpm restart 2>/dev/null || true
-	sleep 1
+	systemctl restart php${apt_ver}-fpm 2>/dev/null || systemctl start php${apt_ver}-fpm 2>/dev/null || service php${apt_ver}-fpm restart 2>/dev/null || true
+
+	is_running=0
+	for i in $(seq 1 5); do
+		if systemctl is-active --quiet php${apt_ver}-fpm 2>/dev/null; then
+			is_running=1
+			break
+		fi
+		sleep 1
+	done
+
+	if [ "$is_running" == "0" ]; then
+		echo "PHP-APT[${type}] not active, attempting self-healing restart..."
+		cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py restart ${type} 2>/dev/null || true
+		sleep 1
+	fi
+
 	if systemctl is-active --quiet php${apt_ver}-fpm 2>/dev/null; then
 		echo "PHP-APT[${type}] service is active and running."
 	else

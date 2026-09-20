@@ -1,5 +1,4 @@
 #!/bin/bash
-if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH=$PATH:/opt/homebrew/bin
 
@@ -9,6 +8,12 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source
 sysName=`uname`
 
+if [ -f "${rootPath}/scripts/lib_make_jobs.sh" ]; then
+	source "${rootPath}/scripts/lib_make_jobs.sh"
+elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then
+	source /www/server/yufeng_panel/scripts/lib_make_jobs.sh
+fi
+
 version=8.0.30
 PHP_VER=80
 md5_file_ok=216ab305737a5d392107112d618a755dc5df42058226f1670e9db90e77d777d9
@@ -16,6 +21,8 @@ Install_php()
 {
 #------------------------ install start ------------------------------------#
 echo "安装php-${version} ..."
+if command -v yf_ensure_swap >/dev/null 2>&1; then yf_ensure_swap; fi
+trap 'if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi' EXIT
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -135,10 +142,12 @@ else
 	cpuCore="1"
 fi
 # ----- cpu end ------
-# --- yf adaptive clamp (1C512M -> -j1) ---
-if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
-
-# echo "$sourcePath/php/php${PHP_VER}"
+if command -v yf_make_jobs >/dev/null 2>&1; then
+	_yf_jobs=$(yf_make_jobs 80 2>/dev/null || echo "")
+	if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then
+		cpuCore="$_yf_jobs"
+	fi
+fi
 
 if [ "$sysName" == "Darwin" ];then
 	BREW_DIR=`which brew`
@@ -178,7 +187,32 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	--disable-fileinfo \
 	$OPTIONS \
 	--enable-fpm
-	make clean && make -j${cpuCore} && make install && make clean
+
+	make clean || true
+	if command -v yf_php_build >/dev/null 2>&1; then
+		if ! yf_php_build "${cpuCore}"; then
+			echo "[ERROR] PHP${PHP_VER} build failed, stop install to avoid false success."
+			if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+			exit 1
+		fi
+	else
+		if ! make -j${cpuCore}; then
+			echo "[WARN] Parallel build failed (code $?, possibly OOM), cleaning stale JIT artifacts and retrying with -j1..."
+			rm -f ext/opcache/jit/ir/ir_fold_hash.h ext/opcache/jit/ir/gen_ir_fold_hash 2>/dev/null || true
+			rm -f ext/opcache/jit/ir/*.dep 2>/dev/null || true
+			if ! make -j1; then
+				echo "[ERROR] PHP${PHP_VER} build failed."
+				exit 1
+			fi
+		fi
+	fi
+	if ! make install; then
+		echo "[ERROR] PHP${PHP_VER} make install failed."
+		if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+		exit 1
+	fi
+	make clean || true
+	if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
 
 	# rm -rf $sourcePath/php/php${PHP_VER}
 fi 

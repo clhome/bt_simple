@@ -305,3 +305,11 @@
 - [x] 204. 编写与运行自动化回归测试套件 (`test/test_php_installer_security_and_bugs.py`)，验证路由派发、路径拼接、JIT 语法、幂等性与 HTTPS 校验 100% 通过
 - [x] 205. 全量测试回归、UTF-8(LF)编码校验与清理收尾
 
+## PHP 编译版 JIT IR OOM 137 自动降级与 PHP-APT/YUM OPcache 重复加载清洗和启动探活加固清单
+
+- [x] 206. 重构 `scripts/lib_make_jobs.sh`：引入针对 PHP 8.4+ JIT IR 编译的内存收敛（物理内存 < 3000MB 时强制单线程），并新增全局 `yf_ensure_swap`（内存+Swap不足3500MB时自动创建 2GB 临时 Swap）与 `yf_cleanup_swap` 退出清理
+- [x] 207. 改造 `plugins/php/versions/80~84/install.sh`：校准 `lib_make_jobs.sh` 引入路径，增加动态 Swap 保障与退出清理 trap，引入两级构建容错（并发构建若遇 OOM 退出码 137 自动降级以 `make -j1` 单线程重试），彻底根除 `Makefile:376：ext/opcache/jit/ir/ir_fold_hash.h 错误 137`
+- [x] 208. 彻底根除 `php-apt` 与 `php-yum` 的 OPcache 重复加载警告：在 `opcache.sh` 中主动清理 `php.ini` 与 `conf.d/php.d` 下的历史残留与多余孤儿 ini，规范化 `zend_extension` 保证全局仅保留 1 行
+- [x] 209. 优化 `plugins/php-apt/install.sh` 与 `plugins/php-yum/install.sh` 服务启动与状态检测：消除高频 restart 冲突，增加平滑 stop/reset-failed、5 秒轮询探活缓冲与自愈拉起降级，彻底解决 `Main process exited, code=killed, status=9/KILL` 误判与卡死
+- [x] 210. 编写与运行自动化回归测试套件，全量前置测试（27项）全部通过，校验 UTF-8 无 BOM 与 LF 换行符，清理临时测试文件
+

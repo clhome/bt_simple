@@ -140,10 +140,27 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-yum/${type} ];then
 	fi
 
 	echo "PHP-YUM[${type}] start ..."
+	systemctl stop php${type}-php-fpm 2>/dev/null || true
+	sleep 0.5
 	systemctl reset-failed php${type}-php-fpm 2>/dev/null || true
 	systemctl daemon-reload 2>/dev/null || true
-	systemctl restart php${type}-php-fpm 2>/dev/null || service php${type}-php-fpm restart 2>/dev/null || true
-	sleep 1
+	systemctl restart php${type}-php-fpm 2>/dev/null || systemctl start php${type}-php-fpm 2>/dev/null || service php${type}-php-fpm restart 2>/dev/null || true
+
+	is_running=0
+	for i in $(seq 1 5); do
+		if systemctl is-active --quiet php${type}-php-fpm 2>/dev/null; then
+			is_running=1
+			break
+		fi
+		sleep 1
+	done
+
+	if [ "$is_running" == "0" ]; then
+		echo "PHP-YUM[${type}] not active, attempting self-healing restart..."
+		cd ${rootPath} && python3 ${rootPath}/plugins/php-yum/index.py restart ${type} 2>/dev/null || true
+		sleep 1
+	fi
+
 	if systemctl is-active --quiet php${type}-php-fpm 2>/dev/null; then
 		echo "PHP-YUM[${type}] service is active and running."
 	else

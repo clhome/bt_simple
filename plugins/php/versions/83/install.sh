@@ -1,5 +1,4 @@
 #!/bin/bash
-if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH=$PATH:/opt/homebrew/bin
 
@@ -9,6 +8,12 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source
 sysName=`uname`
 
+if [ -f "${rootPath}/scripts/lib_make_jobs.sh" ]; then
+	source "${rootPath}/scripts/lib_make_jobs.sh"
+elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then
+	source /www/server/yufeng_panel/scripts/lib_make_jobs.sh
+fi
+
 version=8.3.30
 PHP_VER=83
 md5_file_ok=67f084d36852daab6809561a7c8023d130ca07fc6af8fb040684dd1414934d48
@@ -16,6 +21,8 @@ Install_php()
 {
 #------------------------ install start ------------------------------------#
 echo "安装php-${version} ..."
+if command -v yf_ensure_swap >/dev/null 2>&1; then yf_ensure_swap; fi
+trap 'if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi' EXIT
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
@@ -131,52 +138,82 @@ else
 	cpuCore="1"
 fi
 # ----- cpu end ------
-# --- yf adaptive clamp (1C512M -> -j1) ---
-if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
+	# --- yf adaptive clamp ---
+	if command -v yf_make_jobs >/dev/null 2>&1; then
+		_yf_jobs=$(yf_make_jobs 83 2>/dev/null || echo "")
+		if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then
+			cpuCore="$_yf_jobs"
+		fi
+	fi
 
-if [ "$sysName" == "Darwin" ];then
-	BREW_DIR=`which brew`
-	BREW_DIR=${BREW_DIR/\/bin\/brew/}
+	if [ "$sysName" == "Darwin" ];then
+		BREW_DIR=`which brew`
+		BREW_DIR=${BREW_DIR/\/bin\/brew/}
 
-	LIB_DEPEND_DIR=`brew info openssl | grep ${BREW_DIR}/Cellar/openssl | cut -d \  -f 1 | awk 'END {print}'`
-	OPTIONS="$OPTIONS --with-openssl=$(brew --prefix openssl)"
-	export PKG_CONFIG_PATH=$LIB_DEPEND_DIR/lib/pkgconfig
-	export OPENSSL_CFLAGS="-I${LIB_DEPEND_DIR}/include"
-	export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
-else
-	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
-	export PKG_CONFIG_PATH=$serverPath/lib/openssl11/lib/pkgconfig:$PKG_CONFIG_PATH
-	OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl11"
-fi
+		LIB_DEPEND_DIR=`brew info openssl | grep ${BREW_DIR}/Cellar/openssl | cut -d \  -f 1 | awk 'END {print}'`
+		OPTIONS="$OPTIONS --with-openssl=$(brew --prefix openssl)"
+		export PKG_CONFIG_PATH=$LIB_DEPEND_DIR/lib/pkgconfig
+		export OPENSSL_CFLAGS="-I${LIB_DEPEND_DIR}/include"
+		export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
+	else
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
+		export PKG_CONFIG_PATH=$serverPath/lib/openssl11/lib/pkgconfig:$PKG_CONFIG_PATH
+		OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl11"
+	fi
 
-# echo "$sourcePath/php/php${PHP_VER}"
-if [ ! -d $serverPath/php/${PHP_VER} ];then
-	cd $sourcePath/php/php${PHP_VER}
-	./configure \
-	--prefix=$serverPath/php/${PHP_VER} \
-	--exec-prefix=$serverPath/php/${PHP_VER} \
-	--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
-	--enable-mysqlnd \
-	--with-mysqli=mysqlnd \
-	--with-pdo-mysql=mysqlnd \
-	--enable-mbstring \
-	--enable-ftp \
-	--enable-sockets \
-	--enable-simplexml \
-	--enable-soap \
-	--enable-posix \
-	--enable-sysvmsg \
-	--enable-sysvsem \
-	--enable-sysvshm \
-	--disable-intl \
-	--disable-fileinfo \
-	$OPTIONS \
-	--enable-fpm
-	make clean && make -j${cpuCore} && make install && make clean
+	# echo "$sourcePath/php/php${PHP_VER}"
+	if [ ! -d $serverPath/php/${PHP_VER} ];then
+		cd $sourcePath/php/php${PHP_VER}
+		./configure \
+		--prefix=$serverPath/php/${PHP_VER} \
+		--exec-prefix=$serverPath/php/${PHP_VER} \
+		--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
+		--enable-mysqlnd \
+		--with-mysqli=mysqlnd \
+		--with-pdo-mysql=mysqlnd \
+		--enable-mbstring \
+		--enable-ftp \
+		--enable-sockets \
+		--enable-simplexml \
+		--enable-soap \
+		--enable-posix \
+		--enable-sysvmsg \
+		--enable-sysvsem \
+		--enable-sysvshm \
+		--disable-intl \
+		--disable-fileinfo \
+		$OPTIONS \
+		--enable-fpm
 
-	# rm -rf $sourcePath/php/php${PHP_VER}
-fi 
-#------------------------ install end ------------------------------------#
+		make clean || true
+		if command -v yf_php_build >/dev/null 2>&1; then
+			if ! yf_php_build "${cpuCore}"; then
+				echo "[ERROR] PHP${PHP_VER} build failed, stop install to avoid false success."
+				if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+				exit 1
+			fi
+		else
+			if ! make -j${cpuCore}; then
+				echo "[WARN] Parallel build failed (code $?, possibly OOM), cleaning stale JIT artifacts and retrying with -j1..."
+				rm -f ext/opcache/jit/ir/ir_fold_hash.h ext/opcache/jit/ir/gen_ir_fold_hash 2>/dev/null || true
+				rm -f ext/opcache/jit/ir/*.dep 2>/dev/null || true
+				if ! make -j1; then
+					echo "[ERROR] PHP${PHP_VER} build failed."
+					exit 1
+				fi
+			fi
+		fi
+		if ! make install; then
+			echo "[ERROR] PHP${PHP_VER} make install failed."
+			if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+			exit 1
+		fi
+		make clean || true
+		if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+
+		# rm -rf $sourcePath/php/php${PHP_VER}
+	fi 
+	#------------------------ install end ------------------------------------#
 }
 
 Uninstall_php()

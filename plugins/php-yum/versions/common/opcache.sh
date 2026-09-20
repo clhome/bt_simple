@@ -35,16 +35,26 @@ if [ "$actionType" == 'install' ];then
 	if [ "$find_opcache" != "" ];then
 		ext_file=${ext_dir}/${find_opcache}
 	fi
-	echo $ext_file
+	# 1. 确保 php.ini 中不包含重复的 zend_extension=opcache，统一由 php.d 模块化管理
+	sed -i '/zend_extension.*opcache/d' /etc/opt/remi/php${version}/php.ini 2>/dev/null || true
+
+	# 2. 清理 php.d 下任何多余的孤儿或重复 ini 文件（确保只保留 10-opcache.ini）
+	for dup_f in ${ext_dir}/*${LIBNAME}*.ini; do
+		if [ -f "$dup_f" ] && [ "$dup_f" != "$ext_file" ]; then
+			rm -f "$dup_f" 2>/dev/null || true
+		fi
+	done
+
+	# 3. 规范化 ext_file 中的 zend_extension：清理重复行，确保全局仅有 1 处加载
+	real_target=$(readlink -f "$ext_file" 2>/dev/null || echo "$ext_file")
+	if [ -f "$real_target" ]; then
+		sed -i '/zend_extension.*opcache/d' "$real_target" 2>/dev/null || true
+		sed -i "1i zend_extension=${LIBNAME}" "$real_target" 2>/dev/null || echo "zend_extension=${LIBNAME}" > "$real_target"
+	fi
 
 	if grep -q "opcache\.enable" "$ext_file" 2>/dev/null; then
 		echo "opcache already configured in $ext_file, skipping duplicate config."
 	else
-		# 检测是否已配置 zend_extension=opcache，避免重复追加
-		if ! grep -q "zend_extension.*${LIBNAME}" "$ext_file" 2>/dev/null; then
-			echo "zend_extension=${LIBNAME}" >> $ext_file
-		fi
-
 		echo "opcache.enable=1" >> $ext_file
 		echo "opcache.memory_consumption=128" >> $ext_file
 		echo "opcache.interned_strings_buffer=8" >> $ext_file
