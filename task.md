@@ -305,11 +305,22 @@
 - [x] 204. 编写与运行自动化回归测试套件 (`test/test_php_installer_security_and_bugs.py`)，验证路由派发、路径拼接、JIT 语法、幂等性与 HTTPS 校验 100% 通过
 - [x] 205. 全量测试回归、UTF-8(LF)编码校验与清理收尾
 
-## PHP 编译版 JIT IR OOM 137 自动降级与 PHP-APT/YUM OPcache 重复加载清洗和启动探活加固清单
+## PHP-APT 服务异常停止与 Systemd Type=notify 假死全链路修复与启动优化清单
 
-- [x] 206. 重构 `scripts/lib_make_jobs.sh`：引入针对 PHP 8.4+ JIT IR 编译的内存收敛（物理内存 < 3000MB 时强制单线程），并新增全局 `yf_ensure_swap`（内存+Swap不足3500MB时自动创建 2GB 临时 Swap）与 `yf_cleanup_swap` 退出清理
-- [x] 207. 改造 `plugins/php/versions/80~84/install.sh`：校准 `lib_make_jobs.sh` 引入路径，增加动态 Swap 保障与退出清理 trap，引入两级构建容错（并发构建若遇 OOM 退出码 137 自动降级以 `make -j1` 单线程重试），彻底根除 `Makefile:376：ext/opcache/jit/ir/ir_fold_hash.h 错误 137`
-- [x] 208. 彻底根除 `php-apt` 与 `php-yum` 的 OPcache 重复加载警告：在 `opcache.sh` 中主动清理 `php.ini` 与 `conf.d/php.d` 下的历史残留与多余孤儿 ini，规范化 `zend_extension` 保证全局仅保留 1 行
-- [x] 209. 优化 `plugins/php-apt/install.sh` 与 `plugins/php-yum/install.sh` 服务启动与状态检测：消除高频 restart 冲突，增加平滑 stop/reset-failed、5 秒轮询探活缓冲与自愈拉起降级，彻底解决 `Main process exited, code=killed, status=9/KILL` 误判与卡死
-- [x] 210. 编写与运行自动化回归测试套件，全量前置测试（27项）全部通过，校验 UTF-8 无 BOM 与 LF 换行符，清理临时测试文件
+- [x] 211. 补全 `plugins/php-apt/conf/php-fpm.conf` 全局健康与控制参数：增加 `systemd_interval = 10`、`process_control_timeout = 10s`、`emergency_restart_threshold = 10`、`emergency_restart_interval = 1m`
+- [x] 212. 优化 `plugins/php-apt/conf/www.conf`：优化动态进程管理配置，降低小内存 VPS 空载进程数与突发 OOM 风险
+- [x] 213. 重构 `plugins/php-apt/index.py`：注入 systemd override 容灾配置（解除 `StartLimitBurst`，配置 `Restart=always`、`TimeoutStartSec=60s`），修复 `status` 中 `ps aux` 降级正则与 `activating` 过渡态误判
+- [x] 214. 重构 `plugins/php-apt/install.sh`：彻底消除安装过程中的 5 次密集启动风暴，实现单次平滑拉起与 10 秒过渡缓冲
+- [x] 215. 加固 `web/utils/plugin.py` 中 `checkStatusQuick`：增加对 `php-apt` 真实 PID 路径（`/run/php/php{version}-fpm.pid`）的轻量快速探测，杜绝内外状态不一致
+- [x] 216. 编写与运行自动化回归测试套件 (`test/test_php_apt_fpm_fix.py`)：覆盖配置参数完整性、systemd override 逻辑、状态匹配正则与平滑重启流程
+- [x] 217. 全量测试回归、UTF-8(LF)编码校验、即时更新 task.md 并清理临时测试文件
 
+## 系统升级自动清除废弃插件 system_safe 任务清单
+
+- [x] 218. 编写系统级废弃插件自动清除与防御模块 (`web/admin/setup/cleanup.py`)：实现对 `system_safe` 的检测、解除 chattr 锁定、停止服务、杀灭进程、禁止自启、移除 service/init.d 脚本与文件清理
+- [x] 219. 集成到面板启动初始化流程 (`web/admin/setup/__init__.py`)：在 `setup.init()` 中调用清理逻辑，确保升级或重启时幂等自愈
+- [x] 220. 集成到 Web 端系统升级流程 (`web/utils/system/update.py`)：在 `updateServer` 代码覆盖与环境更新后即时触发清理
+- [x] 221. 集成到 CLI 升级脚本 (`scripts/update.sh` 和 `scripts/update_dev.sh`)：在覆盖代码后、重启服务前检测并彻底清理 `system_safe`
+- [x] 222. 编写与运行自动化回归测试套件 (`test/test_cleanup_system_safe.py`)：验证检测算法、清理步骤的安全性与幂等性
+- [x] 223. 在测试服务器上执行清理验证与 status 确认，确保 `php8.4-fpm` 长期正常运行
+- [x] 224. 成果全量回归、UTF-8(LF)编码校验、即时更新 task.md 并清理临时测试文件

@@ -145,13 +145,8 @@ fi
 cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
-	
-	# 初始化启动与自愈
-	cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py start ${type}
-	cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py restart ${type}
-	cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py initd_install ${type}
 
-	# 批量安装通用扩展（合并单条 apt-get，大幅提升 5~8 倍速度）
+	# 批量安装通用扩展（静默模式，合并单条 apt-get，大幅提升 5~8 倍速度）
 	echo "install PHP-APT[${type}] extensions start (batch mode)"
 	export PHP_EXT_NO_RESTART=1
 
@@ -201,28 +196,30 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 		fi
 	fi
 
-	systemctl stop php${apt_ver}-fpm 2>/dev/null || true
-	sleep 0.5
-	systemctl reset-failed php${apt_ver}-fpm 2>/dev/null || true
-	systemctl daemon-reload 2>/dev/null || true
-	systemctl restart php${apt_ver}-fpm 2>/dev/null || systemctl start php${apt_ver}-fpm 2>/dev/null || service php${apt_ver}-fpm restart 2>/dev/null || true
+	# 配置开机自启
+	cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py initd_install ${type}
 
+	# 单次平滑拉起（内部包含配置模板刷新、Systemd Override 容灾注入与孤儿套接字清理）
+	echo "Starting PHP-APT[${type}] service..."
+	cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py restart ${type}
+
+	# 10 秒平滑探活缓冲（兼容 active 与 activating 运行过渡态）
 	is_running=0
-	for i in $(seq 1 5); do
-		if systemctl is-active --quiet php${apt_ver}-fpm 2>/dev/null; then
+	for i in $(seq 1 10); do
+		st=$(systemctl is-active php${apt_ver}-fpm 2>/dev/null || echo "inactive")
+		if [ "$st" == "active" ]; then
+			is_running=1
+			break
+		fi
+		# 若处于 activating 但实际 master 进程已就绪，同样视为启动正常
+		if [ "$st" == "activating" ] && ps aux | grep 'php-fpm: master process' | grep -E "(/etc/php/${apt_ver}/|\(${apt_ver}\)|php-fpm${apt_ver})" | grep -qv grep; then
 			is_running=1
 			break
 		fi
 		sleep 1
 	done
 
-	if [ "$is_running" == "0" ]; then
-		echo "PHP-APT[${type}] not active, attempting self-healing restart..."
-		cd ${rootPath} && python3 ${rootPath}/plugins/php-apt/index.py restart ${type} 2>/dev/null || true
-		sleep 1
-	fi
-
-	if systemctl is-active --quiet php${apt_ver}-fpm 2>/dev/null; then
+	if [ "$is_running" == "1" ]; then
 		echo "PHP-APT[${type}] service is active and running."
 	else
 		echo "Notice: php${apt_ver}-fpm service status:"

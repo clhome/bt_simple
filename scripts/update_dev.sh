@@ -286,6 +286,21 @@ echo "update mdserver-web dev code end"
 echo "use system version: ${OSNAME}"
 cd /www/server/yufeng_panel && bash scripts/update/${OSNAME}.sh
 
+# 清理已废弃的测试插件 system_safe 及其开机自启动项
+if [ -d /www/server/system_safe ] || [ -f /etc/systemd/system/system_safe.service ] || [ -f /lib/systemd/system/system_safe.service ] || [ -f /usr/lib/systemd/system/system_safe.service ] || [ -f /etc/init.d/system_safe ]; then
+    echo "检测到废弃测试插件 system_safe，正在自动清除..."
+    which chattr >/dev/null 2>&1 && chattr -R -i -a /etc/rc.d /etc/rc.d/init.d /etc/init.d /usr/bin /usr/sbin /sbin /bin /usr/local/bin /usr/local/sbin /etc/passwd /etc/shadow /etc/group /etc/crontab /var/spool/cron 2>/dev/null
+    systemctl stop system_safe 2>/dev/null
+    systemctl disable system_safe 2>/dev/null
+    pkill -9 -f "system_safe/system_safe.py" 2>/dev/null
+    rm -f /usr/lib/systemd/system/system_safe.service /lib/systemd/system/system_safe.service /etc/systemd/system/system_safe.service /etc/init.d/system_safe
+    systemctl daemon-reload 2>/dev/null
+    systemctl reset-failed system_safe 2>/dev/null
+    rm -rf /www/server/system_safe
+    rm -rf /www/server/yufeng_panel/plugins/system_safe
+    echo "废弃插件 system_safe 已清除完成！"
+fi
+
 bash /etc/rc.d/init.d/yf restart
 bash /etc/rc.d/init.d/yf default
 

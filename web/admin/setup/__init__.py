@@ -68,4 +68,12 @@ def init():
         import core.yf as yf
         yf.writeLog('安全机制', '安全加密机制初始化异常: ' + str(e))
 
+    # 自动清理历史废弃的测试插件（如 system_safe）
+    try:
+        from .cleanup import cleanup_legacy_plugins
+        cleanup_legacy_plugins()
+    except Exception as e:
+        import core.yf as yf
+        yf.writeLog('系统维护', '清理历史废弃插件异常: ' + str(e))
+
 

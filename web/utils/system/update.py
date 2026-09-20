@@ -366,6 +366,14 @@ fi
                 env_script = toPath + '/yf_env_update.sh'
                 yf.writeFile(env_script, update_env)
                 yf.safeExecShell(['bash', env_script], timeout=600)
+
+                # 自动检查并清理历史废弃插件（如 system_safe）
+                try:
+                    from admin.setup.cleanup import cleanup_legacy_plugins
+                    cleanup_legacy_plugins()
+                except Exception as e:
+                    print("cleanup_legacy_plugins error:", str(e))
+
                 yf.restartPanel()
                 return yf.returnData(True, 'system.py_msg_f9fd8e')
 

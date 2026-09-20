@@ -331,14 +331,12 @@ def check502():
         verlist = []
         if os.path.exists(php_dir):
             for name in os.listdir(php_dir):
-                if name.isdigit() and os.path.isdir(php_dir + '/' + name):
+                # 仅守护拥有编译版二进制的版本，避免 APT 插件创建的空目录误入列表
+                if name.isdigit() and os.path.isdir(php_dir + '/' + name) and os.path.exists(php_dir + '/' + name + '/sbin/php-fpm'):
                     verlist.append(name)
         verlist.sort()
         
         for ver in verlist:
-            php_path = php_dir + '/' + ver + '/sbin/php-fpm'
-            if not os.path.exists(php_path):
-                continue
             if checkPHPVersion(ver):
                 continue
             if startPHPVersion(ver):

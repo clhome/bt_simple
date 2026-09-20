@@ -143,6 +143,41 @@ def getFpmConfFile(version):
 def getFpmFile(version):
     return getServerDir() + '/' + version + '/fpm/php-fpm.conf'
 
+def ensureSystemdOverride(version):
+    """
+    为 PHP-APT 创建 systemd service override 配置：
+    1. 彻底解除启动频率超限限制 (StartLimitIntervalSec=0)，杜绝 start-limit-hit 锁定；
+    2. 设置异常自动平滑自愈 (Restart=always, RestartSec=3s)；
+    3. 给予充足超时缓冲 (TimeoutStartSec=60s)，防止因握手瞬态延迟被 systemd 强杀。
+    """
+    if yf.isAppleSystem():
+        return
+    version = formatVersion(version)
+    override_dir = f'/etc/systemd/system/php{version}-fpm.service.d'
+    override_file = os.path.join(override_dir, 'override.conf')
+    override_content = """[Unit]
+StartLimitIntervalSec=0
+
+[Service]
+Restart=always
+RestartSec=3s
+TimeoutStartSec=60s
+TimeoutStopSec=15s
+"""
+    try:
+        need_write = True
+        if os.path.exists(override_file):
+            old = yf.readFile(override_file)
+            if old and 'StartLimitIntervalSec=0' in old and 'Restart=always' in old:
+                need_write = False
+        if need_write:
+            os.makedirs(override_dir, exist_ok=True)
+            yf.writeFile(override_file, override_content)
+            yf.execShell('systemctl daemon-reload 2>/dev/null || true')
+    except Exception as e:
+        yf.writeLog('php-apt', f'注入 systemd override 容灾配置失败: {e}')
+
+
 def status(version):
     if yf.isAppleSystem():
         return 'stop'
@@ -156,8 +191,14 @@ def status(version):
     # 1. 优先采用 systemctl is-active
     cmd = "systemctl is-active php" + version + "-fpm"
     data = yf.execShell(cmd)
-    if data[0].strip() == 'active':
+    st = data[0].strip()
+    if st == 'active':
         return 'start'
+    elif st == 'activating':
+        # 处于启动中过渡状态，检测其进程是否已经就绪，防止误判 stop
+        chk_act = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v grep")
+        if chk_act and chk_act[0].strip():
+            return 'start'
 
     # 2. 降级通过 pid 文件校验
     pid_file = '/run/php/php' + version + '-fpm.pid'
@@ -171,12 +212,13 @@ def status(version):
         except Exception:
             pass
 
-    # 3. 降级通过进程树特征匹配
-    chk = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({version})' | grep -v grep")
+    # 3. 降级通过进程树特征匹配（精确匹配 Debian/Ubuntu 原生路径 /etc/php/{version}/ 及别名）
+    chk = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v grep")
     if chk and chk[0].strip():
         return 'start'
 
     return 'stop'
+
 
 
 def contentReplace(content, version):
@@ -278,15 +320,15 @@ def phpFpmWwwReplace(version):
             if mem_total_str:
                 mem_total = int(mem_total_str)
                 if mem_total <= 1024:
-                    max_children = 30; start_servers = 5; min_spare_servers = 5; max_spare_servers = 10
+                    max_children = 20; start_servers = 2; min_spare_servers = 2; max_spare_servers = 5
                 elif mem_total <= 2048:
-                    max_children = 50; start_servers = 5; min_spare_servers = 5; max_spare_servers = 20
+                    max_children = 40; start_servers = 3; min_spare_servers = 3; max_spare_servers = 10
                 elif mem_total <= 4096:
-                    max_children = 100; start_servers = 10; min_spare_servers = 10; max_spare_servers = 30
+                    max_children = 80; start_servers = 5; min_spare_servers = 5; max_spare_servers = 20
                 elif mem_total <= 8192:
-                    max_children = 150; start_servers = 15; min_spare_servers = 15; max_spare_servers = 30
+                    max_children = 120; start_servers = 10; min_spare_servers = 10; max_spare_servers = 30
                 else:
-                    max_children = 300; start_servers = 20; min_spare_servers = 20; max_spare_servers = 50
+                    max_children = 200; start_servers = 15; min_spare_servers = 15; max_spare_servers = 50
                     
                 content = re.sub(r'(?m)^pm\.max_children\s*=\s*\d+', f'pm.max_children = {max_children}', content)
                 content = re.sub(r'(?m)^pm\.start_servers\s*=\s*\d+', f'pm.start_servers = {start_servers}', content)
@@ -321,6 +363,17 @@ def phpFpmReplace(version):
 
     tpl_php_fpm = getPluginDir() + '/conf/php-fpm.conf'
     content = yf.readFile(tpl_php_fpm)
+    if not content:
+        content = """[global]
+pid = /run/php/php{$PHP_VERSION}-fpm.pid
+error_log = /var/log/php{$PHP_VERSION}-fpm.log
+log_level = notice
+systemd_interval = 10
+process_control_timeout = 10s
+emergency_restart_threshold = 10
+emergency_restart_interval = 1m
+include=/etc/php/{$PHP_VERSION}/fpm/pool.d/*.conf
+"""
     content = contentReplace(content, version)
     yf.writeFile(desc_php_fpm, content)
     return True
@@ -329,10 +382,18 @@ def phpFpmReplace(version):
 def initReplace(version):
     makeOpConf(version)
     phpFpmWwwReplace(version)
+    ensureSystemdOverride(version)
 
     install_ok = getAppDir() + "/" + version + "/install.ok"
     if not os.path.exists(install_ok):
         phpFpmReplace(version)
+    else:
+        # 即使已安装，也校验 php-fpm.conf 完整性（防止被截断或被 APT 升级覆盖）
+        fpm_conf = getServerDir() + '/' + version + '/fpm/php-fpm.conf'
+        if os.path.exists(fpm_conf):
+            fpm_content = yf.readFile(fpm_conf)
+            if not fpm_content or 'include=' not in fpm_content:
+                phpFpmReplace(version)
 
         phpini = getConf(version)
         ssl_crt = yf.getSslCrt()
@@ -379,9 +440,8 @@ def initReplace(version):
         yf.writeFile(install_ok, 'ok')
 
     phpPrependFile(version)
-    # systemd
-    # yf.execShell('systemctl daemon-reload')
     return 'ok'
+
 
 
 def tunePhpConfig(version):
@@ -495,7 +555,7 @@ def phpOp(version, method):
         # 2. 清理残留孤儿 socket（仅在无活动 master 进程时清理）
         sock_file = getFpmAddress(version)
         if isinstance(sock_file, str) and os.path.exists(sock_file):
-            chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({version})' | grep -v grep")
+            chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v grep")
             if not chk_m[0].strip():
                 try:
                     os.remove(sock_file)
@@ -519,17 +579,20 @@ def phpOp(version, method):
         # 4. 重置 systemd 失败状态
         yf.execShell(f'systemctl reset-failed {service_name} 2>/dev/null')
 
-        # 5. 拉起服务
+        # 5. 拉起服务并平滑探活（最多 3 秒）
         res = yf.execShell(f'systemctl {method} {service_name}')
-        time.sleep(0.5)
-        if status(version) == 'start':
-            return 'ok'
+        for _ in range(6):
+            time.sleep(0.5)
+            if status(version) == 'start':
+                return 'ok'
 
         # 降级尝试 service 命令拉起
         yf.execShell(f'service {service_name} {method} 2>/dev/null')
-        time.sleep(0.5)
-        if status(version) == 'start':
-            return 'ok'
+        for _ in range(6):
+            time.sleep(0.5)
+            if status(version) == 'start':
+                return 'ok'
+
 
         # 收集诊断日志
         err_msg = res[1].strip() if res and len(res) > 1 and res[1] else ''
@@ -638,7 +701,8 @@ def upgradeSelfHealing(version=''):
             st = status(ver)
             if st != 'start':
                 if isinstance(sock_file, str) and os.path.exists(sock_file):
-                    chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep '({ver})' | grep -v grep")
+                    chk_m = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{ver}/|\\({ver}\\)|php-fpm{ver})' | grep -v grep")
+
                     if not chk_m[0].strip():
                         try:
                             os.remove(sock_file)

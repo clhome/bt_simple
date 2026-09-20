@@ -930,7 +930,20 @@ class plugin(object):
             return None
 
         # 5. PHP (多版本共存) 快速探测
-        if name.startswith('php') or (name == 'php' and version):
+        if name == 'php-apt':
+            ver_str = str(version).strip()
+            if ver_str:
+                ver_dot = ver_str if '.' in ver_str else (ver_str[0] + '.' + ver_str[1:] if len(ver_str) >= 2 else ver_str)
+                for pid_candidate in (f"/run/php/php{ver_dot}-fpm.pid", f"/run/php/php{ver_str}-fpm.pid"):
+                    if os.path.exists(pid_candidate):
+                        try:
+                            pid = yf.readFile(pid_candidate).strip()
+                            if pid and yf.checkPid(int(pid)):
+                                return True
+                        except Exception:
+                            pass
+            return None
+        elif name.startswith('php') or (name == 'php' and version):
             ver_clean = str(version).replace('.', '')
             pid_file = os.path.join(server_dir, f"php/{ver_clean}/var/run/php-fpm.pid")
             if os.path.exists(pid_file):
