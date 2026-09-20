@@ -17,7 +17,7 @@
 | 11  | mysql           | 完成（升级自愈未测试） | 增加了一键备份所有数据库并下载的功能 |
 | 12  | ollama          |                        |                                      |
 | 13  | op_load_balance |                        |                                      |
-| 14  | op_waf          | 完成 |                                      |
+| 14  | op_waf          | 完成 | 提升了可靠性、性能 |
 | 15  | openresty       |                        |                                      |
 | 16  | pg_docker       |                        |                                      |
 | 17  | pgadmin         |                        |                                      |

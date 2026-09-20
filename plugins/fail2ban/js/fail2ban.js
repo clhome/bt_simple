@@ -1,5 +1,53 @@
 var api = YfPlugin.createApi('fail2ban');
 var pt = YfI18n.createPluginTranslator('fail2ban');
+
+// 当前面板语言（用于归属地查询等服务端侧的语言联动）
+function f2bCurrentLang() {
+    try {
+        if (window.YfI18n) {
+            if (typeof window.YfI18n.getLanguage === 'function') {
+                return window.YfI18n.getLanguage() || 'zh-CN';
+            }
+            if (window.YfI18n.currentLang) {
+                return window.YfI18n.currentLang;
+            }
+        }
+    } catch (e) {}
+    return 'zh-CN';
+}
+
+// jail 名称展示：手动黑名单 jail 用可翻译文案呈现
+function f2bJailLabel(jail) {
+    if (jail === 'yf-manual') {
+        return pt('手动黑名单');
+    }
+    return jail;
+}
+
+// 后端返回消息的多语言渲染（含带参数的两种固定模式）
+function f2bMsg(msg) {
+    msg = String(msg == null ? '' : msg);
+    var m = msg.match(/^缺少必要参数:\s*(.+)$/);
+    if (m) {
+        return pt('缺少必要参数: {1}', m[1]);
+    }
+    var m2 = msg.match(/^IP格式错误\s*(.*)$/);
+    if (m2) {
+        return pt('IP格式错误 {1}', m2[1]);
+    }
+    return pt(msg);
+}
+
+// 封禁原因多语言渲染：后端返回可翻译键 reason_code，前端负责本地化
+function f2bReasonText(item) {
+    var code = (item && (item.reason_code || item.reason)) || '';
+    var text = code ? pt(code) : pt('触发防御规则，已被自动拦截');
+    if (item && item.restore) {
+        text = pt('服务重启，恢复历史封禁 ({1})', text);
+    }
+    return text;
+}
+
 function getVersion(){
     return $('.plugin_version').attr('version');
 }
@@ -77,7 +125,10 @@ function f2bHome() {
 function f2bService() {
     pluginService('fail2ban');
     var waitTimer = setInterval(function() {
-        if ($('.soft-man-con').text().indexOf('当前状态') !== -1) {
+        // 语言无关的就绪判定：服务面板必然渲染 .sfm-opt 容器。
+        // 原实现用 indexOf('当前状态') 判断，英文/德文等面板下永远匹配不到，
+        // 导致严格模式开关与使用指南整块不显示。
+        if ($('.soft-man-con').find('.sfm-opt').length > 0) {
             clearInterval(waitTimer);
             if ($('.soft-man-con').find('#f2b_intro_panel').length === 0) {
                 // Fetch the config info to see if strict mode is enabled
@@ -93,7 +144,7 @@ function f2bService() {
                     
                     // Add checkbox next to reload button in .sfm-opt
                     var checkboxHtml = '<label style="margin-left: 30px; font-weight: normal; cursor: pointer; display: inline-flex; align-items: center; vertical-align: middle; user-select: none;">\
-                        <input type="checkbox" id="f2b_strict_mode" style="margin-right: 5px; width: 15px; height: 15px; cursor: pointer; margin-top: 0;" ' + (strict ? 'checked' : '') + '> 严格模式\
+                        <input type="checkbox" id="f2b_strict_mode" style="margin-right: 5px; width: 15px; height: 15px; cursor: pointer; margin-top: 0;" ' + (strict ? 'checked' : '') + '> ' + pt('严格模式') + '\
                     </label>\
                     <span style="color: #666; margin-left: 10px; font-size: 12px; vertical-align: middle; display: inline-block;">' + pt('（开启后，任意项目触发将封禁该IP访问所有配置的服务）') + '</span>';
                     
@@ -107,7 +158,7 @@ function f2bService() {
                         var isChecked = $(this).prop('checked');
                         api.post('set_strict_mode', '', { strict: isChecked }, function(res) {
                             var r = JSON.parse(res.data);
-                            layer.msg(r.msg, { icon: r.status ? 1 : 2 });
+                            layer.msg(f2bMsg(r.msg), { icon: r.status ? 1 : 2 });
                         });
                     });
                 });
@@ -149,7 +200,7 @@ function f2bPostCallbak(method, version, args, callback){
     $.post('/plugins/callback', req_data, function(data) {
         layer.close(loadT);
         if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+            layer.msg(f2bMsg(data.msg),{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
 
@@ -162,7 +213,7 @@ function f2bPostCallbak(method, version, args, callback){
 function f2bBanIpSave(black_ip){
     api.post('ban_ip_release', '', {}, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(f2bMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -182,7 +233,7 @@ function f2bLogs(){
         api.post('get_last_log', '', {}, function(data){
             layer.close(loadT);
             var rdata = JSON.parse(data.data);
-            var logContent = rdata.data || '暂无日志数据';
+            var logContent = rdata.data || pt('暂无日志数据');
             $("#f2bLogBody").text(logContent);
             var textarea = document.getElementById('f2bLogBody');
             if (textarea) {
@@ -200,7 +251,7 @@ function f2bLogs(){
         layer.confirm(pt('确定要清空 fail2ban 的运行日志吗？'), {title:  pt('清空日志')}, function(index) {
             api.post('clear_log', '', {}, function(data){
                 var rdata = JSON.parse(data.data);
-                layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                layer.msg(f2bMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
                 if (rdata.status) {
                     refreshLog();
                 }
@@ -291,16 +342,19 @@ function f2bBanIp() {
                     var hours = Math.floor(diff / 3600);
                     var minutes = Math.floor((diff % 3600) / 60);
                     if (hours > 0) {
-                        timeRemaining = hours + ' 小时 ' + minutes + ' 分钟';
+                        timeRemaining = hours + ' ' + pt('小时') + ' ' + minutes + ' ' + pt('分钟');
                     } else {
-                        timeRemaining = minutes + ' 分钟';
+                        timeRemaining = minutes + ' ' + pt('分钟');
                     }
                 }
+            }
+            if (item.manual === true) {
+                timeRemaining += ' <span style="color:#2f69f8; font-size:12px;">(' + pt('手动添加') + ')</span>';
             }
 
             tbodyHtml += '<tr>\
                 <td><span style="color:#d9534f; font-family: Consolas, monospace; font-weight:bold;">' + ip + '</span></td>\
-                <td>' + jail + '</td>\
+                <td>' + f2bJailLabel(jail) + '</td>\
                 <td id="' + ipId + '">' + locDisplay + '</td>\
                 <td>' + timeRemaining + '</td>\
                 <td style="text-align: right;">\
@@ -316,7 +370,7 @@ function f2bBanIp() {
             for (var i = 0; i < pendingIps.length; i += chunkSize) {
                 var chunk = pendingIps.slice(i, i + chunkSize);
                 (function(ips) {
-                    api.post('getIpLocationBatch', '', {ips: JSON.stringify(ips)}, function(data) {
+                    api.post('getIpLocationBatch', '', {ips: JSON.stringify(ips), lang: f2bCurrentLang()}, function(data) {
                         var loc_res = JSON.parse(data.data);
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
@@ -335,12 +389,12 @@ function f2bBanIp() {
                                     if (org) locParts.push(org);
                                     
                                     var finalStr = locParts.join('_');
-                                    if (!finalStr) finalStr = '未知';
+                                    if (!finalStr) finalStr = pt('未知');
                                     
                                     locCache[bItem.query] = finalStr;
                                     $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html(finalStr);
                                 } else if (bItem && bItem.query) {
-                                    $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html('局域网/保留地址');
+                                    $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html(pt('局域网/保留地址'));
                                 }
                             }
                             localStorage.setItem('f2b_ip_loc_cache', JSON.stringify(locCache));
@@ -353,7 +407,8 @@ function f2bBanIp() {
 }
 
 function f2bRemoveDropIp(ip, jail) {
-    layer.confirm(pt('确定要解除对 IP') + ' (' + ip + ') ' + pt('的封禁吗？'), {title:  pt('解除封禁'), icon: 3}, function(index) {
+    // 单键插值：碎片拼接会让德/法/意等语言语义破碎
+    layer.confirm(pt('确定要解封 IP ({1}) 吗？', ip), {title:  pt('解除封禁'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg(pt('正在解封...'), {icon: 16, time: 0, shade: 0.3});
         
@@ -361,9 +416,9 @@ function f2bRemoveDropIp(ip, jail) {
             layer.close(loadT);
             var srdata = JSON.parse(sdata.data);
             if (srdata.status) {
-                layer.msg(srdata.msg, {icon: 1});
+                layer.msg(f2bMsg(srdata.msg), {icon: 1});
             } else {
-                layer.msg(srdata.msg, {icon: 2});
+                layer.msg(f2bMsg(srdata.msg), {icon: 2});
             }
             f2bBanIp();
         });
@@ -393,7 +448,7 @@ function f2bAddDropIp() {
         api.post('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
             layer.close(loadT);
             var srdata = JSON.parse(sdata.data);
-            layer.msg(srdata.msg, {icon: srdata.status ? 1 : 2});
+            layer.msg(f2bMsg(srdata.msg), {icon: srdata.status ? 1 : 2});
             if (srdata.status) {
                 f2bBanIp();
             }
@@ -415,11 +470,11 @@ function f2bServerAnti() {
         
         // 预设服务列表
         var presetServices = [
-            {name: 'SSH 防爆破', mode: 'sshd', port: defaultSshPort, maxretry: 5, findtime: 300, bantime: 86400},
-            {name: 'FTP 防爆破', mode: 'ftpd', port: '21', maxretry: 5, findtime: 300, bantime: 86400},
-            {name: 'MySQL 防爆破', mode: 'mysql', port: defaultMysqlPort, maxretry: 5, findtime: 300, bantime: 86400},
-            {name: 'Dovecot (邮局)', mode: 'dovecot', port: '110', maxretry: 5, findtime: 300, bantime: 86400},
-            {name: 'Postfix (邮局)', mode: 'postfix', port: '25', maxretry: 5, findtime: 300, bantime: 86400}
+            {name: pt('SSH 防爆破'), mode: 'sshd', port: defaultSshPort, maxretry: 5, findtime: 300, bantime: 86400},
+            {name: pt('FTP 防爆破'), mode: 'ftpd', port: '21', maxretry: 5, findtime: 300, bantime: 86400},
+            {name: pt('MySQL 防爆破'), mode: 'mysql', port: defaultMysqlPort, maxretry: 5, findtime: 300, bantime: 86400},
+            {name: pt('Dovecot (邮局)'), mode: 'dovecot', port: '110', maxretry: 5, findtime: 300, bantime: 86400},
+            {name: pt('Postfix (邮局)'), mode: 'postfix', port: '25', maxretry: 5, findtime: 300, bantime: 86400}
         ];
 
         var tbody = '';
@@ -446,8 +501,8 @@ function f2bServerAnti() {
             tbody += '<tr>' +
                         '<td>' + item.name + ' (' + item.mode + ')</td>' +
                         '<td>' + (configured ? configured.port : '-') + '</td>' +
-                        '<td>' + (configured ? configured.maxretry + '次 / ' + configured.findtime + '秒' : '-') + '</td>' +
-                        '<td>' + (configured ? configured.bantime + '秒' : '-') + '</td>' +
+                        '<td>' + (configured ? configured.maxretry + pt('次') + ' / ' + configured.findtime + pt('秒') : '-') + '</td>' +
+                        '<td>' + (configured ? configured.bantime + pt('秒') : '-') + '</td>' +
                         '<td>' + statusStr + '</td>' +
                         '<td style="text-align: right;">' + btnStr + '</td>' +
                      '</tr>';
@@ -494,7 +549,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
             };
             api.post('set_anti', '', postData, function(data){
                 var rdata = JSON.parse(data.data);
-                layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                layer.msg(f2bMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
                 if(rdata.status) {
                     layer.close(index);
                     if (mode.indexOf('-') > 0) f2bSiteAnti(); else f2bServerAnti();
@@ -508,7 +563,7 @@ function f2bDelAnti(mode) {
     layer.confirm(pt('确定要删除并停用该防护规则吗？'), {title:  pt('停用规则')}, function(index) {
         api.post('del_anti', '', {mode: mode, type: 'edit'}, function(data){
             var rdata = JSON.parse(data.data);
-            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            layer.msg(f2bMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
             if(rdata.status) {
                 layer.close(index);
                 if(mode.indexOf('-') > 0) f2bSiteAnti(); else f2bServerAnti();
@@ -555,8 +610,8 @@ function f2bSiteAnti() {
             tbody += '<tr>' +
                         '<td>' + item.name + ' (' + item.mode + ')</td>' +
                         '<td>' + (configured ? configured.port : item.port) + '</td>' +
-                        '<td>' + (configured ? configured.maxretry + '次 / ' + configured.findtime + '秒' : item.maxretry + '次 / ' + item.findtime + '秒') + '</td>' +
-                        '<td>' + (configured ? configured.bantime + '秒' : item.bantime + '秒') + '</td>' +
+                        '<td>' + (configured ? configured.maxretry + pt('次') + ' / ' + configured.findtime + pt('秒') : item.maxretry + pt('次') + ' / ' + item.findtime + pt('秒')) + '</td>' +
+                        '<td>' + (configured ? configured.bantime + pt('秒') : item.bantime + pt('秒')) + '</td>' +
                         '<td>' + statusStr + '</td>' +
                         '<td style="text-align: right;">' + btnStr + '</td>' +
                      '</tr>';
@@ -574,18 +629,18 @@ function f2bSiteAnti() {
                       </h4>\
                       <div style="margin-bottom: 15px;">\
                           <div style="color: #333; font-weight: 600; font-size: 13px; margin-bottom: 6px;">\
-                              <span style="display:inline-block; width:6px; height:6px; background:#fd6e1e; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>全局防 CC 攻击 (global-cc)\
+                              <span style="display:inline-block; width:6px; height:6px; background:#fd6e1e; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>' + pt('全局防 CC 攻击') + ' (global-cc)\
                           </div>\
                           <div style="color: #666; font-size: 13px; line-height: 22px; padding-left: 14px;">\
-                              基于自适应的高频请求识别算法，实时监控所有站点的访问频次。当发现独立 IP 异常密集地请求网页或接口，疑似发起资源枯竭型（CC）攻击时，防火墙将在网络底层直接阻断其连接，确保您的服务器性能不被巨量并发请求拖垮。\
+                              ' + pt('基于自适应的高频请求识别算法，实时监控所有站点的访问频次。当发现独立 IP 异常密集地请求网页或接口，疑似发起资源枯竭型（CC）攻击时，防火墙将在网络底层直接阻断其连接，确保您的服务器性能不被巨量并发请求拖垮。') + '\
                           </div>\
                       </div>\
                       <div>\
                           <div style="color: #333; font-weight: 600; font-size: 13px; margin-bottom: 6px;">\
-                              <span style="display:inline-block; width:6px; height:6px; background:#00b96b; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>全局防恶意扫描 (global-scan)\
+                              <span style="display:inline-block; width:6px; height:6px; background:#00b96b; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>' + pt('全局防恶意扫描') + ' (global-scan)\
                           </div>\
                           <div style="color: #666; font-size: 13px; line-height: 22px; padding-left: 14px;">\
-                              采用启发式的访问日志特征分析机制，敏锐捕捉黑客的漏洞探测、敏感文件窥探及自动化扫描器行为。一旦发现非正常的试探性探测，系统将果断封禁该攻击源，将被动防御化为主动拦截，大幅降低站点被渗透的风险。\
+                              ' + pt('采用启发式的访问日志特征分析机制，敏锐捕捉黑客的漏洞探测、敏感文件窥探及自动化扫描器行为。一旦发现非正常的试探性探测，系统将果断封禁该攻击源，将被动防御化为主动拦截，大幅降低站点被渗透的风险。') + '\
                           </div>\
                       </div>\
                   </div>' +
@@ -619,7 +674,8 @@ function f2bLogRequest(page){
                 list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:145px;">' + getLocalTime(data[i]['time'])+'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['ip'] + '" style="width:120px; font-family: Consolas, monospace; font-weight:bold; color:#d9534f;">' + data[i]['ip'] +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['rule_name'] + '" style="width:100px;">' + data[i]['rule_name'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + data[i]['reason'] + '" style="width:300px;">' + data[i]['reason'] +'</span></td>';
+                var reasonText = f2bReasonText(data[i]);
+                list += '<td><span class="overflow_hide" title="' + reasonText + '" style="width:300px;">' + reasonText +'</span></td>';
                 list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="' + pt('详情') + '">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
@@ -655,7 +711,7 @@ function f2bIpDetails(ip) {
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         if(!rdata.status) {
-            layer.msg(rdata.msg, {icon: 2});
+            layer.msg(f2bMsg(rdata.msg), {icon: 2});
             return;
         }
         var logs = rdata.data.logs;
@@ -695,7 +751,7 @@ function f2bIpDetails(ip) {
                 
                 tbodyHtml += '<tr>\
                     <td style="font-family: Consolas, monospace; font-size: 12.5px;">' + timeStr + '</td>\
-                    <td>' + $('<div>').text(jailStr).html() + '</td>\
+                    <td>' + $('<div>').text(f2bJailLabel(jailStr)).html() + '</td>\
                     <td>' + actionStr + '</td>\
                 </tr>';
             }
@@ -728,7 +784,7 @@ function f2bIpDetails(ip) {
         
         layer.open({
             type: 1,
-            title: "【"+$('<div>').text(ip).html() + "】 触发详情",
+            title: pt('【{1}】 触发详情', $('<div>').text(ip).html()),
             area: '650px',
             closeBtn: 1,
             shadeClose: false,
@@ -764,7 +820,8 @@ function f2bSiteHistory(){
     $(".soft-man-con").off("click", "#exportExcel").on("click", "#exportExcel", function(){
         var args = {};
         args['page'] = 1;
-        args['page_size'] = 100000;
+        // 服务端单次返回上限为 20000 条，避免大日志把内存与响应体打爆
+        args['page_size'] = 20000;
         var query_date = 'today';
         if ($('#time_choose').attr("data-name") != '' && $('#time_choose').attr("data-name") != undefined){
             query_date = $('#time_choose').attr("data-name");
@@ -783,19 +840,25 @@ function f2bSiteHistory(){
                 layer.msg(pt("没有数据可导出"), {icon: 2});
                 return;
             }
-            var csv = "\uFEFF时间,IP,规则名,原因\n";
+            var csv = "\uFEFF" + pt('时间') + ",IP," + pt('规则名') + "," + pt('原因') + "\n";
             for(var i=0; i<data.length; i++) {
                 var d = data[i];
-                csv += getLocalTime(d.time) + "," + d.ip + "," + d.rule_name + "," + '"' + (d.reason||'').replace(/"/g, '""') + '"\n';
+                var reason = f2bReasonText(d).replace(/"/g, '""');
+                csv += getLocalTime(d.time) + "," + d.ip + "," + d.rule_name + ',"' + reason + '"\n';
             }
             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = "防护历史.csv";
+            a.download = pt('防护历史.csv');
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+
+            // 命中服务端上限时明确告知，避免用户误以为导出完整
+            if (data.length >= args['page_size']) {
+                layer.msg(pt('导出已达到单次上限 {1} 条，请缩小时间范围后重试', data.length), {icon: 0, time: 4000});
+            }
         });
     });
 

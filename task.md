@@ -324,3 +324,66 @@
 - [x] 222. 编写与运行自动化回归测试套件 (`test/test_cleanup_system_safe.py`)：验证检测算法、清理步骤的安全性与幂等性
 - [x] 223. 在测试服务器上执行清理验证与 status 确认，确保 `php8.4-fpm` 长期正常运行
 - [x] 224. 成果全量回归、UTF-8(LF)编码校验、即时更新 task.md 并清理临时测试文件
+
+## 御风F2B防火墙（fail2ban）插件可靠性/安全性/多语言/性能四维审计与全链路优化清单
+
+### 阶段一：四维审计（产出报告）
+
+- [x] 225. 输出 fail2ban 插件四维审计报告 (`test/tmp_f2b/fail2ban_optimization_report.md`)：逐项给出 P0/P1/P2 优先级、行号证据、代码片段与验证方法
+- [x] 226. 编写可复用 i18n 一致性检查器 (`test/tmp_f2b/check.py`)：统计 `pt()` 字面量与 zh-CN 键差异、定位 `pt()` 外中文、HTML 注入译文检测、zh-TW 简体字泄漏、死键扫描
+
+### 阶段二：安全加固（P0）
+
+- [x] 227. 修复命令注入：新增 `safe_ip()` / `safe_port()` / `safe_int()` / `safe_bool()` 与 `ALLOWED_MODES` 白名单，`f2b_client()` 统一经 `shlex.quote` 转义全部参数 (`plugins/fail2ban/index.py`)
+- [x] 228. 修复 `get_ip_logs()` 内部参数泄漏（`args dump` 明文回显），并改用词边界正则 `(?<![\d.])ip(?![\d.])` 精确匹配 IP
+
+### 阶段三：可靠性根治（P0）
+
+- [x] 229. 重写 `setBlackIp()`：修复遍历 dict 键导致 `fail2ban-client set server banip` 打到不存在 jail 的致命 Bug，改为 `yf-manual` 专用永久封禁 jail（`bantime = -1` + 永不匹配 filter）
+- [x] 230. 移除 `get_active_bans()` 中伪造 `bantime = -1` 的假永久封禁逻辑，改为真实 `manual` 标记
+- [x] 231. 修复 `[DEFAULT] backend = systemd` 污染 mysql/redis 等 jail 导致静默失效：`backend` 下沉至各 jail，新增 `resolve_backend()` / `pick_logpath()` / `ensure_filter()` 按模式解析真实日志路径
+
+### 阶段四：可靠性加固（P1）
+
+- [x] 232. 修复 `checkEnv()` 误删运行中 socket：仅在服务 `inactive/failed/unknown` 或（非 systemd 系统）PID 已死时清理
+- [x] 233. 新增 `wait_service_up()` 指数退避（0.4→2.0s，10s 预算），消除固定 `sleep(0.8)` 在慢机器上的启动假失败；失败诊断仅保留末尾 5 行 / 1200 字符
+- [x] 234. 修复 `initDreplace()` 只 `return` 不落盘的 Bug，真正写入 SysV 初始化脚本并 `chmod 0755`
+- [x] 235. 重写 `f2bOp()`：支持 systemd / SysV 双通道，darwin / freebsd 明确返回不支持；启动成功后自动 `apply_black_list()` 恢复黑名单
+- [x] 236. 重写 `initdStatus()` / `initdInstall()` / `initdUinstall()`，兼容 systemd 与 SysV（`update-rc.d` / `chkconfig`）
+- [x] 237. 修复 `get_total_statistics` 返回 `versions` 数组导致首页插件卡片 `onclick` HTML 属性被破坏的 Bug（取 `raw_ver[-1]`）
+
+### 阶段五：性能优化（P2）
+
+- [x] 238. 新增 `open_bans_db()`（`mode=ro` URI 只读 + `PRAGMA busy_timeout=5000`）与 `_DBFILE_CACHE` 路径缓存（300s TTL），消除直连 SQLite 写竞争
+- [x] 239. 新增 `read_tail_lines()`（`collections.deque` 环形缓冲）替换 `tail` 子进程，日志读取改为纯 Python 零进程开销
+- [x] 240. `get_active_bans()` 下推 SQL 过滤（`WHERE bantime < 0 OR timeofban + bantime > ?`）并在内存合并黑名单，避免全表扫描
+- [x] 241. `get_logs_list()` 增加 `MAX_PAGE_SIZE` 上限与 `parse_ban_line()` 结构化解析；`log_candidates()` 支持轮转日志（`.log.1/.2/.3`）
+
+### 阶段六：数据准确性与一致性（P2）
+
+- [x] 242. 修复指标失真：`dbpurgeage` 由 `1d` 迁移为 `30d`（`ensure_db_retention()`），新增 `protect_start.pl` 记录防护起始日，`get_protect_days()` 返回真实防护天数
+- [x] 243. 移除 `_delete_db_ban()` 直写数据库逻辑，解封统一走 `fail2ban-client`，彻底消除与 `fail2ban-server` 的写冲突
+
+### 阶段七：多国语言适配（P1）
+
+- [x] 244. 前端 `js/fail2ban.js` 补全 30+ 处未翻译文案（`小时`/`分钟`/`未知`/`次`/`秒`/`暂无日志数据`/`局域网/保留地址`/网站防护深度解析长文案等）
+- [x] 245. 修复 `f2bService()` 就绪检测使用中文字面量 `'当前状态'` 导致非中文面板下严格模式开关与用户指引不渲染的问题，改为语言无关的 DOM 选择器判定
+- [x] 246. 新增 `f2bMsg()` / `f2bReasonText()` / `f2bJailLabel()` 前端辅助函数；后端 `parse_ban_line()` 返回 `reason_code` / `restore`，修复 ajax 重渲染后封禁原因无法翻译的问题
+- [x] 247. 修复解封确认弹窗碎片化翻译导致的拼接错乱，改为单一完整翻译键 `确定要解封 IP ({1}) 吗？`
+- [x] 248. 六语言包（zh-CN/zh-TW/en/de/fr/it）重写：清理 11 个死键、补齐 11 个新键，六语种 155 键完全对齐、键集一致
+- [x] 249. 修正机翻残留（`次 /`→"Second-rate"、`防爆破`→"Explosionsschutz"/"antidéflagrant"/"a prova di esplosione"、`自启动`→"Seit dem Start"、`参数:(` 跨语言串味）与 zh-TW 简体字泄漏
+
+### 阶段八：安装脚本与工程收尾（P2）
+
+- [x] 250. 加固 `plugins/fail2ban/install.sh`：新增 `die()` / `warn()` 与 `set -o pipefail`，安装后 `verify_install()` 校验 `fail2ban-client`，安装失败不再误报"安装完成"并继续启动
+- [x] 251. `install.sh` 补齐 `iptables` / `ipset` / `python3-systemd` 依赖安装（含降级回退），移除 `yum purge` 死代码，新增 `dnf` 分支
+- [x] 252. `install.sh` 卸载改为「先备份 `/etc/fail2ban` 到 `${serverPath}/backup/fail2ban/etc_fail2ban_<ts>.tar.gz`，再仅清理包管理器自带文件」，保留用户自定义 `filter.d` / `jail.d` / `fail2ban.local`
+- [x] 253. `install.sh` 卸载补齐残留清理（`/var/lib/fail2ban`、`/run/fail2ban`、`/var/log/fail2ban.log*`、`fail2ban-manual.log`）与 `systemd` unit 清理，action 派发改为 `case` 白名单
+- [x] 254. 清理插件内 `__pycache__/` 构建残留；经核查确认 `js/*.i18n.bak` 为项目级 i18n 回滚快照（全插件统一、已被 git 跟踪），予以保留
+- [x] 255. 编写 fail2ban 插件自动化回归测试套件 (`test/test_fail2ban_plugin.py`)：54 项测试覆盖安全校验、黑名单生效链路、backend 解析、日志解析、i18n 覆盖率、UTF-8(LF) 编码规范、install.sh 加固与 info.json 清单，全部通过
+- [x] 256. 更新 `test/test_fail2ban_stability.py`：新增「无 mysql 日志的 Linux 主机降级 systemd 后端」用例，并断言 `[DEFAULT]` 段不得出现 `backend`
+- [x] 257. 修复 `sync_jail_local()` 中 `ensure_service_log()` / `ensure_filter()` 位于 `resolve_backend()` 之后的顺序 Bug（占位日志未创建即被判无日志而整段跳过）
+- [x] 258. 沉淀可复用工具 `test/i18n_scripts/i18n_plugin_check.py`：通用插件 i18n 一致性检查器（pt() 覆盖、HTML 违规、键集一致性、zh-TW 简体泄漏、脏键、死键），硬性失败 0 项
+- [x] 259. 审计报告归档至 `文档/防火墙/防火墙优化6.md`（沿用既有 `防火墙优化N.md` 编号约定），并更正两处初判结论：`js/*.i18n.bak` 系项目级 i18n 回滚快照应予保留、`__pycache__` 会被 `plugin_compress.sh` 打进插件包
+- [x] 260. 全量回归：`test_fail2ban_plugin.py`(54) + `test_fail2ban_stability.py`(6) + `test_all_python_syntax.py` + `test_all_plugins_js_syntax.py` + `test_plugin_runtime_i18n.py`(1314 菜单项 100% 覆盖) 全部通过
+- [x] 261. 清理临时文件（`test/tmp_f2b/` 及 `plugins/fail2ban/__pycache__/`），确认插件内文本文件 UTF-8 无 BOM + LF，并即时更新 task.md 收尾

@@ -7,6 +7,7 @@ import os
 import time
 import re
 import json
+import shlex
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -58,7 +59,8 @@ def checkEnv():
     """
     # 1. 运行时与数据目录
     dirs = ['/run/fail2ban', '/var/lib/fail2ban', '/var/log', '/www/wwwlogs',
-            f2bEtcDir(), f2bEtcDir() + '/fail2ban.d', f2bEtcDir() + '/jail.d', f2bEtcDir() + '/filter.d']
+            f2bEtcDir(), f2bEtcDir() + '/fail2ban.d', f2bEtcDir() + '/jail.d', f2bEtcDir() + '/filter.d',
+            getServerDir()]
     for d in dirs:
         try:
             if not os.path.exists(d):
@@ -79,7 +81,7 @@ def checkEnv():
     except Exception:
         pass
 
-    # 3. 补齐主日志文件
+    # 3. 补齐主日志文件与手动封禁 jail 的日志占位
     try:
         log_file = runLog()
         if not os.path.exists(log_file):
@@ -88,14 +90,37 @@ def checkEnv():
     except Exception:
         pass
 
-    # 4. 清理残留死套接字与无效 PID 文件 (当服务未实际运行时)
+    try:
+        if not os.path.exists(MANUAL_LOG):
+            yf.writeFile(MANUAL_LOG, '')
+    except Exception:
+        pass
+
+    # 4. 清理残留死套接字与无效 PID 文件
+    #    仅在服务确认处于 inactive/failed 时才清理：
+    #    - 服务正在启动 (activating/reloading) 时不清理，避免误删活着的 socket
+    #    - 非 systemd 环境（容器 / Alpine / Devuan）不做 systemctl 判断，
+    #      改用 PID 存活校验，避免 systemctl 缺失导致误判并删掉运行中的 socket
     try:
         sock_file = '/run/fail2ban/fail2ban.sock'
         pid_file = '/run/fail2ban/fail2ban.pid'
-        res = yf.execShell('fail2ban-client ping')
-        if 'pong' not in res[0]:
-            is_active = yf.execShell('systemctl is-active fail2ban')[0].strip()
-            if is_active != 'active':
+        if 'pong' not in (yf.execShell('fail2ban-client ping')[0] or ''):
+            can_clean = False
+            if os.path.exists('/run/systemd/system'):
+                is_active = (yf.execShell('systemctl is-active fail2ban')[0] or '').strip()
+                can_clean = is_active in ('inactive', 'failed', 'unknown')
+            else:
+                pid_alive = False
+                if os.path.exists(pid_file):
+                    try:
+                        with open(pid_file, 'r') as fp:
+                            os.kill(int(fp.read().strip()), 0)
+                        pid_alive = True
+                    except Exception:
+                        pid_alive = False
+                can_clean = not pid_alive
+
+            if can_clean:
                 if os.path.exists(sock_file):
                     os.remove(sock_file)
                 if os.path.exists(pid_file):
@@ -151,10 +176,14 @@ syslogsocket = auto
 socket = /run/fail2ban/fail2ban.sock
 pidfile = /run/fail2ban/fail2ban.pid
 dbfile = /var/lib/fail2ban/fail2ban.sqlite3
-dbpurgeage = 1d
+dbpurgeage = 30d
 allowipv6 = auto
 """
         yf.writeFile(f2b_conf, default_f2b_conf)
+
+    # 平滑升级历史库保留期（1d -> 30d），并记录防护起始时间
+    ensure_db_retention()
+    ensure_protect_start()
 
     # Check jail.conf (jail config template)
     jail_conf = etc_dir + '/jail.conf'
@@ -177,7 +206,7 @@ def getConfTpl():
 
 
 def getInitDTpl():
-    path = getPluginDir() + "/init.d/" + getPluginName() + ".tpl"
+    path = getPluginDir() + "/init.d/" + getPluginName() + ".init.tpl"
     return path
 
 
@@ -224,8 +253,536 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
+
+
+# ============================================================
+# 安全校验层与 fail2ban-client 安全调用层
+# 所有来自前端的 ip / jail / mode / 数值 必须经此处校验后
+# 才允许参与配置生成与命令执行，彻底根除命令注入与配置注入。
+# ============================================================
+
+# 允许的 jail / 防护模式白名单（杜绝任意字符串注入 jail.local 与 shell）
+ALLOWED_MODES = (
+    'sshd', 'ftpd', 'mysql', 'dovecot', 'postfix', 'redis',
+    'global-cc', 'global-scan',
+)
+
+# 手动永久封禁专用 jail（bantime = -1，由插件独占管理）
+MANUAL_JAIL = 'yf-manual'
+MANUAL_LOG = '/var/log/fail2ban-manual.log'
+
+# 数值型配置项的合法区间（最小, 最大），bantime 允许 -1 表示永久
+NUMERIC_LIMITS = {
+    'maxretry': (1, 100000),
+    'findtime': (1, 2592000),
+    'bantime': (-1, 31536000),
+}
+
+
+def is_allowed_mode(mode):
+    """jail / mode 白名单校验"""
+    return isinstance(mode, str) and mode in ALLOWED_MODES
+
+
+def safe_ip(ip):
+    """校验并归一化 IP（支持 IPv4 / IPv6 / CIDR 网段），非法返回 None"""
+    if not isinstance(ip, str):
+        return None
+    ip = ip.strip()
+    if not ip:
+        return None
+    try:
+        if '/' in ip:
+            ipaddress.ip_network(ip, strict=False)
+        else:
+            ipaddress.ip_address(ip)
+        return ip
+    except ValueError:
+        return None
+
+
+def safe_port(port, default=''):
+    """
+    校验端口表达式：允许 "80" / "80,443" / "1:65535" 形式，
+    非法内容一律丢弃，防止写入 jail.local 时注入配置行。
+    """
+    if port is None:
+        return default
+    if isinstance(port, int):
+        return str(port)
+    port = str(port).strip()
+    if not port:
+        return default
+    if not re.match(r'^[0-9]+(\s*[-,:]\s*[0-9]+)*$', port):
+        return default
+    return port
+
+
+def safe_int(value, default, key=None):
+    """安全整数解析，按 NUMERIC_LIMITS 收敛区间，非法返回默认值"""
+    try:
+        num = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if key and key in NUMERIC_LIMITS:
+        low, high = NUMERIC_LIMITS[key]
+        if num < low:
+            num = low
+        if num > high:
+            num = high
+    return num
+
+
+def safe_bool(value, default=True):
+    """安全布尔解析（兼容 'true' / '1' / 'on' / True）"""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in ('true', '1', 'yes', 'on')
+
+
+def f2b_client(*args):
+    """
+    安全执行 fail2ban-client：所有参数经 shlex.quote 转义，
+    彻底根除 IP / jail / mode 拼接导致的命令注入。
+    """
+    cmd = 'fail2ban-client ' + ' '.join(shlex.quote(str(a)) for a in args)
+    return yf.execShell(cmd)
+
+
+def f2b_client_ok(*args):
+    """执行 fail2ban-client 并判断是否真正成功，返回 (ok, message)"""
+    try:
+        out, err = f2b_client(*args)
+    except Exception as e:
+        return (False, str(e))
+    out = (out or '').strip()
+    err = (err or '').strip()
+    low = out.lower()
+    if err and ('error' in err.lower() or 'failed' in err.lower() or 'invalid' in err.lower()):
+        return (False, err)
+    if low.startswith('error') or 'invalid jail' in low or 'invalid' in low:
+        return (False, out)
+    return (True, out)
+
+
+def get_enabled_jails(conf):
+    """
+    从 config.json 结构安全提取已启用的真实 jail 名列表。
+    注意：jail 名以 config.json 的 server/site 列表为准，
+    而不是把 config.json 的字典键（server/site/strict）当成 jail 使用。
+    """
+    jails = []
+    if not isinstance(conf, dict):
+        return jails
+    for section in ('server', 'site'):
+        items = conf.get(section, [])
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            if not safe_bool(item.get('act'), True):
+                continue
+            mode = item.get('mode', '')
+            if is_allowed_mode(mode) and mode not in jails:
+                jails.append(mode)
+    return jails
+
+
+# ------------------------------------------------------------
+# 数据库访问（只读 + 进程级缓存，避免与 fail2ban-server 抢锁）
+# ------------------------------------------------------------
+_DBFILE_CACHE = {'path': None, 'ts': 0}
+_DBFILE_CACHE_TTL = 300
+
+
+def get_dbfile_path(force=False):
+    """获取 fail2ban 数据库路径（进程级缓存，避免每次操作都 spawn 进程）"""
+    now = time.time()
+    if not force and _DBFILE_CACHE['path'] and now - _DBFILE_CACHE['ts'] < _DBFILE_CACHE_TTL:
+        return _DBFILE_CACHE['path']
+
+    db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
+    try:
+        out = f2b_client('get', 'dbfile')[0] or ''
+        if out.strip() and out.strip() != 'None':
+            match = re.search(r'(/[^`\s]+\.sqlite3)', out)
+            if match:
+                db_path = match.group(1)
+            elif '- ' in out:
+                db_path = out.split('- ')[-1].strip()
+    except Exception:
+        pass
+
+    _DBFILE_CACHE['path'] = db_path
+    _DBFILE_CACHE['ts'] = now
+    return db_path
+
+
+def open_bans_db(readonly=True):
+    """
+    打开封禁数据库：只读模式 + busy_timeout，
+    避免与 fail2ban-server 并发写入冲突（database is locked）。
+    """
+    import sqlite3
+    db_path = get_dbfile_path()
+    if not os.path.exists(db_path):
+        return None
+    try:
+        if readonly:
+            conn = sqlite3.connect('file:%s?mode=ro' % db_path, uri=True, timeout=5)
+        else:
+            conn = sqlite3.connect(db_path, timeout=5)
+        conn.execute('PRAGMA busy_timeout = 5000')
+        return conn
+    except Exception:
+        return None
+
+
+def read_tail_lines(path, max_lines=5000, keywords=None, matcher=None):
+    """
+    高效尾读日志文件：使用定长环形缓冲，避免全量 readlines() 带来的
+    大文件 CPU / 内存开销。
+    - keywords: 字符串列表，任一命中即保留
+    - matcher:  可调用对象 / 已编译正则，命中才保留
+    - 两者均为空时返回最后 max_lines 行
+    """
+    from collections import deque
+    if not path or not os.path.exists(path):
+        return []
+    try:
+        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            if not keywords and not matcher:
+                return list(deque(f, maxlen=max_lines))
+            buf = deque(maxlen=max_lines)
+            for line in f:
+                hit = False
+                if matcher is not None:
+                    try:
+                        hit = bool(matcher.search(line) if hasattr(matcher, 'search') else matcher(line))
+                    except Exception:
+                        hit = False
+                if not hit and keywords:
+                    for kw in keywords:
+                        if kw in line:
+                            hit = True
+                            break
+                if hit:
+                    buf.append(line)
+            return list(buf)
+    except Exception:
+        return []
+
+
+def log_candidates():
+    """返回 fail2ban 日志及其轮转文件的候选路径（新 → 旧）"""
+    base = runLog()
+    return [base, base + '.1', base + '.2', base + '.3']
+
+
+# ------------------------------------------------------------
+# 各服务日志路径候选（按优先级探测，命中即用）
+# ------------------------------------------------------------
+SERVICE_LOGPATHS = {
+    'mysql': ['/www/server/data/*.err', '/var/log/mysql/error.log', '/var/log/mysqld.log'],
+    'redis': ['/var/log/redis/*.log', '/var/log/redis/redis-server.log'],
+    'ftpd': ['/var/log/vsftpd.log', '/var/log/pure-ftpd/transfer.log',
+             '/var/log/xferlog', '/var/log/proftpd/proftpd.log'],
+    'dovecot': ['/var/log/dovecot.log', '/var/log/mail.log', '/var/log/maillog'],
+    'postfix': ['/var/log/mail.log', '/var/log/maillog'],
+}
+
+
+def _glob_exists(pattern):
+    """判断日志路径是否存在（支持通配符）"""
+    import glob as _glob
+    if not pattern:
+        return False
+    if any(ch in pattern for ch in '*?['):
+        return len(_glob.glob(pattern)) > 0
+    return os.path.exists(pattern)
+
+
+def pick_logpath(mode):
+    """为指定服务挑选第一个真实存在的日志路径，全部缺失返回 None"""
+    for pattern in SERVICE_LOGPATHS.get(mode, []):
+        if _glob_exists(pattern):
+            return pattern
+    return None
+
+
+def resolve_backend(mode):
+    """
+    解析某个 jail 应使用的 (backend, logpath)：
+    - sshd 走 SSH 日志智能探测
+    - 其他服务优先使用真实存在的日志文件（backend = auto）
+    - 日志全部缺失时降级为 systemd 后端（无需 logpath，保证 jail 一定能启动）
+    这样 backend 不再写在 [DEFAULT] 段，避免污染需要 logpath 的 jail。
+    """
+    if mode == 'sshd':
+        return getSshLogConfig()
+
+    logpath = pick_logpath(mode)
+    if logpath:
+        return ('auto', logpath)
+
+    # 无日志文件时降级 systemd（journal），确保 jail 可正常启动
+    if os.path.exists('/run/systemd/system') or os.path.exists('/lib/systemd/system'):
+        return ('systemd', None)
+    return ('auto', None)
+
+
+def ensure_service_log(mode):
+    """为通配符日志补齐占位文件，杜绝 glob 匹配不到导致的 Fatal Error"""
+    if mode == 'mysql':
+        try:
+            mysql_dir = '/www/server/data'
+            if os.path.exists(mysql_dir) and not any(f.endswith('.err') for f in os.listdir(mysql_dir)):
+                yf.writeFile(os.path.join(mysql_dir, 'mysql_error.err'), '')
+        except Exception:
+            pass
+    elif mode == 'redis':
+        try:
+            redis_dir = '/var/log/redis'
+            if not os.path.exists(redis_dir):
+                os.makedirs(redis_dir, mode=0o755, exist_ok=True)
+            if not any(f.endswith('.log') for f in os.listdir(redis_dir)):
+                yf.writeFile(os.path.join(redis_dir, 'redis.log'), '')
+        except Exception:
+            pass
+
+
+# 各服务缺失时的 filter 兜底定义
+SERVICE_FILTERS = {
+    'mysql': "[Definition]\nfailregex = ^.*Access denied for user.*'<HOST>'.*$\nignoreregex = \n",
+    'redis': "[Definition]\nfailregex = ^.*-ERR Auth failed.*from <HOST>.*$\nignoreregex = \n",
+}
+
+
+# ------------------------------------------------------------
+# 性能与统计相关常量
+# ------------------------------------------------------------
+# 日志尾读窗口：避免全量 readlines()，同时覆盖足够的近期记录
+LOG_TAIL_LINES = 50000
+# 单次请求最大返回条数（服务端硬上限，防止导出 10 万条打爆内存与响应体）
+MAX_PAGE_SIZE = 20000
+# fail2ban 封禁历史保留期（默认 1d 会让"总拦截"实际只有一天数据）
+DB_PURGE_AGE = '30d'
+
+# 日志原因文案（前端会按多语言字典二次翻译）
+REASON_MAP = {
+    'sshd': 'SSH登录失败过多，防暴破拦截',
+    'ftpd': 'FTP登录失败过多，防暴破拦截',
+    'mysql': 'MySQL登录失败过多，防暴破拦截',
+}
+
+
+def parse_ban_line(line):
+    """解析 fail2ban 日志中的 Ban 行，返回结构化记录或 None"""
+    if ' Ban ' not in line:
+        return None
+    parts = line.strip().split()
+    if len(parts) < 5 or parts[-2] != 'Ban':
+        return None
+    try:
+        date_str = parts[0]
+        time_str = parts[1].split(',')[0]
+        ip_str = parts[-1]
+        is_restore = parts[-3] == 'Restore'
+        jail_str = (parts[-4] if is_restore else parts[-3]).strip('[]')
+    except IndexError:
+        return None
+
+    try:
+        unix_time = int(time.mktime(time.strptime(
+            f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")))
+    except Exception:
+        unix_time = int(time.time())
+
+    reason_code = '触发防御规则，已被自动拦截'
+    if jail_str.endswith('-cc'):
+        reason_code = '请求频率过高，触发CC防御拦截'
+    elif jail_str.endswith('-scan'):
+        reason_code = '触发恶意扫描，已被自动拦截'
+    elif jail_str in REASON_MAP:
+        reason_code = REASON_MAP[jail_str]
+    elif jail_str == MANUAL_JAIL:
+        reason_code = '手动添加至黑名单，永久封禁'
+
+    reason = reason_code
+    if is_restore:
+        reason = '服务重启，恢复历史封禁 (' + reason + ')'
+
+    return {
+        "time": unix_time,
+        "domain": "ALL",
+        "ip": ip_str,
+        "uri": "-",
+        "rule_name": jail_str,
+        # reason_code 为可翻译键，前端用 pt() 渲染；
+        # reason 保留中文基线，兼容旧前端
+        "reason_code": reason_code,
+        "restore": is_restore,
+        "reason": reason,
+    }
+
+
+# ------------------------------------------------------------
+# 防护起始时间（安全防护天数）
+# ------------------------------------------------------------
+def getProtectStartFile():
+    return getServerDir() + '/protect_start.pl'
+
+
+def ensure_protect_start():
+    """
+    记录防护首次开启时间（幂等，仅首次写入）。
+    该文件独立于 jail.local，避免配置文件每次重写导致天数被清零。
+    """
+    path = getProtectStartFile()
+    try:
+        val = ''
+        if os.path.exists(path):
+            val = (yf.readFile(path) or '').strip()
+        if not val.isdigit():
+            yf.writeFile(path, str(int(time.time())))
+    except Exception:
+        pass
+    return path
+
+
+def get_protect_days():
+    try:
+        val = (yf.readFile(getProtectStartFile()) or '').strip()
+        if val.isdigit():
+            return max(0, int((time.time() - int(val)) / 86400))
+    except Exception:
+        pass
+    return 0
+
+
+def ensure_db_retention():
+    """
+    确保 fail2ban 保留足够的封禁历史。
+    默认 dbpurgeage = 1d 会导致 bans 表只存一天，
+    使"总拦截"与历史统计严重失真，这里平滑升级为 30d。
+    """
+    try:
+        conf_file = f2bEtcDir() + '/fail2ban.conf'
+        if not os.path.exists(conf_file):
+            return
+        content = yf.readFile(conf_file)
+        if not content:
+            return
+        new_content = re.sub(
+            r'^(\s*)dbpurgeage\s*=\s*1d\s*$',
+            lambda m: m.group(1) + 'dbpurgeage = ' + DB_PURGE_AGE,
+            content, flags=re.MULTILINE)
+        if new_content != content:
+            yf.writeFile(conf_file, new_content)
+    except Exception:
+        pass
+
+
+# ------------------------------------------------------------
+# 归属地查询（ip-api）——服务端缓存 + 语言联动 + 可关闭
+# 说明：ip-api 免费额度仅支持 HTTP；如需 HTTPS 需升级其付费套餐，
+#       因此这里保持 HTTP 端点，但通过缓存、超时与开关把外发风险降到最低。
+# ------------------------------------------------------------
+IP_API_BASE = 'http://ip-api.com'
+IP_API_FIELDS = 'status,message,country,regionName,city,org,query'
+IP_API_TIMEOUT = 5
+IP_API_RETRIES = 2
+IP_LOC_CACHE_TTL = 86400
+IP_LOC_CACHE_MAX = 2000
+
+# 面板语言 → ip-api 支持的语言（zh-TW 未支持，回落到 zh-CN）
+IP_API_LANG_MAP = {
+    'zh-CN': 'zh-CN',
+    'zh-TW': 'zh-CN',
+    'en': 'en',
+    'de': 'de',
+    'fr': 'fr',
+    'it': 'it',
+}
+
+
+def normalize_ip_api_lang(lang):
+    lang = (lang or '').strip()
+    if lang in IP_API_LANG_MAP:
+        return IP_API_LANG_MAP[lang]
+    # 未显式传语言时跟随面板当前语言
+    try:
+        current = (yf.getLanguage() or '').strip() if hasattr(yf, 'getLanguage') else ''
+    except Exception:
+        current = ''
+    return IP_API_LANG_MAP.get(current, 'zh-CN')
+
+
+def ip_location_enabled():
+    """归属地查询开关（config.json 的 ip_location 字段，默认开启）"""
+    try:
+        raw = yf.readFile(getConfigFile())
+        if raw:
+            conf = json.loads(raw)
+            if isinstance(conf, dict) and 'ip_location' in conf:
+                return safe_bool(conf.get('ip_location'), True)
+    except Exception:
+        pass
+    return True
+
+
+def _ip_loc_cache_path():
+    return getServerDir() + '/ip_loc_cache.json'
+
+
+def load_ip_loc_cache():
+    """读取归属地缓存（{ip: {'ts': 时间戳, 'data': {...}}}）"""
+    try:
+        raw = yf.readFile(_ip_loc_cache_path())
+        if raw:
+            data = json.loads(raw)
+            if isinstance(data, dict):
+                return data
+    except Exception:
+        pass
+    return {}
+
+
+def save_ip_loc_cache(cache):
+    """写入归属地缓存，并限制条目数量防止无限膨胀"""
+    try:
+        if isinstance(cache, dict) and len(cache) > IP_LOC_CACHE_MAX:
+            items = sorted(cache.items(), key=lambda kv: kv[1].get('ts', 0), reverse=True)
+            cache = dict(items[:IP_LOC_CACHE_MAX])
+        yf.writeFile(_ip_loc_cache_path(), json.dumps(cache))
+    except Exception:
+        pass
+
+
+def ensure_filter(mode):
+    """确保 filter.d/<mode>.conf 存在（缺失时写入兜底规则）"""
+    filter_file = f2bEtcDir() + '/filter.d/' + mode + '.conf'
+    if os.path.exists(filter_file):
+        return
+    try:
+        if mode in SERVICE_FILTERS:
+            yf.writeFile(filter_file, SERVICE_FILTERS[mode])
+        elif mode.endswith('-cc'):
+            yf.writeFile(filter_file, "[Definition]\nfailregex = ^<HOST> \\-.*\nignoreregex = \n")
+        else:
+            yf.writeFile(
+                filter_file,
+                "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" "
+                "(400|401|403|404|444|500|502|503)\nignoreregex = \n"
+            )
+    except Exception:
+        pass
+
 
 def configTpl():
     initConfigFiles()
@@ -275,16 +832,49 @@ def getPidFile():
     return f2dir+'/fail2ban.pid'
 
 def status():
-    data = yf.execShell('fail2ban-client ping')
-    if 'pong' in data[0]:
-        return 'start'
-        
-    # Fallback to systemctl check
-    data = yf.execShell('systemctl is-active fail2ban')
-    if data[0].strip() == 'active':
-        return 'start'
-        
+    # 1. 首选 fail2ban-client ping（最权威，且不依赖 init 系统）
+    try:
+        if 'pong' in (yf.execShell('fail2ban-client ping')[0] or ''):
+            return 'start'
+    except Exception:
+        pass
+
+    # 2. systemd 状态：activating / reloading 同样视为运行中，
+    #    避免服务正在启动时被误判为已停止
+    try:
+        st = (yf.execShell('systemctl is-active fail2ban')[0] or '').strip()
+        if st in ('active', 'activating', 'reloading'):
+            return 'start'
+    except Exception:
+        pass
+
+    # 3. 非 systemd 环境兜底：PID 文件 + 进程存活校验
+    try:
+        pid_file = '/run/fail2ban/fail2ban.pid'
+        if os.path.exists(pid_file):
+            with open(pid_file, 'r') as fp:
+                os.kill(int(fp.read().strip()), 0)
+            return 'start'
+    except Exception:
+        pass
+
     return 'stop'
+
+
+def wait_service_up(timeout=10.0):
+    """
+    指数退避探测服务是否真正拉起。
+    固定 sleep(0.8) 在小内存 / 大量日志的机器上必然误报启动失败，
+    这里改为 0.4s → 0.8s → 1.6s → 2s 的退避轮询，总窗口 10s。
+    """
+    deadline = time.time() + timeout
+    delay = 0.4
+    while time.time() < deadline:
+        if status() == 'start':
+            return True
+        time.sleep(delay)
+        delay = min(delay * 2, 2.0)
+    return status() == 'start'
 
 def contentReplace(content):
     service_path = yf.getServerDir()
@@ -311,18 +901,32 @@ def initJailD():
 
 def initDreplace():
 
-    file_tpl = getInitDTpl()
     service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
-        os.mkdir(initD_path)
+        os.makedirs(initD_path, mode=0o755, exist_ok=True)
     file_bin = initD_path + '/' + getPluginName()
 
     checkEnv()
     initConfigFiles()
     initFail2BanD()
     initJailD()
+
+    # 真正落盘 SysV init 脚本（此前只 return 路径却从不写入，
+    # 导致非 systemd 环境与 darwin/freebsd 分支必然执行到不存在的文件）
+    try:
+        tpl = getInitDTpl()
+        if os.path.exists(tpl) and not os.path.exists(file_bin):
+            content = yf.readFile(tpl)
+            content = contentReplace(content)
+            yf.writeFile(file_bin, content)
+            try:
+                os.chmod(file_bin, 0o755)
+            except Exception:
+                pass
+    except Exception:
+        pass
 
     # systemd
     systemDir = yf.systemdCfgDir()
@@ -350,36 +954,38 @@ def f2bOp(method):
             pass
 
     current_os = yf.getOs()
-    if current_os == "darwin":
+    if current_os == 'darwin':
+        return 'fail: 当前系统不支持 fail2ban 服务管理 (macOS)'
+    if current_os.startswith('freebsd'):
+        return 'fail: 当前系统不支持 fail2ban 服务管理 (FreeBSD)'
+
+    # systemd 优先，非 systemd 环境走 SysV init 脚本
+    if os.path.exists('/run/systemd/system'):
+        data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
+    else:
+        if not os.path.exists(file):
+            return 'fail: 未找到服务管理脚本 ' + file
         data = yf.execShell(file + ' ' + method)
-        if data[1] == '':
-            return 'ok'
-        return data[1]
-
-    if current_os.startswith("freebsd"):
-        data = yf.execShell('service ' + getPluginName() + ' ' + method)
-        if data[1] == '':
-            return 'ok'
-        return data[1]
-
-    # Linux (systemd)
-    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
 
     # 启动/重启后执行真实心跳探测，彻底杜绝“假成功”
     if method in ['start', 'restart']:
-        time.sleep(0.8)
-        current_st = status()
-        if current_st == 'start':
-            return 'ok'
+        if not wait_service_up(10.0):
+            # 启动失败，自动反查真实报错信息（仅保留尾部关键行，避免刷屏）
+            diag = yf.execShell('journalctl -u fail2ban -n 20 --no-pager')
+            err_msg = (diag[0] or '').strip() or (data[1] or '').strip()
+            if not err_msg:
+                test_run = yf.execShell('fail2ban-server -xf start')
+                err_msg = (test_run[1] or test_run[0] or '').strip()
+            err_msg = '\n'.join(err_msg.splitlines()[-5:])[:1200]
 
-        # 启动失败，自动反查真实报错信息
-        diag = yf.execShell('journalctl -u fail2ban -n 20 --no-pager')
-        err_msg = diag[0].strip() if diag[0] else data[1]
-        if not err_msg:
-            test_run = yf.execShell('fail2ban-server -xf start')
-            err_msg = test_run[1] or test_run[0]
+            return "fail: 服务启动失败，检测到进程异常退出。\n[诊断日志]\n" + err_msg
 
-        return f"fail: 服务启动失败，检测到进程异常退出。\n[诊断日志]\n{err_msg}"
+        # 启动成功后自动补齐手动黑名单，保证黑名单与真实封禁状态永不脱节
+        try:
+            apply_black_list()
+        except Exception:
+            pass
+        return 'ok'
 
     if data[1] == '':
         return 'ok'
@@ -409,16 +1015,19 @@ def initdStatus():
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
-        initd_bin = getInitDFile()
-        if os.path.exists(initd_bin):
-            return 'ok'
+        return "FreeBSD is not supported"
 
-    shell_cmd = 'systemctl status ' + \
-        getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = yf.execShell(shell_cmd)
-    if data[0] == '':
-        return 'fail'
-    return 'ok'
+    if os.path.exists('/run/systemd/system'):
+        shell_cmd = 'systemctl status ' + \
+            getPluginName() + ' | grep loaded | grep "enabled;"'
+        data = yf.execShell(shell_cmd)
+        if data[0] == '':
+            return 'fail'
+        return 'ok'
+
+    # 非 systemd：以 SysV init 脚本是否已注册为准
+    initd_bin = getInitDFile()
+    return 'ok' if os.path.exists(initd_bin) else 'fail'
 
 
 def initdInstall():
@@ -426,17 +1035,28 @@ def initdInstall():
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    # freebsd initd install
     if current_os.startswith('freebsd'):
-        import shutil
-        source_bin = initDreplace()
-        initd_bin = getInitDFile()
-        shutil.copyfile(source_bin, initd_bin)
-        yf.execShell('chmod +x ' + initd_bin)
-        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        return "FreeBSD is not supported"
+
+    if os.path.exists('/run/systemd/system'):
+        yf.execShell('systemctl enable ' + getPluginName())
         return 'ok'
 
-    yf.execShell('systemctl enable ' + getPluginName())
+    # 非 systemd：把 SysV init 脚本注册到 /etc/init.d 并加入开机自启
+    import shutil
+    source_bin = initDreplace()
+    if not os.path.exists(source_bin):
+        return 'fail: 未找到 init 脚本 ' + source_bin
+
+    initd_bin = getInitDFile()
+    try:
+        if os.path.abspath(source_bin) != os.path.abspath(initd_bin):
+            shutil.copyfile(source_bin, initd_bin)
+        os.chmod(initd_bin, 0o755)
+    except Exception as e:
+        return 'fail: 注册 init 脚本失败 ' + str(e)
+
+    yf.execShell('update-rc.d fail2ban defaults >/dev/null 2>&1 || chkconfig --add fail2ban >/dev/null 2>&1')
     return 'ok'
 
 
@@ -446,12 +1066,19 @@ def initdUinstall():
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
-        initd_bin = getInitDFile()
-        os.remove(initd_bin)
-        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        return "FreeBSD is not supported"
+
+    if os.path.exists('/run/systemd/system'):
+        yf.execShell('systemctl disable ' + getPluginName())
         return 'ok'
 
-    yf.execShell('systemctl disable ' + getPluginName())
+    initd_bin = getInitDFile()
+    try:
+        if os.path.exists(initd_bin):
+            os.remove(initd_bin)
+    except Exception:
+        pass
+    yf.execShell('update-rc.d -f fail2ban remove >/dev/null 2>&1 || chkconfig --del fail2ban >/dev/null 2>&1')
     return 'ok'
 
 
@@ -488,6 +1115,25 @@ def getBlackList():
     content = "\n".join(conf)
     return yf.returnJson(True, 'ok', content)
 
+def _sync_manual_jail(conf):
+    """按最新黑名单同步 jail.local，并确保 yf-manual 专用 jail 与日志占位存在"""
+    try:
+        if not os.path.exists(MANUAL_LOG):
+            yf.writeFile(MANUAL_LOG, '')
+    except Exception:
+        pass
+
+    filter_file = f2bEtcDir() + '/filter.d/' + MANUAL_JAIL + '.conf'
+    if not os.path.exists(filter_file):
+        # 永不匹配的过滤器：yf-manual 只用于手动永久封禁，不依赖日志命中
+        yf.writeFile(filter_file, "[Definition]\nfailregex = ^(?!) *$\nignoreregex = \n")
+
+    try:
+        get_fail2ban_inst().sync_jail_local(conf)
+    except Exception:
+        pass
+
+
 def setBlackIp():
     ip_list = getBlackListArr()
 
@@ -512,169 +1158,168 @@ def setBlackIp():
     elif isinstance(new_ip_list_raw, list):
         new_ip_list = [str(x).strip() for x in new_ip_list_raw]
 
-    # 将 new_ip_list 为空字符串的情形处理迁移为列表为空
-    data = _read_conf(getConfigFile())
+    # 严格校验 IP 合法性（支持 IPv4 / IPv6 / CIDR），非法直接拒绝
+    valid_ip_list = []
+    for one in new_ip_list:
+        norm = safe_ip(one)
+        if norm is None:
+            return yf.returnJson(False, "IP格式错误 {}".format(one))
+        if norm not in valid_ip_list:
+            valid_ip_list.append(norm)
 
-    if len(new_ip_list) == 0:
-        for d in data:
-            for ip in ip_list:
-                yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
-                _delete_db_ban(ip, d)
+    add_ip_list = [new_ip for new_ip in valid_ip_list if new_ip not in ip_list]
+    del_ip_list = [del_ip for del_ip in ip_list if del_ip not in valid_ip_list]
 
-        yf.writeFile(getBlackFile(), json.dumps([]))
-        return yf.returnJson(True, "禁止IP成功")
+    # 1. 先落盘，保证配置不丢（即使后续命令失败，重启后也会自动补齐）
+    yf.writeFile(getBlackFile(), json.dumps(valid_ip_list))
 
-    add_ip_list = [new_ip for new_ip in new_ip_list if new_ip not in ip_list]
-    del_ip_list = [del_ip for del_ip in ip_list if del_ip not in new_ip_list]
-    rep_ip = "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}($|[\\/\\d]+$)"
-    rep_ipv6 = "^\\s*((([0-9A-Fa-f]{1,4}:){7}(([0-9A-Fa-f]{1,4})|:))|(([0-9A-Fa-f]{1,4}:){6}(:|((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})|(:[0-9A-Fa-f]{1,4})))|(([0-9A-Fa-f]{1,4}:){5}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){4}(:[0-9A-Fa-f]{1,4}){0,1}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){3}(:[0-9A-Fa-f]{1,4}){0,2}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){2}(:[0-9A-Fa-f]{1,4}){0,3}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:)(:[0-9A-Fa-f]{1,4}){0,4}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})))(%.+)?\\s*$"
+    conf = _read_conf(getConfigFile())
+    if not isinstance(conf, dict):
+        conf = {}
 
-    # 检查IP格式
-    for ip in add_ip_list:
-        if not re.search(rep_ip, ip) and not re.search(rep_ipv6, ip):
-            return yf.returnJson(False, "IP格式错误 {}".format(ip))
+    service_running = status() == 'start'
 
-    # 添加新IP到黑名单
-    for d in data:
-        for ip in add_ip_list:
-            yf.execShell('fail2ban-client -vvv set {jail} banip {ip}'.format(jail=d, ip=ip))
-
-    # 检查是否有清理掉的IP
-    for d in data:
+    # 2. 先解除不再需要的封禁（此时 yf-manual 仍存在）
+    if service_running:
         for ip in del_ip_list:
-            yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
-            _delete_db_ban(ip, d)
+            f2b_client_ok('set', MANUAL_JAIL, 'unbanip', ip)
 
-    # 更新本地缓存，保留 new_ip_list 里的合法 IP 覆盖 ip_list
-    ip_list = [ip for ip in new_ip_list if re.search(rep_ip, ip) or re.search(rep_ipv6, ip)]
+    # 3. 同步 jail.local（黑名单为空时自动移除 yf-manual jail）并热加载
+    _sync_manual_jail(conf)
+    if service_running:
+        reload_res = f2b_client_ok('reload')
+        if not reload_res[0]:
+            # reload 失败时退化为 restart，确保新增 jail 被真正注册
+            f2b_client_ok('restart')
 
-    yf.writeFile(getBlackFile(), json.dumps(ip_list))
+    if not service_running:
+        return yf.returnJson(True, "黑名单已保存，fail2ban 服务启动后自动生效")
+
+    # 4. 批量下发新增封禁（单次进程完成，避免逐条 spawn）
+    if add_ip_list:
+        ok, msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ' '.join(add_ip_list))
+        if not ok:
+            # 兜底：逐条重试并回报真实失败原因
+            failed = []
+            for ip in add_ip_list:
+                one_ok, one_msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ip)
+                if not one_ok:
+                    failed.append(ip)
+            if failed:
+                return yf.returnJson(False, "部分IP封禁失败: " + ', '.join(failed[:5]))
+
     return yf.returnJson(True, "添加黑名单成功")
 
+
+def apply_black_list():
+    """
+    将手动黑名单全量下发到 yf-manual 永久封禁 jail。
+    用于服务启动/重启后的自愈补齐，确保黑名单与真实封禁状态永不脱节。
+    """
+    ip_list = getBlackListArr()
+    if not ip_list:
+        return True
+    if status() != 'start':
+        return False
+    ok, _msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ' '.join(ip_list))
+    if not ok:
+        for ip in ip_list:
+            f2b_client_ok('set', MANUAL_JAIL, 'banip', ip)
+    return True
+
+
 def get_active_bans():
-    import sqlite3
-    import time
-    db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
-    # 尝试从 client 获取 db 路径
-    ret = yf.execShell('fail2ban-client get dbfile')
-    if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
-        import re
-        match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
-        if match:
-            db_path = match.group(1)
-        elif '- ' in ret[0]:
-            db_path = ret[0].split('- ')[-1].strip()
+    now = int(time.time())
+    conn = open_bans_db()
+    if conn is None:
+        return yf.returnJson(False, '未找到Fail2ban数据库: ' + get_dbfile_path())
 
+    try:
+        c = conn.cursor()
+        # SQL 条件下推：只取未过期或永久封禁的记录，避免全表载入内存
+        c.execute(
+            "SELECT jail, ip, timeofban, bantime FROM bans "
+            "WHERE bantime < 0 OR (timeofban + bantime) > ?",
+            (now,)
+        )
+        rows = c.fetchall()
+    except Exception as e:
+        conn.close()
+        return yf.returnJson(False, '无法读取Fail2ban数据库: ' + str(e))
+    conn.close()
+
+    black_list = getBlackListArr()
     active_bans = []
-    if os.path.exists(db_path):
-        try:
-            conn = sqlite3.connect(db_path)
-            c = conn.cursor()
-            c.execute("SELECT jail, ip, timeofban, bantime FROM bans")
-            rows = c.fetchall()
-            now = int(time.time())
-            
-            # 手动添加的黑名单 IPs，用于在 UI 中优先标识
-            black_list = getBlackListArr()
+    for row in rows:
+        jail, ip, timeofban, bantime = row
+        active_bans.append({
+            'jail': jail,
+            'ip': ip,
+            'timeofban': timeofban,
+            'bantime': bantime,
+            'expire_time': timeofban + bantime,
+            'manual': jail == MANUAL_JAIL or ip in black_list
+        })
 
-            for row in rows:
-                jail, ip, timeofban, bantime = row
-                expire_time = timeofban + bantime
-                # 未过期的封禁或者是永久封禁
-                if bantime < 0 or expire_time > now or ip in black_list:
-                    # 如果是从 black_list 来的，强行设为永久封禁
-                    if ip in black_list:
-                        bantime = -1
-                    
-                    active_bans.append({
-                        'jail': jail,
-                        'ip': ip,
-                        'timeofban': timeofban,
-                        'bantime': bantime,
-                        'expire_time': expire_time
-                    })
-            conn.close()
-        except Exception as e:
-            return yf.returnJson(False, '无法读取Fail2ban数据库: ' + str(e))
-    else:
-        return yf.returnJson(False, '未找到Fail2ban数据库: ' + db_path)
-
-    # 排序，永久封禁排在最前，其次按剩余时间降序排序
+    # 排序：永久封禁在前，其次按剩余时间降序
     active_bans.sort(key=lambda x: (x['bantime'] >= 0, -x['expire_time']))
     return yf.returnJson(True, 'ok', active_bans)
 
-def _delete_db_ban(ip, jail=None):
-    db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
-    ret = yf.execShell('fail2ban-client get dbfile')
-    if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
-        import re
-        match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
-        if match:
-            db_path = match.group(1)
-        elif '- ' in ret[0]:
-            db_path = ret[0].split('- ')[-1].strip()
-
-    if os.path.exists(db_path):
-        try:
-            import sqlite3
-            conn = sqlite3.connect(db_path)
-            c = conn.cursor()
-            if jail:
-                c.execute("DELETE FROM bans WHERE ip = ? AND jail = ?", (ip, jail))
-            else:
-                c.execute("DELETE FROM bans WHERE ip = ?", (ip,))
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            pass
-    return False
 
 def unban_active_ip():
     args = getArgs()
-    ip = args.get('ip', '')
+    ip = safe_ip(args.get('ip', ''))
     jail = args.get('jail', '')
-    
+
     if not ip:
         return yf.returnJson(False, 'IP不能为空')
-        
-    if jail:
-        yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
-        _delete_db_ban(ip, jail)
-    else:
-        yf.execShell('fail2ban-client -vvv unban {ip}'.format(ip=ip))
-        _delete_db_ban(ip)
-        
-    # 同时从 black_list 中移除
+
+    # 同步从手动黑名单移除，避免下次启动被重新封禁
     ip_list = getBlackListArr()
     if ip in ip_list:
         ip_list.remove(ip)
         yf.writeFile(getBlackFile(), json.dumps(ip_list))
-        
+
+    if jail == MANUAL_JAIL:
+        ok, _msg = f2b_client_ok('set', MANUAL_JAIL, 'unbanip', ip)
+    elif is_allowed_mode(jail):
+        ok, _msg = f2b_client_ok('set', jail, 'unbanip', ip)
+    else:
+        ok, _msg = f2b_client_ok('unban', ip)
+
+    if not ok:
+        # 兜底双保险：全局解封 + 手动 jail 解封，确保用户点击后一定生效
+        f2b_client_ok('unban', ip)
+        f2b_client_ok('set', MANUAL_JAIL, 'unbanip', ip)
+
     return yf.returnJson(True, '解除封禁成功')
+
 
 def runInfo():
     # 获取 Jail 状态与封禁详情
     jails = []
     banned_count = 0
     banned_ips = {}
-    
-    if status() == 'start':
+
+    # status() 只探测一次（原实现重复调用 3 次，每次都要 spawn 进程）
+    current_status = status()
+
+    if current_status == 'start':
         ret = yf.execShell('fail2ban-client status')
         if ret[0] != '':
             match = re.search(r'Jail list:\s+(.*)', ret[0])
             if match:
                 jails = [j.strip() for j in match.group(1).split(',') if j.strip()]
-                
+
         # 遍历各个 Jail 获取具体被封禁的 IP 和统计数量
         for jail in jails:
-            jail_status = yf.execShell('fail2ban-client status {}'.format(jail))
+            jail_status = f2b_client('status', jail)
             if jail_status[0] != '':
                 # 解析当前封禁数量 (Currently banned)
                 count_match = re.search(r'Currently banned:\s+(\d+)', jail_status[0])
                 if count_match:
                     banned_count += int(count_match.group(1))
-                
+
                 # 解析封禁 IP 列表 (Banned IP list)
                 ip_match = re.search(r'Banned IP list:\s+(.*)', jail_status[0])
                 if ip_match:
@@ -682,19 +1327,11 @@ def runInfo():
                     if ips:
                         banned_ips[jail] = ips
 
-    # 读取日志的最后20行
-    log_file = runLog()
-    log_lines = []
-    if os.path.exists(log_file):
-        try:
-            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-                lines = f.readlines()
-                log_lines = lines[-20:]
-        except Exception:
-            pass
+    # 读取日志的最后 20 行（尾读，避免全量 readlines）
+    log_lines = read_tail_lines(runLog(), max_lines=20)
 
     res = {
-        'status': status(),
+        'status': current_status,
         'jails': jails,
         'banned_count': banned_count,
         'banned_ips': banned_ips,
@@ -839,170 +1476,175 @@ class fail2ban_main:
 
     def sync_jail_local(self, conf):
         checkEnv()
-        strict = conf.get('strict', True)
-        
-        # 智能探测 SSH 日志后端
-        ssh_backend, ssh_logpath = getSshLogConfig()
+        if not isinstance(conf, dict):
+            conf = {}
+        strict = safe_bool(conf.get('strict'), True)
 
-        # 生成 [DEFAULT] 全局段
+        # [DEFAULT] 段只放全局无害项。
+        # backend 必须逐 jail 声明：若写在 DEFAULT，systemd 后端会忽略
+        # mysql/redis 的 logpath，导致这两个 jail 静默失效。
         content = "[DEFAULT]\n"
-        content += f"backend = {ssh_backend}\n"
         content += "allowipv6 = auto\n\n"
 
+        # ---- 系统服务防护 ----
         for item in conf.get('server', []):
-            if str(item.get('act')).lower() == 'true':
-                mode = item['mode']
-                content += f"[{mode}]\n"
-                content += "enabled = true\n"
-                content += f"port = {item.get('port', '')}\n"
-                if strict:
-                    content += "banaction = %(banaction_allports)s\n"
-                content += f"maxretry = {item.get('maxretry', 5)}\n"
-                content += f"findtime = {item.get('findtime', 300)}\n"
-                content += f"bantime = {item.get('bantime', 86400)}\n"
+            if not isinstance(item, dict):
+                continue
+            mode = item.get('mode', '')
+            if not is_allowed_mode(mode) or not safe_bool(item.get('act'), True):
+                continue
 
-                if mode == 'sshd':
-                    if ssh_backend == 'systemd' and not ssh_logpath:
-                        content += "backend = systemd\n"
-                    elif ssh_logpath:
-                        content += f"backend = {ssh_backend}\n"
-                        content += f"logpath = {ssh_logpath}\n"
-                elif mode == 'mysql':
-                    content += "logpath = /www/server/data/*.err\n"
-                    # 保底创建 mysql err 目录或文件
-                    try:
-                        mysql_dir = '/www/server/data'
-                        if os.path.exists(mysql_dir) and not any(f.endswith('.err') for f in os.listdir(mysql_dir)):
-                            yf.writeFile(os.path.join(mysql_dir, 'mysql_error.err'), '')
-                    except Exception:
-                        pass
-                    filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
-                    if not os.path.exists(filter_file):
-                        filter_content = "[Definition]\nfailregex = ^.*Access denied for user.*'<HOST>'.*$\nignoreregex = "
-                        yf.writeFile(filter_file, filter_content)
-                elif mode == 'redis':
-                    content += "logpath = /var/log/redis/*.log\n"
-                    # 保底创建 redis log 目录或文件
-                    try:
-                        redis_dir = '/var/log/redis'
-                        if not os.path.exists(redis_dir):
-                            os.makedirs(redis_dir, mode=0o755, exist_ok=True)
-                        if not any(f.endswith('.log') for f in os.listdir(redis_dir)):
-                            yf.writeFile(os.path.join(redis_dir, 'redis.log'), '')
-                    except Exception:
-                        pass
-                    filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
-                    if not os.path.exists(filter_file):
-                        filter_content = "[Definition]\nfailregex = ^.*-ERR Auth failed.*from <HOST>.*$\nignoreregex = "
-                        yf.writeFile(filter_file, filter_content)
+            # 必须先补齐占位日志与兜底 filter，再解析 backend/logpath：
+            # 否则「日志目录存在但尚无 .err 文件」的服务会因 glob 未命中而被整段跳过
+            ensure_service_log(mode)
+            ensure_filter(mode)
 
-                content += "\n"
+            backend, logpath = resolve_backend(mode)
 
+            # 无日志且无法降级 systemd 时跳过该 jail：
+            # 宁可少一个 jail，也不能让一个没有 logpath 的 jail 拖垮整个 fail2ban
+            if not logpath and backend != 'systemd':
+                continue
+
+            content += f"[{mode}]\n"
+            content += "enabled = true\n"
+            content += f"port = {safe_port(item.get('port'), '')}\n"
+            content += f"backend = {backend}\n"
+            if logpath:
+                content += f"logpath = {logpath}\n"
+            if strict:
+                content += "banaction = %(banaction_allports)s\n"
+            content += f"maxretry = {safe_int(item.get('maxretry'), 5, 'maxretry')}\n"
+            content += f"findtime = {safe_int(item.get('findtime'), 300, 'findtime')}\n"
+            content += f"bantime = {safe_int(item.get('bantime'), 86400, 'bantime')}\n\n"
+
+        # ---- 网站防护 ----
         for item in conf.get('site', []):
-            if str(item.get('act')).lower() == 'true':
-                mode = item['mode']
-                content += f"[{mode}]\n"
-                content += "enabled = true\n"
-                content += "backend = auto\n"
-                content += f"port = {item.get('port', '80,443')}\n"
-                content += f"filter = {mode}\n"
-                content += "logpath = /www/wwwlogs/*.log\n"
-                if strict:
-                    content += "banaction = %(banaction_allports)s\n"
-                content += f"maxretry = {item.get('maxretry', 5)}\n"
-                content += f"findtime = {item.get('findtime', 300)}\n"
-                content += f"bantime = {item.get('bantime', 86400)}\n\n"
+            if not isinstance(item, dict):
+                continue
+            mode = item.get('mode', '')
+            if not is_allowed_mode(mode) or not safe_bool(item.get('act'), True):
+                continue
 
-                # Ensure filter exists
-                filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
-                if not os.path.exists(filter_file):
-                    if mode.endswith('-cc'):
-                        filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\nignoreregex = "
-                    else:
-                        filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" (400|401|403|404|444|500|502|503)\nignoreregex = "
-                    yf.writeFile(filter_file, filter_content)
+            content += f"[{mode}]\n"
+            content += "enabled = true\n"
+            content += "backend = auto\n"
+            content += f"port = {safe_port(item.get('port'), '80,443')}\n"
+            content += f"filter = {mode}\n"
+            content += "logpath = /www/wwwlogs/*.log\n"
+            if strict:
+                content += "banaction = %(banaction_allports)s\n"
+            content += f"maxretry = {safe_int(item.get('maxretry'), 60, 'maxretry')}\n"
+            content += f"findtime = {safe_int(item.get('findtime'), 60, 'findtime')}\n"
+            content += f"bantime = {safe_int(item.get('bantime'), 86400, 'bantime')}\n\n"
+
+            ensure_filter(mode)
+
+        # ---- 手动黑名单专用永久封禁 jail ----
+        # 仅在黑名单非空时下发，避免给不使用该功能的用户增加无谓 jail。
+        # filter 永不匹配，只通过 fail2ban-client set yf-manual banip 下发，
+        # bantime = -1 实现真正的永久封禁（不再是 UI 层的假象）。
+        if getBlackListArr():
+            content += f"[{MANUAL_JAIL}]\n"
+            content += "enabled = true\n"
+            content += f"filter = {MANUAL_JAIL}\n"
+            content += "backend = auto\n"
+            content += f"logpath = {MANUAL_LOG}\n"
+            content += "port = 0:65535\n"
+            content += "banaction = %(banaction_allports)s\n"
+            content += "maxretry = 1\n"
+            content += "findtime = 60\n"
+            content += "bantime = -1\n\n"
 
         yf.writeFile(self._jail_local_file, content)
 
     def set_anti(self, args):
         args = self.parse_inner_args(args)
-        conf = self.get_anti_info()
         mode = args.get('mode', '')
-        is_site = False
-        if mode.endswith('-cc') or mode.endswith('-scan'):
-            is_site = True
-        
+
+        # jail / mode 白名单强校验：杜绝任意字符串注入 jail.local 与 shell
+        if not is_allowed_mode(mode):
+            return yf.returnJson(False, '不支持的防护类型: ' + str(mode))
+
+        conf = self.get_anti_info()
+        is_site = mode.endswith('-cc') or mode.endswith('-scan')
+
         target_list = conf.get('site', []) if is_site else conf.get('server', [])
-        
+
+        # 全部数值与端口经严格校验后再写入，防止配置注入与非法值
+        new_item = {
+            'port': safe_port(args.get('port'), '80,443' if is_site else ''),
+            'maxretry': safe_int(args.get('maxretry'), 60 if is_site else 5, 'maxretry'),
+            'findtime': safe_int(args.get('findtime'), 60 if is_site else 300, 'findtime'),
+            'bantime': safe_int(args.get('bantime'), 86400, 'bantime'),
+            'act': 'true' if safe_bool(args.get('act'), True) else 'false',
+        }
+
         found = False
         for i in range(len(target_list)):
-            if target_list[i]['mode'] == mode:
-                target_list[i]['port'] = args.get('port', target_list[i].get('port', ''))
-                target_list[i]['maxretry'] = args.get('maxretry', target_list[i].get('maxretry', 5))
-                target_list[i]['findtime'] = args.get('findtime', target_list[i].get('findtime', 300))
-                target_list[i]['bantime'] = args.get('bantime', target_list[i].get('bantime', 86400))
-                target_list[i]['act'] = args.get('act', target_list[i].get('act', 'true'))
+            if target_list[i].get('mode') == mode:
+                target_list[i].update(new_item)
                 found = True
                 break
-                
+
         if not found:
-            target_list.append({
-                'mode': mode,
-                'port': args.get('port', ''),
-                'maxretry': args.get('maxretry', '5'),
-                'findtime': args.get('findtime', '300'),
-                'bantime': args.get('bantime', '86400'),
-                'act': args.get('act', 'true')
-            })
-            
+            item = {'mode': mode}
+            item.update(new_item)
+            target_list.append(item)
+
         if is_site:
             conf['site'] = target_list
         else:
             conf['server'] = target_list
-            
+
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
-        
+
         # Reload fail2ban via existing method or systemctl
-        yf.execShell('systemctl reload fail2ban')
+        if status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
         return yf.returnJson(True, '设置成功!')
 
     def del_anti(self, args):
         args = self.parse_inner_args(args)
         mode = args.get('mode', '')
+
+        if not is_allowed_mode(mode):
+            return yf.returnJson(False, '不支持的防护类型: ' + str(mode))
+
         conf = self.get_anti_info()
-        
-        is_site = False
-        if mode.endswith('-cc') or mode.endswith('-scan'):
-            is_site = True
-            
+
+        is_site = mode.endswith('-cc') or mode.endswith('-scan')
+
         target_list = conf.get('site', []) if is_site else conf.get('server', [])
-        new_list = [item for item in target_list if item['mode'] != mode]
-        
+        new_list = [item for item in target_list if item.get('mode') != mode]
+
         if is_site:
             conf['site'] = new_list
         else:
             conf['server'] = new_list
-            
+
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
-        
-        yf.execShell('systemctl reload fail2ban')
+
+        if status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
         return yf.returnJson(True, '删除成功!')
 
     def set_strict_mode(self, args):
         args = self.parse_inner_args(args)
-        strict_val = args.get('strict', 'true')
-        if isinstance(strict_val, str):
-            strict = strict_val.lower() == 'true'
-        else:
-            strict = bool(strict_val)
+        strict = safe_bool(args.get('strict'), True)
+
         conf = self.get_anti_info()
         conf['strict'] = strict
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
-        
-        yf.execShell('systemctl reload fail2ban')
+
+        if status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
         return yf.returnJson(True, '设置成功!')
 
     def get_status(self, args):
@@ -1021,14 +1663,11 @@ class fail2ban_main:
         return yf.returnJson(True, 'ok')
 
     def get_last_log(self, args):
-        log_file = runLog()
         content = ""
-        if os.path.exists(log_file):
-            try:
-                data = yf.execShell('tail -n 200 ' + log_file)
-                content = data[0].strip()
-            except Exception:
-                pass
+        # 尾读最后 200 行，避免依赖 shell tail
+        lines = read_tail_lines(runLog(), max_lines=200)
+        if lines:
+            content = ''.join(lines).strip()
 
         # 若主日志为空或服务处于停止状态，智能聚合 Systemd 诊断日志
         if not content or status() == 'stop':
@@ -1044,133 +1683,137 @@ class fail2ban_main:
 
     def clear_log(self, args):
         log_file = runLog()
-        yf.execShell('echo "" > ' + log_file)
+        # 直接写文件，避免 echo 走 shell
+        try:
+            yf.writeFile(log_file, '')
+        except Exception:
+            return yf.returnJson(False, '清空日志失败')
         return yf.returnJson(True, '清空日志成功!')
+
+    def _fetch_ip_location(self, ips, lang):
+        """调用 ip-api 批量接口获取归属地（每批最多 100 个 IP）"""
+        import urllib.request
+        out = []
+        chunk_size = 100
+        for i in range(0, len(ips), chunk_size):
+            chunk = ips[i:i + chunk_size]
+            body = json.dumps(chunk).encode('utf-8')
+            ok = False
+            for attempt in range(IP_API_RETRIES):
+                try:
+                    url = IP_API_BASE + '/batch?lang=' + lang + '&fields=' + IP_API_FIELDS
+                    req = urllib.request.Request(url)
+                    req.add_header('Content-Type', 'application/json')
+                    resp = urllib.request.urlopen(req, data=body, timeout=IP_API_TIMEOUT)
+                    data = json.loads(resp.read().decode('utf-8'))
+                    if isinstance(data, list):
+                        out.extend(data)
+                        ok = True
+                        break
+                except Exception:
+                    if attempt < IP_API_RETRIES - 1:
+                        time.sleep(0.4)
+            if not ok:
+                out.extend([{"query": ip, "status": "fail"} for ip in chunk])
+        return out
 
     def getIpLocationBatch(self, args):
         args = self.parse_inner_args(args)
         ips_json = args.get('ips', '[]')
+        lang = normalize_ip_api_lang(args.get('lang', ''))
+
         try:
-            import json
-            import urllib.request
-            ips = json.loads(ips_json)
+            ips = json.loads(ips_json) if isinstance(ips_json, str) else ips_json
             if not isinstance(ips, list):
                 return yf.returnJson(False, 'ips must be a JSON array', [])
-            
-            import urllib.request
-            import time
-            
-            max_retries = 2
-            for attempt in range(max_retries):
-                try:
-                    req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
-                    req.add_header('Content-Type', 'application/json')
-                    response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
-                    result = response.read().decode('utf-8')
-                    return yf.returnJson(True, 'ok!', json.loads(result))
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        # 所有重试均失败
-                        result_list = [{"query": ip, "status": "fail"} for ip in ips]
-                        return yf.returnJson(True, 'ok!', result_list)
-                    time.sleep(0.5)
         except Exception as e:
             return yf.returnJson(False, str(e), [])
+
+        ips = [x for x in (safe_ip(one) for one in ips) if x]
+        if not ips:
+            return yf.returnJson(True, 'ok!', [])
+
+        if not ip_location_enabled():
+            return yf.returnJson(True, 'ok!', [{"query": ip, "status": "fail"} for ip in ips])
+
+        now = int(time.time())
+        cache = load_ip_loc_cache()
+        result = []
+        pending = []
+        for ip in ips:
+            hit = cache.get(ip)
+            if hit and now - hit.get('ts', 0) < IP_LOC_CACHE_TTL:
+                result.append(hit.get('data', {}))
+            else:
+                pending.append(ip)
+
+        if pending:
+            fetched = self._fetch_ip_location(pending, lang)
+            for item in fetched:
+                q = item.get('query') if isinstance(item, dict) else None
+                if q:
+                    cache[q] = {'ts': now, 'data': item}
+                result.append(item)
+            save_ip_loc_cache(cache)
+
+        return yf.returnJson(True, 'ok!', result)
 
     def getIpLocation(self, args):
         args = self.parse_inner_args(args)
-        ip = args.get('ip', '')
-        try:
-            import json
-            import urllib.request
-            import urllib.request
-            import time
-            
-            max_retries = 2
-            for attempt in range(max_retries):
-                try:
-                    url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
-                    response = urllib.request.urlopen(url, timeout=10)
-                    result = response.read().decode('utf-8')
-                    return yf.returnJson(True, 'ok!', json.loads(result))
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        return yf.returnJson(False, '获取归属地失败', [])
-                    time.sleep(0.5)
-        except Exception as e:
-            return yf.returnJson(False, str(e), [])
+        ip = safe_ip(args.get('ip', ''))
+        lang = normalize_ip_api_lang(args.get('lang', ''))
 
+        if not ip:
+            return yf.returnJson(False, 'IP格式错误', [])
+
+        if not ip_location_enabled():
+            return yf.returnJson(False, '归属地查询已关闭', [])
+
+        now = int(time.time())
+        cache = load_ip_loc_cache()
+        hit = cache.get(ip)
+        if hit and now - hit.get('ts', 0) < IP_LOC_CACHE_TTL:
+            return yf.returnJson(True, 'ok!', hit.get('data', {}))
+
+        fetched = self._fetch_ip_location([ip], lang)
+        if fetched and isinstance(fetched[0], dict) and fetched[0].get('status') == 'success':
+            cache[ip] = {'ts': now, 'data': fetched[0]}
+            save_ip_loc_cache(cache)
+            return yf.returnJson(True, 'ok!', fetched[0])
+
+        return yf.returnJson(False, '获取归属地失败', [])
 
     def get_logs_list(self, args):
         args = self.parse_inner_args(args)
-        page = int(args.get('page', 1))
-        page_size = int(args.get('page_size', 10))
+        page = safe_int(args.get('page', 1), 1)
+        page_size = safe_int(args.get('page_size', 10), 10)
         query_date = args.get('query_date', 'today')
         tojs = args.get('tojs', '')
 
-        log_file = runLog()
-        
-        logs = []
-        if os.path.exists(log_file):
-            try:
-                import time
-                with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-                    for line in f:
-                        if ' Ban ' in line:
-                            parts = line.strip().split()
-                            if len(parts) >= 4 and parts[-2] == 'Ban':
-                                date_str = parts[0]
-                                time_str = parts[1].split(',')[0]
-                                ip_str = parts[-1]
-                                
-                                is_restore = False
-                                if parts[-3] == 'Restore':
-                                    jail_str = parts[-4].strip('[]')
-                                    is_restore = True
-                                else:
-                                    jail_str = parts[-3].strip('[]')
-                                
-                                try:
-                                    time_obj = time.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
-                                    unix_time = int(time.mktime(time_obj))
-                                except:
-                                    unix_time = int(time.time())
-                                
-                                reason = "触发防御规则，已被自动拦截"
-                                if jail_str.endswith('-cc'):
-                                    reason = "请求频率过高，触发CC防御拦截"
-                                elif jail_str.endswith('-scan'):
-                                    reason = "触发恶意扫描，已被自动拦截"
-                                elif jail_str == 'sshd':
-                                    reason = "SSH登录失败过多，防暴破拦截"
-                                elif jail_str == 'ftpd':
-                                    reason = "FTP登录失败过多，防暴破拦截"
-                                elif jail_str == 'mysql':
-                                    reason = "MySQL登录失败过多，防暴破拦截"
-                                elif jail_str == 'panel.yftec.top-cc' or jail_str.endswith('-cc'):
-                                    reason = "面板/网站请求频率过高，触发CC拦截"
-                                    
-                                if is_restore:
-                                    reason = "服务重启，恢复历史封禁 (" + reason + ")"
+        if page <= 0:
+            page = 1
+        if page_size <= 0:
+            page_size = 10
+        # 服务端硬上限：防止导出 10 万条把内存与响应体打爆
+        if page_size > MAX_PAGE_SIZE:
+            page_size = MAX_PAGE_SIZE
 
-                                logs.append({
-                                    "time": unix_time,
-                                    "domain": "ALL",
-                                    "ip": ip_str,
-                                    "uri": "-",
-                                    "rule_name": jail_str,
-                                    "reason": reason
-                                })
-            except Exception as e:
-                pass
+        logs = []
+        # 尾读主日志与轮转日志（新 → 旧），避免全量 readlines()
+        for path in log_candidates():
+            if not os.path.exists(path):
+                continue
+            for line in read_tail_lines(path, max_lines=LOG_TAIL_LINES, keywords=(' Ban ',)):
+                parsed = parse_ban_line(line)
+                if parsed:
+                    logs.append(parsed)
 
         logs.reverse()
 
-        filtered_logs = []
-        import time
         now = int(time.time())
-        today_start = int(time.mktime(time.strptime(time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
-        
+        today_start = int(time.mktime(time.strptime(
+            time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
+
         if query_date == 'today':
             start_time = today_start
             end_time = now + 86400
@@ -1183,19 +1826,17 @@ class fail2ban_main:
         elif query_date == 'l30':
             start_time = today_start - 86400 * 29
             end_time = now + 86400
-        elif '-' in query_date:
+        elif '-' in str(query_date):
             try:
-                start_time, end_time = [int(x) for x in query_date.split('-')]
-            except:
+                start_time, end_time = [int(x) for x in str(query_date).split('-')]
+            except Exception:
                 start_time = 0
                 end_time = now + 86400
         else:
             start_time = 0
             end_time = now + 86400
-            
-        for log in logs:
-            if start_time <= log['time'] <= end_time:
-                filtered_logs.append(log)
+
+        filtered_logs = [log for log in logs if start_time <= log['time'] <= end_time]
 
         total_count = len(filtered_logs)
         start_idx = (page - 1) * page_size
@@ -1207,43 +1848,38 @@ class fail2ban_main:
         _page['p'] = page
         _page['row'] = page_size
         _page['tojs'] = tojs
-        
+
         data = {
             "page": yf.getPage(_page),
             "data": paged_logs
         }
-        
+
         return yf.returnJson(True, 'ok!', data)
 
     def get_ip_logs(self, args):
         args = self.parse_inner_args(args)
-        ip = args.get('ip', '')
-        
-        if not ip and 'args' in args:
-            if isinstance(args['args'], dict):
-                ip = args['args'].get('ip', '')
-            elif isinstance(args['args'], str):
-                import re
-                m = re.search(r'"ip"\s*:\s*"([^"]+)"', args['args'].replace('\\', ''))
-                if m:
-                    ip = m.group(1)
+        raw_ip = args.get('ip', '')
 
+        if not raw_ip and isinstance(args.get('args'), dict):
+            raw_ip = args['args'].get('ip', '')
+
+        ip = safe_ip(raw_ip)
         if not ip:
-            return yf.returnJson(False, f'IP不能为空! args dump: {str(args)}')
+            # 不再回显整个 args，避免内部结构泄露
+            return yf.returnJson(False, 'IP不能为空')
 
-        log_file = runLog()
+        # 使用词边界匹配，避免 1.1.1.1 命中 1.1.1.10
+        ip_re = re.compile(r'(?<![\d.])' + re.escape(ip) + r'(?![\d.])')
+
         logs = []
         ban_count = 0
-        if os.path.exists(log_file):
-            try:
-                with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-                    for line in f:
-                        if ip in line:
-                            logs.append(line.strip())
-                            if ' Ban ' in line:
-                                ban_count += 1
-            except Exception as e:
-                pass
+        for path in log_candidates():
+            if not os.path.exists(path):
+                continue
+            for line in read_tail_lines(path, max_lines=LOG_TAIL_LINES, matcher=ip_re):
+                logs.append(line.strip())
+                if ' Ban ' in line:
+                    ban_count += 1
 
         logs.reverse()
         data = {
@@ -1253,64 +1889,40 @@ class fail2ban_main:
         return yf.returnJson(True, 'ok!', data)
 
     def get_home_stats(self, args):
-        import sqlite3
-        import time
-        db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
-        ret = yf.execShell('fail2ban-client get dbfile')
-        if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
-            import re
-            match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
-            if match:
-                db_path = match.group(1)
-            elif '- ' in ret[0]:
-                db_path = ret[0].split('- ')[-1].strip()
-
         now = int(time.time())
-        today_start = int(time.mktime(time.strptime(time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
-        
+        today_start = int(time.mktime(time.strptime(
+            time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
+
         total_bans = 0
         today_bans = 0
         jail_stats = {}
-        protect_days = 0
 
-        if os.path.exists(db_path):
+        conn = open_bans_db()
+        if conn is not None:
             try:
-                conn = sqlite3.connect(db_path)
                 c = conn.cursor()
-                
-                # Total bans
                 c.execute("SELECT count(*) FROM bans")
-                total_bans_row = c.fetchone()
-                if total_bans_row:
-                    total_bans = total_bans_row[0]
-                    
-                # Today bans
+                row = c.fetchone()
+                if row:
+                    total_bans = row[0]
+
                 c.execute("SELECT count(*) FROM bans WHERE timeofban >= ?", (today_start,))
-                today_bans_row = c.fetchone()
-                if today_bans_row:
-                    today_bans = today_bans_row[0]
-                    
-                # Jail stats
+                row = c.fetchone()
+                if row:
+                    today_bans = row[0]
+
                 c.execute("SELECT jail, count(*) FROM bans GROUP BY jail")
-                for row in c.fetchall():
-                    jail_stats[row[0]] = row[1]
-                    
-                # Protect days
-                c.execute("SELECT min(timeofban) FROM bans")
-                oldest_ban = c.fetchone()
-                if oldest_ban and oldest_ban[0]:
-                    protect_days = int((now - oldest_ban[0]) / 86400)
-                
-                conn.close()
-            except Exception as e:
+                for r in c.fetchall():
+                    jail_stats[r[0]] = r[1]
+            except Exception:
                 pass
-                
-        if protect_days <= 0:
-            jail_local = f2bEtcDir() + "/jail.local"
-            if os.path.exists(jail_local):
-                protect_days = int((now - os.path.getctime(jail_local)) / 86400)
-                if protect_days < 0:
-                    protect_days = 0
+            finally:
+                conn.close()
+
+        # 安全防护天数：取插件记录的首次防护时间（幂等持久化）。
+        # 不再使用 bans 表最小 timeofban —— 该值受 dbpurgeage 限制，
+        # 最多只能反映最近 N 天，导致"防护天数"长期显示 0~1 天。
+        protect_days = get_protect_days()
 
         data = {
             "total_bans": total_bans,
@@ -1323,32 +1935,40 @@ class fail2ban_main:
     def get_total_statistics(self, args):
         if not os.path.exists('/www/server/fail2ban'):
             return yf.returnJson(False, "not installed")
-        
+
         home_res = self.get_home_stats(args)
         try:
-            import json
             home_data = json.loads(home_res)
             if home_data.get('status') and home_data.get('data'):
                 today_bans = home_data['data'].get('today_bans', 0)
                 total_bans = home_data['data'].get('total_bans', 0)
                 count_str = str(today_bans) + '/' + str(total_bans)
-                ver_content = yf.readFile(getPluginDir() + '/info.json')
+
                 version = "1.0"
-                if ver_content:
-                    try:
+                try:
+                    ver_content = yf.readFile(getPluginDir() + '/info.json')
+                    if ver_content:
                         vdata = json.loads(ver_content)
-                        version = vdata.get('versions', "1.0")
-                    except:
-                        pass
+                        # info.json 的 versions 是数组，必须取标量，
+                        # 否则 ["1.2.0"] 会拼进首页 onclick 破坏 HTML 属性
+                        raw_ver = vdata.get('versions', '1.0')
+                        if isinstance(raw_ver, list):
+                            version = str(raw_ver[-1]) if raw_ver else '1.0'
+                        else:
+                            version = str(raw_ver)
+                except Exception:
+                    pass
+
                 res = {
                     "count": count_str,
                     "ver": version
                 }
                 return yf.returnJson(True, "ok", res)
-        except:
+        except Exception:
             pass
-            
+
         return yf.returnJson(False, "error")
+
 
 fail2ban_inst = None
 def get_fail2ban_inst():
