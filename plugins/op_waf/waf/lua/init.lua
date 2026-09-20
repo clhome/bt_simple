@@ -109,7 +109,7 @@ if not cpu_percent then
 end
 
 local function get_return_state(rstate,rmsg)
-    result = {}
+    local result = {}
     result['status'] = rstate
     result['msg'] = rmsg
     return result
@@ -130,7 +130,7 @@ end
 
 local function return_json(status,msg)
     ngx.header.content_type = "application/json"
-    result = {}
+    local result = {}
     result['status'] = status
     result['msg'] = msg
     ngx.say(json.encode(result))
@@ -202,7 +202,8 @@ local function clean_waf_drop_ip()
 end
 
 local function min_route()
-    if params['ip'] ~= '127.0.0.1' then return false end
+    local remote_ip = ngx.var.remote_addr
+    if remote_ip ~= '127.0.0.1' and remote_ip ~= '::1' then return false end
     local uri = params['uri']
     if uri == '/get_waf_drop_ip' then
         ngx.header.content_type = "application/json"
@@ -454,31 +455,35 @@ local function waf_cc()
     if not C:is_site_config('cc') then return false end
 
     local ip = params['ip']
-    local request_uri = params['request_uri']
     local subnet = get_subnet(ip)
-    local secret = config['secret'] or "opwaf_default_secret"
-    
-    local ua = tostring(params['user_agent'] or '')
-    local cookie = tostring(params['cookie'] or '')
+    local raw_path = params['uri'] or ngx.var.uri or "/"
+    local lower_path = string.lower(raw_path)
 
-    local token = ngx.md5(secret .. "_" .. ip .. "_" .. request_uri .. "_" .. ua .. "_" .. cookie)
-    local subnet_token = ngx.md5(secret .. "_" .. subnet .. "_" .. request_uri .. "_" .. ua .. "_" .. cookie)
+    local is_sensitive = false
+    local waf_limit = config['cc']['limit']
+    if string.find(lower_path, "login") or string.find(lower_path, "admin") then
+        waf_limit = 20
+        is_sensitive = true
+    elseif string.find(lower_path, "api") then
+        waf_limit = 60
+        is_sensitive = true
+    end
+
+    local token
+    local subnet_token
+    if is_sensitive then
+        token = "cc_s:" .. ip .. ":" .. lower_path
+        subnet_token = "cc_s:" .. subnet .. ":" .. lower_path
+    else
+        token = "cc_i:" .. ip .. ":" .. server_name
+        subnet_token = "cc_i:" .. subnet .. ":" .. server_name
+    end
 
     local count = ngx.shared.waf_limit:get(token)
     local subnet_count = ngx.shared.waf_limit:get(subnet_token)
 
     local endtime = config['cc']['endtime']
-    local base_limit = config['cc']['limit']
     local cycle = config['cc']['cycle']
-    
-    local waf_limit = base_limit
-    local lower_uri = string.lower(request_uri)
-    if string.find(lower_uri, "login") or string.find(lower_uri, "admin") then
-        waf_limit = 20
-    elseif string.find(lower_uri, "api") then
-        waf_limit = 60
-    end
-    
     local subnet_limit = waf_limit * 10 -- Allow proxy pool up to 10x single IP limit
 
     if (count and count > waf_limit) or (subnet_count and subnet_count > subnet_limit) then 
@@ -701,14 +706,44 @@ local function waf_post()
     local content_length = tonumber(params["request_header"]['content-length'])
     local max_len = 640 * 1020000
     if content_length and content_length > max_len then return false end
-    if C:get_boundary() then return false end
     ngx.req.read_body()
 
     local data_str = ""
     local content_type = params["request_header"]["content-type"]
     if type(content_type) == "table" then content_type = content_type[1] end
-    
-    if content_type and (string.find(string.lower(content_type), "xml", 1, true)) then
+    local boundary = C:get_boundary()
+
+    if boundary then
+        -- 针对 multipart/form-data，提取前 64KB 中的普通表单字段内容进行规则过滤，防止以此绕过 POST 检测
+        local body_data = ngx.req.get_body_data()
+        if not body_data then
+            local file_name = ngx.req.get_body_file()
+            if file_name then
+                local f = io.open(file_name, "r")
+                if f then
+                    body_data = f:read(65536)
+                    f:close()
+                end
+            end
+        end
+        if body_data then
+            local form_values = {}
+            -- 匹配普通表单字段 (排除包含 filename 的文件上传字段)
+            local iter = ngx.re.gmatch(body_data, [[name=\"([^\"]+)\"(?:(?!filename=)[^\r\n])*\r\n\r\n([^\r\n]+)]], "ijo")
+            if iter then
+                while true do
+                    local m, err = iter()
+                    if not m then break end
+                    if m[2] then
+                        table.insert(form_values, m[2])
+                    end
+                end
+            end
+            if #form_values > 0 then
+                data_str = table.concat(form_values, ", ")
+            end
+        end
+    elseif content_type and (string.find(string.lower(content_type), "xml", 1, true)) then
         local body_data = ngx.req.get_body_data()
         if body_data then
             if ngx.re.find(body_data, "(<!DOCTYPE|<!ENTITY|SYSTEM|PUBLIC)", "ijo") then
@@ -717,9 +752,7 @@ local function waf_post()
                 return true
             end
         end
-    end
-    
-    if content_type and string.find(string.lower(content_type), "application/json", 1, true) then
+    elseif content_type and string.find(string.lower(content_type), "application/json", 1, true) then
         local body_data = ngx.req.get_body_data()
         if not body_data then
             local file_name = ngx.req.get_body_file()
@@ -752,7 +785,8 @@ local function waf_post()
             end
         end
     else
-        local post_args, err = ngx.req.get_post_args()
+        -- max_args 设为 0，防止超过 100 个参数被截断绕过
+        local post_args, err = ngx.req.get_post_args(0)
         if post_args then
             local values = {}
             for key, val in pairs(post_args) do
@@ -763,6 +797,13 @@ local function waf_post()
                 end
             end
             data_str = table.concat(values, ", ")
+        end
+        -- 若发生截断，读取原始 body 进行全文兜底匹配
+        if err == "truncated" then
+            local raw_body = ngx.req.get_body_data()
+            if raw_body then
+                data_str = data_str .. " " .. raw_body
+            end
         end
     end
 
@@ -901,7 +942,7 @@ local function waf_cookie()
     if not config['cookie']['open'] or not C:is_site_config('cookie') then return false end
     if not params["request_header"]['cookie'] then return false end
     if type(params["request_header"]['cookie']) ~= "string" then return false end
-    request_cookie = string.lower(params["request_header"]['cookie'])
+    local request_cookie = string.lower(params["request_header"]['cookie'])
     if C:ngx_match_list(cookie_rules,request_cookie,'cookie') then
         C:write_log('cookie','regular')
         C:return_html(config['cookie']['status'],cookie_html)
@@ -915,7 +956,8 @@ local waf_country=""
 
 local function initmaxminddb()
     if geo==nil then 
-        maxminddb ,geo = pcall(function() return  require 'waf_maxminddb' end)
+        local maxminddb
+        maxminddb, geo = pcall(function() return require 'waf_maxminddb' end)
         if not maxminddb then
             C:D("debug waf error on :"..tostring(geo))
             return nil
@@ -1115,22 +1157,12 @@ function run_app_waf()
 end
 
 
-local waf_run_status = nil
-function waf()
-    if waf_run_status then
-        run_app_waf()
-    else
-        local ok,waf_err=pcall(function()
-            run_app_waf()
-        end)
-
-        if waf_err ~= nil then
-            C:D("----waf error-----"..tostring(waf_err))
-        end
-
-        if ok then
-            waf_run_status = true
-        end
+local function waf()
+    local ok, waf_err = pcall(run_app_waf)
+    if not ok and waf_err ~= nil then
+        ngx.log(ngx.ERR, "[op_waf] run_app_waf error: ", tostring(waf_err))
+        C:D("----waf error----- " .. tostring(waf_err))
+        -- Fail-Open: 出现异常时优雅放行，避免全站 500
     end
 end
 

@@ -499,8 +499,11 @@ def setConfRestartWeb():
     if not hasattr(yf, 'isYufengPanel') or not yf.isYufengPanel():
         return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     autoMakeConfig(True, False)
-    yf.opWeb('stop')
-    yf.opWeb('start')
+    # 优先平滑 reload，保障长连接与在线请求不被强制掐断
+    res = yf.opWeb('reload')
+    if not res:
+        yf.opWeb('stop')
+        yf.opWeb('start')
 
 
 def restartWeb():
@@ -1383,22 +1386,39 @@ def getSafeLogs():
     if not data[0]:
         return data[1]
 
+    site_name = str(args['siteName']).strip()
+    to_date = str(args['toDate']).strip()
+    # 严格校验参数，防止路径穿越攻击
+    if not re.match(r'^[a-zA-Z0-9_\.\-]+$', site_name) or '..' in site_name or '/' in site_name or '\\' in site_name:
+        return yf.returnJson(False, "站点名称包含非法字符!")
+    if not re.match(r'^[0-9_\-]+$', to_date):
+        return yf.returnJson(False, "日期参数格式错误!")
+
     path = getServerDir() + '/logs'
-    file = path + '/' + args['siteName'] + '_' + args['toDate'] + '.log'
-    if not os.path.exists(file):
+    log_file = os.path.abspath(path + '/' + site_name + '_' + to_date + '.log')
+    if not log_file.startswith(os.path.abspath(path)):
+        return yf.returnJson(False, "非法访问路径!")
+
+    if not os.path.exists(log_file):
         return yf.returnJson(False, "文件不存在!")
 
     retData = []
-    file = open(file)
-    while 1:
-        lines = file.readlines(100000)
-        if not lines:
-            break
-        for line in lines:
+    try:
+        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    retData.append(json.loads(line))
+                except Exception:
+                    pass
+                if len(retData) >= 5000:
+                    break
+    except Exception as e:
+        return yf.returnJson(False, "读取日志失败: " + str(e))
 
-            retData.append(json.loads(line))
-
-    return yf.returnJson(True, '设置成功!', retData)
+    return yf.returnJson(True, '获取成功!', retData)
 
 
 def setObjOpen():

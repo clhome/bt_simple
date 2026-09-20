@@ -9,8 +9,10 @@ local config_domains = require "waf_domains"
 C:setConfData(config, site_config)
 local server_name = C:get_sn(config_domains)
 
-local status = ngx.status
-if status == 404 then
+local ok, err = pcall(function()
+    local status = ngx.status
+    if status ~= 404 then return end
+
     local uri = tostring(ngx.unescape_uri(ngx.var.uri))
     local ext = string.match(uri, "%.([^%.]+)$")
     if ext then
@@ -34,8 +36,16 @@ if status == 404 then
         local uri_key = "404:uri:" .. ip .. ":" .. uri_hash
         local is_seen = ngx.shared.waf_limit:get(uri_key)
         
+        -- 限制单个 IP 最大记录 100 个独立 URI Key，防止恶意字典扫描挤爆共享内存
+        local ucnt_key = "404:ucnt:" .. ip
+        local ucnt = ngx.shared.waf_limit:get(ucnt_key) or 0
+        local allow_record_key = (ucnt < 100)
+
         if not is_seen then
-            ngx.shared.waf_limit:set(uri_key, 1, 300)
+            if allow_record_key then
+                ngx.shared.waf_limit:set(uri_key, 1, 300)
+                ngx.shared.waf_limit:incr(ucnt_key, 1, 0, 300)
+            end
             
             local count_1m_key = "404:count:1m:" .. ip
             local count_5m_key = "404:count:5m:" .. ip
@@ -99,4 +109,8 @@ if status == 404 then
             end
         end
     end
+end)
+
+if not ok and err then
+    ngx.log(ngx.ERR, "[op_waf] log.lua error: ", tostring(err))
 end

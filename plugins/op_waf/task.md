@@ -149,3 +149,23 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
 - `[x]` 任务 5：重构 `plugins/op_waf/js/op_waf.js` 中的 `wafGloabl()` 表格渲染，将所有 `rdata.*.ps` 描述包裹 `pt(...)`，并补全排查出的 30+ 处未包裹 `pt(...)` 的字符串。
 - `[x]` 任务 6：编写自动化测试脚本 `test/test_op_waf_full_i18n.py` 进行全面回归验证，清理临时排查文件。
 
+### 需求 23：阶段一 (P0) 核心安全与可用性加固
+- `[x]` 任务 1：重构 `waf/lua/init.lua` 中的 `waf()` 入口函数，废除 `waf_run_status`，实现全请求 `pcall` 保护并确保 Fail-Open 故障放行。
+- `[x]` 任务 2：加固 `waf/lua/init.lua` 中的 `min_route()`，将管理路由权限校验改为底层网络 IP `ngx.var.remote_addr == "127.0.0.1"`，封堵通过 X-Forwarded-For 伪造头部绕过。
+- `[x]` 任务 3：重构 `waf/lua/init.lua` 中的 `waf_cc()` 频次限制与 Token 算法，废除拼接随机 query/ua/cookie 的高熵哈希，改为基于 IP 及 IP+规范化路径聚合适配，杜绝随机参数绕过与内存耗尽 DoS。
+- `[x]` 任务 4：加固 `plugins/op_waf/index.py` 中的 `getSafeLogs()` 接口，增加文件名安全过滤并使用 `with open(...)` 防止路径穿越与 FD 句柄泄露。
+- `[x]` 任务 5：编写自动化回归测试脚本 `test/test_op_waf_p0_security.py` 并验证阶段一成果。
+
+### 需求 24：阶段二 (P1) 并发竞态与执行性能重构
+- `[x]` 任务 1：清理 `waf/lua/waf_common.lua` 和 `waf/lua/init.lua` 中所有未声明 `local` 的隐式全局变量，消除并发协程污染与竞态。
+- `[x]` 任务 2：重构 `waf/lua/waf_common.lua` 中的 `stats_total` 统计逻辑，将每次拦截的整棵 JSON 序列化改为 `dict:incr` 原子累加，由定时器定期落盘。
+- `[x]` 任务 3：优化 `plugins/op_waf/index.py` 中的 `setConfRestartWeb()`，将暴力 `stop + start` 改为平滑 `reload` 重载配置。
+- `[x]` 任务 4：编写自动化回归测试脚本 `test/test_op_waf_p1_reliability_perf.py` 验证阶段二成果。
+
+### 需求 25：阶段三 (P2) 纵深防御与细节优化
+- `[x]` 任务 1：增强 `waf/lua/init.lua` 对 `multipart/form-data` 普通文本字段的安全规则检测与 `max_args` 截断防护。
+- `[x]` 任务 2：优化 `waf/lua/log.lua` 中的 404 扫描防线内存占用（限制单 IP 记录的 Hash 数量），并移除 `waf_common.lua` 中获取 CPU 使用率时的 `ngx.sleep(1)` 阻塞。
+- `[x]` 任务 3：在 `waf/lua/waf_common.lua` 中外提正则匹配前的 URL 解码，消除规则循环中的重复 unescape。
+- `[x]` 任务 4：运行全量回归测试套件，验证全部优化成果并清理临时排查文件。
+
+

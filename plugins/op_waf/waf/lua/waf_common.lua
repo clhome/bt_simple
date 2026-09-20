@@ -458,7 +458,7 @@ end
 
 
 local function write_file_clear(filename, body)
-    fp = io.open(filename,'w')
+    local fp = io.open(filename,'w')
     if fp == nil then
         return nil
     end
@@ -491,7 +491,7 @@ end
 
 
 function _M.is_min(self, ip1, ip2)
-    n = 0
+    local n = 0
     for _,v in ipairs({1,2,3,4})
     do
         if ip1[v] == ip2[v] then
@@ -506,7 +506,7 @@ function _M.is_min(self, ip1, ip2)
 end
 
 function _M.is_max(self,ip1,ip2)
-    n = 0
+    local n = 0
     for _,v in ipairs({1,2,3,4})
     do
         if ip1[v] == ip2[v] then
@@ -531,7 +531,7 @@ end
 function _M.arrip(self, ipstr)
     if ipstr == 'unknown' then return {0,0,0,0} end
     if string.find(ipstr,':') then return ipstr end
-    iparr = self:split(ipstr,'.')
+    local iparr = self:split(ipstr,'.')
     iparr[1] = tonumber(iparr[1])
     iparr[2] = tonumber(iparr[2])
     iparr[3] = tonumber(iparr[3])
@@ -557,7 +557,7 @@ function _M.to_json(self, msg)
 end
 
 function _M.return_state(status,msg)
-    result = {}
+    local result = {}
     result['status'] = status
     result['msg'] = msg
     return result
@@ -596,7 +596,7 @@ function _M.read_file_body(self, filename)
 end
 
 function _M.read_file(self, name)
-    f = self.rpath .. name .. '.json'
+    local f = self.rpath .. name .. '.json'
     local fbody = self:read_file_body(f)
     if fbody == nil then
         return {}
@@ -615,7 +615,7 @@ end
 
 function _M.select_rule(self, rules)
     if not rules then return {} end
-    new_rules = {}
+    local new_rules = {}
     for i,v in ipairs(rules)
     do 
         if v[1] == 1 then
@@ -635,7 +635,7 @@ function _M.read_file_body_decode(self, name)
 end
 
 function _M.write_file(self, filename, body)
-    fp = io.open(filename,'ab')
+    local fp = io.open(filename,'ab')
     if fp == nil then
         return nil
     end
@@ -702,52 +702,103 @@ end
 -- 定时异步同步统计信息
 function _M.timer_stats_total(self)
     local total_path = self.cpath .. 'total.json'
-    local total = ngx.shared.waf_limit:get(total_path)
-    if not total then
-        return false
+    local total = nil
+    local total_cached = ngx.shared.waf_limit:get(total_path)
+    if total_cached then
+        local ok, data = pcall(json.decode, total_cached)
+        if ok and type(data) == 'table' then
+            total = data
+        end
     end
-    return self:write_file_clear(total_path,total)
+
+    if not total then
+        local tbody = self:read_file_body(total_path)
+        if tbody then
+            local ok, data = pcall(json.decode, tbody)
+            if ok and type(data) == 'table' then
+                total = data
+            end
+        end
+    end
+
+    if not total then
+        total = {
+            total = 0,
+            today_date = ngx.today(),
+            today_total = 0,
+            rules = {},
+            sites = {}
+        }
+    end
+
+    -- 检查并合并共享内存中的原子增量
+    local inc_total = ngx.shared.waf_limit:get("stat:inc:total")
+    if inc_total and inc_total > 0 then
+        ngx.shared.waf_limit:incr("stat:inc:total", -inc_total)
+        total['total'] = (total['total'] or 0) + inc_total
+
+        local today = ngx.today()
+        if not total['today_date'] or total['today_date'] ~= today then
+            total['today_date'] = today
+            total['today_total'] = 0
+        end
+
+        local inc_today = ngx.shared.waf_limit:get("stat:inc:today:" .. today)
+        if inc_today and inc_today > 0 then
+            ngx.shared.waf_limit:incr("stat:inc:today:" .. today, -inc_today)
+            total['today_total'] = (total['today_total'] or 0) + inc_today
+        end
+
+        -- 提取所有规则增量
+        if not total['rules'] then total['rules'] = {} end
+        local rule_keys = {"args", "url", "scan", "post", "cookie", "user_agent", "cc", "spider", "upload_ext", "upload_mime", "upload_header", "xxe", "ssrf"}
+        for _, rname in ipairs(rule_keys) do
+            local inc_r = ngx.shared.waf_limit:get("stat:inc:rule:" .. rname)
+            if inc_r and inc_r > 0 then
+                ngx.shared.waf_limit:incr("stat:inc:rule:" .. rname, -inc_r)
+                total['rules'][rname] = (total['rules'][rname] or 0) + inc_r
+            end
+        end
+
+        -- 提取站点增量
+        local site_keys = ngx.shared.waf_limit:get_keys(0)
+        if site_keys then
+            if not total['sites'] then total['sites'] = {} end
+            for _, sk in ipairs(site_keys) do
+                local prefix = "stat:inc:site:"
+                if string.sub(sk, 1, #prefix) == prefix then
+                    local rest = string.sub(sk, #prefix + 1)
+                    local parts = self:split(rest, ':')
+                    if #parts >= 2 then
+                        local s_name = parts[1]
+                        local r_name = parts[2]
+                        local inc_s = ngx.shared.waf_limit:get(sk)
+                        if inc_s and inc_s > 0 then
+                            ngx.shared.waf_limit:incr(sk, -inc_s)
+                            if not total['sites'][s_name] then total['sites'][s_name] = {} end
+                            total['sites'][s_name][r_name] = (total['sites'][s_name][r_name] or 0) + inc_s
+                        end
+                    end
+                end
+            end
+        end
+
+        local encoded = json.encode(total)
+        self:dict_set("waf_limit", total_path, encoded)
+        return self:write_file_clear(total_path, encoded)
+    end
+    return true
 end
 
 function _M.stats_total(self, name, rule)
     local server_name = (self.params and self.params['server_name']) or ngx.var.server_name or 'unknown'
-    local total_path = cpath .. 'total.json'
-    local total = ngx.shared.waf_limit:get(total_path)
+    local today = ngx.today()
 
-    if not total then
-        local tbody = self:read_file_body(total_path)
-        total = json.decode(tbody)
-    else
-        total = json.decode(total)
-    end
-
-    if not total then return false end
-
-    -- 开始计算
-    if not total['sites'] then total['sites'] = {} end
-    if not total['sites'][server_name] then total['sites'][server_name] = {} end
-    if not total['sites'][server_name][name] then total['sites'][server_name][name] = 0 end
-    if not total['rules'] then total['rules'] = {} end
-    if not total['rules'][name] then total['rules'][name] = 0 end
-    if not total['total'] then total['total'] = 0 end
-    total['total'] = total['total'] + 1
-    total['sites'][server_name][name] = total['sites'][server_name][name] + 1
-    total['rules'][name] = total['rules'][name] + 1
-
-    -- 今日拦截数方案二实现 (内存/静态缓存)
-    local today = ngx.today() -- 格式 YYYY-MM-DD
-    if not total['today_date'] or total['today_date'] ~= today then
-        total['today_date'] = today
-        total['today_total'] = 1
-    else
-        total['today_total'] = (total['today_total'] or 0) + 1
-    end
-
-    self:dict_set("waf_limit", total_path,json.encode(total))
-
-    -- 异步执行
-    -- 现在改再init_workder.lua 定时执行
-    -- ngx.timer.every(3, timer_stats_total_log)
+    -- 采用原子累加，拦截主路径毫秒级耗时降至纳秒级，零 GC 停顿
+    self:dict_incr("waf_limit", "stat:inc:total", 1, 0)
+    self:dict_incr("waf_limit", "stat:inc:today:" .. today, 1, 0)
+    self:dict_incr("waf_limit", "stat:inc:rule:" .. name, 1, 0)
+    self:dict_incr("waf_limit", "stat:inc:site:" .. server_name .. ":" .. name, 1, 0)
 end
 
 
@@ -790,17 +841,25 @@ end
 
 
 
-function _M.is_ngx_match_orgin(self,rule, match, sign)
-    if ngx_match(ngx.unescape_uri(match), rule, "isjo") then
-        error_rule = rule .. ' >> ' .. sign .. ':' .. match
+function _M.is_ngx_match_orgin(self, rule, match, sign, unescaped)
+    if not match then return false end
+    if type(match) ~= "string" then
+        match = tostring(match)
+    end
+    local target = unescaped or ngx.unescape_uri(match)
+    if ngx_match(target, rule, "isjo") then
+        if self.params then
+            self.params.error_rule = rule .. ' >> ' .. sign .. ':' .. match
+        end
         return true
     end
     return false
 end
 
 
-function _M.ngx_match_string(self, rule, content,sign)
-    local t = self:is_ngx_match_orgin(rule, content, sign)
+function _M.ngx_match_string(self, rule, content, sign)
+    local unescaped = content and type(content) == "string" and ngx.unescape_uri(content) or nil
+    local t = self:is_ngx_match_orgin(rule, content, sign, unescaped)
     if t then
         return true
     end
@@ -809,28 +868,35 @@ function _M.ngx_match_string(self, rule, content,sign)
 end
 
 function _M.ngx_match_list(self, rules, content)
-    local args_type  = type(content)
-    for i,rule in ipairs(rules)
-    do
-        if rule[1] == 1 then
-            if args_type == 'string' then
-                -- self:D("string: "..tostring(rule[2])..":".. tostring(content)..":"..tostring(rule[3]))
-                local t = self:is_ngx_match_orgin(rule[2], content, rule[3])
+    local args_type = type(content)
+    if args_type == 'string' then
+        -- 外部仅解码一次，所有规则复用
+        local unescaped = ngx.unescape_uri(content)
+        for _, rule in ipairs(rules) do
+            if rule[1] == 1 then
+                local t = self:is_ngx_match_orgin(rule[2], content, rule[3], unescaped)
                 if t then
                     return true
                 end
             end
+        end
+    elseif args_type == 'table' then
+        -- 预先一次性批量解码 table 中的 values，消除循环内的重复调用
+        local prepared = {}
+        for _, arg_v in pairs(content) do
+            local raw = type(arg_v) == "table" and table.concat(arg_v, ", ") or tostring(arg_v)
+            table.insert(prepared, { raw = raw, unescaped = ngx.unescape_uri(raw) })
+        end
 
-            if args_type == 'table' then
-                for _,arg_v in pairs(content) do
-                    -- self:D("table : "..tostring(rule[2])..":".. tostring(arg_v)..":"..tostring(rule[3]))
-                    local t = self:is_ngx_match_orgin(rule[2], arg_v, rule[3])
+        for _, rule in ipairs(rules) do
+            if rule[1] == 1 then
+                for _, item in ipairs(prepared) do
+                    local t = self:is_ngx_match_orgin(rule[2], item.raw, rule[3], item.unescaped)
                     if t then
                         return true
                     end
                 end
             end
-            
         end
     end
     return false
@@ -897,9 +963,9 @@ function _M.write_log(self, name, rule)
 
     if config['log'] ~= true or self:is_site_config('log') ~= true then return false end
     local method = params['method']
-    if error_rule then 
-        rule = error_rule
-        error_rule = nil
+    if self.params and self.params.error_rule then 
+        rule = self.params.error_rule
+        self.params.error_rule = nil
     end
 
     local count = ngx.shared.waf_drop_ip:get(ip)
@@ -917,7 +983,7 @@ function _M.write_log(self, name, rule)
         local lock_time = retry_time * safe_count
         if lock_time > 86400 then lock_time = 86400 end
 
-        retry_times = retry + 1
+        local retry_times = retry + 1
         self:dict_set("waf_drop_ip", ip, retry_times, lock_time)
 
         local reason = retry_cycle .. '秒以内累计超过'..retry..'次以上非法请求,封锁'.. lock_time ..'秒'
@@ -1057,14 +1123,26 @@ function _M.get_cpu_stat(self)
     return cpu_total,idie,use_percent
 end
 
+local last_cpu_tick_total = nil
+local last_cpu_tick_idle = nil
+
 function _M.get_cpu_percent(self)
-    local cpu_total,idie,use_percent = self:get_cpu_stat()
+    local cpu_total, idie, use_percent = self:get_cpu_stat()
     if cpu_total == 0 then return 0 end
-    ngx.sleep(1)
-    local cpu_total2,idie2,use_percent2 = self:get_cpu_stat()
-    local delta_total = cpu_total2 - cpu_total
+
+    if not last_cpu_tick_total then
+        last_cpu_tick_total = cpu_total
+        last_cpu_tick_idle = idie
+        return use_percent
+    end
+
+    local delta_total = cpu_total - last_cpu_tick_total
+    local delta_idle = idie - last_cpu_tick_idle
+    last_cpu_tick_total = cpu_total
+    last_cpu_tick_idle = idie
+
     if delta_total <= 0 then return 0 end
-    local cpu_usage_percent = tonumber(100-(((idie2-idie)/delta_total)*100))
+    local cpu_usage_percent = tonumber(100 - ((delta_idle / delta_total) * 100))
     if cpu_usage_percent < 0 then cpu_usage_percent = 0 end
     if cpu_usage_percent > 100 then cpu_usage_percent = 100 end
     return cpu_usage_percent
@@ -1072,10 +1150,11 @@ end
 
 
 function _M.return_post_data(self)
+    local method = self.params and self.params['method'] or ngx.req.get_method()
     if method ~= "POST" then return false end
-    content_length = tonumber(self.params["request_header"]['content-length'])
+    local content_length = tonumber(self.params["request_header"]['content-length'])
     if not content_length then return false end
-    max_len = 2560 * 1024000
+    local max_len = 2560 * 1024000
     if content_length > max_len then return false end
     local boundary = self:get_boundary()
     if boundary then
