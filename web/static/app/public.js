@@ -988,7 +988,7 @@ function onlineEditFile(k, f, callback) {
     var l = $("#PathPlace input").val();
     var h = encodeURIComponent($("#textBody").val());
     var a = $("select[name=encoding]").val();
-    var loadT = layer.msg(lan && lan.public && t('public.saving_please_wait') || "", {
+    var loadT = layer.msg(t('public.saving_please_wait', '正在保存，请稍候...'), {
       icon: 16,
       time: 0
     });
@@ -1124,8 +1124,8 @@ function onlineEditFile(k, f, callback) {
     shift: 5,
     closeBtn: 1,
     area: ["90%", "90%"],
-    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_1') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.refresh_1') || '刷新')],
-    title: (lan && lan.public && t('public.edit_online') || '在线编辑') + ' [' + f + ']',
+    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + t('public.save_1', '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + t('public.refresh_1', '刷新')],
+    title: t('public.edit_online', '在线编辑') + ' [' + f + ']',
     shade: 0.0000001,
     content: (window.YfI18n && YfI18n.renderTemplateToString && window.YF_TPL && YF_TPL.onlineEdit
       ? YfI18n.renderTemplateToString(YF_TPL.onlineEdit)
@@ -1133,7 +1133,7 @@ function onlineEditFile(k, f, callback) {
     success: function (layero) {
       $(layero).hide();
       var layer_id = $(layero).attr('id').replace("layui-layer", "");
-      var loading = layer.msg(lan && lan.public && t('public.loading_the_file_please') || "", {
+      var loading = layer.msg(t('public.loading_the_file_please', '正在读取文件，请稍候...'), {
         icon: 16,
         time: 0
       });
@@ -1184,7 +1184,7 @@ function onlineEditFile(k, f, callback) {
           <div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">\
             <div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>\
           </div>\
-          <span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + (lan && lan.public && t('public.auto_refresh') || '自动刷新') + '</span>\
+          <span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + t('public.auto_refresh', '自动刷新') + '</span>\
         </div>';
         layero.append(toggleHtml);
         layero.find('.auto-refresh-toggle').on('click', function () {

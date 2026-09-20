@@ -328,11 +328,21 @@ def autoMakeLuaImportSingle(file, conf_reload=False):
 
 def autoMakeLuaHtmlSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/html/" + file + ".html"
+    plugin_src = getPluginDir() + "/waf/html/" + file + ".html"
     if not os.path.exists(path):
-        plugin_src = getPluginDir() + "/waf/html/" + file + ".html"
         if os.path.exists(plugin_src):
             yf.makeDirs(os.path.dirname(path))
             yf.writeFile(path, yf.readFile(plugin_src))
+    else:
+        # 平滑升级旧版模板：若缺少多语言 waf-i18n 支持或含有旧版公司名称，自动备份并升级为最新国际化模板
+        content_old = yf.readFile(path)
+        if isinstance(content_old, str) and os.path.exists(plugin_src):
+            if 'waf-i18n' not in content_old or '熠风' in content_old:
+                bak_path = path + ".wafbak"
+                if not os.path.exists(bak_path):
+                    yf.writeFile(bak_path, content_old)
+                yf.writeFile(path, yf.readFile(plugin_src))
+                conf_reload = True
     dst_path = getServerDir() + "/waf/html/html_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = yf.readFile(path)

@@ -1248,7 +1248,7 @@ function wafGloabl(){
                         <td class="text-right"><a class="btlink" onclick="ipBlack()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('其它') + '</td><td>'+ rdata.other.ps + '</td><td>--</td>\
+                        <td>' + pt('其它') + '</td><td>'+ pt(rdata.other.ps) + '</td><td>--</td>\
                         <td style="text-align: center;">--</td>\
                         <td class="text-right"><a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/other.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
@@ -1790,10 +1790,10 @@ function wafAreaLimitRender(){
         var str = [];
         $.each(obj, function (index, item) {
             if (item == 1) {
-                if (index == 'allsite') index = '所有站点';
-                if (index == '海外') index = '中国大陆以外的地区(包括[港,澳,台])';
-                if (index == '中国') index = '中国大陆(不包括[港,澳,台])';
-                str.push(index);
+                if (index == 'allsite') index = pt('所有站点');
+                if (index == '海外') index = pt('中国大陆以外的地区(包括[港,澳,台])');
+                if (index == '中国') index = pt('中国大陆(不包括[港,澳,台])');
+                str.push(pt(index));
             }
         });
         return str.toString();
@@ -1801,7 +1801,7 @@ function wafAreaLimitRender(){
     api.post('get_area_limit', {}, function(rdata) {
         var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
-            layer.msg(rdata.msg, { icon: 2, time: 2000 });
+            layer.msg(pt(rdata.msg), { icon: 2, time: 2000 });
             return;
         }
 
@@ -1976,7 +1976,7 @@ function wafAreaLimit(){
                     for (var i = 0; i < rlist.length; i++) {
                         var tval = rlist[i];
                         if (tval != 'unset' && tval != 'ALL'){
-                            var t = {name:tval,value:tval};
+                            var t = {name:pt(tval),value:tval};
                             pdata.push(t);
                         }
                     }
