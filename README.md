@@ -95,6 +95,109 @@
 
 ---
 
+## 🐧 系统兼容性
+
+> 完整的分组件验证矩阵（面板 / OpenResty / PHP 各版本 / MySQL 各版本）见 [`compatibility.md`](compatibility.md)。
+
+### ✅ 已验证支持
+
+| 发行版家族 | 已验证版本 | 面板 | OpenResty | PHP | MySQL |
+| --- | --- | --- | --- | --- | --- |
+| Debian | 10 / 11 / 12 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu | 18.04 / 20.04 / 22.04 / 24.04 | ✅ | ✅ | ✅ | ✅ |
+| CentOS | 7.9 / 8.4 / 8 Stream / 9 Stream | ✅ | ✅ | ✅ | ✅ |
+| AlmaLinux | 9 | ✅ | ✅ | ✅ | ✅ |
+| RockyLinux | 8.6 | ✅ | ✅ | ✅ | ✅ |
+| Fedora | 31 / 32 | ✅ | ✅ | ✅ | ✅ |
+| Arch Linux | rolling | ✅ | ✅ | ✅ | ✅ |
+| openSUSE | 15.4 | ✅ | ✅ | ✅ | ✅ |
+| openEuler | 22.03 | ✅ | ✅ | ✅ | ✅ |
+| Amazon Linux | 检测与安装已适配 | ✅ | ✅ | ✅ | ✅ |
+| Anolis OS | 已映射至 RHEL 分支 | ✅ | ✅ | ✅ | ✅ |
+
+> Deepin、Raspbian 等 Debian 衍生版会通过 `ID_LIKE=debian` 自动走 Debian 分支。
+
+### ⚠️ 待适配 / 未验证
+
+以下版本**面板本体可以装上并运行**，但存在明确缺口，尚未纳入验证矩阵。
+
+#### Debian 13 (trixie) —— 可安装，但存在 5 个系统包缺口
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| `libncurses5` / `libncurses5-dev` | `scripts/install/debian.sh:69` | Debian 13 已移除该包，需改用 `libncurses-dev` |
+| `libpcre3` / `libpcre3-dev` | `scripts/install/debian.sh:73` | PCRE1 已 EOL，需改用 `libpcre2-dev` |
+| `libaio1` | `scripts/install/debian.sh:69` | 已更名为 `libaio1t64`（脚本内已有软链兜底） |
+| `which` 命令依赖 | 全仓约 49 处调用 | Debian 13 默认不安装 `which`，考虑统一改为 `command -v` |
+| 面板更新检测 | `web/utils/system/update.py:34` | 依赖的 `distutils` 已被 Python 3.12 移除，导致**新版本永不提示**（静默失效），考虑改用 `packaging.version` |
+| Python 3.13 依赖分档 | `requirements.txt` / `version/` | 现有分档文件仅覆盖 3.6–3.8，3.13 未验证；且清单中含 14 个零引用的历史依赖 |
+| MySQL 5.5 源码编译 | `plugins/mysql/versions/5.5/install.sh:163` | 脚本显式判定 trixie 无法编译并退出（设计限制，非 Bug） |
+| PHP 5.2–5.6 源码编译 | — | 老 OpenSSL / 编译器组合在 trixie 上未验证 |
+| Docker 镜像 | `docker/Dockerfile:1` | 基础镜像仍为 `debian:12-slim`，未跟进 13 |
+
+> **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
+
+#### Debian 14 (forky) / Ubuntu 26.04 (resolute)
+
+包含 Debian 13 的全部缺口，另外：
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| 工具链适配缺失 | `plugins/mysql/versions/*/install.sh` | 目前仅有针对 Debian 13 的硬编码分支 `Install_dep_debain13()`，更新的版本无对应适配 |
+| t64 库名变更 | `scripts/install/ubuntu.sh:60` | 与 Debian 13 相同的 `libaio1` → `libaio1t64` 问题 |
+| 第三方源可用性未验证 | `plugins/php-apt/install.sh:101` | sury（Debian）/ ondrej（Ubuntu）对新版本 PHP 包的覆盖范围未实测 |
+
+#### CentOS / AlmaLinux / Rocky 10 (EL10)
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| Remi 源硬编码 el9 | `scripts/install/rhel.sh:52` | `VERSION_ID == "9"` 为精确匹配，EL10 不会自动安装 Remi 源 |
+| EPEL / Remi el10 可用性 | — | 需确认第三方源是否已发布 el10 版本 |
+| 包清单未区分 el10 | `scripts/install/rhel.sh:170+` | 仅按 `VERSION_ID >= 8` 分支，未处理 el10 的包名变更 |
+
+#### Fedora 33+ / openEuler 24.x 及更新版本
+
+| 缺失部分 | 说明 |
+| --- | --- |
+| 未纳入验证矩阵 | `compatibility.md` 仅覆盖 Fedora 31/32 与 openEuler 22.03 |
+| 第三方源未验证 | `plugins/php-yum/install.sh:73` 虽按版本号动态拼接 Remi 源地址，但新版 Fedora 的可用性未实测 |
+
+#### Alpine Linux
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| OS 识别缺失 | `scripts/getos.sh` | 无 `Alpine` 分支，会被识别为 `unknow` |
+| 插件生态未验证 | `scripts/install/alpine.sh` | 已存在安装脚本，但 PHP / MySQL / OpenResty 等插件未验证 |
+
+#### Aliyun / Alibaba Cloud Linux
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| 安装脚本缺失 | `scripts/install/` | `getos.sh:25` 可输出 `OSNAME=aliyun`，但目录下**没有 `aliyun.sh`**，安装流程会因找不到脚本而中断 |
+| 主流程识别不一致 | `scripts/install.sh` | 主流程的 OS 判断中没有 `Aliyun` 分支，与 `getos.sh` 的识别结果不一致 |
+
+> 阿里云生态：若发行版基于 Anolis，会被映射到 RHEL 分支正常工作；
+> 若 `/etc/os-release` 为 `ID=alinux` / `ID=aliyun`，则需补一份 `scripts/install/aliyun.sh`（可直接软链至 `rhel.sh`）。
+
+### ❌ 已明确不支持（EOL）
+
+| 发行版 | 拦截位置 | 说明 |
+| --- | --- | --- |
+| CentOS 6 及更早 | `deploy.sh:314` | 显式拒绝安装 |
+| Debian 9 及更早 | `deploy.sh:330` | 显式拒绝（要求 ≥ Debian 10） |
+| Ubuntu 16.04 及更早 | `deploy.sh:322` | 显式拒绝（要求 ≥ Ubuntu 16） |
+| 32 位系统 | `deploy.sh:283` | 仅支持 64 位 |
+
+### 🧭 关于适配方式
+
+上述缺口的共同根因是「按版本打补丁」的适配方式（如 `Install_dep_debain13()`、`VERSION_ID == "13"` 等硬编码分支），
+维护成本会随发行版数量线性增长。完整的改进方案见
+[`文档/Debian-Ubuntu全版本适配方案.md`](文档/Debian-Ubuntu全版本适配方案.md)：
+核心思路是从「枚举版本号」改为「探测能力」——依赖声明式清单 + 运行时解析，
+新增发行版只需改清单、不改代码。
+
+---
+
 ## 🆕 最新更新
 
 - **插件升级**：全面升级「御风OP防火墙 1.5（企业级 Web 安全防护引擎）」，进行深度性能调优与系统负载减负：
@@ -251,26 +354,26 @@ root@debian:/root# bs
   python3 plugins/mysql/index.py check_plugin_upgrade
   # 或直接手动触发全量环境自愈报告
   python3 plugins/mysql/index.py upgrade_self_healing
-
+  
   # MariaDB 插件：检测版本跃迁并执行单次自愈迁移
   python3 plugins/mariadb/index.py check_plugin_upgrade
   # 或直接手动触发全量环境自愈报告
   python3 plugins/mariadb/index.py upgrade_self_healing
-
+  
   # Redis 插件：检测版本跃迁并执行单次自愈迁移（校准 systemd、清理 apt 冲突、PID 自愈）
   python3 plugins/redis/index.py check_plugin_upgrade
   # 或直接手动触发全量环境自愈报告
   python3 plugins/redis/index.py upgrade_self_healing
-
+  
   # PHP 源码版插件：检测版本跃迁并执行单次自愈迁移（三级容灾拉起、动态库环境加固、孤儿 Socket 清理）
   python3 plugins/php/index.py check_plugin_upgrade
   # 或直接手动触发全量/指定版本环境自愈报告（支持如 74、80、81）
   python3 plugins/php/index.py upgrade_self_healing
-
+  
   # PHP-APT 插件 (Debian/Ubuntu)：运行环境健全、重置 systemd 失败状态、清理孤儿套接字
   python3 plugins/php-apt/index.py check_plugin_upgrade
   python3 plugins/php-apt/index.py upgrade_self_healing
-
+  
   # PHP-YUM 插件 (RHEL/CentOS/Rocky)：Remi 运行目录健全、重置 systemd 失败状态、清理孤儿套接字
   python3 plugins/php-yum/index.py check_plugin_upgrade
   python3 plugins/php-yum/index.py upgrade_self_healing
@@ -309,7 +412,7 @@ root@debian:/root# bs
 1. **定义插件大版本与标记文件**：
    ```python
    CURRENT_PLUGIN_VERSION = '2.0'
-
+   
    def getPluginVersionFile():
        return getPluginDir() + '/plugin_version.pl'
    ```
@@ -318,7 +421,7 @@ root@debian:/root# bs
    def _migrate_1_to_2(version=''):
        # 执行从 1.x 升级到 2.0 所需的数据库 ALTER TABLE、配置校准等自愈动作
        return upgradeSelfHealing(version)
-
+   
    # 迁移流水线：(目标大版本, 迁移执行函数)
    # 后续升级（如 2.1、3.0）只需按版本递增顺序在此追加注册，扩展性极佳
    PLUGIN_MIGRATION_STEPS = [
