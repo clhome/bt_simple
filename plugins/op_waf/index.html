@@ -323,13 +323,19 @@
 		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
 		</div>
-        <div id="yufeng-footer" style="position: absolute; bottom: 10px; right: 25px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10; pointer-events: none; background: rgba(255,255,255,0.7); padding: 2px 6px; border-radius: 4px;">
+        <div id="yufeng-footer" data-i18n="衢州御风科技有限公司 出品" style="position: absolute; bottom: 10px; right: 25px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10; pointer-events: none; background: rgba(255,255,255,0.7); padding: 2px 6px; border-radius: 4px;">
             <span style="opacity: 0.8;">衢州御风科技有限公司 出品</span>
         </div>
 	</div>
 
 </div>
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') ? window.YfI18n.createPluginTranslator('op_waf') : function(k){return k;};
+
+function updateYufengFooter() {
+    $('#yufeng-footer span').text(pt('衢州御风科技有限公司 出品'));
+}
+
 // 劫持全局的 pluginSetService，用于同步且无延迟地在服务面板中追加 WAF 特有说明和规则统计
 if (typeof window._original_pluginSetService === 'undefined') {
     window._original_pluginSetService = window.pluginSetService;
@@ -344,9 +350,12 @@ if (typeof window._original_pluginSetService === 'undefined') {
 }
 
 $(function() {
+    updateYufengFooter();
     $('.bt-w-menu p').on('click', function(){
-        if($(this).text() !== '功能介绍') {
+        var oc = $(this).attr('onclick') || '';
+        if (oc.indexOf('wafIntro') === -1) {
             $('#yufeng-footer').show();
+            updateYufengFooter();
         } else {
             $('#yufeng-footer').hide();
         }
@@ -376,39 +385,39 @@ function renderWafAdditionalContent() {
     
     var explanatoryText = `
         <div style="margin-top: 15px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #20a53a; border-radius: 6px; font-size: 13px; color: #4b5563; line-height: 1.6; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;">
-            <div style="font-weight: 600; margin-bottom: 8px; color: #111827; font-size: 14px;">💡 服务操作说明</div>
-            <div style="margin-bottom: 4px;"><b style="color:#111827;">重启</b>：仅重新启动底层的 Nginx 进程。适合服务假死时的快速恢复，或者测试您手动修改的底层 Lua 脚本。</div>
-            <div><b style="color:#111827;">重载配置</b>：重新将面板的所有 JSON 规则编译为 Lua 脚本并重启 Nginx。若您通过 SSH 手动修改了配置，请务必点击此按钮以完整生效。（注：日常在面板中修改规则会自动重载，无需手动点击）</div>
+            <div style="font-weight: 600; margin-bottom: 8px; color: #111827; font-size: 14px;">` + pt('💡 服务操作说明') + `</div>
+            <div style="margin-bottom: 4px;"><b style="color:#111827;">` + pt('重启') + `</b>` + pt('：仅重新启动底层的 Nginx 进程。适合服务假死时的快速恢复，或者测试您手动修改的底层 Lua 脚本。') + `</div>
+            <div><b style="color:#111827;">` + pt('重载配置') + `</b>` + pt('：重新将面板的所有 JSON 规则编译为 Lua 脚本并重启 Nginx。若您通过 SSH 手动修改了配置，请务必点击此按钮以完整生效。（注：日常在面板中修改规则会自动重载，无需手动点击）') + `</div>
         </div>
     `;
 
     var html = explanatoryText + `
         <div class="waf-rules-dashboard" style="margin-top: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; background-color: #fafafa;">
-            <h4 style="margin-top: 0; margin-bottom: 12px; color: #333; font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px;">🛡️ 核心过滤规则统计</h4>
+            <h4 style="margin-top: 0; margin-bottom: 12px; color: #333; font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px;">` + pt('🛡️ 核心过滤规则统计') + `</h4>
             <div style="display: flex; gap: 10px; align-items: stretch;">
                 <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
-                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="GET 参数过滤规则">GET 参数过滤规则</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-args">33</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="` + pt('GET 参数过滤规则') + `">` + pt('GET 参数过滤规则') + `</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-args">33</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">` + pt('条') + `</span></div>
                     <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">args.json</div>
                 </div>
                 <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
-                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="POST 参数过滤规则">POST 参数过滤规则</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-post">29</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="` + pt('POST 参数过滤规则') + `">` + pt('POST 参数过滤规则') + `</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-post">29</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">` + pt('条') + `</span></div>
                     <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">post.json</div>
                 </div>
                 <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
-                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Cookie 过滤规则">Cookie 过滤规则</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-cookie">26</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="` + pt('Cookie 过滤规则') + `">` + pt('Cookie 过滤规则') + `</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-cookie">26</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">` + pt('条') + `</span></div>
                     <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">cookie.json</div>
                 </div>
                 <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
-                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="URL 过滤规则">URL 过滤规则</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-url">14</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="` + pt('URL 过滤规则') + `">` + pt('URL 过滤规则') + `</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-url">14</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">` + pt('条') + `</span></div>
                     <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">url.json</div>
                 </div>
                 <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
-                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="User-Agent 过滤规则">User-Agent 过滤规则</div>
-                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-user_agent">13</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="` + pt('User-Agent 过滤规则') + `">` + pt('User-Agent 过滤规则') + `</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-user_agent">13</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">` + pt('条') + `</span></div>
                     <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">user_agent.json</div>
                 </div>
             </div>
@@ -461,89 +470,89 @@ function wafIntro() {
     </style>
     <div class="intro-container">
         <div class="intro-header">
-            <h2>🛡️ 御风 OP 安全防护引擎 V1.0</h2>
-            <p style="margin-top: 10px; font-size: 14px; color: #666;">深度优化的高性能 Web 应用防火墙，为您提供企业级安全防护，拦截各类复杂渗透攻击，全方位守护站点安全。</p>
+            <h2>` + pt('🛡️ 御风 OP 安全防护引擎 V1.0') + `</h2>
+            <p style="margin-top: 10px; font-size: 14px; color: #666;">` + pt('深度优化的高性能 Web 应用防火墙，为您提供企业级安全防护，拦截各类复杂渗透攻击，全方位守护站点安全。') + `</p>
         </div>
         
         <div class="intro-section">
-            <div class="intro-title"><span class="icon">🔍</span> 基础防御体系</div>
-            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">作为一款轻量级却功能强大的 WAF，已全面具备以下传统防护能力：</p>
+            <div class="intro-title"><span class="icon">🔍</span> ` + pt('基础防御体系') + `</div>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">` + pt('作为一款轻量级却功能强大的 WAF，已全面具备以下传统防护能力：') + `</p>
             <ul class="intro-list">
-                <li><span class="highlight">常见渗透防护：</span>有效拦截常见的 SQL 注入、XSS 跨站脚本攻击、一句话木马上传等。</li>
-                <li><span class="highlight">恶意扫描器拦截：</span>自动识别并阻断各类常见扫描器（如 sqlmap, awvs 等）的恶意探测。</li>
-                <li><span class="highlight">多维度特征过滤：</span>支持从 URL、GET/POST 参数、Cookie、User-Agent 等多个 HTTP 维度进行精准特征匹配。</li>
+                <li><span class="highlight">` + pt('常见渗透防护：') + `</span>` + pt('有效拦截常见的 SQL 注入、XSS 跨站脚本攻击、一句话木马上传等。') + `</li>
+                <li><span class="highlight">` + pt('恶意扫描器拦截：') + `</span>` + pt('自动识别并阻断各类常见扫描器（如 sqlmap, awvs 等）的恶意探测。') + `</li>
+                <li><span class="highlight">` + pt('多维度特征过滤：') + `</span>` + pt('支持从 URL、GET/POST 参数、Cookie、User-Agent 等多个 HTTP 维度进行精准特征匹配。') + `</li>
             </ul>
         </div>
 
         <div class="intro-section">
-            <div class="intro-title"><span class="icon">🛡️</span> 攻克传统 WAF 痛点 (核心进化)</div>
-            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">针对现代互联网复杂多变的攻击手法，我们进行了深度的针对性底层优化：</p>
+            <div class="intro-title"><span class="icon">🛡️</span> ` + pt('攻克传统 WAF 痛点 (核心进化)') + `</div>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">` + pt('针对现代互联网复杂多变的攻击手法，我们进行了深度的针对性底层优化：') + `</p>
             <ul class="intro-list">
                 <li>
-                    <span class="highlight">智能动态信誉系统：</span>首创阶梯式信誉扣分机制（满分100分，<b>所有违规扣分在 24 小时内累计计算</b>）。短期频控（例如违规6次封禁3分钟）与长效信誉系统（分数扣满直接拉黑24小时）完美联动。这种组合防御既提供了极高的容错率防误伤，又对持续跨周期渗透的黑产实现致命“连坐”封锁。<span class="tag-safe">高级防御</span>
+                    <span class="highlight">` + pt('智能动态信誉系统：') + `</span>` + pt('首创阶梯式信誉扣分机制（满分100分，') + `<b>` + pt('所有违规扣分在 24 小时内累计计算') + `</b>` + pt('）。短期频控（例如违规6次封禁3分钟）与长效信誉系统（分数扣满直接拉黑24小时）完美联动。这种组合防御既提供了极高的容错率防误伤，又对持续跨周期渗透的黑产实现致命“连坐”封锁。') + `<span class="tag-safe">` + pt('高级防御') + `</span>
                     <table class="intro-table">
                         <thead>
                             <tr>
-                                <th>拦截类型</th>
-                                <th>单次违规扣分</th>
-                                <th>24小时内累计触发 封杀条件</th>
+                                <th>` + pt('拦截类型') + `</th>
+                                <th>` + pt('单次违规扣分') + `</th>
+                                <th>` + pt('24小时内累计触发 封杀条件') + `</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>CC 攻击频控拦截</td>
-                                <td style="color:#f59e0b; font-weight:bold;">- 5 分</td>
-                                <td>累计违规 20 次</td>
+                                <td>` + pt('CC 攻击频控拦截') + `</td>
+                                <td style="color:#f59e0b; font-weight:bold;">` + pt('- 5 分') + `</td>
+                                <td>` + pt('累计违规 20 次') + `</td>
                             </tr>
                             <tr>
-                                <td>User-Agent (伪造浏览器/爬虫)</td>
-                                <td style="color:#f97316; font-weight:bold;">- 10 分</td>
-                                <td>累计违规 10 次</td>
+                                <td>` + pt('User-Agent (伪造浏览器/爬虫)') + `</td>
+                                <td style="color:#f97316; font-weight:bold;">` + pt('- 10 分') + `</td>
+                                <td>` + pt('累计违规 10 次') + `</td>
                             </tr>
                             <tr>
-                                <td>恶意扫描器拦截 (Scan)</td>
-                                <td style="color:#ef4444; font-weight:bold;">- 15 分</td>
-                                <td>累计违规 7 次</td>
+                                <td>` + pt('恶意扫描器拦截 (Scan)') + `</td>
+                                <td style="color:#ef4444; font-weight:bold;">` + pt('- 15 分') + `</td>
+                                <td>` + pt('累计违规 7 次') + `</td>
                             </tr>
                             <tr>
-                                <td>核心攻击检测 (SQL注入/XSS等)</td>
-                                <td style="color:#ef4444; font-weight:bold;">- 15 分</td>
-                                <td>累计违规 7 次</td>
+                                <td>` + pt('核心攻击检测 (SQL注入/XSS等)') + `</td>
+                                <td style="color:#ef4444; font-weight:bold;">` + pt('- 15 分') + `</td>
+                                <td>` + pt('累计违规 7 次') + `</td>
                             </tr>
                             <tr>
-                                <td>高危蜜罐探测 (Honeypot)</td>
-                                <td style="color:#b91c1c; font-weight:bold;">- 100 分</td>
-                                <td>1 次 (零容忍秒封)</td>
+                                <td>` + pt('高危蜜罐探测 (Honeypot)') + `</td>
+                                <td style="color:#b91c1c; font-weight:bold;">` + pt('- 100 分') + `</td>
+                                <td>` + pt('1 次 (零容忍秒封)') + `</td>
                             </tr>
                         </tbody>
                     </table>
                 </li>
-                <li><span class="highlight">自动化高危蜜罐探测：</span>防御不再是被动挨打！内置并支持自定义诱导性敏感路径（如 <code>/.env</code>、<code>/.git/</code>）。一旦扫描器或黑客尝试触碰这些虚假目标，信誉分瞬间归零，零容忍立刻封禁24小时，将攻击扼杀于摇篮之中。<span class="tag-safe">主动防御</span></li>
-                <li><span class="highlight">真实客户端追踪：</span>引入 <code>trusted_proxy</code> 机制严密校验可信代理池，防范 CDN 场景下的 <code>X-Forwarded-For</code> 伪造欺骗，精准锁定攻击者真实物理源。</li>
-                <li><span class="highlight">JSON 深度解析拦截：</span>突破传统正则在复杂 API 接口下的盲区，支持最高 10 层深度的 JSON Body 提取与审查，让深层嵌套攻击无处遁形。</li>
-                <li><span class="highlight">精准封禁与极速解封：</span>重构底层拦截字典逻辑，彻底剥离“观察期IP”与“真实封杀IP”。面板实时展示真实确凿的拦截名单，并提供即时的一键释放清零功能，状态同步瞬间直达底层引擎。</li>
+                <li><span class="highlight">` + pt('自动化高危蜜罐探测：') + `</span>` + pt('防御不再是被动挨打！内置并支持自定义诱导性敏感路径（如') + ` <code>/.env</code>、<code>/.git/</code>` + pt('）。一旦扫描器或黑客尝试触碰这些虚假目标，信誉分瞬间归零，零容忍立刻封禁24小时，将攻击扼杀于摇篮之中。') + `<span class="tag-safe">` + pt('主动防御') + `</span></li>
+                <li><span class="highlight">` + pt('真实客户端追踪：') + `</span>` + pt('引入') + ` <code>trusted_proxy</code> ` + pt('机制严密校验可信代理池，防范 CDN 场景下的') + ` <code>X-Forwarded-For</code> ` + pt('伪造欺骗，精准锁定攻击者真实物理源。') + `</li>
+                <li><span class="highlight">` + pt('JSON 深度解析拦截：') + `</span>` + pt('突破传统正则在复杂 API 接口下的盲区，支持最高 10 层深度的 JSON Body 提取与审查，让深层嵌套攻击无处遁形。') + `</li>
+                <li><span class="highlight">` + pt('精准封禁与极速解封：') + `</span>` + pt('重构底层拦截字典逻辑，彻底剥离“观察期IP”与“真实封杀IP”。面板实时展示真实确凿的拦截名单，并提供即时的一键释放清零功能，状态同步瞬间直达底层引擎。') + `</li>
             </ul>
         </div>
 
         <div class="intro-section">
-            <div class="intro-title"><span class="icon">⚡</span> 极致性能优化</div>
+            <div class="intro-title"><span class="icon">⚡</span> ` + pt('极致性能优化') + `</div>
             <ul class="intro-list">
-                <li><span class="highlight">IP 匹配引擎革命：</span>彻底废弃低效的线性循环遍历，全量引入基于 Radix Tree 的 <code>lua-resty-ipmatcher</code> 算法引擎。即使面对十万乃至百万级海量黑IP库，也能在极微秒（µs）级别完成高速匹配，完全消除庞大规则库带来的性能损耗。<span class="tag-perf">算力飞跃</span></li>
-                <li><span class="highlight">PCRE JIT 正则加速：</span>全局正则表达式启用了 JIT (即时编译) 和编译缓存，在百万级并发 QPS 场景下极大降低 CPU 计算开销。</li>
-                <li><span class="highlight">大文件流式截断防 OOM：</span>智能识别大文件上传特征，仅提取关键前 64KB 进行恶意样本比对，从物理根源上彻底杜绝读取超大文件导致 Nginx 内存暴涨崩溃的隐患。</li>
-                <li><span class="highlight">防共享内存雪崩：</span>优化大流量下的并发写入与读取逻辑，在遭遇每秒数万次海量 CC 或恶意扫描时，有效防止共享字典（Dict）爆满导致的规则失效瘫痪。</li>
+                <li><span class="highlight">` + pt('IP 匹配引擎革命：') + `</span>` + pt('彻底废弃低效的线性循环遍历，全量引入基于 Radix Tree 的') + ` <code>lua-resty-ipmatcher</code> ` + pt('算法引擎。即使面对十万乃至百万级海量黑IP库，也能在极微秒（µs）级别完成高速匹配，完全消除庞大规则库带来的性能损耗。') + `<span class="tag-perf">` + pt('算力飞跃') + `</span></li>
+                <li><span class="highlight">` + pt('PCRE JIT 正则加速：') + `</span>` + pt('全局正则表达式启用了 JIT (即时编译) 和编译缓存，在百万级并发 QPS 场景下极大降低 CPU 计算开销。') + `</li>
+                <li><span class="highlight">` + pt('大文件流式截断防 OOM：') + `</span>` + pt('智能识别大文件上传特征，仅提取关键前 64KB 进行恶意样本比对，从物理根源上彻底杜绝读取超大文件导致 Nginx 内存暴涨崩溃的隐患。') + `</li>
+                <li><span class="highlight">` + pt('防共享内存雪崩：') + `</span>` + pt('优化大流量下的并发写入与读取逻辑，在遭遇每秒数万次海量 CC 或恶意扫描时，有效防止共享字典（Dict）爆满导致的规则失效瘫痪。') + `</li>
             </ul>
         </div>
 
         <div class="intro-section" style="background-color: #f8fafc; border-color: #e2e8f0;">
-            <div class="intro-title"><span class="icon">💡</span> 衢州御风科技给您的安心承诺</div>
+            <div class="intro-title"><span class="icon">💡</span> ` + pt('衢州御风科技给您的安心承诺') + `</div>
             <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0;">
-                本次御风OP防火墙基于大量实战攻防经验，进行了多维度底层安全与性能优化。我们充分考虑了各种可能拖垮服务或被绕过的边缘场景。所有规则对您站点的常规业务 <span class="highlight">零侵入</span>，保证低延迟与高可用。您可以放心开启各项防御功能，享受丝滑且坚固的安全防线！
+                ` + pt('本次御风OP防火墙基于大量实战攻防经验，进行了多维度底层安全与性能优化。我们充分考虑了各种可能拖垮服务或被绕过的边缘场景。所有规则对您站点的常规业务') + ` <span class="highlight">` + pt('零侵入') + `</span>` + pt('，保证低延迟与高可用。您可以放心开启各项防御功能，享受丝滑且坚固的安全防线！') + `
             </p>
         </div>
         
         <div class="intro-footer company-tips">
-            衢州御风科技有限公司 出品
+            ` + pt('衢州御风科技有限公司 出品') + `
         </div>
     </div>
     `;

@@ -359,7 +359,7 @@ function removeRule(ruleName, index) {
         'index': index,
         'ruleName': ruleName
     }
-    safeMessage(pt('删除规则'), '您真的要删除这条过滤规则吗？', function () {
+    safeMessage(pt('删除规则'), pt('您真的要删除这条过滤规则吗？'), function () {
         api.post('remove_rule', pdata, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -465,13 +465,13 @@ function cdnEnhancedRule() {
         }
         create_l = layer.open({
             type: 1,
-            title: "CDN增强检测 - 可信代理设置",
+            title: pt("CDN增强检测 - 可信代理设置"),
             area: ['500px', '500px'],
             closeBtn: 1,
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                    <input class="bt-input-text" name="trusted_proxy_ip" type="text" value="" style="width:380px;margin-right:15px;margin-left:5px" placeholder="CDN节点IP或CIDR，如 10.0.0.0/8">\
+                    <input class="bt-input-text" name="trusted_proxy_ip" type="text" value="" style="width:380px;margin-right:15px;margin-left:5px" placeholder="' + pt('CDN节点IP或CIDR，如 10.0.0.0/8') + '">\
                     <button class="btn btn-success btn-sm va0 pull-right" onclick="addTrustedProxy();">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="trustedProxyAdmin" style="max-height:273px;overflow:auto;border:#ddd 1px solid">\
@@ -497,7 +497,7 @@ function cdnEnhancedRule() {
 
 function addTrustedProxy() {
     var pdata = { ip: $("input[name='trusted_proxy_ip']").val() };
-    if (!pdata.ip) { layer.msg("IP不能为空"); return; }
+    if (!pdata.ip) { layer.msg(pt("IP不能为空")); return; }
     api.post('add_trusted_proxy', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -622,14 +622,14 @@ function funDownload(content, filename) {
 function outputLayer(rdata, name, type) {
     window.Load_layer = layer.open({
         type: 1,
-        title: type ? "导出数据" : "导入数据",
+        title: type ? pt("导出数据") : pt("导入数据"),
         area: ['400px', '370px'],
         shadeClose: false,
         content: '<div class="soft-man-con" style="padding:10px;">' +
             '<div class="line">' +
             '<div class="ml0" style="position:relative;" id="focus_tips">' +
             '<textarea class="bt-input-text mr20 config" name="config" style="width: 300px; height: 250px; line-height: 22px; display: none;" id="lead_data">' + (rdata != '' ? JSON.stringify(rdata) : '') + '</textarea>' +
-            '<div class="placeholder c9" style="top: 15px; left: 15px; display:' + (rdata == "" ? "block;" : "none;") + '">导入格式如下：' +
+            '<div class="placeholder c9" style="top: 15px; left: 15px; display:' + (rdata == "" ? "block;" : "none;") + '">' + pt('导入格式如下：') +
             (name == 'ip_white' || name == 'ip_black' ? "[[[127, 0, 0, 1],[127, 0, 0, 255]],[[192, 0, 0, 1],[192, 0, 0, 255]]]" : "[\"^/test\",\"^/web\"]") +
             '</div>' +
             '</div>' +
@@ -890,7 +890,7 @@ function confirmAddIpBlackArgs(ip) {
     layer.confirm('<div style="line-height:22px; font-size:13px;">' +
         '<b>' + pt('是否确认将该 IP 永久拉黑？') + '</b><br><br>' +
         '<span style="color:#666;">' + pt('加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。') + '<br><br>' +
-        '后续如需解除封禁，请前往面板的 <b>' + pt('全局配置 ➔ IP黑名单') + '</b> ' + pt('进行手动删除解封。') + '</span></div>', 
+        pt('后续如需解除封禁，请前往面板的 <b>') + pt('全局配置 ➔ IP黑名单') + '</b> ' + pt('进行手动删除解封。') + '</span></div>', 
     {
         title:  pt('永久拉黑确认'),
         icon: 3,
@@ -969,7 +969,7 @@ function ipBlack(type) {
             </div>\
             <div class="pd15 ipv6_block">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                    <input class="bt-input-text" name="ipv6_address" type="text" style="width:380px;margin-right:15px;margin-left:5px" placeholder="ipv6地址">\
+                    <input class="bt-input-text" name="ipv6_address" type="text" style="width:380px;margin-right:15px;margin-left:5px" placeholder="' + pt('ipv6地址') + '">\
                     <button class="btn btn-success btn-sm va0 btn_add_ipv6" style="margin-left:15px;">' + pt('添加') + '</button>\
                 </div>\
                 <div class="divtable">\
@@ -1166,7 +1166,7 @@ function wafGloabl(){
                     </tr>\
                     <tr>\
                         <td>' + pt('强制安全验证') + '</td>\
-                        <td>'+rdata.safe_verify.ps+'</td>\
+                        <td>'+pt(rdata.safe_verify.ps)+'</td>\
                         <td>--</td>\
                         <td style="text-align: center;"><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="close_safe_verify" type="checkbox" '+(rdata.safe_verify.open ? 'checked' : '')+'>\
@@ -1176,7 +1176,7 @@ function wafGloabl(){
                     </tr>\
                     <tr>\
                         <td>' + pt('GET-URI过滤') + '</td>\
-                        <td>'+ rdata.get.ps + '</td>\
+                        <td>'+ pt(rdata.get.ps) + '</td>\
                         <td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td>\
                         <td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeget" type="checkbox" '+ (rdata.get.open ? 'checked' : '') + '>\
@@ -1185,37 +1185,37 @@ function wafGloabl(){
                         <td class="text-right"><a class="btlink" onclick="setObjConf(\'url\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('GET-参数过滤') + '</td><td>'+ rdata.get.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('GET-参数过滤') + '</td><td>'+ pt(rdata.get.ps) + '</td><td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeget" type="checkbox" '+ (rdata.get.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closeget" onclick="setObjOpen(\'get\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'args\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('POST过滤') + '</td><td>'+ rdata.post.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'post\',' + rdata.post.status + ')">' + rdata.post.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('POST过滤') + '</td><td>'+ pt(rdata.post.ps) + '</td><td><a class="btlink" onclick="setRequestCode(\'post\',' + rdata.post.status + ')">' + rdata.post.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closepost" type="checkbox" '+ (rdata.post.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closepost" onclick="setObjOpen(\'post\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'post\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/post.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('User-Agent过滤') + '</td><td>'+ rdata['user-agent'].ps + '</td><td><a class="btlink" onclick="setRequestCode(\'user-agent\',' + rdata['user-agent'].status + ')">' + rdata['user-agent'].status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('User-Agent过滤') + '</td><td>'+ pt(rdata['user-agent'].ps) + '</td><td><a class="btlink" onclick="setRequestCode(\'user-agent\',' + rdata['user-agent'].status + ')">' + rdata['user-agent'].status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeua" type="checkbox" '+ (rdata['user-agent'].open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closeua" onclick="setObjOpen(\'user-agent\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'user_agent\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/user_agent.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('Cookie过滤') + '</td><td>'+ rdata.cookie.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'cookie\',' + rdata.cookie.status + ')">' + rdata.cookie.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('Cookie过滤') + '</td><td>'+ pt(rdata.cookie.ps) + '</td><td><a class="btlink" onclick="setRequestCode(\'cookie\',' + rdata.cookie.status + ')">' + rdata.cookie.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecookie" type="checkbox" '+ (rdata.cookie.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closecookie" onclick="setObjOpen(\'cookie\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'cookie\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/cookie.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>' + pt('常见扫描器') + '</td><td>'+ rdata.scan.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'scan\',' + rdata.scan.status + ')">' + rdata.scan.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('常见扫描器') + '</td><td>'+ pt(rdata.scan.ps) + '</td><td><a class="btlink" onclick="setRequestCode(\'scan\',' + rdata.scan.status + ')">' + rdata.scan.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closescan" type="checkbox" '+ (rdata.scan.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closescan" onclick="setObjOpen(\'scan\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="scanRule()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td><span style="color:#ff5722; font-weight:bold;">' + pt('蜜罐') + '</span><br><span style="font-size:10px;color:#999;">' + pt('强检测') + '</span></td><td>'+ (rdata.honeypot ? rdata.honeypot.ps : '自动蜜罐防护，拦截自动扫描器和嗅探脚本') + '</td><td><a class="btlink" onclick="setRequestCode(\'honeypot\',' + (rdata.honeypot ? rdata.honeypot.status : 444) + ')">' + (rdata.honeypot ? rdata.honeypot.status : 444) + '</a></td><td><div class="ssh-item">\
+                        <td><span style="color:#ff5722; font-weight:bold;">' + pt('蜜罐') + '</span><br><span style="font-size:10px;color:#999;">' + pt('强检测') + '</span></td><td>'+ pt(rdata.honeypot ? rdata.honeypot.ps : '自动蜜罐防护，拦截自动扫描器和嗅探脚本') + '</td><td><a class="btlink" onclick="setRequestCode(\'honeypot\',' + (rdata.honeypot ? rdata.honeypot.status : 444) + ')">' + (rdata.honeypot ? rdata.honeypot.status : 444) + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closehoneypot" type="checkbox" '+ ((rdata.honeypot && rdata.honeypot.open) ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closehoneypot" onclick="setObjOpen(\'honeypot\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="setHoneypotDialog()">' + pt('设置') + '</a></td>\
@@ -1344,22 +1344,22 @@ function siteRuleAdmin(siteName, ruleName, type) {
     var title = '';
     switch (ruleName) {
         case 'disable_php_path':
-            placeho = 'URI地址,支持正则表达式';
+            placeho = pt('URI地址,支持正则表达式');
             ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
             title='' + pt('禁止运行PHP的URL地址') + ''
             break;
         case 'disable_path':
-            placeho = 'URI地址,支持正则表达式';
+            placeho = pt('URI地址,支持正则表达式');
             ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
             title='' + pt('禁止访问的URL地址') + ''
             break;
         case 'disable_ext':
-            placeho = '扩展名，不包含点(.)，示例：sql';
+            placeho = pt('扩展名，不包含点(.)，示例：sql');
             ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止访问*.sql文件：sql') + '</li>'
             title='' + pt('禁止访问的扩展名') + ''
             break;
         case 'disable_upload_ext':
-            placeho = '扩展名，不包含点(.)，示例：sql';
+            placeho = pt('扩展名，不包含点(.)，示例：sql');
             ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止上传*.php文件：php') + '</li>'
             title='' + pt('禁止上传的文件类型') + ''
             break;
@@ -1420,7 +1420,7 @@ function cdnHeader(siteName, type) {
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                    <input class="bt-input-text" name="cdn_header_key" type="text" value="" style="width:400px;margin-right:15px;margin-left:5px" placeholder="header名称">\
+                    <input class="bt-input-text" name="cdn_header_key" type="text" value="" style="width:400px;margin-right:15px;margin-left:5px" placeholder="' + pt('header名称') + '">\
                     <button class="btn btn-success btn-sm va0 pull-right" onclick="addCdnHeader(\''+ siteName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="cdnHeader" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
@@ -1465,7 +1465,7 @@ function addCdnHeader(siteName) {
     }
 
     if (pdata['cdn_header'] == '') {
-        layer.msg('header不能为空');
+        layer.msg(pt('header不能为空'));
         $("input[name='cdn_header_key']").focus();
         return;
     }
@@ -1519,7 +1519,7 @@ function setSiteObjConf(siteName, ruleName, type) {
     if (type == undefined) {
         create_l = layer.open({ 
             type: 1,
-            title:  pt("编辑网站【") + siteName + "】规则【" + ruleName + "】",
+            title:  pt("编辑网站【") + siteName + pt("】规则【") + ruleName + "】",
             area: ['700px', '530px'],
             closeBtn: 1,
             shadeClose: false,
@@ -1737,12 +1737,12 @@ function wafSite(){
             tbody += '<tr>\
                     <td><a onclick="siteWafConfig(\''+ k + '\')" class="sitename btlink" title="' + k + '">' + k + '</a></td>\
                     <td><input onclick="setSiteObjState(\''+ k + '\',\'curl_protection\')" type="checkbox" ' + (v.curl_protection ? 'checked' : '') + '></td>\
-                    <td><input onclick="setSiteObjState(\''+ k + '\',\'get\')" type="checkbox" ' + ((v.get === true || v.get.open) ? 'checked' : '') + '><span class="' + back_css(v.total[1].value) + '" title="拦截GET渗透次数:' + v.total[1].value + '">' + v.total[1].value + '</span></td>\
-                    <td><input onclick="setSiteObjState(\''+ k + '\',\'post\')"  type="checkbox" ' + ((v.post === true || v.post.open) ? 'checked' : '') + '><span class="' + back_css(v.total[0].value) + '"  title="拦截POST渗透次数:' + v.total[0].value + '">' + v.total[0].value + '</span></td>\
-                    <td><input onclick="setSiteObjState(\''+ k + '\',\'user-agent\')"  type="checkbox" ' + ((v['user-agent'] === true || v['user-agent'].open) ? 'checked' : '') + '><span class="' + back_css(v.total[3].value) + '" title="拦截恶意User-Agent次数:' + v.total[3].value + '">' + v.total[3].value + '</span></td>\
-                    <td><input onclick="setSiteObjState(\''+ k + '\',\'cookie\')"  type="checkbox" ' + ((v.cookie === true || v.cookie.open) ? 'checked' : '') + '><span class="' + back_css(v.total[4].value) + '" title="拦截Cookie渗透次数:' + v.total[4].value + '">' + v.total[4].value + '</span></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'get\')" type="checkbox" ' + ((v.get === true || v.get.open) ? 'checked' : '') + '><span class="' + back_css(v.total[1].value) + '" title="' + pt('拦截GET渗透次数:') + v.total[1].value + '">' + v.total[1].value + '</span></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'post\')"  type="checkbox" ' + ((v.post === true || v.post.open) ? 'checked' : '') + '><span class="' + back_css(v.total[0].value) + '"  title="' + pt('拦截POST渗透次数:') + v.total[0].value + '">' + v.total[0].value + '</span></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'user-agent\')"  type="checkbox" ' + ((v['user-agent'] === true || v['user-agent'].open) ? 'checked' : '') + '><span class="' + back_css(v.total[3].value) + '" title="' + pt('拦截恶意User-Agent次数:') + v.total[3].value + '">' + v.total[3].value + '</span></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'cookie\')"  type="checkbox" ' + ((v.cookie === true || v.cookie.open) ? 'checked' : '') + '><span class="' + back_css(v.total[4].value) + '" title="' + pt('拦截Cookie渗透次数:') + v.total[4].value + '">' + v.total[4].value + '</span></td>\
                     <td><input onclick="setSiteObjState(\''+ k + '\',\'cdn\')"  type="checkbox" ' + (v.cdn ? 'checked' : '') + '></td>\
-                    <td><input onclick="setSiteObjState(\''+ k + '\',\'cc\')"  type="checkbox" ' + (v.cc.open ? 'checked' : '') + '><span class="' + back_css(v.total[2].value) + '" title="拦截CC攻击次数:' + v.total[2].value + '">' + v.total[2].value + '</span></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'cc\')"  type="checkbox" ' + (v.cc.open ? 'checked' : '') + '><span class="' + back_css(v.total[2].value) + '" title="' + pt('拦截CC攻击次数:') + v.total[2].value + '">' + v.total[2].value + '</span></td>\
                     <td>\
                         <div class="ssh-item" style="margin-left:0">\
                             <input class="btswitch btswitch-ios" id="closeget_'+ i + '" type="checkbox" ' + (v.open ? 'checked' : '') + '>\
@@ -1810,7 +1810,7 @@ function wafAreaLimitRender(){
 
         for (var i = 0; i < rlist.length; i++) {
             var op = '';
-            var type = rlist[i]['types'] === 'refuse' ? '拦截' : '只放行';
+            var type = rlist[i]['types'] === 'refuse' ? pt('拦截') : pt('只放行');
             var region_str = keyVal(rlist[i]['region']);
             var site_str = keyVal(rlist[i]['site']);
 
@@ -2090,7 +2090,7 @@ function wafLogRequest(page){
             var time = getLocalTime(res.time);
             layer.open({
                 type: 1,
-                title: "【"+res.domain + "】详情",
+                title: "【"+res.domain + "】" + pt("详情"),
                 area: '600px',
                 closeBtn: 1,
                 shadeClose: false,
@@ -2171,7 +2171,7 @@ function wafLogs(site){
                 layer.msg(pt("没有数据可导出"), {icon: 2});
                 return;
             }
-            var csv = "\uFEFF时间,域名,IP,URI,规则名,原因\n";
+            var csv = "\uFEFF" + [pt('时间'), pt('域名'), 'IP', 'URI', pt('规则名'), pt('原因')].join(',') + "\n";
             for(var i=0; i<data.length; i++) {
                 var d = data[i];
                 csv += getLocalTime(d.time) + "," + d.domain + "," + d.ip + "," + '"' + entitiesEncode(d.uri||'').replace(/"/g, '""') + '",' + d.rule_name + "," + '"' + entitiesEncode(d.reason||'').replace(/"/g, '""') + '"\n';
@@ -2180,7 +2180,7 @@ function wafLogs(site){
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = "封锁历史_" + args['site'] + ".csv";
+            a.download = pt("封锁历史_") + args['site'] + ".csv";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2397,14 +2397,14 @@ function wafDropIpList() {
                                     if (org) locParts.push(org);
                                     
                                     var finalStr = locParts.join('_');
-                                    if (!finalStr) finalStr = '未知';
+                                    if (!finalStr) finalStr = pt('未知');
                                     
                                     locCache[item.query] = finalStr;
                                     var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
                                     $('#' + pId).html(finalStr);
                                 } else if (item && item.query) {
                                     var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
-                                    $('#' + pId).html('局域网/保留地址');
+                                    $('#' + pId).html(pt('局域网/保留地址'));
                                 }
                             }
                             localStorage.setItem('waf_ip_loc_cache', JSON.stringify(locCache));
@@ -2417,7 +2417,7 @@ function wafDropIpList() {
 }
 
 function releaseDropIp(ip) {
-    layer.confirm(pt('确定要释放并清空该 IP') + ' (' + ip + ') 的所有惩罚记录吗？', {title:  pt('释放 IP'), icon: 3}, function(index) {
+    layer.confirm(pt('确定要释放并清空该 IP') + ' (' + ip + pt(') 的所有惩罚记录吗？'), {title:  pt('释放 IP'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg(pt('正在释放...'), {icon: 16, time: 0, shade: 0.3});
         api.post('removeDropIp', {ip: ip}, function(res_raw) {
@@ -2474,7 +2474,7 @@ function showDropIpLogs(ip) {
 
         layer.open({
             type: 1,
-            title: 'IP [' + ip + '] 最近 50 条拦截行为',
+            title: 'IP [' + ip + '] ' + pt('最近 50 条拦截行为'),
             area: ['800px', '500px'],
             content: tableHtml
         });

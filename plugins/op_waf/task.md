@@ -141,3 +141,11 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
   - `[x]` 4.1 在 `test/` 编写测试脚本验证 Lua 引擎解析、后端 API 交互及规则重新编译
   - `[x]` 4.2 清理测试阶段临时文件并验收
 
+### 需求 22：御风 OP 防火墙全量多语言适配修复
+- `[x]` 任务 1：扩展 6 国语言包字典（`zh-CN.json`, `zh-TW.json`, `en.json`, `de.json`, `fr.json`, `it.json`），补充全局配置防护项描述、服务说明、规则统计及排查出的所有缺失词条。
+- `[x]` 任务 2：重构 `plugins/op_waf/index.html` 中的 `renderWafAdditionalContent()`，将服务说明及规则统计全面通过 `pt(...)` 动态生成。
+- `[x]` 任务 3：重构 `plugins/op_waf/index.html` 中的 `wafIntro()`，将功能介绍全文各元素全面通过 `pt(...)` 动态生成，并支持原生切换。
+- `[x]` 任务 4：修复 `plugins/op_waf/index.html` 中的 `#yufeng-footer` 出品人署名，绑定 `data-i18n` 与 `pt()` 动态国际化。
+- `[x]` 任务 5：重构 `plugins/op_waf/js/op_waf.js` 中的 `wafGloabl()` 表格渲染，将所有 `rdata.*.ps` 描述包裹 `pt(...)`，并补全排查出的 30+ 处未包裹 `pt(...)` 的字符串。
+- `[x]` 任务 6：编写自动化测试脚本 `test/test_op_waf_full_i18n.py` 进行全面回归验证，清理临时排查文件。
+
