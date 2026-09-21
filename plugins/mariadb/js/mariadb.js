@@ -221,7 +221,7 @@ function setMySQLConf() {
         var setSize = parseInt($("input[name='memSize']").val());
         
         if(memSize < setSize){
-            var errMsg = "错误,内存分配过高!<p style='color:red;'>" + pt('物理内存: {1}MB') + "<br>" + pt('最大使用内存: {2}MB') + "<br>" + pt('可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!');
+            var errMsg = pt('错误,内存分配过高!') + "<p style='color:red;'>" + pt('物理内存: {1}MB') + "<br>" + pt('最大使用内存: {2}MB') + "<br>" + pt('可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!');
             var msg = errMsg.replace('{1}',memSize).replace('{2}',setSize);
             layer.msg(msg,{icon:2,time:5000});
             return;
@@ -447,7 +447,7 @@ function setRootPwd(type, pwd){
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('root密码') + '</span>\
+                        <span class='tname'>" + pt('root密码') + "</span>\
                         <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
                             <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                         </div>\
@@ -677,11 +677,11 @@ function setDbPass(id, username, password){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('用户名') + '</span>\
+                        <span class='tname'>" + pt('用户名') + "</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
@@ -715,7 +715,7 @@ function addDatabase(type){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('数据库名') + '</span>\
+                        <span class='tname'>" + pt('数据库名') + "</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:65%' value=''>\
                         <select class='bt-input-text mr5 codeing_a5nGsm' name='codeing' style='width:27%'>\
                             <option value='utf8mb4'>utf8mb4</option>\
@@ -725,18 +725,18 @@ function addDatabase(type){
                         </select>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
+                    <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('访问权限') + '</span>\
+                        <span class='tname'>" + pt('访问权限') + "</span>\
                         <div class='info-r '>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                            <option value=\"%\">' + pt('所有人') + '</option>\
-                            <option value='ip'>' + pt('指定IP') + '</option>\
+                            <option value='127.0.0.1'>" + pt('本地服务器') + "</option>\
+                            <option value=\"%\">" + pt('所有人') + "</option>\
+                            <option value='ip'>" + pt('指定IP') + "</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -779,7 +779,7 @@ function addDatabase(type){
 }
 
 function delDb(id, name){
-    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除【{1}】吗？'),[name]),function(){
         var data='id='+id+'&name='+name
         api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -811,7 +811,7 @@ function delDbBatch(){
             i++;
         }
         
-        var msg = '成功删除['+i+']个数据库!';
+        var msg = msgTpl(pt('成功删除[{1}]个数据库!'),[i]);
         showMsg(msg,function(){
             dbList();
         },{icon: 1}, 600);
@@ -975,7 +975,7 @@ function showImportLogModal(dbName, fileName, isSuccess, logText, onFinish){
 }
 
 function importBackup(file,name){
-    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),msgTpl(pt('当前操作会覆盖[{1}]数据库，是否继续？'),[name]),function(){
         var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
             icon: 16,
             shade: [0.3, '#000'],
@@ -999,7 +999,7 @@ function importBackup(file,name){
 }
 
 function importDbExternal(file,name){
-    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),msgTpl(pt('当前操作会覆盖[{1}]数据库，是否继续？'),[name]),function(){
         var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
             icon: 16,
             shade: [0.3, '#000'],
@@ -1807,9 +1807,9 @@ function addMasterRepSlaveUser(){
         shadeClose: true,
         btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
+            <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>' + pt('密码') + '</span>\
+            <span class='tname'>" + pt('密码') + "</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
@@ -1863,14 +1863,14 @@ function updateMasterRepSlaveUser(username, password){
         shift: 5,
         shadeClose: true,
         content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
+            <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>' + pt('密码') + '</span>\
+            <span class='tname'>" + pt('密码') + "</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >' + pt('提交') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >" + pt('提交') + "</button>\
             </div>\
           </form>",
     });
@@ -1909,7 +1909,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line' style='word-wrap: break-word;word-break: normal;'>"+cmd+"</div>\
             <div class='bt-form-submit-btn' style='text-align:center;'>\
-                <button type='button' class='btn btn-success btn-sm btn-title'>' + pt('选择其中一个复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title'>" + pt('选择其中一个复制') + "</button>\
             </div>\
           </form>",
         });
@@ -2072,7 +2072,7 @@ function getMasterRepSlaveListPage(){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
                     <div><table class='table table-hover'>\
-                        <thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>" + pt('用户名') + "</th><th>" + pt('密码') + "</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2117,7 +2117,7 @@ function getFullSyncStatus(db){
             }
 
             dataSource = "<p class='line' style='text-align:center;'>\
-                <span>' + pt('同步数据源：') + '</span>\
+                <span>" + pt('同步数据源：') + "</span>\
                 <select class='bt-input-text' name='data_source' style='width:200px;'>" + sourceList + "</select>\
             </p>";
         }
@@ -2135,8 +2135,8 @@ function getFullSyncStatus(db){
                         </div>\
                     </div>\
                     <div class='table_toolbar' style='left:0px;'>\
-                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>' + pt('开始') + '</span>\
-                        <span data-status='init' class='btn btn-default btn-sm' id='full_sync_cmd'>' + pt('手动命令') + '</span>\
+                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>" + pt('开始') + "</span>\
+                        <span data-status='init' class='btn btn-default btn-sm' id='full_sync_cmd'>" + pt('手动命令') + "</span>\
                     </div>\
                 </div>",
             cancel: function(){ 
@@ -2232,7 +2232,7 @@ function dataSyncVerify(db){
 
     layer.open({
         type: 1,
-        title: pt('同步数据库[')+db+']数据校验',
+        title: msgTpl(pt('同步数据库[{1}]数据校验'),[db]),
         area: '500px',
         btn:[ "开始","取消","手动"],
         content:"<div class='bt-form'>\
@@ -2311,7 +2311,7 @@ function addSlaveSSH(ip=''){
             btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('端口') + "</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
                 <div class='line'><span class='tname'>" + pt('同步账户[DB]') + "</span><div class='info-r'><input name='db_user'  placeholder='为空则取第一个!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
@@ -2445,14 +2445,14 @@ function addSlaveSyncUser(ip=''){
             btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('同步账户') + '</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('同步密码') + '</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('端口') + "</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('同步账户') + "</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('同步密码') + "</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('同步模式') + '</span>\
+                    <span class='tname'>" + pt('同步模式') + "</span>\
                     <div class='info-r'>\
                         <select class='bt-input-text mr5' name='mode'>\
-                            <option value='0' "+( mode == '0' ? 'selected="selected"' : '')+">' + pt('经典') + '</option>\
+                            <option value='0' "+( mode == '0' ? 'selected="selected"' : '')+">" + pt('经典') + "</option>\
                             <option value='1' "+( mode == '1' ? 'selected="selected"' : '')+">GTID</option>\
                         </select>\
                     </div>\
@@ -2580,18 +2580,18 @@ function getSlaveCfg(){
             area: ['400px','180px'],
             content:"<div class='bt-form pd20 c6'>\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>' + pt('当前从库同步模式') + '</span>\
+                        <span class='f14 c6 mr20'>" + pt('当前从库同步模式') + "</span>\
                         <b class='f14 c6 mr20'></b>\
-                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>' + pt('无') + '</button>\
+                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>" + pt('无') + "</button>\
                         <button class='btn btn-"+mode_ssh+" btn-xs slave-db-mode btn-ssh'>SSH</button>\
-                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>' + pt('同步账户') + '</button>\
+                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>" + pt('同步账户') + "</button>\
                     </p>\
                     <hr />\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>' + pt('配置设置') + '</span>\
+                        <span class='f14 c6 mr20'>" + pt('配置设置') + "</span>\
                         <b class='f14 c6 mr20'></b>\
                         <button class='btn btn-success btn-xs btn-slave-ssh'>SSH</button>\
-                        <button class='btn btn-success btn-xs btn-slave-user'>' + pt('同步账户') + '</button>\
+                        <button class='btn btn-success btn-xs btn-slave-user'>" + pt('同步账户') + "</button>\
                     </p>\
                 </div>",
             success:function(){
@@ -2639,7 +2639,7 @@ function getSlaveUserList(){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>' + pt('同步密码') + '</th><th>CMD</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>" + pt('同步账户') + "</th><th>" + pt('同步密码') + "</th><th>CMD</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2663,7 +2663,7 @@ function getSlaveSSHList(page=1){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>SSH</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>" + pt('同步账户') + "</th><th>SSH</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2686,7 +2686,7 @@ function handlerRun(){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>" + pt('复制') + "</button>\
             </div>\
           </form>",
         });
@@ -2780,7 +2780,7 @@ function masterOrSlaveConf(version=''){
                     isHasSign = true;
                 }
 
-                var status = "<a data-id="+i+" class='btlink db_error'>' + pt('异常') + '</>";
+                var status = "<a data-id="+i+" class='btlink db_error'>" + pt('异常') + "</>";
                 if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
                     status = "正常";
                 }
@@ -2850,16 +2850,16 @@ function masterOrSlaveConf(version=''){
 
                 var err_line = "";
                 err_line +="<tr>\
-                    <td>' + pt('IO错误') + '</td>\
+                    <td>" + pt('IO错误') + "</td>\
                     <td>"+ (info['Last_IO_Error'] == '' ? '无':info['Last_IO_Error'])+"</td>\
                 </tr>";
                 err_line +="<tr>\
-                    <td>' + pt('SQL错误') + '</td>\
+                    <td>" + pt('SQL错误') + "</td>\
                     <td>"+(info['Last_SQL_Error'] == '' ? '无':info['Last_SQL_Error'])+"</td>\
                 </tr>";
 
                 err_line +="<tr>\
-                    <td>' + pt('状态') + '</td>\
+                    <td>" + pt('状态') + "</td>\
                     <td>"+(info['Slave_SQL_Running_State'] == '' ? '无':info['Slave_SQL_Running_State']) +"</td>\
                 </tr>";
 
@@ -2878,8 +2878,8 @@ function masterOrSlaveConf(version=''){
                         <div class='tablescroll'>\
                             <table class='table table-hover' width='100%' cellspacing='0' cellpadding='0' border='0' style='border: 0 none;'>\
                             <thead><tr>\
-                                <th style='width:80px;'>' + pt('类型') + '</th>\
-                                <th>' + pt('内容') + '</th>\
+                                <th style='width:80px;'>" + pt('类型') + "</th>\
+                                <th>" + pt('内容') + "</th>\
                             </tr></thead>\
                             <tbody>"+ err_line +"</tbody>\
                             </table>\

@@ -18,7 +18,7 @@ function varnishStatus() {
         layer.close(loadT);
         if (!data.status){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + pt('Varnish 状态获取失败：') + data.msg + '。请检查 Varnish 服务是否已启动并正常运行。</div>';
+            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + msgTpl(pt('Varnish 状态获取失败：{1}。请检查 Varnish 服务是否已启动并正常运行。'), [data.msg]) + '</div>';
             $(".soft-man-con").html(errorCon);
             return;
         }
@@ -156,7 +156,7 @@ function varnishPluginConfig(_name, version, func){
                 <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
                 <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>' + pt('此处为')+ _name + version +'主配置文件,若您不了解配置规则,请勿随意修改。</li>\
+                    <li>' + msgTpl(pt('此处为 {1} 主配置文件,若您不了解配置规则,请勿随意修改。'), [_name + (version ? ' ' + version : '')]) + '</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 

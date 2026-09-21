@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "MB,最大使用内存,0表示不限制": "Mo, utilisation maximale de la mémoire, 0 signifie aucune limite",
     "Redis历史分配内存的峰值": "Pics historiques d'allocation de mémoire dans Redis",
     "Redis密码包含非法字符！建议仅包含字母、数字与常用安全符号": "Somalie",
@@ -25,7 +24,6 @@
     "内存碎片比率": "Taux de fragmentation de la mémoire",
     "刷新": "Actualiser",
     "参数 [": "Paramètres [",
-    "参数:(": "Nom de domaine du serveur",
     "发送": "Messages envoyés",
     "同步主库地址": "Synchroniser l'adresse de la bibliothèque principale",
     "同步主库密码": "Synchroniser le mot de passe de la base de données principale",
@@ -67,9 +65,7 @@
     "第一个字节偏移量": "Décalage du premier octet",
     "绑定IP地址格式不合法！": "Le format d'adresse IP contraignant est illégal !",
     "绑定端口": "Lier le port",
-    "自启动": "démarrage automatique",
     "节点信息": "Informations sur les nœuds",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Slots assignés",
     "被分配的槽状态": "État des slots assignés",
     "角色": "Rôle",
@@ -104,7 +100,8 @@
     "清空运行日志失败": "Échec de l'effacement du journal",
     "日志已清空": "Journal effacé avec succès",
     "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Le journal Redis enregistre uniquement le cycle de vie (démarrage/arrêt), les instantanés RDB/AOF et les erreurs. Les écritures/lectures de données normales n'y sont pas inscrites.",
-    "当前暂无新增运行日志": "Aucun nouveau journal pour le moment",
     "提示": "Indication",
-    "正在清空...": "Effacement en cours..."
+    "正在清空...": "Effacement en cours...",
+    "正在保存配置并应用...": "Enregistrement de la configuration et application...",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

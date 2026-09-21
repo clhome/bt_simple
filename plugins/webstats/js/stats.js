@@ -552,7 +552,7 @@ function initRealtimeTraffic(){
         check_realtime_second = 10;
         $('#check_realtime_second').val(check_realtime_second);
     }
-    var title="' + pt('每秒请求') + '";
+    var title="" + pt('每秒请求') + "";
     if (check_realtime_second > 1){
         title='' + pt('每') + ''+check_realtime_second+'秒请求'
     }
@@ -2213,7 +2213,7 @@ function wsTableLogRequest(page){
                 var spider_tip = '';
                 if (data[i]['is_spider']>0){
                     spider_tip_name = spider_table[data[i]['is_spider']]
-                    spider_tip = '<div data-toggle="tooltip" title="'+spider_tip_name+'爬虫" style="cursor:pointer;margin:3px;float:left;width:8px;height:8px;line-height:40px;border-radius:50%;background-color:#ccc;"></div>';
+                    spider_tip = '<div data-toggle="tooltip" title="'+msgTpl(pt('{1}爬虫'), [pt(spider_tip_name)])+'" style="cursor:pointer;margin:3px;float:left;width:8px;height:8px;line-height:40px;border-radius:50%;background-color:#ccc;"></div>';
                 }
 
                 list += '<tr>';

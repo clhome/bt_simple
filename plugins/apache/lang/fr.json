@@ -1,12 +1,10 @@
 {
-    ")没有!": ")Non!",
     "15分钟负载(Load15)": "Charge de 15 minutes (Load15)",
     "1分钟负载(Load1)": "Charge d'une minute (Load1)",
     "5分钟负载(Load5)": "Charge de 5 minutes (Load5)",
     "CPU用户时间(CPUUser)": "Temps utilisateur du processeur (CPUUser)",
     "CPU系统时间(CPUSystem)": "Heure système du processeur (CPUSystem)",
     "CPU负载(CPULoad)": "Charge du processeur (CPULoad)",
-    "ERROR: 配置出错": "ERREUR : erreur de configuration",
     "MPM性能调整": "Optimisation des performances MPM",
     "apache异常!": "Erreur Apache !",
     "{1}{2}服务{3}失败!": "{1}{2} Le service {3} a échoué !",
@@ -28,7 +26,6 @@
     "删除检查任务失败:": "Échec de la suppression de la tâche de vérification :",
     "删除检查任务成功": "La suppression de la tâche de vérification a réussi",
     "刷新": "Actualiser",
-    "参数:(": "Nom de domaine du serveur",
     "参数值错误,请输入数字整数": "Valeur de paramètre incorrecte. Veuillez saisir un nombre entier.",
     "同时活跃的最大工作线程数": "Nombre maximum de threads de travail actifs simultanément",
     "启动": "Démarrer",
@@ -74,8 +71,6 @@
     "线程服务的最大连接数": "Le nombre maximum de connexions pour le service de thread",
     "维护功能": "Fonction d'entretien",
     "维护的服务器进程数": "Nombre de processus serveur maintenus",
-    "自启动": "démarrage automatique",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "设置成功": "Configuration réussie",
     "负载状态": "État de la charge",
     "还原默认配置": "Rétablir la configuration par défaut",
@@ -84,5 +79,6 @@
     "重启": "Redémarrer",
     "重启时间(RestartTime)": "Heure de redémarrage (RestartTime)",
     "重载": "Recharger",
-    "错误日志": "journal des erreurs"
+    "错误日志": "journal des erreurs",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

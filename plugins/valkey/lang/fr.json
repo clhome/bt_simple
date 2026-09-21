@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "3 节点": "3 nœuds",
     "MB,最大使用内存,0表示不限制": "Mo, utilisation maximale de la mémoire, 0 signifie aucune limite",
     "Valkey历史分配内存的峰值": "Pics historiques d'allocation de mémoire par Valkey",
@@ -21,7 +20,6 @@
     "关闭": "Fermer",
     "内存碎片比率": "Taux de fragmentation de la mémoire",
     "刷新": "Actualiser",
-    "参数:(": "Nom de domaine du serveur",
     "发送": "envoyer",
     "同步主库地址": "Synchroniser l'adresse de la bibliothèque principale",
     "同步主库密码": "Synchroniser le mot de passe de la base de données principale",
@@ -63,9 +61,7 @@
     "空闲链接超时时间,0表示不断开": "Délai d'expiration du lien inactif, 0 signifie aucune déconnexion",
     "第一个字节偏移量": "décalage du premier octet",
     "绑定端口": "Lier le port",
-    "自启动": "démarrage automatique",
     "节点信息": "Informations sur le nœud",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Gestion des conteneurs PostgreSQL",
     "被分配的槽状态": "statut d'emplacement attribué",
     "角色": "Rôle",
@@ -84,5 +80,6 @@
     "配置修改": "Modification de configuration",
     "集群当前epoch": "L'époque actuelle du cluster",
     "集群状态": "État du cluster",
-    "集群节点": "nœud de cluster"
+    "集群节点": "nœud de cluster",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

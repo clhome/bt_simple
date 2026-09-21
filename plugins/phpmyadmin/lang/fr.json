@@ -1,19 +1,15 @@
 {
-    ")没有!": ")Non!",
     "80端不能使用!": "Le port 80 ne fonctionne pas !",
     "PHP版本": "Version PHP",
     "kill所有php进程": "tuer tous les processus php",
     "phpMyAdmin默认端口": "Port par défaut de phpMyAdmin",
     "phpmyadmin访问端口": "port d'accès phpmyadmin",
-    "root密码": "mot de passe root",
     "不能小于5位!": "Ne doit pas comporter moins de 5 chiffres !",
     "业务零中断": "Zéro interruption d’activité",
-    "主页": "Page d'accueil",
     "保存": "Enregistrer",
     "修改成功!": "Modifié avec succès!",
     "停止": "Arrêter",
     "内网地址：": "Adresse du réseau interne :",
-    "参数:(": "Nom de domaine du serveur",
     "启动": "Démarrer",
     "外网地址：": "Adresse Internet :",
     "安全设置": "Paramètres de sécurité",
@@ -34,7 +30,6 @@
     "用户名：": "Nom d'utilisateur :",
     "端口范围不合法!": "La plage de ports est illégale !",
     "著名Web端MySQL管理工具": "Célèbre outil de gestion MySQL côté Web",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "认证用户名": "Nom d'utilisateur d'authentification",
     "设置失败!": "Échec de l'installation !",
     "设置成功!": "Paramètres enregistrés!",
@@ -52,8 +47,8 @@
     "重载配置": "Configuration de surcharge",
     "重载配置 (Reload)": "Recharger la configuration (Recharger)",
     "错误日志": "journal des erreurs",
-    "，密码请前往": ", pour obtenir le mot de passe, rendez-vous sur",
     "，推荐日常修改配置后使用。": ", il est recommandé de l'utiliser après une modification quotidienne de la configuration.",
     "：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现": ": Chargez en douceur la dernière configuration. Le processus relit la configuration sans déconnecter la connexion existante, mis en œuvre",
-    "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。": ": Terminez et redémarrez de force tous les processus. Cela entraînera l'interruption momentanée des requêtes en cours (telles que la soumission d'une commande, le téléchargement de fichiers) et générera une erreur 502. Il n’est utilisé que dans de rares cas de récupération anormale."
+    "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。": ": Terminez et redémarrez de force tous les processus. Cela entraînera l'interruption momentanée des requêtes en cours (telles que la soumission d'une commande, le téléchargement de fichiers) et générera une erreur 502. Il n’est utilisé que dans de rares cas de récupération anormale.",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

@@ -53,7 +53,7 @@ function logsCon(id) {
 
 function deleteCon(Hostname) {
     // 删除容器
-    safeMessage(pt('删除容器 '), '删除容器 [' + Hostname + '], 确定?', function() {
+    safeMessage(pt('删除容器'), msgTpl(pt('删除容器 [{1}], 确定?'),[Hostname]), function() {
         api.post('docker_remove_con', '', { Hostname: Hostname }, function(rdata) {
             var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
@@ -280,7 +280,7 @@ function createConTemplate() {
                                 <input class="bt-input-text mr5 docker-mem" type="number" style="width:80px" value="' + parseInt(rdata.memSize / 2) + '" oninput="var p=parseInt(this.value / ' + rdata.memSize + ' * 100); $(this).siblings(\'.docker-mem-range\').val(p); $(this).siblings(\'.docker-mem-percent\').text(p + \'%\');">\
                                 <span class="dc-un">MB</span>\
                                 <span class="docker-mem-percent" style="margin-left: 10px; width: 40px; color: #666; font-weight: bold;">50%</span>\
-                                <i class="help" style="margin-left: 10px;">不超过总内存: ' + rdata.memSize + 'MB</i>\
+                                <i class="help" style="margin-left: 10px;">' + msgTpl(pt('不超过总内存: {1}MB'), [rdata.memSize]) + '</i>\
                             </div>\
                         </div>\
                         <div class="line">\
@@ -499,7 +499,7 @@ function dockerConList() {
 }
 
 function deleteImages(tag, id) {
-    safeMessage(pt('删除镜像'), '删除镜像[' + tag + '],确定？', function() {
+    safeMessage(pt('删除镜像'), msgTpl(pt('删除镜像[{1}],确定？'),[tag]), function() {
         api.post('docker_remove_image', '', { imageId: id, repoTags: tag }, function(rdata) {
             var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
@@ -793,7 +793,7 @@ function dockerDeleteFile(fileName) {
 
 function dockerLoadFile(fileName) {
     var shortName = fileName.replace(/\\/g, '/').split('/').pop();
-    layer.confirm(pt('确定要导入离线镜像包 [') + shortName + pt('] 吗？<br><small style="color:#999;">注意：导入大镜像包耗时较长，请勿刷新页面</small>'), { title: pt('导入镜像'), closeBtn: 2, icon: 3 }, function() {
+    layer.confirm(msgTpl(pt('确定要导入离线镜像包 [{1}] 吗？'),[shortName]) + '<br><small style="color:#999;">' + pt('注意：导入大镜像包耗时较长，请勿刷新页面') + '</small>', { title: pt('导入镜像'), closeBtn: 2, icon: 3 }, function() {
         var loadIdx = layer.msg(pt('正在解压并导入镜像，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
         api.post('image_pick_load', '', { file: fileName }, function(rdata) {
             layer.close(loadIdx);
@@ -1012,7 +1012,7 @@ function dockerImageOutput() {
 }
 
 function deleteIpList(address) {
-    safeMessage(pt('删除IP'), '你将删除从IP地址池[' + address + '],确定？', function() {
+    safeMessage(pt('删除IP'), msgTpl(pt('你将删除从IP地址池[{1}],确定？'),[address]), function() {
         api.post('docker_del_ip', '', { address: address }, function(rdata) {
             var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
@@ -1168,7 +1168,7 @@ function repoLogin() {
 
 
 function delRepo(address) {
-    safeMessage(pt('退出'), '你将退出 [' + address + '],确定?', function() {
+    safeMessage(pt('退出'), msgTpl(pt('你将退出 [{1}],确定?'),[address]), function() {
         api.post('docker_logout', '', { registry: address },
             function(rdata) {
                 var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
@@ -1273,7 +1273,7 @@ function dockerAccelerator() {
         window.default_docker_mirrors_str = default_mirrors.join('\n');
 
         var con = '<div style="padding: 10px 15px;">' +
-            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
+            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="' + pt('每行输入一个加速器 URL，例如：') + '\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
             '<div style="text-align:right; margin-bottom:5px;">' +
             '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">' + pt('还原默认') + '</button>' +
             '</div>' +
@@ -1545,7 +1545,7 @@ function dockerMigrate() {
         
         var req = rdata.data.required;
         var avail = rdata.data.available;
-        var msg = '当前Docker占用总空间为 <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>' + pt('迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到') + ' ' + new_path + ' 吗？';
+        var msg = pt('当前Docker占用总空间为') + ' <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>' + pt('迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到') + ' ' + new_path + ' ' + pt('吗？');
         
         safeMessage(pt('确认迁移 Docker 目录'), msg, function() {
             var loadT = layer.msg(pt('正在迁移数据，这可能需要很长时间，请勿刷新页面...'), { icon: 16, time: 0, shade: 0.3 });

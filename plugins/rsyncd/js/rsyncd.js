@@ -80,98 +80,98 @@ function createSendTask(name = ''){
             btn: [pt('提交'), pt('取消')], 
             content:"<form class='bt-form pd20' id='fromServerPath' accept-charset='utf-8'>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('服务器IP') + '</span>\
+                    <span class='tname'>" + pt('服务器IP') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='text' name='ip' placeholder='' + pt('请输入接收服务器IP') + '' value='"+data["ip"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='text' name='ip' placeholder='" + pt('请输入接收服务器IP') + "' value='"+data["ip"]+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('同步目录') + '</span>\
+                    <span class='tname'>" + pt('同步目录') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='' + pt('请选择同步目录') + '' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
+                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='" + pt('请选择同步目录') + "' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
                         <span data-toggle='tooltip' data-placement='top' title='【同步目录】若不以/结尾，则表示将数据同步到二级目录，一般情况下目录路径请以/结尾' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('同步方式') + '</span>\
+                    <span class='tname'>" + pt('同步方式') + "</span>\
                     <div class='info-r c4'>\
                         <select class='bt-input-text' name='delete' style='width:100px'>\
-                            <option value='false' "+delete_true+">' + pt('增量') + '</option>\
-                            <option value='true' "+delete_false+">' + pt('完全') + '</option>\
+                            <option value='false' "+delete_true+">" + pt('增量') + "</option>\
+                            <option value='true' "+delete_false+">" + pt('完全') + "</option>\
                         </select>\
-                        <span data-toggle='tooltip' data-placement='top' title='【同步方式】增量： 数据更改/增加时同步，且只追加和替换文件\n【同步方式】完全： 保持两端的数据与目录结构的一致性，会同步删除、追加和替换文件和目录' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
-                        <span style='margin-left: 20px;margin-right: 10px;'>' + pt('同步周期') + '</span>\
+                        <span data-toggle='tooltip' data-placement='top' title='" + pt('【同步方式】增量： 数据更改/增加时同步，且只追加和替换文件') + '\n' + pt('【同步方式】完全： 保持两端的数据与目录结构的一致性，会同步删除、追加和替换文件和目录') + "' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
+                        <span style='margin-left: 20px;margin-right: 10px;'>" + pt('同步周期') + "</span>\
                         <select class='bt-input-text synchronization' name='realtime' style='width:100px'>\
-                            <option value='true' "+realtime_true+">' + pt('实时同步') + '</option>\
-                            <option value='false' "+realtime_false+">' + pt('定时同步') + '</option>\
+                            <option value='true' "+realtime_true+">" + pt('实时同步') + "</option>\
+                            <option value='false' "+realtime_false+">" + pt('定时同步') + "</option>\
                         </select>\
                     </div>\
                 </div>\
                 <div class='line' id='period' style='height:45px;display:none;'>\
-                    <span class='tname'>' + pt('定时周期') + '</span>\
+                    <span class='tname'>" + pt('定时周期') + "</span>\
                     <div class='info-r c4'>\
                         <select class='bt-input-text pull-left mr20' name='period' style='width:100px;'>\
-                            <option value='day' "+period_day+">' + pt('每天') + '</option>\
-                            <option value='minute-n' "+period_minute_n+">' + pt('N分钟') + '</option>\
+                            <option value='day' "+period_day+">" + pt('每天') + "</option>\
+                            <option value='minute-n' "+period_minute_n+">" + pt('N分钟') + "</option>\
                         </select>\
                         <div class='plan_hms pull-left mr20 bt-input-text hour'>\
                             <span><input class='bt-input-text' type='number' name='hour' value='"+data["hour"]+"' maxlength='2' max='23' min='0'></span>\
-                            <span class='name'>' + pt('小时') + '</span>\
+                            <span class='name'>" + pt('小时') + "</span>\
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute'>\
                             <span><input class='bt-input-text' type='number' name='minute' value='"+data["minute"]+"' maxlength='2' max='59' min='0'></span>\
-                            <span class='name'>' + pt('分钟') + '</span>\
+                            <span class='name'>" + pt('分钟') + "</span>\
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute-n' style='display:none;'>\
                             <span><input class='bt-input-text' type='number' name='minute-n' value='"+data["minute-n"]+"' maxlength='2' max='59' min='0'></span>\
-                            <span class='name'>' + pt('分钟') + '</span>\
+                            <span class='name'>" + pt('分钟') + "</span>\
                         </div>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('限速') + '</span>\
+                    <span class='tname'>" + pt('限速') + "</span>\
                     <div class='info-r c4'>\
                         <input class='bt-input-text' type='number' name='bwlimit' min='0'  value='"+bwlimit+"' style='width:100px' /> KB\
                         <span data-toggle='tooltip' data-placement='top' title='【限速】限制数据同步任务的速度，防止因同步数据导致带宽跑高' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
-                        <span style='margin-left: 29px;margin-right: 10px;'>' + pt('延迟') + '</span><input class='bt-input-text' min='0' type='number' name='delay'  value='"+delay+"' style='width:100px' /> 秒\
+                        <span style='margin-left: 29px;margin-right: 10px;'>" + pt('延迟') + "</span><input class='bt-input-text' min='0' type='number' name='delay'  value='"+delay+"' style='width:100px' /> 秒\
                         <span data-toggle='tooltip' data-placement='top' title='【延迟】在延迟时间周期内仅记录不同步，到达周期后一次性同步数据，以节省开销' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('连接方式') + '</span>\
+                    <span class='tname'>" + pt('连接方式') + "</span>\
                     <div class='info-r c4'>\
                         <select class='bt-input-text' name='conn_type' style='width:100px'>\
-                            <option value='key'>' + pt('密钥') + '</option>\
-                            <option value='user'>' + pt('帐号') + '</option>\
+                            <option value='key'>" + pt('密钥') + "</option>\
+                            <option value='user'>" + pt('帐号') + "</option>\
                         </select>\
-                        <span style='margin-left: 45px;margin-right: 10px;'>' + pt('压缩传输') + '</span>\
+                        <span style='margin-left: 45px;margin-right: 10px;'>" + pt('压缩传输') + "</span>\
                         <select class='bt-input-text' name='compress' style='width:100px'>\
-                            <option value='true' "+compress_true+">' + pt('开启') + '</option>\
-                            <option value='false' "+compress_false+">' + pt('关闭') + '</option>\
+                            <option value='true' "+compress_true+">" + pt('开启') + "</option>\
+                            <option value='false' "+compress_false+">" + pt('关闭') + "</option>\
                         </select>\
                         <span data-toggle='tooltip' data-placement='top' title='【压缩传输】开启后可减少带宽开销，但会增加CPU开销，如带宽充足，建议关闭此选项' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
                 <div class='line conn-key'>\
-                    <span class='tname'>' + pt('接收密钥') + '</span>\
+                    <span class='tname'>" + pt('接收密钥') + "</span>\
                     <div class='info-r c4'>\
-                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='' + pt('此密钥为 接收配置[接收账号] 的密钥') + ''>"+data['secret_key']+"</textarea>\
+                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='" + pt('此密钥为 接收配置[接收账号] 的密钥') + "'>"+data['secret_key']+"</textarea>\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
-                    <span class='tname'>' + pt('用户名') + '</span>\
+                    <span class='tname'>" + pt('用户名') + "</span>\
                     <div class='info-r c4'>\
                         <input class='bt-input-text' type='text' name='u_user' min='0'  value='"+data["name"]+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r c4'>\
                         <input class='bt-input-text' type='text' name='u_pass' min='0'  value='"+data["password"]+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
-                    <span class='tname'>' + pt('端口') + '</span>\
+                    <span class='tname'>" + pt('端口') + "</span>\
                     <div class='info-r c4'>\
                         <input class='bt-input-text' type='number' name='u_port' min='0'  value='"+data["rsync"]["port"]+"' style='width:310px' />\
                     </div>\
@@ -218,8 +218,7 @@ function createSendTask(name = ''){
                         var mpath = $('input[name="path"]').val();
                         var msg = '<div><span style="color:orangered;">' + pt('警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，')
                             +'<br />' + pt('请确认目录设置是否有误，一但设置错误，可能导致目标机器的目录文件被删除!') + '</span>'
-                            +'<br /><br /> <span style="color:red;">' + pt('注意： 同步程序将本机目录：')
-                            +mpath+'的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!</span> <br /><br /> ' + pt('已了解风险，请按确定继续') + '</div>';
+                            +'<br /><br /> <span style="color:red;">' + msgTpl(pt('注意： 同步程序将本机目录：{1}的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!'), [mpath]) + '</span> <br /><br /> ' + pt('已了解风险，请按确定继续') + '</div>';
 
                         layer.confirm(msg,{title: pt('数据安全风险警告'),icon:2,closeBtn: 1,shift: 5,
                         btn2:function(){
@@ -328,7 +327,7 @@ function createSendTask(name = ''){
 }
 
 function lsyncdDelete(name){
-    safeMessage(pt('删除') + ' ['+name+']', '您真的要删除【'+name+'】吗？', function(){
+    safeMessage(pt('删除') + ' ['+name+']', msgTpl(pt('您真的要删除【{1}】吗？'),[name]), function(){
         var args = {};
         args['name'] = name;
         api.post('lsyncd_delete', args, function(rdata){
@@ -616,29 +615,29 @@ function addReceive(name = ""){
             btn: [pt('确认'), pt('取消')],
             content:"<div class='bt-form pd20 c6'>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('项目名') + '</span>\
+                    <span class='tname'>" + pt('项目名') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='' + pt('项目名') + '' style='width:200px' "+readonly+"/>\
+                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='" + pt('项目名') + "' style='width:200px' "+readonly+"/>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('密钥') + '</span>\
+                    <span class='tname'>" + pt('密钥') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='MyPassword' value='"+data["pwd"]+"' class='bt-input-text' type='text' name='pwd' placeholder='' + pt('密钥') + '' style='width:200px'/>\
-                        <span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
+                        <input id='MyPassword' value='"+data["pwd"]+"' class='bt-input-text' type='text' name='pwd' placeholder='" + pt('密钥') + "' style='width:200px'/>\
+                        <span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('同步到') + '</span>\
+                    <span class='tname'>" + pt('同步到') + "</span>\
                     <div class='info-r c4'>\
                         <input id='inputPath' value='"+data["path"]+"' class='bt-input-text' type='text' name='path' placeholder='/' style='width:200px'/>\
                         <span class='glyphicon glyphicon-folder-open cursor' onclick=\"changePath('inputPath')\"></span>\
                     </div>\
                 </div>\
                 <div class='line'>\
-                    <span class='tname'>' + pt('备注') + '</span>\
+                    <span class='tname'>" + pt('备注') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='' + pt('备注') + '' style='width:200px'/>\
+                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='" + pt('备注') + "' style='width:200px'/>\
                     </div>\
                 </div>\
             </div>",
@@ -667,7 +666,7 @@ function addReceive(name = ""){
 
 
 function delReceive(name){
-	safeMessage(pt('删除') + ' ['+name+']', '您真的要删除【'+name+'】吗？', function(){
+	safeMessage(pt('删除') + ' ['+name+']', msgTpl(pt('您真的要删除【{1}】吗？'),[name]), function(){
 		var _data = {};
 		_data['name'] = name;
 		api.post('del_rec', _data, function(data){

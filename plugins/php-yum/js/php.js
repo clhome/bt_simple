@@ -733,7 +733,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
 }
 
 function tunePhpConfig(version) {
-    layer.confirm(pt('您确定要对 PHP-') + version + pt(' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？'), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(msgTpl(pt('您确定要对 PHP-{1} 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？'),[version]), { icon: 3, closeBtn: 2 }, function() {
         api.post('tune_php_config', version, '', function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){

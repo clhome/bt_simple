@@ -8,8 +8,6 @@
     "一键手动诊断并重启修复指定 PHP 版本": "One-click manual diagnosis and restart to repair specified PHP version",
     "修复指令执行成功": "The repair command was executed successfully",
     "刷新日志": "Refresh Logs",
-    "加载日志失败：": "Failed to load the log:",
-    "加载日志失败：' + res.msg + '": "Failed to load log: ' + res.msg + '",
     "守护运行自愈日志": "Guardian running self-healing log",
     "已强杀并成功通过服务启动": "Killed by force and successfully started through the service",
     "已通过 init.d 重启": "Restarted via init.d",
@@ -28,7 +26,7 @@
     "自愈详情": "Self-healing details",
     "获取PHP守护状态及各PHP实例连通状态": "Obtain PHP daemon status and connection status of each PHP instance",
     "获取最近50条PHP守护自愈日志": "Get the latest 50 PHP guard self-healing logs",
-    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "衢州御风科技有限公司出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
-    "触发时间": "Trigger time"
+    "触发时间": "Trigger time",
+    "加载日志失败：{1}": "Failed to load the log: {1}"
 }

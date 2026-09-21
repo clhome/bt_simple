@@ -1,5 +1,4 @@
 {
-    ")没有!": ")No!",
     "* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写": "* Accurately identify the CDN network IP address. Please pay attention to capitalization. If you need more than one, please fill in a new line.",
     "* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写": "* Excluded IP addresses will not be recorded in the website logs and will not be counted toward PV, UV, or IP statistics; only the total number of requests and total traffic will be tallied. If you need to exclude multiple IP addresses, please list them on separate lines.",
     "* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数": "* Excluded requests are not written into website logs, and PV, UV, and IP are not counted. Only total requests and total traffic are accumulated.",
@@ -38,7 +37,6 @@
     "包括Yahoo,DuckDuckGo": "Including Yahoo,DuckDuckGo",
     "协议": "Protocol",
     "占用额外存储空间": "Takes up extra storage space",
-    "参数:(": "parameter:(",
     "取消": "Cancel",
     "同步成功!": "Synchronization successful!",
     "同步所有站点": "Synchronize All Sites",
@@ -150,7 +148,6 @@
     "蜘蛛列表为空": "Spider list is empty",
     "蜘蛛统计": "Spider Statistics",
     "蜘蛛过滤:": "Spider Filtering:",
-    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "记录403错误请求原文": "Log the original text of the 403 error request",
     "记录请求原文": "Record the original text of the request",
     "记录请求原文说明：HTTP请求原文包括客户端请求详细参数，有助于分析或排查异常请求；": "Description of the original request: The original HTTP request includes detailed client request parameters, which can help analyze or troubleshoot abnormal requests;",
@@ -173,5 +170,8 @@
     "遨游": "travel",
     "错误日志": "error log",
     "错误日志为空": "Error log is empty",
-    "，默认仅记录500错误请求原文。": ", By default, only 500 error requests are logged. (Original text.)"
+    "，默认仅记录500错误请求原文。": ", By default, only 500 error requests are logged. (Original text.)",
+    "{1}爬虫": "{1} Spider",
+    "记录POST请求原文": "Record raw POST request body",
+    "缺少必要参数:": "Missing required parameter:"
 }

@@ -1,5 +1,4 @@
 {
-    ")没有!": ") Nein!",
     "MB,最大使用内存,0表示不限制": "MB, maximal nutzbarer Arbeitsspeicher; 0 bedeutet keine Begrenzung",
     "Redis历史分配内存的峰值": "Historische Spitzenwerte bei der Speicherzuweisung in Redis",
     "Redis密码包含非法字符！建议仅包含字母、数字与常用安全符号": "Das Redis-Passwort enthält unzulässige Zeichen! Es wird empfohlen, nur Buchstaben, Ziffern und gängige Sicherheitszeichen zu verwenden.",
@@ -25,7 +24,6 @@
     "内存碎片比率": "Anteil der Speicherfragmentierung",
     "刷新": "Aktualisieren",
     "参数 [": "Parameter [",
-    "参数:(": "Parameter: (",
     "发送": "Gesendete Nachrichten",
     "同步主库地址": "Adresse der synchronisierten Hauptdatenbank",
     "同步主库密码": "Passwort der Hauptdatenbank synchronisieren",
@@ -67,9 +65,7 @@
     "第一个字节偏移量": "Erster Byte-Offset",
     "绑定IP地址格式不合法！": "Das Format der zugebundenen IP-Adresse ist ungültig!",
     "绑定端口": "Port zuweisen",
-    "自启动": "Seit dem Start",
     "节点信息": "Knoteninformationen",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Zugewiesene Slots",
     "被分配的槽状态": "Status der zugewiesenen Slots",
     "角色": "Rolle",
@@ -104,7 +100,8 @@
     "清空运行日志失败": "Leeren des Protokolls fehlgeschlagen",
     "日志已清空": "Protokoll erfolgreich geleert",
     "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Das Redis-Protokoll zeichnet nur Lebenszyklusereignisse (Start/Stopp), RDB/AOF-Snapshots und Fehler auf. Reguläre Lese-/Schreibvorgänge von Schlüsseln werden hier nicht protokolliert.",
-    "当前暂无新增运行日志": "Derzeit keine neuen Protokolleinträge vorhanden",
     "提示": "Hinweis",
-    "正在清空...": "Wird geleert..."
+    "正在清空...": "Wird geleert...",
+    "正在保存配置并应用...": "Konfiguration wird gespeichert und angewendet...",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

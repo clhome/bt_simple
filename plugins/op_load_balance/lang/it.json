@@ -1,5 +1,4 @@
 {
-    ")没有!": ") No!",
     "IP地址": "Indirizzo IP",
     "IP地址: 仅支持IP地址,否则无法正常参与负载均衡": "Indirizzo IP: sono supportati solo gli indirizzi IP; in caso contrario, non sarà possibile partecipare correttamente al bilanciamento del carico",
     "OP负载均衡": "Bilanciamento del carico OP",
@@ -7,14 +6,12 @@
     "修改": "Modifica",
     "修改成功": "Modifica effettuata con successo",
     "停用": "Disattiva",
-    "共": "In totale",
     "共0条": "0 risultati",
     "关闭": "Chiudi",
     "创建负载": "Creazione di un carico",
     "删除": "Del",
     "参与状态: 正常参与负载均衡,请至少添加1个普通节点": "Stato di partecipazione: partecipa normalmente al bilanciamento del carico; aggiungere almeno 1 nodo standard",
     "参与者": "Partecipanti",
-    "参数:(": "Parametri: (",
     "地址": "Indirizzo",
     "域名": "Dominio",
     "域名不能为空!": "Il nome di dominio non può essere vuoto!",
@@ -33,7 +30,6 @@
     "条": "Elementi",
     "查看": "Visualizza",
     "正常": "Normale",
-    "每行填写一个域名，默认为80端口。\\n泛解析添加方法 *.domain.com\\n如另加端口格式为 www.domain.com:88": "Inserire un nome di dominio per riga; la porta predefinita è la 80. \\nMetodo per aggiungere un’analisi generica: *.domain.com\\nSe si desidera aggiungere una porta, il formato è www.domain.com:88",
     "添加成功": "Aggiunta riuscita",
     "添加节点": "Aggiungi nodo",
     "添加负载": "Aggiungi carico",
@@ -47,7 +43,6 @@
     "节点状态": "Stato dei nodi",
     "节点端口不合法": "Porta del nodo non valida",
     "节点调度": "Pianificazione dei nodi",
-    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "访问节点[%s]成功": "Accesso al nodo [%s] riuscito",
     "请先安装OpenResty": "Per prima cosa, installa OpenResty",
     "负载名称": "Nome del carico",
@@ -60,5 +55,10 @@
     "阈值: 在恢复时间的时间段内，如果OpenResty与节点通信尝试失败的次数达到此值，OpenResty就认为服务器不可用": "Soglia: se, durante il periodo di tempo previsto per il ripristino, il numero di tentativi falliti di comunicazione tra OpenResty e il nodo raggiunge questo valore, OpenResty considera il server non disponibile",
     "验证文件路径": "Verifica del percorso del file",
     "验证文件路径: 用于检查文件路径地址是否可用": "Verifica del percorso del file: serve a verificare se l'indirizzo del percorso del file è valido",
-    "验证路径": "Percorso di verifica"
+    "验证路径": "Percorso di verifica",
+    "每行填写一个域名，默认为80端口。": "Inserire un nome di dominio per riga; la porta predefinita è la 80.",
+    "泛解析添加方法 *.domain.com": "Record DNS wildcard: *.domain.com",
+    "如另加端口格式为 www.domain.com:88": "Per aggiungere una porta: www.domain.com:88",
+    "共{1}条": "{1} in totale",
+    "缺少必要参数:": "Parametro obbligatorio mancante:"
 }

@@ -1,5 +1,4 @@
 {
-    ")没有!": ") No!",
     "3 节点": "3 nodi",
     "MB,最大使用内存,0表示不限制": "MB, memoria massima utilizzata; 0 indica che non vi sono limiti",
     "Valkey历史分配内存的峰值": "Picchi storici di memoria allocata da Valkey",
@@ -21,7 +20,6 @@
     "关闭": "Chiudi",
     "内存碎片比率": "Percentuale di frammentazione della memoria",
     "刷新": "Aggiorna",
-    "参数:(": "Parametri: (",
     "发送": "Invia",
     "同步主库地址": "Indirizzo del database principale di sincronizzazione",
     "同步主库密码": "Sincronizzazione della password del database principale",
@@ -63,9 +61,7 @@
     "空闲链接超时时间,0表示不断开": "Tempo di timeout del collegamento inattivo; 0 indica che la connessione rimane attiva",
     "第一个字节偏移量": "Offset del primo byte",
     "绑定端口": "Porta associata",
-    "自启动": "Dall'avvio",
     "节点信息": "Informazioni sul nodo",
-    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Slot assegnati",
     "被分配的槽状态": "Stato dello slot assegnato",
     "角色": "Personaggi",
@@ -84,5 +80,6 @@
     "配置修改": "Modifiche alla configurazione",
     "集群当前epoch": "Epoch attuale del cluster",
     "集群状态": "Stato del cluster",
-    "集群节点": "Nodi del cluster"
+    "集群节点": "Nodi del cluster",
+    "缺少必要参数:": "Parametro obbligatorio mancante:"
 }

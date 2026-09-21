@@ -1,6 +1,5 @@
 {
     "(同内网)": "(Wie Intranet)",
-    ")没有!": ") Nein!",
     "FTP 用户名": "FTP-Benutzername",
     "FTP 连接与账号管理": "FTP-Verbindung und Kontoverwaltung",
     "FTP帐户": "FTP-Konto",
@@ -16,7 +15,6 @@
     "删除": "Löschen",
     "删除成功!": "Das Löschen war erfolgreich!",
     "务必前往云服务商的安全组控制台": "Rufen Sie unbedingt die Sicherheitsgruppen-Konsole des Cloud-Anbieters auf",
-    "参数:(": "Parameter: (",
     "启动": "Starten",
     "启动成功!": "Der Start war erfolgreich!",
     "备注": "Notiz",
@@ -28,8 +26,6 @@
     "当前FTP地址为：ftp://": "Die aktuelle FTP-Adresse lautet: ftp://",
     "当前状态：": "Aktueller Stand:",
     "您真的要停止{1}的FTP吗?": "Möchten Sie den FTP-Zugang für {1} wirklich beenden?",
-    "您真的要停止{1}的FTP服务吗?": "Möchten Sie den FTP-Dienst für {1} wirklich beenden?",
-    "您真的要停止{1}的FTP服务吗？": "Möchten Sie den FTP-Dienst von {1} wirklich beenden?",
     "控制端口：": "Steueranschluss:",
     "提交": "Absenden",
     "搜索字符不能为空!": "Das Suchwort darf nicht leer sein!",
@@ -49,9 +45,7 @@
     "用户名": "Benutzername",
     "管理列表": "Verwaltungsliste",
     "绑定根目录": "Stammverzeichnis binden",
-    "自启动": "Seit dem Start",
     "若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请": "Wenn Sie einen Cloud-Server (z. B. Alibaba Cloud, Tencent Cloud usw.) nutzen, sollten Sie zusätzlich zur Firewall des Control-Panels",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "被动数据端口范围：": "Bereich der passiven Datenanschlüsse:",
     "配置修改": "Änderungen an der Konfiguration",
     "重启": "Neustarten",
@@ -59,5 +53,6 @@
     "随机密码": "Zufälliges Passwort",
     "默认端口": "Standardport",
     "（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）": "(Wird für die Übertragung von Dateien und Verzeichnislisten im passiven FTP-Modus verwendet; wird dies nicht zugelassen, wird die Verbindung zwar hergestellt, aber die Verzeichnisse können nicht gelesen werden.)",
-    "（用于 FTP 账号登录与主动模式）": "(Für die Anmeldung mit einem FTP-Konto und den aktiven Modus)"
+    "（用于 FTP 账号登录与主动模式）": "(Für die Anmeldung mit einem FTP-Konto und den aktiven Modus)",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

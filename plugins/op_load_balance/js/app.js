@@ -15,57 +15,57 @@ function addNode(){
         btn: [pt('提交'), pt('关闭')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>' + pt('IP地址') + '</span>\
+                <span class='tname'>" + pt('IP地址') + "</span>\
                 <div class='info-r'>\
-                    <input name='ip' class='bt-input-text mr5' placeholder='' + pt('负载名称,可以是英文字母和下划线,不能使用中文') + '' type='text' style='width:250px' value='127.0.0.1'>\
+                    <input name='ip' class='bt-input-text mr5' placeholder='" + pt('负载名称,可以是英文字母和下划线,不能使用中文') + "' type='text' style='width:250px' value='127.0.0.1'>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('端口') + '</span>\
+                <span class='tname'>" + pt('端口') + "</span>\
                 <div class='info-r'>\
                     <input name='port' class='bt-input-text mr5' type='text' style='width:250px' value='80'>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('验证文件路径') + '</span>\
+                <span class='tname'>" + pt('验证文件路径') + "</span>\
                 <div class='info-r'>\
                     <input name='path' class='bt-input-text mr5' type='text' style='width:250px' value='/'>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点状态') + '</span>\
+                <span class='tname'>" + pt('节点状态') + "</span>\
                 <div class='info-r'>\
                     <select name='state'>\
-                        <option value='1'>' + pt('参与者') + '</option>\
-                        <option value='2'>' + pt('备份') + '</option>\
-                        <option value='0'>' + pt('停用') + '</option>\
+                        <option value='1'>" + pt('参与者') + "</option>\
+                        <option value='2'>" + pt('备份') + "</option>\
+                        <option value='0'>" + pt('停用') + "</option>\
                     </select>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('权重') + '</span>\
+                <span class='tname'>" + pt('权重') + "</span>\
                 <div class='info-r'>\
                     <input name='weight' class='bt-input-text mr5' type='text' style='width:250px' value='1'>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('阈值') + '</span>\
+                <span class='tname'>" + pt('阈值') + "</span>\
                 <div class='info-r'>\
                     <input name='max_fails' class='bt-input-text mr5' type='text' style='width:250px' value='2'>次\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('恢复时间') + '</span>\
+                <span class='tname'>" + pt('恢复时间') + "</span>\
                 <div class='info-r'>\
                     <input name='fail_timeout' class='bt-input-text mr5' type='text' style='width:250px' value='10'>秒\
                 </div>\
             </div>\
             <ul style='margin-left:10px' class='help-info-text c7'>\
-                <li>' + pt('备份状态: 指当其它节点都无法使用时才会使用此节点') + '</li>\
-                <li>' + pt('参与状态: 正常参与负载均衡,请至少添加1个普通节点') + '</li>\
-                <li>' + pt('验证文件路径: 用于检查文件路径地址是否可用') + '</li>\
-                <li>' + pt('IP地址: 仅支持IP地址,否则无法正常参与负载均衡') + '</li>\
-                <li>' + pt('阈值: 在恢复时间的时间段内，如果OpenResty与节点通信尝试失败的次数达到此值，OpenResty就认为服务器不可用') + '</li>\
+                <li>" + pt('备份状态: 指当其它节点都无法使用时才会使用此节点') + "</li>\
+                <li>" + pt('参与状态: 正常参与负载均衡,请至少添加1个普通节点') + "</li>\
+                <li>" + pt('验证文件路径: 用于检查文件路径地址是否可用') + "</li>\
+                <li>" + pt('IP地址: 仅支持IP地址,否则无法正常参与负载均衡') + "</li>\
+                <li>" + pt('阈值: 在恢复时间的时间段内，如果OpenResty与节点通信尝试失败的次数达到此值，OpenResty就认为服务器不可用') + "</li>\
             </ul>\
         </form>",
         success:function(){
@@ -138,17 +138,17 @@ function addBalance(){
         btn: [pt('提交'), pt('关闭')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>' + pt('域名') + '</span>\
+                <span class='tname'>" + pt('域名') + "</span>\
                 <div class='info-r'><textarea name='load_domain' class='bt-input-text mr5' placeholder='' style='width:95%;resize: none;height:90px;line-height:20px;'></textarea></div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('负载名称') + '</span>\
+                <span class='tname'>" + pt('负载名称') + "</span>\
                 <div class='info-r'>\
-                    <input name='upstream_name' class='bt-input-text mr5' placeholder='' + pt('负载名称,可以是英文字母和下划线,不能使用中文') + '' type='text' style='width:95%' value=''>\
+                    <input name='upstream_name' class='bt-input-text mr5' placeholder='" + pt('负载名称,可以是英文字母和下划线,不能使用中文') + "' type='text' style='width:95%' value=''>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点调度') + '</span>\
+                <span class='tname'>" + pt('节点调度') + "</span>\
                 <div class='info-r'>\
                     <select name='node_algo'>\
                         <option value='polling'>轮询[默认]</option>\
@@ -160,41 +160,41 @@ function addBalance(){
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点健康检查') + '</span>\
+                <span class='tname'>" + pt('节点健康检查') + "</span>\
                 <div class='info-r'>\
                     <input type='checkbox' name='node_health_check' checked>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点') + '</span>\
+                <span class='tname'>" + pt('节点') + "</span>\
                 <div class='info-r'>\
                     <div class='table-con divtable' style='max-height:120px;overflow:auto; margin-bottom:8px;width:95%'>\
                     <table class='table table-hover' id='fixTable3'>\
                     <thead>\
                         <tr>\
-                            <th width='120'>' + pt('IP地址') + '</th>\
-                            <th width='60'>' + pt('端口') + '</th>\
-                            <th width='120'>' + pt('验证路径') + '</th>\
-                            <th width='60'>' + pt('状态') + '</th>\
-                            <th width='60'>' + pt('权重') + '</th>\
-                            <th width='60'>' + pt('阀值') + '</th>\
-                            <th width='120'>' + pt('恢复时间') + '</th>\
-                            <th width='80' class='text-right'>' + pt('操作') + '</th>\
+                            <th width='120'>" + pt('IP地址') + "</th>\
+                            <th width='60'>" + pt('端口') + "</th>\
+                            <th width='120'>" + pt('验证路径') + "</th>\
+                            <th width='60'>" + pt('状态') + "</th>\
+                            <th width='60'>" + pt('权重') + "</th>\
+                            <th width='60'>" + pt('阀值') + "</th>\
+                            <th width='120'>" + pt('恢复时间') + "</th>\
+                            <th width='80' class='text-right'>" + pt('操作') + "</th>\
                         </tr>\
                     </thead>\
                     <tbody id='nodecon'>\
                         <tr class='nulltr'>\
-                            <td colspan='8' align='center'>' + pt('当前节点为空，请至少添加一个普通节点') + '</td>\
+                            <td colspan='8' align='center'>" + pt('当前节点为空，请至少添加一个普通节点') + "</td>\
                         </tr>\
                     </tbody>\
                     </table>\
                     </div>\
-                    <span class='btn btn-success btn-sm add_node' style='vertical-align:0'>' + pt('添加节点') + '</span>\
+                    <span class='btn btn-success btn-sm add_node' style='vertical-align:0'>" + pt('添加节点') + "</span>\
                 </div>\
             </div>\
         </form>",
         success:function(){
-            $('textarea[name="load_domain"]').attr('placeholder','每行填写一个域名，默认为80端口。\n泛解析添加方法 *.domain.com\n如另加端口格式为 www.domain.com:88');
+            $('textarea[name="load_domain"]').attr('placeholder', pt('每行填写一个域名，默认为80端口。') + '\n' + pt('泛解析添加方法 *.domain.com') + '\n' + pt('如另加端口格式为 www.domain.com:88'));
             var rval = getRandomString(6);
             $('input[name="upstream_name"]').val('load_balance_'+rval);
 
@@ -280,11 +280,11 @@ function editBalance(data, row){
         btn: [pt('提交'), pt('关闭')],
         content: "<form class='bt-form pd20'>\
             <div class='line'>\
-                <span class='tname'>' + pt('负载名称') + '</span>\
+                <span class='tname'>" + pt('负载名称') + "</span>\
                 <div class='info-r'><input name='upstream_name' class='bt-input-text mr5' type='text' style='width:95%;background: rgb(238, 238, 238);' value='' readonly></div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点调度') + '</span>\
+                <span class='tname'>" + pt('节点调度') + "</span>\
                 <div class='info-r'>\
                     <select name='node_algo'>\
                         <option value='polling'>轮询[默认]</option>\
@@ -296,36 +296,36 @@ function editBalance(data, row){
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点健康检查') + '</span>\
+                <span class='tname'>" + pt('节点健康检查') + "</span>\
                 <div class='info-r'>\
                     <input type='checkbox' name='node_health_check'>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('节点') + '</span>\
+                <span class='tname'>" + pt('节点') + "</span>\
                 <div class='info-r'>\
                     <div class='table-con divtable' style='max-height:120px;overflow:auto; margin-bottom:8px;width:95%'>\
                     <table class='table table-hover' id='fixTable3'>\
                     <thead>\
                         <tr>\
-                            <th width='120'>' + pt('IP地址') + '</th>\
-                            <th width='60'>' + pt('端口') + '</th>\
-                            <th width='120'>' + pt('验证路径') + '</th>\
-                            <th width='60'>' + pt('状态') + '</th>\
-                            <th width='60'>' + pt('权重') + '</th>\
-                            <th width='60'>' + pt('阀值') + '</th>\
-                            <th width='120'>' + pt('恢复时间') + '</th>\
-                            <th width='80' class='text-right'>' + pt('操作') + '</th>\
+                            <th width='120'>" + pt('IP地址') + "</th>\
+                            <th width='60'>" + pt('端口') + "</th>\
+                            <th width='120'>" + pt('验证路径') + "</th>\
+                            <th width='60'>" + pt('状态') + "</th>\
+                            <th width='60'>" + pt('权重') + "</th>\
+                            <th width='60'>" + pt('阀值') + "</th>\
+                            <th width='120'>" + pt('恢复时间') + "</th>\
+                            <th width='80' class='text-right'>" + pt('操作') + "</th>\
                         </tr>\
                     </thead>\
                     <tbody id='nodecon'>\
                         <tr class='nulltr'>\
-                            <td colspan='8' align='center'>' + pt('当前节点为空，请至少添加一个普通节点') + '</td>\
+                            <td colspan='8' align='center'>" + pt('当前节点为空，请至少添加一个普通节点') + "</td>\
                         </tr>\
                     </tbody>\
                     </table>\
                     </div>\
-                    <span class='btn btn-success btn-sm add_node' style='vertical-align:0'>' + pt('添加节点') + '</span>\
+                    <span class='btn btn-success btn-sm add_node' style='vertical-align:0'>" + pt('添加节点') + "</span>\
                 </div>\
             </div>\
         </form>",
@@ -451,7 +451,7 @@ function loadBalanceListRender(){
         }
 
         $('#nodeTable').html(tbody);
-        $('.nodeTablePage .Pcount').text('共'+alist.length+'条');
+        $('.nodeTablePage .Pcount').text(msgTpl(pt('共{1}条'),[alist.length]));
         $('#nodeTable .edit').on('click', function(){
             var row = $(this).data('row');
             editBalance(alist[row],row);
@@ -487,8 +487,8 @@ function loadBalanceListRender(){
                             <table class='table table-hover'>\
                                 <thead>\
                                     <tr>\
-                                        <th width='120'>' + pt('地址') + '</th>\
-                                        <th width='60'>' + pt('状态') + '</th>\
+                                        <th width='120'>" + pt('地址') + "</th>\
+                                        <th width='60'>" + pt('状态') + "</th>\
                                     </tr>\
                                 </thead>\
                                 <tbody>"+tval+"</tbody>\

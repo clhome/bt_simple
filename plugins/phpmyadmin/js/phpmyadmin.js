@@ -37,7 +37,7 @@ function phpVer(version) {
         var curr_ver = rdata.data || version;
         $.post('/site/get_php_version', function(data) {
             var php_list = data.data || [];
-            var body = "<div class='ver line'><span class='tname'>' + pt('PHP版本') + '</span><select id='phpver' class='bt-input-text mr20' name='phpVersion' style='width:120px'>";
+            var body = "<div class='ver line'><span class='tname'>" + pt('PHP版本') + "</span><select id='phpver' class='bt-input-text mr20' name='phpVersion' style='width:120px'>";
             for (var i = 0; i < php_list.length; i++) {
                 var isSelected = (php_list[i].version == curr_ver) ? 'selected' : '';
                 body += "<option value='" + php_list[i].version + "' " + isSelected + ">" + php_list[i].name + "</option>";

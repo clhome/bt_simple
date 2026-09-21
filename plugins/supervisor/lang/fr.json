@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "1：STOPPED：该进程已停止。 2：STOPPING：由于停止请求，该进程正在停止。": "1 : STOPPED : le processus s'est arrêté. 2 : STOPPING : le processus est en cours d'arrêt suite à une demande d'arrêt.",
     "3：RUNNING：该进程正在运行。 4：STARTING：该进程由于启动请求而开始。": "3 : RUNNING : le processus est en cours d'exécution. 4 : STARTING : le processus démarre suite à une demande de lancement.",
     "5：FATAL：该进程无法成功启动。": "5 : FATAL : le processus n'a pas pu démarrer correctement.",
@@ -21,7 +20,6 @@
     "删除": "Suppr.",
     "删除守护进程成功!": "Le processus de service a été supprimé avec succès !",
     "刷新": "Actualiser",
-    "参数:(": "Nom de domaine du serveur",
     "取消": "Annuler",
     "名称": "nom",
     "启动": "Démarrer",
@@ -50,8 +48,6 @@
     "服务": "Servir",
     "查看错误日志": "Consulter le journal des erreurs",
     "正在处理,请稍候...": "Traitement en cours, veuillez patienter...",
-    "此处为": "Voici",
-    "此处为'+ _name + version +'配置文件,若您不了解配置规则,请勿随意修改。": "Il s'agit ici d'un fichier de configuration au format « + _name + version + ». Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier sans raison.",
     "注意：填写进程名称请使用英文，暂不支持中文！": "Remarque : veuillez saisir le nom du processus en anglais ; le chinois n'est pas pris en charge pour le moment !",
     "添加守护进程": "Ajouter un démon",
     "清理日志": "Nettoyer le journal",
@@ -59,8 +55,6 @@
     "清空成功": "Vidéage effectué avec succès",
     "状态": "Statut",
     "确定": "Confirmer",
-    "自启动": "démarrage automatique",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "该守护进程不存在!": "Ce processus de garde n'existe pas !",
     "请输入名称": "Veuillez entrer le nom",
     "请输入启动命令": "Veuillez entrer la commande de démarrage",
@@ -77,9 +71,10 @@
     "进程数量请输入正整数": "Veuillez saisir un entier positif pour le nombre de processus",
     "进程数量默认值为1，如果值为大于1的整数，则相当于多进程！": "La valeur par défaut du nombre de processus est 1. Si la valeur est un nombre entier supérieur à 1, cela correspond à plusieurs processus !",
     "进程管理": "Gestion des processus",
-    "配置文件,若您不了解配置规则,请勿随意修改。": "Fichier de configuration : si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier à la légère.",
     "配置获取中...": "Récupération de la configuration...",
     "重启": "Redémarrer",
     "非法的目标配置文件路径！": "Chemin d'accès au profil cible non valide !",
-    "非法的配置文件路径！": "Chemin d'accès au fichier de configuration non valide !"
+    "非法的配置文件路径！": "Chemin d'accès au fichier de configuration non valide !",
+    "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Voici le fichier de configuration {1}. Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier.",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

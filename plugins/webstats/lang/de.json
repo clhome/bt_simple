@@ -1,5 +1,4 @@
 {
-    ")没有!": ") Nein!",
     "* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写": "* Geben Sie die IP-Adressen des CDN-Netzwerks genau an (beachten Sie dabei die Groß- und Kleinschreibung); wenn Sie mehrere angeben möchten, fügen Sie bitte jeweils eine neue Zeile ein.",
     "* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写": "* Die ausgeschlossenen IP-Adressen werden nicht in die Website-Protokolle geschrieben und nicht bei den PV-, UV- und IP-Zahlen berücksichtigt; es werden lediglich die Gesamtzahl der Anfragen und das Gesamtdatenvolumen erfasst. Falls Sie mehrere IP-Adressen angeben möchten, geben Sie diese bitte in separaten Zeilen ein.",
     "* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数": "* Ausgeschlossene Anfragen werden nicht in Website-Protokolle geschrieben und PV, UV und IP werden nicht gezählt. Es werden nur die gesamten Anfragen und der gesamte Datenverkehr kumuliert.",
@@ -38,7 +37,6 @@
     "包括Yahoo,DuckDuckGo": "darunter Yahoo und DuckDuckGo",
     "协议": "Protokoll",
     "占用额外存储空间": "Belegt zusätzlichen Speicherplatz",
-    "参数:(": "Parameter: (",
     "取消": "Abbrechen",
     "同步成功!": "Synchronisierung erfolgreich!",
     "同步所有站点": "Alle Standorte synchronisieren",
@@ -150,7 +148,6 @@
     "蜘蛛列表为空": "Die Spinnenliste ist leer",
     "蜘蛛统计": "Spider-Statistik",
     "蜘蛛过滤:": "Spider-Filterung:",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "记录403错误请求原文": "Originaltext der 403-Fehleranfrage",
     "记录请求原文": "Originaltext der Anfrage",
     "记录请求原文说明：HTTP请求原文包括客户端请求详细参数，有助于分析或排查异常请求；": "Erläuterung zur Aufzeichnung des Originaltextes der Anfrage: Der Originaltext der HTTP-Anfrage enthält detaillierte Parameter der Client-Anfrage und hilft bei der Analyse oder Fehlerbehebung bei fehlerhaften Anfragen;",
@@ -173,5 +170,8 @@
     "遨游": "Umherreisen",
     "错误日志": "Fehlerprotokoll",
     "错误日志为空": "Das Fehlerprotokoll ist leer",
-    "，默认仅记录500错误请求原文。": ", standardmäßig werden nur 500-Fehler-Anfragen protokolliert."
+    "，默认仅记录500错误请求原文。": ", standardmäßig werden nur 500-Fehler-Anfragen protokolliert.",
+    "{1}爬虫": "{1}-Crawler",
+    "记录POST请求原文": "Rohinhalt der POST-Anfrage aufzeichnen",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

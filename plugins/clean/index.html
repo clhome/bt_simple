@@ -467,7 +467,7 @@ function startCleanAction() {
     var retentionDays = $('#clean-retention-select').val();
     var cleanJournal = $('#clean-journal-chk').is(':checked');
 
-    layer.confirm(pt('确定开始执行安全清理？') + '<br><small style="color:#64748b;">' + pt('将安全截断所选活跃日志，并删除已归档超过 ') + retentionDays + pt(' 天的历史压缩包。<br>核心安全审计日志严格保护，无 Inode 泄露风险。') + '</small>', {
+    layer.confirm(pt('确定开始执行安全清理？') + '<br><small style="color:#64748b;">' + msgTpl(pt('将安全截断所选活跃日志，并删除已归档超过 {1} 天的历史压缩包。核心安全审计日志严格保护，无 Inode 泄露风险。'), [retentionDays]) + '</small>', {
         title: pt('安全瘦身确认'),
         icon: 3
     }, function(index) {
@@ -858,9 +858,9 @@ function renderServiceTab() {
 
         var periodTxt = d.period_desc;
         if (d.period === 'day') {
-            periodTxt = pt('每天 {0}').replace('{0}', d.hour + ':' + d.minute);
+            periodTxt = msgTpl(pt('每天 {1}'), [d.hour + ':' + d.minute]);
         } else if (d.period === 'day-n') {
-            periodTxt = pt('每隔 {0} 天 ({1})').replace('{0}', d.where1).replace('{1}', d.hour + ':' + d.minute);
+            periodTxt = msgTpl(pt('每隔 {1} 天 ({2})'), [d.where1, d.hour + ':' + d.minute]);
         } else if (d.period === 'hour') {
             periodTxt = pt('每小时整点');
         } else if (d.period_desc) {

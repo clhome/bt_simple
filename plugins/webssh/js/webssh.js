@@ -263,7 +263,7 @@ function Terms_WebSocketIO_Create(ip, random){
     n = new Terms_WebSocketIO('#'+random, { ssh_info: { host: ip, ps: "22", id: random } });
     n.registerCloseCallBack(function(){
         webShell_removeTermView(random);
-        layer.msg(pt('已经关闭【') + ip + pt('】'), { icon: 1, time: 3000 });
+        layer.msg(msgTpl(pt('已经关闭【{1}】'), [ip]), { icon: 1, time: 3000 });
     });
 
     n.registerConnectedCallBack(function(){

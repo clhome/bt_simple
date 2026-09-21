@@ -1,5 +1,4 @@
 {
-    ")没有!": ") No!",
     "MB,最大使用内存,0表示不限制": "MB, memoria massima utilizzata; 0 indica che non vi sono limiti",
     "Redis历史分配内存的峰值": "Picchi storici di memoria allocata da Redis",
     "Redis密码包含非法字符！建议仅包含字母、数字与常用安全符号": "La password di Redis contiene caratteri non consentiti! Si consiglia di utilizzare solo lettere, numeri e simboli di sicurezza comunemente utilizzati.",
@@ -25,7 +24,6 @@
     "内存碎片比率": "Percentuale di frammentazione della memoria",
     "刷新": "Aggiorna",
     "参数 [": "Parametri [",
-    "参数:(": "Parametri: (",
     "发送": "Messaggi inviati",
     "同步主库地址": "Indirizzo del database principale di sincronizzazione",
     "同步主库密码": "Sincronizzazione della password del database principale",
@@ -67,9 +65,7 @@
     "第一个字节偏移量": "Offset primo byte",
     "绑定IP地址格式不合法！": "Il formato dell'indirizzo IP associato non è valido!",
     "绑定端口": "Porta associata",
-    "自启动": "Dall'avvio",
     "节点信息": "Informazioni sui nodi",
-    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Slot assegnati",
     "被分配的槽状态": "Stato degli slot assegnati",
     "角色": "Ruolo",
@@ -104,7 +100,8 @@
     "清空运行日志失败": "Impossibile cancellare il log",
     "日志已清空": "Log cancellato con successo",
     "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Il log di Redis registra solo eventi del ciclo di vita (avvio/arresto), snapshot RDB/AOF ed errori. Le normali letture/scritture di chiavi non vengono registrate qui.",
-    "当前暂无新增运行日志": "Nessun nuovo log al momento",
     "提示": "Suggerimento",
-    "正在清空...": "Cancellazione in corso..."
+    "正在清空...": "Cancellazione in corso...",
+    "正在保存配置并应用...": "Salvataggio della configurazione e applicazione...",
+    "缺少必要参数:": "Parametro obbligatorio mancante:"
 }

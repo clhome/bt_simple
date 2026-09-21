@@ -1,6 +1,5 @@
 {
     "(同内网)": "(Identique à l'intranet)",
-    ")没有!": ")Non!",
     "FTP 用户名": "Nom d'utilisateur FTP",
     "FTP 连接与账号管理": "Connexion FTP et gestion de compte",
     "FTP帐户": "Compte FTP",
@@ -16,7 +15,6 @@
     "删除": "Suppr.",
     "删除成功!": "Suppression réussie !",
     "务必前往云服务商的安全组控制台": "Veillez à vous rendre sur la console des groupes de sécurité de votre fournisseur de services cloud",
-    "参数:(": "Nom de domaine du serveur",
     "启动": "Démarrer",
     "启动成功!": "Démarré avec succès !",
     "备注": "Remarque",
@@ -28,8 +26,6 @@
     "当前FTP地址为：ftp://": "L'adresse FTP actuelle est : ftp://",
     "当前状态：": "Statut actuel :",
     "您真的要停止{1}的FTP吗?": "Voulez-vous vraiment arrêter le FTP de {1} ?",
-    "您真的要停止{1}的FTP服务吗?": "Voulez-vous vraiment désactiver le service FTP de {1} ?",
-    "您真的要停止{1}的FTP服务吗？": "Voulez-vous vraiment désactiver le service FTP de {1} ?",
     "控制端口：": "Port de contrôle :",
     "提交": "Soumettre",
     "搜索字符不能为空!": "Le caractère de recherche ne peut pas être vide !",
@@ -49,9 +45,7 @@
     "用户名": "nom d'utilisateur",
     "管理列表": "Gérer la liste",
     "绑定根目录": "lier le répertoire racine",
-    "自启动": "démarrage automatique",
     "若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请": "Si vous utilisez un serveur cloud (tel qu'Alibaba Cloud, Tencent Cloud, etc.), en plus du pare-feu intégré au panneau de contrôle, veuillez",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "被动数据端口范围：": "Plage des ports de données passifs :",
     "配置修改": "Modification de configuration",
     "重启": "Redémarrer",
@@ -59,5 +53,6 @@
     "随机密码": "mot de passe aléatoire",
     "默认端口": "Port par défaut",
     "（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）": "(Permet le transfert de fichiers et de listes de répertoires en mode passif FTP ; si cette règle n'est pas autorisée, la connexion s'établira mais il sera impossible de lire les répertoires)",
-    "（用于 FTP 账号登录与主动模式）": "(Pour la connexion à un compte FTP et le mode actif)"
+    "（用于 FTP 账号登录与主动模式）": "(Pour la connexion à un compte FTP et le mode actif)",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

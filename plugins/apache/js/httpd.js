@@ -45,12 +45,12 @@ function orPluginOpService(a, b, v,request_callback) {
     var d = "";
 
     switch(b) {
-        case "stop":d = '停止';break;
-        case "start":d = '启动';break;
-        case "restart":d = '重启';break;
-        case "reload":d = '重载';break;
+        case "stop":d = pt('停止');break;
+        case "start":d = pt('启动');break;
+        case "restart":d = pt('重启');break;
+        case "reload":d = pt('重载');break;
     }
-    layer.confirm( msgTpl('您真的要{1}{2}{3}服务吗？', [d,a,v]), {icon:3,closeBtn: 2}, function() {
+    layer.confirm( msgTpl(pt('您真的要{1}{2}{3}服务吗？'), [d,a,v]), {icon:3,closeBtn: 2}, function() {
         api.post('get_os',{},function(data){
             var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
@@ -76,11 +76,11 @@ function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback){
         request_path = "/plugins/callback";
     }
 
-    var e = layer.msg(msgTpl('正在{1}{2}{3}服务,请稍候...',[d,a,v]), {icon: 16,time: 0});
+    var e = layer.msg(msgTpl(pt('正在{1}{2}{3}服务,请稍候...'),[d,a,v]), {icon: 16,time: 0});
     $.post(request_path, c, function(g) {
         layer.close(e);
         
-        var f = g.data == 'ok' ? msgTpl('{1}{2}服务已{3}',[a,v,d]) : msgTpl('{1}{2}服务{3}失败!',[a,v,d]);
+        var f = g.data == 'ok' ? msgTpl(pt('{1}{2}服务已{3}'),[a,v,d]) : msgTpl(pt('{1}{2}服务{3}失败!'),[a,v,d]);
         layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
         
         if( b != "reload" && g.data == 'ok' ) {

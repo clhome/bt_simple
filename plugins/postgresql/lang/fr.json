@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "IP地址不能空!": "L'adresse IP ne peut pas être vide !",
     "IP格式不合法！": "Format IP non valide !",
     "Master[主]配置": "Configuration Master [principale]",
@@ -9,7 +8,6 @@
     "SSH列表": "Liste SSH",
     "Slave[从]配置": "Configuration de l'esclave",
     "[主]SSH配置": "[Principal] Configuration SSH",
-    "]个数据库!": "] base de données !",
     "pgsql监听地址": "adresse d'écoute pgsql",
     "postgresql配置文件不存在，请先启动或初始化服务!": "Le fichier de configuration PostgreSQL n'existe pas. Veuillez d'abord démarrer ou initialiser le service !",
     "postgres密码": "Mot de passe Postgres",
@@ -40,7 +38,6 @@
     "切换成功!": "Changement réussi !",
     "创建时间": "Date de création",
     "删除": "Suppr.",
-    "删除[": "supprimer[",
     "删除成功!": "Suppression réussie !",
     "删除数据库": "Supprimer la base de données",
     "删除选中": "Supprimer la sélection",
@@ -49,7 +46,6 @@
     "占用内存": "Prendre de la mémoire",
     "占用的页表的大小": "Taille de la table de pages occupée",
     "占用空间": "Encombrement",
-    "参数:(": "Nom de domaine du serveur",
     "取消": "Annuler",
     "只读": "lecture seule",
     "同步": "synchrone",
@@ -93,9 +89,7 @@
     "性能优化": "Optimisation des performances",
     "总连接次数": "Nombre total de connexions",
     "您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?": "Vous avez sélectionné [2] bases de données au total. Une fois supprimés, ils ne peuvent pas être récupérés. Voulez-vous vraiment les supprimer ?",
-    "您真的要删除【": "Voulez-vous vraiment supprimer【",
     "慢日志": "journal lent",
-    "成功删除[": "Supprimé avec succès [",
     "所有": "tous",
     "所有人": "Tout le monde",
     "手动执行": "Exécution manuelle",
@@ -164,8 +158,6 @@
     "经典": "Un classique",
     "编辑成功!": "Modification réussie !",
     "网段": "segment de réseau",
-    "自启动": "démarrage automatique",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "表进程已经锁住的物理内存的大小": "Indique la taille de la mémoire physique déjà verrouillée par le processus",
     "设置可以同时处于 prepared 状态的事务的最大数目": "Définit le nombre maximum de transactions pouvant être à l'état préparé en même temps",
     "设置成功": "Configuration réussie",
@@ -187,5 +179,8 @@
     "进程数据段的大小": "Taille du segment de données du processus",
     "配置文件": "Fichier de configuration",
     "重启数据库": "Redémarrer la base de données",
-    "随机密码": "mot de passe aléatoire"
+    "随机密码": "mot de passe aléatoire",
+    "您真的要删除【{1}】吗？": "Voulez-vous vraiment supprimer 【{1}】 ?",
+    "成功删除[{1}]个数据库!": "[{1}] base(s) de données supprimée(s) avec succès !",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

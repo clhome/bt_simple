@@ -184,13 +184,13 @@ function giteaUserList(page, search) {
 function userProjectList(user, search){
     var loadOpen = layer.open({
         type: 1,
-        title: pt('用户({1})项目列表', user),
+        title: msgTpl(pt('用户({1})项目列表'), [user]),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                     <div>\
                         <div id='gitea_table' class='divtable' style='margin-top:5px;'>\
                             <table class='table table-hover'>\
-                                <thead><tr><th>' + pt('项目') + '</th><th>' + pt('操作') + '</th></tr></thead>\
+                                <thead><tr><th>" + pt('项目') + "</th><th>" + pt('操作') + "</th></tr></thead>\
                                 <tbody></tbody>\
                             </table>\
                             <div class='dataTables_paginate paging_bootstrap pagination' style='margin-top:0px;'><ul class='page'><div class='gitea_page'></div></ul></div>\
@@ -695,18 +695,18 @@ function createScriptFile(type, user, name, file) {
 function projectScriptSelf(user, name){
     layer.open({
         type: 1,
-        title: pt('项目({1}/{2})自定义脚本', user, name),
+        title: msgTpl(pt('项目({1}/{2})自定义脚本'), [user, name]),
         area: '500px',
         content:"<div class='bt-form pd15'>\
-                <button id='create_script' class='btn btn-success btn-sm' type='button' style='margin-right: 5px;''>' + pt('添加脚本') + '</button>\
+                <button id='create_script' class='btn btn-success btn-sm' type='button' style='margin-right: 5px;''>" + pt('添加脚本') + "</button>\
                 <div style='float:right;'>\
-                    <span style='line-height: 23px;'>' + pt('开启自定义脚本') + '</span>\
+                    <span style='line-height: 23px;'>" + pt('开启自定义脚本') + "</span>\
                     <input class='btswitch btswitch-ios' id='open_script' type='checkbox'>\
                     <label id='script_hook_enable' class='btswitch-btn' for='open_script'  style='display: inline-flex;line-height:38px;margin-left: 4px;float: right;'></label>\
                 </div>\
                 <div id='gogs_self_table' class='divtable' style='margin-top:5px;'>\
                     <table class='table table-hover'>\
-                        <thead><tr><th style='width:100px;'>' + pt('脚本文件名') + '</th><th>' + pt('状态') + '</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th style='width:100px;'>" + pt('脚本文件名') + "</th><th>" + pt('状态') + "</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table>\
                     <div class='dataTables_paginate paging_bootstrap pagination' style='margin-top:0px;'>\

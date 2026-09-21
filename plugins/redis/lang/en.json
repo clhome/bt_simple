@@ -1,5 +1,4 @@
 {
-    ")没有!": ")No!",
     "MB,最大使用内存,0表示不限制": "MB, maximum memory usage, 0 means no limit",
     "Redis历史分配内存的峰值": "Historical Peak Memory Allocation in Redis",
     "Redis密码包含非法字符！建议仅包含字母、数字与常用安全符号": "Redis password contains illegal characters! It is recommended to only include letters, numbers and commonly used safety symbols",
@@ -25,7 +24,6 @@
     "内存碎片比率": "Memory Fragmentation Ratio",
     "刷新": "Refresh",
     "参数 [": "Parameters [",
-    "参数:(": "parameter:(",
     "发送": "Messages Sent",
     "同步主库地址": "Synchronize main library address",
     "同步主库密码": "Synchronize main database password",
@@ -67,9 +65,7 @@
     "第一个字节偏移量": "Backlog First Byte Offset",
     "绑定IP地址格式不合法！": "The binding IP address format is illegal!",
     "绑定端口": "Bind port",
-    "自启动": "self start",
     "节点信息": "Node Information",
-    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "Cluster Slots Assigned",
     "被分配的槽状态": "Cluster Slots OK",
     "角色": "Role",
@@ -104,7 +100,8 @@
     "清空运行日志失败": "Failed to clear run log",
     "日志已清空": "Log cleared successfully",
     "Redis 运行日志仅记录服务生命周期（启动/关闭）、持久化快照(RDB/AOF)及错误告警；常规键值读写记录不写入此日志。": "Redis run log only records service lifecycle events (start/stop), RDB/AOF snapshots, and errors. Regular key-value read/write records are not recorded here.",
-    "当前暂无新增运行日志": "No new run logs at this time",
     "提示": "Prompt",
-    "正在清空...": "Clearing..."
+    "正在清空...": "Clearing...",
+    "正在保存配置并应用...": "Saving configuration and applying...",
+    "缺少必要参数:": "Missing required parameter:"
 }

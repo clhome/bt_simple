@@ -1,5 +1,4 @@
 {
-    ")没有!": ")No!",
     "3 节点": "3 Nodes",
     "MB,最大使用内存,0表示不限制": "MB, maximum memory usage, 0 means no limit",
     "Valkey历史分配内存的峰值": "Valkey's historical peak memory allocation",
@@ -21,7 +20,6 @@
     "关闭": "Close",
     "内存碎片比率": "Memory Fragmentation Ratio",
     "刷新": "Refresh",
-    "参数:(": "parameter:(",
     "发送": "send",
     "同步主库地址": "Synchronize main library address",
     "同步主库密码": "Synchronize main database password",
@@ -63,9 +61,7 @@
     "空闲链接超时时间,0表示不断开": "Idle link timeout, 0 means no disconnection",
     "第一个字节偏移量": "first byte offset",
     "绑定端口": "Bind port",
-    "自启动": "self start",
     "节点信息": "Node Information",
-    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "被分配的槽": "allocated slot",
     "被分配的槽状态": "assigned slot status",
     "角色": "Role",
@@ -84,5 +80,6 @@
     "配置修改": "Configuration modification",
     "集群当前epoch": "The current epoch of the cluster",
     "集群状态": "Cluster status",
-    "集群节点": "cluster node"
+    "集群节点": "cluster node",
+    "缺少必要参数:": "Missing required parameter:"
 }

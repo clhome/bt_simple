@@ -120,7 +120,7 @@ function swapStatus() {
         // --- 模块三：智能配置推荐 ---
         spCon += '    <div style="background-color: #eef9f0; border-radius: 4px; padding: 10px; border-left: 4px solid #28a745; margin-bottom: 5px; display: flex; align-items: center;">';
         spCon += '      <div style="font-size: 13px; color: #1e7e34; width:100%;">';
-        spCon += '        💡 <b>' + pt('智能配置推荐') + '</b>' + pt('：基于您当前的物理内存') + ' <b>' + mem_gb + ' GB</b>' + pt('，官方推荐总虚拟内存为') + ' <b>' + target_total + ' MB</b>' + pt('（已扣除系统自带') + ' ' + system_own + ' MB）。因此本插件最接近的最佳推荐档位为 <b style="font-size:14px; text-decoration: underline; cursor: pointer; color: #155724;" onclick="applyRecommendPreset(' + closest_preset.value + ')">' + closest_preset.name + '</b> <span style="font-size: 11px; font-weight: normal; color: #555;">' + pt('(点击可快速选择)') + '</span>';
+        spCon += '        💡 <b>' + pt('智能配置推荐') + '</b>' + pt('：基于您当前的物理内存') + ' <b>' + mem_gb + ' GB</b>' + pt('，官方推荐总虚拟内存为') + ' <b>' + target_total + ' MB</b>' + msgTpl(pt('（已扣除系统自带 {1} MB）。因此本插件最接近的最佳推荐档位为'), [system_own]) + ' <b style="font-size:14px; text-decoration: underline; cursor: pointer; color: #155724;" onclick="applyRecommendPreset(' + closest_preset.value + ')">' + closest_preset.name + '</b> <span style="font-size: 11px; font-weight: normal; color: #555;">' + pt('(点击可快速选择)') + '</span>';
         spCon += '      </div>';
         spCon += '    </div>';
         

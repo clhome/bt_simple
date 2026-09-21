@@ -92,21 +92,21 @@ async function addFtp() {
 		btn: [pt('提交'), pt('关闭')],
 		content: "<form class='form pd20' id='ftpAdd'>\
 					<div class='line'>\
-					<span class='tname'>' + pt('用户名') + '</span>\
+					<span class='tname'>" + pt('用户名') + "</span>\
 					<div class='info-r'><input class='bt-input-text' type='text' id='ftpUser' name='ftp_username' style='width:330px' /></div>\
 					</div>\
 					<div class='line'>\
-					<span class='tname'>' + pt('密码') + '</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+					<span class='tname'>" + pt('密码') + "</span>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='line'>\
-					<span class='tname'>' + pt('根目录') + '</span>\
+					<span class='tname'>" + pt('根目录') + "</span>\
 					<div class='info-r'><input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+defaultPath+"/' placeholder='"+lan.ftp.add_path_title+"'  style='width:330px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span><p class='c9 mt10'>"+lan.ftp.add_path_ps+"</p></div>\
 					</div>\
                     <div class='line' style='display:none'>\
-					<span class='tname'>' + pt('备注') + '</span>\
+					<span class='tname'>" + pt('备注') + "</span>\
 					<div class='info-r'>\
-					<input id='ftp_ps' class='bt-input-text' type='text' name='ps' value='' placeholder='' + pt('备注') + '' />\
+					<input id='ftp_ps' class='bt-input-text' type='text' name='ps' value='' placeholder='" + pt('备注') + "' />\
 					</div></div>\
 			      </form>",
 		yes:function(index,layero){
@@ -161,12 +161,12 @@ function modFtpPort(type, port){
 		title:  pt('修改FTP帐户端口'),
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
-					<span class='tname'>' + pt('默认端口') + '</span>\
+					<span class='tname'>" + pt('默认端口') + "</span>\
 					<div class='info-r'><input class='bt-input-text mr5' type='text' id='ftpPort' name='ftp_port' style='width:330px' value='"+port+"'/></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
-						<button id='ftp_port_close' type='button' class='btn btn-danger btn-sm btn-title'>' + pt('关闭') + '</button>\
-				        <button id='ftp_port_submit' type='button' class='btn btn-success btn-sm btn-title'>' + pt('提交') + '</button>\
+						<button id='ftp_port_close' type='button' class='btn btn-danger btn-sm btn-title'>" + pt('关闭') + "</button>\
+				        <button id='ftp_port_submit' type='button' class='btn btn-success btn-sm btn-title'>" + pt('提交') + "</button>\
 			        </div>\
 			      </form>",
 	});
@@ -200,17 +200,17 @@ function ftpModPwd(id,name,password){
 		title:  pt('修改FTP帐户密码'),
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
-					<span class='tname'>' + pt('用户名') + '</span>\
+					<span class='tname'>" + pt('用户名') + "</span>\
 					<div class='info-r'><input disabled class='bt-input-text mr5' type='text' id='ftpUser' name='ftp_username' style='width:330px' value='"+name+"'/></div>\
 					</div>\
 					\
 					<div class='line'>\
-					<span class='tname'>' + pt('密码') + '</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+					<span class='tname'>" + pt('密码') + "</span>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
-						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>' + pt('关闭') + '</button>\
-				        <button id='ftp_mod_submit' type='button' class='btn btn-success btn-sm btn-title'>' + pt('提交') + '</button>\
+						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>" + pt('关闭') + "</button>\
+				        <button id='ftp_mod_submit' type='button' class='btn btn-success btn-sm btn-title'>" + pt('提交') + "</button>\
 			        </div>\
 			      </form>",
 	});
@@ -291,13 +291,13 @@ function pureftpService() {
         $.post("/plugins/run", {name: _name, func: "status"}, function(data) {
             layer.close(loadT);
             var _status = data.data;
-            var m_status = "当前状态：<span>' + pt('开启') + '</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
+            var m_status = pt('当前状态：') + "<span>" + pt('开启') + "</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
             if (_status != "start"){
-                 m_status = "当前状态：<span>' + pt('停止') + '</span><span style=\"color:red; margin-left:3px;\" class=\"glyphicon glyphicon-pause\"></span>";
+                 m_status = pt('当前状态：') + "<span>" + pt('停止') + "</span><span style=\"color:red; margin-left:3px;\" class=\"glyphicon glyphicon-pause\"></span>";
             }
-            var m_btn = "<button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'stop', '')\">' + pt('停止') + '</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'restart', '')\">' + pt('重启') + '</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'reload', '')\">' + pt('重载配置') + '</button>";
+            var m_btn = "<button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'stop', '')\">" + pt('停止') + "</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'restart', '')\">" + pt('重启') + "</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'reload', '')\">" + pt('重载配置') + "</button>";
             if (_status != "start"){
-                m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">' + pt('启动') + '</button>";
+                m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">" + pt('启动') + "</button>";
             }
             
             var con = "<p class=\"status\">"+m_status+"</p><div class=\"sfm-opt\">"+m_btn+"</div>" + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, '') : '');

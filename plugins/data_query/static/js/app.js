@@ -469,6 +469,35 @@ function translateDataQueryDOM($container) {
         }
     });
 
+    // 3.5 未安装本地服务器的提示条（文本节点与链接分离，便于翻译）
+    $container.find('.prompt_description').each(function() {
+        var $wrap = $(this);
+        $wrap.find('.dq-not-installed').each(function() {
+            var $sp = $(this);
+            var orig = $sp.attr('data-i18n-orig');
+            if (!orig) {
+                orig = $sp.text().trim();
+                if (orig) $sp.attr('data-i18n-orig', orig);
+            }
+            if (orig) {
+                var trans = pt(orig);
+                if (trans && trans !== orig) $sp.text(trans);
+            }
+        });
+        var $link = $wrap.find('a.install_server');
+        if ($link.length) {
+            var lorig = $link.attr('data-i18n-orig');
+            if (!lorig) {
+                lorig = $link.text().trim();
+                if (lorig) $link.attr('data-i18n-orig', lorig);
+            }
+            if (lorig) {
+                var ltrans = pt(lorig);
+                if (ltrans && ltrans !== lorig) $link.text(ltrans);
+            }
+        }
+    });
+
     // 4. 工具栏操作按钮（查找、刷新、常用功能、添加key、清空、清空数据库、批量删除）
     $container.find('#mysql_find, #mysql_common, #pg_find, #pg_refresh, .mongodb_find, .mongodb_refresh, #redis_add_key, #redis_clear_all, #redis_batch_del, #memcached_add_key, #memcached_clear_all, #memcached_batch_del').each(function() {
         var $btn = $(this);
@@ -1117,7 +1146,7 @@ function openManageConnectionsModal(defaultDbType) {
                     layero.find('.btn-del-c').off('click').on('click', function() {
                         var id = $(this).data('id');
                         var cname = $(this).data('name');
-                        layer.confirm(pt('确定要删除连接配置【%s】吗？', cname), { icon: 3, title: pt('删除确认') }, function(cIdx) {
+                        layer.confirm(msgTpl(pt('确定要删除连接配置【{1}】吗？'), [cname]), { icon: 3, title: pt('删除确认') }, function(cIdx) {
                             layer.close(cIdx);
                             $.post('/plugins/callback', {
                                 name: 'data_query',
@@ -1359,6 +1388,7 @@ function renderSyncServersDialog(items) {
 function initDataQuery(){
     var tab = $('#cutTab .tabs-item.active').data('name');
     initTabFunc(tab);
+    translateDataQueryDOM($('.main-content'));
     $('#cutTab .tabs-item').on('click', function(){
         var tab = $(this).data('name');
         $('#cutTab .tabs-item').removeClass('active');
@@ -2343,7 +2373,7 @@ function mysqlGetDbList(call_back){
 
             if (!isConnected) {
                 var connErr = (res && res.data && res.data.error_msg) ? res.data.error_msg : '';
-                var alertMsg = connErr ? (pt('未连接到 MySQL 服务: ') + connErr) : pt('未连接到 MySQL 服务，已列出可用数据库，请自主选择连接');
+                var alertMsg = connErr ? msgTpl(pt('未连接到 MySQL 服务: {1}'), [connErr]) : pt('未连接到 MySQL 服务，已列出可用数据库，请自主选择连接');
                 layer.msg(alertMsg, {icon: 0, time: 3500, maxWidth: 650});
                 $('#mysql .mysql_table_list select[name=mysql_table]').html('<option value="">' + pt('未连接服务') + '</option>');
                 var currentPort = $('#mysql input[name="db_port"]').val() || $('#mysql input[name=port]').val() || '3306';
@@ -2424,10 +2454,10 @@ function mysqlGetTableList(p){
 
             mysqlGetDataList(1);
         } else {
-            var errMsg = (res && res.msg) ? res.msg : '无法连接数据库或获取数据表失败';
+            var errMsg = (res && res.msg) ? res.msg : pt('无法连接数据库或获取数据表失败');
             $('#mysql .mysql_table_list select[name=mysql_table]').html('<option value="">数据表空</option>');
             $('#mysql .mysql_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> 尝试连接数据库 [' + db + '] 失败</div>' +
+                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [db]) + '</div>' +
                 '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + errMsg + '</div>' +
                 '<button class="btn btn-default btn-sm" onclick="mysqlGetTableList(1);"><span class="glyphicon glyphicon-refresh"></span> 重新连接此库</button>' +
                 '</td></tr>');
@@ -3490,7 +3520,7 @@ function pgInitField(f, data){
 function pgGetServerList(call_func){
     pgPostCBN('get_server_list', {}, function(rdata){
         var res = rdata ? rdata.data : null;
-        var items = (res && res.data && res.data.length != 0) ? res.data : [{'name': '本地 PostgreSQL (127.0.0.1)', 'val': 'pgsql'}];
+        var items = (res && res.data && res.data.length != 0) ? res.data : [{'name': pt('本地 PostgreSQL (127.0.0.1)'), 'val': 'pgsql'}];
         var content = '';
         for (var i = 0; i < items.length; i++) {
             var t = items[i];
@@ -3702,10 +3732,10 @@ function pgGetTableList(p){
             });
             pgGetDataList(1);
         } else {
-            var errMsg = (res && res.msg) ? res.msg : '无法连接数据库或获取数据表失败';
+            var errMsg = (res && res.msg) ? res.msg : pt('无法连接数据库或获取数据表失败');
             $('#postgresql .pg_table_list select[name=pg_table]').html('<option value="">数据表空</option>');
             $('#postgresql .pg_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> 尝试连接数据库 [' + db + '] 失败</div>' +
+                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [db]) + '</div>' +
                 '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + errMsg + '</div>' +
                 '<button class="btn btn-default btn-sm" onclick="pgGetTableList(1);"><span class="glyphicon glyphicon-refresh"></span> 重新连接此库</button>' +
                 '</td></tr>');

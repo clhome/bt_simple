@@ -183,7 +183,7 @@ function setRootPwd(type, pwd){
         btn: [pt("取消"), pt("提交")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('postgres密码') + '</span>\
+                    <span class='tname'>" + pt('postgres密码') + "</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                 </form>",
@@ -251,23 +251,23 @@ function setDbAccess(name){
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>' + pt('访问权限') + '</span>\
+                            <span class='tname'>" + pt('访问权限') + "</span>\
                             <div class='info-r '>\
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1/32'>' + pt('本地服务器') + '</option>\
-                                <option value='0.0.0.0/0'>' + pt('所有人') + '</option>\
-                                <option value='ip'>' + pt('指定网段') + '</option>\
+                                <option value='127.0.0.1/32'>" + pt('本地服务器') + "</option>\
+                                <option value='0.0.0.0/0'>" + pt('所有人') + "</option>\
+                                <option value='ip'>" + pt('指定网段') + "</option>\
                                 </select>\
                             </div>\
                         </div>\
                         <div class='line' style='margin-top: 15px;'>\
-                            <span class='tname'>' + pt('特权明细') + '</span>\
+                            <span class='tname'>" + pt('特权明细') + "</span>\
                             <div class='info-r'>\
                                 <div id='db_privileges_box' style='border: 1px solid #ddd; height: 180px; overflow-y: auto; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 12px;'>\
                                     正在获取权限信息...\
                                 </div>\
                                 <div style='margin-top: 8px;'>\
-                                    <button type='button' id='btn_onekey_grant' class='btn btn-success btn-xs'>' + pt('一键赋权给创建用户') + '</button>\
+                                    <button type='button' id='btn_onekey_grant' class='btn btn-success btn-xs'>" + pt('一键赋权给创建用户') + "</button>\
                                     <span class='c9' style='margin-left: 10px;' id='priv_owner_desc'></span>\
                                 </div>\
                             </div>\
@@ -300,7 +300,7 @@ function setDbAccess(name){
                     }
                     
                     if (pdata.username) {
-                        $('#priv_owner_desc').html('将把数据库特权赋予创建用户：<strong style="color: #5cb85c;">' + pdata.username + '</strong>');
+                        $('#priv_owner_desc').html(pt('将把数据库特权赋予创建用户：') + '<strong style="color: #5cb85c;">' + pdata.username + '</strong>');
                     }
                     
                     var privs = pdata.privileges;
@@ -390,11 +390,11 @@ function setDbPass(id, username, password){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('用户名') + '</span>\
+                        <span class='tname'>" + pt('用户名') + "</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <input type='hidden' name='id' value='"+id+"'>\
@@ -447,24 +447,24 @@ function addDatabase(type,layer_index){
         btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('数据库名') + '</span>\
+                        <span class='tname'>" + pt('数据库名') + "</span>\
                         <div class='info-r'>\
                             <input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:270px' value=''>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:270px' value=''></div></div>\
+                    <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:270px' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:270px' value='"+(randomStrPwd(16))+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('访问权限') + '</span>\
+                        <span class='tname'>" + pt('访问权限') + "</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                            <option value=\"%\">' + pt('所有人') + '</option>\
-                            <option value='ip'>' + pt('指定网段') + '</option>\
+                            <option value='127.0.0.1'>" + pt('本地服务器') + "</option>\
+                            <option value=\"%\">" + pt('所有人') + "</option>\
+                            <option value='ip'>" + pt('指定网段') + "</option>\
                             </select>\
                             <input class='bt-input-text' style='width: 162px;display:none;' placeholder='如: 192.168.1.0/24' name='ip_segment' value='' />\
                         </div>\
@@ -495,7 +495,7 @@ function addDatabase(type,layer_index){
 }
 
 function delDb(id, name){
-    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除【{1}】吗？'),[name]),function(){
         var data='id='+id+'&name='+name
         api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -528,7 +528,7 @@ function delDbBatch(){
             i++;
         }
         
-        var msg = '成功删除['+i+']个数据库!';
+        var msg = msgTpl(pt('成功删除[{1}]个数据库!'),[i]);
         showMsg(msg,function(){
             dbList();
         },{icon: 1}, 600);
@@ -850,16 +850,16 @@ function addMasterRepSlaveUser(){
         shadeClose: true,
         btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
+            <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
             <div class='line'>\
-                <span class='tname'>' + pt('密码') + '</span>\
+                <span class='tname'>" + pt('密码') + "</span>\
                 <div class='info-r'>\
                     <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStr(16))+"' />\
                     <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatMSPwd(16)'></span>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>' + pt('网段') + '</span>\
+                <span class='tname'>" + pt('网段') + "</span>\
                 <div class='info-r'>\
                     <input class='bt-input-text mr5' type='text' name='address' style='width:330px' value='127.0.0.1/32' />\
                 </div>\
@@ -915,14 +915,14 @@ function updateMasterRepSlaveUser(username){
         shift: 5,
         shadeClose: true,
         content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
+            <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>' + pt('密码') + '</span>\
+            <span class='tname'>" + pt('密码') + "</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >' + pt('提交') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >" + pt('提交') + "</button>\
             </div>\
           </form>",
     });
@@ -961,7 +961,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>" + pt('复制') + "</button>\
             </div>\
           </form>",
         });
@@ -1034,7 +1034,7 @@ function getMasterRepSlaveListPage(){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
                     <div><table class='table table-hover'>\
-                        <thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>" + pt('用户名') + "</th><th>" + pt('密码') + "</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -1137,7 +1137,7 @@ function addSlaveSSH(ip=''){
             btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('端口') + "</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
@@ -1234,7 +1234,7 @@ function getSlaveSSHList(page=1){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>SSH</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>SSH</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -1257,7 +1257,7 @@ function handlerRun(){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>" + pt('复制') + "</button>\
             </div>\
           </form>",
         });
@@ -1286,7 +1286,7 @@ function slaveSyncCmd(){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>" + pt('复制') + "</button>\
             </div>\
           </form>",
         });

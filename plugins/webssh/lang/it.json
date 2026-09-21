@@ -1,17 +1,11 @@
 {
-    ")没有!": ") No!",
-    "// 将其替换为终端可识别的真实回车符": "// Sostituirlo con un carattere di ritorno a riga valido riconosciuto dal terminale",
     "SSH终端": "Terminale SSH",
     "SSH账号": "Account SSH",
-    "】": "】",
     "不存在此配置": "Questa configurazione non esiste",
     "删除常用命令信息": "Elimina le informazioni sui comandi più utilizzati",
     "删除成功!": "Eliminazione completata con successo!",
     "删除无效": "Elimina non valido",
-    "参数:(": "Parametri: (",
     "取消": "Annulla",
-    "名称不可为空!": "Il nome non può essere vuoto!",
-    "命令不可为空，请检查是否填写“执行命令”！": "Il comando non può essere vuoto; verifica di aver inserito il “comando da eseguire”!",
     "命令内容": "Contenuto del comando",
     "命令内容为空，请检查是否填写了\"命令内容\"！": "Il contenuto del comando è vuoto. Verificare di aver compilato il campo \"Contenuto del comando\"!",
     "命令名称": "Nome del comando",
@@ -19,8 +13,6 @@
     "完整功能的SSH客户端，仅用于连接本服务器": "Client SSH con funzionalità complete, da utilizzare esclusivamente per connettersi a questo server",
     "密码": "Password",
     "密码验证": "Verifica della password",
-    "已断开": "Disconnesso",
-    "已经关闭【": "È stato chiuso [",
     "已经打开!": "È già aperto!",
     "服务器IP": "IP del server",
     "本地服务器": "Server locale",
@@ -47,7 +39,8 @@
     "请输入私钥密码": "Inserisci la password della chiave privata",
     "输入SSH账号": "Inserisci le credenziali SSH",
     "输入服务器IP": "Inserisci l'IP del server",
-    "连接已经关闭。": "La connessione è stata interrotta.",
     "错误:": "Errore:",
-    "验证方式": "Metodo di verifica"
+    "验证方式": "Metodo di verifica",
+    "已经关闭【{1}】": "Chiuso [{1}]",
+    "缺少必要参数:": "Parametro obbligatorio mancante:"
 }

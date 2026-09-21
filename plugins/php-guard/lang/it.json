@@ -8,8 +8,6 @@
     "一键手动诊断并重启修复指定 PHP 版本": "Diagnosi manuale e riavvio con riparazione di una versione specifica di PHP con un solo clic",
     "修复指令执行成功": "L'esecuzione del comando di riparazione è andata a buon fine",
     "刷新日志": "Aggiorna registri",
-    "加载日志失败：": "Errore durante il caricamento del log:",
-    "加载日志失败：' + res.msg + '": "Errore durante il caricamento del log: ' + res.msg + '",
     "守护运行自愈日志": "Log di autoriparazione del sistema di protezione",
     "已强杀并成功通过服务启动": "È stato avviato forzatamente e ha superato con successo l'avvio del servizio",
     "已通过 init.d 重启": "È stato riavviato tramite init.d",
@@ -28,7 +26,7 @@
     "自愈详情": "Dettagli sull'autoguarigione",
     "获取PHP守护状态及各PHP实例连通状态": "Ottenere lo stato del processo PHP e lo stato di connettività delle singole istanze PHP",
     "获取最近50条PHP守护自愈日志": "Recupera gli ultimi 50 messaggi di log relativi all'autoguarigione del processo PHP",
-    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "衢州御风科技有限公司出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
-    "触发时间": "Tempo di attivazione"
+    "触发时间": "Tempo di attivazione",
+    "加载日志失败：{1}": "Errore durante il caricamento del log: {1}"
 }

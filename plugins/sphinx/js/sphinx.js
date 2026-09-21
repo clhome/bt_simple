@@ -24,40 +24,40 @@ function autoMakeConf(){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('选择数据库') + '</span>\
+                        <span class='tname'>" + pt('选择数据库') + "</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='dbname' style='width:100%'>\
-                                <option value=''>' + pt('无') + '</option>\
+                                <option value=''>" + pt('无') + "</option>\
                             </select>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('选择表') + '</span>\
+                        <span class='tname'>" + pt('选择表') + "</span>\
                         <div class='info-r'>\
                             <div id='table'></div>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('是否增量') + '</span>\
+                        <span class='tname'>" + pt('是否增量') + "</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='is_delta' style='width:100px'>\
-                                <option value='no'>' + pt('否') + '</option>\
-                                <option value='yes'>' + pt('是') + '</option>\
+                                <option value='no'>" + pt('否') + "</option>\
+                                <option value='yes'>" + pt('是') + "</option>\
                             </select>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('是否覆盖配置') + '</span>\
+                        <span class='tname'>" + pt('是否覆盖配置') + "</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='is_cover' style='width:100px'>\
-                                <option value='yes'>' + pt('是') + '</option>\
-                                <option value='no'>' + pt('否') + '</option>\
+                                <option value='yes'>" + pt('是') + "</option>\
+                                <option value='no'>" + pt('否') + "</option>\
                             </select>\
                         </div>\
                     </div>\
                     <ul class='help-info-text c7'>\
                         <li style='color:red;'>具体配置，仍须手动修改!!!</li>\
-                        <li style='color:red;'>' + pt('增量索引,需要有更新权限,主从分离时,需要主库配置') + '</li>\
+                        <li style='color:red;'>" + pt('增量索引,需要有更新权限,主从分离时,需要主库配置') + "</li>\
                     </ul>\
                 </form>\
             ",

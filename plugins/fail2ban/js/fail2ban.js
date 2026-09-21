@@ -57,7 +57,7 @@ function f2bReasonText(item) {
     var code = (item && (item.reason_code || item.reason)) || '';
     var text = code ? pt(code) : pt('触发防御规则，已被自动拦截');
     if (item && item.restore) {
-        text = pt('服务重启，恢复历史封禁 ({1})', text);
+        text = msgTpl(pt('服务重启，恢复历史封禁 ({1})'), [text]);
     }
     return text;
 }
@@ -422,7 +422,7 @@ function f2bBanIp() {
 
 function f2bRemoveDropIp(ip, jail) {
     // 单键插值：碎片拼接会让德/法/意等语言语义破碎
-    var confirmMsg = pt('确定要解封 IP ({1}) 吗？', ip);
+    var confirmMsg = msgTpl(pt('确定要解封 IP ({1}) 吗？'), [ip]);
     // 联动封禁提示：让用户明确知道解封会同时作用于内核层与应用层，
     // 根治「在 op_waf 解封了却仍访问不了」的困惑。
     if (jail === 'op-waf' || jail === 'yf-manual') {
@@ -945,7 +945,7 @@ function f2bIpDetails(ip) {
         
         layer.open({
             type: 1,
-            title: pt('【{1}】 触发详情', $('<div>').text(ip).html()),
+            title: msgTpl(pt('【{1}】 触发详情'), [$('<div>').text(ip).html()]),
             area: '650px',
             closeBtn: 1,
             shadeClose: false,
@@ -1018,7 +1018,7 @@ function f2bSiteHistory(){
 
             // 命中服务端上限时明确告知，避免用户误以为导出完整
             if (data.length >= args['page_size']) {
-                layer.msg(pt('导出已达到单次上限 {1} 条，请缩小时间范围后重试', data.length), {icon: 0, time: 4000});
+                layer.msg(msgTpl(pt('导出已达到单次上限 {1} 条，请缩小时间范围后重试'), [data.length]), {icon: 0, time: 4000});
             }
         });
     });

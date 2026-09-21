@@ -1,17 +1,11 @@
 {
-    ")没有!": ") Nein!",
-    "// 将其替换为终端可识别的真实回车符": "// Ersetze dies durch ein echtes Zeilenumbruchzeichen, das vom Terminal erkannt wird",
     "SSH终端": "SSH-Terminal",
     "SSH账号": "SSH-Konto",
-    "】": "】",
     "不存在此配置": "Diese Konfiguration existiert nicht.",
     "删除常用命令信息": "Informationen zu häufig verwendeten Befehlen löschen",
     "删除成功!": "Das Löschen war erfolgreich!",
     "删除无效": "Löschen ungültig",
-    "参数:(": "Parameter: (",
     "取消": "Abbrechen",
-    "名称不可为空!": "Der Name darf nicht leer sein!",
-    "命令不可为空，请检查是否填写“执行命令”！": "Der Befehl darf nicht leer sein. Bitte überprüfen Sie, ob Sie den „Ausführungsbefehl“ eingegeben haben!",
     "命令内容": "Befehlstext",
     "命令内容为空，请检查是否填写了\"命令内容\"！": "Der Befehlsinhalt ist leer. Bitte überprüfen Sie, ob Sie den „Befehlsinhalt“ eingegeben haben!",
     "命令名称": "Befehlsname",
@@ -19,8 +13,6 @@
     "完整功能的SSH客户端，仅用于连接本服务器": "Ein SSH-Client mit vollem Funktionsumfang, der ausschließlich für die Verbindung zu diesem Server vorgesehen ist",
     "密码": "Passwort",
     "密码验证": "Passwortüberprüfung",
-    "已断开": "Getrennt",
-    "已经关闭【": "Bereits geschlossen [",
     "已经打开!": "Es ist bereits geöffnet!",
     "服务器IP": "Server-IP",
     "本地服务器": "Lokaler Server",
@@ -47,7 +39,8 @@
     "请输入私钥密码": "Bitte geben Sie das Passwort für den privaten Schlüssel ein.",
     "输入SSH账号": "SSH-Zugangsdaten eingeben",
     "输入服务器IP": "Geben Sie die IP-Adresse des Servers ein",
-    "连接已经关闭。": "Die Verbindung wurde getrennt.",
     "错误:": "Fehler:",
-    "验证方式": "Überprüfungsmethode"
+    "验证方式": "Überprüfungsmethode",
+    "已经关闭【{1}】": "Geschlossen [{1}]",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

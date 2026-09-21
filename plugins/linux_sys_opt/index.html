@@ -186,7 +186,7 @@ function optStatus() {
                     break;
             }
 
-            var tip = ok ? (pt("【完美】") + reason) : (pt("【需要优化】") + reason + (isMissing ? pt(" (当前未设置)") : pt(" (当前值未达标)")));
+            var tip = ok ? (pt("【完美】") + reason) : (pt("【需要优化】") + reason + (isMissing ? " " + pt("(当前未设置)") : " " + pt("(当前值未达标)")));
             
             var icon = ok 
                 ? '<span style="color:#20a53a; font-weight:bold; font-size:16px;">✓</span>' 

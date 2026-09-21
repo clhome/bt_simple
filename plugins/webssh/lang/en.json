@@ -1,17 +1,11 @@
 {
-    ")没有!": ")No!",
-    "// 将其替换为终端可识别的真实回车符": "// Replace it with a true carriage return character that the terminal can recognize",
     "SSH终端": "SSH terminal",
     "SSH账号": "SSH Account",
-    "】": "】",
     "不存在此配置": "This configuration does not exist.",
     "删除常用命令信息": "Delete commonly used command information",
     "删除成功!": "Deletion successful!",
     "删除无效": "Delete Invalid",
-    "参数:(": "parameter:(",
     "取消": "Cancel",
-    "名称不可为空!": "The name cannot be left blank!",
-    "命令不可为空，请检查是否填写“执行命令”！": "The command cannot be empty. Please check that you have entered a \"Command to Execute\"!",
     "命令内容": "Command content",
     "命令内容为空，请检查是否填写了\"命令内容\"！": "The command content is empty, please check whether the \"command content\" is filled in!",
     "命令名称": "Command Name",
@@ -19,8 +13,6 @@
     "完整功能的SSH客户端，仅用于连接本服务器": "Full-featured SSH client, only used to connect to this server",
     "密码": "password",
     "密码验证": "Password Verification",
-    "已断开": "Disconnected",
-    "已经关闭【": "Already closed【",
     "已经打开!": "Already opened!",
     "服务器IP": "Server IP",
     "本地服务器": "local server",
@@ -47,7 +39,8 @@
     "请输入私钥密码": "Please enter the private key password",
     "输入SSH账号": "Enter SSH account",
     "输入服务器IP": "Enter server IP",
-    "连接已经关闭。": "The connection has been closed.",
     "错误:": "Error:",
-    "验证方式": "Verification method"
+    "验证方式": "Verification method",
+    "已经关闭【{1}】": "Closed [{1}]",
+    "缺少必要参数:": "Missing required parameter:"
 }

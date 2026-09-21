@@ -1,5 +1,4 @@
 {
-    ")没有!": ") Nein!",
     "IP地址不能空!": "Die IP-Adresse darf nicht leer sein!",
     "IP格式不合法！": "Das IP-Format ist ungültig!",
     "Master[主]配置": "Master-Konfiguration",
@@ -9,7 +8,6 @@
     "SSH列表": "SSH-Liste",
     "Slave[从]配置": "Slave-Konfiguration",
     "[主]SSH配置": "[Hauptseite] SSH-Konfiguration",
-    "]个数据库!": "] Datenbanken!",
     "pgsql监听地址": "pgsql-Listen-Adresse",
     "postgresql配置文件不存在，请先启动或初始化服务!": "Die PostgreSQL-Konfigurationsdatei ist nicht vorhanden. Bitte starten oder initialisieren Sie zunächst den Dienst!",
     "postgres密码": "Postgres-Passwort",
@@ -40,7 +38,6 @@
     "切换成功!": "Umschalten erfolgreich!",
     "创建时间": "Erstellungszeit",
     "删除": "Löschen",
-    "删除[": "Löschen [",
     "删除成功!": "Das Löschen war erfolgreich!",
     "删除数据库": "Datenbank löschen",
     "删除选中": "Auswahl löschen",
@@ -49,7 +46,6 @@
     "占用内存": "Erinnerung aufnehmen",
     "占用的页表的大小": "Größe der belegten Seitentabelle",
     "占用空间": "Platzbedarf",
-    "参数:(": "Parameter: (",
     "取消": "Abbrechen",
     "只读": "Nur Lesen",
     "同步": "Synchronisierung",
@@ -93,9 +89,7 @@
     "性能优化": "Leistungsoptimierung",
     "总连接次数": "Gesamtzahl der Verbindungen",
     "您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?": "Sie haben insgesamt [2] Datenbanken ausgewählt. Einmal gelöscht, können sie nicht wiederhergestellt werden. Möchten Sie sie wirklich löschen?",
-    "您真的要删除【": "Möchten Sie [",
     "慢日志": "Slow-Log",
-    "成功删除[": "Erfolgreich gelöscht [",
     "所有": "Alle",
     "所有人": "Alle Personen",
     "手动执行": "Manuell ausführen",
@@ -164,8 +158,6 @@
     "经典": "Klassiker",
     "编辑成功!": "Die Bearbeitung war erfolgreich!",
     "网段": "Netzwerksegment",
-    "自启动": "Seit dem Start",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "表进程已经锁住的物理内存的大小": "Die Größe des physischen Speichers, der bereits vom Prozess gesperrt ist",
     "设置可以同时处于 prepared 状态的事务的最大数目": "Festlegen der maximalen Anzahl von Transaktionen, die sich gleichzeitig im Status „prepared“ befinden können",
     "设置成功": "Einrichtung erfolgreich",
@@ -187,5 +179,8 @@
     "进程数据段的大小": "Größe des Prozessdatensegments",
     "配置文件": "Konfigurationsdatei",
     "重启数据库": "Datenbank neu starten",
-    "随机密码": "Zufälliges Passwort"
+    "随机密码": "Zufälliges Passwort",
+    "您真的要删除【{1}】吗？": "Möchten Sie 【{1}】 wirklich löschen?",
+    "成功删除[{1}]个数据库!": "[{1}] Datenbank(en) erfolgreich gelöscht!",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

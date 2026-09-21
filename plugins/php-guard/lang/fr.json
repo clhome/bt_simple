@@ -8,8 +8,6 @@
     "一键手动诊断并重启修复指定 PHP 版本": "Diagnostic manuel en un clic et redémarrage pour réparer la version PHP spécifiée",
     "修复指令执行成功": "L'exécution de la commande de réparation a réussi",
     "刷新日志": "Actualiser les journaux",
-    "加载日志失败：": "Échec du chargement du journal :",
-    "加载日志失败：' + res.msg + '": "Échec du chargement du journal : ' + res.msg + '",
     "守护运行自愈日志": "Gardien exécutant un journal d'auto-guérison",
     "已强杀并成功通过服务启动": "Tué de force et démarré avec succès via le service",
     "已通过 init.d 重启": "Redémarré via init.d",
@@ -28,7 +26,7 @@
     "自愈详情": "Supprimer la confirmation",
     "获取PHP守护状态及各PHP实例连通状态": "Obtenir l'état du démon PHP et l'état de connexion de chaque instance PHP",
     "获取最近50条PHP守护自愈日志": "Obtenez les 50 derniers journaux d'auto-réparation de PHP Guard",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "衢州御风科技有限公司出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
-    "触发时间": "Temps de déclenchement"
+    "触发时间": "Temps de déclenchement",
+    "加载日志失败：{1}": "Échec du chargement du journal : {1}"
 }

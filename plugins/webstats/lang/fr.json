@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写": "* Identifiez avec précision l'adresse IP du réseau CDN. Veuillez faire attention à la majuscule. Si vous en avez besoin de plusieurs, veuillez remplir une nouvelle ligne.",
     "* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写": "* Les adresses IP exclues ne sont pas enregistrées dans les journaux du site ; elles ne sont pas prises en compte dans le décompte des pages vues (PV), des visiteurs uniques (UV) ni des adresses IP. Seuls le nombre total de requêtes et le trafic total sont comptabilisés. Si vous souhaitez en exclure plusieurs, veuillez les indiquer sur des lignes distinctes.",
     "* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数": "* Les demandes exclues ne sont pas écrites dans les journaux du site Web, et les PV, UV et IP ne sont pas comptés. Seuls le total des demandes et le trafic total sont accumulés.",
@@ -38,7 +37,6 @@
     "包括Yahoo,DuckDuckGo": "Y compris Yahoo, DuckDuckGo",
     "协议": "Protocole",
     "占用额外存储空间": "Occupe de l'espace de stockage supplémentaire",
-    "参数:(": "Nom de domaine du serveur",
     "取消": "Annuler",
     "同步成功!": "Synchronisation réussie !",
     "同步所有站点": "Synchroniser tous les sites",
@@ -150,7 +148,6 @@
     "蜘蛛列表为空": "La liste des araignées est vide",
     "蜘蛛统计": "Statistiques d'araignée",
     "蜘蛛过滤:": "Filtrage des robots d'indexation :",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "记录403错误请求原文": "Enregistrer le texte original de la requête ayant généré l'erreur 403",
     "记录请求原文": "Texte original de la demande d'enregistrement",
     "记录请求原文说明：HTTP请求原文包括客户端请求详细参数，有助于分析或排查异常请求；": "Description de la requête d'origine : la requête HTTP d'origine comprend les paramètres détaillés de la requête du client, ce qui facilite l'analyse ou le dépannage des requêtes anormales ;",
@@ -173,5 +170,8 @@
     "遨游": "voyage",
     "错误日志": "journal des erreurs",
     "错误日志为空": "Le journal des erreurs est vide",
-    "，默认仅记录500错误请求原文。": ", par défaut, seules les requêtes ayant généré une erreur 500 sont enregistrées."
+    "，默认仅记录500错误请求原文。": ", par défaut, seules les requêtes ayant généré une erreur 500 sont enregistrées.",
+    "{1}爬虫": "Robot {1}",
+    "记录POST请求原文": "Enregistrer le corps brut de la requête POST",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }

@@ -441,7 +441,7 @@ var ollama = {
         
         var modalHtml = '<div style="padding:15px;">' +
             '<p style="margin-bottom:10px;font-size:13px;font-weight:600;color:#334155;">' + pt('正在拉取模型:') + ' <span style="color:#4f46e5;">' + model_name + '</span> ' + pt('(请勿关闭此窗口直到拉取完成)') + '</p>' +
-            '<textarea id="pull_log_textarea" class="ollama-textarea" readonly>' + pt('正在加载拉取进度日志...\n') + '</textarea>' +
+            '<textarea id="pull_log_textarea" class="ollama-textarea" readonly>' + pt('正在加载拉取进度日志...') + '\n' + '</textarea>' +
             '</div>';
 
         var index = layer.open({
@@ -480,7 +480,7 @@ var ollama = {
                     if (data.status === 'success') {
                         clearInterval(_this.pull_timer);
                         _this.pull_timer = null;
-                        layer.msg(pt('模型') + ' ' + model_name + ' 下载拉取成功！', { icon: 1 });
+                        layer.msg(msgTpl(pt('模型 {1} 下载拉取成功！'), [model_name]), { icon: 1 });
                         setTimeout(function () {
                             layer.close(index);
                             _this.refreshModelsList();
@@ -538,7 +538,7 @@ var ollama = {
                 html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 服务环境变量配置') + '</h4>';
                 html += '    <div style="font-size:12px;color:#64748b;background:#f8fafc;padding:10px 15px;border-radius:6px;margin-bottom:15px;border:1px dashed #cbd5e1;">';
                 html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + (config.service_file || '未找到') + '</code><br/>';
-                html += '      配置保存后，插件会自动执行 <code style="font-size:10px;">systemctl daemon-reload</code> ' + pt('与服务重启，使新配置即时生效。');
+                html += '      ' + pt('配置保存后，插件会自动执行') + ' <code style="font-size:10px;">systemctl daemon-reload</code> ' + pt('与服务重启，使新配置即时生效。');
                 html += '    </div>';
 
                 // Host 配置
@@ -561,7 +561,7 @@ var ollama = {
                 
                 html += '    <div class="ollama-form-group" id="firewall_group" style="padding:10px 0;">';
                 html += '      <label style="font-weight:500;color:#475569;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;">';
-                html += '        <input type="checkbox" id="cfg_firewall_input" value="1" ' + firewall_checked + ' ' + is_disabled + ' style="margin-top:0;margin-right:8px;"> 自动在系统防火墙中放行 11434 端口（允许外网或跨主机访问）';
+                html += '        <input type="checkbox" id="cfg_firewall_input" value="1" ' + firewall_checked + ' ' + is_disabled + ' style="margin-top:0;margin-right:8px;"> ' + pt('自动在系统防火墙中放行 11434 端口（允许外网或跨主机访问）');
                 html += '      </label>';
                 html += '    </div>';
 
@@ -625,7 +625,7 @@ var ollama = {
         html += '      <h4 style="margin:0;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 运行系统日志 (最新 100 行)') + '</h4>';
         html += '      <button class="ollama-btn ollama-btn-default" style="padding:4px 12px;font-size:11px;" onclick="ollama.refreshLogs()"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新日志') + '</button>';
         html += '    </div>';
-        html += '    <textarea id="ollama_log_textarea" class="ollama-textarea" style="height:390px;" readonly>' + pt('正在加载系统服务日志...\n') + '</textarea>';
+        html += '    <textarea id="ollama_log_textarea" class="ollama-textarea" style="height:390px;" readonly>' + pt('正在加载系统服务日志...') + '\n' + '</textarea>';
         html += '  </div>';
         html += '</div>';
 
@@ -660,7 +660,7 @@ var ollama = {
         
         readme += '    <div class="ollama-help-card">';
         readme += '      <strong>' + pt('🖥️ 常用 Shell 命令操作：') + '</strong><br/>';
-        readme += '      您可在服务器终端通过以下常用命令对大模型进行管控与调试：';
+        readme += '      ' + pt('您可在服务器终端通过以下常用命令对大模型进行管控与调试：');
         readme += '      <table class="table" style="margin-top:8px;font-size:12px;margin-bottom:0;">';
         readme += '        <tr><td><span class="ollama-help-code">ollama list</span></td><td>' + pt('列出所有已下载的本地大模型库。') + '</td></tr>';
         readme += '        <tr><td><span class="ollama-help-code">ollama run deepseek-r1:7b</span></td><td>' + pt('交互式启动并进入指定大模型的命令行会话终端。') + '</td></tr>';
@@ -682,7 +682,7 @@ var ollama = {
 
         readme += '    <div class="ollama-help-card" style="border-left-color: #f59e0b;margin-bottom:0;">';
         readme += '      <strong>' + pt('💡 极速安装与显卡驱动相关说明：') + '</strong><br/>';
-        readme += '      Ollama 会在启动模型时自动尝试探测服务器中安装的显卡（Nvidia GPU 等），如果 CUDA 驱动匹配，将会自动利用 GPU 加速大模型的吞吐渲染，使得响应输出快上数十倍！若无显卡，Ollama 将会回退使用 CPU 进行数学推理。';
+        readme += '      ' + pt('Ollama 会在启动模型时自动尝试探测服务器中安装的显卡（Nvidia GPU 等），如果 CUDA 驱动匹配，将会自动利用 GPU 加速大模型的吞吐渲染，使得响应输出快上数十倍！若无显卡，Ollama 将会回退使用 CPU 进行数学推理。');
         readme += '    </div>';
         
         readme += '  </div>';

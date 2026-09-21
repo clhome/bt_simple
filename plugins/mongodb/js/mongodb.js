@@ -82,9 +82,9 @@ function mongoReplStatus() {
 		}
 
 		var con = "<p class='conf_p'>\
-                    <span class='f14 c6 mr20'>' + pt('Mongodb副本配置') + '</span><span class='f14 c6 mr20'></span>\
+                    <span class='f14 c6 mr20'>" + pt('Mongodb副本配置') + "</span><span class='f14 c6 mr20'></span>\
                     <button class='btn btn-success btn-xs "+repl_on+"'>"+repl_on_title+"</button>\
-                    <button class='btn btn-success btn-xs' onclick='mongoReplCfg()'>' + pt('配置') + '</button>\
+                    <button class='btn btn-success btn-xs' onclick='mongoReplCfg()'>" + pt('配置') + "</button>\
                 </p><hr/>";
 
         con += '<div class="divtable">\
@@ -118,7 +118,7 @@ function mongoReplCfgReplSetName(){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('同步副本名称') + '</span>\
+                    <span class='tname'>" + pt('同步副本名称') + "</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' name='replSetName' style='width:100px' />\
                     </div>\
@@ -212,22 +212,22 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 	                    <span class='tname'>priority:</span>\
 	                    <div class='info-r'>\
 	                        <input class='bt-input-text mr5' type='number' name='priority' style='width:220px' value='"+priority+"'/>\
-	                        <span class='c9'>' + pt('值越大，优先权越高') + '</span>\
+	                        <span class='c9'>" + pt('值越大，优先权越高') + "</span>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>votes:</span>\
 	                    <div class='info-r'>\
 	                        <input class='bt-input-text mr5' type='number' name='votes' style='width:220px' value='"+votes+"'/>\
-	                        <span class='c9'>' + pt('一般是0或者1') + '</span>\
+	                        <span class='c9'>" + pt('一般是0或者1') + "</span>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>仲裁员:</span>\
 	                    <div class='info-r'>\
 	                        <select class='bt-input-text mr5' name='arbiterOnly'>\
-	                        	<option value='0' "+(arbiterOnly == "0" ? 'checked':'')+">' + pt('否') + '</option>\
-	                        	<option value='1' "+(arbiterOnly == "1" ? 'checked':'')+">' + pt('是') + '</option>\
+	                        	<option value='0' "+(arbiterOnly == "0" ? 'checked':'')+">" + pt('否') + "</option>\
+	                        	<option value='1' "+(arbiterOnly == "1" ? 'checked':'')+">" + pt('是') + "</option>\
 	                        </select>\
 	                    </div>\
                     </div>\
@@ -368,15 +368,15 @@ function mongoSetConfig() {
         }
 
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + rdata['net']['bindIp'] + "' />，<font>' + pt('监听IP请勿随意修改') + '</font></p>" +
-            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + rdata['net']['port'] + "' />，<font>' + pt('监听端口,一般无需修改') + '</font></p>" +
-            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + rdata['storage']['dbPath'] + "' />，<font>' + pt('数据存储位置') + '</font></p>" +
-            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + rdata['systemLog']['path'] + "' />，<font>' + pt('日志文件位置') + '</font></p>" +
-            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + rdata['processManagement']['pidFilePath'] + "' />，<font>' + pt('PID保存路径') + '</font></p>" +
-            "<p class='line'><span class='span_tit' style='float:left;'>' + pt('安全认证：') + '</span>"+body_auth+"</p>" +
+            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + rdata['net']['bindIp'] + "' />，<font>" + pt('监听IP请勿随意修改') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + rdata['net']['port'] + "' />，<font>" + pt('监听端口,一般无需修改') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + rdata['storage']['dbPath'] + "' />，<font>" + pt('数据存储位置') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + rdata['systemLog']['path'] + "' />，<font>" + pt('日志文件位置') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + rdata['processManagement']['pidFilePath'] + "' />，<font>" + pt('PID保存路径') + "</font></p>" +
+            "<p class='line'><span class='span_tit' style='float:left;'>" + pt('安全认证：') + "</span>"+body_auth+"</p>" +
             "<div class='mtb15' style='padding-top: 10px;text-align: center;'>\
-            	<button class='btn btn-success btn-sm mr5' onclick='mongoSetConfig();'>' + pt('刷新') + '</button>\
-            	<button class='btn btn-success btn-sm' onclick='mongoConfigSave();'>' + pt('保存') + '</button>" +
+            	<button class='btn btn-success btn-sm mr5' onclick='mongoSetConfig();'>" + pt('刷新') + "</button>\
+            	<button class='btn btn-success btn-sm' onclick='mongoConfigSave();'>" + pt('保存') + "</button>" +
             "</div></div>";
 
         // console.log(body);
@@ -499,22 +499,22 @@ function addDatabase(type){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('数据库名') + '</span>\
+                        <span class='tname'>" + pt('数据库名') + "</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:65%' value=''>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
+                    <div class='line'><span class='tname'>" + pt('用户名') + "</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('访问权限') + '</span>\
+                        <span class='tname'>" + pt('访问权限') + "</span>\
                         <div class='info-r '>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                            <option value=\"%\">' + pt('所有人') + '</option>\
-                            <option value='ip'>' + pt('指定IP') + '</option>\
+                            <option value='127.0.0.1'>" + pt('本地服务器') + "</option>\
+                            <option value=\"%\">" + pt('所有人') + "</option>\
+                            <option value='ip'>" + pt('指定IP') + "</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -578,7 +578,7 @@ function setRootPwd(type, pwd){
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('root密码') + '</span>\
+                        <span class='tname'>" + pt('root密码') + "</span>\
                         <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
                             <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                         </div>\
@@ -664,7 +664,7 @@ function setDbPs(id, name, obj) {
 }
 
 function delDb(id, name){
-    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除【{1}】吗？'),[name]),function(){
         var data='id='+id+'&name='+name;
         api.post('del_db', '', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -676,7 +676,7 @@ function delDb(id, name){
 }
 
 function delDbTable( name, table_name){
-    safeMessage(pt('删除') + ' ['+name+']','您真的要删除['+table_name+']吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除[{1}]吗？'),[table_name]),function(){
         var data='name='+name+'&table_name='+table_name;
         api.post('del_db_table', '', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -708,7 +708,7 @@ function delDbBatch(){
             i++;
         }
         
-        var msg = '成功删除['+i+']个数据库!';
+        var msg = msgTpl(pt('成功删除[{1}]个数据库!'),[i]);
         showMsg(msg,function(){
             dbList();
         },{icon: 1}, 600);
@@ -726,11 +726,11 @@ function setDbPass(id, username, password){
         btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>' + pt('用户名') + '</span>\
+                        <span class='tname'>" + pt('用户名') + "</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
+                    <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
@@ -819,7 +819,7 @@ function repTools(db_name, res){
 		        	var name = db_name;
 		        	var table_name = rdata.collection_list[index].collection_name;
 
-		        	safeMessage(pt('删除') + ' ['+name+']','您真的要删除['+table_name+']吗？',function(){
+		        	safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除[{1}]吗？'),[table_name]),function(){
 				        var data='name='+name+'&table_name='+table_name;
 				        api.post('del_db_table', '', data, function(data){
 				            var rdata = JSON.parse(data.data);
@@ -873,7 +873,7 @@ function setDbAccess(username,name){
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>' + pt('访问权限') + '</span>\
+                            <span class='tname'>" + pt('访问权限') + "</span>\
                             <div class='info-r'>\
                                 <div id='role_list'></div>\
                             </div>\

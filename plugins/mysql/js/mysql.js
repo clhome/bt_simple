@@ -207,7 +207,7 @@ function setMySQLConf() {
         var setSize = parseInt($("input[name='memSize']").val());
         
         if(memSize < setSize){
-            var errMsg = "错误,内存分配过高!<p style='color:red;'>" + pt('物理内存: {1}MB') + "<br>" + pt('最大使用内存: {2}MB') + "<br>" + pt('可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!');
+            var errMsg = pt('错误,内存分配过高!') + "<p style='color:red;'>" + pt('物理内存: {1}MB') + "<br>" + pt('最大使用内存: {2}MB') + "<br>" + pt('可能造成的后果: 导致数据库不稳定,甚至无法启动MySQLd服务!');
             var msg = errMsg.replace('{1}',memSize).replace('{2}',setSize);
             layer.msg(msg,{icon:2,time:5000});
             return;
@@ -813,7 +813,7 @@ function addDatabase(type){
 }
 
 function delDb(id, name){
-    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除【{1}】吗？'),[name]),function(){
         var data='id='+id+'&name='+name;
         api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -1162,7 +1162,7 @@ function showImportLogModal(dbName, fileName, isSuccess, logText, onFinish){
 }
 
 function importBackup(file,name){
-    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),msgTpl(pt('当前操作会覆盖[{1}]数据库，是否继续？'),[name]),function(){
         var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
             icon: 16,
             shade: [0.3, '#000'],
@@ -1212,7 +1212,7 @@ function importBackupProgress(file,name){
 
 
 function importDbExternal(file,name){
-    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),msgTpl(pt('当前操作会覆盖[{1}]数据库，是否继续？'),[name]),function(){
         var loading = layer.msg(pt('正在导入数据库，请稍候...'), {
             icon: 16,
             shade: [0.3, '#000'],
@@ -2464,7 +2464,7 @@ function dataSyncVerify(db){
 
     layer.open({
         type: 1,
-        title: pt('同步数据库[')+db+']数据校验',
+        title: msgTpl(pt('同步数据库[{1}]数据校验'),[db]),
         area: '500px',
         btn:[ "开始","取消","手动"],
         content:"<div class='bt-form'>\
@@ -2827,18 +2827,18 @@ function getSlaveCfg(){
             area: ['400px','180px'],
             content:"<div class='bt-form pd20 c6'>\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>' + pt('当前从库同步模式') + '</span>\
+                        <span class='f14 c6 mr20'>" + pt('当前从库同步模式') + "</span>\
                         <b class='f14 c6 mr20'></b>\
-                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>' + pt('无') + '</button>\
+                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>" + pt('无') + "</button>\
                         <button class='btn btn-"+mode_ssh+" btn-xs slave-db-mode btn-ssh'>SSH</button>\
-                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>' + pt('同步账户') + '</button>\
+                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>" + pt('同步账户') + "</button>\
                     </p>\
                     <hr />\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>' + pt('配置设置') + '</span>\
+                        <span class='f14 c6 mr20'>" + pt('配置设置') + "</span>\
                         <b class='f14 c6 mr20'></b>\
                         <button class='btn btn-success btn-xs btn-slave-ssh'>SSH</button>\
-                        <button class='btn btn-success btn-xs btn-slave-user'>' + pt('同步账户') + '</button>\
+                        <button class='btn btn-success btn-xs btn-slave-user'>" + pt('同步账户') + "</button>\
                     </p>\
                 </div>",
             success:function(){
@@ -2887,7 +2887,7 @@ function getSlaveUserList(){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>' + pt('同步密码') + '</th><th>CMD</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>" + pt('同步账户') + "</th><th>" + pt('同步密码') + "</th><th>CMD</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2911,7 +2911,7 @@ function getSlaveSSHList(page=1){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>SSH</th><th>' + pt('操作') + '</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>" + pt('同步账户') + "</th><th>SSH</th><th>" + pt('操作') + "</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2934,7 +2934,7 @@ function handlerRun(){
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>" + pt('复制') + "</button>\
             </div>\
           </form>",
         });
@@ -3025,7 +3025,7 @@ function masterOrSlaveConf(version=''){
                     isHasSign = true;
                 }
 
-                var status = "<a data-id="+i+"  class='btlink db_error'>' + pt('异常') + '</>";
+                var status = "<a data-id="+i+"  class='btlink db_error'>" + pt('异常') + "</>";
                 if (mdb_ver >= 8){
                     if (v['Replica_SQL_Running'] == 'Yes' && v['Replica_IO_Running'] == 'Yes'){
                         status = "正常";
@@ -3110,16 +3110,16 @@ function masterOrSlaveConf(version=''){
 
                 var err_line = "";
                 err_line +="<tr>\
-                    <td>' + pt('IO错误') + '</td>\
+                    <td>" + pt('IO错误') + "</td>\
                     <td>"+ (info['Last_IO_Error'] == '' ? '无':info['Last_IO_Error'])+"</td>\
                 </tr>";
                 err_line +="<tr>\
-                    <td>' + pt('SQL错误') + '</td>\
+                    <td>" + pt('SQL错误') + "</td>\
                     <td>"+(info['Last_SQL_Error'] == '' ? '无':info['Last_SQL_Error'])+"</td>\
                 </tr>";
 
                 err_line +="<tr>\
-                    <td>' + pt('状态') + '</td>\
+                    <td>" + pt('状态') + "</td>\
                     <td>"+(info['Slave_SQL_Running_State'] == '' ? '无':info['Slave_SQL_Running_State']) +"</td>\
                 </tr>";
 
@@ -3138,8 +3138,8 @@ function masterOrSlaveConf(version=''){
                         <div class='tablescroll'>\
                             <table class='table table-hover' width='100%' cellspacing='0' cellpadding='0' border='0' style='border: 0 none;'>\
                             <thead><tr>\
-                                <th style='width:80px;'>' + pt('类型') + '</th>\
-                                <th>' + pt('内容') + '</th>\
+                                <th style='width:80px;'>" + pt('类型') + "</th>\
+                                <th>" + pt('内容') + "</th>\
                             </tr></thead>\
                             <tbody>"+ err_line +"</tbody>\
                             </table>\

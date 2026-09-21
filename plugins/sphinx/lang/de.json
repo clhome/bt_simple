@@ -1,5 +1,4 @@
 {
-    ")没有!": ") Nein!",
     "不支持aarch架构": "Die aarch-Architektur wird nicht unterstützt.",
     "主索引 :": "Hauptindex:",
     "以下内容,需手动加入计划任务。": "Der folgende Inhalt muss manuell zu geplanten Aufgaben hinzugefügt werden.",
@@ -7,7 +6,6 @@
     "修改配置后，是否尝试重建索引!": "Versuchen Sie nach der Änderung der Konfiguration, den Index neu zu erstellen?",
     "全量:": "Gesamtbetrag:",
     "关闭": "Schließen",
-    "参数:(": "Parameter: (",
     "合并索引 :": "Zusammenführungsindex:",
     "否": "Nein",
     "增量索引 :": "Inkrementeller Index:",
@@ -30,8 +28,6 @@
     "测试中": "Im Test",
     "简单高效的全文搜索引擎": "Eine einfache und effiziente Volltextsuchmaschine",
     "自动创建配置": "Konfiguration automatisch erstellen",
-    "自启动": "Seit dem Start",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "设置成功!": "Einstellungen gespeichert!",
     "说明": "Beschreibung",
     "运行日志": "Betriebsprotokoll",
@@ -41,5 +37,6 @@
     "选择表": "Auswahltabelle",
     "配置修改": "Änderungen an der Konfiguration",
     "重建成功!": "Der Wiederaufbau war erfolgreich!",
-    "重建索引": "Index neu erstellen"
+    "重建索引": "Index neu erstellen",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

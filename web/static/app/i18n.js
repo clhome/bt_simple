@@ -919,6 +919,108 @@
         });
     }
 
+    // ============================================
+    // 通用文案回退翻译（后端消息专用）
+    // ============================================
+    // 插件后端 index.py 通过 returnJson(False, '拉取失败: xxx') 返回的中文消息，
+    // 前端多以 layer.msg(rdata.msg) / showMsg(rdata.msg) 直接展示。
+    // 这些消息的原文正是插件语言包的键，但 t() 只查全局字典（window.lan 的点号路径），
+    // 故此前恒显示中文。translateAny() 在全局字典未命中时，继续查所有已加载的
+    // 插件字典（服务端直出 window._pluginDicts + 异步缓存 _pluginDicts），做精确匹配。
+    var _anyIndex = null;      // 合并后的「键 -> 译文」索引
+    var _anyStamp = -1;        // 索引对应的字典数量快照，变化即重建
+    var _anyCache = {};        // 单条文案的结果缓存
+
+    function _dictStamp() {
+        var n = 0, k;
+        if (window._pluginDicts) {
+            for (k in window._pluginDicts) n++;
+        }
+        for (k in _pluginDicts) n++;
+        return n;
+    }
+
+    function _buildAnyIndex() {
+        var idx = {}, bags = [window._pluginDicts, _pluginDicts];
+        for (var b = 0; b < bags.length; b++) {
+            var bag = bags[b];
+            if (!bag || typeof bag !== 'object') continue;
+            for (var name in bag) {
+                var d = bag[name];
+                if (!d || typeof d !== 'object') continue;
+                for (var key in d) {
+                    // 先到先得：服务端直出优先
+                    if (!Object.prototype.hasOwnProperty.call(idx, key)) {
+                        idx[key] = d[key];
+                    }
+                }
+            }
+        }
+        return idx;
+    }
+
+    /**
+     * 回退翻译：全局字典 -> 插件字典精确匹配。
+     * @param {string} text 原文
+     * @returns {string} 译文；无命中时原样返回
+     */
+    function translateAny(text) {
+        if (!text || typeof text !== 'string') return text;
+        var key = text.trim();
+        if (!key) return text;
+
+        var stamp = -1;
+        try {
+            stamp = _dictStamp();
+        } catch (e) {}
+        if (stamp !== _anyStamp) {
+            _anyStamp = stamp;
+            _anyIndex = null;
+            _anyCache = {};
+        }
+        if (Object.prototype.hasOwnProperty.call(_anyCache, key)) {
+            return _anyCache[key];
+        }
+
+        var hit = text;
+        // 1. 全局字典
+        try {
+            var g = t(key);
+            if (g && g !== key) hit = g;
+        } catch (e) {}
+        // 2. 插件字典精确匹配
+        if (hit === text) {
+            try {
+                if (!_anyIndex) _anyIndex = _buildAnyIndex();
+                if (Object.prototype.hasOwnProperty.call(_anyIndex, key)) {
+                    var v = _anyIndex[key];
+                    if (typeof v === 'string' && v) hit = v;
+                }
+            } catch (e) {}
+        }
+        // 3. 冒号前缀匹配
+        //    后端 returnJson(False, '拉取失败: ' + e) 运行时的消息是「键 + 变量」，
+        //    精确匹配必然落空。此时取消息首个冒号（含）作为候选键再查一次——
+        //    这类键天然是消息前缀，误伤概率极低。
+        if (hit === text) {
+            try {
+                if (!_anyIndex) _anyIndex = _buildAnyIndex();
+                var c1 = key.indexOf(':'), c2 = key.indexOf('：'), ci = -1;
+                if (c1 >= 0 && (c2 < 0 || c1 < c2)) ci = c1;
+                else if (c2 >= 0) ci = c2;
+                if (ci > 0 && ci <= 40) {
+                    var prefix = key.slice(0, ci + 1);
+                    var pv = _anyIndex[prefix];
+                    if (typeof pv === 'string' && pv) {
+                        hit = pv + key.slice(ci + 1);
+                    }
+                }
+            } catch (e) {}
+        }
+        _anyCache[key] = hit;
+        return hit;
+    }
+
     // 暴露全局 API
     var YfI18n = {
         detect: detectLanguage,
@@ -936,6 +1038,7 @@
         detectCurrentMenu: detectCurrentMenu,
         t: t,
         tSafe: tSafe,
+        translateAny: translateAny,
         escapeHtml: escapeHtml,
         stripHtml: stripHtml,
         isHtmlValue: isHtmlValue,

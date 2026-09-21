@@ -158,7 +158,7 @@ def check_safe_name(val):
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
 
 def status():

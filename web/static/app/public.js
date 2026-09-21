@@ -220,6 +220,18 @@ function initLayerI18n() {
       var trans = getI18nText(content);
       if (trans && trans !== content) {
         content = trans;
+      } else {
+        // 回退：插件后端 returnJson 返回的中文消息，其原文即插件语言包的键，
+        // 由 YfI18n.translateAny() 在所有已加载插件字典中精确匹配。
+        try {
+          var anyFn = window.YfI18n && window.YfI18n.translateAny;
+          if (typeof anyFn === 'function') {
+            var trans2 = anyFn(content);
+            if (trans2 && trans2 !== content) {
+              content = trans2;
+            }
+          }
+        } catch (e) {}
       }
     }
 

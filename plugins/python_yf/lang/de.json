@@ -1,6 +1,4 @@
 {
-    "(标识:": "(Kennzeichnung:",
-    "(标识: ' + item.name + ')": "(Bezeichnung: ' + item.name + ')",
     "] 吗？": "]?",
     "] 吗？安装过程可能需要几十秒时间，请耐心等待。": "]? Der Installationsvorgang kann einige Dutzend Sekunden dauern. Bitte haben Sie etwas Geduld.",
     "] 吗？此操作将不可恢复！": "]? Dieser Vorgang kann nicht rückgängig gemacht werden!",
@@ -24,8 +22,6 @@
     "存在关联的虚拟环境，为了安全禁止卸载": "Da eine verbundene virtuelle Umgebung vorhanden ist, ist die Deinstallation aus Sicherheitsgründen untersagt.",
     "安装 Python": "Python installieren",
     "安装失败: {output}": "Installation fehlgeschlagen: {output}",
-    "已创建虚拟环境 (": "Die virtuelle Umgebung wurde erstellt (",
-    "已创建虚拟环境 (' + item.venvs.length + ')": "Virtuelle Umgebung erstellt (' + item.venvs.length + ')",
     "已安装": "Installiert",
     "已安装版本": "Installierte Version",
     "应用环境命令": "Befehle in der Anwendungsumgebung",
@@ -43,10 +39,11 @@
     "确定要安装 [": "Bestätigen Sie, dass Sie [",
     "系统环境": "Systemumgebung",
     "系统自带或其他外部环境，为防止系统崩溃，禁止卸载": "Um Systemabstürze zu vermeiden, ist die Deinstallation in der systemeigenen Umgebung oder in anderen externen Umgebungen untersagt.",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "衢州御风科技有限公司出品": "Präsentiert von Quzhou Yufeng Technology Co., Ltd.",
     "该版本下有关联的虚拟环境({len(venvs)}个)，为了安全禁止卸载": "In dieser Version sind {len(venvs)} virtuelle Umgebungen verknüpft; aus Sicherheitsgründen ist deren Deinstallation untersagt.",
     "请输入虚拟环境路径": "Bitte geben Sie den Pfad zur virtuellen Umgebung ein.",
     "请选择或输入您的项目根目录": "Bitte wählen Sie das Stammverzeichnis Ihres Projekts aus oder geben Sie es ein.",
-    "路径:": "Pfad:"
+    "路径:": "Pfad:",
+    "已创建虚拟环境 ({1})": "Virtuelle Umgebung erstellt ({1})",
+    "(标识: {1})": "(Kennung: {1})"
 }

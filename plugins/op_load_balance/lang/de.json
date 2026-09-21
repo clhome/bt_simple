@@ -1,5 +1,4 @@
 {
-    ")没有!": ") Nein!",
     "IP地址": "IP-Adresse",
     "IP地址: 仅支持IP地址,否则无法正常参与负载均衡": "IP-Adresse: Es werden ausschließlich IP-Adressen unterstützt; andernfalls ist eine ordnungsgemäße Teilnahme am Lastausgleich nicht möglich.",
     "OP负载均衡": "OP-Lastenausgleich",
@@ -7,14 +6,12 @@
     "修改": "Ändern",
     "修改成功": "Die Änderung wurde erfolgreich vorgenommen.",
     "停用": "Deaktivieren",
-    "共": "Insgesamt",
     "共0条": "Insgesamt 0 Einträge",
     "关闭": "Schließen",
     "创建负载": "Last erstellen",
     "删除": "Löschen",
     "参与状态: 正常参与负载均衡,请至少添加1个普通节点": "Teilnahmestatus: Nimmt normal am Lastausgleich teil. Bitte fügen Sie mindestens einen normalen Knoten hinzu.",
     "参与者": "Teilnehmer",
-    "参数:(": "Parameter: (",
     "地址": "Adresse",
     "域名": "Domain",
     "域名不能为空!": "Der Domainname darf nicht leer sein!",
@@ -33,7 +30,6 @@
     "条": "Einträge",
     "查看": "Anzeigen",
     "正常": "Normal",
-    "每行填写一个域名，默认为80端口。\\n泛解析添加方法 *.domain.com\\n如另加端口格式为 www.domain.com:88": "Geben Sie in jede Zeile einen Domänennamen ein. Der Standardwert ist Port 80. \\nPan-Analyse-Hinzufügungsmethode *.domain.com\\nWenn das zusätzliche Portformat www.domain.com:88 ist",
     "添加成功": "Erfolgreich hinzugefügt",
     "添加节点": "Knoten hinzufügen",
     "添加负载": "Last hinzufügen",
@@ -47,7 +43,6 @@
     "节点状态": "Knotenzustand",
     "节点端口不合法": "Ungültiger Knotenport",
     "节点调度": "Knoteneinplanung",
-    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "访问节点[%s]成功": "Der Zugriff auf den Knoten [%s] war erfolgreich.",
     "请先安装OpenResty": "Bitte installieren Sie zunächst OpenResty.",
     "负载名称": "Name der Last",
@@ -60,5 +55,10 @@
     "阈值: 在恢复时间的时间段内，如果OpenResty与节点通信尝试失败的次数达到此值，OpenResty就认为服务器不可用": "Schwellenwert: Wenn die Anzahl der fehlgeschlagenen Kommunikationsversuche zwischen OpenResty und einem Knoten innerhalb des Wiederherstellungszeitraums diesen Wert erreicht, betrachtet OpenResty den Server als nicht verfügbar.",
     "验证文件路径": "Dateipfad überprüfen",
     "验证文件路径: 用于检查文件路径地址是否可用": "Dateipfad überprüfen: Dient dazu, zu überprüfen, ob der Dateipfad gültig ist",
-    "验证路径": "Verifizierungspfad"
+    "验证路径": "Verifizierungspfad",
+    "每行填写一个域名，默认为80端口。": "Geben Sie pro Zeile einen Domänennamen ein; Standard ist Port 80.",
+    "泛解析添加方法 *.domain.com": "Wildcard-DNS-Eintrag: *.domain.com",
+    "如另加端口格式为 www.domain.com:88": "Für eine zusätzliche Portangabe: www.domain.com:88",
+    "共{1}条": "{1} insgesamt",
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

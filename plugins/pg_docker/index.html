@@ -339,7 +339,7 @@ function loadList() {
                     : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="' + pt('点击启动实例') + '"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>' + pt('已停止') + '</span>';
                 var extColor = item.is_external ? 'red' : '#999';
                 var extChecked = item.is_external ? 'checked' : '';
-                var extTip = pt('勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)');
+                var extTip = pt('勾选允许外部网络访问(0.0.0.0)') + '\n' + pt('取消仅限本地网络访问(127.0.0.1)');
                 var extHtml = '<label title="' + extTip + '" style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
                               '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">' + pt('外') + '</label>';
 
@@ -473,7 +473,7 @@ function showConfig(name) {
 function toggleExternal(name, checked, e) {
     e.preventDefault();
     var actionName = checked ? pt('允许外部直连访问 (监听 0.0.0.0)') : pt('限制仅本地访问 (监听 127.0.0.1)');
-    var confirmMsg = pt('确定要切换为【{0}】吗？', actionName) + '<br><br><span style="color:#e6522c;">' + pt('此操作将自动重启该容器以应用最新网络配置。') + '</span>';
+    var confirmMsg = msgTpl(pt('确定要切换为【{1}】吗？'), [actionName]) + '<br><br><span style="color:#e6522c;">' + pt('此操作将自动重启该容器以应用最新网络配置。') + '</span>';
     layer.confirm(confirmMsg, {
         title: pt('端口监听范围调整确认'),
         icon: 3,
@@ -574,11 +574,11 @@ function doModifyConfig(name, dbuser, oldPort) {
 
 function toggleStatus(name, action) {
     var actionName = action === 'start' ? pt('启动') : pt('停止');
-    layer.confirm(pt('确定要{0}实例 [{1}] 吗？', actionName, name), {
+    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 吗？'), [actionName, name]), {
         title: pt('状态切换确认'),
         btn: [pt('确定'), pt('取消')]
     }, function() {
-        var loadT = layer.msg(pt('正在{0}...', actionName), { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(msgTpl(pt('正在{1}...'), [actionName]), { icon: 16, time: 0, shade: 0.3 });
         pgPost('toggle_status', { instance_name: name, action: action }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -635,11 +635,11 @@ function doUninstall(name, path) {
 
 function toggleAutoBackup(name, enable) {
     var actionName = enable ? pt('开启') : pt('关闭');
-    layer.confirm(pt('确定要{0}实例 [{1}] 的自动备份计划任务吗？', actionName, name), {
-        title: pt('确认{0}', actionName),
+    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 的自动备份计划任务吗？'), [actionName, name]), {
+        title: msgTpl(pt('确认{1}'), [actionName]),
         btn: [pt('确定'), pt('取消')]
     }, function() {
-        var loadT = layer.msg(pt('正在{0}自动备份...', actionName), { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(msgTpl(pt('正在{1}自动备份...'), [actionName]), { icon: 16, time: 0, shade: 0.3 });
         pgPost('toggle_auto_backup', { instance_name: name, enable: enable }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -665,7 +665,7 @@ function copyToClipboard(text, itemName) {
     try {
         var successful = document.execCommand('copy');
         if (successful) {
-            layer.msg(pt('{0} 已复制到剪贴板', itemName), { icon: 1 });
+            layer.msg(msgTpl(pt('{1} 已复制到剪贴板'), [itemName]), { icon: 1 });
         } else {
             layer.msg(pt('复制失败，请手动复制'), { icon: 2 });
         }

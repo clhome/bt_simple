@@ -1,5 +1,4 @@
 {
-    ")没有!": ") No!",
     "Gitea推广信息": "Informazioni promozionali su Gitea",
     "Gitea是一个开源社区驱动的轻量级代码托管解决方案。": "Gitea è una soluzione open source e guidata dalla comunità per l'hosting di codice, caratterizzata da un design leggero.",
     "Gitea模板加载时间": "Tempo di caricamento dei modelli di Gitea",
@@ -24,7 +23,6 @@
     "卸载成功!": "Disinstallazione completata con successo!",
     "卸载脚本": "script di disinstallazione",
     "原文件已经不存在了!": "Il documento originale non esiste più!",
-    "参数:(": "Parametri: (",
     "启动内置SSH服务器": "Avviare il server SSH integrato",
     "启用验证码服务": "Attiva il servizio di codice di verifica",
     "复制公钥": "Copia la chiave pubblica",
@@ -71,7 +69,6 @@
     "源码": "Codice sorgente",
     "点击查看本机公钥": "Fare clic per visualizzare la chiave pubblica locale",
     "状态": "Stato",
-    "用户(": "Utente (",
     "用户({1})项目列表": "Elenco dei progetti dell'utente ({1})",
     "用户/组织": "Utente/Organizzazione",
     "用户列表": "Elenco utenti",
@@ -87,9 +84,7 @@
     "脚本文件不存在!": "Il file di script non esiste!",
     "脚本文件名": "Nome del file di script",
     "脚本文件执行成功,观察日志!": "Il file di script è stato eseguito con successo, controlla il log!",
-    "自启动": "Dall'avvio",
     "自定义": "Personalizza",
-    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "设置": "Impostazioni",
     "设置成功": "Installazione riuscita",
     "读取本机公钥失败，请检查家目录权限，或手动在命令行中运行 ssh-keygen。": "Impossibile leggere la chiave pubblica locale. Verificare i permessi della directory home oppure eseguire manualmente il comando `ssh-keygen` dalla riga di comando.",
@@ -107,12 +102,12 @@
     "重载": "Ricarica",
     "非法的文件名!": "Nome file non consentito!",
     "项目": "Progetto",
-    "项目(": "Progetto (",
     "项目({1}/{2})自定义脚本": "Progetto ({1}/{2}) Script personalizzato",
     "项目【加载脚本】后,会自动同步到wwwroot目录下": "Dopo che il progetto [carica lo script], verrà automaticamente sincronizzato nella directory wwwroot.",
     "项目列表": "Elenco dei progetti",
     "项目名": "Nome del progetto",
     "项目管理": "Gestione dei progetti",
     "默认使用MySQL,第一个启动加载各种配置,并修改成正确的数据库配置": "Per impostazione predefinita viene utilizzato MySQL. Il primo avvio carica varie configurazioni e le modifica nella configurazione corretta del database.",
-    "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Suggerimento: la chiave pubblica può essere aggiunta direttamente all'elenco delle chiavi SSH di Gitea, per consentire il trasferimento di codice tra il server e il repository Git senza bisogno di inserire la password."
+    "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Suggerimento: la chiave pubblica può essere aggiunta direttamente all'elenco delle chiavi SSH di Gitea, per consentire il trasferimento di codice tra il server e il repository Git senza bisogno di inserire la password.",
+    "缺少必要参数:": "Parametro obbligatorio mancante:"
 }

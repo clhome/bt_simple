@@ -26,7 +26,7 @@ function wafMsg(msg) {
     for (var i = 0; i < WAF_MSG_PATTERNS.length; i++) {
         var m = msg.match(WAF_MSG_PATTERNS[i][0]);
         if (m) {
-            return pt(WAF_MSG_PATTERNS[i][1], m[1]);
+            return msgTpl(pt(WAF_MSG_PATTERNS[i][1]), [m[1]]);
         }
     }
     return pt(msg);
@@ -921,7 +921,7 @@ function confirmAddIpBlackArgs(ip) {
     layer.confirm('<div style="line-height:22px; font-size:13px;">' +
         '<b>' + pt('是否确认将该 IP 永久拉黑？') + '</b><br><br>' +
         '<span style="color:#666;">' + pt('加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。') + '<br><br>' +
-        pt('后续如需解除封禁，请前往面板的「{1}」进行手动删除解封。', '<b>' + pt('全局配置 ➔ IP黑名单') + '</b>') + '</span></div>', 
+        msgTpl(pt('后续如需解除封禁，请前往面板的「{1}」进行手动删除解封。'), ['<b>' + pt('全局配置 ➔ IP黑名单') + '</b>']) + '</span></div>', 
     {
         title:  pt('永久拉黑确认'),
         icon: 3,

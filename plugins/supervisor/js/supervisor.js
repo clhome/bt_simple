@@ -55,7 +55,7 @@ function supList(page, search){
         }
 
         if(rdata.data.length==0){
-        	list = "<tr><td colspan='9'>' + pt('当前没有数据') + '</td></tr>";
+        	list = "<tr><td colspan='9'>" + pt('当前没有数据') + "</td></tr>";
         }
 
         var con = '<div class="safe bgw">\
@@ -119,7 +119,7 @@ function updateJob(name){
 		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 		var defaultPath = $("#defaultPath").html();
-		var ulist = "<div class='line'><span class='tname'>' + pt('启动用户') + '</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
+		var ulist = "<div class='line'><span class='tname'>" + pt('启动用户') + "</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
 		for (var i=0;i<rdata['userlist'].length;i++) {
 			if (rdata['userlist'][i] == rdata['daemoninfo']['user']){
 				ulist += "<option value='"+rdata['userlist'][i]+"' selected>"+rdata['userlist'][i]+"</option>";
@@ -139,20 +139,20 @@ function updateJob(name){
 			btn: [pt('确定'), pt('取消')],
 			content: "<div class='bt_conter bt-form pd15' style='height:auto;width:100%;'>\
 						<div class='line'>\
-		                    <span class='tname'>' + pt('名称') + '</span>\
+		                    <span class='tname'>" + pt('名称') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+name+"' placeholder='' + pt('请输入名称') + '' style='width:270px' readonly/>\
+		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+name+"' placeholder='" + pt('请输入名称') + "' style='width:270px' readonly/>\
 		                    </div>\
 	                    </div>\
 	                    "+ulist+"\
 	                    <div class='line'>\
-		                    <span class='tname'>' + pt('进程数量') + '</span>\
+		                    <span class='tname'>" + pt('进程数量') + "</span>\
 		                    <div class='info-r c4'>\
 		                    	<input id='numprocs' class='bt-input-text' type='text' name='numprocs' value='"+rdata['daemoninfo']['numprocs']+"' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
-		                    <span class='tname'>' + pt('启动优先级') + '</span>\
+		                    <span class='tname'>" + pt('启动优先级') + "</span>\
 		                    <div class='info-r c4'>\
 		                    	<input id='priority' class='bt-input-text' type='text' name='priority' value='"+rdata['daemoninfo']['priority']+"' style='width:270px' />\
 		                    </div>\
@@ -200,7 +200,7 @@ function updateJob(name){
 
 //卸载软件
 function delJob(name) {
-    layer.confirm(msgTpl('是否删除守护进程[{1}]?', [name]), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(msgTpl(pt('是否删除守护进程[{1}]?'), [name]), { icon: 3, closeBtn: 2 }, function() {
     	///////////////////////////////////////
         var data = {'name':  name};
         var loadT = layer.msg(pt('正在处理,请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
@@ -222,7 +222,7 @@ function supAdd() {
 		// console.log(rdata);
 
 		var defaultPath = $("#defaultPath").html();
-		var ulist = "<div class='line'><span class='tname'>' + pt('启动用户') + '</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
+		var ulist = "<div class='line'><span class='tname'>" + pt('启动用户') + "</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
 		for (var i=0;i<rdata.length;i++) {
             ulist += "<option value='"+rdata[i]+"'>"+rdata[i]+"</option>";
         }
@@ -239,35 +239,35 @@ function supAdd() {
 			btn: [pt('确定'), pt('取消')],
 			content: "<div class='bt_conter bt-form pd15' style='height:auto;width:100%;'>\
 						<div class='line'>\
-		                    <span class='tname'>' + pt('名称') + '</span>\
+		                    <span class='tname'>" + pt('名称') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='name' class='bt-input-text' type='text' name='name' placeholder='' + pt('请输入名称') + '' style='width:270px' />\
+		                    	<input id='name' class='bt-input-text' type='text' name='name' placeholder='" + pt('请输入名称') + "' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    "+ulist+"\
 	                    <div class='line'>\
-		                    <span class='tname'>' + pt('运行目录') + '</span>\
+		                    <span class='tname'>" + pt('运行目录') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='' + pt('请选择运行目录') + '' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:270px' />\
+		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='" + pt('请选择运行目录') + "' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:270px' />\
 		                    	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
-		                    <span class='tname'>' + pt('启动命令') + '</span>\
+		                    <span class='tname'>" + pt('启动命令') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='command' class='bt-input-text' type='text' name='command' placeholder='' + pt('请输入启动命令') + '' style='width:270px' />\
+		                    	<input id='command' class='bt-input-text' type='text' name='command' placeholder='" + pt('请输入启动命令') + "' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
-		                    <span class='tname'>' + pt('进程数量') + '</span>\
+		                    <span class='tname'>" + pt('进程数量') + "</span>\
 		                    <div class='info-r c4'>\
 		                    	<input id='numprocs' class='bt-input-text' type='text' name='numprocs' value='1' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    <ul class='help-info-text c7' style='padding-left: 29px;margin-top:5px;'>\
-	                    	<li style='color:#F00'>' + pt('注意：填写进程名称请使用英文，暂不支持中文！') + '</li>\
-	                        <li>' + pt('如果启动命令里面有文件，请填写文件的绝对路径！') + '</li>\
-	                        <li>' + pt('进程数量默认值为1，如果值为大于1的整数，则相当于多进程！') + '</li>\
+	                    	<li style='color:#F00'>" + pt('注意：填写进程名称请使用英文，暂不支持中文！') + "</li>\
+	                        <li>" + pt('如果启动命令里面有文件，请填写文件的绝对路径！') + "</li>\
+	                        <li>" + pt('进程数量默认值为1，如果值为大于1的整数，则相当于多进程！') + "</li>\
 	                    </ul>\
 	                   </div>",
 	        yes: function(index, layero){
@@ -344,7 +344,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
     			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
                 <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 <ul class="help-info-text c7 ptb15">\
-                    <li>' + pt('此处为')+ _name + version +'配置文件,若您不了解配置规则,请勿随意修改。</li>\
+                    <li>' + msgTpl(pt('此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。'), [_name + (version ? ' ' + version : '')]) + '</li>\
                 </ul>';
     $(".soft-man-con").html(con);
 
@@ -572,7 +572,7 @@ function confdList(page, search){
         }
 
         if( rdata.data.length == 0 ){
-        	list = "<tr><td colspan='9'>' + pt('当前没有数据') + '</td></tr>";
+        	list = "<tr><td colspan='9'>" + pt('当前没有数据') + "</td></tr>";
         }
 
         var con = '<div class="safe bgw">\

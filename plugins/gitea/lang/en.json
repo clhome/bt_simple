@@ -1,5 +1,4 @@
 {
-    ")没有!": ")No!",
     "Gitea推广信息": "Gitea promotion information",
     "Gitea是一个开源社区驱动的轻量级代码托管解决方案。": "Gitea is an open source community-driven lightweight code hosting solution.",
     "Gitea模板加载时间": "Gitea template loading time",
@@ -24,7 +23,6 @@
     "卸载成功!": "Uninstalled successfully!",
     "卸载脚本": "uninstall script",
     "原文件已经不存在了!": "The original document no longer exists!",
-    "参数:(": "parameter:(",
     "启动内置SSH服务器": "Start the built-in SSH server",
     "启用验证码服务": "Enable verification code service",
     "复制公钥": "copy public key",
@@ -71,7 +69,6 @@
     "源码": "Source Code",
     "点击查看本机公钥": "Click to view the local public key",
     "状态": "Status",
-    "用户(": "user(",
     "用户({1})项目列表": "User({1}) Item List",
     "用户/组织": "User/Organization",
     "用户列表": "User list",
@@ -87,9 +84,7 @@
     "脚本文件不存在!": "The script file does not exist!",
     "脚本文件名": "Script File Name",
     "脚本文件执行成功,观察日志!": "The script file executed successfully. Check the log!",
-    "自启动": "self start",
     "自定义": "Customize",
-    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "设置": "Settings",
     "设置成功": "Setup successful",
     "读取本机公钥失败，请检查家目录权限，或手动在命令行中运行 ssh-keygen。": "Failed to read the local public key, please check the home directory permissions, or manually run ssh-keygen in the command line.",
@@ -107,12 +102,12 @@
     "重载": "Reload",
     "非法的文件名!": "Invalid filename!",
     "项目": "Project",
-    "项目(": "project(",
     "项目({1}/{2})自定义脚本": "Project ({1}/{2}) Custom Script",
     "项目【加载脚本】后,会自动同步到wwwroot目录下": "After the project [loads the script], it will be automatically synchronized to the wwwroot directory.",
     "项目列表": "Project list",
     "项目名": "Project name",
     "项目管理": "Project Management",
     "默认使用MySQL,第一个启动加载各种配置,并修改成正确的数据库配置": "MySQL is used by default. The first startup loads various configurations and changes them to the correct database configuration.",
-    "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Tip: You can add the public key directly to Gitea's SSH key list to push and pull code between the server and Git repositories without entering a password."
+    "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Tip: You can add the public key directly to Gitea's SSH key list to push and pull code between the server and Git repositories without entering a password.",
+    "缺少必要参数:": "Missing required parameter:"
 }

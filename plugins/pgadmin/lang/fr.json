@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "80端不能使用!": "Le port 80 ne fonctionne pas !",
     "PG登录密码": "Mot de passe de connexion PG",
     "PG登录密码不能为空!": "Le mot de passe de connexion à PG ne doit pas être vide !",
@@ -17,7 +16,6 @@
     "修改成功!": "Modifié avec succès!",
     "全能Postgres数据库Web管理工具": "Outil de gestion Web de base de données Postgres tout-en-un",
     "内网地址：": "Adresse du réseau interne :",
-    "参数:(": "Nom de domaine du serveur",
     "基础认证密码": "Mot de passe de certification de base",
     "基础认证密码：": "Mot de passe de certification de base :",
     "基础认证用户名": "Nom d'utilisateur pour la certification de base",
@@ -33,11 +31,10 @@
     "登录密码：": "Mot de passe de connexion :",
     "登录用户名：": "Nom d'utilisateur de connexion :",
     "端口范围不合法!": "La plage de ports est illégale !",
-    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
-    "认证用户名": "Nom d'utilisateur d'authentification",
     "访问与认证信息": "Informations relatives à l'accès et à l'authentification",
     "访问日志": "journal d'accès",
     "访问端口": "Port d'accès",
     "重写模版": "Remplacer le modèle",
-    "错误日志": "journal des erreurs"
+    "错误日志": "journal des erreurs",
+    "缺少必要参数:": "Paramètre requis manquant :"
 }
