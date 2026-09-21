@@ -1,0 +1,58 @@
+# i18n 静态校验门禁
+#
+# 独立于上游 MW 的构建/发布 workflow（python-app-*.yml / release.yml），
+# 只做 i18n 静态检查，失败不影响发布链路。
+#
+# 检查项见 scripts/verify_i18n.py（共 9 项）：插件/全局键集一致、译文无 HTML、
+# 无脏键、无多参 pt()、msgTpl 首参含 pt(、无 {0} 占位符、后端消息前缀不含 HTML、
+# 后端中文消息可查到语言包键。
+#
+# 脚本自包含（仅标准库 + 内嵌自证夹具），不依赖被 .gitignore 忽略的 test/。
+
+name: i18n Check
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'plugins/**/lang/**'
+      - 'plugins/**/*.js'
+      - 'plugins/**/index.html'
+      - 'plugins/**/index.py'
+      - 'web/static/language/**'
+      - 'web/static/app/i18n.js'
+      - 'web/static/app/public.js'
+      - 'scripts/verify_i18n.py'
+      - '.github/workflows/i18n-check.yml'
+  pull_request:
+    paths:
+      - 'plugins/**/lang/**'
+      - 'plugins/**/*.js'
+      - 'plugins/**/index.html'
+      - 'plugins/**/index.py'
+      - 'web/static/language/**'
+      - 'web/static/app/i18n.js'
+      - 'web/static/app/public.js'
+      - 'scripts/verify_i18n.py'
+      - '.github/workflows/i18n-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置 Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: 校验检测器本身（已知答案自证）
+        run: python scripts/verify_i18n.py --self-test
+
+      - name: 运行 i18n 静态校验
+        run: python scripts/verify_i18n.py --verbose
