@@ -1493,6 +1493,9 @@ function renderFileOverwriteHtml(result) {
     var tbody = '';
     for (var i = 0; i < list.length; i++) {
         var item = list[i];
+        // 文件名来自用户上传 / 磁盘，且这里同时落在 title 属性位与文本位，
+        // 必须转义后再拼接（含 " ' < > &），否则形如 `"><img src=x onerror=…>` 的文件名可越出属性执行脚本。
+        var safeFileName = yfMsgEscape(item.filename);
         var oldSizeStr = toSize(item.size);
         var sizeHtml = '';
         if (item.new_size !== undefined && item.new_size !== null) {
@@ -1504,9 +1507,10 @@ function renderFileOverwriteHtml(result) {
             sizeHtml = '<span style="color: #64748b; font-size: 12px;">' + oldSizeStr + '</span>';
         }
         var mtimeStr = item.mtime ? ((item.mtime.length > 11) ? item.mtime : getMatchTime(item.mtime)) : '';
+        mtimeStr = yfMsgEscape(mtimeStr);
 
         tbody += '<tr style="border-bottom: 1px solid #f1f5f9;">' +
-                 '<td style="padding: 10px 12px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334155; font-weight: 500;" title="' + item.filename + '">' + item.filename + '</td>' +
+                 '<td style="padding: 10px 12px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334155; font-weight: 500;" title="' + safeFileName + '">' + safeFileName + '</td>' +
                  '<td style="padding: 10px 8px; text-align: center; white-space: nowrap;">' + sizeHtml + '</td>' +
                  '<td style="padding: 10px 12px; text-align: right; white-space: nowrap; color: #64748b; font-size: 12px;">' + mtimeStr + '</td>' +
                  '</tr>';

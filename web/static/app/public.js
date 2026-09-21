@@ -1396,6 +1396,121 @@ function isChineseChar(b) {
   var a = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
   return a.test(b);
 }
+
+// ============================================================
+// safeMessage 的 HTML 安全层
+// ------------------------------------------------------------
+// 背景：safeMessage 的 title 与正文最终都以 HTML 形式注入 layer 弹窗
+//   （layer.js: '<div class="layui-layer-title">' + title + '</div>'，
+//    content 亦走 innerHTML）。而正文里既有「有意的排版标签」
+//   （调用方传入的 <a style="color:red;">…</a>、文件覆盖提示表格、
+//     站点删除的选项块），也有「用户可控数据」
+//   （容器名 / 库名 / 站点名 / 文件名 / IP）。
+//   两者在调用点已拼成一个字符串，函数内部无法再区分，
+//   因此这里采用**白名单净化**：只放行已知安全的标签与属性，
+//   其余一律转义为纯文本 —— 既堵住 XSS，又保住既有样式。
+//
+// 为什么不用黑名单（过滤 script / on*）：黑名单永远漏 —— 大小写变形、
+//   注释拆分、实体编码、SVG/MathML 命名空间、<img src=x onerror=…> 等。
+//   白名单的失效方向是「多转义一段文本」，而不是「放行一段脚本」。
+//
+// 有意不做：
+//   - 不放行 href / src / action / formaction / xlink:href 等可携带协议的属性
+//     （javascript: / data: 的绕过手法太多；safeMessage 目前也不需要链接）
+//   - 不放行 script / style / iframe / object / embed / svg / math / link / meta
+//   - 不引入 DOMPurify 等外部依赖（面板前端是纯静态文件，无打包构建）
+// ============================================================
+
+// 转义为纯文本。**保留已成形的实体**（&lt; &nbsp; &#39; …）不重复转义，
+// 否则 renderFileOverwriteHtml 里用于显示「<=」的 &lt;= 会变成字面 "&lt;="。
+function yfMsgEscape(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&(?!(?:[a-zA-Z][a-zA-Z0-9]{1,31}|#\d{1,7}|#[xX][0-9a-fA-F]{1,6});)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 严格档：用于 title 与正文（这两处会混入用户可控数据）
+var YF_MSG_TAGS = ('a,span,div,p,br,hr,b,strong,i,em,u,s,small,sub,sup,code,pre,mark,font,'
+  + 'blockquote,ul,ol,li,dl,dt,dd,table,thead,tbody,tfoot,tr,th,td,caption,'
+  + 'h1,h2,h3,h4,h5,h6').split(',');
+var YF_MSG_ATTRS = 'style,class,title,colspan,rowspan'.split(',');
+// 宽松档：仅用于第 4 参「附加 HTML」。当前唯一调用方 site.js 传的是静态选项块，
+// 需要 label/input 与 id/name 供页面脚本绑定 #delpath。
+// 之所以分两档：正文/标题会混入用户数据，不允许凭空造出表单控件
+// （<input id="toSubmit"> 可造成 DOM clobbering，干扰弹窗自身的按钮绑定）。
+var YF_MSG_TAGS_EXT = YF_MSG_TAGS.concat(['label', 'input']);
+var YF_MSG_ATTRS_EXT = YF_MSG_ATTRS.concat(['id', 'name', 'type', 'value', 'for',
+  'checked', 'disabled', 'readonly', 'placeholder', 'maxlength', 'size']);
+
+// 找到与 < 配对的 >，跳过引号内的 >（如 style="a>b"）
+function yfMsgTagEnd(s, lt) {
+  var q = null;
+  for (var i = lt + 1; i < s.length; i++) {
+    var ch = s.charAt(i);
+    if (q) {
+      if (ch === q) q = null;
+    } else if (ch === '"' || ch === "'") {
+      q = ch;
+    } else if (ch === '>') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// 解析并重建单个标签：白名单内的按安全形式重写，其余整段转义为文本
+function yfMsgCleanTag(raw, tags, attrs) {
+  if (raw.indexOf('<!--') === 0) return '';              // 注释（含 IE 条件注释）整体丢弃
+  var m = /^<\s*(\/?)\s*([a-zA-Z][a-zA-Z0-9]*)/.exec(raw);
+  if (!m) return yfMsgEscape(raw);                       // <!doctype / <?xml … → 当文本
+  var name = m[2].toLowerCase();
+  if (tags.indexOf(name) < 0) return yfMsgEscape(raw);   // 非白名单标签 → 当文本
+  if (m[1] === '/') return '</' + name + '>';
+
+  var out = '<' + name;
+  var body = raw.slice(m[0].length);
+  var re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*(?:=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g;
+  var am;
+  while ((am = re.exec(body)) !== null) {
+    var an = am[1].toLowerCase();
+    var av = am[2];
+    if (attrs.indexOf(an) < 0) continue;                 // on* / href / src / … 一律丢弃
+    if (av === undefined) { out += ' ' + an; continue; }
+    if (av.charAt(0) === '"' || av.charAt(0) === "'") av = av.slice(1, -1);
+    // style 里的 expression()/url()/javascript: 在老 IE 或某些浏览器可执行；
+    // 现代浏览器已无害，但没必要留 —— 一并剥离，使「净化后的 style 不含可执行片段」可断言
+    if (an === 'style') {
+      av = av.replace(/expression\s*\(/gi, '').replace(/url\s*\(/gi, '').replace(/javascript\s*:/gi, '');
+    }
+    out += ' ' + an + '="' + yfMsgEscape(av) + '"';
+  }
+  return out + (/\/\s*>$/.test(raw) ? ' />' : '>');
+}
+
+// 白名单净化入口。extended=true 时额外放行表单控件（仅供第 4 参使用）
+function yfMsgSanitize(html, extended) {
+  if (html == null) return '';
+  var tags = extended ? YF_MSG_TAGS_EXT : YF_MSG_TAGS;
+  var attrs = extended ? YF_MSG_ATTRS_EXT : YF_MSG_ATTRS;
+  var s = String(html);
+  var out = '';
+  var i = 0;
+  while (i < s.length) {
+    var lt = s.indexOf('<', i);
+    if (lt < 0) { out += yfMsgEscape(s.slice(i)); break; }
+    out += yfMsgEscape(s.slice(i, lt));
+    var gt = yfMsgTagEnd(s, lt);
+    if (gt < 0) { out += yfMsgEscape(s.slice(lt)); break; }  // 未闭合的 < → 当文本
+    out += yfMsgCleanTag(s.slice(lt, gt + 1), tags, attrs);
+    i = gt + 1;
+  }
+  return out;
+}
+
 function safeMessage(j, h, g, f, checkName) {
   if (f == undefined) {
     f = "";
@@ -1412,14 +1527,22 @@ function safeMessage(j, h, g, f, checkName) {
   if (checkName) {
     checkHtml = "<div style='margin-top: 15px; font-size: 14px; color: #d9534f; font-weight: bold; text-align: left;'>" + dbNameMsg + " <input type='text' id='dbNameResult' value='' style='width: 120px; height: 28px; line-height: 28px; border: 1.5px solid #d9534f; border-radius: 8px; padding: 0 8px; color: #444; outline: none; margin-left: 5px; display: inline-block;'></div>";
   }
+  // title 会以 HTML 形式注入 .layui-layer-title（layer.js 未做任何转义）→ 同样必须净化。
+  // layui 的 title 还支持 false（无标题）与 [文本, 样式] 数组两种形态，需原样保留其语义。
+  var safeTitle = j;
+  if (typeof j === 'string') {
+    safeTitle = yfMsgSanitize(j);
+  } else if (j && typeof j === 'object' && typeof j[0] === 'string') {
+    safeTitle = [yfMsgSanitize(j[0]), j[1]];
+  }
   var mess = layer.open({
     type: 1,
-    title: j,
+    title: safeTitle,
     area: checkName ? "380px" : "350px",
     closeBtn: 1,
     shadeClose: true,
     content: "<div class='bt-form webDelete pd20 pb70'>\
-			<p>" + h + "</p>" + f + "<div class='vcode'>" + t('public.cal_msg', '计算结果：') + "<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
+			<p>" + yfMsgSanitize(h) + "</p>" + yfMsgSanitize(f, true) + "<div class='vcode'>" + t('public.cal_msg', '计算结果：') + "<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
 			" + checkHtml + "\
 			<div class='bt-form-submit-btn'>\
 				<button type='button' class='btn btn-danger btn-sm bt-cancel'>" + t('public.cancel', '取消') + "</button>\

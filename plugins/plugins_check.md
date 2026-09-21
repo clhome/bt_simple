@@ -157,9 +157,18 @@ python -m unittest test.test_plugins_i18n_upgrade -v
 | `test_all_plugins_js_syntax` | **OK** |
 | `test_all_python_syntax` | **OK** |
 | `test_all_foreign_languages_complete` | **OK** |
-| `test_crlf_and_sh_syntax` | **FAIL（既有基线，非本轮引入）**：90 个文件在 HEAD 里就以 CRLF 提交，分布 `plugins/*/versions/**`、`web/**/*.py`、`参考/**`、`scripts/tools/`、`test/`（被忽略）。语言包部分已清零 |
+| `test_crlf_and_sh_syntax` | **OK**（5 项，含检测器自证）—— 仓库内容全 LF、无 BOM。用例已改为只校验**受版本控制的 blob**，不再被本地 `test/`、`参考/` 草稿文件误报 |
 
-> `test_crlf_and_sh_syntax` 的剩余 90 个文件属**仓库既有状态**（`git cat-file` 验证
-> HEAD blob 本身含 CRLF），需单独一次「换行符归一」提交，与 i18n 治理解耦，
-> 以免混入本次改动、干扰 review 与回滚。
+> **更正（2026-09-21 复核）**：此前记录的「90 个文件在 HEAD 里就以 CRLF 提交」是**错误结论**，
+> 根因是测量方法本身有缺陷：
+>
+> 1. `git cat-file -p HEAD:<path>` 会套用 **smudge 过滤器**（本机系统级 `core.autocrlf=true`），
+>    把索引里本来是 LF 的内容显示成 CRLF。只有 `git cat-file blob <sha>` 才是原始字节。
+> 2. Git Bash 里 `grep -c $'\r'` 在该环境下恒等于「文件行数」（128 行的文件就返回 128），
+>    同样会伪造出「整份文件都是 CRLF」的假象。可靠写法是 `grep -cP '\r'` 或 `tr -cd '\r' | wc -c`。
+>
+> 权威测法：`git ls-files --eol` + `git cat-file blob <sha>`。实测 **3560 个受跟踪文件全部
+> `i/lf` / `w/lf`，CRLF 计数为 0** —— 仓库里本来就没有 CRLF 需要归一，
+> 因此**不需要任何「换行符归一」提交**（也就不存在「与 i18n 改动混入」的风险）。
+> 残余 CRLF 只存在于 `.gitignore` 忽略的 `test/`（13 个）与 `参考/`（7 个），属本地草稿，不进仓库。
 

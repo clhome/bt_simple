@@ -524,3 +524,25 @@
 - [x] 321. 更新因「弹窗高度适配」而**语义过时**的测试 `test_op_waf_ui.py::test_sidebar_style_and_fixed_height`（原断言写死 `resetPluginWinHeight(620);`，与本次需求直接冲突）。拆为两项：保留侧边栏样式断言，新增 `test_popup_height_is_adaptive_not_pixel_locked` 固化**新契约** —— 初始高度为视口自适应公式、内容二次收敛（`MutationObserver` + 防抖 + 阈值）、且 `.bt-w-main` **禁止**像素锁死（用 `assertNotRegex` 断言 `height: <数字>px` 不出现）
 - [x] 322. 全量回归通过：`test_f2b_op_waf_link` **112** / `test_fail2ban_plugin` 59 / `test_fail2ban_stability` 6 / `test_all_python_syntax` 2 / `test_all_plugins_js_syntax` 5 / `test_op_waf_ui` 5（合计 **189 项 OK**）+ op_waf P0·P1·P2·spider 4 套件全部通过；`i18n_plugin_check.py` 两插件硬性失败项均为 **0**
 - [x] 323. 新增**可复现的修复证据报告** `test/tools/build_cross_plugin_fix_report.py` → `test/tmp_link_fix_report/fix_report.html`（含 PNG 截图）。报告里每条证据都**现场跑出来**而非手写：shell 分词证据真调 `shlex.split()`、调用点证据真扫源码（剥 docstring/注释后再匹配）、测试计数真跑 unittest —— 这样报告过期时会自己变红，而不是继续骗人。并**按性质分类**顺带排查结果，避免误报：A 类「跨进程调用且参数含 JSON」5 处（`mariadb:3584`、`mysql:1397`、`mysql:1881`、`plugin.py:1240-1241`，与本次同源，建议后续单独修复）；B 类 `crontab.py:740-750` 7 处**不算缺陷**（cron 本来就交给 shell 执行、必须是字符串，且参数是文件名/数字不含 JSON）
+
+## 本地工作区全量换行符规范化（CRLF -> LF）与 Git 状态对齐
+
+- [x] 324. 编写本地工作区 CRLF 扫描与安全转换工具 (`test/convert_crlf_to_lf.py`)
+- [x] 325. 批量执行转换，将工作区中所有非标准换行符（CRLF / mixed）文件转为纯 LF
+- [x] 326. 更新 Git 索引缓存（`git add`），确保 `git status` 洁净（working tree clean）
+- [x] 327. 全量验证 `git ls-files --eol`，确保所有文件 `w/lf` 且无遗留 CRLF，清理 `test/` 临时脚本并完成打勾
+
+## 换行符归一复核：推翻原判断 + 修正校验用例口径
+
+> 起因：进度文档里遗留的待办写着「剩余 90 个 CRLF 文件，`git cat-file` 证实 HEAD 里就是 CRLF，
+> 建议单独一次提交」。复核后确认**该前提是错的**，第 324~327 项其实已经把问题解决完了。
+
+- [x] 328. 复核确认**仓库内容本来就是 LF**：3560 个受跟踪文件 `git ls-files --eol` 全为 `i/lf` + `w/lf`，`w/crlf` / `i/crlf` / `w/mixed` 均为 **0**；`git cat-file blob <sha>` 原始字节 CR 计数 **0** → **不需要任何「换行符归一」提交**（第 326 项的 `git add` 后 `git status` 对这些文件零差异，恰好反证索引本就是 LF）
+- [x] 329. 定位并记录原判断的**测量方法缺陷**（两个都是假信号）：① `git cat-file -p HEAD:<path>` 会套用 smudge 过滤器（系统级 `core.autocrlf=true`，来自 PortableGit 的 `etc/gitconfig`），把索引里本是 LF 的内容显示成 CRLF；`-p <blob-sha>` 同样过滤，**只有 `git cat-file blob <sha>` 是原始字节**。② Git Bash 下 `grep -c $'\r'` 恒等于**文件行数**（127 行的 `install.sh` 返回 128）→ 可靠写法 `grep -cP '\r'` 或 `tr -cd '\r' | wc -c`
+- [x] 330. 更正三处错误记录：`plugins/plugins_check.md` §5.3、`plugins/i18n_遗留问题升级方案.md` §10.2 / §10.4 / §10.5、`.workbuddy-ai/memory/MEMORY.md`
+- [x] 331. 重写 `test/test_crlf_and_sh_syntax.py::test_01`：改为只校验**受版本控制的 blob**（`git ls-files -s -z` 取 sha 并按 blob 去重 → `git cat-file --batch` 读原始内容），不再把 `.gitignore` 忽略的 `test/`(13)、`参考/`(7) 本地草稿算作「仓库文件」—— 那才是它长期转不绿的真正原因
+- [x] 332. 补两道防「假门禁」护栏：① **扫描面下限**（匹配文件数 < 1000 即判失败，实测受跟踪文本文件 2870 个）；② **检测器自证** `test_01b`：在临时仓库里把 CRLF 真正 `git commit`（须先 `git config core.autocrlf false`，否则 add 阶段就被转换掉），断言检测器必须报出来
+- [x] 333. 新增变异自证 harness `test/crlf_detector_selftest.py`：把 `_repo_text_blobs` 变异为「只返回路径、内容为空」→ `test_01` 仍 PASS（它本就检测不到），`test_01b` **FAIL** ✓ —— 证明新护栏有牙，不是永远全绿的假门禁
+- [x] 334. 全量验证无回归：`test_crlf_and_sh_syntax` **5/5 OK**；`scripts/verify_i18n.py` **9/9 PASS**；所有改动文件均为 LF 无 BOM
+
+
