@@ -387,3 +387,94 @@
 - [x] 259. 审计报告归档至 `文档/防火墙/防火墙优化6.md`（沿用既有 `防火墙优化N.md` 编号约定），并更正两处初判结论：`js/*.i18n.bak` 系项目级 i18n 回滚快照应予保留、`__pycache__` 会被 `plugin_compress.sh` 打进插件包
 - [x] 260. 全量回归：`test_fail2ban_plugin.py`(54) + `test_fail2ban_stability.py`(6) + `test_all_python_syntax.py` + `test_all_plugins_js_syntax.py` + `test_plugin_runtime_i18n.py`(1314 菜单项 100% 覆盖) 全部通过
 - [x] 261. 清理临时文件（`test/tmp_f2b/` 及 `plugins/fail2ban/__pycache__/`），确认插件内文本文件 UTF-8 无 BOM + LF，并即时更新 task.md 收尾
+
+## 御风F2B防火墙弹窗非中文界面双滚动条与高度不足修复清单
+
+- [x] 262. 定位根因：`.soft-man-con` 内联 `height:520px`，而 `.bt-w-con` 内容盒仅 `578 - 60(内边距) = 518px`，恒溢出 2px 触发外层滚动条；英/德/法/意文案更长时又撑破 520px 触发内层滚动条 → 非中文界面同时出现内外两条滚动条
+- [x] 263. 移除 `.soft-man-con` 内联固定高度，新增 `.bt-w-con > .soft-man-con { height: auto; overflow-x: auto }` 规则：纵向滚动统一由外层 `.bt-w-con` 唯一承担，彻底消除双层滚动条；保留横向滚动以容纳宽表格
+- [x] 264. 弹窗高度由硬编码 `620` 改为视口自适应（`Math.max(620, Math.min(860, innerHeight - 90))`）：下限 620 保证不小于原尺寸，上限 860 避免超大屏过度拉伸，四周留出边距
+- [x] 265. 新增 5 项弹窗布局回归测试 (`TestPopupLayout`)：内容区无内联高度、`height:auto` 覆盖规则存在、外层为唯一滚动容器、高度自适应且下限 ≥ 620、内联脚本通过 `node --check`
+- [x] 266. 用 Chrome headless 实测验证（`test/tmp_f2b_layout/` 对比工装）：旧实现 1100×760 下 `totalScrollbars: 2`（内层 547>520、外层 520>518）；新实现同尺寸仅 1 条，1100×1000 下 0 条，与修复目标一致
+- [x] 267. 全量回归（`test_fail2ban_plugin.py` 59 项、`test_fail2ban_stability.py` 6 项、`test_all_plugins_js_syntax.py` 5 项）全部通过，`index.html` UTF-8 无 BOM + LF
+
+## 御风F2B防火墙 × 御风OP防火墙 功能重合治理与单向联动开发清单
+
+分析结论见 `文档/防火墙/fail2ban与op_waf功能重合分析与联动方案.md`。总体路线：**不合并插件**，改为「职责边界划分 + 单向联动（op_waf 负责发现，fail2ban 负责持久封禁）+ 单点解封」。
+
+前置约束（贯穿全部阶段，逐条验收）：
+- **A. 独立运行**：只安装其中一个插件时，对端缺失不得导致任何报错、阻塞或功能退化
+- **B. 性能**：实时防火墙，攻击强度不可预估。请求路径必须零同步阻塞，联动通道异步削峰；两侧性能均不得因联动而退化
+- **C. 国际化**：zh-CN / zh-TW / en / de / fr / it 六语言翻译完整、键集一致、译文无 HTML
+
+> 落地验收：联动专项测试 `test/test_f2b_op_waf_link.py` **70 项全部通过**；fail2ban 既有回归 59 + 6 项、op_waf 既有回归 4 套件、全库 Python/JS 语法、插件运行时 i18n 全部通过。量化性能说明见 `文档/防火墙/fail2ban与op_waf功能重合分析与联动方案.md` 第八节。
+
+### 阶段一：P0 职责边界划分（消除 Web 层重复接管）
+
+- [x] 268. fail2ban 新增 op_waf 探测层（`op_waf_installed()` / `op_waf_spool_path()` / `op_waf_link_state()` / `op_waf_spool_exists()` / `op_waf_link_enabled()`）：以「插件目录 + 情报 spool 文件」判定，**不读对方任何配置文件**（弱耦合）；spool 存在性探测加进程内 30s TTL 缓存，缓存命中时 0 次 stat（测试已断言）
+- [x] 269. fail2ban `get_anti_info()` 初始化默认值时：检测到 op_waf 已安装 → `site` 默认规则 `act` 置 false（默认不重复接管 Web 层）；**已有配置一律不动**，绝不静默改写用户设置（新增 `_site_default_act()`，测试已覆盖「已有配置不被改写」）
+- [x] 270. fail2ban「网站防护」页新增职责边界提示条（仅检测到 op_waf 时显示）与「一键停用重复的网站防护」按钮，把选择权交给用户；后端新增 `disable_site_anti` CLI（只置 `act=false`，不删规则，sshd 不受影响）
+- [x] 271. op_waf「全局配置」页补充职责边界说明：Web 层（CC / 扫描 / 注入 / 地区）由本插件负责，内核层全端口封禁交给 F2B，避免用户重复配置（联动开关行 + 帮助信息条目）
+
+### 阶段二：P1 单向联动通道 —— fail2ban 接收侧
+
+- [x] 272. fail2ban 新增 `OP_WAF_JAIL = 'op-waf'` 与专用 filter `filter.d/op-waf.conf`：`failregex` **精确匹配 op_waf 主动写入的情报行**（`^.*op_waf\[ban\]\s+WARNING\s+Ban\s+<HOST>...$`，不含任何 HTTP 状态码），从机制上切断「op_waf 拦截 → fail2ban 二次升级封禁」的意外级联；已用真实样本回归：444/403/500 访问日志行全部不匹配、情报行全部匹配
+- [x] 273. `sync_jail_local()` 末尾按需下发 `[op-waf]` jail：`backend = polling` + `pollinterval = 2` + `maxretry = 1` + `bantime` 取本插件配置（`op_waf_link.bantime`，默认 86400）+ 固定 `banaction = %(banaction_allports)s`（联动封禁一律全端口）；**spool 不存在则完全不下发并清掉历史 filter**（对端未安装时零残留）
+- [x] 274. 新增 CLI 动作 `sync_op_waf_jail`（供 op_waf 开关切换时调用）与 `op_waf_link_status`（供 UI 展示情报源状态）、`set_op_waf_link`（调整封禁时长）；`sync_op_waf_jail` 幂等：内容不变不重写、**不触发 reload**（测试断言未变化时 `fail2ban-client` 调用次数为 0）
+- [x] 275. spool 路径白名单校验（`abspath(spool).startswith(abspath(<serverDir>/op_waf) + sep)`），杜绝路径注入导致 fail2ban 读取任意文件；测试用 `../../evil.log` 逃逸样本验证被拒绝
+
+### 阶段三：P1 单向联动通道 —— op_waf 生产侧
+
+- [x] 276. op_waf `waf/config.json` 新增 `ban_sync` 段（`open` 开关，含说明文案）；Python 侧新增 `get_ban_sync` / `set_ban_sync` 接口，并复用 `autoMakeLuaImportSingle('config', True)` 只重编 `waf_config.lua` 让 Lua 侧平滑拿到新配置
+- [x] 277. Lua `waf_common.lua` 新增 `push_ban_sync()`：仅「真实封禁事件」入队（非每请求），IP 形态快速校验（`is_ip_like`）+ 队列上限保护（`BAN_SYNC_MAX = 5000`，超出计数丢弃）；开关关闭时首行即返回（**零开销**，仅 1 次 table 取值）
+- [x] 278. 在 3 处真实封禁发生点接入 `push_ban_sync()`：`write_log()` 阈值升级、`add_reputation_penalty()` 信誉归零（100 分）、`waf_cc()` CC 超限（传单 IP 而非 `block_target` 网段 —— `<HOST>` 无法吸收 CIDR，已加注释与测试断言）
+- [x] 279. Lua 新增 `flush_ban_sync()`：批量出队（单次最多 `BAN_SYNC_BATCH = 200`）→ 同批按 IP 去重 → append-only 追加写 spool + 4MB 上限截断保护；写失败时按原序 `lpush` 回队列，**绝不丢情报**
+- [x] 280. `init_worker.lua` 挂载 `ngx.timer.every(2, waf_flush_ban_sync)`（仅 `ngx.worker.id() == 0`，`pcall` 包裹）：全部文件 IO 落在 light thread，**请求路径零阻塞**；与既有 timer 相互独立，互不拖累
+- [x] 281. op_waf 开关打开时校验 fail2ban 已安装（`f2bInstalled()` 同时校验 server 目录与插件入口）并回调其 `sync_op_waf_jail`；未安装则**拒绝开启并明确提示**（优雅降级）；开关关闭时同步删除 spool 撤销对端 jail；spool 创建失败自动回滚开关，保持两侧状态一致
+
+### 阶段四：P1 单点解封与状态互认
+
+- [x] 282. op_waf `removeDropIp()`：联动开启时同步调用 `unban_op_waf_ip` 解除 fail2ban `[op-waf]` jail 的封禁；带 `silent` 参数防止与 283 形成双向递归（测试断言 silent 模式下不产生任何对端调用）
+- [x] 283. fail2ban `unban_active_ip()`：对 `op-waf` jail 解封时同步调用 op_waf 的 `remove_waf_drop_ip?silent=1`；带 `silent` 参数防止递归；对端未联动时静默成功，绝不让调用方报错
+- [x] 284. 两侧 UI 解封确认弹窗明确提示「将同时解除内核层 / 应用层封禁」，根治「在 op_waf 解封了却仍访问不了」的困惑
+
+### 阶段五：性能加固
+
+- [x] 285. Lua 侧：联动队列 `waf_ban_sync` 与日志队列**分离**（日志队列降级丢弃时不拖累封禁情报）；队列上限 5000 + `ban_sync_drop` 计数抑制爆发期膨胀；同批出队时按 IP 去重，减少 fail2ban 侧无谓解析
+- [x] 286. Python 侧：`sync_op_waf_jail` 幂等（内容不变不重写、不 reload）；spool 探测 TTL 缓存；联动未开启时不产生任何额外子进程调用；`op_waf_link_status` 在配置就绪时为纯只读（三条均已由测试断言）
+- [x] 287. 性能验证：量化说明见 `文档/防火墙/fail2ban与op_waf功能重合分析与联动方案.md` 第八节（8.3 请求路径开销表 + 8.4 验收结果）；可断言部分已固化为 `TestPerformanceInvariants`（缓存命中 0 次 stat、未变化 0 次 reload、未联动 0 次跨插件子进程、状态查询 0 次写盘），确认攻击路径上不存在同步阻塞
+
+### 阶段六：国际化补全与回归收尾
+
+- [x] 288. op_waf 修复 6 处译文含 HTML（`后续如需解除封禁，请前往面板的 <b>` 等碎片）—— 违反 `web/core/i18n.py` 硬约束；改为单一完整键 `后续如需解除封禁，请前往面板的「{1}」进行手动删除解封。` + `{1}` 位置插值
+- [x] 289. op_waf 清理 7 个脏键（`)没有!`、`参数:(`、`后续如需解除封禁，请前往面板的`、`进行手动删除解封。`，以及 `\\uFEFF...` 与真实 BOM 两种形式的导出表头）
+- [x] 290. op_waf + fail2ban zh-TW 简体残留转换（opencc s2twp，仅处理「值 == 简体原文」的条目，已有译文不动）：共转换 11 条；复检剩余 0 条可转换项（余下同形字属正常）
+- [x] 291. 修正 op_waf 归属地查询硬编码 `lang=zh-CN`，改为跟随面板语言（新增 `IP_API_LANG_MAP` + `normalize_ip_api_lang()`，对齐 fail2ban 实现；`getIpLocationBatch` / `getIpLocation` 均已支持 `lang` 参数）
+- [x] 292. 两侧本次新增文案六语言补齐：fail2ban 155→172 键、op_waf 709→720 键；键集与 zh-CN 基线**完全一致**，0 缺失 / 0 多余 / 0 空值 / 0 译文含 HTML / 0 死键脏键
+- [x] 293. op_waf 弹窗高度改为视口自适应（`Math.max(620, Math.min(860, vh - 90))`，对齐 fail2ban 的双滚动条修复方案），并补 `.bt-w-con > .soft-man-con { height: auto; overflow-x: auto; }`，消除非中文界面高度不足
+- [x] 294. 新增联动专项测试 `test/test_f2b_op_waf_link.py`（**70 项**）：跨插件契约对齐（常量/绝对路径/Lua 行格式↔failregex）、对端缺失时不报错（含 silent 解封、状态查询）、spool 路径白名单、jail 生成与撤销、幂等性与真实变更检测、Lua 语法（luaparser AST，缺失时退化为去噪后配平校验）与性能结构、六语言键集与 HTML 红线、前端 `pt()` 文案覆盖率、性能不变量
+- [x] 295. 全量回归：`test_fail2ban_plugin.py` 59 项、`test_fail2ban_stability.py` 6 项、`test_all_python_syntax.py` 2 项、`test_all_plugins_js_syntax.py` 5 项、`test_plugin_runtime_i18n.py` 3 项（1314 条菜单项 100% 覆盖）、op_waf 既有 4 套件（P0 安全 / P1 可靠性性能 / P2 优化 / spider）**全部通过**；编码规范核查通过（全部改动文件 UTF-8 无 BOM + LF，语言包缩进保持原状 fail2ban=4 / op_waf=1）；临时脚本统一归档在 `test/i18n_scripts/`，工作区无残留垃圾文件
+
+
+### 明确不做（附理由，避免后续反复讨论）
+
+- **不合并为一个插件**：Python+iptables 守护进程 ↔ OpenResty Lua，技术栈/依赖/故障域/生命周期均不可合并；且与说明书既有的「网络层-内核层-应用层」纵深防御定位直接冲突
+- **不让 op_waf 直接操作 iptables**：会绕过 fail2ban 的封禁数据库，状态更割裂；统一由 fail2ban 作为唯一封禁执行者
+- **不让 fail2ban 依赖 OpenResty**：会让「只想防 SSH 爆破」的用户被迫安装整套 OpenResty
+- **两侧黑名单不盲目自动同步**：语义不对等（op_waf 封禁地址 = 仅 Web 层，fail2ban 黑名单 = 全端口），自动同步会把「只挡网站」放大成「断其所有服务」
+
+---
+
+## 御风F2B防火墙「网站防护已托管」提示与后端动态消息国际化清单
+
+需求来源：用户反馈「已经点击了一键停用之后，提示内容就应该改成『网站防护已自动托管至御风OP防火墙』，或者用更加严谨的文字进行表述，需要适配多语言」。
+
+前置约束同上：**A. 独立运行**（未装 op_waf 时提示条不出现，行为与改动前一致）、**B. 性能**（纯前端渲染，无新增请求/子进程）、**C. 国际化**（六语言键集一致、译文无 HTML、无脏键死键）。
+
+- [x] 296. 职责边界提示改为**三态**：`已装 op_waf 且仍在重复接管` → 黄色警告条 +「一键停用」按钮（保持原样）；`已装 op_waf 且不再接管` → **绿色「已托管」提示条**（本次新增，取代原先只是撤掉警告、留一行小字的做法）；`未装 op_waf` → 完全不展示。文案比用户原话更严谨：明确「Web 层由 OP 防火墙在应用层拦截、本插件不再重复接管、避免双重封禁与解封后仍无法访问」，并给出回退入口「如需恢复，可在上方表格中重新启用」
+- [x] 297. 绿色提示条追加**第三段动态说明**（攻击 IP 的归宿）：情报联动已开启 → 「仍会在本插件内核层以 iptables 全端口持久封禁，Nginx 重启也不失效」；未开启 → 提示到下方开启「御风OP防火墙情报联动」。解决用户看到「已托管」后必然产生的疑问「那攻击者谁挡？」
+- [x] 298. fail2ban「一键停用」后端成功提示由 `已停用重复的网站防护` 改为 `网站防护已托管至御风OP防火墙`，与提示条标题共用同一语言键（toast 与页面文案一致）
+- [x] 299. **修复 op_waf `wafMsg()` 的自递归缺陷（P0）**：兜底分支误写为 `return wafMsg(msg)`，未命中模式时无限递归 → `RangeError: Maximum call stack size exceeded`，导致 op_waf 全部走 `wafMsg()` 的提示（约 36 处）在运行时都不显示。已改为 `return pt(msg)`，并加回归测试锁死该写法
+- [x] 300. 建立「后端动态消息」国际化机制并补齐缺口：后端为保留调试信息返回「可翻译前缀 + 动态参数」（如 `删除失败: <异常>`、`同步成功，当前共 12 条…!`），新增 `F2B_MSG_PATTERNS` / `WAF_MSG_PATTERNS` 模式表把参数拆出来，再用带 `{1}` 的完整键查表；共补 15 个键（fail2ban 12 个含 6 个后端消息、op_waf 3 个），并修正 `IP格式错误` 裸消息被误匹配成空参数的渲染问题
+- [x] 301. 新增**真实渲染验证**：`test/tools/render_f2b_site_anti.js` 用最小 jQuery / layer / api / pt 替身在 Node 里真正执行 `f2bSiteAnti()`，Python 侧断言 4 种状态 × 6 语言的配色、标题、联动分支差异、以及非中文语言下提示条区域**零中文残留**
+- [x] 302. 全量回归：`test_f2b_op_waf_link.py` **85 项**（新增 5 项渲染 + 4 项后端消息/i18n 守卫）、`test_fail2ban_plugin.py` 59 项、`test_fail2ban_stability.py` 6 项、全库 Python/JS 语法、插件运行时 i18n、op_waf 4 套件**全部通过**；六语言键集一致（fail2ban 183 / op_waf 723）；编码核查通过（UTF-8 无 BOM + LF，语言包缩进保持原状）
+- [x] 303. 按用户截图的**精确状态**（已装 op_waf + 两条规则均「已停用」+ 情报联动未接入）做端到端渲染复现：确认真实执行 `f2bSiteAnti()` 后输出绿色「已托管」条、黄色警告条不再出现，六语言逐一核对无误。新增 `test/tools/build_f2b_banner_preview.py` 一键生成前后对比预览页（提示条 HTML 直接取自渲染工装，非手工绘制），产物在 `test/tmp_banner_preview/preview_delegated.{html,png}`（`test/` 已 gitignore）

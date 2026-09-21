@@ -16,24 +16,38 @@ function f2bCurrentLang() {
     return 'zh-CN';
 }
 
-// jail 名称展示：手动黑名单 jail 用可翻译文案呈现
+// jail 名称展示：专用 jail 用可翻译文案呈现
 function f2bJailLabel(jail) {
     if (jail === 'yf-manual') {
         return pt('手动黑名单');
     }
+    if (jail === 'op-waf') {
+        return pt('御风OP防火墙情报联动');
+    }
     return jail;
 }
 
-// 后端返回消息的多语言渲染（含带参数的两种固定模式）
+// 后端返回消息的多语言渲染。
+// 后端为了保持调试信息，会以「可翻译前缀 + 动态参数」的形式返回（如 `IP格式错误 1.2.3.4`），
+// 因此这里先把动态部分拆出来，再用带 {1} 的完整键去查表，避免整串拼死的文本查不到译文。
+var F2B_MSG_PATTERNS = [
+    [/^缺少必要参数:\s*(.+)$/, '缺少必要参数: {1}'],
+    // 必须要求「空白 + 非空参数」：否则裸消息 `IP格式错误`（无参数）也会命中，
+    // 被渲染成 `IP格式错误 `（尾部空参数），既难看又丢失了纯静态键的查表机会
+    [/^IP格式错误\s+(.+)$/, 'IP格式错误 {1}'],
+    [/^不支持的防护类型:\s*(.+)$/, '不支持的防护类型: {1}'],
+    [/^部分IP封禁失败:\s*(.+)$/, '部分IP封禁失败: {1}'],
+    [/^未找到Fail2ban数据库:\s*(.+)$/, '未找到Fail2ban数据库: {1}'],
+    [/^无法读取Fail2ban数据库:\s*(.+)$/, '无法读取Fail2ban数据库: {1}']
+];
+
 function f2bMsg(msg) {
     msg = String(msg == null ? '' : msg);
-    var m = msg.match(/^缺少必要参数:\s*(.+)$/);
-    if (m) {
-        return pt('缺少必要参数: {1}', m[1]);
-    }
-    var m2 = msg.match(/^IP格式错误\s*(.*)$/);
-    if (m2) {
-        return pt('IP格式错误 {1}', m2[1]);
+    for (var i = 0; i < F2B_MSG_PATTERNS.length; i++) {
+        var m = msg.match(F2B_MSG_PATTERNS[i][0]);
+        if (m) {
+            return pt(F2B_MSG_PATTERNS[i][1], m[1]);
+        }
     }
     return pt(msg);
 }
@@ -293,7 +307,7 @@ function f2bBanIp() {
     api.post('get_active_bans', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         if(!rdata.status) {
-            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center; color:red;">' + rdata.msg + '</td></tr>');
+            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center; color:red;">' + f2bMsg(rdata.msg) + '</td></tr>');
             return;
         }
 
@@ -408,7 +422,13 @@ function f2bBanIp() {
 
 function f2bRemoveDropIp(ip, jail) {
     // 单键插值：碎片拼接会让德/法/意等语言语义破碎
-    layer.confirm(pt('确定要解封 IP ({1}) 吗？', ip), {title:  pt('解除封禁'), icon: 3}, function(index) {
+    var confirmMsg = pt('确定要解封 IP ({1}) 吗？', ip);
+    // 联动封禁提示：让用户明确知道解封会同时作用于内核层与应用层，
+    // 根治「在 op_waf 解封了却仍访问不了」的困惑。
+    if (jail === 'op-waf' || jail === 'yf-manual') {
+        confirmMsg += '<br><span style="color:#8a6100; font-size:12px;">' + pt('该封禁已与「御风OP防火墙」联动，解封会同时解除内核层与应用层的封禁。') + '</span>';
+    }
+    layer.confirm(confirmMsg, {title:  pt('解除封禁'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg(pt('正在解封...'), {icon: 16, time: 0, shade: 0.3});
         
@@ -579,6 +599,8 @@ function f2bSiteAnti() {
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         var siteRules = (rdata.data && rdata.data.site) ? rdata.data.site : [];
+        var opWaf = (rdata.data && rdata.data.op_waf) ? rdata.data.op_waf : { installed: false, linked: false };
+        var opWafLink = (rdata.data && rdata.data.op_waf_link) ? rdata.data.op_waf_link : { bantime: 86400 };
         
         // 预设服务列表
         var presetServices = [
@@ -617,12 +639,86 @@ function f2bSiteAnti() {
                      '</tr>';
         });
 
-        var con = '<div class="divtable">' +
+        // 本插件是否仍在重复接管 Web 层：global-cc / global-scan 任一处于启用状态
+        // （未配置的规则视为未启用 —— 没启用就没有重复，无需提示）
+        var siteAntiActive = false;
+        $.each(['global-cc', 'global-scan'], function(i, mode) {
+            $.each(siteRules, function(j, rule) {
+                if (rule.mode == mode && (rule.act == 'true' || rule.act === true)) {
+                    siteAntiActive = true;
+                }
+            });
+        });
+
+        // 职责边界提示（三态，仅在检测到 op_waf 时出现）：
+        //   A. 本插件仍在重复接管 Web 层 → 黄色警告条 + 「一键停用」按钮
+        //   B. 本插件已不再接管 Web 层     → 绿色「已托管」条，明确告知职责已移交，
+        //      并顺带说明攻击 IP 的归宿（内核层持久封禁取决于情报联动是否开启）
+        //   C. 未安装 op_waf               → 不展示（本插件是唯一的 Web 层防护者）
+        var boundaryHtml = '';
+        if (opWaf.installed && siteAntiActive) {
+            boundaryHtml = '<div style="background:#fff8e6; border:1px solid #ffe1a8; border-radius:6px; padding:14px 16px; margin-bottom:15px;">\
+                <div style="color:#8a6100; font-size:13px; font-weight:bold; margin-bottom:8px;">\
+                    <span class="glyphicon glyphicon-alert" style="margin-right:6px;"></span>' + pt('检测到「御风OP防火墙」已安装') + '\
+                </div>\
+                <div style="color:#7a5c1e; font-size:12px; line-height:20px; margin-bottom:10px;">\
+                    ' + pt('CC 攻击、恶意扫描等 Web 层威胁由它在应用层实时拦截。若此处再开启 global-cc / global-scan，同一攻击会被重复封禁，且在 OP 防火墙解封后仍会被本插件在内核层封禁，出现「解封了还是访问不了」。建议只保留其一。') + '\
+                </div>\
+                <button class="btn btn-warning btn-sm" onclick="f2bDisableSiteAnti();">' + pt('一键停用重复的网站防护') + '</button>\
+            </div>';
+        } else if (opWaf.installed) {
+            // 攻击 IP 的归宿：联动开启 → 内核层持久封禁；未开启 → 提示去开启
+            var linkHint = opWaf.linked
+                ? pt('情报联动已开启：OP 防火墙识别到的攻击 IP 仍会在本插件内核层以 iptables 全端口持久封禁，即使 Nginx 重启也不会失效。')
+                : pt('提示：如需让 OP 防火墙识别到的攻击 IP 同时在内核层持久封禁，可在下方开启「御风OP防火墙情报联动」。');
+            boundaryHtml = '<div style="background:#f0faf3; border:1px solid #b9e6c8; border-radius:6px; padding:14px 16px; margin-bottom:15px;">\
+                <div style="color:#1a7f37; font-size:13px; font-weight:bold; margin-bottom:8px;">\
+                    <span class="glyphicon glyphicon-ok-sign" style="margin-right:6px;"></span>' + pt('网站防护已托管至御风OP防火墙') + '\
+                </div>\
+                <div style="color:#3d6b4d; font-size:12px; line-height:20px; margin-bottom:6px;">\
+                    ' + pt('Web 层威胁（CC 攻击 / 恶意扫描）由「御风OP防火墙」在应用层实时拦截，本插件不再重复接管，避免同一攻击被双重封禁、解封后仍无法访问。如需恢复，可在上方表格中重新启用。') + '\
+                </div>\
+                <div style="color:#5a7a66; font-size:12px; line-height:20px;">' + linkHint + '</div>\
+            </div>';
+        }
+
+        // 情报联动状态：仅当检测到 op_waf 时展示
+        var linkHtml = '';
+        if (opWaf.installed) {
+            var linkedBadge = opWaf.linked
+                ? '<span style="color:#20a53a; font-weight:bold;">' + pt('已接入') + '</span>'
+                : '<span style="color:#999;">' + pt('未接入') + '</span>';
+            linkHtml = '<div style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:6px; padding:20px; margin-top:10px;">\
+                <h4 style="color:#333; font-size:14px; font-weight:bold; margin-top:0; margin-bottom:15px; border-bottom:1px solid #eaeaea; padding-bottom:10px;">\
+                    <span class="glyphicon glyphicon-transfer" style="color:#20a53a; margin-right:8px;"></span>' + pt('御风OP防火墙情报联动') + '\
+                </h4>\
+                <div style="color:#666; font-size:13px; line-height:24px; margin-bottom:10px;">\
+                    ' + pt('由 OP 防火墙识别出的攻击 IP，在本插件内核层以 iptables 全端口持久封禁，即使 Nginx 重启也不会失效。') + '\
+                </div>\
+                <div style="color:#666; font-size:13px; line-height:28px;">\
+                    <span style="display:inline-block; width:120px;">' + pt('状态') + '</span>' + linkedBadge + '\
+                </div>\
+                <div style="color:#666; font-size:13px; line-height:28px;">\
+                    <span style="display:inline-block; width:120px;">' + pt('情报来源') + '</span>' + pt('应用层') + ' (op_waf)\
+                </div>\
+                <div style="color:#666; font-size:13px; line-height:28px;">\
+                    <span style="display:inline-block; width:120px;">' + pt('封禁时长') + '</span>\
+                    <input class="bt-input-text" type="number" min="1" id="f2b_op_waf_bantime" value="' + (opWafLink.bantime || 86400) + '" style="width:120px; display:inline-block;">\
+                    <span style="margin-left:6px;">' + pt('秒') + '</span>\
+                    <button class="btn btn-success btn-sm" style="margin-left:10px;" onclick="f2bSetOpWafLink();">' + pt('保存') + '</button>\
+                </div>\
+                <ul class="help-info-text c7" style="margin-top:10px; margin-bottom:0;"><li>' + pt('解封会同时作用于内核层与应用层，无需在两处重复操作。') + '</li></ul>\
+            </div>';
+        }
+
+        var con = boundaryHtml +
+                  '<div class="divtable">' +
                   '<table class="table table-hover">' +
                   '<thead><tr><th>' + pt('防护类型') + '</th><th>' + pt('端口') + '</th><th>' + pt('拦截条件') + '</th><th>' + pt('封禁时长') + '</th><th>' + pt('状态') + '</th><th style="text-align: right;">' + pt('操作') + '</th></tr></thead>' +
                   '<tbody>' + tbody + '</tbody>' +
                   '</table>' +
                   '<ul class="help-info-text c7 ptb15" style="margin-bottom:0;"><li>' + pt('开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。') + '</li></ul>' +
+                  linkHtml +
                   '<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 5px;">\
                       <h4 style="color: #333; font-size: 14px; font-weight: bold; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eaeaea; padding-bottom: 10px;">\
                           <span class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:8px;"></span>' + pt('网站防护机制深度解析') + '\
@@ -646,6 +742,30 @@ function f2bSiteAnti() {
                   </div>' +
                   '</div>';
         $(".soft-man-con").html(con);
+    });
+}
+
+// 一键停用重复的网站防护（仅在检测到「御风OP防火墙」时可用）
+function f2bDisableSiteAnti() {
+    layer.confirm(pt('确定要停用 global-cc / global-scan 吗？停用后 Web 层威胁由「御风OP防火墙」在应用层负责拦截。'), {title: pt('提示'), icon: 3}, function(index){
+        layer.close(index);
+        api.post('disable_site_anti', '', {}, function(data){
+            layer.msg(f2bMsg(data.msg), {icon: 1});
+            f2bSiteAnti();
+        });
+    });
+}
+
+// 保存「御风OP防火墙」情报联动的封禁时长
+function f2bSetOpWafLink() {
+    var bantime = parseInt($('#f2b_op_waf_bantime').val(), 10);
+    if (!bantime || bantime < 1) {
+        layer.msg(pt('封禁时长必须为正整数'), {icon: 0});
+        return;
+    }
+    api.post('set_op_waf_link', '', {bantime: bantime}, function(data){
+        layer.msg(f2bMsg(data.msg), {icon: 1});
+        f2bSiteAnti();
     });
 }
 

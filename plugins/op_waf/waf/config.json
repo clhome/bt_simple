@@ -79,5 +79,9 @@
         "status": 444,
         "ps": "智能蜘蛛识别与伪造拦截"
     },
+    "ban_sync": {
+        "open": false,
+        "ps": "联动御风F2B防火墙，把识别到的攻击 IP 在内核层持久封禁"
+    },
     "open": true
 }

@@ -305,6 +305,16 @@
     background-color: #ffffff !important;
     float: none !important;
 }
+
+/*
+ * 内容区高度随内容自然增长，纵向滚动统一由外层 .bt-w-con 唯一承担，
+ * 避免「内层 + 外层」双层滚动条（与 fail2ban 插件保持同一套布局约定）。
+ * 保留横向滚动以容纳宽表格。
+ */
+.bt-w-con > .soft-man-con {
+    height: auto !important;
+    overflow-x: auto !important;
+}
 </style>
 <div class="bt-form">
 	<div class="bt-w-main">
@@ -362,7 +372,18 @@ $(function() {
     });
 });
 resetPluginWinWidth(1050);
-resetPluginWinHeight(620);
+
+// 弹窗高度按视口自适应：英/德/法/意文案长度约为中文的 1.5~2 倍，
+// 原先固定 620 会让长页面（如全局配置、封锁历史）内容溢出。
+// 下限 620 保证不小于原尺寸，上限 860 避免超大屏上过度拉伸，四周留出边距。
+(function () {
+	var vh = window.innerHeight || (window.$ ? $(window).height() : 0) || 0;
+	var h = 720;
+	if (vh > 0) {
+		h = Math.max(620, Math.min(860, vh - 90));
+	}
+	resetPluginWinHeight(h);
+})();
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js&_t=" + new Date().getTime(), function(data, textStatus, jqxhr){
     // console.log(data, textStatus, jqxhr);

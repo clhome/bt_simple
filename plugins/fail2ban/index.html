@@ -66,6 +66,18 @@
     float: none !important;
 }
 
+/*
+ * 内容区不再固定高度，改为随内容自然增长：
+ * 纵向滚动统一由外层 .bt-w-con 承担，彻底消除「内层 + 外层」双层滚动条。
+ * 保留横向滚动以容纳宽表格。
+ * 说明：原实现内联 height:520px，而 .bt-w-con 的内容盒仅 518px（578 - 60 内边距），
+ * 恒溢出 2px 触发外层滚动条；英/德/法/意文案更长时又会撑破 520px 触发内层滚动条。
+ */
+.bt-w-con > .soft-man-con {
+    height: auto !important;
+    overflow-x: auto !important;
+}
+
 .overflow_hide {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -89,13 +101,24 @@
 			<p onclick="f2bLogs();">运行日志</p>
 		</div>
 		<div class="bt-w-con pd15">
-			<div class="soft-man-con" style="height: 520px; overflow: auto;"></div>
+			<div class="soft-man-con"></div>
 		</div>
 	</div>
 </div>
 <script type="text/javascript">
 resetPluginWinWidth(1050);
-resetPluginWinHeight(620);
+
+// 弹窗高度按视口自适应：英/德/法/意文案长度约为中文的 1.5~2 倍，
+// 原先固定 620 会让内容溢出而同时出现内外两层滚动条。
+// 下限 620 保证不小于原尺寸，上限 860 避免超大屏上过度拉伸，四周留出边距。
+(function () {
+	var vh = window.innerHeight || (window.$ ? $(window).height() : 0) || 0;
+	var h = 720;
+	if (vh > 0) {
+		h = Math.max(620, Math.min(860, vh - 90));
+	}
+	resetPluginWinHeight(h);
+})();
 
 // 
 $.getScript( "/plugins/file?name=fail2ban&f=js/fail2ban.js", function(){

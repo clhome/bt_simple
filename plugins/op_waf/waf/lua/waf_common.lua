@@ -450,10 +450,139 @@ function _M.add_reputation_penalty(self, ip, points, reason)
         self:dict_set("waf_drop_ip", drop_key, 999, 86400)
         local params = self.params or {ip = ip}
         self:log(params, 'scan', "信誉归零，触发自动拉黑 24 小时 (" .. reason .. ")")
+        -- 御风F2B防火墙情报联动：信誉归零是最高级别威胁，同步交给内核层持久封禁
+        self:push_ban_sync(ip, 86400, "reputation:" .. tostring(reason))
         
         -- Reset the score to avoid redundant logging
         self:dict_set("waf_limit", key, 0, 86400)
     end
+end
+
+
+-- ============================================================
+-- 御风F2B防火墙（fail2ban）情报联动 —— 生产侧
+-- ============================================================
+-- 架构：本插件（应用层 L7）负责**发现**，fail2ban（内核层 L3/L4）负责**持久封禁**。
+-- 两侧唯一契约是 spool 文件的文本格式，无模块依赖、无端口依赖、无鉴权面。
+--
+-- 性能设计（实时防火墙，攻击强度不可预估）：
+--   1. 请求路径只多一次 rpush，且**仅在「真实封禁发生」时**触发，不是每个请求；
+--   2. 真正的文件 IO 全部由 init_worker 的 ngx.timer 在 light thread 中批量完成，
+--      请求路径零阻塞、零文件句柄、零网络调用；
+--   3. 情报队列与日志队列 waf_limit_logs **分离**：日志队列满时会降级丢弃，
+--      但绝不会拖累封禁情报（情报的价值高于日志）；
+--   4. 开关关闭时 push_ban_sync 首行即返回，开销仅一次 table 取值。
+local BAN_SYNC_QUEUE = "waf_ban_sync"
+local BAN_SYNC_MAX = 5000                     -- 队列上限，防对端长期不可用时无限膨胀
+local BAN_SYNC_BATCH = 200                    -- 单次 timer 最多落盘条数
+local BAN_SYNC_SPOOL_MAX = 4 * 1024 * 1024    -- spool 上限 4MB，超出则截断重建
+
+
+-- 廉价的 IP 形态校验：只拦明显垃圾数据，权威校验交给 fail2ban 侧的 safe_ip()
+local function is_ip_like(ip)
+    if type(ip) ~= "string" or #ip < 7 or #ip > 45 then return false end
+    if string.find(ip, "^%d+%.%d+%.%d+%.%d+$") then return true end
+    if string.find(ip, ":", 1, true) and string.find(ip, "^[%x:%.]+$") then return true end
+    return false
+end
+
+
+-- 入队一条封禁情报（在请求路径中调用，必须极快）
+function _M.push_ban_sync(self, ip, ttl, reason)
+    local bs = self.config and self.config['ban_sync']
+    if not bs or bs['open'] ~= true then return false end
+    if not is_ip_like(ip) then return false end
+
+    local dict = ngx.shared.waf_limit
+    if not dict then return false end
+
+    local llen = dict:llen(BAN_SYNC_QUEUE)
+    if llen and llen >= BAN_SYNC_MAX then
+        -- 对端长期不可用：丢弃并计数，避免无界增长拖垮共享内存
+        dict:incr("ban_sync_drop", 1, 0)
+        return false
+    end
+
+    local ok, item = pcall(json.encode, {
+        ip = ip,
+        ttl = tonumber(ttl) or 0,
+        reason = string.sub(tostring(reason or ""), 1, 120),
+        ts = ngx.time(),
+    })
+    if not ok or not item then return false end
+
+    dict:rpush(BAN_SYNC_QUEUE, item)
+    return true
+end
+
+
+-- 批量出队并追加写入 spool（只在 ngx.timer 的 light thread 中调用）
+function _M.flush_ban_sync(self)
+    local bs = self.config and self.config['ban_sync']
+    if not bs or bs['open'] ~= true then return 0 end
+
+    local dict = ngx.shared.waf_limit
+    if not dict then return 0 end
+
+    local llen = dict:llen(BAN_SYNC_QUEUE)
+    if not llen or llen == 0 then return 0 end
+
+    local batch = llen
+    if batch > BAN_SYNC_BATCH then batch = BAN_SYNC_BATCH end
+
+    -- 同批按 IP 去重：同一 IP 在一批里只写一行，减少 fail2ban 侧无谓解析
+    local seen, items = {}, {}
+    for _ = 1, batch do
+        local raw = dict:lpop(BAN_SYNC_QUEUE)
+        if not raw then break end
+        local ok, info = pcall(json.decode, raw)
+        if ok and info and info['ip'] and not seen[info['ip']] then
+            seen[info['ip']] = true
+            items[#items + 1] = info
+        end
+    end
+    if #items == 0 then return 0 end
+
+    local path = log_dir .. "ban_spool.log"
+
+    -- 尺寸保护：超过上限时截断重建。
+    -- fail2ban 检测到文件被截断会从头部重读，而重放旧封禁是幂等的
+    -- （已封禁的 IP 不会被重复封禁），因此这一步是安全的。
+    local fh = io.open(path, "r")
+    if fh then
+        local size = fh:seek("end")
+        fh:close()
+        if size and size > BAN_SYNC_SPOOL_MAX then
+            local trunc = io.open(path, "w")
+            if trunc then trunc:close() end
+        end
+    end
+
+    local fp = io.open(path, "a")
+    if not fp then
+        -- 写不进去（权限 / 磁盘满）：原样放回队列尾部等待重试，绝不丢情报
+        for i = #items, 1, -1 do
+            local ok, raw = pcall(json.encode, items[i])
+            if ok and raw then dict:lpush(BAN_SYNC_QUEUE, raw) end
+        end
+        ngx.log(ngx.ERR, "op_waf ban_sync: cannot open spool file ", path)
+        return 0
+    end
+
+    local now = ngx.localtime()
+    local lines = {}
+    for i = 1, #items do
+        local info = items[i]
+        lines[i] = string.format(
+            "%s op_waf[ban] WARNING Ban %s ttl=%d reason=%s",
+            now, info['ip'], tonumber(info['ttl']) or 0,
+            tostring(info['reason'] or "op_waf"))
+    end
+
+    fp:write(table.concat(lines, "\n") .. "\n")
+    fp:flush()
+    fp:close()
+    return #lines
 end
 
 
@@ -988,6 +1117,8 @@ function _M.write_log(self, name, rule)
 
         local reason = retry_cycle .. '秒以内累计超过'..retry..'次以上非法请求,封锁'.. lock_time ..'秒'
         self:log(params, name, reason)
+        -- 御风F2B防火墙情报联动：恶意请求累计升级为真实封禁，同步交给内核层
+        self:push_ban_sync(ip, lock_time, name .. ':' .. tostring(rule))
     elseif name ~= 'cc' then
         self:log(params, name, rule)
     end

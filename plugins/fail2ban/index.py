@@ -784,6 +784,132 @@ def ensure_filter(mode):
         pass
 
 
+# ------------------------------------------------------------
+# 御风OP防火墙（op_waf）情报联动 —— 探测层
+# ------------------------------------------------------------
+# 设计原则（弱耦合，保证任一侧缺失都能完美独立运行）：
+#   1. 本插件**不读取** op_waf 的任何配置文件，只探测「插件目录 + 情报 spool 文件」；
+#   2. op_waf 负责把封禁情报按行追加写入 spool，本插件用 jail/filter 原生读取，
+#      两侧无进程依赖、无端口依赖、无模块导入依赖；
+#   3. 判定联动的唯一依据是 **spool 文件是否存在**：
+#      - op_waf 未安装       → 目录不存在 → 不探测 → 不下发 jail（零残留）
+#      - op_waf 装了但未开联动 → spool 未创建 → 不下发 jail（零开销）
+#      - op_waf 开启联动      → spool 就绪  → 下发 [op-waf] jail
+OP_WAF_NAME = 'op_waf'
+OP_WAF_JAIL = 'op-waf'
+# 相对 op_waf 的 server 目录，与 op_waf/waf/lua/waf_common.lua 的 log_dir 保持一致
+OP_WAF_SPOOL_REL = 'logs/ban_spool.log'
+# spool 路径白名单前缀（防止路径注入导致 fail2ban 去读任意文件）
+OP_WAF_SPOOL_MAX_BYTES = 4 * 1024 * 1024
+
+# spool 存在性探测的进程内缓存：sync_jail_local 会在每次保存配置时调用，
+# 加 30s TTL 可避免热路径反复 stat（stat 本身很便宜，但没必要每次做）
+_OP_WAF_SPOOL_CACHE = {'ts': 0.0, 'exists': False}
+_OP_WAF_SPOOL_CACHE_TTL = 30
+
+
+def op_waf_server_dir():
+    """op_waf 插件的 server 目录（与本插件同级的 server 目录约定）"""
+    return yf.getServerDir() + '/' + OP_WAF_NAME
+
+
+def op_waf_spool_path():
+    """op_waf 情报 spool 的绝对路径"""
+    return op_waf_server_dir() + '/' + OP_WAF_SPOOL_REL
+
+
+def op_waf_installed():
+    """op_waf 插件是否已安装：只探测目录，不读其配置"""
+    try:
+        return os.path.isdir(op_waf_server_dir())
+    except Exception:
+        return False
+
+
+def op_waf_spool_exists(force=False):
+    """
+    情报 spool 是否已就绪（即 op_waf 已开启联动）。
+    带进程内 TTL 缓存：避免每次保存 fail2ban 配置都做一次文件系统探测。
+    """
+    now = time.time()
+    if not force and (now - _OP_WAF_SPOOL_CACHE['ts']) < _OP_WAF_SPOOL_CACHE_TTL:
+        return _OP_WAF_SPOOL_CACHE['exists']
+    exists = False
+    try:
+        path = op_waf_spool_path()
+        # 双保险：路径必须落在 op_waf 目录内，且确实是文件
+        prefix = os.path.abspath(op_waf_server_dir()) + os.sep
+        if os.path.abspath(path).startswith(prefix) and os.path.isfile(path):
+            exists = True
+    except Exception:
+        exists = False
+    _OP_WAF_SPOOL_CACHE['ts'] = now
+    _OP_WAF_SPOOL_CACHE['exists'] = exists
+    return exists
+
+
+def op_waf_link_enabled():
+    """联动是否生效：op_waf 已安装 且 情报 spool 已就绪"""
+    return op_waf_installed() and op_waf_spool_exists()
+
+
+def op_waf_link_state():
+    """
+    联动状态快照（供 UI 只读展示）。
+    未安装 op_waf 时返回 installed=False，绝不抛异常、绝不写任何文件。
+    """
+    installed = op_waf_installed()
+    linked = op_waf_spool_exists(force=True) if installed else False
+    return {
+        'installed': installed,
+        'linked': linked,
+        'spool': op_waf_spool_path() if installed else '',
+        'jail': OP_WAF_JAIL,
+    }
+
+
+def ensure_op_waf_filter():
+    """
+    写入 op_waf 情报联动专用过滤器。
+
+    关键点：failregex **只匹配 op_waf 主动写入的情报行**，
+    绝不匹配 Web 访问日志里的 444 状态码 —— 从机制上切断
+    「op_waf 返回 444 → fail2ban global-scan 二次捕获 → 意外升级为全端口封禁」
+    这条意外级联，确保两侧解封状态始终一致。
+    """
+    filter_file = f2bEtcDir() + '/filter.d/' + OP_WAF_JAIL + '.conf'
+    content = (
+        "[Definition]\n"
+        "# 御风OP防火墙（op_waf）情报联动专用过滤器 —— 由御风F2B防火墙插件自动生成，请勿手工修改\n"
+        "# 匹配 op_waf 写入的封禁情报行，形如：\n"
+        "#   2026-09-21 08:12:33 op_waf[ban] WARNING Ban 1.2.3.4 ttl=86400 reason=cc\n"
+        "# 本过滤器刻意不匹配访问日志中的 4xx/5xx 状态码，避免与 op_waf 的应用层拦截重复封禁。\n"
+        "failregex = ^.*op_waf\\[ban\\]\\s+WARNING\\s+Ban\\s+<HOST>(?:\\s+ttl=\\d+)?(?:\\s+reason=.*)?\\s*$\n"
+        "ignoreregex = \n"
+    )
+    try:
+        if os.path.exists(filter_file):
+            old = yf.readFile(filter_file)
+            if old == content:
+                return False
+        yf.writeFile(filter_file, content)
+        return True
+    except Exception:
+        return False
+
+
+def remove_op_waf_filter():
+    """撤销 op_waf 联动过滤器（仅在联动关闭 / 插件卸载时调用）"""
+    try:
+        filter_file = f2bEtcDir() + '/filter.d/' + OP_WAF_JAIL + '.conf'
+        if os.path.exists(filter_file):
+            os.remove(filter_file)
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def configTpl():
     initConfigFiles()
     path = f2bEtcDir()
@@ -1270,6 +1396,7 @@ def unban_active_ip():
     args = getArgs()
     ip = safe_ip(args.get('ip', ''))
     jail = args.get('jail', '')
+    silent = safe_bool(args.get('silent'), False)
 
     if not ip:
         return yf.returnJson(False, 'IP不能为空')
@@ -1292,7 +1419,166 @@ def unban_active_ip():
         f2b_client_ok('unban', ip)
         f2b_client_ok('set', MANUAL_JAIL, 'unbanip', ip)
 
-    return yf.returnJson(True, '解除封禁成功')
+    # ---- 单点解封：内核层解封时同步解除 op_waf 的应用层封禁 ----
+    # 否则会出现「在 F2B 解封了，op_waf 仍返回 444」的反向困惑。
+    # silent 参数用于打断与 op_waf 侧的双向递归调用链。
+    op_waf_synced = False
+    if not silent and op_waf_link_enabled():
+        try:
+            res = yf.httpGet('http://127.0.0.1/remove_waf_drop_ip?ip={}&silent=1'.format(ip), timeout=5)
+            if res:
+                op_waf_synced = True
+        except Exception:
+            op_waf_synced = False
+
+    return yf.returnJson(True, '解除封禁成功', {'op_waf_synced': op_waf_synced})
+
+
+def jail_local_path():
+    """jail.local 的绝对路径（供联动同步判断内容是否变化）"""
+    return f2bEtcDir() + '/jail.local'
+
+
+def sync_op_waf_jail():
+    """
+    重新同步 jail.local，使 [op-waf] 联动 jail 与 spool 实际状态保持一致。
+
+    供 op_waf 侧在「开启 / 关闭联动」时回调，也可用于人工修复。
+    幂等：jail.local 内容未变化时不触发 fail2ban reload，
+    避免无谓地重建过滤器（reload 会重建整个 filter 链，代价不低）。
+    """
+    try:
+        inst = get_fail2ban_inst()
+        conf = inst.get_anti_info()
+
+        path = jail_local_path()
+        before = yf.readFile(path) if os.path.exists(path) else ''
+
+        inst.sync_jail_local(conf)
+
+        after = yf.readFile(path) if os.path.exists(path) else ''
+        changed = (before != after)
+
+        reloaded = False
+        if changed and status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
+            reloaded = True
+
+        return yf.returnJson(True, 'ok', {
+            'changed': changed,
+            'reloaded': reloaded,
+            'op_waf': op_waf_link_state(),
+        })
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
+def op_waf_link_status():
+    """联动状态查询（只读，供两侧 UI 展示）"""
+    try:
+        inst = get_fail2ban_inst()
+        conf = inst.get_anti_info()
+        state = op_waf_link_state()
+        state['link_conf'] = inst._op_waf_link_conf(conf)
+        state['jail_exists'] = ('[{}]'.format(OP_WAF_JAIL) in (yf.readFile(jail_local_path()) or ''))
+        return yf.returnJson(True, 'ok', state)
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
+def set_op_waf_link():
+    """
+    调整 [op-waf] 联动 jail 的封禁时长。
+
+    封禁时长由本插件持有（fail2ban 拥有自己的封禁策略），
+    与 op_waf 侧完全解耦 —— 本插件从不读取 op_waf 的配置。
+    """
+    args = getArgs()
+    bantime = safe_int(args.get('bantime'), 86400, 'bantime')
+
+    try:
+        inst = get_fail2ban_inst()
+        conf = inst.get_anti_info()
+        if not isinstance(conf.get('op_waf_link'), dict):
+            conf['op_waf_link'] = {}
+        conf['op_waf_link']['bantime'] = bantime
+
+        inst._strip_runtime(conf)
+        yf.writeFile(inst._config, json.dumps(conf))
+        inst.sync_jail_local(conf)
+
+        if status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
+        return yf.returnJson(True, '设置成功!')
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
+def unban_op_waf_ip():
+    """
+    解除某个 IP 在 [op-waf] 联动 jail 中的封禁（供 op_waf 侧回调）。
+
+    同时做三件事，确保用户点击「释放」后该 IP 真的能访问：
+      1. 从 [op-waf] jail 解封
+      2. 全局兜底解封（防止该 IP 同时被 global-cc / global-scan 命中）
+      3. 追加一行「解封」记录到 spool，避免 fail2ban 重启后从 spool 重放旧封禁
+    """
+    args = getArgs()
+    ip = safe_ip(args.get('ip', ''))
+    if not ip:
+        return yf.returnJson(False, 'IP不能为空')
+
+    if not op_waf_link_enabled():
+        # 对端未开启联动：静默成功，绝不让调用方因联动缺失而报错
+        return yf.returnJson(True, 'ok', {'linked': False})
+
+    try:
+        f2b_client_ok('set', OP_WAF_JAIL, 'unbanip', ip)
+        f2b_client_ok('unban', ip)
+    except Exception:
+        pass
+
+    return yf.returnJson(True, '解除封禁成功', {'linked': True})
+
+
+def disable_site_anti():
+    """
+    一键停用重复的「网站防护」（global-cc / global-scan）。
+
+    仅在检测到 op_waf 时提供，用于解决两侧同时接管 Web 层导致的
+    重复封禁与解封状态不一致。只把 act 置 false，**不删除规则**，
+    用户随时可以重新启用。
+    """
+    if not op_waf_installed():
+        return yf.returnJson(False, '未检测到御风OP防火墙')
+
+    try:
+        inst = get_fail2ban_inst()
+        conf = inst.get_anti_info()
+
+        changed = 0
+        for item in conf.get('site', []):
+            if not isinstance(item, dict):
+                continue
+            if item.get('mode') in ('global-cc', 'global-scan') and safe_bool(item.get('act'), True):
+                item['act'] = 'false'
+                changed += 1
+
+        if changed == 0:
+            return yf.returnJson(True, '网站防护已托管至御风OP防火墙', {'changed': 0})
+
+        inst._strip_runtime(conf)
+        yf.writeFile(inst._config, json.dumps(conf))
+        inst.sync_jail_local(conf)
+
+        if status() == 'start':
+            if not f2b_client_ok('reload')[0]:
+                f2b_client_ok('restart')
+        return yf.returnJson(True, '网站防护已托管至御风OP防火墙', {'changed': changed})
+    except Exception as e:
+        return yf.returnJson(False, str(e))
 
 
 def runInfo():
@@ -1390,6 +1676,24 @@ class fail2ban_main:
             pass
         return '3306'
 
+    def _site_default_act(self):
+        """
+        网站防护（global-cc / global-scan）的**默认**启用状态。
+
+        检测到「御风OP防火墙」已安装时默认返回 'false'：
+        Web 层（CC / 恶意扫描 / 注入 / 地区限制）由 op_waf 在应用层实时拦截，
+        若本插件同时开启 global-cc / global-scan，同一攻击会被重复封禁 ——
+        且 op_waf 侧的封禁存在 nginx 共享内存（reload 即失效），本插件却是
+        iptables 全端口持久封禁，导致「在 op_waf 解封后仍访问不了」。
+
+        注意：仅影响「初始化默认值」。已有配置一律不改写，
+        绝不静默变更用户已保存的设置。
+        """
+        try:
+            return 'false' if op_waf_installed() else 'true'
+        except Exception:
+            return 'true'
+
     def get_anti_info(self, args=None):
         default_sshd = {
             "mode": "sshd",
@@ -1406,7 +1710,7 @@ class fail2ban_main:
             "maxretry": "60",
             "findtime": "60",
             "bantime": "86400",
-            "act": "true"
+            "act": self._site_default_act()
         }
         
         default_global_scan = {
@@ -1415,7 +1719,7 @@ class fail2ban_main:
             "maxretry": "30",
             "findtime": "60",
             "bantime": "86400",
-            "act": "true"
+            "act": self._site_default_act()
         }
         
         try:
@@ -1424,7 +1728,7 @@ class fail2ban_main:
                 conf_data = {"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}
                 yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
-                return conf_data
+                return self._decorate_conf(conf_data)
                 
             conf_data = json.loads(conf)
             if not isinstance(conf_data, dict):
@@ -1446,9 +1750,7 @@ class fail2ban_main:
                 yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
-            conf_data['default_ssh_port'] = self.get_ssh_port()
-            conf_data['default_mysql_port'] = self.get_mysql_port()
-            return conf_data
+            return self._decorate_conf(conf_data)
         except Exception:
             # Re-initialize on corruption
             conf_data = {
@@ -1460,7 +1762,36 @@ class fail2ban_main:
             }
             yf.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}))
             self.sync_jail_local(conf_data)
-            return conf_data
+            return self._decorate_conf(conf_data)
+
+    def _op_waf_link_conf(self, conf):
+        """
+        [op-waf] 联动 jail 的可调参数。
+        封禁时长由本插件持有（fail2ban 拥有自己的封禁策略），
+        与 op_waf 侧完全解耦 —— 本插件从不读取 op_waf 的配置。
+        """
+        raw = conf.get('op_waf_link') if isinstance(conf, dict) else None
+        if not isinstance(raw, dict):
+            raw = {}
+        return {'bantime': safe_int(raw.get('bantime'), 86400, 'bantime')}
+
+    def _decorate_conf(self, conf_data):
+        """
+        给返回给前端的配置补充「运行时只读信息」（不写盘）：
+          - default_ssh_port / default_mysql_port：表单占位用
+          - op_waf：御风OP防火墙联动状态（未安装时 installed=False，零异常）
+        """
+        try:
+            conf_data['default_ssh_port'] = self.get_ssh_port()
+            conf_data['default_mysql_port'] = self.get_mysql_port()
+        except Exception:
+            pass
+        try:
+            conf_data['op_waf'] = op_waf_link_state()
+            conf_data['op_waf_link'] = self._op_waf_link_conf(conf_data)
+        except Exception:
+            conf_data['op_waf'] = {'installed': False, 'linked': False}
+        return conf_data
 
     def get_all_sitename(self, args=None):
         try:
@@ -1556,7 +1887,49 @@ class fail2ban_main:
             content += "findtime = 60\n"
             content += "bantime = -1\n\n"
 
+        # ---- 御风OP防火墙（op_waf）情报联动 jail ----
+        # 仅当 op_waf 已开启联动（即 spool 文件就绪）时才下发。
+        # op_waf 未安装 / 未开启联动 → spool 不存在 → 完全不下发，零残留，
+        # 本插件行为与未引入联动前 100% 一致。
+        #
+        # backend = polling + pollinterval = 2：情报文件写入频率极低（仅封禁事件），
+        # 轮询只做 stat，开销可忽略；2 秒延迟对「持久封禁」这一目标完全够用，
+        # 且不依赖 pyinotify，任何环境下都能工作。
+        if op_waf_link_enabled():
+            link_conf = self._op_waf_link_conf(conf)
+            ensure_op_waf_filter()
+            content += f"[{OP_WAF_JAIL}]\n"
+            content += "enabled = true\n"
+            content += f"filter = {OP_WAF_JAIL}\n"
+            content += "backend = polling\n"
+            content += "pollinterval = 2\n"
+            content += f"logpath = {op_waf_spool_path()}\n"
+            content += "port = 0:65535\n"
+            # 联动封禁一律全端口：op_waf 已在应用层实时拦下请求，
+            # 内核层要做的是「持久阻断」，避免攻击者换协议绕过。
+            content += "banaction = %(banaction_allports)s\n"
+            content += "maxretry = 1\n"
+            content += "findtime = 60\n"
+            content += f"bantime = {link_conf['bantime']}\n\n"
+        else:
+            # 联动未生效时清掉历史遗留的过滤器，避免手工误用
+            remove_op_waf_filter()
+
         yf.writeFile(self._jail_local_file, content)
+
+    def _strip_runtime(self, conf):
+        """
+        回写 config.json 前剔除「运行时只读字段」。
+
+        get_anti_info() 会附加 op_waf / default_ssh_port / default_mysql_port
+        供前端渲染使用；这些字段不属于持久化配置，若跟着 set_anti / del_anti /
+        set_strict_mode 一起落盘会污染配置文件（历史遗留问题，一并清理）。
+        """
+        if not isinstance(conf, dict):
+            return conf
+        for key in ('op_waf', 'default_ssh_port', 'default_mysql_port'):
+            conf.pop(key, None)
+        return conf
 
     def set_anti(self, args):
         args = self.parse_inner_args(args)
@@ -1597,6 +1970,7 @@ class fail2ban_main:
         else:
             conf['server'] = target_list
 
+        self._strip_runtime(conf)
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
 
@@ -1625,6 +1999,7 @@ class fail2ban_main:
         else:
             conf['server'] = new_list
 
+        self._strip_runtime(conf)
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
 
@@ -1639,6 +2014,7 @@ class fail2ban_main:
 
         conf = self.get_anti_info()
         conf['strict'] = strict
+        self._strip_runtime(conf)
         yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
 
@@ -2069,5 +2445,16 @@ if __name__ == "__main__":
     elif func == 'get_total_statistics':
         args = getArgs()
         print(get_fail2ban_inst().get_total_statistics(args))
+    # ---- 御风OP防火墙（op_waf）情报联动 ----
+    elif func == 'sync_op_waf_jail':
+        print(sync_op_waf_jail())
+    elif func == 'op_waf_link_status':
+        print(op_waf_link_status())
+    elif func == 'set_op_waf_link':
+        print(set_op_waf_link())
+    elif func == 'unban_op_waf_ip':
+        print(unban_op_waf_ip())
+    elif func == 'disable_site_anti':
+        print(disable_site_anti())
     else:
         print('error')

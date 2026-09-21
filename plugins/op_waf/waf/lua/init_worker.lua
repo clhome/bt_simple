@@ -36,6 +36,17 @@ local function waf_clean_expire_data(premature)
     if not ok then ngx.log(ngx.ERR, "waf_clean_expire_data err: ", err) end
 end
 
+-- 御风F2B防火墙情报联动：批量把封禁情报落盘。
+-- 放在 timer（light thread）里执行，因此允许阻塞式文件 IO，
+-- 而请求路径只做一次 rpush —— 这是「实时防火墙不因联动而变慢」的关键。
+-- 独立 timer、独立队列，与日志/统计任务互不干扰、互不拖累。
+local function waf_flush_ban_sync(premature)
+    local ok, err = pcall(function()
+        WAF_C:flush_ban_sync()
+    end)
+    if not ok then ngx.log(ngx.ERR, "waf_flush_ban_sync err: ", err) end
+end
+
 WAF_C:dict_set("waf_limit", "cpu_usage", 0, 10)
 function waf_timer_every_get_cpu(premature)
     local ok, err = pcall(function()
@@ -64,6 +75,8 @@ if ngx.worker.id() == 0 then
     ngx.timer.every(3600, waf_clean_expire_data)
     -- 启动时延迟 5 秒执行一次初始过期数据清理
     ngx.timer.at(5, waf_clean_expire_data)
+    -- 御风F2B防火墙情报联动落盘：2 秒一次；队列为空时开销仅一次 llen（共享内存原子读）
+    ngx.timer.every(2, waf_flush_ban_sync)
 
     WAF_C:cron()
 end

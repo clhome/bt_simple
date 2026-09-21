@@ -1,6 +1,37 @@
 var api = YfPlugin.createApi('op_waf');
 var pt = YfI18n.createPluginTranslator('op_waf');
 
+/**
+ * 后端返回消息的多语言渲染。
+ *
+ * 后端消息是「可翻译的完整键」，带参数的消息统一用 {1} 占位，
+ * 由前端插值 —— 这样德/法/意等语序不同的语言才不会语义破碎。
+ *
+ * 少数消息为保留调试信息，会以「可翻译前缀 + 动态参数」的形式返回
+ * （如 `删除失败: <异常详情>`）。这类消息整串拼死后查不到译文，
+ * 因此先把动态部分拆出来，再用带 {1} 的完整键查表。
+ *
+ * pt() 对未命中键的输入原样返回，因此本函数对任意字符串都是安全的。
+ */
+var WAF_MSG_PATTERNS = [
+    [/^缺少必要参数:\s*(.+)$/, '缺少必要参数: {1}'],
+    [/^删除失败:\s*(.+)$/, '删除失败: {1}'],
+    [/^读取日志失败:\s*(.+)$/, '读取日志失败: {1}'],
+    [/^同步成功，当前共\s*(\d+)\s*条权威蜘蛛规则（已保留自定义规则）!$/,
+        '同步成功，当前共 {1} 条权威蜘蛛规则（已保留自定义规则）!']
+];
+
+function wafMsg(msg) {
+    msg = String(msg == null ? '' : msg);
+    for (var i = 0; i < WAF_MSG_PATTERNS.length; i++) {
+        var m = msg.match(WAF_MSG_PATTERNS[i][0]);
+        if (m) {
+            return pt(WAF_MSG_PATTERNS[i][1], m[1]);
+        }
+    }
+    return pt(msg);
+}
+
 
 function getRuleByName(rule_name, callback){
     api.post('get_rule', {rule_name:rule_name}, function(data){
@@ -44,7 +75,7 @@ function setState(ruleName){
     api.post('set_obj_status', {obj:ruleName,statusCode:statusCode},function(data){
         var rdata = JSON.parse(data.data);
         if (rdata.status){
-            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
+            layer.msg(wafMsg(rdata.msg),{icon:0,time:2000,shade: [0.3, '#000']});
             wafGloabl();
         } else {
             layer.msg(pt('设置失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
@@ -92,7 +123,7 @@ function saveCcRule(siteName,is_open_global, type) {
 
     api.post(act, pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
             if (siteName != 'undefined') {
                 siteWafConfig(siteName, 1);
@@ -297,7 +328,7 @@ function saveRetry(siteName,type) {
     if (siteName != undefined) act = 'set_site_retry';
     api.post(act, pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         layer.close(create_layer);
         wafGloablRefresh(1000);
     });
@@ -312,7 +343,7 @@ function addRule(ruleName) {
 
     api.post('add_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 setObjConf(ruleName, 1);
@@ -345,7 +376,7 @@ function modifyRuleSave(index, ruleName) {
     api.post('modify_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
 
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 setObjConf(ruleName, 1);
@@ -362,7 +393,7 @@ function removeRule(ruleName, index) {
     safeMessage(pt('删除规则'), pt('您真的要删除这条过滤规则吗？'), function () {
         api.post('remove_rule', pdata, function(data){
             var rdata = JSON.parse(data.data);
-            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
             if (rdata.status) {
                 setTimeout(function(){
                     setObjConf(ruleName, 1);
@@ -380,7 +411,7 @@ function setRuleState(ruleName, index) {
     
     api.post('set_rule_state', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 setObjConf(ruleName, 1);
@@ -500,7 +531,7 @@ function addTrustedProxy() {
     if (!pdata.ip) { layer.msg(pt("IP不能为空")); return; }
     api.post('add_trusted_proxy', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
     });
 }
@@ -508,7 +539,7 @@ function addTrustedProxy() {
 function removeTrustedProxy(index) {
     api.post('remove_trusted_proxy', { index: index }, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
     });
 }
@@ -561,7 +592,7 @@ function saveScanRule() {
     }
     api.post('save_scan_rule', pdata,function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         layer.close(create_l);
         wafGloablRefresh(1000);
     });
@@ -581,7 +612,7 @@ function addIpWhite() {
 
     api.post('add_ip_white', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                ipWhite(1); 
@@ -599,7 +630,7 @@ function removeIpWhite(index) {
                 ipWhite(1);
             },1000);   
         }
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -679,7 +710,7 @@ function importData(name, pdata, callback) {
     api.post('import_data', { sname: name, pdata: pdata } , function(data){
         var rdata = JSON.parse(data.data);   
         if (callback) callback();
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -858,7 +889,7 @@ function removeIpv6Black(ip,callback){
     var ip = ip.replace(/:/g, '_');
     api.post('del_ipv6_black', {addr:ip}, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg,{icon:rdata.status?1:2});
+        layer.msg(wafMsg(rdata.msg),{icon:rdata.status?1:2});
         $('.tab_list .tab_block:eq(1)').click();
 
         if(callback) callback(rdata);
@@ -882,7 +913,7 @@ function addIpBlack() {
         if (rdata.status) {
             ipBlack(1);
         }
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -890,7 +921,7 @@ function confirmAddIpBlackArgs(ip) {
     layer.confirm('<div style="line-height:22px; font-size:13px;">' +
         '<b>' + pt('是否确认将该 IP 永久拉黑？') + '</b><br><br>' +
         '<span style="color:#666;">' + pt('加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。') + '<br><br>' +
-        pt('后续如需解除封禁，请前往面板的 <b>') + pt('全局配置 ➔ IP黑名单') + '</b> ' + pt('进行手动删除解封。') + '</span></div>', 
+        pt('后续如需解除封禁，请前往面板的「{1}」进行手动删除解封。', '<b>' + pt('全局配置 ➔ IP黑名单') + '</b>') + '</span></div>', 
     {
         title:  pt('永久拉黑确认'),
         icon: 3,
@@ -914,7 +945,7 @@ function addIpBlackArgs(ip) {
 
     api.post('add_ip_black', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -926,7 +957,7 @@ function removeIpBlack(index) {
         if (rdata.status) {
             ipBlack(1);
         }
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -1017,7 +1048,7 @@ function ipBlack(type) {
                 $('.btn_add_ipv6').on('click', function(){
                     var ipv6 = $('[name="ipv6_address"]').val();
                     addIpv6Req(ipv6, function(res){
-                        layer.msg(res.msg,{icon:res.status?1:2});
+                        layer.msg(wafMsg(res.msg),{icon:res.status?1:2});
                         if(res.status){
                             $('[name="ipv6_address"]').val('');
                             $('.tab_list .tab_block:eq(1)').click();
@@ -1139,6 +1170,13 @@ function wafGloabl(){
     api.post('waf_conf', {}, function(data){
         var rdata = JSON.parse(data.data);
 
+        // 御风F2B防火墙情报联动状态（后端注入的运行时只读字段）
+        var f2bInstalled = !!rdata.f2b_installed;
+        var banSyncOpen = !!(rdata.ban_sync && rdata.ban_sync.open);
+        var banSyncHint = f2bInstalled
+            ? ''
+            : '<br><span style="color:#d9534f; font-size:12px;">' + pt('未检测到「御风F2B防火墙」插件，请先安装后再开启联动。') + '</span>';
+
         var con = '<div class="divtable">\
             <table class="table table-hover waftable">\
                 <thead><tr><th width="18%">' + pt('名称') + '</th>\
@@ -1148,6 +1186,16 @@ function wafGloabl(){
                 <th style="text-align: right;">' + pt('操作') + '</th></tr>\
                 </thead>\
                 <tbody>\
+                    <tr>\
+                        <td><span style="color:#20a53a;font-weight:bold;">' + pt('联动御风F2B防火墙') + '</span><br><span style="font-size:10px;color:#999;">' + pt('内核层持久封禁') + '</span></td>\
+                        <td>' + pt('开启后，本插件识别到的攻击 IP 将同步给「御风F2B防火墙」，在内核层以 iptables 全端口持久封禁，即使 Nginx 重启也不会失效。') + banSyncHint + '</td>\
+                        <td style="text-align: center;">--</td>\
+                        <td><div class="ssh-item">\
+                            <input class="btswitch btswitch-ios" id="close_ban_sync" type="checkbox" ' + (banSyncOpen ? 'checked' : '') + '>\
+                            <label class="btswitch-btn" for="close_ban_sync" onclick="setBanSync()"></label>\
+                        </div></td>\
+                        <td class="text-right">--</td>\
+                    </tr>\
                     <tr><td>' + pt('CC防御') + '</td>\
                         <td>' + pt('防御CC攻击，具体防御参数请到站点配置中调整') + '</td>\
                         <td><a class="btlink" onclick="setRequestCode(\'cc\','+rdata.cc.status+')">'+rdata.cc.status+'</a></td>\
@@ -1260,8 +1308,28 @@ function wafGloabl(){
         con += '<div style="width:645px;margin-top:10px;"><ul class="help-info-text c7">\
             <li>' + pt('继承: 全局设置将在站点配置中自动继承为默认值') + '</li>\
             <li>' + pt('优先级: IP白名单>IP黑名单>URL白名单>URL黑名单>CC防御>User-Agent>URI过滤>URL参数>Cookie>POST') + '</li>\
+            <li>' + pt('职责边界：应用层（CC / 扫描 / 注入 / 地区限制）由本插件负责，内核层全端口持久封禁交给「御风F2B防火墙」，无需在两处重复配置。') + '</li>\
             </ul></div>';
         $(".soft-man-con").html(con);
+    });
+}
+
+// 开启 / 关闭「联动御风F2B防火墙持久封禁」
+function setBanSync() {
+    var wantOpen = $('#close_ban_sync').is(':checked');
+    var msg = wantOpen
+        ? pt('确定要开启与「御风F2B防火墙」的联动吗？开启后本插件识别到的攻击 IP 将在内核层被持久封禁。')
+        : pt('确定要关闭与「御风F2B防火墙」的联动吗？关闭后内核层将不再同步封禁新的攻击 IP（已封禁的 IP 需到 F2B 侧手动解除）。');
+
+    layer.confirm(msg, {title: pt('提示'), icon: 3}, function(index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('正在设置...'), {icon: 16, time: 0, shade: 0.3});
+        api.post('set_ban_sync', {open: wantOpen ? '1' : '0'}, function(res_raw) {
+            layer.close(loadT);
+            var res = JSON.parse(res_raw.data);
+            layer.msg(wafMsg(res.msg), {icon: res.status ? 1 : 2});
+            wafGloabl();
+        });
     });
 }
 
@@ -1299,7 +1367,7 @@ function addSiteRule(siteName, ruleName) {
 
     api.post('add_site_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 siteRuleAdmin(siteName, ruleName, 1);
@@ -1318,7 +1386,7 @@ function removeSiteRule(siteName, ruleName, index) {
 
     api.post('remove_site_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             if (ruleName == 'url_tell') {
                 site_url_tell(siteName, 1);
@@ -1472,7 +1540,7 @@ function addCdnHeader(siteName) {
 
     api.post('add_site_cdn_header', pdata, function(data){
         var rdata = JSON.parse(data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 cdnHeader(siteName, 1);
@@ -1485,7 +1553,7 @@ function addCdnHeader(siteName) {
 function removeCdnHeader(siteName, cdn_header_key) {
     api.post('remove_site_cdn_header', { siteName: siteName, cdn_header: cdn_header_key }, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
                 cdnHeader(siteName, 1);
@@ -1499,7 +1567,7 @@ function setSiteObjState(siteName, obj) {
     // var loadT = layer.msg(pt('正在处理，请稍候..'), { icon: 16, time: 0 });
     api.post('set_site_obj_open', { siteName: siteName, obj: obj } , function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
             siteWafConfig(siteName, 1);
             // siteConfig();
@@ -1801,7 +1869,7 @@ function wafAreaLimitRender(){
     api.post('get_area_limit', {}, function(rdata) {
         var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
-            layer.msg(pt(rdata.msg), { icon: 2, time: 2000 });
+            layer.msg(wafMsg(rdata.msg), { icon: 2, time: 2000 });
             return;
         }
 
@@ -1875,7 +1943,7 @@ function setWafAreaLimitSwitch(){
     }
     api.postSilent('area_limit_switch', {'area_limit': area_limit}, function(data){
         var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.msg(wafMsg(rdata.msg), { icon: rdata.status ? 1 : 2 });
     });
 }
 
@@ -2198,7 +2266,7 @@ function wafLogs(site){
             if (ndata.status == 0){
                 layer.msg(pt("解封所有成功"),{icon:1,time:2000,shade: [0.3, '#000']});
             } else{
-                layer.msg(pt("解封所有异常:")+ndata.msg,{icon:5,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt("解封所有异常:")+wafMsg(ndata.msg),{icon:5,time:2000,shade: [0.3, '#000']});
             }
         });
     });
@@ -2417,13 +2485,17 @@ function wafDropIpList() {
 }
 
 function releaseDropIp(ip) {
-    layer.confirm(pt('确定要释放并清空该 IP') + ' (' + ip + pt(') 的所有惩罚记录吗？'), {title:  pt('释放 IP'), icon: 3}, function(index) {
+    // 联动提示：让用户明确知道解封会同时作用于应用层与内核层，
+    // 避免「在 op_waf 释放了却仍访问不了」的困惑。
+    var confirmMsg = pt('确定要释放并清空该 IP') + ' (' + ip + pt(') 的所有惩罚记录吗？');
+    confirmMsg += '<br><span style="color:#8a6100; font-size:12px;">' + pt('该 IP 若同时被「御风F2B防火墙」在内核层封禁，释放时会一并解除。') + '</span>';
+    layer.confirm(confirmMsg, {title:  pt('释放 IP'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg(pt('正在释放...'), {icon: 16, time: 0, shade: 0.3});
         api.post('removeDropIp', {ip: ip}, function(res_raw) {
             layer.close(loadT);
             var res = JSON.parse(res_raw.data);
-            layer.msg(res.msg, {icon: res.status ? 1 : 2});
+            layer.msg(wafMsg(res.msg), {icon: res.status ? 1 : 2});
             if (res.status) {
                 wafDropIpList();
             }
@@ -2437,7 +2509,7 @@ function showDropIpLogs(ip) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);
         if (!res.status) {
-            layer.msg(pt('获取日志失败: ') + res.msg, {icon: 2});
+            layer.msg(pt('获取日志失败: ') + wafMsg(res.msg), {icon: 2});
             return;
         }
 
@@ -2531,7 +2603,7 @@ function saveHoneypotPaths() {
     api.post('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);
-        layer.msg(res.msg, {icon: res.status ? 1 : 2});
+        layer.msg(wafMsg(res.msg), {icon: res.status ? 1 : 2});
         if (res.status) {
             setTimeout(function(){
                 layer.closeAll();
@@ -2627,7 +2699,7 @@ function changeSpiderMode(mode) {
             layer.closeAll();
             setTimeout(function(){ setSpiderDialog(); }, 200);
         } else {
-            layer.msg(msg || pt('设置失败!'), { icon: 2 });
+            layer.msg(wafMsg(msg) || pt('设置失败!'), { icon: 2 });
         }
     });
 }
@@ -2643,11 +2715,11 @@ function syncSpiderIpAction() {
         var isSuccess = raw ? (raw.status !== undefined ? raw.status : (raw.data && raw.data.status)) : false;
         var msg = (raw && raw.msg) || (raw && raw.data && raw.data.msg) || pt('同步成功!');
         if (isSuccess) {
-            layer.msg(msg, { icon: 1, time: 1500 });
+            layer.msg(wafMsg(msg), { icon: 1, time: 1500 });
             layer.closeAll();
             setTimeout(function(){ setSpiderDialog(); }, 200);
         } else {
-            layer.msg(msg || pt('同步失败!'), { icon: 2 });
+            layer.msg(wafMsg(msg) || pt('同步失败!'), { icon: 2 });
         }
     });
 }
@@ -2719,7 +2791,7 @@ function addSpiderIpItem() {
             layer.closeAll();
             setTimeout(function(){ manageSpiderIpDialog(); }, 200);
         } else {
-            layer.msg(msg, { icon: 2 });
+            layer.msg(wafMsg(msg), { icon: 2 });
         }
     });
 }
@@ -2739,7 +2811,7 @@ function removeSpiderIpItem(index) {
                 layer.closeAll();
                 setTimeout(function(){ manageSpiderIpDialog(); }, 200);
             } else {
-                layer.msg(msg, { icon: 2 });
+                layer.msg(wafMsg(msg), { icon: 2 });
             }
         });
     });

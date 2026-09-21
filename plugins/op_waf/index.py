@@ -64,7 +64,10 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            # 单一完整消息键（前端 wafMsg() 负责用 {1} 插值本地化）。
+            # 原实现 '参数:(' + ck[i] + ')没有!' 是碎片拼接，
+            # 会产生 ')没有!' / '参数:(' 两个无法翻译的脏键。
+            return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -719,6 +722,183 @@ def getJsonPath(name):
 def getRuleJsonPath(name):
     path = getServerDir() + "/waf/rule/" + name + ".json"
     return path
+
+
+# ------------------------------------------------------------
+# 御风F2B防火墙（fail2ban）情报联动 —— 生产侧
+# ------------------------------------------------------------
+# 设计原则（弱耦合，保证任一侧缺失都能完美独立运行）：
+#   1. 本插件是「情报生产方」：只负责把识别到的攻击 IP 追加写入 spool 文件；
+#   2. **不依赖** fail2ban 的任何模块、端口、配置 —— 两侧唯一契约是 spool 文件格式；
+#   3. spool 文件的存在性就是联动的唯一开关：
+#        开启 → 创建 spool（fail2ban 据此下发 [op-waf] jail）
+#        关闭 / 卸载 → 删除 spool（fail2ban 据此撤销 jail，零残留）
+#   4. fail2ban 未安装时拒绝开启联动，绝不产生无人消费的垃圾文件。
+F2B_NAME = 'fail2ban'
+# 与 fail2ban 侧 OP_WAF_SPOOL_REL 严格一致 —— 这是两侧唯一需要对齐的常量
+BAN_SPOOL_REL = 'logs/ban_spool.log'
+# 单次通知对端的超时（秒）：避免对端异常时拖住面板请求
+F2B_SYNC_TIMEOUT = 20
+
+
+def f2bPluginDir():
+    return yf.getPluginDir() + '/' + F2B_NAME
+
+
+def f2bServerDir():
+    return yf.getServerDir() + '/' + F2B_NAME
+
+
+def f2bInstalled():
+    """fail2ban 插件是否已安装：同时校验 server 目录与插件入口，避免半残状态误判"""
+    try:
+        return (os.path.isdir(f2bServerDir())
+                and os.path.isfile(f2bPluginDir() + '/index.py'))
+    except Exception:
+        return False
+
+
+def banSpoolPath():
+    """情报 spool 的绝对路径（必须与 fail2ban 的 [op-waf] jail logpath 一致）"""
+    return getServerDir() + '/' + BAN_SPOOL_REL
+
+
+def readBanSyncConf():
+    """读取 ban_sync 配置段（缺失时返回安全默认值，绝不抛异常）"""
+    try:
+        content = yf.readFile(getJsonPath('config'))
+        cobj = json.loads(content) if content else {}
+    except Exception:
+        cobj = {}
+    bs = cobj.get('ban_sync')
+    if not isinstance(bs, dict):
+        bs = {}
+    return {'open': bool(bs.get('open'))}
+
+
+def callFail2banSync():
+    """
+    通知 fail2ban 重新同步 [op-waf] jail。
+
+    复用面板既有的插件调用约定（python3 <panelDir>/plugins/<name>/index.py <func>），
+    进程隔离、无模块耦合；对端未安装或执行失败一律静默降级，
+    绝不影响本插件自身的防护能力。
+    """
+    if not f2bInstalled():
+        return (False, 'not_installed')
+    try:
+        entry = f2bPluginDir() + '/index.py'
+        out, err = yf.execShell('python3 ' + entry + ' sync_op_waf_jail', timeout=F2B_SYNC_TIMEOUT)
+        out = (out or '').strip()
+        if not out:
+            return (False, (err or 'empty response').strip()[:200])
+        try:
+            res = json.loads(out)
+            return (bool(res.get('status')), res.get('msg', ''))
+        except Exception:
+            return (False, out[:200])
+    except Exception as e:
+        return (False, str(e)[:200])
+
+
+def getBanSync():
+    """联动配置与可用性（供 UI 展示，只读）"""
+    try:
+        conf = readBanSyncConf()
+        spool = banSpoolPath()
+        return yf.returnJson(True, 'ok!', {
+            'open': conf['open'],
+            'f2b_installed': f2bInstalled(),
+            'spool': spool,
+            'spool_exists': os.path.isfile(spool),
+        })
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
+def setBanSync():
+    """
+    开启 / 关闭「联动御风F2B防火墙持久封禁」。
+
+    联动语义：本插件在应用层实时发现攻击 → 把攻击 IP 交给 fail2ban，
+    由它在内核层以 iptables 全端口**持久**封禁（Nginx 重启也不失效）。
+    这正是「op_waf 负责发现，fail2ban 负责持久封禁」的落地实现。
+    """
+    args = getArgs()
+    data = checkArgs(args, ['open'])
+    if not data[0]:
+        return data[1]
+
+    want_open = str(args.get('open')).strip().lower() in ('1', 'true', 'on', 'yes')
+
+    # 先校验前置条件，避免写入「开了但没人消费」的状态
+    if want_open and not f2bInstalled():
+        return yf.returnJson(False, '未检测到「御风F2B防火墙」插件，请先安装后再开启联动。')
+
+    conf_path = getJsonPath('config')
+    try:
+        content = yf.readFile(conf_path)
+        cobj = json.loads(content) if content else {}
+        if not isinstance(cobj, dict):
+            cobj = {}
+    except Exception:
+        cobj = {}
+
+    if not isinstance(cobj.get('ban_sync'), dict):
+        cobj['ban_sync'] = {}
+    cobj['ban_sync']['open'] = want_open
+    yf.writeFile(conf_path, yf.getJson(cobj))
+
+    # 1. 只重编 waf_config.lua（避免全量重编 nginx 配置），让 Lua 侧拿到新开关
+    try:
+        autoMakeLuaImportSingle('config', True)
+    except Exception:
+        pass
+
+    # 2. 维护 spool 文件 —— 它是联动开关的唯一真实来源
+    spool = banSpoolPath()
+    if want_open:
+        try:
+            yf.makeDirs(os.path.dirname(spool))
+            if not os.path.exists(spool):
+                yf.writeFile(spool, '')
+        except Exception as e:
+            # 创建失败则回滚开关，保持两侧状态一致
+            cobj['ban_sync']['open'] = False
+            yf.writeFile(conf_path, yf.getJson(cobj))
+            try:
+                autoMakeLuaImportSingle('config', True)
+            except Exception:
+                pass
+            # 详情写入面板日志，返回给前端的消息保持为可翻译的单一键
+            try:
+                yf.writeLog('OP防火墙', '创建情报文件失败: ' + str(e))
+            except Exception:
+                pass
+            return yf.returnJson(False, '创建情报文件失败')
+    else:
+        try:
+            if os.path.exists(spool):
+                os.remove(spool)
+        except Exception:
+            pass
+
+    # 3. 通知 fail2ban 重新同步 jail（幂等；对端异常不影响本插件开关本身）
+    sync_ok, sync_msg = callFail2banSync()
+
+    # 4. 平滑 reload，让 Lua 侧立即生效（reload 不掐断在线连接）
+    try:
+        yf.opWeb('reload')
+    except Exception:
+        pass
+
+    # 返回消息必须是「可翻译的单一完整键」：拼接式文案在德/法/意下语义会破碎
+    if not sync_ok and sync_msg != 'not_installed':
+        msg = ('联动已开启（内核层同步失败，请检查御风F2B防火墙服务状态）' if want_open
+               else '联动已关闭（内核层同步失败，请检查御风F2B防火墙服务状态）')
+    else:
+        msg = '联动已开启' if want_open else '联动已关闭'
+    return yf.returnJson(True, msg, {'open': want_open, 'sync': sync_ok})
 
 
 def getRule():
@@ -1521,7 +1701,19 @@ def getTotalStatistics():
 
 def getWafConf():
     conf = getJsonPath('config')
-    return yf.readFile(conf)
+    raw = yf.readFile(conf)
+    try:
+        cobj = json.loads(raw) if raw else {}
+    except Exception:
+        cobj = {}
+    if not isinstance(cobj, dict):
+        cobj = {}
+    # 注入运行时只读信息（不落盘）：供 UI 判断联动开关是否可开启
+    try:
+        cobj['f2b_installed'] = f2bInstalled()
+    except Exception:
+        cobj['f2b_installed'] = False
+    return yf.getJson(cobj)
 
 
 def areaLimitSwitch():
@@ -1734,6 +1926,34 @@ def get_location_from_pconline(ip):
         "query": ip
     }
 
+# ------------------------------------------------------------
+# IP 归属地查询：语言策略
+# ------------------------------------------------------------
+# 与 fail2ban 插件的 IP_API_LANG_MAP 保持一致，避免同一 IP
+# 在 F2B 里显示 "Berlin, Germany"、在 OP 防火墙里却显示中文地名。
+# ip-api 不支持 zh-TW，回落到 zh-CN。
+IP_API_LANG_MAP = {
+    'zh-CN': 'zh-CN',
+    'zh-TW': 'zh-CN',
+    'en': 'en',
+    'de': 'de',
+    'fr': 'fr',
+    'it': 'it',
+}
+
+
+def normalize_ip_api_lang(lang):
+    """把面板语言归一化为 ip-api 支持的语言；未显式传入时跟随面板当前语言"""
+    lang = (lang or '').strip()
+    if lang in IP_API_LANG_MAP:
+        return IP_API_LANG_MAP[lang]
+    try:
+        current = (yf.getLanguage() or '').strip() if hasattr(yf, 'getLanguage') else ''
+    except Exception:
+        current = ''
+    return IP_API_LANG_MAP.get(current, 'zh-CN')
+
+
 def getIpLocationBatch():
     args = getArgs()
     data = checkArgs(args, ['ips'])
@@ -1741,6 +1961,7 @@ def getIpLocationBatch():
         return data[1]
     
     ips_json = args['ips']
+    api_lang = normalize_ip_api_lang(args.get('lang', ''))
     try:
         import urllib.request
         ips = json.loads(ips_json)
@@ -1753,7 +1974,7 @@ def getIpLocationBatch():
         max_retries = 2
         for attempt in range(max_retries):
             try:
-                req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
+                req = urllib.request.Request('http://ip-api.com/batch?lang=' + api_lang)
                 req.add_header('Content-Type', 'application/json')
                 response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
                 result = response.read().decode('utf-8')
@@ -1773,6 +1994,7 @@ def getIpLocation():
         return data[1]
     
     ip = args['ip']
+    api_lang = normalize_ip_api_lang(args.get('lang', ''))
     try:
         import urllib.request
         import time
@@ -1780,7 +2002,7 @@ def getIpLocation():
         max_retries = 2
         for attempt in range(max_retries):
             try:
-                url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+                url = 'http://ip-api.com/json/' + ip + '?lang=' + api_lang
                 response = urllib.request.urlopen(url, timeout=10)
                 result = response.read().decode('utf-8')
                 res_data = json.loads(result)
@@ -1798,16 +2020,35 @@ def removeDropIp():
     data = checkArgs(args, ['ip'])
     if not data[0]:
         return data[1]
-    ip = args['ip']
+    ip = str(args['ip']).strip()
+    # silent 用于打断与 fail2ban 侧的双向递归调用链（对方解封时回调本接口）
+    silent = str(args.get('silent', '')).strip().lower() in ('1', 'true', 'on', 'yes')
+
     url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + ip
     try:
         res_data = yf.httpGet(url)
         res = json.loads(res_data)
-        if res['status'] == 0:
-            return yf.returnJson(True, '释放成功!')
-        return yf.returnJson(False, res.get('msg', '释放失败'))
+        if res['status'] != 0:
+            return yf.returnJson(False, res.get('msg', '释放失败'))
     except Exception as e:
         return yf.returnJson(False, str(e))
+
+    # ---- 单点解封：应用层解封时同步解除 fail2ban 的内核层封禁 ----
+    # 否则会出现「在 op_waf 点了释放，IP 却仍被 iptables 全端口封禁」的困惑。
+    f2b_synced = False
+    if not silent and readBanSyncConf()['open'] and f2bInstalled():
+        try:
+            entry = f2bPluginDir() + '/index.py'
+            out, _err = yf.execShell(
+                'python3 ' + entry + ' unban_op_waf_ip '
+                + json.dumps({'ip': ip, 'silent': '1'}),
+                timeout=F2B_SYNC_TIMEOUT)
+            if out and json.loads(out.strip()).get('status'):
+                f2b_synced = True
+        except Exception:
+            f2b_synced = False
+
+    return yf.returnJson(True, '释放成功!', {'f2b_synced': f2b_synced})
 
 
 def getDropIpLogs():
@@ -2285,5 +2526,10 @@ if __name__ == "__main__":
         print(removeSpiderIp())
     elif func == 'sync_spider_ip' or func == 'syncSpiderIp':
         print(syncSpiderIp())
+    # ---- 御风F2B防火墙（fail2ban）情报联动 ----
+    elif func == 'get_ban_sync' or func == 'getBanSync':
+        print(getBanSync())
+    elif func == 'set_ban_sync' or func == 'setBanSync':
+        print(setBanSync())
     else:
         print('error')

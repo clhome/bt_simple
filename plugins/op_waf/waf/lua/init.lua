@@ -507,6 +507,11 @@ local function waf_cc()
         local reason = cycle..'秒内累计超过请求限制,封锁' .. lock_time .. '秒'
         C:write_log('cc', reason)
         C:log(params, 'cc',reason)
+        -- 御风F2B防火墙情报联动：CC 超限是真实封禁，同步交给内核层持久化。
+        -- 注意：内核层只接受单个 IP（fail2ban 的 <HOST> 不支持 CIDR），
+        -- 因此即使本插件按 /24 网段封禁，也把发起攻击的**具体 IP** 交出去，
+        -- 保证内核层一定能落地一条有效封禁；网段级拦截仍由应用层承担。
+        C:push_ban_sync(ip, lock_time, 'cc:' .. server_name)
         ngx.exit(config['cc']['status'])
         return true
     else
