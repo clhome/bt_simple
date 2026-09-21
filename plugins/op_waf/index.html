@@ -242,9 +242,16 @@
 .bt-form {
     height: 100% !important;
 }
+/*
+ * 高度必须随弹窗自适应：resetPluginWinHeight() 会用 jQuery 写行内高度，
+ * 但行内样式优先级低于 !important，所以这里若写死像素值（原为 578px），
+ * 弹窗高度在 620~860 之间变化时 .bt-w-main 会恒定停在 578px，
+ * 下方留出一条空白死区（表现为弹窗底部大片空白、左右两栏提前结束）。
+ * 与 fail2ban 插件保持同一套约定：只声明 100%，实际高度由 JS 统一注入。
+ */
 .bt-w-main {
-    height: 578px !important;
-    max-height: 578px !important;
+    height: 100% !important;
+    max-height: none !important;
     display: flex !important;
     position: relative !important;
     overflow: hidden !important;
@@ -383,6 +390,61 @@ resetPluginWinWidth(1050);
 		h = Math.max(620, Math.min(860, vh - 90));
 	}
 	resetPluginWinHeight(h);
+})();
+
+// ---------------------------------------------------------------
+// 弹窗高度按「当前页内容」二次收敛
+//
+// 上面那个视口高度是为长页面（全局配置、封锁历史）准备的；但短页面（如「服务」）
+// 内容只有几百像素，弹窗下方会留出大片空白，显得头重脚轻、不协调。
+// 这里在内容渲染完成后测量真实高度，把弹窗收敛到刚好容纳内容。
+//
+// 实现要点：
+//   1. 用 MutationObserver 监听内容区，不必改动每一个 renderXxx 函数；
+//   2. 防抖 80ms —— 内容通常是「先占位、再填数据」，等渲染稳定后再测；
+//   3. 与当前高度差小于 16px 就不调整，避免测量误差引起高度震荡；
+//   4. 内容高于上限时保持上限，纵向滚动仍由 .bt-w-con 唯一承担。
+// ---------------------------------------------------------------
+(function () {
+	var MIN_H = 560;      // 下限：再矮左侧菜单与内容区会显得局促
+	var MAX_CAP = 860;    // 上限：超大屏上不过度拉伸
+	var THRESHOLD = 16;   // 调整阈值
+	var CHROME_H = 42;    // 标题栏高度（与 resetPluginWinHeight 保持一致）
+	var PAD_H = 60;       // .bt-w-con 上下内边距 15 + 45
+
+	var curH = 0;
+	var timer = null;
+
+	function maxH() {
+		var vh = window.innerHeight || 0;
+		return vh > 0 ? Math.max(MIN_H, Math.min(MAX_CAP, vh - 90)) : MAX_CAP;
+	}
+
+	function fit() {
+		var $con = $('.bt-w-con');
+		var $inner = $con.find('.soft-man-con');
+		if (!$con.length || !$inner.length) return;
+		var contentH = $inner.outerHeight(true) || 0;
+		if (contentH <= 0) return;   // 内容尚未渲染，等下一次变更
+		var target = Math.max(MIN_H, Math.min(maxH(), contentH + PAD_H + CHROME_H));
+		if (curH && Math.abs(target - curH) < THRESHOLD) return;
+		curH = target;
+		resetPluginWinHeight(target);
+	}
+
+	function schedule() {
+		if (timer) clearTimeout(timer);
+		timer = setTimeout(fit, 80);
+	}
+
+	$(function () {
+		var el = document.querySelector('.bt-w-con');
+		if (el && typeof MutationObserver !== 'undefined') {
+			new MutationObserver(schedule).observe(el, { childList: true, subtree: true });
+		}
+		$(window).on('resize', schedule);
+		schedule();
+	});
 })();
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js&_t=" + new Date().getTime(), function(data, textStatus, jqxhr){

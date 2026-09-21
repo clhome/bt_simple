@@ -688,6 +688,11 @@ function f2bSiteAnti() {
             var linkedBadge = opWaf.linked
                 ? '<span style="color:#20a53a; font-weight:bold;">' + pt('已接入') + '</span>'
                 : '<span style="color:#999;">' + pt('未接入') + '</span>';
+            // 开关必须挂在 input 的 onchange 上：<label for=...> 的 onclick 早于
+            // checkbox 翻转执行，在那里读状态只会拿到旧值（op_waf 侧曾因此整个开关失效）
+            var switchHint = opWaf.linked
+                ? pt('已开启：OP 防火墙识别到的攻击 IP 会同步到本插件内核层持久封禁。')
+                : pt('当前未开启。开启后，OP 防火墙识别到的攻击 IP 将同步到本插件，在内核层以 iptables 全端口持久封禁。');
             linkHtml = '<div style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:6px; padding:20px; margin-top:10px;">\
                 <h4 style="color:#333; font-size:14px; font-weight:bold; margin-top:0; margin-bottom:15px; border-bottom:1px solid #eaeaea; padding-bottom:10px;">\
                     <span class="glyphicon glyphicon-transfer" style="color:#20a53a; margin-right:8px;"></span>' + pt('御风OP防火墙情报联动') + '\
@@ -698,6 +703,15 @@ function f2bSiteAnti() {
                 <div style="color:#666; font-size:13px; line-height:28px;">\
                     <span style="display:inline-block; width:120px;">' + pt('状态') + '</span>' + linkedBadge + '\
                 </div>\
+                <div style="color:#666; font-size:13px; line-height:28px;">\
+                    <span style="display:inline-block; width:120px; vertical-align:middle;">' + pt('联动开关') + '</span>\
+                    <span style="display:inline-flex; align-items:center; vertical-align:middle;">\
+                        <input class="btswitch btswitch-ios" id="f2b_op_waf_link_switch" type="checkbox" ' + (opWaf.linked ? 'checked' : '') + ' onchange="f2bToggleOpWafLink();">\
+                        <label class="btswitch-btn" for="f2b_op_waf_link_switch" style="margin-left:6px;"></label>\
+                        <span style="margin-left:10px; font-size:12px; color:#888;">' + (opWaf.linked ? pt('已开启') : pt('已关闭')) + '</span>\
+                    </span>\
+                </div>\
+                <div style="color:#999; font-size:12px; line-height:20px; margin:4px 0 10px 120px;">' + switchHint + '</div>\
                 <div style="color:#666; font-size:13px; line-height:28px;">\
                     <span style="display:inline-block; width:120px;">' + pt('情报来源') + '</span>' + pt('应用层') + ' (op_waf)\
                 </div>\
@@ -767,6 +781,33 @@ function f2bSetOpWafLink() {
         layer.msg(f2bMsg(data.msg), {icon: 1});
         f2bSiteAnti();
     });
+}
+
+// 开启 / 关闭「御风OP防火墙情报联动」
+//
+// 必须挂在 input 的 onchange 上（不能挂 label 的 onclick）：
+// <label for=...> 的 onclick 早于 checkbox 状态翻转执行，在那里读只会拿到旧值。
+// 开关的真实状态由 op_waf 持有（它是封禁情报的生产者），本插件只转发用户意图，
+// 再回读 spool 确认，因此成功后必须整体重渲染，让界面与对端真实状态一致。
+function f2bToggleOpWafLink() {
+    var wantOpen = $('#f2b_op_waf_link_switch').is(':checked');
+    // 取消 / 失败时把开关拨回操作前的状态，避免「视觉已切换、实际未生效」
+    var revert = function () { $('#f2b_op_waf_link_switch').prop('checked', !wantOpen); };
+    var msg = wantOpen
+        ? pt('确定要开启「御风OP防火墙情报联动」吗？开启后，OP 防火墙识别到的攻击 IP 将同步到本插件，在内核层以 iptables 全端口持久封禁。')
+        : pt('确定要关闭「御风OP防火墙情报联动」吗？关闭后 OP 防火墙识别到的攻击 IP 将只在应用层被拦截，不再做内核层持久封禁。');
+
+    layer.confirm(msg, {title: pt('提示'), icon: 3, cancel: revert}, function(index){
+        layer.close(index);
+        var loadT = layer.msg(pt('正在设置...'), {icon: 16, time: 0, shade: 0.3});
+        api.post('set_op_waf_link_open', '', {open: wantOpen ? '1' : '0'}, function(data){
+            layer.close(loadT);
+            var r = JSON.parse(data.data);
+            layer.msg(f2bMsg(r.msg), {icon: r.status ? 1 : 2});
+            if (!r.status) { revert(); return; }
+            f2bSiteAnti();
+        });
+    }, revert);
 }
 
 function f2bLogRequest(page){

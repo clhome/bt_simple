@@ -776,29 +776,51 @@ def readBanSyncConf():
     return {'open': bool(bs.get('open'))}
 
 
-def callFail2banSync():
+def callF2bCli(func, args=None, timeout=F2B_SYNC_TIMEOUT):
     """
-    通知 fail2ban 重新同步 [op-waf] jail。
+    以「面板自己的方式」调用 fail2ban 插件的 CLI，返回 (ok, msg)。
 
-    复用面板既有的插件调用约定（python3 <panelDir>/plugins/<name>/index.py <func>），
-    进程隔离、无模块耦合；对端未安装或执行失败一律静默降级，
-    绝不影响本插件自身的防护能力。
+    ⚠️ 不要用「python3 + 入口路径」拼 shell 字符串 —— 三个坑，且都只会静默失败、不报错：
+      1. 面板跑插件用的是 `sys.executable`（可能来自 venv，PATH 里未必有 `python3`）；
+      2. shell 会把 `{"ip": "1.2.3.4", "silent": "1"}` 里的空格当词分隔符，
+         参数被拆成 `{ip:` / `1.2.3.4",` / `"silent":` / `1}`，
+         对端 `getArgs()` 解析不出字典；
+      3. 缺 `cwd`，插件 import 期若有相对路径依赖会错位。
+
+    正确姿势与 `web/utils/plugin.py` 的 `plugin.run()` 一致：
+        yf.safeExecShell([sys.executable, <入口>, <func>, <json>], cwd=yf.getPanelDir())
+    `safeExecShell` 用 `shell=False` + 参数列表，天然免疫分词与注入。
     """
-    if not f2bInstalled():
+    entry = f2bPluginDir() + '/index.py'
+    if not os.path.isfile(entry):
         return (False, 'not_installed')
+    cmd = [sys.executable or 'python3', entry, func]
+    if args is not None:
+        cmd.append(json.dumps(args))
     try:
-        entry = f2bPluginDir() + '/index.py'
-        out, err = yf.execShell('python3 ' + entry + ' sync_op_waf_jail', timeout=F2B_SYNC_TIMEOUT)
+        out, err = yf.safeExecShell(cmd, cwd=yf.getPanelDir(), timeout=timeout)
         out = (out or '').strip()
         if not out:
             return (False, (err or 'empty response').strip()[:200])
         try:
             res = json.loads(out)
-            return (bool(res.get('status')), res.get('msg', ''))
+            return (bool(res.get('status')), str(res.get('msg', ''))[:200])
         except Exception:
             return (False, out[:200])
     except Exception as e:
         return (False, str(e)[:200])
+
+
+def callFail2banSync():
+    """
+    通知 fail2ban 重新同步 [op-waf] jail。
+
+    进程隔离、无模块耦合；对端未安装或执行失败一律静默降级，
+    绝不影响本插件自身的防护能力。
+    """
+    if not f2bInstalled():
+        return (False, 'not_installed')
+    return callF2bCli('sync_op_waf_jail')
 
 
 def getBanSync():
@@ -2037,16 +2059,8 @@ def removeDropIp():
     # 否则会出现「在 op_waf 点了释放，IP 却仍被 iptables 全端口封禁」的困惑。
     f2b_synced = False
     if not silent and readBanSyncConf()['open'] and f2bInstalled():
-        try:
-            entry = f2bPluginDir() + '/index.py'
-            out, _err = yf.execShell(
-                'python3 ' + entry + ' unban_op_waf_ip '
-                + json.dumps({'ip': ip, 'silent': '1'}),
-                timeout=F2B_SYNC_TIMEOUT)
-            if out and json.loads(out.strip()).get('status'):
-                f2b_synced = True
-        except Exception:
-            f2b_synced = False
+        ok, _detail = callF2bCli('unban_op_waf_ip', {'ip': ip, 'silent': '1'})
+        f2b_synced = bool(ok)
 
     return yf.returnJson(True, '释放成功!', {'f2b_synced': f2b_synced})
 

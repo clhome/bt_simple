@@ -868,6 +868,61 @@ def op_waf_link_state():
     }
 
 
+# 跨插件调用的超时（秒）：与 op_waf 侧的 F2B_SYNC_TIMEOUT 对齐，
+# 保证任一侧异常时都不会把面板请求长时间挂住
+OP_WAF_CALL_TIMEOUT = 20
+
+
+def op_waf_entry():
+    """op_waf 插件入口脚本路径（与 op_waf 侧 f2bPluginDir 完全对称）"""
+    return yf.getPluginDir() + '/' + OP_WAF_NAME + '/index.py'
+
+
+def call_plugin_cli(plugin_name, func, args=None, timeout=OP_WAF_CALL_TIMEOUT):
+    """
+    以「面板自己的方式」调用另一个插件的 CLI，返回 (ok, msg)。
+
+    ⚠️ 不要用「python3 + 入口路径」拼 shell 字符串 —— 有三个坑，且都不会报错、只会静默失败：
+      1. 面板跑插件用的是 `sys.executable`（可能来自 venv，PATH 里未必有 `python3`）；
+      2. shell 会把 `{"open": "1"}` 里的空格当成词分隔符，参数被拆成 `{open:` 和 `1}`，
+         对端 `getArgs()` 解析不出字典，只能走兜底分支拿到空值；
+      3. 缺 `cwd`，插件 import 期若有相对路径依赖会错位。
+
+    正确姿势与 `web/utils/plugin.py` 的 `plugin.run()` 完全一致：
+        yf.safeExecShell([sys.executable, <入口>, <func>, <json>], cwd=yf.getPanelDir())
+    `safeExecShell` 用 `shell=False` + 参数列表，天然免疫分词与注入。
+
+    对端未安装或执行失败一律返回 (False, 原因)，由调用方转成可翻译的提示，
+    **绝不把对端的中文原文直接抛给前端**（否则非中文面板会漏出一段中文）。
+    """
+    entry = yf.getPluginDir() + '/' + plugin_name + '/index.py'
+    if not os.path.isfile(entry):
+        return (False, 'not_installed')
+    cmd = [sys.executable or 'python3', entry, func]
+    if args is not None:
+        cmd.append(json.dumps(args))
+    try:
+        out, err = yf.safeExecShell(cmd, cwd=yf.getPanelDir(), timeout=timeout)
+        out = (out or '').strip()
+        if not out:
+            return (False, (err or 'empty response').strip()[:200])
+        try:
+            res = json.loads(out)
+        except Exception:
+            return (False, out[:200])
+        return (bool(res.get('status')), str(res.get('msg', ''))[:200])
+    except Exception as e:
+        return (False, str(e)[:200])
+
+
+def call_op_waf_ban_sync(want_open):
+    """通知 op_waf 开启 / 关闭情报联动（进程隔离、无模块耦合）"""
+    if not op_waf_installed():
+        return (False, 'not_installed')
+    return call_plugin_cli(OP_WAF_NAME, 'set_ban_sync',
+                           {'open': '1' if want_open else '0'})
+
+
 def ensure_op_waf_filter():
     """
     写入 op_waf 情报联动专用过滤器。
@@ -1514,6 +1569,48 @@ def set_op_waf_link():
         return yf.returnJson(True, '设置成功!')
     except Exception as e:
         return yf.returnJson(False, str(e))
+
+
+def set_op_waf_link_open():
+    """
+    开启 / 关闭「御风OP防火墙情报联动」（供本插件 UI 直接操作）。
+
+    联动的唯一真实来源是 op_waf 侧的 spool 文件，开关状态也由 op_waf 持有
+    —— 它才是封禁情报的生产者。因此本插件**不自行造状态**，而是把用户意图
+    转发给 op_waf 的 set_ban_sync，再回读 spool 确认结果，
+    从机制上杜绝「本插件显示已开启、对端其实没在写」这类两侧状态分叉。
+
+    返回给前端的消息全部是本插件自己的可翻译键；
+    对端的原始失败原因只写面板日志，不抛给界面。
+    """
+    args = getArgs()
+    want_open = str(args.get('open')).strip().lower() in ('1', 'true', 'on', 'yes')
+
+    if not op_waf_installed():
+        # 独立运行约束：未安装对端时明确拒绝，但不产生任何副作用
+        return yf.returnJson(False, '未检测到御风OP防火墙')
+
+    ok, detail = call_op_waf_ban_sync(want_open)
+    if not ok:
+        try:
+            yf.writeLog(getPluginName(),
+                        '设置情报联动失败(open={}): {}'.format(want_open, detail))
+        except Exception:
+            pass
+        return yf.returnJson(False, '情报联动设置失败，请检查御风OP防火墙运行状态')
+
+    # spool 刚被对端创建 / 删除，强制刷新探测缓存后再同步 jail，
+    # 否则 30s TTL 内仍会读到旧状态、下发错误的 jail
+    _OP_WAF_SPOOL_CACHE['ts'] = 0.0
+    try:
+        sync_op_waf_jail()
+    except Exception:
+        pass
+
+    return yf.returnJson(
+        True,
+        '情报联动已开启' if want_open else '情报联动已关闭',
+        op_waf_link_state())
 
 
 def unban_op_waf_ip():
@@ -2452,6 +2549,8 @@ if __name__ == "__main__":
         print(op_waf_link_status())
     elif func == 'set_op_waf_link':
         print(set_op_waf_link())
+    elif func == 'set_op_waf_link_open':
+        print(set_op_waf_link_open())
     elif func == 'unban_op_waf_ip':
         print(unban_op_waf_ip())
     elif func == 'disable_site_anti':

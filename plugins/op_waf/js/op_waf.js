@@ -1191,8 +1191,8 @@ function wafGloabl(){
                         <td>' + pt('开启后，本插件识别到的攻击 IP 将同步给「御风F2B防火墙」，在内核层以 iptables 全端口持久封禁，即使 Nginx 重启也不会失效。') + banSyncHint + '</td>\
                         <td style="text-align: center;">--</td>\
                         <td><div class="ssh-item">\
-                            <input class="btswitch btswitch-ios" id="close_ban_sync" type="checkbox" ' + (banSyncOpen ? 'checked' : '') + '>\
-                            <label class="btswitch-btn" for="close_ban_sync" onclick="setBanSync()"></label>\
+                            <input class="btswitch btswitch-ios" id="close_ban_sync" type="checkbox" ' + (banSyncOpen ? 'checked' : '') + ' onchange="setBanSync()">\
+                            <label class="btswitch-btn" for="close_ban_sync"></label>\
                         </div></td>\
                         <td class="text-right">--</td>\
                     </tr>\
@@ -1315,22 +1315,34 @@ function wafGloabl(){
 }
 
 // 开启 / 关闭「联动御风F2B防火墙持久封禁」
+//
+// 【重要】本函数必须挂在 input 的 onchange 上，不能挂在 label 的 onclick 上。
+// 浏览器对 <label for=...> 的处理顺序是：先派发 label 自身的 click 事件（此时
+// 处理器同步执行），再执行「转发给关联控件」的默认动作去翻转 checkbox。
+// 因此写在 label onclick 里读 $().is(':checked') 只会拿到「点击前」的旧值，
+// 表现为：开关视觉上拨动了，提交的却永远是旧状态 → 用户怎么点都开不了联动。
+// 实测证据见 test/tmp_banner_preview/bansync_switch_bug.html。
 function setBanSync() {
     var wantOpen = $('#close_ban_sync').is(':checked');
+    // 用户取消 / 点右上角关闭时，把开关恢复成操作前的状态，
+    // 避免「视觉已切换、配置未变」的两侧不一致
+    var revert = function () { $('#close_ban_sync').prop('checked', !wantOpen); };
     var msg = wantOpen
         ? pt('确定要开启与「御风F2B防火墙」的联动吗？开启后本插件识别到的攻击 IP 将在内核层被持久封禁。')
         : pt('确定要关闭与「御风F2B防火墙」的联动吗？关闭后内核层将不再同步封禁新的攻击 IP（已封禁的 IP 需到 F2B 侧手动解除）。');
 
-    layer.confirm(msg, {title: pt('提示'), icon: 3}, function(index) {
+    layer.confirm(msg, {title: pt('提示'), icon: 3, cancel: revert}, function(index) {
         layer.close(index);
         var loadT = layer.msg(pt('正在设置...'), {icon: 16, time: 0, shade: 0.3});
         api.post('set_ban_sync', {open: wantOpen ? '1' : '0'}, function(res_raw) {
             layer.close(loadT);
             var res = JSON.parse(res_raw.data);
             layer.msg(wafMsg(res.msg), {icon: res.status ? 1 : 2});
+            // 失败时也要把开关拨回去，不能让界面显示成已生效
+            if (!res.status) { revert(); return; }
             wafGloabl();
         });
-    });
+    }, revert);
 }
 
 //返回css
@@ -1934,6 +1946,8 @@ function wafAreaLimitSwitch(){
     });
 }
 
+// 切换「地区限制」总开关。
+// 同 setBanSync：必须挂在 input 的 onchange 上，写在 label onclick 里会读到翻转前的旧值。
 function setWafAreaLimitSwitch(){
     var area_limit_switch = $('#area_limit_switch').prop('checked');
     // console.log(area_limit_switch);
@@ -1951,8 +1965,8 @@ function setWafAreaLimitSwitch(){
 function wafAreaLimit(){
     var con = '<div class="safe bgw">\
             <button id="create_area_limit" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加地区限制') + '</button>\
-            <input class="btswitch btswitch-ios" id="area_limit_switch" type="checkbox">\
-            <label class="btswitch-btn" for="area_limit_switch" onclick="setWafAreaLimitSwitch();" style="display: inline-flex;line-height:38px;margin-left: 4px;float: right;"></label>\
+            <input class="btswitch btswitch-ios" id="area_limit_switch" type="checkbox" onchange="setWafAreaLimitSwitch();">\
+            <label class="btswitch-btn" for="area_limit_switch" style="display: inline-flex;line-height:38px;margin-left: 4px;float: right;"></label>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\

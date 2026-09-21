@@ -478,3 +478,49 @@
 - [x] 301. 新增**真实渲染验证**：`test/tools/render_f2b_site_anti.js` 用最小 jQuery / layer / api / pt 替身在 Node 里真正执行 `f2bSiteAnti()`，Python 侧断言 4 种状态 × 6 语言的配色、标题、联动分支差异、以及非中文语言下提示条区域**零中文残留**
 - [x] 302. 全量回归：`test_f2b_op_waf_link.py` **85 项**（新增 5 项渲染 + 4 项后端消息/i18n 守卫）、`test_fail2ban_plugin.py` 59 项、`test_fail2ban_stability.py` 6 项、全库 Python/JS 语法、插件运行时 i18n、op_waf 4 套件**全部通过**；六语言键集一致（fail2ban 183 / op_waf 723）；编码核查通过（UTF-8 无 BOM + LF，语言包缩进保持原状）
 - [x] 303. 按用户截图的**精确状态**（已装 op_waf + 两条规则均「已停用」+ 情报联动未接入）做端到端渲染复现：确认真实执行 `f2bSiteAnti()` 后输出绿色「已托管」条、黄色警告条不再出现，六语言逐一核对无误。新增 `test/tools/build_f2b_banner_preview.py` 一键生成前后对比预览页（提示条 HTML 直接取自渲染工装，非手工绘制），产物在 `test/tmp_banner_preview/preview_delegated.{html,png}`（`test/` 已 gitignore）
+
+---
+
+## 御风F2B防火墙 × 御风OP防火墙「联动开关可用性」与「弹窗高度适配」清单
+
+需求来源：用户二次反馈两个问题 ——
+1. 提示条让用户「在下方开启『御风OP防火墙情报联动』」，但下方面板只有「封禁时长 + 保存」，状态显示「未接入」，**没有任何可点击的开启入口**；
+2. op_waf 弹窗高度不适配，**下方留出大片空白**，整体不协调，希望两个防火墙插件都更专业、美观。
+
+前置约束同上：**A. 独立运行**（未装对端时不得报错、不得产生副作用）、**B. 性能**（新增逻辑不得进入请求热路径）、**C. 国际化**（六语言键集一致、译文无 HTML）、**D. 逐步记录**。
+
+- [x] 304. **定位并修复根因（P0）**：op_waf 自己的联动开关挂在 `<label for=... onclick="setBanSync()">` 上。浏览器对 label 的处理顺序是「先派发 label 自身的 click（处理器同步执行）→ 再执行默认动作把点击转发给 checkbox 去翻转」，因此在 label onclick 里读 `$('#close_ban_sync').is(':checked')` 拿到的**永远是翻转前的旧值**，提交的也永远是旧状态 —— 开关视觉上拨动了、状态却怎么点都不变，重渲染后又弹回。用真实浏览器 + 真实 jQuery 复现并固化为证据（`label-onclick=false` / `input-onchange=true`）。同一缺陷还波及 `setWafAreaLimitSwitch()`（地区限制开关），一并修复。全库 28 处开关中其余 26 处走「后端翻转」语义（前端不读状态），不受影响
+- [x] 305. 在 fail2ban「御风OP防火墙情报联动」面板新增**「联动开关」行**（`btswitch` 开关 + 已开启/已关闭标注 + 一行效果说明），使用户在原提示条指引的位置真正能开启联动。开关挂在 `input` 的 `onchange` 上（不是 label onclick），并在取消 / 失败时自动把开关拨回，杜绝「视觉已切换、实际未生效」
+- [x] 306. 新增 fail2ban 后端 `set_op_waf_link_open()`：本插件**不自行造状态**，而是通过面板既有的跨插件约定（`python3 <panelDir>/plugins/op_waf/index.py set_ban_sync <json>`）把用户意图转发给 op_waf，再回读 spool 确认 —— 从机制上杜绝「本插件显示已开启、对端其实没在写」的两侧状态分叉。成功后强制刷新 spool 探测缓存（否则 30s TTL 内会按旧状态下发错误的 jail）再 `sync_op_waf_jail()`
+- [x] 307. **约束 A 落地**：对端未安装或处于「只有 server 目录、没有插件入口」的半残状态时明确拒绝且**不发起任何子进程调用**（用目录树快照断言零文件增删）；对端返回非 JSON / 空响应时优雅降级
+- [x] 308. **i18n 洁净性**：对端失败原因（中文原文）**只写面板日志**，返回给前端的始终是本插件自己的可翻译键（`未检测到御风OP防火墙` / `情报联动设置失败，请检查御风OP防火墙运行状态` / `情报联动已开启` / `情报联动已关闭`），避免非中文面板漏出中文。新增 11 键 × 6 语言（fail2ban 183 → 194），同步器 `test/i18n_scripts/sync_op_waf_link_switch_i18n.py`
+- [x] 309. **修复 op_waf 弹窗底部死区**：根因是 `plugins/op_waf/index.html` 的 `.bt-w-main` 写死 `height:578px !important`。`resetPluginWinHeight()` 是用 jQuery 写**行内**高度的，而行内样式优先级低于 `!important`，于是弹窗高度在 620~860 之间变化时 `.bt-w-main` 恒定停在 578px，下方留出一条死区（表现为弹窗底部大片空白、左右两栏提前结束）。改为 `height:100%`，与 fail2ban 侧早已采用的写法对齐
+- [x] 310. 为**两个插件**都加上「弹窗高度按当前页内容自适应」：用 `MutationObserver` 监听内容区（无需改动每一个 render 函数），防抖 80ms 等渲染稳定后测量，把弹窗收敛到刚好容纳内容并夹在 `[560, 视口高-90]`；与当前高度差小于 16px 则不动，避免高度震荡。效果：短页面（如 op_waf「服务」）窗口紧凑，长页面（全局配置 / 封锁历史 / 网站防护）自动变高
+- [x] 311. 新增回归守卫（`test_f2b_op_waf_link.py` 85 → **106 项**）：`TestOpWafLinkSwitch`（跨插件调用契约、参数形态、成功/失败消息、缓存刷新时序、前端 onchange 契约、取消回滚）、`TestSwitchDomContract`（**通用守卫**：任何读取 checkbox 状态的处理函数都不得挂在 `<label onclick>` 上，并现场用真实浏览器固化事件顺序依据）、`TestPopupHeightAdaptation`（`.bt-w-main` 不得写死像素、fit 常量必须与 `soft.js` 的 42 与 `.bt-w-con` 的实际内边距一致）、`TestLinkSwitchI18n`（六语言覆盖 + 非中文不得照抄中文）
+- [x] 312. 全量回归通过：`test_f2b_op_waf_link` **106** / `test_fail2ban_plugin` 59 / `test_fail2ban_stability` 6 / `test_all_python_syntax` 2 / `test_all_plugins_js_syntax` 5 / `test_plugin_runtime_i18n`（1314 菜单项 100% 覆盖）/ op_waf P0·P1·P2·spider 4 套件；六语言键集一致（fail2ban 194 / op_waf 723，0 空值 0 HTML）；编码核查通过（UTF-8 无 BOM + LF，缩进 fail2ban=4 / op_waf=1 保持原状）；`i18n_plugin_check.py` 硬性失败项 0
+- [x] 313. 新增 `test/tools/build_f2b_link_panel_preview.py`：把渲染工装扩展为可指定 JS 路径，从而能从 `git show HEAD:plugins/fail2ban/js/fail2ban.js` 渲染出**真实的「修改前」面板**（而非手工拼装假 HTML）做前后对比；产物在 `test/tmp_banner_preview/preview_link_panel.{html,png}`
+
+---
+
+## 御风F2B防火墙 × 御风OP防火墙「跨插件调用静默失败」修复清单
+
+需求来源：用户开启上一步新增的「联动开关」时报错 ——
+
+```
+联动开关失败：{"data": "{\"status\": false, \"msg\": \"情报联动设置失败，请检查御风OP防火墙运行状态\"}", "msg": "OK", "status": true}
+```
+
+报错信封里是 **fail2ban 自己的兜底文案**（说明 fail2ban 已发出请求、被对端拒绝），指向跨插件调用本身。
+
+前置约束同上：**A. 独立运行**、**B. 性能**、**C. 国际化**、**D. 逐步记录**。
+
+- [x] 314. **定位根因（P0）**：跨插件调用被写成 `yf.execShell('python3 ' + entry + ' set_ban_sync ' + json.dumps({'open':'1'}))`。这是**拼 shell 字符串**，有三个叠加缺陷，且**每一个都只会静默失败、不抛异常**：(1) 面板跑插件统一用 `sys.executable`（可能来自 venv，PATH 里未必有 `python3`）；(2) shell 按空格分词，把 `{"open": "1"}` 拆成 `{open:` 和 `1}` 两段，对端 `getArgs()` 组装不出字典、只能走兜底分支拿到空值，于是报「缺少必要参数」；(3) 缺 `cwd`，插件 import 期若有相对路径依赖会错位。已用真实 `sh -c` 复现分词结果：`['python3', '/tmp/plugins/op_waf/index.py', 'set_ban_sync', '{open:', '1}']`
+- [x] 315. 对齐面板权威调用方式：阅读 `web/utils/plugin.py` 的 `plugin.run()` 与 `yf.safeExecShell()`，确认面板自身用的是 `[sys.executable, path, func, ...]` **参数列表** + `cwd=yf.getPanelDir()`（`subprocess.Popen(shell=False)`，天然免疫分词与注入）。跨插件调用改为同一形态：`yf.safeExecShell([sys.executable or 'python3', entry, func, json.dumps(args)], cwd=yf.getPanelDir(), timeout=...)`
+- [x] 316. 在 fail2ban 侧新增可复用的 `call_plugin_cli(plugin_name, func, args, timeout)`（统一处理入口不存在 / 空响应 / 非 JSON / 超时，全部降级为 `(False, 原因)` 而不抛异常），`call_op_waf_ban_sync()` 改为调用它；docstring 明确写出「不要拼 shell 字符串」及其三个坑
+- [x] 317. 在 op_waf 侧新增对称的 `callF2bCli(func, args, timeout)`，并修复**另外两处同样的缺陷调用**：`callFail2banSync()`（同步 jail）与 `removeDropIp()` 单点解封分支的 `unban_op_waf_ip`。即本次共修 3 处跨插件调用
+- [x] 318. **约束 A 落地**：入口文件不存在时直接返回 `(False, 'not_installed')`，**不发起任何子进程**；对端未安装 / 半残状态下开关操作明确失败且无副作用
+- [x] 319. 新增 `TestCrossPluginInvocation` 回归守卫（`test_f2b_op_waf_link.py` 106 → **112 项**）：(1) 用正则 + `_code_only()`（先剥掉 docstring 与 `#` 注释，避免守卫匹配到自己的说明文字）全库禁止 `'python3 ' +` 形式的跨插件 shell 拼接；(2) 断言两侧都使用 `yf.safeExecShell(cmd, cwd=yf.getPanelDir())`；(3) 断言命令首元素为 `sys.executable or 'python3'`；(4) `test_shell_would_have_split_the_json` 用真实 shell 证明旧写法确实会拆坏 JSON；(5) `test_end_to_end_real_subprocess_delivers_json` **真起一个子进程 stub 插件**，再用对端真实的 `getArgs()` 解析，端到端证明参数完整送达；(6) 断言 op_waf 侧两处调用也已修复
+- [x] 320. 同步修正因调用方式变更而失效的既有测试：`LinkTestCase.stub_safe_exec()` 抽为共享工装，把断言从「shell 字符串内容」改为「**参数列表**」（`cmd[0] == sys.executable or 'python3'`、`cmd[1].endswith('plugins/fail2ban/index.py')`、`cmd[2] == 'sync_op_waf_jail'`、`json.loads(cmd[3]) == {...}`）；`test_unlinked_unban_spawns_no_subprocess` 同时 stub `execShell` 与 `safeExecShell`
+- [x] 321. 更新因「弹窗高度适配」而**语义过时**的测试 `test_op_waf_ui.py::test_sidebar_style_and_fixed_height`（原断言写死 `resetPluginWinHeight(620);`，与本次需求直接冲突）。拆为两项：保留侧边栏样式断言，新增 `test_popup_height_is_adaptive_not_pixel_locked` 固化**新契约** —— 初始高度为视口自适应公式、内容二次收敛（`MutationObserver` + 防抖 + 阈值）、且 `.bt-w-main` **禁止**像素锁死（用 `assertNotRegex` 断言 `height: <数字>px` 不出现）
+- [x] 322. 全量回归通过：`test_f2b_op_waf_link` **112** / `test_fail2ban_plugin` 59 / `test_fail2ban_stability` 6 / `test_all_python_syntax` 2 / `test_all_plugins_js_syntax` 5 / `test_op_waf_ui` 5（合计 **189 项 OK**）+ op_waf P0·P1·P2·spider 4 套件全部通过；`i18n_plugin_check.py` 两插件硬性失败项均为 **0**
+- [x] 323. 新增**可复现的修复证据报告** `test/tools/build_cross_plugin_fix_report.py` → `test/tmp_link_fix_report/fix_report.html`（含 PNG 截图）。报告里每条证据都**现场跑出来**而非手写：shell 分词证据真调 `shlex.split()`、调用点证据真扫源码（剥 docstring/注释后再匹配）、测试计数真跑 unittest —— 这样报告过期时会自己变红，而不是继续骗人。并**按性质分类**顺带排查结果，避免误报：A 类「跨进程调用且参数含 JSON」5 处（`mariadb:3584`、`mysql:1397`、`mysql:1881`、`plugin.py:1240-1241`，与本次同源，建议后续单独修复）；B 类 `crontab.py:740-750` 7 处**不算缺陷**（cron 本来就交给 shell 执行、必须是字符串，且参数是文件名/数字不含 JSON）
