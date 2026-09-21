@@ -7,6 +7,7 @@ import time
 import subprocess
 import re
 import json
+import shlex
 
 
 web_dir = os.getcwd() + "/web"
@@ -3581,7 +3582,7 @@ def syncDatabaseRepairLog(version=''):
     script_path = yf.getPluginDir() + '/mariadb/index.py'
     cmd_list = [sys.executable, script_path, 'sync_database_repair', json_args]
 
-    cmd = 'python3 ' + script_path + ' sync_database_repair ' + json_args
+    cmd = shlex.join(cmd_list)
 
     if op == 'get':
         log = yf.getLastLine(tmp_log, 15)

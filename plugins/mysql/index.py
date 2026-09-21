@@ -8,6 +8,7 @@ import time
 import subprocess
 import re
 import json
+import shlex
 
 from packaging import version as pk_version
 
@@ -1394,7 +1395,7 @@ def setDbBackup():
         return data[1]
 
     scDir = yf.getPanelDir() + '/scripts/backup.py'
-    cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
+    cmd = 'python3 ' + shlex.quote(scDir) + ' database ' + shlex.quote(args['name']) + ' 3'
     out, err = yf.execShell(cmd)
 
     if '备份失败' in str(out):
@@ -1877,11 +1878,11 @@ def importDbBackupProgress():
     file = args['file']
     name = args['name']
 
-    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && '
-    cmd += 'python3 '+yf.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_backup_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
-    return yf.returnJson(True, 'ok',cmd)
-
-    return yf.returnJson(True, 'ok')
+    json_args = json.dumps({"file": file, "name": name})
+    server_dir = yf.getServerDir()
+    cmd = 'cd ' + shlex.quote(server_dir + '/mdserver-web') + ' && source bin/activate && '
+    cmd += 'python3 ' + shlex.quote(server_dir + '/mdserver-web/plugins/mysql/index.py') + ' import_db_backup_progress_bar ' + shlex.quote(json_args)
+    return yf.returnJson(True, 'ok', cmd)
 
 def importDbBackupProgressBar():
     args = getArgs()

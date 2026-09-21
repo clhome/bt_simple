@@ -1237,8 +1237,8 @@ class plugin(object):
                     yf.writeFile(f2b_checks + '/version.pl', f2b_version)
                     
                     rootPath = yf.getPanelDir()
-                    yf.execShell('python3 ' + rootPath + '/plugins/fail2ban/index.py start')
-                    yf.execShell('python3 ' + rootPath + '/plugins/fail2ban/index.py initd_install')
+                    yf.execShell('python3 ' + shlex.quote(rootPath + '/plugins/fail2ban/index.py') + ' start')
+                    yf.execShell('python3 ' + shlex.quote(rootPath + '/plugins/fail2ban/index.py') + ' initd_install')
                     
                     self.__plugin_list_static_cache = None
         except Exception as e:
