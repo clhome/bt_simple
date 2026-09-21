@@ -103,5 +103,11 @@
     "提示": "Indication",
     "正在清空...": "Effacement en cours...",
     "正在保存配置并应用...": "Enregistrement de la configuration et application...",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "未启动": "Non démarré",
+    "Redis 访问需要密码认证，请检查 requirepass 配置": "L'accès à Redis nécessite une authentification par mot de passe ; veuillez vérifier la configuration requirepass",
+    "Redis 密码认证失败，请检查 requirepass 密码": "Échec de l'authentification par mot de passe Redis ; veuillez vérifier le mot de passe requirepass",
+    "获取日志异常:": "Exception lors de la récupération des journaux :",
+    "清空日志失败:": "Échec de l'effacement des journaux :",
+    "未能读取到有效的 Redis 状态数据:": "Impossible de lire des données d'état Redis valides :"
 }

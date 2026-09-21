@@ -231,5 +231,15 @@
     "你将退出 [{1}],确定?": "Sie werden [{1}] verlassen. Bestätigen?",
     "获取上传目录失败": "Upload-Verzeichnis konnte nicht ermittelt werden",
     "不超过总内存: {1}MB": "Höchstens Gesamtarbeitsspeicher: {1}MB",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "获取镜像备份列表失败:": "Image-Backup-Liste konnte nicht abgerufen werden:",
+    "导出镜像失败:": "Exportieren des Images fehlgeschlagen:",
+    "镜像文件不存在:": "Image-Datei existiert nicht:",
+    "导入镜像失败:": "Importieren des Images fehlgeschlagen:",
+    "请至少选择一个需要导出的镜像": "Bitte wählen Sie mindestens ein zu exportierendes Image aus",
+    "请选择有效的镜像名称": "Bitte wählen Sie einen gültigen Image-Namen",
+    "缺少文件路径参数": "Fehlender Dateipfad-Parameter",
+    "非法的镜像文件路径，仅允许导入备份目录下的文件": "Ungültiger Image-Dateipfad; nur Dateien im Sicherungsverzeichnis dürfen importiert werden",
+    "文件路径校验失败": "Dateipfad-Validierung fehlgeschlagen",
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Nicht unterstütztes Dateiformat; nur .tar-, .tar.gz- und .tgz-Image-Archive werden unterstützt"
 }

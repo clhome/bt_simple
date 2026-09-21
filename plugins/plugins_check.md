@@ -65,6 +65,11 @@
 | **后端消息恒中文** | `returnJson` 的中文消息由 `layer.msg` 直出，`t()` 只查全局字典，从不查插件字典 | 可翻译率 0% → **87%（812/929）** |
 | **zh-TW 简体残留** | zh-TW 值中混入真简体字 | 262 条 → 0 |
 | **译文含 HTML** | `web/core/i18n.py:assert_no_html_in_translations()` 硬红线 | 12 → 0 |
+| **动态首参多参 `pt()` 漏检** | `fail2ban/js/fail2ban.js:49` 的 `pt(F2B_MSG_PATTERNS[i][1], m[1])`——首参非字面量，正则方案扫不到，6 条防护消息显示字面 `{1}`；改为 `msgTpl(pt(…), [m[1]])` | 1 处 → 0（新增括号配对检测器 `check_pt_argc.js`） |
+| **后端消息契约不统一** | 27 条缺前缀键、7 条无冒号分隔（`'数据库用户[' + name + ']不存在!'`）、4 条前缀含 HTML；统一为「`<可翻译前缀>: <动态参数>`」并补键 | 38 处 → 0（959 条后端中文消息 100% 可查键） |
+| **全局语言包 zh-TW 简体残留** | 递归审计 `web/static/language/zh-TW/**`（9341 叶子/语言） | 2901 条 → 0 |
+| **全局语言包 CRLF** | `web/static/language/**` 内混用 CRLF / LF | 46 文件 → 0 |
+| **品牌键被扁平旧键遮蔽** | `plugins.docker.title` 等 206 个逻辑键被 `template.soft.json` 里的扁平残留键覆盖（错误机翻值生效） | 412 个值 → 已修正 |
 
 ## 三、已知例外（有意保留，非遗漏）
 
@@ -75,28 +80,86 @@
    `errorMsg.indexOf('驱动')` 等，仅用于内部判断，不面向用户。
    检测器已显式排除 `indexOf/includes/startsWith/endsWith` 上下文。
 3. **HTML 注释**：`yufeng_systemd` 的 `<!-- 极简模式区域 -->` 等，不进 DOM 文本。
-4. **后端预留键（94 个）**：如 `拉取失败:`、`清空失败:`、`导入失败:`、`缺少必要参数:`。
+4. **后端预留键（26 个）**：如 `拉取失败:`、`清空失败:`、`导入失败:`、`缺少必要参数:`。
    它们是插件 `.py` 里 `returnJson(False, '拉取失败: ' + e)` 这类
    「键 + 变量」消息的静态前缀。前端 `layer.msg` 拿到的是拼好的整串，
    静态扫描看不到完整引用，故保留待后端消息机制使用。
    判定规则见 `test/i18n_scripts/i18n_dead_keys.py` 与回归测试
    `TestNoDeadKeys`（键若是插件 `.py` 中文字面量的子串即视为预留）。
+   全库实测：26 个死键**全部**属于此类，孤儿死键 0 个。
 5. **zh-TW 用词差异**：636 条已是正体、仅用词与台湾习惯不同（如 `進程` vs `程序`）。
    如需统一，执行：
    `<venv-python> test/i18n_scripts/zh_tw_convert.py --apply --sort`（会连带重排键序）。
 
-## 四、待办
+## 四、遗留问题闭环（本轮升级）
 
-- [ ] **动态 `pt()` 参数个数无法静态校验**：`pt(someVar, arg)` 形态需人工复核，
-      现有正则只覆盖首参为字符串字面量的场景。
-- [ ] **后端消息补键（38 处）**：`docker` 的 `获取镜像备份列表失败:`、`导出镜像失败:`、
-      `镜像文件不存在:`、`导入镜像失败:`，`fail2ban` 的 `缺少必要参数:`、`部分IP封禁失败:`、
-      `不支持的防护类型:` 等，`.py` 里有拼接型消息但语言包无对应前缀键，
-      故 `translateAny` 的前缀匹配也命中不了。
-- [ ] **后端消息结构化（可选）**：把 `returnJson(False, '拉取失败: ' + e)` 改为
-      返回 `{msg_key, msg_args}`，由前端 `msgTpl` 渲染，可彻底摆脱字符串拼接。
-- [ ] `plugins/docker/info.json` 缺少英文 `title` / `ps`（`test_plugins_i18n.py` 报错，历史遗留）
-- [ ] `test_all_plugins_i18n_complete.py` 等用例硬编码「插件总数 38」，实际 37，需更新断言
-- [ ] 全局语言包 `web/static/language/**` 的 CRLF / 键数不一致问题（本轮未涉及）
-- [ ] `test/` 目录被 `.gitignore` 忽略，回归守卫 `test/test_plugins_i18n_upgrade.py`
-      不会被提交；如需纳入 CI 需调整 `.gitignore` 或迁移到 `scripts/`
+升级方案见 `plugins/i18n_遗留问题升级方案.md`。7 项待办全部闭环：
+
+| # | 待办 | 处置 | 证据 |
+| --- | ---- | ---- | ---- |
+| 1 | 动态 `pt()` 参数个数无法静态校验 | 新增括号配对检测器（能处理动态首参、跨行、嵌套括号、注释、模板串、正则歧义）；顺带抓出并修掉 `fail2ban.js:49` 真 bug | `scripts/verify_i18n.py --check pt-argc` 0 违规；自证夹具 6 处全中 |
+| 2 | 后端消息补键（38 处） | 分三类：A 类 27 条纯补键；B 类 7 条重构源码使其符合冒号前缀契约；C 类 4 条拆 HTML 为结构性拼接 | `--check backend-msg-key` 0 未命中（959 条消息） |
+| 3 | 后端消息结构化（可选） | **不采用**。改为统一「`<可翻译前缀>: <动态参数>`」契约，由 `YfI18n.translateAny()` 的前缀匹配兜底；零破坏、零前端改动 | `translateAny()` 三层匹配 + 回归测试 `TestBackendMessageFallback` |
+| 4 | `plugins/docker/info.json` 缺英文 title/ps | 归因纠正：`info.json` 按仓库约定本就单语言（36 个插件一致）。真因是**扁平旧键遮蔽** `plugins.docker.title` | `test_plugins_i18n.py` 由 FAIL → **OK** |
+| 5 | 测试硬编码「插件总数 38」 | 改为从文件系统推导。口径厘清：`plugins/` 下 37 个目录，其中 `待审核/` 无 `lang/`，故 i18n 插件数为 **36** | `test_all_plugins_i18n_complete` / `test_all_38_plugins_deep_i18n` / `test_all_plugins_ui` 全 OK |
+| 6 | 全局语言包 CRLF / 键数不一致 | 递归审计 + opencc `s2twp` 转换 + CRLF 归一 + 补齐 zh-CN 缺失叶子键 | `web/static/language/**` CRLF 文件 0 个；`test_all_foreign_languages_complete` OK |
+| 7 | `test/` 被 gitignore，守卫不入库 | 采用方案 C：守卫收敛为 **自包含单文件** `scripts/verify_i18n.py`（生产目录、被跟踪），检测逻辑与自证夹具全部内嵌，不依赖 `test/` | CI workflow 已接入；`test/` 模拟缺失下自证仍全绿 |
+
+> 待办 7 的关键设计：`test/` 被 `.gitignore:202 /test` 整目录忽略，若门禁去读
+> `test/` 下的夹具，CI 检出后会「静默跳过」自证——只跳过、不报错的守卫会制造
+> 「永远全绿」的假象。故夹具**内嵌**进脚本，`test/` 缺失时对应项打印 `[SKIP]`
+> 而非静默通过。
+
+## 五、门禁与回归
+
+### 5.1 CI 门禁（9 项）
+
+```bash
+python scripts/verify_i18n.py            # 全部门禁，退出码 0/1
+python scripts/verify_i18n.py --verbose  # 附失败明细
+python scripts/verify_i18n.py --self-test  # 校验检测器本身（已知答案）
+```
+
+| 检查名 | 含义 |
+| ------ | ---- |
+| `plugin-key-parity` | 插件六语言键集完全一致 |
+| `global-key-parity` | 全局语言包六语言叶子路径完全一致 |
+| `no-html` | 译文不含 HTML（白名单除外） |
+| `dirty-keys` | 语言包无「代码型脏键」 |
+| `pt-argc` | 无多参 `pt()` / `_t()` 调用 |
+| `msgtpl-pt` | 所有 `msgTpl(` 首参必须含 `pt(` |
+| `no-zero-placeholder` | 无 `{0}` 占位符 |
+| `backend-msg-prefix` | 后端消息「可翻译前缀」不含 HTML |
+| `backend-msg-key` | 后端中文消息能查到语言包键 |
+
+CI workflow：`.github/workflows/i18n-check.yml`（独立文件，不改上游 7 个构建/发布 workflow）。
+Python 3.10 与 3.13 均已实测通过。
+
+### 5.2 本地重守卫
+
+`test/test_plugins_i18n_upgrade.py`（27 项，标准库 `unittest`）——比门禁更细，
+含 DOM 白名单覆盖、`translateAny` 行为、红线检测器自证等。因 `test/` 被忽略，
+**仅本地运行**，不进仓库。
+
+```bash
+python -m unittest test.test_plugins_i18n_upgrade -v
+```
+
+### 5.3 当前回归基线
+
+| 用例 | 结果 |
+| ---- | ---- |
+| `test_plugins_i18n_upgrade`（27 项） | **OK** |
+| `test_plugins_i18n` | **OK**（原 FAIL：docker 英文标题） |
+| `test_all_plugins_i18n_complete` | **OK** |
+| `test_all_38_plugins_deep_i18n` | **OK** |
+| `test_all_plugins_ui` | **OK** |
+| `test_all_plugins_js_syntax` | **OK** |
+| `test_all_python_syntax` | **OK** |
+| `test_all_foreign_languages_complete` | **OK** |
+| `test_crlf_and_sh_syntax` | **FAIL（既有基线，非本轮引入）**：90 个文件在 HEAD 里就以 CRLF 提交，分布 `plugins/*/versions/**`、`web/**/*.py`、`参考/**`、`scripts/tools/`、`test/`（被忽略）。语言包部分已清零 |
+
+> `test_crlf_and_sh_syntax` 的剩余 90 个文件属**仓库既有状态**（`git cat-file` 验证
+> HEAD blob 本身含 CRLF），需单独一次「换行符归一」提交，与 i18n 治理解耦，
+> 以免混入本次改动、干扰 review 与回滚。
+

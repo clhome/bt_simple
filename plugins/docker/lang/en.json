@@ -231,5 +231,15 @@
     "你将退出 [{1}],确定?": "You will exit [{1}]. Confirm?",
     "获取上传目录失败": "Failed to get the upload directory",
     "不超过总内存: {1}MB": "Not exceeding total memory: {1}MB",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "获取镜像备份列表失败:": "Failed to obtain image backup list:",
+    "导出镜像失败:": "Failed to export image:",
+    "镜像文件不存在:": "Image file does not exist:",
+    "导入镜像失败:": "Failed to import image:",
+    "请至少选择一个需要导出的镜像": "Please select at least one image to export",
+    "请选择有效的镜像名称": "Please select a valid image name",
+    "缺少文件路径参数": "Missing file path parameter",
+    "非法的镜像文件路径，仅允许导入备份目录下的文件": "Invalid image file path; only files under the backup directory may be imported",
+    "文件路径校验失败": "File path validation failed",
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Unsupported file format; only .tar, .tar.gz and .tgz image archives are supported"
 }

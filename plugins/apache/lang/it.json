@@ -80,5 +80,6 @@
     "重启时间(RestartTime)": "Ora di riavvio (RestartTime)",
     "重载": "Ricarica",
     "错误日志": "Registro degli errori",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "配置出错:": "Errore di configurazione:"
 }

@@ -384,4 +384,15 @@ try:
     app.logger.info('Resource profile: %s', resources.describe())
 except Exception:
     pass
+
+# i18n 红线自检：译文含 HTML 时仅告警，绝不阻断启动（面板必须能起来）。
+# CI / 测试侧使用 core.i18n.assert_no_html_in_translations(raise_on_error=True) 阻断构建。
+try:
+    from core.i18n import warn_if_html_in_translations
+    _i18n_html_errors = warn_if_html_in_translations(app.logger)
+    if _i18n_html_errors:
+        app.logger.warning('i18n HTML red-line violations: %d (see above)',
+                           len(_i18n_html_errors))
+except Exception:
+    pass
 app.logger.debug("Python syspath: %s", sys.path)

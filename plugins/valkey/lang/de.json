@@ -81,5 +81,6 @@
     "集群当前epoch": "Aktuelle Epoch des Clusters",
     "集群状态": "Cluster-Status",
     "集群节点": "Clusterknoten",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "未启动": "Nicht gestartet"
 }

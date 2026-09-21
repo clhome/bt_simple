@@ -80,5 +80,6 @@
     "重启时间(RestartTime)": "Neustartzeit (RestartTime)",
     "重载": "Neu laden",
     "错误日志": "Fehlerprotokoll",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "配置出错:": "Konfigurationsfehler:"
 }

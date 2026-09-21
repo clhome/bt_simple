@@ -3748,7 +3748,7 @@
     "confirm_and_restart_the": "Valider et redémarrer le panneau",
     "steps_for_accessing_self": "Étapes d'accès aux certificats auto-signés :",
     "deploy_an_ssl_certificate": "1. Déploiement d'un certificat SSL",
-    "change_the_address_in": "2. Remplacez l'adresse dans la barre d'adresse du navigateur par https://访问",
+    "change_the_address_in": "2. Remplacez l'adresse dans la barre d'adresse du navigateur par https://accès",
     "if_risk_warning_appears": "3. Si un message d'avertissement s'affiche (phénomène normal), cliquez sur [Avancé] ou [Détails].",
     "continue_or_accept_the": "4. [Continuer] ou [Accepter les risques et continuer]",
     "msg_2": "Type",

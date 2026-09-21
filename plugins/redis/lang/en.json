@@ -103,5 +103,11 @@
     "提示": "Prompt",
     "正在清空...": "Clearing...",
     "正在保存配置并应用...": "Saving configuration and applying...",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "未启动": "Not started",
+    "Redis 访问需要密码认证，请检查 requirepass 配置": "Redis access requires password authentication; please check the requirepass setting",
+    "Redis 密码认证失败，请检查 requirepass 密码": "Redis password authentication failed; please check the requirepass password",
+    "获取日志异常:": "Exception retrieving logs:",
+    "清空日志失败:": "Failed to clear logs:",
+    "未能读取到有效的 Redis 状态数据:": "Could not read valid Redis status data:"
 }

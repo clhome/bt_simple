@@ -1172,7 +1172,7 @@ def setSessionConf(version):
             return yf.returnJson(False, '请输入正确的端口号')
         prep = r"[\~\`\/\=]"
         if re.search(prep, passwd):
-            return yf.returnJson(False, '请不要输入以下特殊字符 " ~ ` / = "')
+            return yf.returnJson(False, '请不要输入以下特殊字符: " ~ ` / = "')
 
     filename = getConf(version)
     if not os.path.exists(filename):

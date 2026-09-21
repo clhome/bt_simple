@@ -187,5 +187,8 @@
     "：您可以在此查看当前被防火墙封禁拦截的攻击源 IP，并支持手动添加或解除封禁。": ": Qui è possibile visualizzare gli indirizzi IP delle fonti di attacco attualmente bloccati dal firewall; è inoltre possibile aggiungere o sbloccare manualmente tali indirizzi.",
     "：用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。": ": Utilizzato per prevenire attacchi di forza bruta contro account e password dei servizi SSH, FTP, MySQL e simili sui server.",
     "：自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。": ": Analizza automaticamente i log di accesso al Web, difende efficacemente dagli attacchi CC e dalle scansioni automatizzate ad alta frequenza alla ricerca di vulnerabilità, garantendo la disponibilità dei servizi.",
-    "📖 御风F2B底层防火墙  使用指南": "📖 Guida all’uso del firewall di livello inferiore di Yufeng F2B"
+    "📖 御风F2B底层防火墙  使用指南": "📖 Guida all’uso del firewall di livello inferiore di Yufeng F2B",
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "部分IP封禁失败:": "Blocco di alcuni IP non riuscito:",
+    "不支持的防护类型:": "Tipo di protezione non supportato:"
 }

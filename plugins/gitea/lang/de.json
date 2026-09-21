@@ -109,5 +109,6 @@
     "项目管理": "Projektmanagement",
     "默认使用MySQL,第一个启动加载各种配置,并修改成正确的数据库配置": "Standardmäßig wird MySQL verwendet. Beim ersten Start werden verschiedene Konfigurationen geladen und in die richtige Datenbankkonfiguration geändert.",
     "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Hinweis: Der öffentliche Schlüssel kann direkt zur SSH-Schlüsselliste von Gitea hinzugefügt werden, um Code ohne Passwort zwischen dem Server und dem Git-Repository zu übertragen.",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "请先安装初始化，默认地址:": "Bitte zuerst installieren und initialisieren, Standardadresse:"
 }

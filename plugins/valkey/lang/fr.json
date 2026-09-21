@@ -81,5 +81,6 @@
     "集群当前epoch": "L'époque actuelle du cluster",
     "集群状态": "État du cluster",
     "集群节点": "nœud de cluster",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "未启动": "Non démarré"
 }

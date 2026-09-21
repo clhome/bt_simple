@@ -157,5 +157,7 @@
     "您确定要对 PHP-{1} 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？": "Möchten Sie die Konfigurationsdatei von PHP-{1} mit einem Klick optimieren und den PHP-FPM-Dienst neu starten?",
     "取消": "Abbrechen",
     "确定": "OK",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "PHP-YUM 插件自愈迁移完成": "Selbstheilungs-Migration des PHP-YUM-Plugins abgeschlossen",
+    "请不要输入以下特殊字符:": "Geben Sie keine der folgenden Sonderzeichen ein:"
 }

@@ -163,5 +163,9 @@
     "您确定要对 PHP-{1} 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？": "Vuoi davvero eseguire l'ottimizzazione con un clic del file di configurazione PHP-{1} e riavviare il servizio PHP-FPM?",
     "取消": "Annulla",
     "确定": "OK",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "升级自愈正在执行中...": "Auto-riparazione dell'aggiornamento in corso...",
+    "已是最新版本，无需自愈。": "Già alla versione più recente; nessuna auto-riparazione necessaria.",
+    "大版本迁移升级自愈成功完成。": "Auto-riparazione della migrazione di versione principale completata correttamente.",
+    "请不要输入以下特殊字符:": "Non inserire i seguenti caratteri speciali:"
 }

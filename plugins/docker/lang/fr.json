@@ -231,5 +231,15 @@
     "你将退出 [{1}],确定?": "Vous quitterez [{1}]. Confirmer ?",
     "获取上传目录失败": "Échec de l'obtention du répertoire de téléversement",
     "不超过总内存: {1}MB": "Sans dépasser la mémoire totale : {1}MB",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "获取镜像备份列表失败:": "Échec de l'obtention de la liste des sauvegardes d'images :",
+    "导出镜像失败:": "Échec de l'exportation de l'image :",
+    "镜像文件不存在:": "Le fichier image n'existe pas :",
+    "导入镜像失败:": "Échec de l'importation de l'image :",
+    "请至少选择一个需要导出的镜像": "Veuillez sélectionner au moins une image à exporter",
+    "请选择有效的镜像名称": "Veuillez sélectionner un nom d'image valide",
+    "缺少文件路径参数": "Paramètre de chemin de fichier manquant",
+    "非法的镜像文件路径，仅允许导入备份目录下的文件": "Chemin de fichier image non valide ; seuls les fichiers du répertoire de sauvegarde peuvent être importés",
+    "文件路径校验失败": "Échec de la validation du chemin de fichier",
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Format de fichier non pris en charge ; seules les archives d'images .tar, .tar.gz et .tgz sont prises en charge"
 }

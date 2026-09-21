@@ -71,5 +71,6 @@
     "重载": "Reload",
     "错误日志": "error log",
     "驻留进程(Waiting)": "Residence Process (Waiting)",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "配置出错:": "Configuration error:"
 }

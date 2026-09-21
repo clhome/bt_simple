@@ -123,5 +123,7 @@
     "💡 启动命令配置示例": "💡 Exemple de configuration de commande de démarrage",
     "JS 异常: ": "Erreur JS : ",
     "文件: ": "Fichier : ",
-    "行号: ": "Ligne : "
+    "行号: ": "Ligne : ",
+    "操作失败:": "Échec de l'opération :",
+    "获取日志失败:": "Échec de la récupération des journaux :"
 }

@@ -904,7 +904,13 @@
     "task_close": "任务已取消",
     "task_add": "已添加至任务列表",
     "panel_err_empty": "所有字段均不能为空",
-    "info": "信息"
+    "info": "信息",
+    "next": "下一个",
+    "previous": "上一个",
+    "replace_all": "替换全部",
+    "replace_current": "替换当前",
+    "replace_with": "替换为...",
+    "search_content": "查找内容..."
   },
   "setting": {
     "api_enabled_successfully": "开启API成功!",

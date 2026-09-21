@@ -71,5 +71,6 @@
     "重载": "Ricarica",
     "错误日志": "Registro degli errori",
     "驻留进程(Waiting)": "Processo di attesa (Waiting)",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "配置出错:": "Errore di configurazione:"
 }

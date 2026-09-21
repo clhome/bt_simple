@@ -80,5 +80,6 @@
     "重启时间(RestartTime)": "Heure de redémarrage (RestartTime)",
     "重载": "Recharger",
     "错误日志": "journal des erreurs",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "配置出错:": "Erreur de configuration :"
 }

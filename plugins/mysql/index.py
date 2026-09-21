@@ -1288,8 +1288,10 @@ def setDbStatus(ver):
 def isSqlError(mysqlMsg):
     # 检测数据库执行错误
     mysqlMsg = str(mysqlMsg)
+    # 后端消息契约：可翻译前缀 = 首个冒号（含）之前，必须是纯文本；
+    # 换行等 HTML 必须挪到冒号之后，技术命令留在动态部分、不进语言包。
     if "MySQLdb" in mysqlMsg:
-        return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return yf.returnJson(False, 'MySQLdb组件缺失! 进入SSH命令行输入: <br>pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
         return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "2003," in mysqlMsg:
@@ -2550,7 +2552,9 @@ def setDbAccess():
             if not db_info:
                 db_info = psdb.where('name=?', (name,)).field('name,username,password,accept,rw').find()
             if not db_info:
-                return yf.returnJson(False, '数据库用户[' + name + ']不存在!')
+                # 后端消息契约：面向用户的提示统一为「可翻译前缀: 动态参数」，
+                # 分隔符必须是 : / ：，前端 YfI18n.translateAny() 才能按冒号前缀命中语言包。
+                return yf.returnJson(False, '数据库用户不存在: ' + name)
 
             dbname = db_info.get('name') or name
             name = db_info.get('username') or name
@@ -2562,7 +2566,7 @@ def setDbAccess():
                 rw = db_info.get('rw') or 'all'
 
             if not password:
-                return yf.returnJson(False, '数据库用户[' + name + ']密码为空，请先修改或重置密码!')
+                return yf.returnJson(False, '数据库用户密码为空，请先修改或重置密码: ' + name)
 
         safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
@@ -2933,7 +2937,9 @@ def alterTable():
                 err_list.append("%s: %s" % (i, r))
         if err_list:
             return yf.returnJson(False, "部分表引擎转换失败: " + "; ".join(err_list))
-        return yf.returnJson(True, "数据表引擎已成功转换为 %s!" % table_type)
+        # 后端消息契约：可翻译前缀 = 首个冒号（含）之前，动态参数一律走拼接。
+        # 原先的 "%s!" %-格式化会在后端就把引擎名拼进消息，前端前缀匹配拿不到键。
+        return yf.returnJson(True, "数据表引擎已成功转换为: " + table_type)
     return yf.returnJson(False, "未找到指定的有效数据表!")
 
 
@@ -3051,11 +3057,11 @@ def setDbMasterAccess():
     try:
         user_info = psdb.where("username=?", (username,)).find()
         if not user_info:
-            return yf.returnJson(False, '主从复制用户[' + username + ']不存在!')
+            return yf.returnJson(False, '主从复制用户不存在: ' + username)
 
         password = user_info.get('password') or ''
         if not password:
-            return yf.returnJson(False, '主从复制用户[' + username + ']密码为空!')
+            return yf.returnJson(False, '主从复制用户密码为空: ' + username)
 
         safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 

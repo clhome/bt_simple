@@ -103,5 +103,11 @@
     "提示": "Suggerimento",
     "正在清空...": "Cancellazione in corso...",
     "正在保存配置并应用...": "Salvataggio della configurazione e applicazione...",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "未启动": "Non avviato",
+    "Redis 访问需要密码认证，请检查 requirepass 配置": "L'accesso a Redis richiede l'autenticazione con password; controlla la configurazione requirepass",
+    "Redis 密码认证失败，请检查 requirepass 密码": "Autenticazione con password di Redis non riuscita; controlla la password requirepass",
+    "获取日志异常:": "Eccezione durante il recupero dei log:",
+    "清空日志失败:": "Cancellazione dei log non riuscita:",
+    "未能读取到有效的 Redis 状态数据:": "Impossibile leggere dati di stato Redis validi:"
 }

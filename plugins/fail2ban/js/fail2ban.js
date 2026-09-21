@@ -46,7 +46,7 @@ function f2bMsg(msg) {
     for (var i = 0; i < F2B_MSG_PATTERNS.length; i++) {
         var m = msg.match(F2B_MSG_PATTERNS[i][0]);
         if (m) {
-            return pt(F2B_MSG_PATTERNS[i][1], m[1]);
+            return msgTpl(pt(F2B_MSG_PATTERNS[i][1]), [m[1]]);
         }
     }
     return pt(msg);

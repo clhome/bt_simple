@@ -81,5 +81,6 @@
     "集群当前epoch": "The current epoch of the cluster",
     "集群状态": "Cluster status",
     "集群节点": "cluster node",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "未启动": "Not started"
 }

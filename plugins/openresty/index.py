@@ -897,7 +897,9 @@ def setCfg():
     isError = yf.checkWebConfig()
     if (isError != True):
         yf.restoreFile(cfg)
-        return yf.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+        # 后端消息契约：可翻译前缀必须是「纯文本 + 冒号」且位于消息开头，
+        # HTML 只能出现在前缀之后（否则键会含 HTML，违反红线）。
+        return yf.returnJson(False, '配置出错: ' + '<span style="color:red;">' + isError.replace("\n", '<br>') + '</span>')
 
     yf.restartWeb()
     return yf.returnJson(True, '设置成功')

@@ -703,5 +703,8 @@
  "：重新将面板的所有 JSON 规则编译为 Lua 脚本并重启 Nginx。若您通过 SSH 手动修改了配置，请务必点击此按钮以完整生效。（注：日常在面板中修改规则会自动重载，无需手动点击）": ": Recompile all JSON rules of the panel into Lua scripts and restart Nginx. If you have manually modified the configuration via SSH, be sure to click this button to take full effect. (Note: Daily modification of rules in the panel will automatically reload, no manual click required)",
  "💡 服务操作说明": "💡Service Operation Instructions",
  "🛡️ 御风 OP 安全防护引擎 V1.0": "🛡️ Yufeng OP Security Protection Engine V1.0",
- "🛡️ 核心过滤规则统计": "🛡️ Core filtering rule statistics"
+ "🛡️ 核心过滤规则统计": "🛡️ Core filtering rule statistics",
+ "缺少必要参数:": "Missing required parameter:",
+ "读取日志失败:": "Failed to read logs:",
+ "删除失败:": "Delete failed:"
 }

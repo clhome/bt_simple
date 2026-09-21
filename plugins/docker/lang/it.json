@@ -231,5 +231,15 @@
     "你将退出 [{1}],确定?": "Uscirete da [{1}]. Confermi?",
     "获取上传目录失败": "Impossibile ottenere la directory di upload",
     "不超过总内存: {1}MB": "Non superare la memoria totale: {1}MB",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "获取镜像备份列表失败:": "Impossibile ottenere l'elenco dei backup delle immagini:",
+    "导出镜像失败:": "Esportazione dell'immagine non riuscita:",
+    "镜像文件不存在:": "Il file immagine non esiste:",
+    "导入镜像失败:": "Importazione dell'immagine non riuscita:",
+    "请至少选择一个需要导出的镜像": "Seleziona almeno un'immagine da esportare",
+    "请选择有效的镜像名称": "Seleziona un nome di immagine valido",
+    "缺少文件路径参数": "Parametro del percorso file mancante",
+    "非法的镜像文件路径，仅允许导入备份目录下的文件": "Percorso del file immagine non valido; è consentito importare solo file nella directory di backup",
+    "文件路径校验失败": "Convalida del percorso file non riuscita",
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Formato file non supportato; sono supportati solo archivi immagine .tar, .tar.gz e .tgz"
 }

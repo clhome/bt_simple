@@ -80,5 +80,6 @@
     "重启时间(RestartTime)": "Restart Time (RestartTime)",
     "重载": "Reload",
     "错误日志": "error log",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "配置出错:": "Configuration error:"
 }

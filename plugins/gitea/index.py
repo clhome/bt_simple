@@ -99,7 +99,9 @@ def getConf():
     path = getServerDir() + "/custom/conf/app.ini"
 
     if not os.path.exists(path):
-        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
+        # 后端消息契约：可翻译前缀必须是「纯文本 + 冒号」，HTML 不得进入前缀
+        # （否则违反「译文禁含 HTML」红线，且首个冒号会落在 URL 里导致前缀匹配失败）。
+        return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
     return path
 
 
@@ -452,7 +454,7 @@ def postReceiveLog():
 def getGogsConf():
     conf = getConf()
     if not os.path.exists(conf):
-        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
 
     gets = [
         {'name': 'DOMAIN', 'type': -1, 'ps': '服务器域名'},
@@ -526,7 +528,7 @@ def userList():
 
     conf = getConf()
     if not os.path.exists(conf):
-        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
 
     conf = getDbConfValue()
     gtype = getGiteaDbType(conf)
@@ -586,7 +588,7 @@ def repoList():
 
     conf = getConf()
     if not os.path.exists(conf):
-        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
 
     conf = getDbConfValue()
     gtype = getGiteaDbType(conf)

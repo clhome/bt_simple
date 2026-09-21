@@ -123,5 +123,7 @@
     "💡 启动命令配置示例": "💡 Esempio di configurazione del comando di avvio",
     "JS 异常: ": "Errore JS: ",
     "文件: ": "File: ",
-    "行号: ": "Riga: "
+    "行号: ": "Riga: ",
+    "操作失败:": "Operazione non riuscita:",
+    "获取日志失败:": "Recupero dei log non riuscito:"
 }

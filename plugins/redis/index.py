@@ -797,7 +797,8 @@ def runInfo():
 
     if not result:
         clean_detail = (err.strip() or data.strip() or '无返回内容')
-        return yf.returnJson(False, f'未能读取到有效的 Redis 状态数据 ({clean_detail})')
+        # 后端消息契约：变量必须落在冒号之后（原因同 clean/index.py）
+        return yf.returnJson(False, f'未能读取到有效的 Redis 状态数据: {clean_detail}')
 
     return yf.getJson(result)
 

@@ -341,7 +341,29 @@ def is_html_value(value):
         return False
     return bool(_get_html_re().search(value))
 
+# ---------------------------------------------------------------------------
+# 「译文禁含 HTML」红线的白名单
+# ---------------------------------------------------------------------------
+# 这些键**有意**携带 HTML 片段，且已被现有代码依赖，剥离会破坏功能。
+# 判定按「键路径」（不含语言与分片前缀）匹配，例如 'index.reboot_panel_wait_msg'。
+#
+# 目前仅 1 处：
+#   index.reboot_panel_wait_msg —— 面板重启倒计时消息，内含
+#   <span id="restart-countdown">{1}</span>；web/static/app/index.js 通过
+#   $('#restart-countdown').text(count) 每秒刷新该节点，剥离 span 会导致倒计时失效。
+#   （注意：后端 t() 会 strip_html，因此该键只允许由前端调用。）
+HTML_ALLOWLIST = frozenset({
+    'index.reboot_panel_wait_msg',
+})
+
+
 def assert_no_html_in_translations(raise_on_error=True):
+    """扫描全部语言包的译文，检出违反「译文禁含 HTML」红线的键。
+
+    :param raise_on_error: True 时发现违规即抛 ValueError（CI/测试用，阻断构建）；
+                           False 时仅返回违规清单（生产启动自检用，面板必须能起来）。
+    :return: 违规条目列表，元素形如 ``'en/template.index.foo'``。
+    """
     errors = []
     for lang in SUPPORTED_CODES:
         for sec in ["public", "template", "log", "server"]:
@@ -359,9 +381,35 @@ def assert_no_html_in_translations(raise_on_error=True):
                     if isinstance(v, dict):
                         stack.append((v, key + "."))
                     elif isinstance(v, str) and is_html_value(v):
+                        if key in HTML_ALLOWLIST:
+                            continue
                         errors.append(f"{lang}/{sec}.{key}")
     if errors and raise_on_error:
         raise ValueError("[i18n] HTML found in translations (move HTML to template): " + ", ".join(errors[:10]))
+    return errors
+
+
+def warn_if_html_in_translations(logger=None):
+    """启动期自检：译文含 HTML 时仅记录告警，**绝不阻断启动**。
+
+    生产环境（面板进程）使用本函数——即便红线被违反，面板也必须能正常启动；
+    CI / 测试请改用 ``assert_no_html_in_translations(raise_on_error=True)`` 以阻断构建。
+    """
+    try:
+        errors = assert_no_html_in_translations(raise_on_error=False)
+    except Exception as e:  # 自检本身异常不得影响启动
+        errors = ["<check failed: %s>" % e]
+    if errors:
+        msg = ("[i18n] 检测到译文含 HTML（违反红线，应把 HTML 移回模板）: "
+               + ", ".join(errors[:10]))
+        try:
+            if logger is not None:
+                logger.warning(msg)
+            else:
+                import logging as _logging
+                _logging.warning(msg)
+        except Exception:
+            pass
     return errors
 
 def t(key, *args, lang=None):

@@ -703,5 +703,8 @@
  "：重新将面板的所有 JSON 规则编译为 Lua 脚本并重启 Nginx。若您通过 SSH 手动修改了配置，请务必点击此按钮以完整生效。（注：日常在面板中修改规则会自动重载，无需手动点击）": ": Ricompila tutte le regole JSON del pannello negli script Lua e riavvia Nginx. Se hai modificato manualmente la configurazione tramite SSH, assicurati di fare clic su questo pulsante per avere pieno effetto. (Nota: la modifica giornaliera delle regole nel pannello verrà ricaricata automaticamente, non è richiesto alcun clic manuale)",
  "💡 服务操作说明": "💡 Istruzioni per l'uso del servizio",
  "🛡️ 御风 OP 安全防护引擎 V1.0": "🛡️ Motore di protezione di sicurezza OP di Yufeng V1.0",
- "🛡️ 核心过滤规则统计": "🛡️ Statistiche sulle regole di filtraggio principali"
+ "🛡️ 核心过滤规则统计": "🛡️ Statistiche sulle regole di filtraggio principali",
+ "缺少必要参数:": "Parametro obbligatorio mancante:",
+ "读取日志失败:": "Impossibile leggere i log:",
+ "删除失败:": "Eliminazione non riuscita:"
 }

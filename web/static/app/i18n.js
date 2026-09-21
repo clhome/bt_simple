@@ -1010,9 +1010,19 @@
                 else if (c2 >= 0) ci = c2;
                 if (ci > 0 && ci <= 40) {
                     var prefix = key.slice(0, ci + 1);
+                    var rest = key.slice(ci + 1);
                     var pv = _anyIndex[prefix];
                     if (typeof pv === 'string' && pv) {
-                        hit = pv + key.slice(ci + 1);
+                        hit = pv + rest;
+                    } else {
+                        // 兼容历史约定：部分键把分隔符后的空格一并写进了键
+                        // （如 '读取日志失败: '），而消息里的空格属于动态部分。
+                        // 命中时去掉译文尾部空白，避免与 rest 的前导空格叠加成双空格。
+                        var sp = /^\s*/.exec(rest)[0];
+                        var pv2 = _anyIndex[prefix + (sp || ' ')];
+                        if (typeof pv2 === 'string' && pv2) {
+                            hit = pv2.replace(/\s+$/, '') + rest;
+                        }
                     }
                 }
             } catch (e) {}

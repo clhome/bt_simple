@@ -137,7 +137,10 @@ def do_clean():
             'clean_pkg_cache': bool(args.get('clean_pkg_cache', True)),
         }
         record = clean_executor.execute_clean(options)
-        return yf.returnJson(True, f"清理完成！已安全释放 {record['freed_format']} 磁盘空间", record)
+        # 后端消息契约：可翻译前缀必须是「纯文本 + 冒号」，变量留在冒号之后。
+        # 原写法「已安全释放 {变量} 磁盘空间」把变量夹在句中，前端 translateAny()
+        # 的冒号前缀匹配取不到候选键，外语界面会原样显示中文。
+        return yf.returnJson(True, f"清理完成！已安全释放磁盘空间: {record['freed_format']}", record)
     except Exception as e:
         return yf.returnJson(False, f"清理执行异常: {str(e)}")
 
@@ -330,7 +333,7 @@ def cleanRun():
         'clean_pkg_cache': bool(cfg.get('clean_pkg_cache', True)),
     }
     record = clean_executor.execute_clean(options)
-    return yf.returnJson(True, f"执行成功！本次已安全释放 {record['freed_format']} 磁盘空间", record)
+    return yf.returnJson(True, f"执行成功！本次已安全释放磁盘空间: {record['freed_format']}", record)
 
 
 if __name__ == "__main__":
