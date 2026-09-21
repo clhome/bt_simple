@@ -38,3 +38,4 @@ plugins/待审核/ export-ignore
 文档/ export-ignore
 cl_tasks/ export-ignore
 tmp/ export-ignore
+testsuite/ export-ignore
