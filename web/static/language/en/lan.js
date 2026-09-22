@@ -3532,7 +3532,7 @@ var lan = {
 			"please_input": "Please enter",
 			"settings": "set",
 			"uninstall_confirm_prefix": "Do you really want to uninstall [",
-			"uninstall_confirm_suffix": "]??",
+			"uninstall_confirm_suffix": "]?",
 			"uninstall_backup_tip": "Pack the data before uninstallingPackage backupto  /www/backup (.tar.gz)",
 			"soft_auto_str_1": "Processing,Please wait a moment...",
 			"soft_auto_str_2": "]manage",

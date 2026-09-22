@@ -66,6 +66,11 @@ class TestSyncAndSpeed(unittest.TestCase):
             notes='__auto_local__'
         )
 
+        # 预热一次：首次调用含一次性 import 与建连成本（装上 flask/jinja2 后可达
+        # ~300ms），而本用例要测的是**「配置已存在时的缓存命中」**路径 ——
+        # 那正是第 2 次调用。不预热就会把一次性成本算进阈值，依赖装齐反而变红。
+        common_db.getUnifiedServerList('mysql')
+
         t0 = time.time()
         res = common_db.getUnifiedServerList('mysql')
         cost_ms = (time.time() - t0) * 1000

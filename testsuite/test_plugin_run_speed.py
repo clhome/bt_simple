@@ -40,6 +40,18 @@ class TestPluginRunSpeed(unittest.TestCase):
 
     def test_subprocess_avoid_template_json(self):
         """验证在子进程环境（无 Web 上下文）中查询 k_ 散列 key 不会加载巨型 template.json"""
+        # 预热的是「一次性 import 链」，**不是** t() 本身：
+        # t() 内部会 `from flask import g, request`（web/core/i18n.py:153），
+        # 装上 requirements.txt 声明的 flask 后这一跳要连带加载 jinja2，
+        # 实测首次 ~330ms，而第 2 次只要 0.013ms —— 显然是一次性 import 成本。
+        # 关键：不能改成「先调用一次 t() 预热」，那样若短路被破坏、
+        # 首次 t() 真去加载了 212KB 的 template.json，就会被预热掩盖掉；
+        # 只预热 import 链，计时对「首次 t()」的观测力原样保留。
+        try:
+            from flask import g, request  # noqa: F401
+        except ImportError:
+            pass
+
         t0 = time.time()
         # 模拟插件子进程调用
         res = _t("k_8c718510")

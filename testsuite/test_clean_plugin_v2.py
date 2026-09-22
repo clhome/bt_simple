@@ -198,24 +198,38 @@ def test_i18n_json():
 def test_executor_history():
     print("[5] 测试清理执行器战报与历史持久化...")
     import index
-    # 模拟执行一次清理（不带敏感目录，空跑安全测试）
-    record = clean_executor.execute_clean({'categories': [], 'clean_journal': False, 'clean_pkg_cache': False})
-    assert 'freed_format' in record
-    assert 'time' in record
-    assert 'scanned_files' in record
 
-    # 测试通过 API 读取历史
-    hist_json = index.get_history()
-    hist_data = json.loads(hist_json)
-    assert hist_data['status'] is True
-    assert len(hist_data['data']) > 0
-    print("  [PASS] 清理战报生成正常，历史持久化及读取成功")
+    # 本用例会真的执行一次清理，而 execute_clean() 会把战报**追加**进
+    # plugins/clean/clean_history.json —— 那是**受 git 跟踪**的文件。
+    # 不还原的话，每跑一次门禁就在工作区留一条脏改动（历史里多一条记录），
+    # 提交时极易被 `git add -A` 一起带进去（上一轮审计就发现该文件被提交过
+    # 547 行测试噪音）。所以先快照、结束时原样还原。
+    hist_path = os.path.join(clean_plugin_dir, 'clean_history.json')
+    with open(hist_path, 'rb') as f:
+        snapshot = f.read()
+    try:
+        # 模拟执行一次清理（不带敏感目录，空跑安全测试）
+        record = clean_executor.execute_clean({'categories': [], 'clean_journal': False, 'clean_pkg_cache': False})
+        assert 'freed_format' in record
+        assert 'time' in record
+        assert 'scanned_files' in record
 
-    # 测试运行日志写入与读取
-    run_log_res = json.loads(index.get_run_log())
-    assert run_log_res['status'] is True
-    assert "START 磁盘清理与瘦身执行" in run_log_res['data'] or "END 本次清理执行完成" in run_log_res['data']
-    print("  [PASS] 运行日志 clean.log 自动流水写入与读取验证通过")
+        # 测试通过 API 读取历史
+        hist_json = index.get_history()
+        hist_data = json.loads(hist_json)
+        assert hist_data['status'] is True
+        assert len(hist_data['data']) > 0
+        print("  [PASS] 清理战报生成正常，历史持久化及读取成功")
+
+        # 测试运行日志写入与读取
+        run_log_res = json.loads(index.get_run_log())
+        assert run_log_res['status'] is True
+        assert "START 磁盘清理与瘦身执行" in run_log_res['data'] or "END 本次清理执行完成" in run_log_res['data']
+        print("  [PASS] 运行日志 clean.log 自动流水写入与读取验证通过")
+    finally:
+        # 还原受跟踪的历史文件：门禁不该弄脏工作区
+        with open(hist_path, 'wb') as f:
+            f.write(snapshot)
 
 
 if __name__ == '__main__':

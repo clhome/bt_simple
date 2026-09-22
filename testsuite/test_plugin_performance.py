@@ -67,6 +67,13 @@ class TestPluginPerformance(unittest.TestCase):
             {"name": "pureftp", "title": "Pure-Ftpd", "ps": "FTP服务器软件"}
         ]
         
+        # 预热一次：首次调用会走一遍「一次性」成本 —— 装上 requirements.txt
+        # 里声明的 flask 后，语言包/请求上下文那跳会连带加载 jinja2（实测 ~330ms）。
+        # 本用例断言的是**单次平均**耗时，必须把一次性成本排除在外，
+        # 否则它实际测的是「本机有没有装 flask」——依赖装齐反而变红。
+        # 同文件 test_sanitize_cmd_fast_path 已有同样惯例（「预热一次进入缓存」）。
+        self.plugin.localizePluginItems(mock_items)
+
         start = time.time()
         for _ in range(100):
             res = self.plugin.localizePluginItems(mock_items)

@@ -3532,7 +3532,7 @@ var lan = {
 			"please_input": "Per favore entra",
 			"settings": "impostare",
 			"uninstall_confirm_prefix": "Vuoi davvero disinstallare [",
-			"uninstall_confirm_suffix": "】?",
+			"uninstall_confirm_suffix": "]?",
 			"uninstall_backup_tip": "Prima della disinstallazione, comprimere i dati in un file di backup e salvarlo in /www/backup (.tar.gz)",
 			"soft_auto_str_1": "Elaborazione in corso, attendere...",
 			"soft_auto_str_2": "】maneggio",

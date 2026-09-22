@@ -148,10 +148,13 @@ testsuite/
 ### 当前基线（2026-09-22 实测）
 
 ```
-用例：116 个参与门禁，32 个隔离；静态门禁 2 项；总耗时 81.8s
-参与门禁的用例共 763 个 test 方法
+用例：142 个参与门禁，6 个隔离；静态门禁 2 项；总耗时 87.7s
+参与门禁的用例共 913 个 test 方法
 ✅ 全部门禁通过，可以提交。
 ```
+
+> ⚠️ 跑之前先 `pip install -r requirements.txt`（至少 Jinja2 / packaging / flask），
+> 否则 8 个用例会假红 —— 见 §六。
 
 > 这组数字是**基线快照**，不是契约 —— 新增用例会让它变大。
 > 唯一被当成契约写死的是 `test_repo_contract.py` 里的 `EXPECTED_PLUGIN_COUNT = 36`（见 §5.4）。
@@ -167,6 +170,10 @@ testsuite/
 > `test_data_query_i18n`、`test_plugin_initd_integration`、`test_external_status_sync`。
 > 参与门禁的用例 109 → 116（含新增的 `test_isolation_helper.py`），
 > test 方法 721 → 763。
+>
+> **第三轮审计后：32 → 6 条**，再救回 26 个模块 —— 参与门禁的用例 116 → 142，
+> test 方法 763 → 913（**+150 个断言真正开始执行**）。详见 §四「第三轮审计」。
+> 隔离区从「主要靠环境缺依赖撑着」变成「只剩 6 条需要产品决策的条目」。
 
 ---
 
@@ -185,9 +192,13 @@ testsuite/
   就提示「名单可能已过期」。这条**只提示、不影响退出码**（避免因为一句注释卡住提交）。
 
 常见的隔离原因分三类：
-- **环境缺依赖**：`jinja2` / `packaging` / `flask` 未安装。
 - **断言过时**：把实现细节当契约写死（如写死 `resetPluginWinHeight(620);`）。
-- **功能已移除/重构**：用例对应的旧实现已不存在。
+- **功能已移除/重构**：用例对应的旧实现已不存在（如引用已删除的 `plugins/caddy`）。
+- **内容决策**：用例与语言包措辞不一致，两边都可能对，需人工定夺。
+
+> ⚠️ **「环境缺依赖」不在此列** —— 那是假隔离。`requirements.txt` 声明过的依赖
+> 就该装好；装不上是环境问题，不是「已知缺陷」。早期有 8 条这样混进来，
+> 装上后 8/8 全绿（详见 §六与第三轮审计）。
 
 ### 隔离区会以两种方式腐烂（都要防）
 
@@ -223,6 +234,87 @@ testsuite/
 > 而非机械错误（前者英文措辞 3 处不一致，其中 `进程 → 'process'` 小写疑似语言包缺陷；
 > 后者键「日志清理」在 6 个语言包里都挂着「磁盘清理」的译文、而源码从未调用它），
 > 已把隔离原因改写成可操作的描述，**留给人工定夺，未擅自改动任一侧**。
+
+### 隔离区审计记录：再救回 26 个模块（32 → 6 条）
+
+分三类，**每一类都说明「隔离 ≠ 代码有问题」**：
+
+**A. 假隔离：环境缺依赖（8 个）** —— 原因写的是 `ModuleNotFoundError`，
+但 `jinja2` / `packaging` / `flask` **早在 `requirements.txt` 里声明了**。
+装上之后实测 **8/8 全绿，一行代码都没改**。这类条目根本不是「已知缺陷」，
+只是把本机环境不全记成了代码问题：
+
+| 模块 | 原隔离原因 |
+|---|---|
+| `test_footer_i18n.py` / `test_monitor_i18n.py` / `test_monitor_optimization.py` | `No module named 'jinja2'` |
+| `test_mysql_mariadb_import_log.py` / `test_mysql_set_db_access.py` / `test_mysql_upgrade_self_healing.py` / `test_upgrade_and_mariadb_self_healing.py` | `No module named 'packaging'` |
+| `test_plugin_service_ops_and_modal.py` | `No module named 'flask'` |
+
+**B. 断言过时 / 断言取错对象（17 个）** —— 修法一律「先量真实源码，再改断言」，
+从不凭记忆写中文键：
+
+| 模块 | 真实根因 | 修法 |
+|---|---|---|
+| `test_mysql_ui_i18n.py` | 自研的「JS 字符串引号扫描器」**没有跳过正则字面量**，`/channel \'(.*)\';/` 里的撇号把引号状态机带偏，之后每一处**正确**的 `" + pt('中文') + "` 都被误报 → 17 个假泄漏 | 重写扫描器（补 `//`、`/* */`、正则字面量跳过）；并用 `node` `vm` 实跑该表达式证伪，加合成样本自检 + 变异测试 |
+| `test_mysql_mariadb_rw_i18n_and_layout.py` | 把 `mysql.js` 与 `mariadb.js` 的样式 token 混成一个集合断言 | 改成**按文件分别断言**（量出各自真实的 `flex-wrap` / `word-break` / `min-width`） |
+| `test_message_box.py` | 相关 id 已迁进 `YF_TPL.msgBox` 模板 | 改为读 `tpl/i18n_tpl.js` 断言模板内容 |
+| `test_md_icon_and_editor_fix.py` | 用正则抓 `content: '<form...'` 已抓不到 | 改为对函数体做标签**计数**（`<form`/`</form>`/`id="textBody"`） |
+| `test_task_badge_sync.py` | 固定 300 字符窗口截断了语句 | 改为按语句边界切片（`$.post(...)` 到 `,'json')`） |
+| `test_php_reset_defaults_and_full_i18n.py` | 死键「已成功还原为默认禁用函数列表!」（源码已改用「设置成功!」） | 换成源码里真实的 `returnJson` 实参 |
+| `test_php_config_robustness_and_startup.py` | 把 php 独有的应用池配置键当成了所有 php 系插件共有 | 拆出 `php_only_keys`，仅对 `php` 断言 |
+| `test_php_install_fixes.py` | 重启已整体委托给 `php-apt/index.py` | 改断言「委托 + `systemctl is-active` 平滑探活」 |
+| `test_mysql_manage_open_phpmyadmin.py` / `test_mysql_mariadb_tools_and_pma.py` / `test_redis_run_log_fix.py` | 死键（`请先安装phpMyAdmin`、`MariaDB工具箱`、`当前暂无新增运行日志`） | 换成源码真实调用的键；跳转机制由 `window.open` 改为隐藏表单自动提交 |
+| `test_files_i18n_layout.py` | 图标位置随列数变化（`right: 87px` → `107px`） | 按 `files.js` 里 `id="recycle_bin"` 的实际值更新 |
+| `test_jdk_and_hash_fix_i18n.py` | 死键 `jdk.manage` / `jdk.set_as_default` | 换成 `t('jdk.add_custom_title')` / `pt('设为默认')` |
+| `test_loading_modal_and_backend_opt.py` | 边遍历边改字典 | `for k in [k for k in RUN_CACHE.keys()]` |
+| `test_site_create_default_page.py` | 断言 `src="./favicon.ico"`，页面已改用 `rel="icon"` | 改断言 `rel="icon"` / `rel="shortcut icon"` |
+| `test_message_box_and_prefix_leak_i18n.py` | ① `node -e` 参数过长 → `WinError 206` ② 键已迁进 `data-i18n` 属性 | ① 改写临时 `.js` 文件再跑 ② 断言 `data-i18n="public.memory_1"` |
+| `test_uninstall_modal_i18n.py` | 把六国文案逐字写死（文案一改就假红），且「西欧语言不得含全角标点」这条**规则本身是错的** | 改为不变量：括号**配对** + 西欧语言不得含**汉字**；并借它查出 fr/it 真缺陷（见 C） |
+
+**C. 顺手查出的真缺陷（产品侧，已修）** —— 审计不只是让用例变绿：
+
+- `fr` / `it` 的 `soft.uninstall_confirm_suffix` 是**全角 `】`**，而 prefix 用的是 ASCII `[`，
+  于是确认框渲染成 `Voulez-vous vraiment désinstaller [nginx】 ?`（`soft.js:549` 直接拼接）。
+  已统一为 `]`（`lan.js` / `template.json` / `template.soft.json` 三处 × 2 语言）。
+- `en` 同键是 `]??`（重复问号），同一类标点垃圾，已改 `]?`。
+- `test_clean_plugin_v2.py`（脚本式）：clean 插件白名单拒绝 `%TEMP%` 下的 mock 目录、
+  且断言了一个已改名的 i18n 键；修好后**用变异测试确认它的退出码真的会传播**
+  （注入必失败断言 → `rc=1`）—— 此前「`rc=0` 却断言失败」是 `-m unittest`
+  对脚本式用例恒给 `Ran 0 tests ... OK` 的假绿，不是模块缺陷。
+
+**D. 环境修好后被「揭穿」的 3 个假绿性能用例（已修）**：
+
+把依赖装齐后，`test_plugin_performance.py` / `test_plugin_run_speed.py` /
+`test_sync_and_speed.py` **反而变红**。根因：`t()` 内部 `from flask import g, request`
+（`web/core/i18n.py:153`），装了 flask 就连带加载 jinja2，**首次调用**多出 ~330ms
+（第 2 次仅 0.013ms）。这 3 个用例只测「第一次调用」，把一次性 import 成本算进了
+1ms / 150ms 阈值 —— 它们此前之所以绿，**恰恰是因为本机没装依赖**。
+
+修法是补预热（同文件 `test_sanitize_cmd_fast_path` 早有此惯例）。
+`test_plugin_run_speed` 那条尤其小心：**不能改成「先调用一次 `t()` 预热」**，
+否则若 `k_` 短路被破坏、首次 `t()` 真去加载 212KB 的 `template.json`，就会被预热掩盖。
+所以只预热 import 链（`from flask import g, request`），
+并**用变异测试证明它仍有牙**：破坏 `_lookup_message()` 的 `k_` 短路后
+耗时 0.13ms → **3.32ms → FAILED**，还原后 0.12ms。
+
+**E. 留在隔离区的 6 条（全是产品决策，不能靠改断言绕过）**：
+
+| 模块 | 需要定夺什么 |
+|---|---|
+| `test_about_i18n.py` / `test_index_i18n_fix.py` | `scripts/tools/phrases_full.py` 已在 `ef85092ce` 被**移到** `test/i18n_scripts/tools/`（文件仍受 git 跟踪），用例仍按旧路径 import。移回文件会打断同目录 import；改用例路径会触发 `test_repo_contract` 的「禁止引用 test/」 |
+| `test_crontab_i18n_fix.py` | `en/lan.js` 里 `crontab` 有**两个块**：页面块（机翻劣质 `"Stock Market Opening Day"`）与菜单块（正确 `"Stock Trading Day"`）。用例走 `t()` 拿到菜单块的值，却断言页面块的键 —— **测试取错了命名空间**；页面块英文是否要清理是产品决策 |
+| `test_plugin_i18n_complete.py` | 键「日志清理」在 6 个语言包里都挂着「磁盘清理」的译文，源码从未调用它（死键 + 值复制错） |
+| `test_soft_i18n.py` | zh-TW `soft.type_runtime` =「執行環境」；`en` 侧全是小写/连写劣质机翻（`installed` / `systemtool` / `Running environment`） |
+| `test_task_manager_i18n.py` | 3 处英文措辞分歧，其中 `进程 → 'process'` 小写疑似语言包缺陷 |
+
+> **第三轮的通用教训**（下次审计照着走）：
+> 1. **两种跑法都试**（`-m unittest` + `python testsuite/xxx.py`）。
+> 2. 断言失败先分清 **(i) 从未存在 / (ii) 已搬走 / (iii) 还在但在另一个命名空间** ——
+>    crontab 就是 (iii)，把「测试取错命名空间」误判成了产品缺陷。
+> 3. **「隔离原因」本身要怀疑**：写 `ModuleNotFoundError` 的条目，先问一句
+>    「这个依赖是不是本来就该装？」——8 条里有 8 条都是假隔离。
+> 4. **修好环境可能揭穿别的假绿**：3 个性能用例正是靠「本机缺依赖」才绿。
+> 5. 改完必须**变异测试**：护栏不会响 = 等于没写（扫描器假泄漏、`rc` 不传播都栽过）。
 
 ---
 
@@ -507,7 +599,29 @@ import utils.plugin as plugin_util      # 现在打开的是临时库
 | Python 3.10+ | 全部用例（标准库 `unittest`，**不依赖 pytest**） | 无法运行 |
 | Node.js | 前端 JS 语法/运行时验证、XSS 探针 | 相关用例失败 |
 | Chrome（可选） | 浏览器级 DOM 验证（`--headless=new --dump-dom`） | 相关用例自动 `skipTest` |
-| `jinja2` / `packaging` / `flask`（可选） | 少数用例 | 已列入隔离区 |
+| `jinja2` / `packaging` / `flask` | 8 个用例（后端本地化、mysql 自愈、监控页等） | **相关用例直接红**（`ModuleNotFoundError`），不是「跳过」 |
+
+**这三个依赖是「必须装」，不是「可选」** —— `requirements.txt` 早已声明它们。
+早期把它们当可选、把 8 个用例扔进隔离区，是**假隔离**：装上之后实测 8/8 全绿，
+一条代码都没改。所以门禁的前置条件是：
+
+```bash
+pip install -r requirements.txt          # 至少 Jinja2 / packaging / flask
+```
+
+> 本机踩坑：`binaries/python/versions/3.13.12` 那个解释器的 pip **连不上索引**
+> （`Could not find a version that satisfies ... (from versions: none)`），
+> 但 `envs/default` 那个 venv 的 pip 能联网。可用它代装：
+> ```bash
+> <venv>/Scripts/pip.exe --python <门禁解释器>/python.exe install Jinja2 packaging flask
+> ```
+>
+> 反直觉但很关键的一点：**把依赖装齐，会让 3 个性能用例变红**。
+> 原因是 `t()` 内部 `from flask import g, request`（`web/core/i18n.py:153`），
+> 装了 flask 就连带加载 jinja2，**首次调用**多出 ~330ms（第 2 次只要 0.013ms）。
+> 那 3 个用例只测「第一次调用」，于是把一次性 import 成本算进了 1ms / 150ms 阈值 ——
+> 它们此前之所以绿，恰恰是因为本机**没装**依赖。已按同仓库既有惯例补上预热，
+> 详见 §四「第三轮审计」。
 
 **用例一律用标准库 `unittest`，不要引入 pytest**（环境未安装）。
 

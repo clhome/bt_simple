@@ -108,9 +108,14 @@ class TestUninstallModalI18n(unittest.TestCase):
         "Do you really want to uninstall ["）用例就假红，
         而真正的缺陷反而可能被忽略。现在检查：
           · 三个键都能解析出非空值，且不残留 `soft.` 前缀（键泄漏）；
-          · prefix 含开括号、suffix 含闭括号（确认框是 prefix+库名+suffix 拼的）；
-          · 西欧语言（en/de/fr/it）的值里不得出现中日韩字符或全角标点；
+          · prefix 的开括号与 suffix 的闭括号必须同族（拼接后括号要配得上）；
+          · 西欧语言（en/de/fr/it）的值里不得出现汉字（出现即漏译）；
           · 备份提示必须提到 /www/backup。
+
+        注意「全角标点」本身不判错：法语/意大利语的括号、中文书名号都落在
+        全角区，一刀切会误报。真正该管的是**括号配对**（fr/it 曾把
+        prefix 的 ASCII `[` 配上半角的 `】`，渲染成
+        「désinstaller [nginx】 ?」），以及**汉字漏译**。
         """
         i18n_path = os.path.join(BASE_DIR, "web", "static", "app", "i18n.js").replace("\\", "/")
         lang_dir_path = LANG_DIR.replace("\\", "/")
@@ -123,8 +128,10 @@ class TestUninstallModalI18n(unittest.TestCase):
         const langDir = '__LANG_DIR__';
         const i18nJs = fs.readFileSync('__I18N_PATH__', 'utf8');
 
-        // 中日韩汉字 + 全角标点（】、？、【 等都落在这里）
-        const CJK = /[\\u3000-\\u303f\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff\\uff00-\\uffef]/;
+        // 只查汉字区：全角标点本身可能只是排版选择（法语/意大利语的括号、
+        // 中文书名号都落在全角区），把它一并判死会产生误报；
+        // 而汉字出现在西欧语言里一定是漏译。
+        const HAN = /[\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff]/;
         const WESTERN = ['en', 'de', 'fr', 'it'];
 
         for (const lang of ['en', 'de', 'fr', 'it', 'zh-TW', 'zh-CN']) {
@@ -152,12 +159,32 @@ class TestUninstallModalI18n(unittest.TestCase):
                 if (!v) { problems.push(name + ' 为空或未解析'); continue; }
                 if (String(v).indexOf('soft.') === 0) { problems.push(name + ' 键泄漏: ' + v); }
             }
-            if (pref && !/[\\[【]/.test(pref)) problems.push('prefix 缺开括号: ' + pref);
-            if (suff && !/[\\]】]/.test(suff)) problems.push('suffix 缺闭括号: ' + suff);
+            // 括号必须成对。确认框文案是 prefix + 插件名 + suffix 直接拼接
+            // （web/static/app/soft.js:549），开闭括号不同族时用户会看到
+            // 「désinstaller [nginx】 ?」这种错位。原来只查「有无开/闭括号」，
+            // 查不出「有括号但配不上」——那才是真实缺陷（fr/it 曾经如此）。
+            const PAIRS = {'[': ']', '【': '】', '(': ')', '（': '）', '{': '}', '「': '」', '《': '》', '〈': '〉'};
+            const CLOSERS = '])}】」》〉';
+            const pStr = String(pref), sStr = String(suff);
+            let opener = null, closer = null;
+            for (let i = pStr.length - 1; i >= 0; i--) {
+                if (PAIRS[pStr[i]]) { opener = pStr[i]; break; }
+            }
+            for (let i = 0; i < sStr.length; i++) {
+                if (CLOSERS.indexOf(sStr[i]) >= 0) { closer = sStr[i]; break; }
+            }
+            if (!opener) problems.push('prefix 缺开括号: ' + pref);
+            else if (!closer) problems.push('suffix 缺闭括号: ' + suff);
+            else if (PAIRS[opener] !== closer) {
+                problems.push('括号不成对: prefix 开于 "' + opener + '"，suffix 闭于 "' + closer +
+                              '"，拼接后为 "' + pref + '<插件名>' + suff + '"');
+            }
+
             if (bkp && bkp.indexOf('/www/backup') < 0) problems.push('backup 未提到 /www/backup: ' + bkp);
+
             if (WESTERN.indexOf(lang) >= 0) {
                 for (const [name, v] of vals) {
-                    if (v && CJK.test(v)) problems.push(name + ' 混入中日韩字符/全角标点: ' + v);
+                    if (v && HAN.test(v)) problems.push(name + ' 混入汉字: ' + v);
                 }
             }
             if (problems.length) throw new Error('[' + lang + '] ' + problems.join(' | '));

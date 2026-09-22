@@ -147,7 +147,7 @@
     "type_other_plugins": "Autres extensions",
     "type_php": "PHP",
     "uninstall_confirm_prefix": "Voulez-vous vraiment désinstaller [",
-    "uninstall_confirm_suffix": "】 ?",
+    "uninstall_confirm_suffix": "] ?",
     "uninstall_backup_tip": "Avant la désinstallation, compressez les données et sauvegardez-les dans /www/backup (.tar.gz)",
     "management_action": "Gérer"
   },

@@ -3532,7 +3532,7 @@ var lan = {
 			"please_input": "请輸入",
 			"settings": "設定",
 			"uninstall_confirm_prefix": "您真的要卸載【",
-			"uninstall_confirm_suffix": "】吗？",
+			"uninstall_confirm_suffix": "】嗎？",
 			"uninstall_backup_tip": "卸載前將數據打包備份到 /www/backup (.tar.gz)",
 			"soft_auto_str_1": "正在处理,请稍後...",
 			"soft_auto_str_2": "】管理",
