@@ -5,6 +5,7 @@ import sys
 import json
 import time
 import shutil
+import tempfile
 
 # 设置导入路径
 repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,9 +63,9 @@ def test_security_sandbox():
 def test_truncate_and_non_ext_logs():
     print("[2] 测试活动日志截断与无后缀日志处理 (修复历史Bug)...")
 
-    # 在临时工作区下构建 mock 目录与日志
-    mock_dir = os.path.join(clean_plugin_dir, 'test_mock_logs')
-    os.makedirs(mock_dir, exist_ok=True)
+    # 在系统临时区构建 mock 目录与日志：不写进插件目录（会污染工作区），
+    # 也不放仓库目录（本机 F: 盘单次删除要 5.15s，%TEMP% 只要 0.01s）
+    mock_dir = tempfile.mkdtemp(prefix='yufeng_clean_mock_')
 
     try:
         # 模拟各种日志，特别是无后缀日志（如 messages, syslog, cron）

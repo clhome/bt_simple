@@ -4,6 +4,8 @@ import sys
 import json
 import unittest
 import re
+import sqlite3
+import tempfile
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
@@ -16,6 +18,30 @@ import core.yf as yf
 from plugins.data_query import common_db
 
 class TestAutoDetectAndI18n(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        # 隔离真实面板 SQLite：这些用例会通过 common_db 写
+        # <serverDir>/data_query/data_query.db。门禁是**并行**跑模块的，
+        # 多个模块同时写同一个 sqlite 文件会 `sqlite3.OperationalError:
+        # database is locked`（实测让 2 个模块假红）。
+        # 把 sqlite 文件重定向到本进程专属临时目录即可彻底隔离。
+        cls._db_tmp = tempfile.mkdtemp(prefix='yufeng_dq_db_')
+        common_db.getSqliteFile = lambda: os.path.join(cls._db_tmp, 'data_query.db')
+        # 再把 serverDir 指向本进程专属临时区，并在里面**造一份假的「已装 MySQL」**：
+        # ① 性能：本机仓库所在的 F: 盘上普通文件读写是 0.00s，但 sqlite 每次连接要
+        #    **30s**（Windows 的字节范围文件锁在该盘上忙等到超时）。
+        #    common_db.detectLocalMySQLPasswords() 会扫 <serverDir>/*/*.db，
+        #    单次 _get_sqlite_field 就 30~60s，足以把整个模块拖到超时。
+        # ② 确定性：自动探测有了确定的输入，用例不再依赖本机是否真装了 MySQL。
+        cls._server_tmp = tempfile.mkdtemp(prefix='yufeng_server_')
+        os.makedirs(os.path.join(cls._server_tmp, 'mysql'), exist_ok=True)
+        _seed = sqlite3.connect(os.path.join(cls._server_tmp, 'mysql', 'mysql.db'))
+        _seed.execute('CREATE TABLE IF NOT EXISTS config (mysql_root TEXT)')
+        _seed.execute('INSERT INTO config (mysql_root) VALUES (?)', ('unit_test_root_pwd',))
+        _seed.commit()
+        _seed.close()
+        yf.getServerDir = staticmethod(lambda: cls._server_tmp)
 
     def setUp(self):
         self.conn = common_db.getSqliteConn()

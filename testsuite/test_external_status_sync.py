@@ -14,9 +14,18 @@ WEB_DIR = os.path.join(BASE_DIR, 'web')
 if WEB_DIR not in sys.path:
     sys.path.insert(0, WEB_DIR)
 
-import thisdb
 import core.yf as yf
-from utils.plugin import plugin as YfPlugin
+
+# 进程级隔离：**必须早于 `import thisdb` / `import utils.plugin`** ——
+# 它们在导入期就会打开 <panelDir>/data/panel.db，而 F: 盘上 sqlite 的
+# close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 不隔离的话本体 0.0s、进程 47.2s。见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('external_status_sync')
+
+import thisdb  # noqa: E402
+from utils.plugin import plugin as YfPlugin  # noqa: E402
 
 
 class TestExternalStatusSync(unittest.TestCase):

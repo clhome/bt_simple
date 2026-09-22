@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 import shutil
+import tempfile
 
 # 设置运行环境
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,8 +17,10 @@ import utils.file as file_util
 class TestP0DeepSecurity(unittest.TestCase):
 
     def setUp(self):
-        self.test_tmp = os.path.join(root_dir, 'tmp', 'test_p0_sec')
-        os.makedirs(self.test_tmp, exist_ok=True)
+        # 临时目录放系统临时区（tempfile.mkdtemp），不放仓库目录：
+        # 本机 F: 盘上单次删除固定要 5.15s（实测，与文件数无关），%TEMP% 只要 0.01s。
+        # mkdtemp 天然是全新空目录，顺带解决「上次残留污染本次断言」的问题。
+        self.test_tmp = tempfile.mkdtemp(prefix='yufeng_p0_sec_')
 
     def tearDown(self):
         if os.path.exists(self.test_tmp):

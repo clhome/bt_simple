@@ -13,6 +13,15 @@ WEB_DIR = os.path.join(BASE_DIR, 'web')
 if WEB_DIR not in sys.path:
     sys.path.insert(0, WEB_DIR)
 
+# 进程级隔离：把 <panelDir> / <serverDir> 重定向到系统临时区。
+# **必须早于 `from web.utils.site import sites`** —— 它在导入期就会经
+# core.yf / core.db 打开 <panelDir>/data/panel.db，而 F: 盘上 sqlite 的
+# close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 不隔离的话本体 0.5s、进程 85.8s。见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('site_default_page')
+
 from web.utils.site import sites
 
 

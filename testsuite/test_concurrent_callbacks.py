@@ -14,6 +14,16 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import core.yf as yf
+
+# 进程级隔离：把 <panelDir> / <serverDir> 重定向到系统临时区。
+# **必须早于 `import utils.plugin`** —— 它在导入期就会打开
+# <panelDir>/data/panel.db，而 F: 盘上 sqlite 的 close() 单次要 30~60s，
+# 退出时 atexit 逐个关连接。不隔离的话本体 0.7s、进程 55s。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('concurrent_cb')
+
 import utils.plugin as plugin_util
 from utils.plugin import plugin as YfPlugin
 

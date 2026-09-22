@@ -12,6 +12,8 @@ import json
 import re
 import subprocess
 import unittest
+import shutil
+import tempfile
 
 class TestPluginRuntimeI18n(unittest.TestCase):
     
@@ -193,13 +195,19 @@ class TestPluginRuntimeI18n(unittest.TestCase):
         console.log("Runtime simulation passed! 0 Chinese characters detected.");
         """
         
-        script_path = os.path.join(self.root_dir, "testsuite", "run_node_runtime_test.js")
-        with open(script_path, "w", encoding="utf-8") as f:
-            f.write(test_script)
-            
-        result = subprocess.run(["node", script_path], cwd=self.root_dir, capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, f"Node.js runtime test failed: {result.stderr or result.stdout}")
-        print("\n[PASS] Node.js runtime translation verification passed with 0 Chinese residue!")
+        # 生成的脚本放系统临时区：既不污染工作区（历史上发生过生成物被误提交
+        # 成仓库文件的事故），也不受仓库所在 F: 盘慢删除拖累。
+        scratch_dir = tempfile.mkdtemp(prefix='yufeng_node_runtime_')
+        script_path = os.path.join(scratch_dir, "run_node_runtime_test.js")
+        try:
+            with open(script_path, "w", encoding="utf-8") as f:
+                f.write(test_script)
+
+            result = subprocess.run(["node", script_path], cwd=self.root_dir, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, f"Node.js runtime test failed: {result.stderr or result.stdout}")
+            print("\n[PASS] Node.js runtime translation verification passed with 0 Chinese residue!")
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

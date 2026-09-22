@@ -3,6 +3,8 @@ import os
 import re
 import json
 import subprocess
+import shutil
+import tempfile
 import unittest
 
 class TestSiteTableI18n(unittest.TestCase):
@@ -177,7 +179,9 @@ class TestSiteTableI18n(unittest.TestCase):
         console.log("SIMULATION_PASSED");
         '''
 
-        tmp_runner_path = os.path.join(self.root_dir, 'testsuite', 'tmp_sim_runner.js')
+        # 生成脚本放系统临时区（仓库目录在 F: 盘，单次删除 5.15s）
+        scratch_dir = tempfile.mkdtemp(prefix='yufeng_sim_runner_')
+        tmp_runner_path = os.path.join(scratch_dir, 'tmp_sim_runner.js')
         with open(tmp_runner_path, 'w', encoding='utf-8') as f:
             f.write(node_script)
 
@@ -186,8 +190,7 @@ class TestSiteTableI18n(unittest.TestCase):
             self.assertEqual(res.returncode, 0, f"Node.js simulation failed: {res.stderr}")
             self.assertIn("SIMULATION_PASSED", res.stdout)
         finally:
-            if os.path.exists(tmp_runner_path):
-                os.remove(tmp_runner_path)
+            shutil.rmtree(scratch_dir, ignore_errors=True)
 
     def test_05_repaired_functions_validity(self):
         """测试 14 个核心修复函数在 Node.js 中均无语法错误"""

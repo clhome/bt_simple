@@ -16,6 +16,8 @@ import time
 import json
 import unittest
 import subprocess
+import shutil
+import tempfile
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT_DIR, 'web'))
@@ -105,7 +107,9 @@ class TestPluginPerformance(unittest.TestCase):
 
     def test_06_node_runtime_dom_benchmark(self):
         """使用 Node.js + jsdom 真实模拟 1000 个复杂节点的 DOM 树，对比定向选择器与暴力扫描的性能"""
-        node_script = os.path.join(ROOT_DIR, 'testsuite', 'benchmark_dom_i18n.js')
+        # 生成脚本放系统临时区（仓库目录在 F: 盘，单次删除 5.15s）
+        scratch_dir = tempfile.mkdtemp(prefix='yufeng_dom_bench_')
+        node_script = os.path.join(scratch_dir, 'benchmark_dom_i18n.js')
         js_code = """
         const fs = require('fs');
         const { JSDOM } = require('jsdom');
@@ -173,8 +177,7 @@ class TestPluginPerformance(unittest.TestCase):
                 print(f"[PERF] DOM 扫描对比（1000+节点）: 暴力扫描扫描了 {res['totalElementsScannedLegacy']} 个节点耗时 {res['legacyMs']:.3f}ms；定向选择器仅扫描 {res['targetedElementsScanned']} 个节点耗时 {res['newMs']:.3f}ms，性能加速 {res['speedup']} 倍！")
                 self.assertLess(res['targetedElementsScanned'], 10, "定向选择器扫描节点应极少（<10个）")
         finally:
-            if os.path.exists(node_script):
-                os.remove(node_script)
+            shutil.rmtree(scratch_dir, ignore_errors=True)
 
 if __name__ == '__main__':
     unittest.main()

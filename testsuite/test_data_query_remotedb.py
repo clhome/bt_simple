@@ -13,7 +13,28 @@ if plugin_dir not in sys.path:
     sys.path.insert(0, plugin_dir)
 
 import core.yf as yf
+import sqlite3
+import tempfile
 import common_db
+
+# 隔离真实面板 SQLite：本用例会通过 common_db 写 <serverDir>/data_query/data_query.db。
+# 门禁并行跑模块，多个模块同写一个 sqlite 会 `database is locked`（实测假红）。
+# 重定向到本进程专属临时目录即可彻底隔离。
+_DB_TMP = tempfile.mkdtemp(prefix='yufeng_dq_db_')
+common_db.getSqliteFile = lambda: os.path.join(_DB_TMP, 'data_query.db')
+# 再把 serverDir 指向临时区，并在里面造一份假的「已装 MySQL」：
+# ① 性能：F: 盘上 sqlite 单次连接要 30s（普通文件读写 0.00s），
+#    common_db 扫描 <serverDir>/*/*.db 会把整个用例拖到几百秒；
+# ② 确定性：自动探测有确定输入，不依赖本机是否真装了 MySQL。
+_SERVER_TMP = tempfile.mkdtemp(prefix='yufeng_server_')
+os.makedirs(os.path.join(_SERVER_TMP, 'mysql'), exist_ok=True)
+_seed = sqlite3.connect(os.path.join(_SERVER_TMP, 'mysql', 'mysql.db'))
+_seed.execute('CREATE TABLE IF NOT EXISTS config (mysql_root TEXT)')
+_seed.execute('INSERT INTO config (mysql_root) VALUES (?)', ('unit_test_root_pwd',))
+_seed.commit()
+_seed.close()
+yf.getServerDir = lambda: _SERVER_TMP
+
 import sql_mysql
 import sql_postgresql
 import nosql_redis

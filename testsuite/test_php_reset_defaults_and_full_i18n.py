@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import unittest
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,10 +102,8 @@ class TestPhpResetDefaultsAndFullI18n(unittest.TestCase):
 
             # 模拟测试环境下的 ini 文件重置
             test_version = '80' if p == 'php' else '8.0'
-            # 运行时草稿统一放 testsuite/.scratch（已被 .gitignore 忽略），
-            # 既不污染受版本控制的 testsuite/，也不依赖本地的 test/ 目录。
-            mock_ini_dir = os.path.join(ROOT_DIR, 'testsuite', '.scratch', f'mock_{p}')
-            os.makedirs(mock_ini_dir, exist_ok=True)
+            # 运行时草稿放系统临时区：既不污染仓库，也不受 F: 盘慢删除拖累
+            mock_ini_dir = tempfile.mkdtemp(prefix=f'yufeng_mock_{p}_')
             mock_ini_file = os.path.join(mock_ini_dir, 'php.ini')
 
             # 准备篡改过的 ini 文件

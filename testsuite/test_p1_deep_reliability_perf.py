@@ -4,6 +4,7 @@ import sys
 import unittest
 import shutil
 import time
+import tempfile
 
 # 设置运行环境
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,8 +21,11 @@ import panel_task
 class TestP1DeepReliabilityPerf(unittest.TestCase):
 
     def setUp(self):
-        self.test_tmp = os.path.join(root_dir, 'tmp', 'test_p1_rel')
-        os.makedirs(self.test_tmp, exist_ok=True)
+        # 临时目录放系统临时区（tempfile.mkdtemp），不放仓库目录：
+        # 本机 F: 盘上单次删除固定要 5.15s（实测），%TEMP% 只要 0.01s。
+        # mkdtemp 天然是全新空目录，顺带解决 test_01 残留 important_config.json
+        # 导致 test_02 数到 24 而不是 23 的级联问题（真实踩过的坑）。
+        self.test_tmp = tempfile.mkdtemp(prefix='yufeng_p1_rel_')
 
     def tearDown(self):
         if os.path.exists(self.test_tmp):

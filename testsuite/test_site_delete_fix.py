@@ -3,6 +3,7 @@ import os
 import sys
 import stat
 import shutil
+import tempfile
 import unittest
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,7 +75,8 @@ class TestSiteDeleteFix(unittest.TestCase):
         """验证 yf.removeDir 可以顺利删除包含只读文件和子目录的文件夹"""
         from core import yf
 
-        test_dir = os.path.join(PROJECT_DIR, 'testsuite', '.scratch', 'temp_site_delete_test_dir')
+        # 系统临时区：仓库目录在 F: 盘，单次删除要 5.15s（%TEMP% 只要 0.01s）
+        test_dir = tempfile.mkdtemp(prefix='yufeng_site_del_')
         if os.path.exists(test_dir):
             shutil.rmtree(test_dir, ignore_errors=True)
 

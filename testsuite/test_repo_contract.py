@@ -379,6 +379,60 @@ class TestSuiteSelfContained(unittest.TestCase):
                if not reason]
         self.assertEqual(bad, [], f'这些隔离记录没写原因：{bad}')
 
+    def test_no_generated_artifacts_in_testsuite_root(self):
+        """`testsuite/` 根目录只允许放用例、门禁脚本、文档与已入库夹具
+
+        有一批用例会在运行时**生成** Node 脚本再执行（如
+        `benchmark_dom_i18n.js`、`tmp_sim_runner.js`）。若生成位置写在
+        `testsuite/` 根目录，它们就会以未跟踪文件的形式污染工作区，
+        历史上已经真的发生过一次 —— `run_node_runtime_test.js` 被误当成
+        仓库文件提交进了 `c987f0df4`。
+
+        生成物/临时目录的正确落点是**系统临时区**（`tempfile.mkdtemp()`）：
+        既不污染仓库，也不受仓库所在盘符的慢删除拖累（本机 F: 盘单次删除
+        固定 5.15s，`%TEMP%` 只要 0.01s）。`testsuite/.scratch/` 作为
+        「确需留在仓库内供人工查看」的兜底，已被 .gitignore 忽略。
+        """
+        allowed_files = {
+            'run_all.py', 'install_hooks.py', 'quarantine.txt', 'testsuite.md',
+            # 共享助手：用例的进程级隔离（把 panelDir/serverDir 指向临时区）
+            '_isolation.py',
+            # 已入库的夹具/工具脚本（被 test_*.py 以路径形式引用）
+            'check_lan_syntax.js', 'check_overwrite_render.js',
+            'repaired_functions.js', 'simulate_crontab.js',
+            'verify_all_plugin_js_syntax.js', 'test_uptime_i18n_fix.js',
+        }
+        allowed_dirs = {'i18n_scripts', 'tools', '.scratch', '__pycache__'}
+        bad = []
+        for fn in sorted(os.listdir(HERE)):
+            full = os.path.join(HERE, fn)
+            if os.path.isdir(full):
+                if fn not in allowed_dirs:
+                    bad.append(fn + '/  (目录)')
+                continue
+            if fn.startswith('test_') and fn.endswith('.py'):
+                continue
+            if fn not in allowed_files:
+                bad.append(fn)
+        self.assertEqual(
+            bad, [],
+            'testsuite/ 根目录出现未登记的条目，疑似运行时生成物或误提交的临时文件；'
+            '生成物请改写到 tempfile.mkdtemp()（系统临时区），确属夹具则加入本用例白名单：\n  '
+            + '\n  '.join(bad))
+
+    def test_scratch_dir_is_gitignored(self):
+        """`testsuite/.scratch/` 必须在 `.gitignore` 中被忽略
+
+        它是所有用例的临时产物统一落点（见上一条用例）。若这条被删掉，
+        临时产物会重新变成「可被 git add .」的状态，污染仓库。
+        """
+        gi = os.path.join(ROOT, '.gitignore')
+        self.assertTrue(os.path.isfile(gi), '.gitignore 不存在')
+        with open(gi, 'r', encoding='utf-8') as fp:
+            rules = {ln.strip() for ln in fp if ln.strip()}
+        self.assertIn('/testsuite/.scratch', rules,
+                      '.gitignore 缺少 `/testsuite/.scratch` 规则')
+
 
 if __name__ == '__main__':
     unittest.main()

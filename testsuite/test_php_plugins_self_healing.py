@@ -5,6 +5,8 @@ import glob
 import json
 import unittest
 import importlib.util
+import shutil
+import tempfile
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'web'))
@@ -124,16 +126,15 @@ class TestPhpPluginsSelfHealing(unittest.TestCase):
         spec.loader.exec_module(php_mod)
 
         # 模拟一个非法的 PID 文件（使用极大不存在的 PID 99999999）
-        test_dir = os.path.join(PROJECT_ROOT, 'testsuite', 'scratch_php_test')
-        os.makedirs(test_dir, exist_ok=True)
+        # 用系统临时区，避免在仓库目录（F: 盘，单次删除 5.15s）里读写
+        test_dir = tempfile.mkdtemp(prefix='yufeng_php_heal_')
         dead_pid_file = os.path.join(test_dir, 'php-fpm.pid')
         with open(dead_pid_file, 'w', encoding='utf-8') as f:
             f.write('99999999\n')
 
         # 检查是否能安全探测并不崩溃
         self.assertTrue(os.path.exists(dead_pid_file))
-        os.remove(dead_pid_file)
-        os.rmdir(test_dir)
+        shutil.rmtree(test_dir, ignore_errors=True)
 
     def test_07_i18n_completion_check(self):
         """测试 7: 验证 6 国语言包中的自愈词条覆盖率 100%"""

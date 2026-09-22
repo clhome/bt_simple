@@ -4,6 +4,7 @@ import sys
 import unittest
 import json
 import sqlite3
+import tempfile
 
 # 确保项目根目录在 sys.path 中
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +15,15 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import core.yf as yf
+
+# 进程级隔离：**必须早于 `import utils.plugin`** —— 它在导入期就会打开
+# <panelDir>/data/panel.db，补丁打晚了那个连接就落在真实盘上了
+# （实测：import utils.plugin 之后 core.db._local.connections 立刻多一条真实路径，
+#  退出时 close() 要 30~60s，本体 0.7s / 进程 53s）。见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('data_query_fix')
+
 import utils.plugin as plugin_util
 from utils.plugin import plugin as YfPlugin
 import plugins.data_query.common_db as common_db
@@ -25,6 +35,13 @@ import plugins.data_query.nosql_memcached as nosql_memcached
 
 
 class TestDataQueryFix(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        # 面板库 / serverDir / data_query 库的重定向已在**模块级**由
+        # `isolate('data_query_fix')` 完成（必须早于 `import utils.plugin`）。
+        # 这里只留个断言，防止有人把模块级那行删掉后无人察觉。
+        assert _PANEL_TMP and _SERVER_TMP, '模块级隔离未生效'
 
     def test_01_plugin_reflection_error_propagation(self):
         """测试 web/utils/plugin.py 反射调用不会再将函数内部的业务 TypeError 误判为参数不匹配并吞噬"""

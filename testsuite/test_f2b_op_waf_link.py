@@ -49,10 +49,18 @@ def _load_module(name, path):
     return mod
 
 
+import core.yf as yf  # noqa: E402  —— 必须先导入，才能在插件 exec_module 之前打隔离补丁
+
+# 进程级隔离：**必须早于下面两个插件的 exec_module** —— 它们在导入期就会经
+# core.yf / core.db 打开 <panelDir>/data/panel.db，而 F: 盘上 sqlite 的
+# close() 单次要 30~60s（实测该连接 41.0s），退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('f2b_op_waf_link')
+
 f2b = _load_module('f2b_link_index', os.path.join(F2B_DIR, 'index.py'))
 opwaf = _load_module('opwaf_link_index', os.path.join(OPWAF_DIR, 'index.py'))
-
-import core.yf as yf  # noqa: E402
 
 
 # ------------------------------------------------------------------

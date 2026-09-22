@@ -7,6 +7,7 @@ import os
 import sys
 import ast
 import re
+import tempfile
 import zipfile
 import hashlib
 from unittest.mock import MagicMock
@@ -36,8 +37,10 @@ INDEX_HTML = os.path.join(WEB_DIR, 'templates', 'default', 'index.html')
 class TestP2DeepOptimization(unittest.TestCase):
 
     def setUp(self):
-        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp_p2_test')
-        os.makedirs(self.test_dir, exist_ok=True)
+        # 临时目录放系统临时区（tempfile.mkdtemp），不放仓库目录：
+        # 本机 F: 盘上单次删除固定要 5.15s（实测），%TEMP% 只要 0.01s。
+        # mkdtemp 天然是全新空目录，顺带解决残留目录让本次断言数错的问题。
+        self.test_dir = tempfile.mkdtemp(prefix='yufeng_p2_opt_')
 
     def tearDown(self):
         import shutil

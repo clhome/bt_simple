@@ -9,7 +9,6 @@
 test_about_i18n.py    # ModuleNotFoundError: No module named 'phrases_full'
 test_clean_plugin_v2.py    # 未收集到用例（导入失败）
 test_crontab_i18n_fix.py    # AssertionError: '"Stock Trading Day"' not found in '=== 1. Testing toWeek() + toHour() + toMinute() in EN 
-test_data_query_fix.py    # AssertionError: 5432 != 5439；AssertionError: 'conn_26' != 'pgsql'
 test_data_query_i18n.py    # AssertionError: 4 != 0 : 语言包 [en] 缺失核心词条: ['远程', '变量', '常用', '慢日志']
 test_external_status_sync.py    # AssertionError: False is not true : File plugins\caddy\index.html does not exist；AssertionError: False is not true : File plugins\caddy\js\caddy.js does not exist
 test_files_delete_modal_i18n.py    # NameError: name 'PROJECT_ROOT' is not defined

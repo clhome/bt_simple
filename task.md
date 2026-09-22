@@ -546,3 +546,25 @@
 - [x] 334. 全量验证无回归：`test_crlf_and_sh_syntax` **5/5 OK**；`scripts/verify_i18n.py` **9/9 PASS**；所有改动文件均为 LF 无 BOM
 
 
+
+## 提交门禁 `testsuite/` 补全与提效
+
+> 用户要求：`testsuite/` 存放标准测试用例，**只有完全通过才可提交**；
+> 从 `test/` 筛出有效代码迁入，不够全面则补全；并在 `testsuite/testsuite.md` 写清用法与注意事项。
+
+- [x] 335. 盘点 `test/`：AST 分类 125 个 TestCase 模块 / 833 个方法，逐个隔离运行（`test/tmp_run_all_probe.py`）得到 **104 绿 / 40 红**
+- [x] 336. 迁移 104 个绿色用例到 `testsuite/`，并把 40 个红色用例**一并复制**进来 —— 否则 `quarantine.txt` 的反向检查（「隔离项必须仍为红」）是死代码
+- [x] 337. 生成 `testsuite/quarantine.txt`（39 条，格式 `模块名  # 原因`，原因取真实异常首行）
+- [x] 338. 落地门禁入口 `testsuite/run_all.py`：每模块独立子进程 + 超时、**必须校验 `Ran N tests` 的 N>0**（防「永远全绿」假门禁）、隔离区反向检查、静态门禁分离
+- [x] 339. 落地 `testsuite/install_hooks.py`：装成 `pre-commit`（拒绝覆盖外来钩子，`--force` 才覆盖；`git commit --no-verify` / `YUFENG_SKIP_TESTS=1` 可绕过）
+- [x] 340. 新增 `testsuite/test_repo_contract.py`（14 项，纯静态毫秒级）：插件数契约 36、必需文件、6 语言包、`info.json` schema、`plugin_version.pl` 格式、`.gitattributes`、无垃圾文件、**不得引用被忽略的 `test/`**、命名必须 `test_*.py`、隔离条目必须存在且有原因、`testsuite/` 根目录不得出现生成物、`.scratch` 必须被 gitignore
+- [x] 341. 新增 `testsuite/test_shell_syntax.py`：批量 `bash -n` 全仓 353 个 `.sh`（16 路分块 + 循环内**不做命令替换**，53s → 5.5s）—— **当场抓出 42 个 `plugins/*/versions/**/install.sh` 被追加 ` ------`（commit `4d4051205`）导致 bash 无法解析**，已修复
+- [x] 342. 修复 146 个用例模块里指向被忽略 `test/` 的路径引用（`os.path.join` 与裸字符串两种形态），迁移 6 个夹具文件进 `testsuite/`
+- [x] 343. 修 17 个「`-m unittest` 收集不到用例」的模块：识别为**脚本式用例**（模块级 `def test_*()` / `run_tests()` + `__main__` + 裸 `assert`），门禁自动改跑 `python testsuite/xxx.py` 并以退出码判定；判定条件同时要求「有 `__main__` **且**全文有 `assert`」（否则当脚本跑等于没验证，仍是假绿）
+- [x] 344. 排查 156 项「引用了不存在的文件」告警 → 精确复核后确认**真实缺失夹具 0 个**（全是运行时生成物、临时目录内文件名、或故意的负例名如 `non_existent.log`）；另扫「条件式断言」（`if os.path.exists(): assert`）假绿风险，命中 **0 处**
+- [x] 345. 修 **SQLite 并行争用**：`test_auto_detect_and_i18n` / `test_data_query_remotedb` / `test_mysql_conn_and_pg_driver_prompt` / `test_sync_and_speed` 都会经 `common_db.saveConnection()` 写同一份真实面板 SQLite，并行跑必然 `database is locked`（2 模块假红）并静默污染断言（`'conn_26' != 'pgsql'`）。修法：`common_db.getSqliteFile` 重定向到本进程专属 `tempfile.mkdtemp()`
+- [x] 346. 修 **沙箱批量删除守卫误伤 `tearDown`**：单次工具调用内删除超阈值（默认 50）即抛 `SystemExit(1)`，一次跑上百模块必然触发（9 模块假红 + 残留目录级联污染断言，如 `test_p1` 的 `24 != 23`）。修法：`run_all.py:child_env()` 给每个子进程唯一 `CODEBUDDY_TOOL_CALL_ID` + 抬高阈值。**反例**：`CODEBUDDY_SAFE_DELETE_ENABLED=0` 会被宿主直接 `SIGTERM`，不可用
+- [x] 347. 修 **临时产物落点**：全部改用 `tempfile.mkdtemp()`（系统临时区）。实测仓库所在 `F:` 盘**单次删除固定 5.15s**（与文件数无关），`%TEMP%` 仅 0.01s —— **差 500 倍**，门禁里累计二十几次删除即浪费一两分钟
+- [x] 348. 删除被误提交的运行时生成物 `testsuite/run_node_runtime_test.js`（`c987f0df4`），并加守卫防复发
+- [x] 349. 重写 `testsuite/testsuite.md`（330+ 行，8 节）：快速开始 / 目录结构 / 四条硬约束 / 隔离区约定 / 注意事项 5.1–5.9 / 运行环境 / 失败排查 / 新增用例
+- [x] 350. **模拟干净克隆验证**：把 `test/` 改名隐藏后跑完整门禁 → **`gate_rc=0`，全部门禁通过**（107 个用例参与、39 个隔离、692 个 test 方法、耗时 307.0s）
