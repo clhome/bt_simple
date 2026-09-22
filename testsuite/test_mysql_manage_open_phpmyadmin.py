@@ -89,13 +89,15 @@ class TestMySQLManageOpenPhpMyAdmin(unittest.TestCase):
 
     def test_04_lang_keys_coverage(self):
         """验证 6 国语言包中全部 phpMyAdmin 相关提示词条均存在且有效"""
+        # 只保留源码里真实存在的 pt() 实参（plugins/mysql/js/mysql.js 的 openPhpmyadmin）。
+        # 旧的「请先安装phpMyAdmin」已被「phpMyAdmin未安装!」取代，
+        # 在 mysql / mariadb 的 6 个语言包里都已不存在，是死键，别再断言它。
         keys_to_verify = [
             "获取phpMyAdmin状态失败!",
             "phpMyAdmin未安装!",
             "phpMyAdmin未启动",
             "当前为",
             "模式,若要使用请修改phpMyAdmin访问切换.",
-            "请先安装phpMyAdmin",
             "正在打开phpMyAdmin..."
         ]
         langs = ["zh-CN", "zh-TW", "en", "de", "fr", "it"]

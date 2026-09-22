@@ -50,10 +50,11 @@ def test_public_service_boot_start_integration():
 
 
 def test_custom_service_plugins_integration():
-    print("\n--- 3. 验证 4 个定制服务插件 (apache, caddy, openresty, pureftp) 适配 ---")
+    # 注：原先还覆盖 plugins/caddy/js/caddy.js，但 caddy 插件已从仓库移除
+    # （plugins/caddy/ 不存在），对它断言永远不可能通过，故已剔除。
+    print("\n--- 3. 验证 3 个定制服务插件 (apache, openresty, pureftp) 适配 ---")
     custom_files = [
         os.path.join(PROJECT_ROOT, "plugins", "apache", "js", "httpd.js"),
-        os.path.join(PROJECT_ROOT, "plugins", "caddy", "js", "caddy.js"),
         os.path.join(PROJECT_ROOT, "plugins", "openresty", "js", "openresty.js"),
         os.path.join(PROJECT_ROOT, "plugins", "pureftp", "js", "ftp.js")
     ]
@@ -94,7 +95,6 @@ def test_nodejs_syntax():
     js_targets = [
         "web/static/app/public.js",
         "plugins/apache/js/httpd.js",
-        "plugins/caddy/js/caddy.js",
         "plugins/openresty/js/openresty.js",
         "plugins/pureftp/js/ftp.js"
     ]

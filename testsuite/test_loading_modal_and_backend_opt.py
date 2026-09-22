@@ -92,7 +92,9 @@ class TestLoadingModalAndBackendOpt(unittest.TestCase):
 
         self.assertIn("is_status_query = func == 'status' or func.startswith('status_')", content, "应具备 status 防抖判断")
         self.assertIn("cache_ttl = 10 if func == 'get_total_statistics' else (2 if is_status_query else 0)", content, "应设置 2 秒 status 缓存")
-        self.assertIn("for k in list(RUN_CACHE.keys()):", content, "写操作应清理 RUN_CACHE")
+        # 写操作清理 RUN_CACHE 的写法后来从 list(...) 改成了列表推导（就地快照键，
+        # 避免边遍历边 del 抛 RuntimeError）。语义不变，按当前源码断言。
+        self.assertIn("for k in [k for k in RUN_CACHE.keys()]:", content, "写操作应清理 RUN_CACHE")
 
         print("[PASS] 后端 status 状态防抖短缓存与实时失效机制验证通过！")
 

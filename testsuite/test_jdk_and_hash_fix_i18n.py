@@ -168,9 +168,13 @@ class TestJdkAndHashFixI18n(unittest.TestCase):
         # 确保不存在 args: "'" + JSON.stringify
         self.assertNotIn("args: \"'\" + JSON.stringify", content)
         self.assertNotIn("args: '\\'' + JSON.stringify", content)
-        # 确保使用了多语言函数
-        self.assertIn("jdk.manage", content)
-        self.assertIn("jdk.set_as_default", content)
+        # 确保使用了多语言函数。index.html 现在同时走两条路：
+        #   t('jdk.*')  —— 后端核心点号键（web/core/i18n）
+        #   t('中文') / pt('中文') —— 语言包扁平键
+        # 旧的 jdk.manage / jdk.set_as_default 两个点号键已不再被前端引用，别再断言它们。
+        self.assertIn("t('jdk.add_custom_title'", content)
+        self.assertIn("t('JDK管理'", content)
+        self.assertIn("pt('设为默认')", content)
 
 if __name__ == "__main__":
     unittest.main()

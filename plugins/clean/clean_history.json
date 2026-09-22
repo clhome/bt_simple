@@ -1,0 +1,547 @@
+[
+  {
+    "id": 1790053459,
+    "time": "2026-09-22 13:04:19",
+    "duration_seconds": 0.02,
+    "selected_categories": [],
+    "retention_days": 7,
+    "scanned_files": 90,
+    "cleaned_files": 0,
+    "freed_bytes": 0,
+    "freed_format": "0.0 B",
+    "skipped_protected": 0,
+    "details": [],
+    "errors": []
+  },
+  {
+    "id": 1790053418,
+    "time": "2026-09-22 13:03:38",
+    "duration_seconds": 2.94,
+    "selected_categories": [],
+    "retention_days": 7,
+    "scanned_files": 90,
+    "cleaned_files": 86,
+    "freed_bytes": 1119386,
+    "freed_format": "1.1 MB",
+    "skipped_protected": 0,
+    "details": [
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/待完成.assets/image-20260615103855883.png",
+        "freed": 124063,
+        "freed_format": "121.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/web/static/logo.png",
+        "freed": 118447,
+        "freed_format": "115.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/task.md",
+        "freed": 74389,
+        "freed_format": "72.6 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化.md",
+        "freed": 73635,
+        "freed_format": "71.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/御风面板说明书/说明书.md",
+        "freed": 66696,
+        "freed_format": "65.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化5.md",
+        "freed": 58694,
+        "freed_format": "57.3 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化4.md",
+        "freed": 54452,
+        "freed_format": "53.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/i18n_遗留问题升级方案.md",
+        "freed": 42943,
+        "freed_format": "41.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/优化整改.md",
+        "freed": 38612,
+        "freed_format": "37.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/README.md",
+        "freed": 33575,
+        "freed_format": "32.8 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/前端重制整改方案.md",
+        "freed": 32000,
+        "freed_format": "31.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/插件统一开发规范.md",
+        "freed": 31404,
+        "freed_format": "30.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/release文档/RELEASE_TEMPLATE260724.md",
+        "freed": 30495,
+        "freed_format": "29.8 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化6.md",
+        "freed": 26495,
+        "freed_format": "25.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/Debian-Ubuntu全版本适配方案.md",
+        "freed": 21828,
+        "freed_format": "21.3 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/i18n_升级方案.md",
+        "freed": 19471,
+        "freed_format": "19.0 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/scripts/init.d/yf.tpl",
+        "freed": 19341,
+        "freed_format": "18.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/op_waf/task.md",
+        "freed": 16445,
+        "freed_format": "16.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/jq升级3.7/jq升级3.7.md",
+        "freed": 16247,
+        "freed_format": "15.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/fail2ban与op_waf功能重合分析与联动方案.md",
+        "freed": 16110,
+        "freed_format": "15.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/优化20260620project_analysis.md",
+        "freed": 15472,
+        "freed_format": "15.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/优化20260623.md",
+        "freed": 14311,
+        "freed_format": "14.0 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/plugins_check.md",
+        "freed": 12862,
+        "freed_format": "12.6 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/yufeng_systemd/ico.png",
+        "freed": 10101,
+        "freed_format": "9.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/supervisor/ico.png",
+        "freed": 9639,
+        "freed_format": "9.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/插件共用函数升级.md",
+        "freed": 8907,
+        "freed_format": "8.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/插件开发-Systemd 定制服务管理器.md",
+        "freed": 8441,
+        "freed_format": "8.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/插件升级日志.md",
+        "freed": 8397,
+        "freed_format": "8.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/i18n_进度分析报告.md",
+        "freed": 7896,
+        "freed_format": "7.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化3.md",
+        "freed": 6512,
+        "freed_format": "6.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/jq升级3.7/jq3.7.1优化方案.md",
+        "freed": 6236,
+        "freed_format": "6.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙优化2.md",
+        "freed": 6205,
+        "freed_format": "6.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/pg_docker/ico.svg",
+        "freed": 5900,
+        "freed_format": "5.8 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/jquery升级分析.md",
+        "freed": 5404,
+        "freed_format": "5.3 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/RELEASE_TEMPLATE.md",
+        "freed": 5316,
+        "freed_format": "5.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/fail2ban/ico.png",
+        "freed": 4839,
+        "freed_format": "4.7 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/web/static/favicon.ico",
+        "freed": 4286,
+        "freed_format": "4.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/op_waf/ico.svg",
+        "freed": 4058,
+        "freed_format": "4.0 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/pgadmin/ico.svg",
+        "freed": 3380,
+        "freed_format": "3.3 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/防火墙/防火墙6.md",
+        "freed": 2924,
+        "freed_format": "2.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/linux主机乱码.md",
+        "freed": 2588,
+        "freed_format": "2.5 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/postgresql/ico.png",
+        "freed": 2579,
+        "freed_format": "2.5 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/valkey/ico.png",
+        "freed": 2553,
+        "freed_format": "2.5 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/pg_docker/grep_test.txt",
+        "freed": 2424,
+        "freed_format": "2.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/首页概览卡片软件控制说明.md",
+        "freed": 2175,
+        "freed_format": "2.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/gitea/ico.svg",
+        "freed": 2174,
+        "freed_format": "2.1 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/phpmyadmin/ico.png",
+        "freed": 2045,
+        "freed_format": "2.0 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/linux_sys_opt/ico.svg",
+        "freed": 2043,
+        "freed_format": "2.0 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/postgresql赋权给指定用户.md",
+        "freed": 1954,
+        "freed_format": "1.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/mariadb/ico.svg",
+        "freed": 1906,
+        "freed_format": "1.9 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/pureftp/ico.png",
+        "freed": 1680,
+        "freed_format": "1.6 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/scripts/pick_filter.txt",
+        "freed": 1643,
+        "freed_format": "1.6 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/clean/ico.png",
+        "freed": 1589,
+        "freed_format": "1.6 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/docker/ico.png",
+        "freed": 1499,
+        "freed_format": "1.5 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/varnish/ico.png",
+        "freed": 1437,
+        "freed_format": "1.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/data_query/ico.svg",
+        "freed": 1433,
+        "freed_format": "1.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/python_yf/ico.svg",
+        "freed": 1428,
+        "freed_format": "1.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/redis/ico.png",
+        "freed": 1426,
+        "freed_format": "1.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/apache/ico.png",
+        "freed": 1417,
+        "freed_format": "1.4 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/op_waf/test_cidr.lua",
+        "freed": 1220,
+        "freed_format": "1.2 KB"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/jdk/ico.png",
+        "freed": 972,
+        "freed_format": "972.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/php-guard/ico.png",
+        "freed": 900,
+        "freed_format": "900.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/op_load_balance/ico.png",
+        "freed": 853,
+        "freed_format": "853.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/mysql/README.md",
+        "freed": 848,
+        "freed_format": "848.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/ollama/ico.png",
+        "freed": 829,
+        "freed_format": "829.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/requirements.txt",
+        "freed": 827,
+        "freed_format": "827.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/webstats/ico.png",
+        "freed": 820,
+        "freed_format": "820.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/php/ico.png",
+        "freed": 785,
+        "freed_format": "785.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/php-apt/ico.png",
+        "freed": 785,
+        "freed_format": "785.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/php-yum/ico.png",
+        "freed": 785,
+        "freed_format": "785.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/文档/待完成.md",
+        "freed": 760,
+        "freed_format": "760.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/sphinx/ico.png",
+        "freed": 664,
+        "freed_format": "664.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/mongodb/ico.png",
+        "freed": 642,
+        "freed_format": "642.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/version/r3.6.txt",
+        "freed": 622,
+        "freed_format": "622.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/version/r3.7.txt",
+        "freed": 622,
+        "freed_format": "622.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/version/r3.8.txt",
+        "freed": 622,
+        "freed_format": "622.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/webssh/ico.png",
+        "freed": 504,
+        "freed_format": "504.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/scripts/init.d/yf.service.tpl",
+        "freed": 472,
+        "freed_format": "472.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/swap/ico.png",
+        "freed": 468,
+        "freed_format": "468.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/task_manager/ico.png",
+        "freed": 455,
+        "freed_format": "455.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/mysql/ico.png",
+        "freed": 388,
+        "freed_format": "388.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/scripts/init.d/yf-task.service.tpl",
+        "freed": 347,
+        "freed_format": "347.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/openresty/ico.png",
+        "freed": 344,
+        "freed_format": "344.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/plugins/rsyncd/ico.png",
+        "freed": 235,
+        "freed_format": "235.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/web/readme.md",
+        "freed": 182,
+        "freed_format": "182.0 B"
+      },
+      {
+        "action": "truncate",
+        "path": "F:/tmp/crlf_probe/ssl/README.md",
+        "freed": 14,
+        "freed_format": "14.0 B"
+      }
+    ],
+    "errors": []
+  }
+]

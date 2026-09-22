@@ -104,7 +104,21 @@ class TestMessageBoxAndPrefixLeakI18n(unittest.TestCase):
         console.log(JSON.stringify(results));
         """
         
-        res = subprocess.run(["node", "-e", js_runner], capture_output=True, text=True, encoding="utf-8")
+        # 不能把整段脚本塞进 `node -e`：Windows 有命令行长度上限，
+        # 实测报 FileNotFoundError: [WinError 206] 文件名或扩展名太长。
+        # 改成先落到临时文件再 `node <file>`（%TEMP% 上创建/删除都很快）。
+        import tempfile
+        fd, script_path = tempfile.mkstemp(suffix='.js', prefix='yf_i18n_probe_')
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as fp:
+                fp.write(js_runner)
+            res = subprocess.run(["node", script_path],
+                                 capture_output=True, text=True, encoding="utf-8")
+        finally:
+            try:
+                os.remove(script_path)
+            except OSError:
+                pass
         self.assertEqual(res.returncode, 0, f"Node.js error: {res.stderr}")
         data = json.loads(res.stdout.strip())
         
@@ -133,14 +147,20 @@ class TestMessageBoxAndPrefixLeakI18n(unittest.TestCase):
         bt_matches = re.findall(r"""t\(['"]bt\.[^'"]+['"]\)""", public_js_content)
         self.assertEqual(len(bt_matches), 0, f"Found legacy bt.* calls in public.js: {bt_matches}")
 
-        # 验证 messageBox 标题与组件调用正常
+        # 验证 messageBox 标题与组件调用正常。
+        # 注意：状态栏三项（memory_1 / uplink / downstream）已随 msg_box_sys_info
+        # 一起搬进模板 YF_TPL.msgBox（web/static/app/tpl/i18n_tpl.js），
+        # 在 public.js 里已不再有 t('public.xxx') 调用，改用 data-i18n 属性。
         self.assertIn("t('public.message_box'", public_js_content)
         self.assertIn("t('public.task_list'", public_js_content)
         self.assertIn("t('public.message_list'", public_js_content)
         self.assertIn("t('public.execution_log'", public_js_content)
-        self.assertIn("t('public.memory_1'", public_js_content)
-        self.assertIn("t('public.uplink'", public_js_content)
-        self.assertIn("t('public.downstream'", public_js_content)
+        tpl_path = os.path.join(APP_DIR, "tpl", "i18n_tpl.js")
+        with open(tpl_path, "r", encoding="utf-8") as f:
+            tpl_content = f.read()
+        for key in ("public.memory_1", "public.uplink", "public.downstream"):
+            self.assertIn(f'data-i18n=\\"{key}\\"', tpl_content,
+                          f"模板 YF_TPL.msgBox 缺少 {key} 的 data-i18n 绑定")
 
 if __name__ == "__main__":
     unittest.main()

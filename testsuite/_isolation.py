@@ -35,6 +35,9 @@ import utils.plugin as plugin_util
 1. `core.db.getPanelDir` → `<panel_tmp>`，并预建 `<panel_tmp>/data/`。
    面板 SQLite 的落点只有两处，都在 `web/core/db.py` 里经这个函数拼出来：
    `getPanelDir()+'/data/panel.db'`（:82）与 `getPanelDir()+'/data/<name>.db'`（:150）。
+   随后**按面板自己的建表 SQL 把假库建成 schema 合法的库**（见 `_seed_panel_db()`）——
+   留空库会让 `yf.M('option')` 报 `no such table`（被吞掉），
+   于是 `setOption()` 静默失败、回读得到 `{}`，用例假红。
 2. `yf.getServerDir` → `<server_tmp>`，并预建 `mysql/`、`mariadb/` 两个目录。
    探测代码会去扫 `<serverDir>/<mod>/<mod>.db`，目录不存在时 sqlite 会抛
    `unable to open database file`（被框架吞掉，但会脏 stderr）。
@@ -97,6 +100,9 @@ def isolate(prefix='yufeng_case', seed_mysql=True, redirect_panel=True):
         # 只改 core.db 内部这个函数（见模块 docstring 的说明）
         import core.db as _db
         _db.getPanelDir = lambda: panel_tmp
+        # 空库会让 `yf.M('option')` 报 no such table（被框架吞掉），
+        # 表现为「写进去读不回来」，用例假红。必须建成 schema 合法的库。
+        _seed_panel_db(panel_tmp)
 
     yf.getServerDir = staticmethod(lambda: server_tmp)
 
@@ -123,3 +129,44 @@ def _seed_mysql_db(path):
         conn.commit()
     finally:
         conn.close()
+
+
+#: 面板自己的建表 SQL（安装时由 `web/thisdb/init.py:initPanelData()` 执行）。
+PANEL_SQL_REL = os.path.join('web', 'admin', 'setup', 'sql', 'default.sql')
+
+
+def _seed_panel_db(panel_dir):
+    """把假面板库建成**schema 合法**的库（照面板安装流程执行建表 SQL）。
+
+    为什么不能留空库：`yf.M('option')` 这类调用会报 `no such table: option`，
+    而框架会把它吞掉，于是 `thisdb.setOption()` **静默失败**、回读得到 `{}`，
+    用例以「读不到刚写的数据」的形式假红。真实踩过：
+    `test_external_status_sync` 的两条 `runByCache` 用例（`'openresty' not found in {}`）。
+
+    语句切分方式与 `initPanelData()` 保持一致（按 `;` 切），单条失败不中断 ——
+    面板自己的实现也是这么容忍的（`default.sql` 里有少量 MySQL 方言残留）。
+    返回成功执行的语句数，便于用例/排查时确认种子是否生效。
+    """
+    sql_path = os.path.join(yf.getPanelDir(), PANEL_SQL_REL)
+    try:
+        with open(sql_path, 'r', encoding='utf-8') as fp:
+            content = fp.read()
+    except OSError:
+        return 0
+
+    conn = sqlite3.connect(os.path.join(panel_dir, 'data', 'panel.db'))
+    done = 0
+    try:
+        for stmt in content.split(';'):
+            stmt = stmt.strip()
+            if not stmt:
+                continue
+            try:
+                conn.execute(stmt)
+                done += 1
+            except sqlite3.Error:
+                pass
+        conn.commit()
+    finally:
+        conn.close()
+    return done

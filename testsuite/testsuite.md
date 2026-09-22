@@ -55,8 +55,9 @@ testsuite/
 ├── quarantine.txt              # 隔离区名单（已知红色用例 + 原因）
 ├── testsuite.md                # 本文件
 │
-├── test_*.py                   # 147 个用例模块（run_all.py 只认这个命名）
+├── test_*.py                   # 148 个用例模块（run_all.py 只认这个命名）
 ├── _isolation.py               # 共享助手：用例的进程级隔离（见 §5.9）
+│                               #   护栏用例：test_isolation_helper.py
 │
 ├── i18n_scripts/               # i18n 静态检查工具（被 i18n 用例 import）
 │   ├── i18n_langlib.py         #   语言包读写/键集工具
@@ -99,13 +100,17 @@ testsuite/
    本仓库历史上栽过这个跟头，所以这是硬性护栏。
 3. **隔离区反向检查**：`quarantine.txt` 里的模块**必须存在**且**必须仍然是红的**。
    一旦转绿 → 门禁直接失败，逼你回来把名单清理干净，避免隔离区烂成垃圾场。
-4. **兼容「脚本式用例」**：本仓库有一批历史用例没有 `TestCase`，而是模块级
-   `def test_xxx():` / `def run_tests():` 配 `if __name__ == '__main__':` 调用、
-   用裸 `assert` 断言。`-m unittest` 收集不到它们（得到 `Ran 0 tests`），
-   门禁会自动改用 `python testsuite/xxx.py` 执行，**以退出码为准**。
-   判定条件见 `run_all.py:script_style_tests()`：必须有 `__main__` 入口，
-   且全文真的出现过 `assert` —— 否则不算通过（没有断言的「测试」当脚本跑
-   等于什么都没做，是假绿）。
+4. **兼容「脚本式用例」**：本仓库有一批历史用例没有 `TestCase`，`-m unittest`
+   收集不到它们（得到 `Ran 0 tests`），门禁会自动改用 `python testsuite/xxx.py`
+   执行、**以退出码为准**。有两种形态：
+   - **(a) 函数入口式**：模块级 `def test_xxx():` / `def run_tests():` 配
+     `if __name__ == '__main__':` 调用，用裸 `assert` 断言。
+   - **(b) 顶层直线脚本**：0 个函数、连 `__main__` 都没有，整个模块就是脚本，
+     靠**模块级** `assert`（行首无缩进）断言（如 `test_op_waf_full_i18n.py` / `_v2.py`）。
+
+   判定见 `run_all.py:script_style_tests()`：必须「真的会执行到断言」才算数 ——
+   有 `def test_*()` 却没有 `__main__`、或全文一句 `assert` 都没有，当脚本跑
+   等于什么都没做，是**假绿**，一律不算通过。
 
 静态门禁（2 项，`--static` 只跑这些）直接调用仓库里的独立工具，不依赖本目录用例：
 
@@ -117,25 +122,34 @@ testsuite/
 ### 护栏自己也有测试：`test_gate_selftest.py`
 
 上面第 2、4 条护栏是**整套门禁的命门** —— 它们要是被改坏，门禁会静默退化成
-「永远全绿」，比没有门禁更危险。所以护栏本身有自证用例（19 项，约 1.2s）：
+「永远全绿」，比没有门禁更危险。所以护栏本身有自证用例（30 项，约 1.2s）：
 
-- `script_style_tests()` 的**五种**输入形态（脚本式 / `run_tests` / 有 `TestCase` /
-  有 `__main__` 无 `assert` / 有 `assert` 无 `__main__`）；
+- `script_style_tests()` 的**八种**输入形态（函数入口式 / `run_tests` /
+  **顶层直线脚本** / 有 `TestCase` / 有 `__main__` 无 `assert` /
+  有 `assert` 无 `__main__` / 顶层脚本但无 `assert` / 缩进的 `assert` 不算模块级）；
 - `RAN_RE` 对 `Ran 0 tests ... OK` 的识别（**假门禁防护**）；
 - `body_seconds()` / `overhead()` 的解析与「解析不到就不告警」；
+- `stale_reason()`：隔离原因里写的异常类型，在实际输出里找不到 → 判为「原因已过期」；
 - `discover_modules()` 只收 `test_*.py`、且**不会**把 `_isolation.py` 当用例；
+- **仓库级回归**：凡是有模块级 `assert` 的模块，都必须被识别为脚本式
+  （漏识别 = 门禁不执行它 = 隔离区对它的「意外转绿」检查彻底失明）；
 - **端到端**：临时生成一个「收集不到用例」的模块，`run_module()` 必须判红
   （探针写进 `testsuite/` 后立即删除；万一残留，门禁也会因它变红 —— 是「响」不是「静默」）。
 
 > 已做**变异自证**：把 `script_style_tests()` 的 `assert` 判定删掉、
-> 以及把「未收集到用例」那条分支改成放行，自证都会立刻变红。
+> 把「未收集到用例」那条分支改成放行、以及把「顶层脚本」支持退回旧逻辑，
+> 自证都会立刻变红（第三项实测报 2 个失败）。
 > 这正是本仓库对待检测器的一贯做法（同 `verify_i18n.py --self-test`）。
+>
+> 写这类护栏有一条铁律：**判定基准必须独立**。第一版 `test_no_module_...is_missed`
+> 复用了它要守护的 `gate.TOP_ASSERT_RE`，结果变异测试把两者一起打桩后，
+> 扫描集合变空、护栏「真空通过」。现在该用例改用本文件自定义的正则。
 
 ### 当前基线（2026-09-22 实测）
 
 ```
-用例：109 个参与门禁，38 个隔离；静态门禁 2 项；总耗时 75.4s
-参与门禁的用例共 721 个 test 方法
+用例：116 个参与门禁，32 个隔离；静态门禁 2 项；总耗时 81.8s
+参与门禁的用例共 763 个 test 方法
 ✅ 全部门禁通过，可以提交。
 ```
 
@@ -147,6 +161,12 @@ testsuite/
 > 的模块逐个做进程级隔离（见 §5.7 / §5.9）。当前 `⚑` 点名为 **0 个**。
 > 历史上耗时大头曾是 `plugins/data_query` 那批用例（无 MySQL/PostgreSQL/Redis 时
 > 连接探测要等 socket 超时，单次最长 ~250s），现已通过隔离消除。
+>
+> 隔离区两轮审计后：**38 → 32 条**，共救回 6 个模块（详见 §四）：
+> `test_files_delete_modal_i18n`、`test_op_waf_full_i18n`、`test_op_waf_full_i18n_v2`、
+> `test_data_query_i18n`、`test_plugin_initd_integration`、`test_external_status_sync`。
+> 参与门禁的用例 109 → 116（含新增的 `test_isolation_helper.py`），
+> test 方法 721 → 763。
 
 ---
 
@@ -160,11 +180,49 @@ testsuite/
   反向检查就是死代码，隔离区会静默腐烂。
 - 用例转绿后**必须**从名单里删掉，否则门禁报错。
 - **隔离 ≠ 删除**：它仍然会被执行（`[QUAR]` 标记），只是失败不计入门禁结果。
+- 原因文字也会被**弱校验**：门禁比对该模块本次实际输出，如果原因里写的异常类型
+  （`AssertionError` / `ModuleNotFoundError` …）在实际输出里**一个字都找不到**，
+  就提示「名单可能已过期」。这条**只提示、不影响退出码**（避免因为一句注释卡住提交）。
 
 常见的隔离原因分三类：
 - **环境缺依赖**：`jinja2` / `packaging` / `flask` 未安装。
 - **断言过时**：把实现细节当契约写死（如写死 `resetPluginWinHeight(620);`）。
 - **功能已移除/重构**：用例对应的旧实现已不存在。
+
+### 隔离区会以两种方式腐烂（都要防）
+
+| 腐烂方式 | 谁能发现 | 处理 |
+|---|---|---|
+| 用例其实已经修好，却还挂在名单里 | 门禁**自动**发现（反向检查 → 直接失败） | 从名单删除 |
+| 用例还是红的，但**红的原因**已经和名单里写的不一样 | 门禁提示（`stale_reason()`，只警告） | 改原因文字；若能过就删条目 |
+
+第二种是真实踩过的坑：曾有两条写着「未收集到用例（导入失败）」的条目，
+实际原因一个是引用了**已删除**的 `plugins/caddy/js/caddy.js`，
+一个是 `clean` 插件白名单拒绝 `%TEMP%` 下的 mock 目录 —— 原因文字完全是错的，
+后人照着它排查会走大弯路。
+
+> **排查手法**：对每条隔离条目都**实跑一次**，并且 `-m unittest` 与
+> `python testsuite/xxx.py` **两种跑法都试**。脚本式用例在 `-m unittest` 下
+> 永远只得到 `Ran 0 tests`，光看这个数字会误判成「导入失败」。
+
+### 隔离区审计记录：救回 6 个模块（38 → 32 条）
+
+| 模块 | 真实根因 | 修法 |
+|---|---|---|
+| `test_files_delete_modal_i18n.py` | ① `PROJECT_ROOT` 未定义（迁移遗漏）② node 子进程**永不退出**（`public.js` 顶层 `setInterval` 挂住事件循环）③ `r"""` 原始字符串里 `'\\n'` 被原样送进 JS，污染 stdout | 改用 `BASE_DIR`；node 侧 `process.exit(0)` 显式退出；单反斜杠；`subprocess.run(timeout=120)` 兜底 |
+| `test_op_waf_full_i18n.py` | 写死的键**缺 emoji 前缀与全角冒号**（源码是 `pt('💡 服务操作说明')`、`pt('：仅重新启动…')`、`pt('🛡️ 核心过滤规则统计')`） | 删掉「不带前缀」的历史遗留键（译文在 4 种语言里都齐全） |
+| `test_op_waf_full_i18n_v2.py` | 键用字面 `<`，源码用的是 `&lt;` 实体 | 保留实体版、删字面版 |
+| `test_data_query_i18n.py` | 键缺冒号（源码是 `pt('远程:')` / `pt('远程: ')`，没有裸 `远程`）；`变量` / `慢日志` / 裸 `常用` 对应的 UI 已移除（底部 `.tab-nav` 只剩进程/状态/统计） | 删掉 4 个过时键 |
+| `test_plugin_initd_integration.py` | 引用**已移除**的 `plugins/caddy`（该插件在 `待审核/` 里，不算正式插件） | 从文件列表剔除 caddy |
+| `test_external_status_sync.py` | 同上，**外加** `isolate()` 的假面板库缺 `option` 表 → `setOption()` 静默失败 → `'openresty' not found in {}` | 剔除 caddy；`_isolation._seed_panel_db()` 按面板安装流程补种建表 SQL（见 §5.9） |
+
+> 后两个模块暴露的规律：**引用已删除插件/UI 的用例，永远不可能转绿**。
+> 修法不是改断言值，而是把「已经不存在的东西」从被测集合里拿掉。
+>
+> 另外 `test_task_manager_i18n.py` 与 `test_plugin_i18n_complete.py` 是**内容决策**
+> 而非机械错误（前者英文措辞 3 处不一致，其中 `进程 → 'process'` 小写疑似语言包缺陷；
+> 后者键「日志清理」在 6 个语言包里都挂着「磁盘清理」的译文、而源码从未调用它），
+> 已把隔离原因改写成可操作的描述，**留给人工定夺，未擅自改动任一侧**。
 
 ---
 
@@ -376,6 +434,18 @@ import utils.plugin as plugin_util      # 现在打开的是临时库
 - **光换 serverDir 会抽走自动探测的输入**，用例静默变空
   （`test_data_query_remotedb` 就报过 `缺少本地 MySQL 项`）——所以必须补那份假 MySQL。
 - 脚本式用例没有 `setUpClass`，就在模块级 `import` 之后、其它项目模块之前调用。
+- **假面板库必须是 schema 合法的，不能是空文件**（`isolate()` 已内置）。
+  只造空文件的话，`yf.M('option')` 会报 `no such table: option` —— 而这个异常
+  **会被框架吞掉**，于是 `thisdb.setOption()` 静默失败、紧接着回读得到 `{}`，
+  用例以「读不到刚写进去的数据」的形式**假红**，排查方向被彻底带偏。
+  实测踩过：`test_external_status_sync` 的两条 `runByCache` 用例报
+  `AssertionError: 'openresty' not found in {}`，根因是隔离后假库缺表，
+  **不是被测逻辑有问题**。
+  修法：`_isolation._seed_panel_db()` 照面板安装流程执行
+  `web/admin/setup/sql/default.sql`（14 张表 + 1 条默认 `firewall` 记录，
+  与真实全新安装一致；临时库 135KB，开销可忽略）。
+  回归护栏：`testsuite/test_isolation_helper.py`（6 项，0.003s）——
+  钉住「有 `option` 表」「列齐全」「`setOption`→`getOption` 能往返」。
 
 **但有两类模块「不能」隔离 —— 加之前先想清楚：**
 

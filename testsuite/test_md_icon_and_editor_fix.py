@@ -99,12 +99,15 @@ class TestMdIconAndEditorFix(unittest.TestCase):
         self.assertEqual(len(toggle_matches), 2, f"auto-refresh-toggle 出现次数异常: {len(toggle_matches)}")
 
         # 3. 验证 content 表单只包含单个 form 与单个 textarea
-        content_match = re.search(r'content:\s*[\'"]<form[\s\S]*?</form>[\'"]', func_body)
-        self.assertIsNotNone(content_match, "未找到有效的 content 表单定义")
-        form_content = content_match.group(0)
-        self.assertEqual(form_content.count("<form"), 1, "content 中不应出现多个 <form")
-        self.assertEqual(form_content.count("id=\"textBody\""), 1, "content 中不应出现多个 #textBody")
-        self.assertEqual(form_content.count("name=\"encoding\""), 1, "content 中不应出现多个 encoding 下拉框")
+        # content 现在优先走模板 YF_TPL.onlineEdit（web/static/app/tpl/i18n_tpl.js），
+        # 内联的 '<form ...>' 只剩兜底分支，所以不能再要求 content: 后面紧跟 '<form'。
+        # 改为直接数函数体里的元素个数，并确认模板分支存在。
+        self.assertIn("YF_TPL.onlineEdit", func_body,
+                      "content 未优先使用 YF_TPL.onlineEdit 模板")
+        self.assertEqual(func_body.count("<form"), 1, "content 中不应出现多个 <form")
+        self.assertEqual(func_body.count("</form>"), 1, "content 中不应出现多个 </form>")
+        self.assertEqual(func_body.count('id="textBody"'), 1, "content 中不应出现多个 #textBody")
+        self.assertEqual(func_body.count('name="encoding"'), 1, "content 中不应出现多个 encoding 下拉框")
 
         # 4. 验证 title 无残留孤立 "]"
         self.assertNotIn('f + "]"', func_body, "title 中不应残留孤立的 + \"]\"")

@@ -587,3 +587,26 @@
 - [x] 367. 对自证做**变异自证**：① 删掉 `script_style_tests()` 的 `assert` 判定 → 自证变红；② 把「未收集到任何用例」分支改成放行 → 自证变红（`收集不到用例的模块必须判红，否则门禁是假绿`）。两次变异后均已恢复，`git diff testsuite/run_all.py` 为空
 - [x] 368. 干净克隆复核：隐藏 `test/` 后 8 个代表模块行为一致、`test_repo_contract` 14/14 通过 ⇒ 新增的 `testsuite/_isolation.py` 在无 `test/` 的克隆上可用；`⚑` 盲区（脚本式用例）已核实无害（16 个脚本式用例最慢 14.8s）
 - [x] 369. 最终态复核：`gate_rc=0`，**109 个用例参与 / 38 个隔离 / 721 个 test 方法 / 75.4s**，`⚑` 0 个
+- [x] 370. **隔离区审计**：把 38 条隔离条目**逐条实跑**（`-m unittest` 与 `python testsuite/xxx.py` **两种跑法都试** —— 脚本式用例在 `-m unittest` 下永远只得到 `Ran 0 tests`，光看这个数字会误判成「导入失败」）。分类结论：夹具被 gitignore 2 条（`phrases_full`）、本机缺依赖 8 条（`jinja2`×3 / `packaging`×4 / `flask`×1，`requirements.txt` 其实已声明）、引用已删除插件 2 条（`plugins/caddy` 不存在）、其余为断言过时
+- [x] 371. 修好 `test_files_delete_modal_i18n.py` 并**摘出隔离区（38 → 37）**。三层问题叠加：① `PROJECT_ROOT` 未定义（迁移遗漏，文件顶部已有等价的 `BASE_DIR`）；② node 子进程**永不退出** —— `public.js` 顶层有 `setInterval`（1703/2075/2292/2468 行），事件循环被挂住，`subprocess.run` 无限等待，实测卡死 **3 分钟以上**；③ 修好 ② 后 `json.loads` 报 `Extra data: line 1 column 1158` —— 因为 Python 侧是 `r"""` 原始字符串，写 `'\\n'` 会被原样送进 JS，变成「反斜杠 + n」两个字面字符污染 stdout。三处全修后 `Ran 5 tests in 2.644s / OK`
+- [x] 372. 给该用例的 `subprocess.run` 加 `timeout=120` 兜底：让未来的挂死变成**干净的断言失败**，而不是拖死整套门禁
+- [x] 373. 修正两条**过期的隔离原因**（原文都是「未收集到用例（导入失败）」，写于脚本式支持之前，与真实失败完全对不上）：`test_plugin_initd_integration.py` 真实原因是引用**已删除**的 `plugins/caddy/js/caddy.js`（`FileNotFoundError`）；`test_clean_plugin_v2.py` 真实原因是 `clean` 插件白名单拒绝 `%TEMP%` 下的 mock 目录（`AssertionError: 路径超出受控白名单范围`）
+- [x] 374. `run_all.py` 新增 `stale_reason()`：比对「隔离原因里写的异常类型」与「本次实际输出」，对不上就提示「名单可能已过期」。**只提示、不影响退出码**（避免因为一句注释卡住提交）。首次全量跑，37 条**零告警**
+- [x] 375. 揪出并修掉门禁的一个**失明漏洞**：`script_style_tests()` 原先硬性要求 `if __name__ == '__main__':`，而 `test_op_waf_full_i18n.py` / `_v2.py` 是**顶层直线脚本**（0 个函数、无 `__main__`、靠模块级 `assert` 断言）——门禁因此**从不执行它们**，判红只是因为「收集不到用例」，隔离区的「意外转绿」反向检查对它们**彻底失明**（将来修好了也发现不了）。新增 `TOP_ASSERT_RE` + `TOP_SCRIPT_MARKER`，这类模块也改跑 `python testsuite/xxx.py`。修后两模块从 `0项` 变 `1项`，实跑退出码 1、`AssertionError` 与隔离原因逐字一致
+- [x] 376. `test_gate_selftest.py` 19 项 → **30 项**：新增 `TestStaleQuarantineReason`（7 项）+ 顶层脚本识别 4 项，其中含一条**仓库级回归护栏**（凡有模块级 `assert` 的模块都必须被识别为脚本式，漏识别 = 门禁不执行它）
+- [x] 377. **写护栏的铁律：判定基准必须独立**。第一版回归护栏复用了它要守护的 `gate.TOP_ASSERT_RE`，变异测试把两者一起打桩后扫描集合变空 → 护栏「**真空通过**」。改用测试文件自带的正则后，变异实测报 **2 个失败**（此前只报 1 个）
+- [x] 378. 变异自证第三项：把「顶层脚本」支持退回旧逻辑 → 自测变红 2 项；恢复后 30 项全绿。三项变异（删 `assert` 判定 / 放行「未收集到用例」/ 退回顶层脚本）均已验证有效
+- [x] 379. 最终态：`gate_rc=0`，**110 个用例参与 / 37 个隔离 / 737 个 test 方法 / 82.8s**，`⚑` 0 个、隔离原因过期告警 0 个；改动文件换行符全部 `i/lf w/lf`；未跟踪临时文件全在 `test/`
+- [x] 380. 核实「跑门禁会脏工作树」的疑点：`plugins/php-apt/plugin_version.pl` 一度显示 ` M`，`git update-index --refresh` 后消失、`git diff` 为空 ⇒ 只是 mtime 被碰过，**内容零变化**，不是副作用缺陷
+- [x] 381. **隔离区审计（续）：给 i18n 类失败定性**。逐条实跑后结论 —— 它们**都不是真漏翻译**，而是测试里**写死的键与源码 `pt()` 实参不一致**：`服务操作说明` 实为 `💡 服务操作说明`（emoji 前缀）、`（<5%…）` 实为 `（&lt;5%…）`（HTML 实体）、`远程` 实为 `远程:`（冒号）、`慢日志`/`变量`/裸 `常用` 对应的 UI 已移除。译文在 4 种外语里都齐全且无中文残留
+- [x] 382. 建通用审计工具 `test/i18n_key_audit.py`：用 **AST 提取**（不执行模块）测试里写死的键列表，逐个去插件语言包核对，报出「缺失键 + 最接近的真实键」，一眼区分「真漏翻译」与「键写法过时」
+- [x] 383. 修 `test_op_waf_full_i18n.py`（顶层脚本）：删掉「不带 emoji / 不带全角冒号」的历史遗留键 → **4 组测试全通过**
+- [x] 384. 修 `test_op_waf_full_i18n_v2.py`：字面 `<` 改成实体 `&lt;` → 通过
+- [x] 385. 修 `test_data_query_i18n.py`：删 4 个过时键（源码是 `pt('远程:')`/`pt('远程: ')`，没有裸 `远程`；底部 `.tab-nav` 只剩进程/状态/统计）→ `Ran 4 tests in 0.008s / OK`
+- [x] 386. 修 `test_plugin_initd_integration.py`：剔除**已移除**的 `plugins/caddy`（该插件在 `待审核/` 里，不算正式插件；仓库文档 `plugins/i18n_遗留问题升级方案.md:115` 早有记录）→ `ALL 5 SUITES PASSED`
+- [x] 387. 修 `test_external_status_sync.py`：同样剔除 caddy，并**修掉我自己上一轮引入的隔离回归**（见下条）
+- [x] 388. **揪出并修复 `isolate()` 的回归**：假面板库是**空文件**，`yf.M('option')` 报 `no such table: option` —— 而这个异常**被框架吞掉**，于是 `thisdb.setOption()` 静默失败、回读得到 `{}`，用例以「读不到刚写的数据」的形式**假红**（`AssertionError: 'openresty' not found in {}`），排查方向被彻底带偏。新增 `_isolation._seed_panel_db()`：照面板安装流程执行 `web/admin/setup/sql/default.sql`（14 张表 + 1 条默认 `firewall` 记录，与真实全新安装一致；临时库 135KB，开销可忽略）。修后 `Ran 9 tests / OK`
+- [x] 389. 新增护栏 `testsuite/test_isolation_helper.py`（6 项，0.003s）：钉住「假面板库有 `option` 表」「列齐全（name/type/value）」「`setOption`→`getOption` 能往返」「同键重复写要覆盖」「serverDir 已重定向且预建 `mysql/`+`mariadb/`」。**变异自证**：把 `_seed_panel_db` 打桩成空操作 → 假库零表、断言失败 ⇒ 护栏真的会「响」
+- [x] 390. 修正 4 条过期的隔离原因（`test_clean_plugin_v2` / `test_plugin_initd_integration` / `test_task_manager_i18n` / `test_plugin_i18n_complete`），把「内容决策」类明确标注为「需人工定夺，勿盲目改任一侧」
+- [x] 391. 明确**保留不动**的两类：① 环境缺依赖 8 条（`jinja2`×3 / `packaging`×4 / `flask`×1，`requirements.txt` 已声明，属本机环境缺口而非仓库缺陷）② 内容决策类（`task_manager` 英文措辞 3 处不一致，其中 `进程 → 'process'` 小写疑似语言包缺陷；`clean` 语言包键「日志清理」在 6 个语言包里都挂着「磁盘清理」的译文、而源码从未调用 `pt('日志清理')`）。另修掉 `test_plugin_i18n_complete.py` 里明确的插件数错误（38 → 36，与 `test_repo_contract.py` 的契约一致）
+- [x] 392. 最终态：`gate_rc=0`，**116 个用例参与 / 32 个隔离 / 763 个 test 方法 / 81.8s**；隔离区 **38 → 32**，两轮共救回 **6 个模块**；`⚑` 0 个、隔离原因过期告警 0 个

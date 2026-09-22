@@ -22,11 +22,16 @@ class TestPluginI18nComplete(unittest.TestCase):
         ])
 
     def test_plugins_count(self):
-        """验证全部 38 个插件存在且拥有 lang 目录"""
-        self.assertEqual(len(self.plugins), 38, f"预期 38 个插件，实际发现 {len(self.plugins)} 个")
+        """验证全部 36 个插件存在且拥有 lang 目录
+
+        口径 = `plugins/` 下有 `lang/` 的子目录数（37 个目录减去无 `lang/` 的 `待审核`），
+        与 `test_repo_contract.py` 的 `EXPECTED_PLUGIN_COUNT` 保持一致。
+        这里曾写死 38（历史插件数），插件被移除后就成了永远失败的死断言。
+        """
+        self.assertEqual(len(self.plugins), 36, f"预期 36 个插件，实际发现 {len(self.plugins)} 个")
 
     def test_all_languages_files_exist_and_valid_json(self):
-        """验证 38 个插件 × 6 种语言共 228 个文件全部存在且能正确解析为合法 JSON"""
+        """验证 36 个插件 × 6 种语言共 216 个文件全部存在且能正确解析为合法 JSON"""
         for p in self.plugins:
             lang_dir = os.path.join(PLUGINS_DIR, p, "lang")
             for lang in LANGS:

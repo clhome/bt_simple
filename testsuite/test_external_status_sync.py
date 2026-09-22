@@ -133,12 +133,15 @@ class TestExternalStatusSync(unittest.TestCase):
         self.assertIn('window.refreshExternalPluginStatus(name)', content)
         self.assertIn('_t=', content)
 
-    def test_openresty_apache_caddy_js_modifications(self):
-        """验证 openresty.js、apache/httpd.js 与 caddy.js 中服务操作成功时触发外部刷新且形参无冲突"""
+    def test_openresty_apache_js_modifications(self):
+        """验证 openresty.js 与 apache/httpd.js 中服务操作成功时触发外部刷新且形参无冲突
+
+        注：本用例原先还覆盖 `plugins/caddy/js/caddy.js`，但 caddy 插件已从仓库移除
+        （`plugins/caddy/` 不存在），对它的断言永远不可能通过，故已剔除。
+        """
         for rel_path in [
             os.path.join('plugins', 'openresty', 'js', 'openresty.js'),
-            os.path.join('plugins', 'apache', 'js', 'httpd.js'),
-            os.path.join('plugins', 'caddy', 'js', 'caddy.js')
+            os.path.join('plugins', 'apache', 'js', 'httpd.js')
         ]:
             js_path = os.path.join(BASE_DIR, rel_path)
             self.assertTrue(os.path.exists(js_path), f"File {rel_path} does not exist")
@@ -148,11 +151,13 @@ class TestExternalStatusSync(unittest.TestCase):
             self.assertIn('function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback)', content)
 
     def test_index_html_dynamic_timestamps(self):
-        """验证 openresty, apache, caddy 的 index.html 中加载 JS 带有动态时间戳防缓存"""
+        """验证 openresty、apache 的 index.html 中加载 JS 带有动态时间戳防缓存
+
+        注：同 `test_openresty_apache_js_modifications`，caddy 已移除。
+        """
         for rel_path in [
             os.path.join('plugins', 'openresty', 'index.html'),
-            os.path.join('plugins', 'apache', 'index.html'),
-            os.path.join('plugins', 'caddy', 'index.html')
+            os.path.join('plugins', 'apache', 'index.html')
         ]:
             html_path = os.path.join(BASE_DIR, rel_path)
             self.assertTrue(os.path.exists(html_path), f"File {rel_path} does not exist")

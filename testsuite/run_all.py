@@ -19,15 +19,16 @@
    —— 这正是本仓库历史上栽过的跟头。
 3. **隔离区（quarantine.txt）**：已知的、与本次改动无关的红色用例。它们不影响
    门禁结果，但门禁会**反向检查它们是否意外转绿**，转绿即报错，强制有人去清理名单，
-   避免隔离区变成垃圾场。
+   避免隔离区变成垃圾场。此外还会检查「名单里写的原因是否还和实际失败对得上」
+   （见 `stale_reason()`）—— 那部分只提示、不影响退出码。
 4. **静态门禁与用例分开**：静态检查（i18n 9 项、检测器自证）是纯标准库、
    无副作用的，`--static` 可以秒级跑完，适合编辑过程中反复跑。
-5. **兼容「脚本式用例」**：本仓库有一批历史用例是模块级 `def test_*()` +
-   `if __name__ == '__main__':` 的形式（无 `TestCase`），`-m unittest` 收集不到。
-   这类模块自动改用 `python testsuite/xxx.py` 执行，以**退出码**为准；
-   判定条件见 `script_style_tests()` —— 必须有 `__main__` 入口、且文件里真的
-   有 `assert`，否则不算通过（没有入口 / 没有断言的「测试」当脚本跑等于
-   什么都没做，是假绿）。
+5. **兼容「脚本式用例」**：本仓库有一批历史用例是脚本式的，`-m unittest` 收集不到，
+   这类模块自动改用 `python testsuite/xxx.py` 执行，以**退出码**为准。有两种形态：
+   （a）模块级 `def test_*()` + `if __name__ == '__main__':`；
+   （b）**顶层直线脚本** —— 0 个函数、连 `__main__` 都没有，靠模块级 `assert` 断言。
+   两者都必须「真的会执行到断言」才算数，判定见 `script_style_tests()`：
+   没有入口 / 没有断言的「测试」当脚本跑等于什么都没做，是假绿。
 
 6. **给子进程独立的删除计数域**：见 `child_env()` 的说明。不这么做，
    WorkBuddy 沙箱的批量删除守卫会把正常的 `tearDown` 清理拦成 `SystemExit(1)`。
@@ -59,6 +60,11 @@ OVERHEAD_WARN_SECONDS = 20.0
 SCRIPT_ENTRY_RE = re.compile(r'^def (test_\w+|run_tests|run_all_tests)\s*\(', re.M)
 MAIN_BLOCK_RE = re.compile(r'''^if\s+__name__\s*==\s*['"]__main__['"]\s*:''', re.M)
 ASSERT_RE = re.compile(r'^\s*assert\b', re.M)
+# 「顶层直线脚本」：整个模块就是脚本（0 个函数、无 `__main__`），
+# 靠模块级 `assert`（**行首、无缩进**）做断言。`python testsuite/xxx.py` 会直接执行它们。
+TOP_ASSERT_RE = re.compile(r'^assert\b', re.M)
+# 顶层脚本没有函数入口，用这个哨兵充当它的「入口名」，只用于计数与显示。
+TOP_SCRIPT_MARKER = '<模块级脚本>'
 
 # --------------------------------------------------------------------------
 # 子进程环境：绕开沙箱「批量删除守卫」对本门禁的误伤
@@ -96,16 +102,22 @@ def child_env(scope):
 
 
 def script_style_tests(path):
-    """返回「脚本式用例」的测试函数名；不是脚本式用例则返回空列表。
+    """返回「脚本式用例」的入口名列表；不是脚本式用例则返回空列表。
 
     本仓库有一批历史用例是脚本式的：模块级 `def test_xxx():`（或 `run_tests()`）
     配 `if __name__ == '__main__':` 调用，用裸 `assert` 断言。
     `python -m unittest` **收集不到**它们（只会得到 `Ran 0 tests`），
     必须改用 `python testsuite/xxx.py` 执行、以退出码为准。
 
-    返回空列表的三种情况都不能算通过：
+    还有第二种形态：**顶层直线脚本** —— 0 个函数、连 `__main__` 都没有，
+    整个模块就是脚本，模块级 `assert` 在 `python testsuite/xxx.py` 时直接执行
+    （例：`test_op_waf_full_i18n.py` / `_v2.py`）。这类模块同样收不到，
+    但**它是真的会跑**，所以必须识别出来；否则门禁永远执行不了它，
+    隔离区的「意外转绿」反向检查对它也就彻底失明。
+
+    返回空列表的情况都不能算通过：
     - 含 `TestCase` → 走正常 unittest 路径；
-    - 没有 `__main__` 入口 → 当脚本跑等于什么都没执行，是假绿；
+    - 有 `def test_*()` 但**没有 `__main__` 入口** → 当脚本跑什么都没执行，是假绿；
     - 全文没有 `assert` → 同样是「跑了但没验证」，是假绿。
     """
     try:
@@ -115,11 +127,15 @@ def script_style_tests(path):
         return []
     if 'unittest.TestCase' in src:
         return []
-    if not MAIN_BLOCK_RE.search(src):
-        return []
     if not ASSERT_RE.search(src):
         return []
-    return SCRIPT_ENTRY_RE.findall(src)
+    names = SCRIPT_ENTRY_RE.findall(src)
+    if MAIN_BLOCK_RE.search(src) and names:
+        return names
+    # 顶层直线脚本：没有函数入口，但只要模块级有 `assert`，当脚本跑就真的在验证。
+    if TOP_ASSERT_RE.search(src):
+        return [TOP_SCRIPT_MARKER]
+    return []
 
 # 静态门禁：不依赖 testsuite/ 下的用例，直接调用仓库里的独立工具
 STATIC_GATES = [
@@ -236,6 +252,28 @@ def overhead(r):
     return max(0.0, r['secs'] - r['body'])
 
 
+# 隔离原因里记录的异常类型。例：`ModuleNotFoundError: No module named 'jinja2'`
+# → 取 `ModuleNotFoundError`。
+EXC_IN_REASON_RE = re.compile(r'\b([A-Za-z_]\w*(?:Error|Exception|Exit))\b')
+
+
+def stale_reason(reason, text):
+    """隔离原因里写的异常类型，在本次实际输出里完全找不到 → 原因疑似已过期。
+
+    隔离区每次门禁都会被实跑，所以「意外转绿」能自动发现；但「原因文字与实际
+    失败对不上」没人会发现，名单会慢慢变成误导后人的假线索（本仓库就出现过：
+    两条写着「未收集到用例（导入失败）」的条目，真实原因是引用了已删除的
+    `plugins/caddy/...`、以及插件白名单拒绝 `%TEMP%` 路径）。
+
+    这里只做**弱校验**：仅当原因里明确写了异常类型、而该类型在输出里一个字都
+    找不到时才判为过期。原因是纯中文描述、或输出被截断时，一律不判（宁可漏报）。
+    """
+    m = EXC_IN_REASON_RE.search(reason or '')
+    if not m:
+        return False
+    return m.group(1) not in (text or '')
+
+
 # --------------------------------------------------------------------------
 # 主流程
 # --------------------------------------------------------------------------
@@ -305,6 +343,19 @@ def main():
         print('⚠ 以下隔离用例「意外转绿」，请从 quarantine.txt 移除（否则隔离区会烂掉）：')
         for r in unexpected_green:
             print(f'    {r["name"]}  —— 原隔离原因：{quarantine[r["name"]]}')
+
+    # 隔离区的另一半腐烂方式：模块还是红的，但红的原因已经和名单里写的对不上了。
+    # 这种不会影响门禁结果，所以只提示、不失败（避免因为一句注释卡住提交）。
+    stale = [r for r in quarantined
+             if not r['ok'] and stale_reason(quarantine[r['name']], r.get('text'))]
+    if stale:
+        print()
+        print(f'⚠ {len(stale)} 个隔离用例的「原因文字」和本次实际失败对不上，名单可能已过期：')
+        for r in stale:
+            print(f'    {r["name"]}  —— 记录的原因：{quarantine[r["name"]]}')
+        print('    · 请重跑该模块，把 quarantine.txt 里的原因改成真实失败；')
+        print('      如果它其实已经能过，就直接从名单里删掉。')
+        print('    · 只是提示，不影响门禁退出码。')
 
     heavy = sorted([r for r in cases if overhead(r) >= OVERHEAD_WARN_SECONDS],
                    key=overhead, reverse=True)

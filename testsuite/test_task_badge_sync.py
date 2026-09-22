@@ -87,7 +87,12 @@ class TestTaskBadgeSync(unittest.TestCase):
             content = f.read()
 
         self.assertIn("$.post('/plugins/init_install'", content)
-        init_install_section = content[content.find("$.post('/plugins/init_install'"):content.find("$.post('/plugins/init_install'") + 300]
+        # 原来取固定 300 字符窗口，回调里多了 localStorage 兜底和 showMsg 包装后
+        # getTaskCount() 被挤出窗口，用例假红。改成按语句边界截取整段回调。
+        start = content.find("$.post('/plugins/init_install'")
+        end = content.find(",'json')", start)
+        self.assertGreater(end, start, "未找到 init_install 的 json 回调收尾")
+        init_install_section = content[start:end]
         self.assertIn("getTaskCount();", init_install_section)
 
     def test_04_backend_task_count_route_and_db(self):

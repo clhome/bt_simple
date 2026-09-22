@@ -100,7 +100,18 @@ class TestUninstallModalI18n(unittest.TestCase):
             self.assertEqual(p.returncode, 0, f"[{lang}] lan.js 语法错误: {p.stderr}")
 
     def test_05_runtime_translation(self):
-        """测试各语言在浏览器环境下的运行时实际翻译值"""
+        """测试各语言在浏览器环境下的运行时实际翻译值
+
+        这里断言的是**不变量**，不是冻结的文案 —— 原来把六种语言的
+        prefix/suffix/backup 逐字写死，文案一改（例如英文从
+        "Are you sure you want to uninstall 【" 变成
+        "Do you really want to uninstall ["）用例就假红，
+        而真正的缺陷反而可能被忽略。现在检查：
+          · 三个键都能解析出非空值，且不残留 `soft.` 前缀（键泄漏）；
+          · prefix 含开括号、suffix 含闭括号（确认框是 prefix+库名+suffix 拼的）；
+          · 西欧语言（en/de/fr/it）的值里不得出现中日韩字符或全角标点；
+          · 备份提示必须提到 /www/backup。
+        """
         i18n_path = os.path.join(BASE_DIR, "web", "static", "app", "i18n.js").replace("\\", "/")
         lang_dir_path = LANG_DIR.replace("\\", "/")
 
@@ -112,40 +123,11 @@ class TestUninstallModalI18n(unittest.TestCase):
         const langDir = '__LANG_DIR__';
         const i18nJs = fs.readFileSync('__I18N_PATH__', 'utf8');
 
-        const expectations = {
-            'en': {
-                prefix: 'Are you sure you want to uninstall 【',
-                suffix: '】?',
-                backup: 'Pack and back up data to /www/backup (.tar.gz) before uninstalling'
-            },
-            'de': {
-                prefix: 'Möchten Sie wirklich 【',
-                suffix: '】 deinstallieren?',
-                backup: 'Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)'
-            },
-            'fr': {
-                prefix: 'Voulez-vous vraiment désinstaller 【',
-                suffix: '】 ?',
-                backup: 'Emballez et sauvegardez les données sur /www/backup (.tar.gz) avant de désinstaller'
-            },
-            'it': {
-                prefix: 'Vuoi davvero disinstallare 【',
-                suffix: '】?',
-                backup: 'Comprimere ed eseguire il backup dei dati su /www/backup (.tar.gz) prima di disinstallare'
-            },
-            'zh-TW': {
-                prefix: '您真的要卸載【',
-                suffix: '】嗎？',
-                backup: '卸載前將數據打包備份到 /www/backup (.tar.gz)'
-            },
-            'zh-CN': {
-                prefix: '您真的要卸载【',
-                suffix: '】吗？',
-                backup: '卸载前将数据打包备份到 /www/backup (.tar.gz)'
-            }
-        };
+        // 中日韩汉字 + 全角标点（】、？、【 等都落在这里）
+        const CJK = /[\\u3000-\\u303f\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff\\uff00-\\uffef]/;
+        const WESTERN = ['en', 'de', 'fr', 'it'];
 
-        for (const [lang, exp] of Object.entries(expectations)) {
+        for (const lang of ['en', 'de', 'fr', 'it', 'zh-TW', 'zh-CN']) {
             const lanJs = fs.readFileSync(path.join(langDir, lang, 'lan.js'), 'utf8');
             const sandbox = {
                 window: {},
@@ -164,9 +146,21 @@ class TestUninstallModalI18n(unittest.TestCase):
             const suff = vm.runInContext("t('soft.uninstall_confirm_suffix')", ctx);
             const bkp = vm.runInContext("t('soft.uninstall_backup_tip')", ctx);
 
-            if (pref !== exp.prefix) throw new Error(`[${lang}] prefix mismatch: got '${pref}', expected '${exp.prefix}'`);
-            if (suff !== exp.suffix) throw new Error(`[${lang}] suffix mismatch: got '${suff}', expected '${exp.suffix}'`);
-            if (bkp !== exp.backup) throw new Error(`[${lang}] backup mismatch: got '${bkp}', expected '${exp.backup}'`);
+            const problems = [];
+            const vals = [['prefix', pref], ['suffix', suff], ['backup', bkp]];
+            for (const [name, v] of vals) {
+                if (!v) { problems.push(name + ' 为空或未解析'); continue; }
+                if (String(v).indexOf('soft.') === 0) { problems.push(name + ' 键泄漏: ' + v); }
+            }
+            if (pref && !/[\\[【]/.test(pref)) problems.push('prefix 缺开括号: ' + pref);
+            if (suff && !/[\\]】]/.test(suff)) problems.push('suffix 缺闭括号: ' + suff);
+            if (bkp && bkp.indexOf('/www/backup') < 0) problems.push('backup 未提到 /www/backup: ' + bkp);
+            if (WESTERN.indexOf(lang) >= 0) {
+                for (const [name, v] of vals) {
+                    if (v && CJK.test(v)) problems.push(name + ' 混入中日韩字符/全角标点: ' + v);
+                }
+            }
+            if (problems.length) throw new Error('[' + lang + '] ' + problems.join(' | '));
         }
         console.log('ALL RUNTIME TRANSLATIONS PASS');
         """.replace('__LANG_DIR__', lang_dir_path).replace('__I18N_PATH__', i18n_path)

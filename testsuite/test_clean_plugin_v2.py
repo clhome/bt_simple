@@ -67,6 +67,13 @@ def test_truncate_and_non_ext_logs():
     # 也不放仓库目录（本机 F: 盘单次删除要 5.15s，%TEMP% 只要 0.01s）
     mock_dir = tempfile.mkdtemp(prefix='yufeng_clean_mock_')
 
+    # clean 的安全白名单只含 /var/log、/www/wwwlogs、/www/server、/tmp、/var/tmp
+    # （Windows 下额外放行 os.getcwd()）。%TEMP% 不在其中 —— 这是**正确**的生产行为
+    # （不该允许清理系统临时区）。但本用例要验的是「截断/删除逻辑」而不是「白名单」，
+    # 所以显式把 mock 目录补进白名单：既保留 %TEMP% 的高速删除，也不污染仓库。
+    _orig_allowed = clean_security.ALLOWED_DIR_PREFIXES
+    clean_security.ALLOWED_DIR_PREFIXES = list(_orig_allowed) + [mock_dir]
+
     try:
         # 模拟各种日志，特别是无后缀日志（如 messages, syslog, cron）
         no_ext_files = ['messages', 'syslog', 'cron', 'mail']
@@ -113,6 +120,8 @@ def test_truncate_and_non_ext_logs():
         print("  [PASS] 归档历史压缩包通过 safe_delete_file 安全物理删除成功")
 
     finally:
+        # 恢复原白名单，避免污染同进程内后续用例
+        clean_security.ALLOWED_DIR_PREFIXES = _orig_allowed
         shutil.rmtree(mock_dir, ignore_errors=True)
 
 
@@ -170,6 +179,10 @@ def test_index_api():
 
 def test_i18n_json():
     print("[4] 测试多语言 JSON 语法与词条完整性...")
+    # 核心词条已改名：旧的「系统日志空间占用体检与瘦身」→ 现在的
+    # 「磁盘空间占用体检与清理」（en: "Disk Space Inspection & Cleanup"）。
+    # 注意语言包是「中文原文作键」的扁平结构，所以两种语言里键都应该是中文。
+    core_key = '磁盘空间占用体检与清理'
     lang_dir = os.path.join(clean_plugin_dir, 'lang')
     for lang in ['zh-CN.json', 'en.json']:
         lpath = os.path.join(lang_dir, lang)
@@ -177,7 +190,8 @@ def test_i18n_json():
         with open(lpath, 'r', encoding='utf-8') as f:
             data = json.load(f)
             assert isinstance(data, dict)
-            assert '系统日志空间占用体检与瘦身' in data or 'System Log Inspection & Disk Slimming' in data.values()
+            assert core_key in data, f"{lang} 缺少核心词条: {core_key}"
+            assert data[core_key].strip(), f"{lang} 的核心词条译文为空: {core_key}"
     print("  [PASS] zh-CN.json 与 en.json 格式解析正常且核心词条完备")
 
 

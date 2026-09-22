@@ -23,12 +23,15 @@ TOOL_KEYS = [
     "正在转换引擎类型,请稍候...",
     "请至少选择一张表!",
     "大小：",
-    "MySQL工具箱",
-    "MariaDB工具箱",
     "【修复】尝试使用 REPAIR TABLE 修复损坏的数据表（注：仅 MyISAM 引擎生效，InnoDB 表具备事务自愈机制无需修复）。",
     "【优化】执行 OPTIMIZE TABLE 回收删除或更新产生的未释放磁盘空间与碎片，建议定期执行。",
     "【转为InnoDB】将 MyISAM 表升级为 InnoDB 事务引擎，获得行级锁与高并发抗崩溃保护。"
 ]
+
+# 工具箱标题是**按插件区分**的：mysql 用「MySQL工具箱」、mariadb 用「MariaDB工具箱」
+# （见各自 js 里 `pt('MySQL工具箱')` / `pt('MariaDB工具箱')`）。
+# 别再要求两边都有两个键——那会凭空多出一个死键断言。
+TOOLBOX_KEY = {"MySQL": "MySQL工具箱", "MariaDB": "MariaDB工具箱"}
 
 LANGUAGES = ["zh-CN", "zh-TW", "en", "de", "fr", "it"]
 WESTERN_LANGS = ["en", "de", "fr", "it"]
@@ -53,7 +56,12 @@ class TestMysqlMariadbToolsAndPma(unittest.TestCase):
             # 3. 验证安全性与动态表单构建
             self.assertIn("pma_username", content, f"[{js_name}] 未找到 pma_username 传参字段")
             self.assertIn("pma_password", content, f"[{js_name}] 未找到 pma_password 传参字段")
-            self.assertIn("window.open(url", content, f"[{js_name}] 未保留备用或正常新窗口打开机制")
+            # 打开机制已从「window.open(url...)」改为「隐藏 POST 表单自动提交」：
+            # 密码走请求体而不是 URL 查询串，避免凭据留在浏览器历史 / 服务器日志里。
+            # 见 plugins/mysql/js/mysql.js 的 openPhpmyadmin()（$("#toPHPMyAdmin").submit()）。
+            self.assertIn('id="toPHPMyAdmin"', content, f"[{js_name}] 未找到隐藏跳转表单 toPHPMyAdmin")
+            self.assertIn('target="_blank"', content, f"[{js_name}] 跳转表单未以新窗口打开（缺 target=_blank）")
+            self.assertIn('$("#toPHPMyAdmin").submit()', content, f"[{js_name}] 未保留新窗口打开机制（表单未自动提交）")
 
     def test_02_backend_tools_defect_fixed(self):
         """验证后端 repairTable、optTable、alterTable 彻底移除了成功操作仍写死返回 False 的缺陷"""
@@ -120,10 +128,11 @@ class TestMysqlMariadbToolsAndPma(unittest.TestCase):
                           f"[{js_name}] layer.open 建议使用 closeBtn: 1 保持统一风格")
 
     def test_04_tools_i18n_completeness(self):
-        """验证 MySQL 和 MariaDB 的全部 6 国语言包中工具箱 14 个词条均已完整翻译，西欧语言无汉字残留"""
+        """验证 MySQL 和 MariaDB 的全部 6 国语言包中工具箱词条均已完整翻译，西欧语言无汉字残留"""
         chinese_char_pattern = re.compile(r'[\u4e00-\u9fa5]')
 
         for plugin_name, lang_dir in [("MySQL", MYSQL_LANG_DIR), ("MariaDB", MARIADB_LANG_DIR)]:
+            keys = TOOL_KEYS + [TOOLBOX_KEY[plugin_name]]
             for lang in LANGUAGES:
                 file_path = os.path.join(lang_dir, f"{lang}.json")
                 self.assertTrue(os.path.exists(file_path), f"[{plugin_name}] Missing lang file: {file_path}")
@@ -131,7 +140,7 @@ class TestMysqlMariadbToolsAndPma(unittest.TestCase):
                 with open(file_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
-                for key in TOOL_KEYS:
+                for key in keys:
                     self.assertIn(key, data, f"[{plugin_name} - {lang}] Key '{key}' not found in {lang}.json")
                     val = data[key]
                     self.assertTrue(bool(val and val.strip()), f"[{plugin_name} - {lang}] Key '{key}' has empty translation")

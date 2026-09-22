@@ -29,8 +29,14 @@ class TestPhpInstallFixes(unittest.TestCase):
             
         self.assertIn("export PHP_EXT_NO_RESTART=1", content, "未在批量安装前导出 PHP_EXT_NO_RESTART=1")
         self.assertIn("unset PHP_EXT_NO_RESTART", content, "未在批量安装后清理 unset PHP_EXT_NO_RESTART")
-        self.assertIn("systemctl reset-failed", content, "未在末尾调用 systemctl reset-failed 清理失败计数器")
-        self.assertIn("systemctl restart", content, "未在末尾调用统一 restart 重启 FPM")
+        # reset-failed 的职责已从 install.sh 下沉：install.sh 末尾改为委托
+        # `python3 plugins/php-apt/index.py restart <type>`，由 index.py 在启动前
+        # 调用 systemctl reset-failed 清失败计数器（见 plugins/php-apt/index.py），
+        # 扩展安装路径则由 versions/common.sh 负责。所以这里断言「委托启动」。
+        self.assertIn("index.py restart", content, "未在末尾委托 index.py restart 统一重启 FPM")
+        # 重启动作已全部委托给 index.py，install.sh 里不再直接 systemctl restart；
+        # 它保留的是启动后的 10 秒平滑探活（systemctl is-active 轮询）。
+        self.assertIn("systemctl is-active", content, "未在重启后做 systemctl is-active 平滑探活")
 
     def test_php_apt_common_sh_conditional_restart(self):
         """测试 php-apt/versions/common.sh 包含 PHP_EXT_NO_RESTART 条件判断与 reset-failed"""

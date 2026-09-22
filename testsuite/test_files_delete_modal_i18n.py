@@ -191,10 +191,15 @@ class TestFilesDeleteModalI18n(unittest.TestCase):
             };
         }
 
-        console.log(JSON.stringify(results));
+        // public.js 顶层注册了 setInterval（系统信息轮询等），node 的事件循环
+        // 因此不会自然退出；结果已经算完，显式 flush 后主动退出，
+        // 否则 subprocess.run 会一直等待这个永不结束的子进程。
+        // 注意：本段外层是 Python 原始字符串（r 前缀），这里必须写单反斜杠加 n，
+        // 写双反斜杠会被原样送进 JS，变成「反斜杠 + n」两个字面字符污染 stdout。
+        process.stdout.write(JSON.stringify(results) + '\n', () => process.exit(0));
         """
 
-        res = subprocess.run(["node", "-e", node_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", cwd=PROJECT_ROOT)
+        res = subprocess.run(["node", "-e", node_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", cwd=BASE_DIR, timeout=120)
         self.assertEqual(res.returncode, 0, f"Node 执行失败: {res.stderr}")
         data = json.loads(res.stdout.strip())
 

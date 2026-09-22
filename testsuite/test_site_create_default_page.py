@@ -73,7 +73,11 @@ class TestSiteCreateDefaultPage(unittest.TestCase):
         self.assertIn('<html lang="zh-CN">', content)
         self.assertIn('<title>网站搭建成功 | Setup Successful</title>', content)
         self.assertIn('href="./favicon.ico"', content)
-        self.assertIn('src="./favicon.ico"', content)
+        # 默认首页后来去掉了 <img src="./favicon.ico"> 与它的 onerror 兜底，
+        # 改成只用 <link rel="icon"> / <link rel="shortcut icon"> 声明站点图标
+        # （见 web/utils/site.py 的 default_html 模板）。按现状断言。
+        self.assertIn('rel="icon" href="./favicon.ico"', content)
+        self.assertIn('rel="shortcut icon" href="./favicon.ico"', content)
         self.assertIn('<h1>网站搭建成功</h1>', content)
         self.assertIn('Website Setup Successful', content)
         self.assertIn('#10b981', content)
@@ -83,7 +87,9 @@ class TestSiteCreateDefaultPage(unittest.TestCase):
         self.assertIn('Produced by Quzhou Yufeng Technology Co., Ltd', content)
         self.assertIn('fadeUp', content)
         self.assertIn('@media (max-width: 768px)', content)
-        self.assertIn('onerror="this.parentElement.style.display=\'none\'"', content)
+        # 原来断言的是 <img> 上的 onerror 兜底，那个 <img> 已被移除；
+        # 现在图标只通过 <link rel="icon"> 声明，页面里不应再出现 <img>。
+        self.assertNotIn('<img', content)
 
     def test_create_root_dir_existing_site_no_overwrite(self):
         """测试目录已存在时（非 autoInit）不覆写已有文件"""

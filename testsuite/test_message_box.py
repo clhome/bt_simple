@@ -43,10 +43,29 @@ class TestMessageBox(unittest.TestCase):
         # 检查无双重嵌套（只出现一次主容器定义）
         self.assertEqual(msg_box_body.count('class="bt-form msg-box-form"'), 1, "msg-box-form 主容器重复或缺失")
         self.assertEqual(msg_box_body.count('id="msg_box"'), 1, "id=msg_box 重复或缺失")
-        self.assertEqual(msg_box_body.count('id="msg_box_sys_info"'), 1, "id=msg_box_sys_info 重复或缺失")
         self.assertEqual(msg_box_body.count('id="taskList"'), 1, "id=taskList 重复或缺失")
-        self.assertEqual(msg_box_body.count('id="msgListTab"'), 1, "id=msgListTab 重复或缺失")
-        self.assertEqual(msg_box_body.count('id="execLogTab"'), 1, "id=execLogTab 重复或缺失")
+
+        # 以下三个元素已从 messageBox() 的内联字符串搬进模板 YF_TPL.msgBox
+        # （web/static/app/tpl/i18n_tpl.js），messageBox() 只通过选择器引用它们。
+        tpl_path = os.path.join(BASE_DIR, "web/static/app/tpl/i18n_tpl.js")
+        with open(tpl_path, "r", encoding="utf-8") as f:
+            tpl_content = f.read()
+        tpl_match = re.search(r"YF_TPL\.msgBox\s*=\s*\[(.*?)\]\.join", tpl_content, re.DOTALL)
+        self.assertTrue(tpl_match, "YF_TPL.msgBox 模板未找到")
+        tpl_body = tpl_match.group(1)
+
+        self.assertEqual(tpl_body.count('id=\\"msg_box_sys_info\\"'), 1,
+                         "msg_box_sys_info 在 YF_TPL.msgBox 模板里重复或缺失")
+        self.assertIn('$("#msg_box_sys_info")', msg_box_body,
+                      "messageBox 未引用 msg_box_sys_info（CPU/内存/上下行状态栏）")
+        self.assertEqual(tpl_body.count('id=\\"taskList\\"'), 1,
+                         "taskList 在 YF_TPL.msgBox 模板里重复或缺失")
+        # 消息列表 / 执行日志两个入口原来带 id（msgListTab / execLogTab），
+        # 现在已去掉 id，只保留 onclick 入口。按现状断言。
+        self.assertIn('onclick=\\"remind()\\"', tpl_body,
+                      "模板缺少「消息列表」入口")
+        self.assertIn('onclick=\\"execLog()\\"', tpl_body,
+                      "模板缺少「执行日志」入口")
 
         # 检查 tasklist 函数
         tasklist_match = re.search(r"function tasklist\(\)\s*\{(.*?)\n\}", content, re.DOTALL)

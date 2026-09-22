@@ -14,6 +14,7 @@
 本模块**不依赖**被 gitignore 的 `test/`，也**不依赖**网络。
 """
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -23,6 +24,10 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 import run_all as gate  # noqa: E402
+
+# 本文件自带的「模块级 assert」判定，**故意不复用** `gate.TOP_ASSERT_RE`：
+# 用被守护对象当判定基准是循环论证，护栏会退化成真空通过。详见对应用例的注释。
+_TOP_LEVEL_ASSERT = re.compile(r'^assert\b', re.M)
 
 
 class TestScriptStyleDetection(unittest.TestCase):
@@ -66,6 +71,46 @@ class TestScriptStyleDetection(unittest.TestCase):
         """有断言但没有入口 → 不算（`-m unittest` 也收不到它）。"""
         p = self._write('def test_a():\n    assert 1 == 1\n')
         self.assertEqual(gate.script_style_tests(p), [])
+
+    def test_top_level_script_is_detected(self):
+        """**顶层直线脚本**：0 个函数、没有 `__main__`，靠模块级 `assert` 断言。
+
+        这种模块当脚本跑是真的会执行断言的，必须识别出来 —— 否则门禁永远
+        执行不了它，隔离区的「意外转绿」反向检查对它彻底失明。
+        （真实案例：`test_op_waf_full_i18n.py` / `_v2.py`。）
+        """
+        p = self._write('assert 1 == 1\nprint("ok")\nassert 2 == 2\n')
+        self.assertEqual(gate.script_style_tests(p), [gate.TOP_SCRIPT_MARKER])
+
+    def test_top_level_script_without_assert_is_not_accepted(self):
+        """顶层脚本但一句 `assert` 都没有 → 还是假绿，不算。"""
+        p = self._write('print("什么都没验证")\n')
+        self.assertEqual(gate.script_style_tests(p), [])
+
+    def test_indented_assert_is_not_top_level(self):
+        """函数**内部**的 `assert` 不算模块级断言，否则「没有入口」的模块会被误放行。"""
+        p = self._write('def helper():\n    assert 1 == 1\n')
+        self.assertEqual(gate.script_style_tests(p), [])
+
+    def test_no_module_with_top_level_assert_is_missed(self):
+        """回归护栏：仓库里凡是「有模块级 `assert`」的模块，都必须被识别为脚本式。
+
+        漏识别 = 门禁不执行它 = 它在隔离区里永远不会被判定为「意外转绿」。
+
+        注意：这里**故意用本文件自己定义的正则**，而不是 `gate.TOP_ASSERT_RE`。
+        用被守护对象本身当判定基准是循环论证 —— 一旦那个正则被改坏（或被人
+        在变异测试里打桩），扫描集合会一起变空，护栏就变成「真空通过」。
+        """
+        missed = []
+        for m in gate.discover_modules():
+            with open(os.path.join(HERE, m), encoding='utf-8') as fp:
+                src = fp.read()
+            if 'unittest.TestCase' in src:
+                continue
+            if _TOP_LEVEL_ASSERT.search(src) and not gate.script_style_tests(os.path.join(HERE, m)):
+                missed.append(m)
+        self.assertEqual(missed, [],
+                         '这些模块有模块级 assert 却没被识别为脚本式，门禁不会执行它们：%s' % missed)
 
 
 class TestFakeGreenGuards(unittest.TestCase):
@@ -140,6 +185,58 @@ class TestDiscoveryAndQuarantine(unittest.TestCase):
         for mod, reason in q.items():
             self.assertTrue(mod.endswith('.py'), mod)
             self.assertTrue(reason.strip(), '%s 缺少原因' % mod)
+
+
+class TestStaleQuarantineReason(unittest.TestCase):
+    """隔离名单的**另一半**腐烂方式：模块还是红的，但红的原因已经变了。
+
+    「意外转绿」门禁能自动发现；「原因文字对不上实际失败」没人会发现，
+    名单就会变成误导后人的假线索 —— 本仓库真出现过：两条写着
+    「未收集到用例（导入失败）」的条目，实际原因一个是引用了已删除的
+    `plugins/caddy/...`，一个是插件白名单拒绝 `%TEMP%` 路径。
+
+    `stale_reason()` 是**弱校验**：只认「原因里写了异常类型、而该类型在实际
+    输出里一个字都找不到」。宁可漏报，不可误报 —— 误报会让这条提示被无视。
+    """
+
+    def test_matching_reason_is_not_stale(self):
+        self.assertFalse(gate.stale_reason(
+            'AssertionError: 4 != 0 : 语言包 [en] 缺失核心词条',
+            'Traceback ...\nAssertionError: 4 != 0 : 语言包 [en] 缺失核心词条\n'))
+
+    def test_mismatched_reason_is_stale(self):
+        """记录的是 NameError，实际却挂在 FileNotFoundError → 原因过期。"""
+        self.assertTrue(gate.stale_reason(
+            "NameError: name 'PROJECT_ROOT' is not defined",
+            "FileNotFoundError: [Errno 2] No such file or directory: 'caddy.js'"))
+
+    def test_reason_without_exception_type_is_never_stale(self):
+        """纯中文描述无法校验 → 一律不判过期（宁可漏报）。"""
+        self.assertFalse(gate.stale_reason('未收集到用例（导入失败）', '随便什么输出'))
+
+    def test_empty_reason_is_not_stale(self):
+        self.assertFalse(gate.stale_reason('', 'AssertionError: boom'))
+
+    def test_first_exception_type_wins(self):
+        """原因里写了多个异常类型时，取第一个；第一个找不到就算过期。"""
+        reason = "ModuleNotFoundError: No module named 'x'；AssertionError: y"
+        self.assertTrue(gate.stale_reason(reason, 'AssertionError: y'))
+        self.assertFalse(gate.stale_reason(reason, 'ModuleNotFoundError: No module named x'))
+
+    def test_empty_output_is_stale_when_reason_names_type(self):
+        """输出为空（例如超时）但原因写了异常类型 → 说明原因已不适用。"""
+        self.assertTrue(gate.stale_reason('AssertionError: boom', ''))
+
+    def test_real_quarantine_reasons_are_checkable(self):
+        """真实名单里的原因至少得能解析出「结论」，不能全是无法校验的模糊话术。
+
+        允许纯中文原因（如「脚本式用例；引用已移除的 caddy」），但要求
+        带异常类型的原因占多数 —— 否则 `stale_reason()` 等于形同虚设。
+        """
+        q = gate.load_quarantine()
+        typed = [m for m, r in q.items() if gate.EXC_IN_REASON_RE.search(r)]
+        self.assertGreater(len(typed), len(q) // 2,
+                           '超过一半的隔离原因没有写异常类型，名单太模糊，无法校验')
 
 
 class TestModuleWithoutTestsIsRejected(unittest.TestCase):

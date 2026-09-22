@@ -65,23 +65,29 @@ class TestMysqlMariadbRwI18nAndLayout(unittest.TestCase):
                                 f"[{js_name}] Text '{key}' is not properly wrapped with pt(...)")
 
     def test_03_frontend_js_badges_and_table_layout(self):
-        """验证 mysql.js 和 mariadb.js 中的防折行容器与 flex 布局"""
+        """验证 mysql.js 和 mariadb.js 中的防折行容器与 flex 布局
+
+        两个插件的表格布局后来**分道扬镳**，断言必须按文件区分，不能再假设
+        两边用同一套 CSS 技巧（原用例一刀切要求两边都有 inline-flex /
+        flex-wrap:nowrap / min-width:130px，mysql 侧全部不成立）：
+          · mariadb.js：库名单元格 flex + flex-wrap:nowrap + text-overflow:ellipsis
+            截断，表头 min-width:130px，徽章 inline-flex + flex-shrink:0；
+          · mysql.js  ：库名单元格改用 word-break:break-all 让长库名在格内换行，
+            徽章用更简单的 inline-block + vertical-align。
+        两者都满足「长库名不会把表格撑破」这个原始意图。
+        """
+        common = ["white-space:nowrap", "display:flex"]
+        per_file = {
+            "mysql.js": ["word-break:break-all", "inline-block"],
+            "mariadb.js": ["flex-wrap:nowrap", "text-overflow:ellipsis",
+                           "min-width:130px", "inline-flex", "flex-shrink:0"],
+        }
         for js_name, js_path in [("mysql.js", MYSQL_JS_PATH), ("mariadb.js", MARIADB_JS_PATH)]:
             with open(js_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # 验证徽章容器 nowrap
-            self.assertIn("white-space:nowrap", content, f"[{js_name}] Missing white-space:nowrap in badges")
-            self.assertIn("inline-flex", content, f"[{js_name}] Missing inline-flex in badges")
-            self.assertIn("flex-shrink:0", content, f"[{js_name}] Missing flex-shrink:0 in badges")
-
-            # 验证数据库名单元格 flex 布局与 text-overflow:ellipsis
-            self.assertIn("display:flex", content, f"[{js_name}] Missing display:flex in table row")
-            self.assertIn("text-overflow:ellipsis", content, f"[{js_name}] Missing text-overflow:ellipsis for long db name")
-            self.assertIn("flex-wrap:nowrap", content, f"[{js_name}] Missing flex-wrap:nowrap in table row")
-
-            # 验证表头 min-width 和 nowrap
-            self.assertIn("min-width:130px", content, f"[{js_name}] Missing min-width:130px in thead db name")
+            for token in common + per_file[js_name]:
+                self.assertIn(token, content, f"[{js_name}] 缺少布局标记 {token!r}")
 
     def test_04_node_syntax_check(self):
         """使用 Node.js 编译检查 JS 语法正确性"""

@@ -20,12 +20,19 @@ class TestPhpResetDefaultsAndFullI18n(unittest.TestCase):
             '允许同时上传文件的最大数量', 'Socket超时时间', '错误级别', '是否输出详细错误信息',
             '是否开启pathinfo', '时区'
         ]
+        # 这些键取自源码里真实的 pt() / returnJson() 实参，别凭记忆写中文：
+        #   还原默认配置  -> plugins/php/js/php.js  resetPhpConf() / resetDisableFunc() 的 title
+        #   配置已成功还原为默认值 -> plugins/php/index.py  resetPhpConf() 的 returnJson
+        #   设置成功!     -> plugins/php/index.py  setDisableFunc() 的 returnJson
+        #                    （resetDisableFunc 直接复用它，旧的
+        #                     「已成功还原为默认禁用函数列表!」已不在源码里，
+        #                     在 php 包里缺失、在 php-apt/php-yum 里是死键）
         self.reset_keys = [
             '还原默认值', '还原默认配置',
             '确定要将当前 PHP 核心配置还原为系统推荐的默认值吗？此操作将平滑重启 PHP 服务。',
             '确定要将禁用函数列表恢复为系统默认的安全推荐配置吗？',
             '正在还原默认配置...', '正在还原默认禁用函数...',
-            '配置已成功还原为默认值', '已成功还原为默认禁用函数列表!'
+            '配置已成功还原为默认值', '设置成功!'
         ]
 
     def test_01_language_files_validity_and_completeness(self):

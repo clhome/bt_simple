@@ -226,11 +226,17 @@ class TestPhpConfigRobustnessAndStartup(unittest.TestCase):
         )
 
     def test_08_i18n_menu_terms_integrity(self):
-        """测试 8: 验证三款插件的 6 大语言包 JSON 合法且完整包含 13 个菜单精炼词条"""
+        """测试 8: 验证三款插件的 6 大语言包 JSON 合法且完整包含菜单精炼词条"""
         menu_keys = [
             "服务", "安装扩展", "配置修改", "常用功能", "配置文件",
             "禁用函数", "FPM配置", "性能调整", "负载状况", "会话管理",
-            "FPM日志", "慢日志", "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。"
+            "FPM日志", "慢日志"
+        ]
+        # 应用池配置提示只有主插件 php 的 js 会调用
+        # （plugins/php/js/php.js 的 poolTip）；php-apt / php-yum 是纯安装器，
+        # 从来没实现应用池页面，语言包里也就没有这个词条。别一刀切地要求三款都有。
+        php_only_keys = [
+            "此处为 {1} 应用池配置文件,若您不了解配置规则,请勿随意修改。"
         ]
         plugins = ['php', 'php-apt', 'php-yum']
         languages = ['zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it']
@@ -244,8 +250,11 @@ class TestPhpConfigRobustnessAndStartup(unittest.TestCase):
                         data = json.load(f)
                     except Exception as e:
                         self.fail(f"语言包 JSON 格式损坏: {lang_path}, 错误: {e}")
-                
-                for k in menu_keys:
+
+                keys = list(menu_keys)
+                if plugin == 'php':
+                    keys += php_only_keys
+                for k in keys:
                     self.assertIn(k, data, f"插件 {plugin} 的 {lang}.json 缺少关键词条: {k}")
                     val = data[k]
                     self.assertTrue(isinstance(val, str) and val.strip() != "", f"{lang}.json 中 {k} 翻译值为空！")

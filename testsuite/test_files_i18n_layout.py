@@ -158,7 +158,9 @@ class TestFilesI18nLayout(unittest.TestCase):
         self.assertNotIn('width($(".file-box").width()-700)', js_content, "不应再出现写死的 -700 减量")
         self.assertNotIn("available > 350", js_content, "应去除 350px 硬编码上限以使地址栏尽量占满")
         self.assertIn("safeGap = 45", js_content, "应预留至少 45px 舒适安全缓冲杜绝遮挡")
-        self.assertIn("right: 87px;", js_content, "回收站按钮应向左平移至 right: 87px 与切换按钮组保持整齐间隙")
+        # 回收站按钮的左移量随「粘贴按钮」一起调整过：87px -> 107px
+        # （见 plugins 无关的核心文件 web/static/app/files.js 里 id="recycle_bin" 的内联样式）。
+        self.assertIn("right: 107px;", js_content, "回收站按钮应向左平移至 right: 107px 与切换按钮组保持整齐间隙")
         self.assertIn("calcPathWidth();", js_content, "窗口 resize 与数据渲染后应触发 calcPathWidth()")
 
         # 智能按需显示 Calc 按钮：仅在有子目录时显示

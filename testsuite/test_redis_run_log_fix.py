@@ -126,8 +126,12 @@ class TestRedisRunLogFix(unittest.TestCase):
 
     def test_06_lang_files_contain_log_keys(self):
         """验证 6 国多语言字典中均完整包含运行日志相关的词条"""
+        # 只列源码里真实存在的 pt() 实参（plugins/redis/js/redis.js 的日志面板）。
+        # 旧的「当前暂无新增运行日志」已不再由前端渲染：空态文案改由后端写进日志正文
+        # （plugins/redis/index.py 的 `运行提示: 当前暂无异常或生命周期事件记录。`），
+        # 在 6 个语言包里都没有对应键，是死键，别再断言它。
         required_keys = [
-            "日志文件", "刷新日志", "清空日志", "说明", "当前暂无新增运行日志"
+            "日志文件", "刷新日志", "清空日志", "说明", "正在获取运行日志..."
         ]
         lang_files = glob.glob(os.path.join(redis_dir, 'lang', '*.json'))
         self.assertGreaterEqual(len(lang_files), 6, "必须存在至少 6 个语言包")

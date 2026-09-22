@@ -13,6 +13,107 @@ import unittest
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MYSQL_DIR = os.path.join(PROJECT_ROOT, "plugins", "mysql")
 
+# ---------------------------------------------------------------------------
+# 「pt(...) 被写进了字符串字面量里」检测器
+# ---------------------------------------------------------------------------
+# 要抓的 bug：作者少写了一个闭合引号，于是 `pt('中文')` 连同 `+` 号一起
+# 落进了字符串内部，页面上会**原样显示** `" + pt('中文') + "` 这种代码碎片。
+#
+# 判定规则：当扫描器**处于某个字符串内部**时，若遇到另一种引号，且紧跟
+# `+ pt(`（允许空格），说明那个引号本该是 JS 字符串的结束符却没起作用。
+#
+# 这个检测器必须先把**注释**和**正则字面量**跳过去，否则里面的引号会把
+# 引号状态机带偏，后面整片区域都会被误判。实测踩过的坑：
+#     const ch_reg = /channel \'(.*)\';/;
+# 正则里的 `\'` 被当成字符串开引号，扫描器从那一行起一路失步，
+# 把 mysql.js 里 17 处**正确**的 `" + pt('中文') + "` 写法全报成泄漏
+# （用 node 真求值那段 content: 表达式，渲染结果是翻译后的文字，证实是误报）。
+#
+# 因此这里是一个小词法器：引号配对栈 + 跳过 // 行注释、/* */ 块注释、
+# 以及「值位置」上的 /.../flags 正则字面量。
+import re as _re
+
+_LEAK_TAIL_RE = _re.compile(r'''(['"`])\s*\+\s*pt\(''')
+#: 上一个「有意义字符」落在这些里面时，`/` 只能是除号，不是正则开头。
+_NO_REGEX_AFTER = set(')]}"\'`')
+
+
+def _regex_can_start(prev_sig):
+    """根据上一个有意义字符判断 `/` 是正则字面量开头还是除号。"""
+    if prev_sig == '':
+        return True
+    if prev_sig.isalnum() or prev_sig in ' _$':
+        return False
+    if prev_sig in _NO_REGEX_AFTER:
+        return False
+    return True
+
+
+def find_literal_pt_leaks(text):
+    """返回 [(偏移, 片段)] —— 字符串字面量内部出现的 pt() 拼接残留。"""
+    leaks = []
+    stack = []
+    i = 0
+    n = len(text)
+    prev_sig = ''       # 上一个有意义字符（跳过空白），用于区分除号 / 正则
+    while i < n:
+        ch = text[i]
+
+        if stack:
+            if ch == '\\':
+                i += 2          # 转义：连反斜杠带被转义字符一起跳过
+                continue
+            if ch == stack[-1]:
+                stack.pop()     # 配对成功，退出当前字符串
+                prev_sig = ch
+                i += 1
+                continue
+            # 字符串内部遇到了「另一种引号 + pt(」，即漏写闭合引号
+            if ch in ('"', "'", '`') and _LEAK_TAIL_RE.match(text, i):
+                leaks.append((i, text[i:i + 40]))
+            i += 1
+            continue
+
+        # ---- 不在字符串里：先跳过注释与正则字面量 ----
+        if ch == '/' and i + 1 < n and text[i + 1] == '/':
+            j = text.find('\n', i)
+            i = n if j < 0 else j + 1
+            continue
+        if ch == '/' and i + 1 < n and text[i + 1] == '*':
+            j = text.find('*/', i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        if ch == '/' and _regex_can_start(prev_sig):
+            j = i + 1
+            in_class = False
+            while j < n:
+                c = text[j]
+                if c == '\\':
+                    j += 2
+                    continue
+                if c == '\n':
+                    break
+                if c == '[':
+                    in_class = True
+                elif c == ']':
+                    in_class = False
+                elif c == '/' and not in_class:
+                    break
+                j += 1
+            if j < n and text[j] == '/':
+                i = j + 1
+                while i < n and text[i].isalpha():   # 正则 flags
+                    i += 1
+                prev_sig = '/'
+                continue
+
+        if ch in ('"', "'", '`'):
+            stack.append(ch)
+        if not ch.isspace():
+            prev_sig = ch
+        i += 1
+    return leaks
+
 
 class TestMySQLUiI18n(unittest.TestCase):
 
@@ -25,7 +126,8 @@ class TestMySQLUiI18n(unittest.TestCase):
             content = f.read()
 
         # 1. 验证重置弹窗宽高的函数调用
-        self.assertIn("resetPluginWinWidth(1050);", content, "必须显式调用 resetPluginWinWidth(1050)")
+        # 宽度随列数增加调整过：1050 -> 1180（见 plugins/mysql/index.html）。
+        self.assertIn("resetPluginWinWidth(1180);", content, "必须显式调用 resetPluginWinWidth(1180)")
         self.assertIn("resetPluginWinHeight(650);", content, "必须显式调用 resetPluginWinHeight(650)")
 
         # 2. 验证左侧菜单宽度为 168px
@@ -66,7 +168,8 @@ class TestMySQLUiI18n(unittest.TestCase):
             content = f.read()
 
         # 2. 验证操作列防折行与最小宽度
-        self.assertIn("min-width:270px; white-space:nowrap;", content, "操作列必须设置 min-width:270px 与 white-space:nowrap")
+        # 最小宽度随列数调整过：270px -> 230px（见 mysql.js 里操作列表头/单元格）。
+        self.assertIn("min-width:230px; white-space:nowrap;", content, "操作列必须设置 min-width:230px 与 white-space:nowrap")
 
         # 3. 验证顶部按钮工具栏弹性布局
         self.assertIn("display:flex; flex-wrap:wrap;", content, "顶部按钮容器必须具备弹性流式换行保护")
@@ -142,47 +245,41 @@ class TestMySQLUiI18n(unittest.TestCase):
         with open(js_path, "r", encoding="utf-8") as f:
             text = f.read()
 
-        i = 0
-        n = len(text)
-        current_quote = None
-        line_num = 1
-        errors = []
+        leaks = find_literal_pt_leaks(text)
+        self.assertEqual(len(leaks), 0, f"mysql.js 依然存在字符串字面量拼接泄漏错误: {leaks}")
 
-        while i < n:
-            ch = text[i]
-            if ch == '\n':
-                line_num += 1
-                i += 1
-                continue
-            
-            if current_quote is None:
-                if ch in ('"', "'", '`'):
-                    current_quote = ch
-            else:
-                if ch == '\\':
-                    if i + 1 < n and text[i+1] == '\n':
-                        line_num += 1
-                        i += 2
-                        continue
-                    elif i + 2 < n and text[i+1:i+3] == '\r\n':
-                        line_num += 1
-                        i += 3
-                        continue
-                    else:
-                        i += 2
-                        continue
-                elif ch == current_quote:
-                    current_quote = None
-                else:
-                    if current_quote == '"' and text[i:i+7] in ("' + pt(", "'+pt("):
-                        errors.append((line_num, current_quote, text[i:i+35]))
-                    elif current_quote == "'" and text[i:i+7] in ('" + pt(', '"+pt('):
-                        errors.append((line_num, current_quote, text[i:i+35]))
-                    elif current_quote == '`' and text[i:i+7] in ("' + pt(", "'+pt(", '"+pt(', '" + pt('):
-                        errors.append((line_num, current_quote, text[i:i+35]))
-            i += 1
+    def test_06b_pt_leak_scanner_self_check(self):
+        """自证：检测器必须能抓到真泄漏、且不对本仓库的正确写法误报。
 
-        self.assertEqual(len(errors), 0, f"mysql.js 依然存在字符串字面量拼接泄漏错误: {errors}")
+        用合成样本当判定基准（与被检测的 mysql.js 无关），否则「0 处泄漏」
+        分不清是「真的干净」还是「检测器压根不工作」。
+        """
+        # 1) 真泄漏：少写闭合引号，`+ pt(` 连同引号一起落进字符串里 —— 必须抓到。
+        #    形如 `'<span class="x">" + pt('中文') + "</span>'`：
+        #    那个 `"` 本该是 JS 字符串的结束符，却留在了字符串内部。
+        leaky = [
+            """var h = '<span class="x">" + pt('中文') + "</span>';""",
+            """var h = "<span class='x'>' + pt('中文') + '</span>";""",
+        ]
+        for src in leaky:
+            self.assertTrue(find_literal_pt_leaks(src), f"检测器漏报了真泄漏: {src!r}")
+
+        # 2) 正确写法：本仓库大量使用的「HTML 属性用另一种引号」+ 正常拼接 —— 不许误报
+        clean = [
+            """var Con = '<div class="divtable">' + pt('启动时间') + '</div>';""",
+            """var a = "<span class='f14 c6 mr20'>" + pt('中文') + "</span>";""",
+            """content:"<div class='bt-form pd20 c6'>" + pt('同步配置') + "</div>",""",
+            """var t = 'it\\'s ok'; var b = 'x' + pt('中文');""",
+            """var c = 'a' + pt('b') + 'c' + pt('d') + 'e';""",
+            # 回归：正则字面量里的撇号曾把扫描器带偏（见上方注释）。
+            # 跳过正则后，后面的 `'x' + pt('中文')` 必须判为干净。
+            """var ch_reg = /channel \\'(.*)\\';/; var b = 'x' + pt('中文');""",
+            """var n = a / b; var b = 'x' + pt('中文');""",
+            """var s = 'a' + pt('b'); // 注释里有撇号 it's fine""",
+        ]
+        for src in clean:
+            self.assertEqual(find_literal_pt_leaks(src), [],
+                             f"检测器对正确写法误报了: {src!r}")
 
     def test_07_add_database_modal_i18n_and_elements(self):
         """验证 addDatabase 弹窗各字段与选项完整接入多语言且排版优雅"""
