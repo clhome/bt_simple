@@ -20,6 +20,13 @@ sys.path.insert(0, os.path.join(PROJECT_ROOT, "web"))
 import core.yf as yf
 from utils.plugin import plugin as YfPlugin
 
+# 注意：本模块**不能**用 `_isolation.isolate()`。
+# 它的 `test_01` 会经 `plugin.run()` 起**子进程**
+# （`yf.safeExecShell(cmd, cwd=yf.getPanelDir())`），子进程自己会去开真实面板库。
+# 隔离后父进程不再预热那份库，子进程首次 connect 就要吃满 `F:` 盘的 30s 超时，
+# 于是本已隔离的模块会多出一条「Timeout」失败、掩盖原本记录的失败原因。
+# 该模块本来就在隔离区，保持原状更稳。
+
 
 class TestMySQLManageOpenPhpMyAdmin(unittest.TestCase):
 

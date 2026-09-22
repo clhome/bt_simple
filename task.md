@@ -567,4 +567,23 @@
 - [x] 347. 修 **临时产物落点**：全部改用 `tempfile.mkdtemp()`（系统临时区）。实测仓库所在 `F:` 盘**单次删除固定 5.15s**（与文件数无关），`%TEMP%` 仅 0.01s —— **差 500 倍**，门禁里累计二十几次删除即浪费一两分钟
 - [x] 348. 删除被误提交的运行时生成物 `testsuite/run_node_runtime_test.js`（`c987f0df4`），并加守卫防复发
 - [x] 349. 重写 `testsuite/testsuite.md`（330+ 行，8 节）：快速开始 / 目录结构 / 四条硬约束 / 隔离区约定 / 注意事项 5.1–5.9 / 运行环境 / 失败排查 / 新增用例
-- [x] 350. **模拟干净克隆验证**：把 `test/` 改名隐藏后跑完整门禁 → **`gate_rc=0`，全部门禁通过**（107 个用例参与、39 个隔离、692 个 test 方法、耗时 307.0s）
+- [x] 350. **模拟干净克隆验证**：把 `test/` 改名隐藏后跑完整门禁 → **`gate_rc=0`，全部门禁通过**（108 个用例参与、38 个隔离、702 个 test 方法、耗时 180.6s）
+- [x] 351. 揪出并修掉门禁**最大的时间黑洞**：`F:` 盘上 sqlite3 不只是 `connect` 慢（30s），**`close()` 单次也要 30~60s**；`web/core/db.py:56` 在导入期就注册了 `atexit` → `_close_all_connections()`，逐个关连接。`test_pg_driver_and_mysql_dbs` 分阶段打点实测 `IMPORT=0.05 / TESTS=0.61 / PRE_EXIT=0.67 / ATEXIT_ELAPSED=296.90` —— **99.8% 的时间花在解释器退出**。逐连接计时：面板库 30.60s、`<serverDir>/mysql.db` 60.01s、`mariadb/*.db` 各 60s，6 个连接 ≈ 270s
+- [x] 352. 新增共享助手 `testsuite/_isolation.py` 的 `isolate(prefix)`：一次性把面板 SQLite 落点 + `<serverDir>` 挪到 `tempfile.mkdtemp()`，并造一份假 `mysql/mysql.db`（`config(mysql_root)`）当自动探测的确定输入；预建 `data/`、`mysql/`、`mariadb/` 避免 sqlite 抛 `unable to open database file` 脏 stderr
+- [x] 353. 确定**正确接缝是 `core.db.getPanelDir`，不是 `yf.getPanelDir`**：后者被 `yf.getPluginDir()` 依赖，插件靠它定位自己的文件（`plugins/op_waf/index.py:74` `sys.path.append(getPluginDir()+"/class")` → `from luamaker import luamaker`）。改 `yf.getPanelDir()` 实测报 `ModuleNotFoundError: No module named 'luamaker'`。面板 SQLite 落点只在 `web/core/db.py:82/:150`，改那个函数最精准
+- [x] 354. 确定**补丁必须早于「会打开面板库的模块」被导入**：实测 `import utils.plugin` 在**导入期**就打开 `<panelDir>/data/panel.db`（导入前 `core.db._local.connections` 为空，导入后立刻多一条真实路径）
+- [x] 355. 用 `isolate()` 改造 6 个模块，实测收益：`test_data_query_fix` 53.3s→**1s**、`test_pg_driver_and_mysql_dbs` 184~296s→**1s**、`test_concurrent_callbacks` 55.1s→**1s**、`test_f2b_op_waf_link` 108.7s→**38s**、`test_site_create_default_page` 85.8s→**1s**（隔离中，失败原因不变）、`test_external_status_sync` 47.2s→**2s**（隔离中，失败原因不变）
+- [x] 356. `run_all.py` 内置**开销识别**：解析输出里的 `Ran N tests in X.XXXs`（用例本体耗时）与进程总耗时对比，差值 ≥ `OVERHEAD_WARN_SECONDS`（20s）即在该行打 `⚑` 并在汇总单列一节「本体很快、进程很慢」+ 修法指引；解析不到本体耗时的脚本式用例自动跳过，不误报。实测当轮抓出 5 个模块
+- [x] 357. `test_repo_contract.py` 白名单登记 `_isolation.py`；`testsuite.md` §5.7 补「close() 30~60s + atexit」实测数据、§5.9 改为围绕 `isolate()` 重写并说明「为什么改 `core.db.getPanelDir` 而不是 `yf.getPanelDir`」；`SKILL.md` 同步补第三层坑与三条硬知识
+- [x] 358. **门禁整体提速**：总耗时 295.7s → **180.6s**（模块耗时之和 1004.9s → 约 740s），全程 `gate_rc=0`
+- [x] 359. 新增诊断立刻抓出**第二批** 6 个同类模块并逐个修掉（同用 `isolate()`）：`test_mysql_conn_and_pg_driver_prompt` 77.2s→**3s**、`test_p0_deep_security` 56.3s→**1s**、`test_p1_deep_reliability_perf` 61.9s→**7s**、`test_plugin_callback_fix` 42.4s→**1s**、`test_soft_i18n`（隔离中）75.3s→**1s**、`test_files_i18n_layout`（隔离中）31.7s→**2s**
+- [x] 360. 复核两个隔离模块**失败原因与隔离区记录逐字一致**（`test_soft_i18n`: `'執行環境' != '運行環境'`；`test_files_i18n_layout`: `'right: 87px;' not found in ...`），未发生「意外转绿」
+- [x] 361. 顺带修 `test_files_i18n_layout.py` 缺模块级 `import sys`（原来只在测试函数里 import，模块级用它加 `sys.path` 会 `NameError`）
+- [x] 362. 清理 `MEMORY.md`（16.7KB → **7.1KB**）：按主题合并去重，把详细手册指向仓库内 `testsuite/testsuite.md` 与 `yufeng-plugin-dev` 技能，只保留「跨任务必须记住、且不写在仓库里」的约定
+- [x] 363. 第三批（诊断再次点名）7 个模块：`test_plugin_performance` 112.9s→**2s**、`test_recent_logins` 49.5s→**2s**、`test_home_notice_cache` 37.8s→**2s**、`test_plugin_service_ops_and_modal`（隔离中）51.9s→**2s**；**主动回退 3 个不该隔离的**：`test_p2_deep_refine`、`test_recommend_install_bug`（路径契约用例，重定向后必然失败）、`test_mysql_manage_open_phpmyadmin`（起子进程，隔离后子进程吃满 `F:` 盘 30s 超时、挤掉原记录的失败原因）
+- [x] 364. 把这两条「不能隔离」的教训写进 `testsuite.md` §5.9 与 `SKILL.md` 速查表：**只给 `⚑` 点名的模块做隔离，不要凭「它 import 了 utils.plugin」就批量加**
+- [x] 365. **门禁最终态：`python testsuite/run_all.py` → `gate_rc=0`，108 个用例参与 / 38 个隔离 / 702 个 test 方法 / 总耗时 75.0s，`⚑` 点名 0 个**（起点 295.7s，**快 3.9 倍**）
+- [x] 366. 新增 `testsuite/test_gate_selftest.py`（19 项，约 1.2s）：**给门禁自己的护栏写测试**。覆盖 `script_style_tests()` 五种输入形态、`RAN_RE` 对 `Ran 0 tests ... OK` 的识别（假门禁防护）、`body_seconds()`/`overhead()` 解析与「解析不到就不告警」、`discover_modules()` 只收 `test_*.py` 且不会把 `_isolation.py` 当用例，以及**端到端**验证「收集不到用例的模块必须判红」
+- [x] 367. 对自证做**变异自证**：① 删掉 `script_style_tests()` 的 `assert` 判定 → 自证变红；② 把「未收集到任何用例」分支改成放行 → 自证变红（`收集不到用例的模块必须判红，否则门禁是假绿`）。两次变异后均已恢复，`git diff testsuite/run_all.py` 为空
+- [x] 368. 干净克隆复核：隐藏 `test/` 后 8 个代表模块行为一致、`test_repo_contract` 14/14 通过 ⇒ 新增的 `testsuite/_isolation.py` 在无 `test/` 的克隆上可用；`⚑` 盲区（脚本式用例）已核实无害（16 个脚本式用例最慢 14.8s）
+- [x] 369. 最终态复核：`gate_rc=0`，**109 个用例参与 / 38 个隔离 / 721 个 test 方法 / 75.4s**，`⚑` 0 个

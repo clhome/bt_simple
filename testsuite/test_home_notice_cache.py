@@ -22,6 +22,15 @@ if WEB_DIR not in sys.path:
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
+# 进程级隔离：本模块的用例会 import 面板模块（如 web/utils/config.py），
+# 它们在导入期会经 core.yf / core.db 打开 <panelDir>/data/panel.db。
+# F: 盘上 sqlite3 的 close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+import core.yf as yf  # noqa: E402
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('home_notice_cache')
+
 CONFIG_PY = os.path.join(WEB_DIR, 'utils', 'config.py')
 SETTING_PY = os.path.join(WEB_DIR, 'admin', 'setting', 'setting.py')
 

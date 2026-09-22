@@ -12,6 +12,14 @@ sys.path.insert(0, os.path.join(ROOT_DIR, "web"))
 
 from core.i18n import t as backend_t
 
+# 进程级隔离：本模块的 test_plugin_py_type_keys 会 `from utils.plugin import plugin`，
+# 而 utils.plugin 在**导入期**就会打开 <panelDir>/data/panel.db。
+# F: 盘上 sqlite3 的 close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('soft_i18n')
+
 class TestSoftI18n(unittest.TestCase):
     def test_left_menu_software_all_languages(self):
         """测试 6 国语言包中左侧菜单及 soft 相关翻译简短不折行"""

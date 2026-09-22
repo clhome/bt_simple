@@ -19,36 +19,28 @@ if PLUGIN_DIR not in sys.path:
     sys.path.insert(0, PLUGIN_DIR)
 
 import core.yf as yf
-import common_db
-import sql_mysql
-import sql_postgresql
+
+# 进程级隔离（必须在 import 项目模块之前）：把面板 SQLite 落点 / serverDir
+# 都挪到系统临时区，并造一份假的「已装 MySQL」。
+# ① 性能：F: 盘上 sqlite 的 connect() 要 30s、**close() 要 30~60s**，
+#    `web/core/db.py` 的 atexit 会逐个关连接（实测本模块 +60s）。
+# ② 确定性：自动探测有确定输入，不再依赖本机是否真装了 MySQL。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('mysql_conn_pg_prompt')
+
+import common_db  # noqa: E402
+import sql_mysql  # noqa: E402
+import sql_postgresql  # noqa: E402
 
 
 class TestMySQLFixAndPgDriverPrompt(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # 隔离真实面板 SQLite：这些用例会通过 common_db 写
-        # <serverDir>/data_query/data_query.db。门禁是**并行**跑模块的，
-        # 多个模块同时写同一个 sqlite 文件会 `sqlite3.OperationalError:
-        # database is locked`（实测让 2 个模块假红）。
-        # 把 sqlite 文件重定向到本进程专属临时目录即可彻底隔离。
-        cls._db_tmp = tempfile.mkdtemp(prefix='yufeng_dq_db_')
-        common_db.getSqliteFile = lambda: os.path.join(cls._db_tmp, 'data_query.db')
-        # 再把 serverDir 指向本进程专属临时区，并在里面**造一份假的「已装 MySQL」**：
-        # ① 性能：本机仓库所在的 F: 盘上普通文件读写是 0.00s，但 sqlite 每次连接要
-        #    **30s**（Windows 的字节范围文件锁在该盘上忙等到超时）。
-        #    common_db.detectLocalMySQLPasswords() 会扫 <serverDir>/*/*.db，
-        #    单次 _get_sqlite_field 就 30~60s，足以把整个模块拖到超时。
-        # ② 确定性：自动探测有了确定的输入，用例不再依赖本机是否真装了 MySQL。
-        cls._server_tmp = tempfile.mkdtemp(prefix='yufeng_server_')
-        os.makedirs(os.path.join(cls._server_tmp, 'mysql'), exist_ok=True)
-        _seed = sqlite3.connect(os.path.join(cls._server_tmp, 'mysql', 'mysql.db'))
-        _seed.execute('CREATE TABLE IF NOT EXISTS config (mysql_root TEXT)')
-        _seed.execute('INSERT INTO config (mysql_root) VALUES (?)', ('unit_test_root_pwd',))
-        _seed.commit()
-        _seed.close()
-        yf.getServerDir = staticmethod(lambda: cls._server_tmp)
+        # 隔离已在模块级完成（见上方注释）。这里留个断言防止有人删掉那行。
+        assert _PANEL_TMP and _SERVER_TMP, '模块级隔离未生效'
 
     def test_01_language_json_syntax(self):
         """验证 6 大多语言包语法及新增词条"""

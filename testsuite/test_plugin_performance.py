@@ -23,7 +23,15 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT_DIR, 'web'))
 
 import core.yf as yf
-from utils.plugin import plugin as YfPlugin
+
+# 进程级隔离：必须在 import utils.plugin 之前 —— 它在导入期就会打开面板库。
+# F: 盘上 sqlite3 的 close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('plugin_performance')
+
+from utils.plugin import plugin as YfPlugin  # noqa: E402
 
 class TestPluginPerformance(unittest.TestCase):
 

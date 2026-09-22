@@ -18,43 +18,26 @@ for p in [web_dir, plugins_dir, data_query_dir, project_root]:
         sys.path.insert(0, p)
 
 import core.yf as yf
-import common_db
+
+# 进程级隔离：把面板 SQLite / 服务目录重定向到系统临时区。
+# 本机 `F:` 盘上 sqlite3 不只是 connect 慢，**close() 单次也要 30~60s**。
+# `web/core/db.py` 在 atexit 里注册了 `_close_all_connections`，而本用例会开出
+# 6 个连接（1 个面板库 + 5 个 `<serverDir>/*.db`）—— 光是进程退出就要 ~270s。
+# 实测：用例本体 `Ran 7 tests in 0.508s`，进程却要 184~296s，99.8% 在解释器退出。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('pg_driver_mysql')
+
+import common_db  # noqa: E402
 
 
 class TestPgDriverAndMysqlDbs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """进程级隔离：面板库 + 服务目录全部挪到临时区（见 testsuite.md §5.7/§5.9）。
-
-        本机 `F:` 盘上 sqlite3 不只是 connect 慢，**close() 单次也要 30~60s**。
-        `web/core/db.py` 在 atexit 里注册了 `_close_all_connections`，
-        而本用例会开出 6 个连接（1 个 `<panelDir>/data/panel.db` + 5 个
-        `<serverDir>/*.db`）—— 光是进程退出就要 ~270s。
-
-        实测：用例本体 `Ran 7 tests in 0.508s`，进程却要 184~296s，
-        开销 99.8% 在解释器退出。重定向后全部连接落在 `%TEMP%`（C: 盘），
-        关闭瞬间完成。
-        """
-        cls._panel_tmp = tempfile.mkdtemp(prefix='yufeng_pg_panel_')
-        cls._server_tmp = tempfile.mkdtemp(prefix='yufeng_pg_server_')
-        os.makedirs(os.path.join(cls._panel_tmp, 'data'), exist_ok=True)
-
-        yf.getPanelDir = staticmethod(lambda: cls._panel_tmp)
-        yf.getServerDir = staticmethod(lambda: cls._server_tmp)
-        common_db.getSqliteFile = lambda: os.path.join(cls._server_tmp, 'data_query.db')
-
-        # 造一份「假装的已装 MySQL」，让自动探测有确定输入（不再依赖本机真实环境）。
-        # mysql/ 与 mariadb/ 两个目录都要建：`detectLocalMySQLPasswords()` 会去扫
-        # `<serverDir>/<mod>/<mod>.db`，目录不存在时 sqlite 会抛
-        # `unable to open database file`（虽然被框架吞掉，但会污染 stderr）。
-        for _mod in ('mysql', 'mariadb'):
-            os.makedirs(os.path.join(cls._server_tmp, _mod), exist_ok=True)
-        _seed = sqlite3.connect(os.path.join(cls._server_tmp, 'mysql', 'mysql.db'))
-        _seed.execute('CREATE TABLE IF NOT EXISTS config (mysql_root TEXT)')
-        _seed.execute('INSERT INTO config (mysql_root) VALUES (?)', ('unit_test_root_pwd',))
-        _seed.commit()
-        _seed.close()
+        # 隔离已在模块级完成（见上方注释）。这里留个断言防止有人删掉那行。
+        assert _PANEL_TMP and _SERVER_TMP, '模块级隔离未生效'
 
     def test_01_pg_driver_interfaces(self):
         """测试 PostgreSQL 驱动检查与日志接口"""

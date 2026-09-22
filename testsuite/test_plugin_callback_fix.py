@@ -15,8 +15,16 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 import core.yf as yf
-import utils.plugin as plugin_module
-from utils.plugin import plugin as YfPlugin
+
+# 进程级隔离：**必须早于 `import utils.plugin`** —— 它在导入期就会打开
+# <panelDir>/data/panel.db，而 F: 盘上 sqlite3 的 close() 单次要 30~60s，
+# 退出时 atexit 逐个关连接。见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('plugin_callback_fix')
+
+import utils.plugin as plugin_module  # noqa: E402
+from utils.plugin import plugin as YfPlugin  # noqa: E402
 
 
 class TestPluginCallbackFix(unittest.TestCase):

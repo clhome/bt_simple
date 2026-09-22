@@ -9,7 +9,15 @@ project_dir = os.path.dirname(current_dir)
 sys.path.insert(0, os.path.join(project_dir, 'web'))
 
 import core.yf as yf
-import thisdb
+
+# 进程级隔离：必须在 import thisdb 之前 —— 它在导入期就会打开面板库。
+# F: 盘上 sqlite3 的 close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('recent_logins')
+
+import thisdb  # noqa: E402
 
 # 提取与 dashboard.py 中完全一致的 IP 解析与日志处理函数
 def parse_ip_type(ip):

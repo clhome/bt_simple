@@ -14,9 +14,18 @@ sys.path.insert(0, web_dir)
 sys.path.insert(0, os.path.join(web_dir, 'core'))
 
 import core.yf as yf
-import utils.file as file_util
-import utils.task as task_util
-import panel_task
+
+# 进程级隔离：把面板 SQLite 落点 / 服务目录重定向到系统临时区。
+# 必须在 import 项目模块之前 —— 它们可能在导入期就打开面板库。
+# F: 盘上 sqlite3 的 close() 单次要 30~60s，退出时 atexit 逐个关连接。
+# 见 testsuite.md §5.7 / §5.9。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('p1_reliability_perf')
+
+import utils.file as file_util  # noqa: E402
+import utils.task as task_util  # noqa: E402
+import panel_task  # noqa: E402
 
 class TestP1DeepReliabilityPerf(unittest.TestCase):
 

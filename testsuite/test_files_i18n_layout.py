@@ -11,6 +11,7 @@
 import json
 import os
 import re
+import sys
 import unittest
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +22,18 @@ FILES_HTML_PATH = os.path.join(WEB_DIR, "templates", "default", "files.html")
 FILES_JS_PATH = os.path.join(WEB_DIR, "static", "app", "files.js")
 
 SUPPORTED_LANGUAGES = ["zh-CN", "zh-TW", "en", "fr", "de", "it"]
+
+# 进程级隔离：本模块的 test_dir_size_calculation_and_formatting 会
+# `from utils import file as file_util`，它在导入期就会经 core.yf / core.db
+# 打开 <panelDir>/data/panel.db。F: 盘上 sqlite3 的 close() 单次要 30~60s，
+# 退出时 atexit 逐个关连接。见 testsuite.md §5.7 / §5.9。
+if WEB_DIR not in sys.path:
+    sys.path.insert(0, WEB_DIR)
+
+import core.yf as yf  # noqa: E402
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('files_i18n_layout')
 
 EXPECTED_TRANSLATIONS = {
     "include_sub": {

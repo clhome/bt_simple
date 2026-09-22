@@ -55,7 +55,8 @@ testsuite/
 ├── quarantine.txt              # 隔离区名单（已知红色用例 + 原因）
 ├── testsuite.md                # 本文件
 │
-├── test_*.py                   # 146 个用例模块（run_all.py 只认这个命名）
+├── test_*.py                   # 147 个用例模块（run_all.py 只认这个命名）
+├── _isolation.py               # 共享助手：用例的进程级隔离（见 §5.9）
 │
 ├── i18n_scripts/               # i18n 静态检查工具（被 i18n 用例 import）
 │   ├── i18n_langlib.py         #   语言包读写/键集工具
@@ -113,18 +114,39 @@ testsuite/
 | i18n 静态门禁（9 项） | `python scripts/verify_i18n.py` |
 | i18n 检测器自证 | `python scripts/verify_i18n.py --self-test` |
 
-### 当前基线（2026-09-21 实测，`test/` 已隐藏 = 模拟干净克隆）
+### 护栏自己也有测试：`test_gate_selftest.py`
+
+上面第 2、4 条护栏是**整套门禁的命门** —— 它们要是被改坏，门禁会静默退化成
+「永远全绿」，比没有门禁更危险。所以护栏本身有自证用例（19 项，约 1.2s）：
+
+- `script_style_tests()` 的**五种**输入形态（脚本式 / `run_tests` / 有 `TestCase` /
+  有 `__main__` 无 `assert` / 有 `assert` 无 `__main__`）；
+- `RAN_RE` 对 `Ran 0 tests ... OK` 的识别（**假门禁防护**）；
+- `body_seconds()` / `overhead()` 的解析与「解析不到就不告警」；
+- `discover_modules()` 只收 `test_*.py`、且**不会**把 `_isolation.py` 当用例；
+- **端到端**：临时生成一个「收集不到用例」的模块，`run_module()` 必须判红
+  （探针写进 `testsuite/` 后立即删除；万一残留，门禁也会因它变红 —— 是「响」不是「静默」）。
+
+> 已做**变异自证**：把 `script_style_tests()` 的 `assert` 判定删掉、
+> 以及把「未收集到用例」那条分支改成放行，自证都会立刻变红。
+> 这正是本仓库对待检测器的一贯做法（同 `verify_i18n.py --self-test`）。
+
+### 当前基线（2026-09-22 实测）
 
 ```
-用例：108 个参与门禁，38 个隔离；静态门禁 2 项；总耗时 295.7s
-参与门禁的用例共 702 个 test 方法
+用例：109 个参与门禁，38 个隔离；静态门禁 2 项；总耗时 75.4s
+参与门禁的用例共 721 个 test 方法
 ✅ 全部门禁通过，可以提交。
 ```
 
 > 这组数字是**基线快照**，不是契约 —— 新增用例会让它变大。
 > 唯一被当成契约写死的是 `test_repo_contract.py` 里的 `EXPECTED_PLUGIN_COUNT = 36`（见 §5.4）。
-> 耗时主要来自 `plugins/data_query` 那批用例：无 MySQL/PostgreSQL/Redis 时
-> 连接探测要等 socket 超时（单次最长 ~250s）。
+>
+> 门禁是 8 路并行（`--jobs`），所以总耗时 ≈ 最慢那批模块的耗时，而不是各模块之和。
+> 2026-09-22 做过一轮系统性提效：**295.7s → 75.0s**，靠的是把「本体很快、进程很慢」
+> 的模块逐个做进程级隔离（见 §5.7 / §5.9）。当前 `⚑` 点名为 **0 个**。
+> 历史上耗时大头曾是 `plugins/data_query` 那批用例（无 MySQL/PostgreSQL/Redis 时
+> 连接探测要等 socket 超时，单次最长 ~250s），现已通过隔离消除。
 
 ---
 
@@ -253,7 +275,12 @@ testsuite/
 > （用例本体耗时）与进程总耗时对比，差值 ≥ `OVERHEAD_WARN_SECONDS`（20s）
 > 就在该行打 `⚑`，并在汇总里单列一节「本体很快、进程很慢」。
 > **看到 `⚑` 不要去优化用例本身**，那是导入/退出开销，按下面做进程级隔离即可。
-> （解析不到本体耗时的脚本式用例会自动跳过该检查，不会误报。）
+>
+> **盲区（已知且已核实无害）**：脚本式用例（走 `python testsuite/xxx.py` 那条路）
+> 不打印 `Ran N tests`，解析不到本体耗时，所以**会被自动跳过、不参与 `⚑` 判定**。
+> 2026-09-22 复核过：16 个脚本式用例里最慢的 `test_op_waf_spider.py` 只有 14.8s，
+> 其余 ≤ 4.6s，没有藏匿同类问题。**但如果将来新增了慢的脚本式用例，`⚑` 抓不到它**
+> —— 那时看「最慢模块」榜单即可（门禁输出按模块耗时可见）。
 
 所以：
 
@@ -311,54 +338,63 @@ def getSqliteFile():
 - 更阴的是**静默污染**：断言拿到别的模块刚写进去的连接
   （如 `'conn_26' != 'pgsql'`、`5432 != 5439`）—— 看着像代码 bug，其实是测试打架。
 
-正解：**把 sqlite 文件重定向到本进程专属临时目录**。
+正解：**用 `testsuite/_isolation.py` 的 `isolate()` 做进程级隔离。**
+
+它一次性做完三件事：把面板 SQLite 的落点、`<serverDir>` 都挪到系统临时区，
+并在临时 serverDir 里造一份假的「已装 MySQL」当确定输入。
 
 ```python
-    @classmethod
-    def setUpClass(cls):
-        cls._db_tmp = tempfile.mkdtemp(prefix='yufeng_dq_db_')
-        common_db.getSqliteFile = lambda: os.path.join(cls._db_tmp, 'data_query.db')
+import core.yf as yf
+
+# 必须在 `import utils.plugin` 之前！它在导入期就会打开
+# <panelDir>/data/panel.db（实测：导入前 core.db._local.connections 是空的，
+# 导入后立刻多一条真实路径）。
+from testsuite._isolation import isolate
+
+_PANEL_TMP, _SERVER_TMP = isolate('mycase')
+
+import utils.plugin as plugin_util      # 现在打开的是临时库
 ```
 
-`getSqliteConn()` 在模块内调用全局 `getSqliteFile()`，所以打这个补丁就够，
-不需要改生产代码。（脚本式用例没有 `setUpClass`，就在模块级 `import` 之后打。）
+**为什么 `isolate()` 改的是 `core.db.getPanelDir`，而不是 `yf.getPanelDir`：**
+`yf.getPluginDir()` = `yf.getPanelDir() + '/plugins'`，插件靠它定位自己的文件 ——
+`plugins/op_waf/index.py:74` 就是 `sys.path.append(getPluginDir() + "/class")`
+再 `from luamaker import luamaker`。改 `yf.getPanelDir()` 会让插件 import 不到
+自己的模块（实测报 `ModuleNotFoundError: No module named 'luamaker'`）。
+而面板 SQLite 的落点全部集中在 `web/core/db.py` 内部（`:82` 与 `:150`），
+改那个函数既能避开慢盘、又不动插件的自定位。
 
-**再加一层：连 `yf.getServerDir()` / `yf.getPanelDir()` 一起重定向，并「造一份假的已装 MySQL」。**
+几个要点：
 
-只重定向 sqlite 还不够 —— `common_db.getUnifiedServerList()` 会调
-`detectLocalMySQLPasswords()` 去扫 `<serverDir>/*/*.db`，而 `F:` 盘上
-**sqlite 单次连接要 30s**（见 §5.7），模块直接超时。所以要连 serverDir 一起换掉。
+- **补丁位置**：必须早于「会打开面板库的模块」被导入。拿不准就放模块级、
+  导入其它项目模块之前；只有确认该模块导入期不碰面板库时，才可以放 `setUpClass`。
+- **`common_db.getSqliteFile()` 不用单独打补丁** —— 它返回
+  `yf.getServerDir() + '/data_query/data_query.db'`，跟着 serverDir 一起走。
+- **`mysql/` 与 `mariadb/` 两个目录都要建**：探测会扫
+  `<serverDir>/<mod>/<mod>.db`，目录不存在时 sqlite 抛
+  `unable to open database file`（被框架吞掉，但脏 stderr）。
+- **光换 serverDir 会抽走自动探测的输入**，用例静默变空
+  （`test_data_query_remotedb` 就报过 `缺少本地 MySQL 项`）——所以必须补那份假 MySQL。
+- 脚本式用例没有 `setUpClass`，就在模块级 `import` 之后、其它项目模块之前调用。
 
-`yf.getPanelDir()` 也要换 —— 面板自己的库是 `<panelDir>/data/panel.db`
-（`web/core/db.py:82`），它在**仓库内**（`data/` 已 gitignore），退出时同样要 30s。
+**但有两类模块「不能」隔离 —— 加之前先想清楚：**
 
-但**光换掉会抽走自动探测的输入**，用例会静默变空（`test_data_query_remotedb`
-就会报 `缺少本地 MySQL 项`）。正确做法是在临时 serverDir 里**造一份假的「已装 MySQL」**：
+1. **路径契约类用例**：断言的就是 `getPanelDir()` / `getServerDir()` /
+   `getFatherDir()` 的**真实推导结果**。重定向后必然失败。
+   实测踩过：
+   - `test_p2_deep_refine::test_01_path_anchor_no_drift` —— 断言面板锚点是仓库根目录；
+   - `test_recommend_install_bug::test_01_server_dir_and_father_dir_calculation` ——
+     断言 `getServerDir()` / `getFatherDir()` 的路径拼法。
+   这两个模块本来就**没被门禁的 `⚑` 点名**，说明开销不大，别去动它。
+   → **只给 `⚑` 点名的模块做隔离，不要凭「它 import 了 utils.plugin」就批量加。**
 
-```python
-    @classmethod
-    def setUpClass(cls):
-        cls._panel_tmp = tempfile.mkdtemp(prefix='yufeng_panel_')
-        os.makedirs(os.path.join(cls._panel_tmp, 'data'), exist_ok=True)
-        cls._server_tmp = tempfile.mkdtemp(prefix='yufeng_server_')
+2. **会起子进程的用例**：如 `plugin.run()` 内部是
+   `yf.safeExecShell(cmd, cwd=yf.getPanelDir())`，**子进程自己会去开真实面板库**。
+   隔离后父进程不再预热那份库，子进程首次 `connect` 就要吃满 `F:` 盘的 30s 超时，
+   于是多出一条「Timeout」失败、把原本记录的失败原因挤到后面。
+   实测踩过：`test_mysql_manage_open_phpmyadmin`（本就在隔离区，故保持原状）。
 
-        yf.getPanelDir = staticmethod(lambda: cls._panel_tmp)      # <panelDir>/data/panel.db
-        yf.getServerDir = staticmethod(lambda: cls._server_tmp)    # <serverDir>/*/*.db
-        common_db.getSqliteFile = lambda: os.path.join(cls._server_tmp, 'data_query.db')
-
-        # mysql/ 与 mariadb/ 两个目录都要建：探测会去扫 <serverDir>/<mod>/<mod>.db，
-        # 目录不存在时 sqlite 抛 `unable to open database file`（被框架吞掉，但脏 stderr）
-        for _mod in ('mysql', 'mariadb'):
-            os.makedirs(os.path.join(cls._server_tmp, _mod), exist_ok=True)
-        _seed = sqlite3.connect(os.path.join(cls._server_tmp, 'mysql', 'mysql.db'))
-        _seed.execute('CREATE TABLE IF NOT EXISTS config (mysql_root TEXT)')
-        _seed.execute('INSERT INTO config (mysql_root) VALUES (?)', ('unit_test_root_pwd',))
-        _seed.commit()
-        _seed.close()
-```
-
-这样自动探测既有**确定输入**（不再依赖本机是否真装了 MySQL），又是**毫秒级**。
-实测效果（6 个用例）：
+实测效果：
 
 | 用例 | 改造前 | 改造后 |
 |---|---|---|
@@ -366,11 +402,25 @@ def getSqliteFile():
 | `test_sync_and_speed` | 28.5s | **0.141s** |
 | `test_mysql_conn_and_pg_driver_prompt` | 120.7s → 超时 | **2.306s** |
 | `test_data_query_remotedb` | 149.8s | **< 1s** |
-| `test_data_query_fix` | >250s（超时） | **0.427s**（并从隔离区摘掉）|
-| `test_pg_driver_and_mysql_dbs` | 184~296s（本体仅 0.5s）| **2s** |
+| `test_data_query_fix` | 53.3s（本体 0.7s） | **1s** |
+| `test_pg_driver_and_mysql_dbs` | 184~296s（本体 0.5s） | **1s** |
+| `test_concurrent_callbacks` | 55.1s（本体 0.7s） | **1s** |
+| `test_f2b_op_waf_link` | 108.7s（本体 74.3s） | **38s** |
+| `test_site_create_default_page`（隔离中） | 85.8s（本体 0.5s） | **1s** |
+| `test_external_status_sync`（隔离中） | 47.2s（本体 0.0s） | **2s** |
+| `test_mysql_conn_and_pg_driver_prompt` | 77.2s（本体 17.0s） | **3s** |
+| `test_p0_deep_security` | 56.3s（本体 0.0s） | **1s** |
+| `test_p1_deep_reliability_perf` | 61.9s（本体 7.1s） | **7s** |
+| `test_plugin_callback_fix` | 42.4s（本体 0.0s） | **1s** |
+| `test_soft_i18n`（隔离中） | 75.3s（本体 43.1s） | **1s** |
+| `test_files_i18n_layout`（隔离中） | 31.7s（本体 0.3s） | **2s** |
+| `test_plugin_performance` | 112.9s（本体 3.9s） | **2s** |
+| `test_recent_logins` | 49.5s（本体 0.8s） | **2s** |
+| `test_home_notice_cache` | 37.8s（本体 0.2s） | **2s** |
+| `test_plugin_service_ops_and_modal`（隔离中） | 51.9s（本体 0.1s） | **2s** |
 
-> 判据：只要用例里出现 `common_db` / 任何指向 `<serverDir>` 的写操作，
-> 就必须做进程级隔离。
+> 判据：只要用例里出现 `common_db`、`utils.plugin`，或任何指向
+> `<serverDir>` / 面板 SQLite 的读写，就必须做进程级隔离。
 
 **顺带知道一下**：用例跑起来会在 `yf.getServerDir()` 下产生运行时数据
 （本机 `getServerDir()` = `F:\git\server`，约 1 MB：`clean/`、`cron/`、

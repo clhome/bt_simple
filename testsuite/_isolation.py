@@ -15,9 +15,9 @@
 
 ## 怎么用
 
-**必须在 `import utils.plugin` 之前调用** —— `utils.plugin` 在**导入期**就会打开
-`<panelDir>/data/panel.db`，补丁打晚了那个连接就已经落在真实盘上了（实测：
-`import utils.plugin` 之后 `core.db._local.connections` 立刻多出一条真实路径）。
+**必须在「会打开面板库的模块」被导入之前调用。** 实测 `import utils.plugin`
+在**导入期**就会打开 `<panelDir>/data/panel.db`（导入前 `core.db._local.connections`
+是空的，导入后立刻多一条真实路径），补丁打晚了就晚了。
 
 ```python
 import core.yf as yf
@@ -32,8 +32,9 @@ import utils.plugin as plugin_util
 
 ## 做了什么
 
-1. `yf.getPanelDir` → `<panel_tmp>`，并预建 `<panel_tmp>/data/`
-   （面板库路径是 `getPanelDir() + '/data/panel.db'`，见 `web/core/db.py:82`）。
+1. `core.db.getPanelDir` → `<panel_tmp>`，并预建 `<panel_tmp>/data/`。
+   面板 SQLite 的落点只有两处，都在 `web/core/db.py` 里经这个函数拼出来：
+   `getPanelDir()+'/data/panel.db'`（:82）与 `getPanelDir()+'/data/<name>.db'`（:150）。
 2. `yf.getServerDir` → `<server_tmp>`，并预建 `mysql/`、`mariadb/` 两个目录。
    探测代码会去扫 `<serverDir>/<mod>/<mod>.db`，目录不存在时 sqlite 会抛
    `unable to open database file`（被框架吞掉，但会脏 stderr）。
@@ -43,6 +44,20 @@ import utils.plugin as plugin_util
 
 `common_db.getSqliteFile()` 不用单独打补丁 —— 它返回
 `yf.getServerDir() + '/data_query/data_query.db'`，跟着 serverDir 一起走。
+
+## 为什么改的是 `core.db.getPanelDir`，而不是 `yf.getPanelDir`
+
+**千万不要**去改 `yf.getPanelDir()` —— `yf.getPluginDir()` 是
+`getPanelDir() + '/plugins'`，插件靠它定位自己的文件，例如
+`plugins/op_waf/index.py:74`：
+
+    sys.path.append(getPluginDir() + "/class")
+    from luamaker import luamaker
+
+把 `yf.getPanelDir()` 改掉，插件就 `import` 不到自己的模块
+（实测报 `ModuleNotFoundError: No module named 'luamaker'`）。
+而面板 **SQLite** 的落点全部集中在 `core/db.py` 内部，改那个函数
+既能避开慢盘，又不动插件的自定位。
 
 ## 注意
 
@@ -63,11 +78,12 @@ import core.yf as yf
 FAKE_MYSQL_ROOT = 'unit_test_root_pwd'
 
 
-def isolate(prefix='yufeng_case', seed_mysql=True):
-    """把面板/服务目录重定向到系统临时区。
+def isolate(prefix='yufeng_case', seed_mysql=True, redirect_panel=True):
+    """把面板 SQLite / 服务目录重定向到系统临时区。
 
     :param prefix: 临时目录名前缀，便于排查时辨认是哪个用例。
     :param seed_mysql: 是否造一份假的「已装 MySQL」（默认造）。
+    :param redirect_panel: 是否重定向面板 SQLite 落点（默认重定向）。
     :return: `(panel_tmp, server_tmp)`
     """
     panel_tmp = tempfile.mkdtemp(prefix='yufeng_%s_panel_' % prefix)
@@ -77,7 +93,11 @@ def isolate(prefix='yufeng_case', seed_mysql=True):
     for mod in ('mysql', 'mariadb'):
         os.makedirs(os.path.join(server_tmp, mod), exist_ok=True)
 
-    yf.getPanelDir = staticmethod(lambda: panel_tmp)
+    if redirect_panel:
+        # 只改 core.db 内部这个函数（见模块 docstring 的说明）
+        import core.db as _db
+        _db.getPanelDir = lambda: panel_tmp
+
     yf.getServerDir = staticmethod(lambda: server_tmp)
 
     # 若 common_db 已经被加载（无论以 `common_db` 还是

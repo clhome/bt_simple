@@ -21,6 +21,11 @@ if 'thisdb' not in sys.modules:
 import core.yf as yf
 import core.db as db
 
+# 注意：本模块**不能**用 `_isolation.isolate()` —— 它的
+# `test_01_path_anchor_no_drift` 断言的正是 `getPanelDir()` 的**真实锚点**
+# （仓库根目录），重定向到临时区会让该断言必然失败。
+# 好在它本来开销就不大（未被门禁的 ⚑ 点名）。
+
 class TestP2DeepRefine(unittest.TestCase):
 
     def setUp(self):

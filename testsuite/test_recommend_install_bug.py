@@ -20,6 +20,11 @@ for mod in ['psutil', 'flask', 'flask_socketio', 'gevent', 'thisdb']:
 import core.yf as yf
 import utils.plugin as plugin_mod
 
+# 注意：本模块**不能**用 `_isolation.isolate()` —— 它的
+# `test_01_server_dir_and_father_dir_calculation` 断言的正是
+# `getServerDir()` / `getFatherDir()` 的**真实路径推导**，重定向会让它必然失败。
+# 好在它本来开销就不大（未被门禁的 ⚑ 点名）。
+
 class TestRecommendInstallBug(unittest.TestCase):
 
     def setUp(self):
