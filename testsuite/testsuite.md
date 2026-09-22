@@ -148,10 +148,18 @@ testsuite/
 ### 当前基线（2026-09-22 实测）
 
 ```
-用例：142 个参与门禁，6 个隔离；静态门禁 2 项；总耗时 87.7s
-参与门禁的用例共 913 个 test 方法
+用例：143 个参与门禁，6 个隔离；静态门禁 2 项；总耗时 87.5s
+参与门禁的用例共 917 个 test 方法
 ✅ 全部门禁通过，可以提交。
 ```
+
+> 本轮新增 `test_lang_pack_integrity.py`（4 项）：守护语言包的**术语自我复制**
+> 与**剥标签粘连**。护栏**自带词表**、不 import `test/i18n_scripts/tools/`
+> 里的 `ZH_TW_MAP` —— ① `testsuite/` 会被提交而 `test/` 被 gitignore，
+> 契约守卫 `test_repo_contract.py` 禁止引用（`os.path.join(<'test'...>)` 与
+> 裸字符串 `'test/xxx.py'` 两种形态都查）；② 更根本：护栏**必须有自己的 oracle**，
+> 拿被守护对象自己的表当判据是循环论证，表一坏扫描集合就一起变空 ⇒ 真空通过。
+> 被守护的缺陷详情见 `test/语言包粘连与转换器幂等审计.md`。
 
 > ⚠️ 跑之前先 `pip install -r requirements.txt`（至少 Jinja2 / packaging / flask），
 > 否则 8 个用例会假红 —— 见 §六。

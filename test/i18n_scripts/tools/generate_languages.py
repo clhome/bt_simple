@@ -43,16 +43,57 @@ ZH_TW_MAP = {
     "验证码": "驗證碼", "带宽": "頻寬", "并发": "並行", "吞吐": "輸送量", "速率": "速率"
 }
 
+def _build_term_re():
+    """构造术语替换正则：**键 ∪ 目标值**，按长度降序，单趟替换。
+
+    为什么不能再用 `for s, t in ZH_TW_MAP.items(): res = res.replace(s, t)`：
+
+    1. **不幂等、会自我复制**。`域名 -> 網域名稱` 的目标串**自己又含 `域名`**，
+       于是对已经转换过的文本再跑一次就变成 `網網域名稱稱`。实测确认可达：
+       包里 `the_automatic_acme_installation` 一类文案被转两遍就会出现 `安裝安裝`
+       （另一处成因是剥 HTML 标签未补分隔符，见 test/fix_lang_glue.py）。
+    2. **循环替换让行为依赖字典字面量顺序**，改一行可能悄悄改变全部输出。
+
+    修法：把**目标值也放进候选**（命中即原样保留），并按长度降序匹配。
+    `網域名稱` 比 `域名` 长，会先命中自己，因此「已转换的文本再转一次不变」。
+    单趟替换还顺带保证了替换结果不会被二次扫描。
+    """
+    pairs = [(k, v) for k, v in ZH_TW_MAP.items() if k != v]
+    keys = {k for k, _ in pairs}
+    # 目标值也参与匹配（命中后原样返回），这样已转换的词不会被再切一次
+    cand = sorted(keys | {v for _, v in pairs}, key=len, reverse=True)
+    return re.compile("|".join(re.escape(c) for c in cand))
+
+
+_TERM_RE = _build_term_re()
+
+
 def to_traditional_chinese(text):
-    """将简体中文转换为繁体中文"""
+    """将简体中文转换为繁体中文（**幂等**：已转换的文本再转一次不变）"""
     if not isinstance(text, str):
         return text
-    # 先做专业术语替换
-    res = text
-    for s, t in ZH_TW_MAP.items():
-        res = res.replace(s, t)
-    
-    # 常用汉字繁简替换
+    # 先做专业术语替换（单趟、最长优先）
+    res = _TERM_RE.sub(lambda m: ZH_TW_MAP.get(m.group(0), m.group(0)), text)
+
+    # 再用权威转换表做繁简转换。
+    #
+    # 历史上这里只有**手写**的 char_map，实测有三个致命问题（已污染交付语言包）：
+    #   1. **表不全** —— zh-TW 语言包 14143 条里有 **1688 条**仍混着简体字
+    #      （如「點击釋放記憶體」「磁盘空間」「当前可用物理記憶體」）；
+    #   2. **无条件单字替换、不看上下文** —— `制→製` 把「控制」错改成「控製」（3 处）；
+    #      `复→復` 把「复制」错改成「復製」（40 处，正确是「複製」）；
+    #   3. **字典里有重复键**（`复` 出现两次、`制` 出现两次），后写的覆盖先写的，
+    #      行为依赖字面量顺序 —— 改一行就可能悄悄改变全部输出。
+    #
+    # 所以优先用 zhconv（纯 Python 转换表，带词组级处理）；
+    # 取不到时才退回旧的 char_map，保证离线也能构建。
+    try:
+        import zhconv
+        return zhconv.convert(res, 'zh-tw')
+    except ImportError:
+        pass
+
+    # 常用汉字繁简替换（回退路径，已知不完整，勿再往这里加单字映射）
     char_map = {
         "个": "個", "这": "這", "为": "為", "来": "來", "后": "後", "对": "對", "与": "與",
         "将": "將", "以": "以", "从": "從", "到": "到", "在": "在", "有": "有", "无": "無",
@@ -98,4 +139,54 @@ def to_traditional_chinese(text):
         res = res.replace(s, t)
     return res
 
+def _self_test():
+    """自证：转换必须**幂等**（已转换过的文本再转一次不变），且简→繁仍正确。
+
+    为什么把这条属性放在工具自己身上、而不是 `testsuite/`：
+    `testsuite/` 会被提交，而本文件位于被 `.gitignore` 忽略的 `test/` 目录，
+    仓库契约守卫 `testsuite/test_repo_contract.py` 明令禁止 `testsuite/` 引用
+    `test/`（`os.path.join('test', ...)` 与裸字符串两种形态都会命中）。
+    所以由工具自带自证：`python test/i18n_scripts/tools/generate_languages.py --self-test`。
+
+    被守护的历史缺陷：旧实现是
+        for s, t in ZH_TW_MAP.items():
+            res = res.replace(s, t)
+    逐条替换，而 `域名 -> 網域名稱` 的目标串**自己又含 `域名`**，
+    于是对已经转换过的文本再跑一次就变成 `網網域名稱稱`（转换器不幂等）。
+    """
+    fixed_points = [
+        '網域名稱', '處理程序', '設定檔案', '伺服器', '資源回收筒', '記憶體',
+        '重新整理', '重新啟動', '控制', '複製', '御風', '資料庫', '使用者',
+        '終端機', '外掛程式', '執行緒', '記錄檔', '用戶端',
+    ]
+    bad = [s for s in fixed_points if to_traditional_chinese(s) != s]
+    assert not bad, '转换器不幂等，已转换过的串被再次改写: %r' % (
+        [(s, to_traditional_chinese(s)) for s in bad],)
+
+    # 简 -> 繁 仍须正确（防止「为了幂等把功能改坏」）
+    cases = {
+        '域名': '網域名稱', '控制': '控制', '复制': '複製',
+        '强制刷新': '強制重新整理', '进程': '處理程序',
+        '配置文件': '設定檔案', '磁盘': '磁碟', '回收站': '資源回收筒',
+        '服务器': '伺服器', '当前可用物理記憶體小于64M': '當前可用物理記憶體小於64M',
+    }
+    wrong = [(k, to_traditional_chinese(k), v) for k, v in cases.items()
+             if to_traditional_chinese(k) != v]
+    assert not wrong, '简->繁 输出不符（期望, 实际）: %r' % (wrong,)
+
+    notidem = [s for s in list(cases) + fixed_points
+               if to_traditional_chinese(to_traditional_chinese(s))
+               != to_traditional_chinese(s)]
+    assert not notidem, 'f(f(x)) != f(x): %r' % (notidem,)
+
+    print('self-test OK: 幂等 + 简->繁 正确（%d 个定点, %d 个用例）'
+          % (len(fixed_points), len(cases)))
+
+
 print("Initialized multi-language generator engine.")
+
+if __name__ == '__main__':
+    import sys as _sys
+    if '--self-test' in _sys.argv:
+        _self_test()
+
