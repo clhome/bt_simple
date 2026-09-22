@@ -12,7 +12,7 @@ class TestSiteTableI18n(unittest.TestCase):
         cls.site_js_path = os.path.join(cls.root_dir, 'web', 'static', 'app', 'site.js')
         cls.template_zh_path = os.path.join(cls.root_dir, 'web', 'static', 'language', 'zh-CN', 'template.json')
         cls.template_en_path = os.path.join(cls.root_dir, 'web', 'static', 'language', 'en', 'template.json')
-        cls.repaired_funcs_path = os.path.join(cls.root_dir, 'test', 'repaired_functions.js')
+        cls.repaired_funcs_path = os.path.join(cls.root_dir, 'testsuite', 'repaired_functions.js')
 
         with open(cls.site_js_path, 'r', encoding='utf-8') as f:
             cls.site_js_content = f.read()
@@ -177,7 +177,7 @@ class TestSiteTableI18n(unittest.TestCase):
         console.log("SIMULATION_PASSED");
         '''
 
-        tmp_runner_path = os.path.join(self.root_dir, 'test', 'tmp_sim_runner.js')
+        tmp_runner_path = os.path.join(self.root_dir, 'testsuite', 'tmp_sim_runner.js')
         with open(tmp_runner_path, 'w', encoding='utf-8') as f:
             f.write(node_script)
 

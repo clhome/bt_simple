@@ -40,7 +40,6 @@ test_plugin_initd_integration.py    # 未收集到用例（导入失败）
 test_plugin_service_ops_and_modal.py    # ModuleNotFoundError: No module named 'flask'
 test_redis_run_log_fix.py    # AssertionError: '当前暂无新增运行日志' not found in {'MB,最大使用内存,0表示不限制': 'MB, maximal nutzbarer Arbeitsspeicher; 0 b
 test_site_create_default_page.py    # AssertionError: 'src="./favicon.ico"' not found in '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n    <met
-test_site_delete_fix.py    # 退出码 1，未能提取异常行
 test_soft_i18n.py    # AssertionError: '執行環境' != '運行環境'
 test_task_badge_sync.py    # AssertionError: 'getTaskCount();' not found in "$.post('/plugins/init_install', 'list='+JSON.stringify(pos
 test_task_manager_i18n.py    # AssertionError: 'External Address' != 'Foreign Address'

@@ -105,7 +105,7 @@ class TestPluginPerformance(unittest.TestCase):
 
     def test_06_node_runtime_dom_benchmark(self):
         """使用 Node.js + jsdom 真实模拟 1000 个复杂节点的 DOM 树，对比定向选择器与暴力扫描的性能"""
-        node_script = os.path.join(ROOT_DIR, 'test', 'benchmark_dom_i18n.js')
+        node_script = os.path.join(ROOT_DIR, 'testsuite', 'benchmark_dom_i18n.js')
         js_code = """
         const fs = require('fs');
         const { JSDOM } = require('jsdom');

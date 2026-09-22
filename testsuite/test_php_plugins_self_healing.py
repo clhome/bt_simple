@@ -124,7 +124,7 @@ class TestPhpPluginsSelfHealing(unittest.TestCase):
         spec.loader.exec_module(php_mod)
 
         # 模拟一个非法的 PID 文件（使用极大不存在的 PID 99999999）
-        test_dir = os.path.join(PROJECT_ROOT, 'test', 'scratch_php_test')
+        test_dir = os.path.join(PROJECT_ROOT, 'testsuite', 'scratch_php_test')
         os.makedirs(test_dir, exist_ok=True)
         dead_pid_file = os.path.join(test_dir, 'php-fpm.pid')
         with open(dead_pid_file, 'w', encoding='utf-8') as f:

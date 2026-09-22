@@ -1,0 +1,179 @@
+# -*- coding: utf-8 -*-
+"""
+验证软件卸载弹窗备份复选框及多语言适配自动化测试套件
+"""
+import os
+import sys
+import json
+import re
+import unittest
+import subprocess
+
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+
+BASE_DIR = r"f:\git\gitea20250909\bt_simple"
+LANG_DIR = os.path.join(BASE_DIR, "web", "static", "language")
+SOFT_JS = os.path.join(BASE_DIR, "web", "static", "app", "soft.js")
+
+LANGS = ["zh-CN", "zh-TW", "en", "fr", "de", "it"]
+REQUIRED_KEYS = [
+    "uninstall_confirm_prefix",
+    "uninstall_confirm_suffix",
+    "uninstall_backup_tip",
+    "software_uninstallation_confirmation",
+    "confirm_uninstall"
+]
+
+ZH_PATTERN = re.compile(r'[\u4e00-\u9fff]')
+
+class TestUninstallModalI18n(unittest.TestCase):
+    def test_01_soft_js_modal_html_structure(self):
+        """测试 soft.js 中 runUninstallVersion 弹窗 HTML 标签完整闭合与复选框存在"""
+        with open(SOFT_JS, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        func_idx = content.find("function runUninstallVersion")
+        self.assertNotEqual(func_idx, -1, "soft.js 未找到 runUninstallVersion 函数")
+
+        func_body = content[func_idx:func_idx + 1500]
+
+        # 1. 验证备份复选框存在
+        self.assertIn("id='normal_uninstall_backup_chk'", func_body, "runUninstallVersion 缺少备份复选框 id")
+
+        # 2. 提取 contentHtml
+        m = re.search(r'var contentHtml\s*=\s*"([\s\S]*?)";', func_body)
+        self.assertTrue(m, "未能提取 contentHtml 字符串定义")
+        html_template = m.group(1)
+
+        # 验证 div 标签平衡
+        div_open = html_template.count("<div")
+        div_close = html_template.count("</div>")
+        self.assertEqual(div_open, div_close, f"div 标签不平衡: open={div_open}, close={div_close}")
+
+        # 验证 span 标签平衡
+        span_open = html_template.count("<span")
+        span_close = html_template.count("</span>")
+        self.assertEqual(span_open, span_close, f"span 标签不平衡: open={span_open}, close={span_close}")
+
+        # 验证 label 标签平衡
+        label_open = html_template.count("<label")
+        label_close = html_template.count("</label>")
+        self.assertEqual(label_open, label_close, f"label 标签不平衡: open={label_open}, close={label_close}")
+
+        # 验证弹窗配置
+        self.assertIn("closeBtn: 1", func_body, "runUninstallVersion 应显式开启 closeBtn: 1")
+
+    def test_02_template_json_keys(self):
+        """测试 6 国语言 template.json 中 soft 模块词条完整且无污染"""
+        for lang in LANGS:
+            tmpl_path = os.path.join(LANG_DIR, lang, "template.json")
+            self.assertTrue(os.path.exists(tmpl_path), f"缺失 {lang}/template.json")
+            with open(tmpl_path, "r", encoding="utf-8") as f:
+                d = json.load(f)
+
+            soft_dict = d.get("soft", {})
+            for k in REQUIRED_KEYS:
+                self.assertIn(k, soft_dict, f"[{lang}] template.json soft 模块缺失键: {k}")
+                val = soft_dict[k]
+                self.assertTrue(val, f"[{lang}] template.json soft.{k} 为空")
+                if lang in ['en', 'fr', 'de', 'it']:
+                    self.assertFalse(ZH_PATTERN.search(val), f"[{lang}] template.json soft.{k} 包含中文字符: {val}")
+
+    def test_03_lan_js_keys(self):
+        """测试 6 国语言 lan.js 中 soft 模块词条完整且无污染"""
+        for lang in LANGS:
+            lan_path = os.path.join(LANG_DIR, lang, "lan.js")
+            self.assertTrue(os.path.exists(lan_path), f"缺失 {lang}/lan.js")
+            with open(lan_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            for k in REQUIRED_KEYS:
+                self.assertIn(f'"{k}":', content, f"[{lang}] lan.js 缺失键: {k}")
+
+    def test_04_js_syntax(self):
+        """测试各语言 lan.js 零语法报错"""
+        for lang in LANGS:
+            lan_path = os.path.join(LANG_DIR, lang, "lan.js").replace("\\", "/")
+            cmd = ["node", "-e", f'const vm = require("vm"); const fs = require("fs"); vm.runInThisContext(fs.readFileSync("{lan_path}", "utf8"));']
+            p = subprocess.run(cmd, capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, f"[{lang}] lan.js 语法错误: {p.stderr}")
+
+    def test_05_runtime_translation(self):
+        """测试各语言在浏览器环境下的运行时实际翻译值"""
+        i18n_path = os.path.join(BASE_DIR, "web", "static", "app", "i18n.js").replace("\\", "/")
+        lang_dir_path = LANG_DIR.replace("\\", "/")
+
+        node_script = """
+        const fs = require('fs');
+        const path = require('path');
+        const vm = require('vm');
+
+        const langDir = '__LANG_DIR__';
+        const i18nJs = fs.readFileSync('__I18N_PATH__', 'utf8');
+
+        const expectations = {
+            'en': {
+                prefix: 'Are you sure you want to uninstall 【',
+                suffix: '】?',
+                backup: 'Pack and back up data to /www/backup (.tar.gz) before uninstalling'
+            },
+            'de': {
+                prefix: 'Möchten Sie wirklich 【',
+                suffix: '】 deinstallieren?',
+                backup: 'Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)'
+            },
+            'fr': {
+                prefix: 'Voulez-vous vraiment désinstaller 【',
+                suffix: '】 ?',
+                backup: 'Emballez et sauvegardez les données sur /www/backup (.tar.gz) avant de désinstaller'
+            },
+            'it': {
+                prefix: 'Vuoi davvero disinstallare 【',
+                suffix: '】?',
+                backup: 'Comprimere ed eseguire il backup dei dati su /www/backup (.tar.gz) prima di disinstallare'
+            },
+            'zh-TW': {
+                prefix: '您真的要卸載【',
+                suffix: '】嗎？',
+                backup: '卸載前將數據打包備份到 /www/backup (.tar.gz)'
+            },
+            'zh-CN': {
+                prefix: '您真的要卸载【',
+                suffix: '】吗？',
+                backup: '卸载前将数据打包备份到 /www/backup (.tar.gz)'
+            }
+        };
+
+        for (const [lang, exp] of Object.entries(expectations)) {
+            const lanJs = fs.readFileSync(path.join(langDir, lang, 'lan.js'), 'utf8');
+            const sandbox = {
+                window: {},
+                document: { cookie: 'yf_lang=' + lang, querySelectorAll: () => [], readyState: 'complete' },
+                navigator: { languages: [lang] },
+                location: { search: '' },
+                localStorage: { getItem: () => lang, setItem: () => {} },
+                _SERVER_LANG: lang
+            };
+            sandbox.window = sandbox;
+            const ctx = vm.createContext(sandbox);
+            vm.runInContext(lanJs, ctx);
+            vm.runInContext(i18nJs, ctx);
+
+            const pref = vm.runInContext("t('soft.uninstall_confirm_prefix')", ctx);
+            const suff = vm.runInContext("t('soft.uninstall_confirm_suffix')", ctx);
+            const bkp = vm.runInContext("t('soft.uninstall_backup_tip')", ctx);
+
+            if (pref !== exp.prefix) throw new Error(`[${lang}] prefix mismatch: got '${pref}', expected '${exp.prefix}'`);
+            if (suff !== exp.suffix) throw new Error(`[${lang}] suffix mismatch: got '${suff}', expected '${exp.suffix}'`);
+            if (bkp !== exp.backup) throw new Error(`[${lang}] backup mismatch: got '${bkp}', expected '${exp.backup}'`);
+        }
+        console.log('ALL RUNTIME TRANSLATIONS PASS');
+        """.replace('__LANG_DIR__', lang_dir_path).replace('__I18N_PATH__', i18n_path)
+
+        cmd = ["node", "-e", node_script]
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', cwd=BASE_DIR)
+        self.assertEqual(p.returncode, 0, f"Node.js 运行时翻译测试失败:\n{p.stderr}\n{p.stdout}")
+
+if __name__ == '__main__':
+    unittest.main()

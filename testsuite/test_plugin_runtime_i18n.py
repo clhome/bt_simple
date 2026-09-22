@@ -193,7 +193,7 @@ class TestPluginRuntimeI18n(unittest.TestCase):
         console.log("Runtime simulation passed! 0 Chinese characters detected.");
         """
         
-        script_path = os.path.join(self.root_dir, "test", "run_node_runtime_test.js")
+        script_path = os.path.join(self.root_dir, "testsuite", "run_node_runtime_test.js")
         with open(script_path, "w", encoding="utf-8") as f:
             f.write(test_script)
             

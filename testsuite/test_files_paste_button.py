@@ -44,7 +44,7 @@ class TestFilesPasteButton(unittest.TestCase):
 
     def test_02_lan_js_node_syntax(self):
         """通过 Node.js 校验全部 6 国语言 lan.js 零语法错误"""
-        chk_script = os.path.join(BASE_DIR, 'test/check_lan_syntax.js')
+        chk_script = os.path.join(BASE_DIR, 'testsuite/check_lan_syntax.js')
         res = subprocess.run(['node', chk_script], capture_output=True, text=True)
         self.assertEqual(res.returncode, 0, f"Node.js syntax check failed:\n{res.stderr}\n{res.stdout}")
 

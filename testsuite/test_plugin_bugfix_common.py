@@ -18,7 +18,7 @@ import subprocess
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
-TEST_DIR = os.path.join(ROOT_DIR, "test")
+TEST_DIR = os.path.join(ROOT_DIR, "testsuite")
 I18N_JS_PATH = os.path.join(ROOT_DIR, "web", "static", "app", "i18n.js")
 
 class TestPluginBugfixCommon(unittest.TestCase):

@@ -22,6 +22,11 @@
    避免隔离区变成垃圾场。
 4. **静态门禁与用例分开**：静态检查（i18n 9 项、检测器自证）是纯标准库、
    无副作用的，`--static` 可以秒级跑完，适合编辑过程中反复跑。
+5. **兼容「脚本式用例」**：本仓库有一批历史用例是模块级 `def test_*()` +
+   `if __name__ == '__main__':` 的形式（无 `TestCase`），`-m unittest` 收集不到。
+   这类模块自动改用 `python testsuite/xxx.py` 执行，以**退出码**为准；
+   判定条件见 `script_style_tests()` —— 必须有 `__main__` 入口，
+   否则不算通过（没有入口的「测试」当脚本跑等于什么都没做，是假绿）。
 """
 import argparse
 import json
@@ -39,6 +44,32 @@ PY = sys.executable
 MODULE_TIMEOUT = 600          # 单模块超时（秒）
 STATIC_TIMEOUT = 300
 RAN_RE = re.compile(r'^Ran (\d+) tests? in ', re.M)
+SCRIPT_TEST_RE = re.compile(r'^def (test_\w+)\s*\(', re.M)
+MAIN_BLOCK_RE = re.compile(r'''^if\s+__name__\s*==\s*['"]__main__['"]\s*:''', re.M)
+
+
+def script_style_tests(path):
+    """返回「脚本式用例」的测试函数名；不是脚本式用例则返回空列表。
+
+    本仓库有一批历史用例是脚本式的：模块级 `def test_xxx():` 配
+    `if __name__ == '__main__':` 逐个调用，用裸 `assert` 断言。
+    `python -m unittest` **收集不到**它们（只会得到 `Ran 0 tests`），
+    必须改用 `python testsuite/xxx.py` 执行、以退出码为准。
+
+    返回空列表的两种情况都不能算通过：
+    - 含 `TestCase` → 走正常 unittest 路径；
+    - 没有 `__main__` 入口 → 当脚本跑等于什么都没执行，是假绿。
+    """
+    try:
+        with open(path, 'r', encoding='utf-8') as fp:
+            src = fp.read()
+    except OSError:
+        return []
+    if 'unittest.TestCase' in src:
+        return []
+    if not MAIN_BLOCK_RE.search(src):
+        return []
+    return SCRIPT_TEST_RE.findall(src)
 
 # 静态门禁：不依赖 testsuite/ 下的用例，直接调用仓库里的独立工具
 STATIC_GATES = [
@@ -100,18 +131,33 @@ def run_static(name, cmd):
 
 
 def run_module(name):
+    path = os.path.join(HERE, name)
     cmd = [PY, '-m', 'unittest', 'testsuite.' + name[:-3], '-v']
     rc, text, secs = run_cmd(cmd, MODULE_TIMEOUT)
     m = RAN_RE.search(text)
     ran = int(m.group(1)) if m else 0
+
     if rc == 124:
-        ok, reason = False, '超时'
-    elif ran == 0:
+        return _result(name, False, '超时', ran, secs, text, cmd)
+
+    if ran == 0:
+        # unittest 收集不到用例：可能是「脚本式用例」，也可能真的坏了。
+        names = script_style_tests(path)
+        if names:
+            cmd2 = [PY, os.path.join('testsuite', name)]
+            rc2, text2, secs2 = run_cmd(cmd2, MODULE_TIMEOUT)
+            ok = rc2 == 0
+            reason = '' if ok else f'脚本式用例退出码 {rc2}'
+            return _result(name, ok, reason, len(names), secs + secs2, text + text2, cmd2)
         # 关键护栏：收集不到用例不能算通过
-        ok, reason = False, '未收集到任何用例（疑似假门禁）'
-    else:
-        ok = (rc == 0)
-        reason = '' if ok else f'退出码 {rc}，{len(re.findall(r"^(FAIL|ERROR): ", text, re.M))} 个失败'
+        return _result(name, False, '未收集到任何用例（疑似假门禁）', 0, secs, text, cmd)
+
+    ok = (rc == 0)
+    reason = '' if ok else f'退出码 {rc}，{len(re.findall(r"^(FAIL|ERROR): ", text, re.M))} 个失败'
+    return _result(name, ok, reason, ran, secs, text, cmd)
+
+
+def _result(name, ok, reason, ran, secs, text, cmd):
     return {'kind': 'case', 'name': name, 'ok': ok, 'reason': reason,
             'ran': ran, 'secs': secs, 'text': text, 'cmd': ' '.join(cmd)}
 

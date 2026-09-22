@@ -1307,11 +1307,11 @@ class TestSiteAntiBannerRender(unittest.TestCase):
     「一键停用」提示条 —— 真实渲染验证。
 
     静态断言只能证明「源码里有这段文案」，不能证明「渲染出来是对的」。
-    这里用 `test/tools/render_f2b_site_anti.js`（最小 jQuery/layer/api 替身）
+    这里用 `testsuite/tools/render_f2b_site_anti.js`（最小 jQuery/layer/api 替身）
     在 Node 里真正执行 `f2bSiteAnti()`，再对渲染结果做断言。
     """
 
-    HARNESS = os.path.join(BASE, 'test', 'tools', 'render_f2b_site_anti.js')
+    HARNESS = os.path.join(BASE, 'testsuite', 'tools', 'render_f2b_site_anti.js')
 
     # 各语言下绿色提示条标题里必须出现的词
     TITLE_WORDS = {

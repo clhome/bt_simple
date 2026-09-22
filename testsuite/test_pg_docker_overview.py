@@ -67,7 +67,7 @@ def test_backend_statistics_logic_mock():
     orig_getServerDir = pg_index.getServerDir
     try:
         # mock getServerDir 为一个不存在的路径
-        pg_index.getServerDir = lambda: os.path.join(PROJECT_ROOT, 'test', 'non_existent_dir_pg')
+        pg_index.getServerDir = lambda: os.path.join(PROJECT_ROOT, 'testsuite', 'non_existent_dir_pg')
         res_raw = pg_index.getTotalStatistics()
         res = json.loads(res_raw)
         assert res['status'] is False, "未安装状态应返回 status=False"

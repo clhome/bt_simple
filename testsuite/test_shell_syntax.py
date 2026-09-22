@@ -11,8 +11,15 @@
 **性能说明**：Windows/MSYS 下每次 `bash -n` 都要 fork，实测约 0.5s/文件，
 353 个串行需要约 3 分钟，对提交门禁不可接受。所以这里：
 - 按 CPU 数把文件列表分片，每片交给**一个** bash 进程循环处理（减少进程创建）；
-- 片之间用线程池并行。
-实测可把总耗时压到可接受范围（见 README 的性能表）。
+- 片之间用线程池并行；
+- 循环里**不做命令替换**（`$(...)` 每个文件会多 fork 一个子 shell，实测慢 4 倍以上），
+  第一遍只收集「失败的文件路径」，再对这几个文件单独跑一次 `bash -n` 取报错信息。
+
+实测：16 路并行下整库约 6 秒。
+
+**坑**：枚举文件必须用 `git ls-files -z`。不带 `-z` 时 git 会把含非 ASCII 的路径
+用 C 风格八进制转义**加引号**输出（如 `"plugins/\345\276\205..."`），
+拿到的是带引号的字面量而不是真实路径，会让所有中文目录下的脚本被误判为语法错误。
 """
 import os
 import shutil
@@ -34,13 +41,11 @@ BASH_CANDIDATES = [
     '/usr/bin/bash',
 ]
 
+# 第一遍：只吐「失败的路径」，不做命令替换（避免每个文件多 fork 个子 shell）。
 LOOP = (
     'while IFS= read -r f; do '
     '  [ -n "$f" ] || continue; '
-    '  out=$(bash -n "$f" 2>&1); rc=$?; '
-    '  if [ $rc -ne 0 ]; then '
-    '    printf "BAD\\t%s\\t%s\\n" "$f" "$(printf %s "$out" | head -1)"; '
-    '  fi; '
+    '  bash -n "$f" 2>/dev/null || printf "%s\\n" "$f"; '
     'done'
 )
 
@@ -87,7 +92,7 @@ class TestShellSyntax(unittest.TestCase):
         self.assertGreater(len(files), 50,
                            f'只找到 {len(files)} 个 .sh，枚举逻辑可能失效')
 
-        jobs = min(8, max(2, (os.cpu_count() or 4)))
+        jobs = min(16, max(2, (os.cpu_count() or 4) * 2))
         parts = chunks(files, jobs)
         bad = []
         with ThreadPoolExecutor(max_workers=len(parts)) as pool:
@@ -98,13 +103,18 @@ class TestShellSyntax(unittest.TestCase):
                 for part in parts
             ]
             for fut in futures:
-                proc = fut.result()
-                for line in proc.stdout.decode('utf-8', 'replace').splitlines():
-                    if line.startswith('BAD\t'):
-                        _, path, msg = (line.split('\t', 2) + ['', ''])[:3]
-                        bad.append(f'{path}  ->  {msg}')
+                for line in fut.result().stdout.decode('utf-8', 'replace').splitlines():
+                    if line.strip():
+                        bad.append(line.strip())
 
-        self.assertEqual(bad, [], '以下 shell 脚本无法通过 bash 语法检查：\n' + '\n'.join(bad))
+        # 第二遍：只对失败的这几个文件单独跑一次，取回报错信息（通常 0 个，成本可忽略）
+        detail = []
+        for rel in bad:
+            p = subprocess.run([bash, '-n', rel], cwd=ROOT, capture_output=True, timeout=60)
+            msg = (p.stdout + p.stderr).decode('utf-8', 'replace').strip().splitlines()
+            detail.append(f'{rel}  ->  {msg[0] if msg else "语法错误"}')
+
+        self.assertEqual(bad, [], '以下 shell 脚本无法通过 bash 语法检查：\n' + '\n'.join(detail))
 
 
 if __name__ == '__main__':

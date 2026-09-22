@@ -26,6 +26,131 @@ REQUIRED_FILES = ('index.py', 'index.html', 'info.json', 'install.sh')
 REQUIRED_INFO_KEYS = ('name', 'title', 'ps', 'type')
 VERSION_RE = re.compile(r'^\d+(\.\d+)*$')
 
+# --- 「门禁自洽」检查用的工具 ---------------------------------------------
+# 只认 `os.path.join(...)` 调用的**参数**，不全文搜 `test/` 字面量 ——
+# 否则 `{'siteName': 'test/attack'}`（注入用例的测试数据）、`Hostname: 'test'`
+# 这类正常字面量都会被误判成路径引用（踩过这个假阳性）。
+JOIN_RE = re.compile(r'\b(?:os\.path|path|posixpath|ntpath)\.join\s*\(')
+_STR_LIT_RE = re.compile(r'''^(['"])(.*)\1$''', re.S)
+
+
+def _iter_join_calls(text):
+    """产出 `(起始位置, 顶层参数列表)` —— 对 `*.join(...)` 做引号感知的括号配对。
+
+    不能直接用正则抠参数：参数里可能有嵌套括号与逗号
+    （如 `os.path.join(A, f(x, y), 'z')`），正则会被逗号切开。
+    """
+    for m in JOIN_RE.finditer(text):
+        depth = 1
+        args, start, j, quote = [], m.end(), m.end(), None
+        while j < len(text) and depth > 0:
+            ch = text[j]
+            if quote:
+                if ch == '\\':
+                    j += 2
+                    continue
+                if ch == quote:
+                    quote = None
+            elif ch in '"\'':
+                quote = ch
+            elif ch in '([{':
+                depth += 1
+            elif ch in ')]}':
+                depth -= 1
+                if depth == 0:
+                    args.append(text[start:j])
+                    break
+            elif ch == ',' and depth == 1:
+                args.append(text[start:j])
+                start = j + 1
+            j += 1
+        yield m.start(), [a.strip() for a in args]
+
+
+def _join_args_pointing_at_ignored_dir(text):
+    """找出 `os.path.join(...)` 中指向 `test/` 目录的字面量参数，产出 `(行号, 参数)`。"""
+    for pos, args in _iter_join_calls(text):
+        line = text.count('\n', 0, pos) + 1
+        for a in args:
+            m = _STR_LIT_RE.match(a)
+            if not m:
+                continue
+            val = m.group(2)
+            if val == 'test' or val.startswith('test/') or val.startswith('test\\'):
+                yield line, a
+
+
+# 裸字符串里的仓库相对路径，如 subprocess 参数里直接写 `test/xxx.js` 这种形式。
+# 这类不走 os.path.join，_join_args_pointing_at_ignored_dir 漏得掉。
+# 只认「以已知源码后缀结尾」的，避免把 `'test/attack'`（注入用例的测试数据）
+# 这类正常字面量误判成路径引用。
+_BARE_IGNORED_PATH_RE = re.compile(
+    r'''(['"])test[/\\][^'"\n]*\.(?:js|py|sh|json|html|css|txt|md)\1''')
+
+
+def _strip_comments(text):
+    """把 `#` 行注释与三引号字符串替换成空格（**保持行号、列数不变**）。
+
+    必须在扫描前调用。理由：注释 / 文档串里出现 `test/xxx.js` 只是说明文字，
+    不会让用例在干净克隆上失败；不剥掉就会把守卫自己、以及将来任何
+    说明性注释判成违规（本文件第一版就踩了这个自匹配）。
+    引号感知 —— 字符串里的 `#` 不是注释。
+    """
+    out = list(text)
+    i, n, quote = 0, len(text), None
+    while i < n:
+        ch = text[i]
+        if quote:
+            if ch == '\\':
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+            i += 1
+            continue
+        if text.startswith('"""', i) or text.startswith("'''", i):
+            j = text.find(text[i:i + 3], i + 3)
+            end = n if j < 0 else j + 3
+            for k in range(i, end):
+                if out[k] != '\n':
+                    out[k] = ' '
+            i = end
+            continue
+        if ch in '"\'':
+            quote = ch
+        elif ch == '#':
+            while i < n and text[i] != '\n':
+                out[i] = ' '
+                i += 1
+            continue
+        i += 1
+    return ''.join(out)
+
+
+def _bare_paths_to_ignored_dir(text):
+    """找出裸字符串里指向 `test/` 目录的文件路径，产出 `(行号, 字面量)`。"""
+    for m in _BARE_IGNORED_PATH_RE.finditer(text):
+        yield text.count('\n', 0, m.start()) + 1, m.group(0)
+
+
+def _quarantine_entries(with_reason=False):
+    """读 `quarantine.txt`，产出模块名（或 `(模块名, 原因)`）。"""
+    qpath = os.path.join(HERE, 'quarantine.txt')
+    if not os.path.isfile(qpath):
+        return []
+    out = []
+    with open(qpath, 'r', encoding='utf-8') as fp:
+        for raw in fp:
+            raw = raw.strip()
+            if not raw or raw.startswith('#'):
+                continue
+            mod, _, reason = raw.partition('#')
+            mod, reason = mod.strip(), reason.strip()
+            if not mod:
+                continue
+            out.append((mod, reason) if with_reason else mod)
+    return out
+
 
 def plugin_names():
     out = []
@@ -186,6 +311,73 @@ class TestRepoHygiene(unittest.TestCase):
                     if f in bad_names or f.endswith(bad_suffix):
                         hits.append(os.path.relpath(os.path.join(root, f), ROOT))
         self.assertEqual(hits, [], f'发现疑似合并残留/临时垃圾文件：{hits[:30]}')
+
+
+class TestSuiteSelfContained(unittest.TestCase):
+    """门禁自身必须自洽：不得依赖被 `.gitignore` 忽略的 `test/` 目录。
+
+    背景：`testsuite/` 是要提交进仓库的，而 `test/` 被 `.gitignore:202 /test`
+    忽略、不会随克隆下来。因此任何对 `test/...` 的引用在干净克隆上都会
+    `FileNotFoundError`；而在本机因为 `test/` 还在，会「静默测到陈旧副本」
+    或「碰巧通过」—— 属于最难发现的一类假绿。
+    """
+
+    def test_no_reference_to_ignored_test_dir(self):
+        """用例不得引用被忽略的 `test/` 目录（`os.path.join` 与裸字符串两种形态）"""
+        bad = []
+        for fn in sorted(os.listdir(HERE)):
+            if not (fn.startswith('test_') and fn.endswith('.py')):
+                continue
+            with open(os.path.join(HERE, fn), 'r', encoding='utf-8') as fp:
+                text = fp.read()
+            text = _strip_comments(text)   # 注释/文档串不算违规，见 _strip_comments
+            for line, arg in _join_args_pointing_at_ignored_dir(text):
+                bad.append(f'{fn}:{line}  os.path.join(...) 中出现 {arg}')
+            for line, lit in _bare_paths_to_ignored_dir(text):
+                bad.append(f'{fn}:{line}  裸字符串路径 {lit}')
+        self.assertEqual(
+            bad, [],
+            '以下用例引用了被 .gitignore 忽略的 test/ 目录，在干净克隆上必然失败：\n  '
+            + '\n  '.join(bad))
+
+    def test_every_testcase_module_is_discoverable(self):
+        """`testsuite/` 下所有定义了 `TestCase` 的模块都必须以 `test_` 开头
+
+        `run_all.py` 只发现 `test_*.py`。若把用例写成 `xxx_test.py`，
+        它会被静默跳过 —— 又一个「看起来有保护其实没有」。
+        """
+        bad = []
+        for fn in sorted(os.listdir(HERE)):
+            if not fn.endswith('.py') or fn.startswith('test_'):
+                continue
+            with open(os.path.join(HERE, fn), 'r', encoding='utf-8') as fp:
+                text = fp.read()
+            if re.search(r'class\s+\w+\s*\(\s*unittest\.TestCase\s*\)', text):
+                bad.append(fn)
+        self.assertEqual(
+            bad, [],
+            f'这些模块定义了 TestCase 但文件名不以 test_ 开头，run_all.py 扫不到：{bad}')
+
+    def test_quarantine_entries_exist_in_testsuite(self):
+        """`quarantine.txt` 里列出的模块必须真实存在于 `testsuite/`
+
+        `run_all.py` 只扫描 `testsuite/` 下的 `test_*.py`，所以「隔离用例意外转绿」
+        的反向检查**只对存在的模块生效**。若隔离名单里的模块没被放进来，
+        这段检查就是死代码，隔离区会静默腐烂成一份没人敢删的黑名单。
+        """
+        missing = []
+        for mod in _quarantine_entries():
+            if not os.path.isfile(os.path.join(HERE, mod)):
+                missing.append(mod)
+        self.assertEqual(
+            missing, [],
+            f'quarantine.txt 里这些模块在 testsuite/ 中不存在（反向检查会失效）：{missing}')
+
+    def test_quarantine_entries_have_reason(self):
+        """每条隔离记录都必须写明原因（否则后人不敢动、也不知道何时能摘）"""
+        bad = [mod for mod, reason in _quarantine_entries(with_reason=True)
+               if not reason]
+        self.assertEqual(bad, [], f'这些隔离记录没写原因：{bad}')
 
 
 if __name__ == '__main__':

@@ -200,4 +200,5 @@ plugins/goedge-happy
 /tmp
 
 /test
+/testsuite/.scratch
 /.workbuddy-ai

@@ -100,7 +100,7 @@ class TestDevIcons(unittest.TestCase):
             os.path.join(PROJECT_ROOT, 'web', 'static', 'css', 'ensite.css'),
             os.path.join(PROJECT_ROOT, 'web', 'static', 'app', 'files.js'),
             os.path.join(PROJECT_ROOT, 'task.md'),
-            os.path.join(PROJECT_ROOT, 'test', 'test_dev_icons.py'),
+            os.path.join(PROJECT_ROOT, 'testsuite', 'test_dev_icons.py'),
         ]
         for fpath in target_files:
             with open(fpath, 'rb') as f:

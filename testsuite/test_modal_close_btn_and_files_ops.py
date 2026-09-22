@@ -141,7 +141,7 @@ class TestModalCloseBtnAndFilesOps(unittest.TestCase):
 
     def test_06_nodejs_syntax_check(self):
         """测试 6 国语言 lan.js 的真实 Node.js 语法校验"""
-        node_script = os.path.join(ROOT_DIR, "test", "check_lan_syntax.js")
+        node_script = os.path.join(ROOT_DIR, "testsuite", "check_lan_syntax.js")
         result = subprocess.run(["node", node_script], capture_output=True, text=True, cwd=ROOT_DIR)
         self.assertEqual(result.returncode, 0, f"Node.js 语法检测失败:\n{result.stderr}\n{result.stdout}")
 

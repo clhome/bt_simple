@@ -12,7 +12,7 @@ pg_docker 插件多语言细节深度专项测试套件 (test_pg_docker_i18n_det
 import os, sys, re, json, unittest, subprocess
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEST_DIR = os.path.join(ROOT_DIR, "test")
+TEST_DIR = os.path.join(ROOT_DIR, "testsuite")
 
 class TestPgDockerI18nDetails(unittest.TestCase):
 
