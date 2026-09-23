@@ -11,7 +11,6 @@
     "IP 地址": "IP address",
     "IP地址": "IP address",
     "IP地址池": "IP address pool",
-    "] 已在映射列表中!": "] is already in the mapping list!",
     "docker占用cpu资源上限": "Docker CPU Resource Limit",
     "docker目录": "docker directory",
     "一键迁移 Docker 目录": "One-Click Migration of Docker Directories",
@@ -242,5 +241,7 @@
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Invalid image file path; only files under the backup directory may be imported",
     "文件路径校验失败": "File path validation failed",
     "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Unsupported file format; only .tar, .tar.gz and .tgz image archives are supported",
-    "成功登录!": "Login successful!"
+    "成功登录!": "Login successful!",
+    "端口 [{1}] 已在映射列表中!": "Port [{1}] is already in the mapping list!",
+    "目录 [{1}] 已在映射列表中!": "Directory [{1}] is already in the mapping list!"
 }

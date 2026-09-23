@@ -61,5 +61,6 @@
     "如另加端口格式为 www.domain.com:88": "To add a port, use the format www.domain.com:88",
     "共{1}条": "{1} total",
     "缺少必要参数:": "Missing required parameter:",
-    "访问节点[%s]失败": "Failed to access node [%s]"
+    "访问节点[%s]失败": "Failed to access node [%s]",
+    "轮询[默认]": "Polling [Default]"
 }

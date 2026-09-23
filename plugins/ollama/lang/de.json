@@ -86,7 +86,6 @@
     "等待任务初始化...": "Warten auf die Initialisierung der Aufgabe...",
     "系统已自动检索到配置文件:": "Das System hat die Konfigurationsdatei automatisch abgerufen:",
     "绑定 Host 不能为空！": "Die Host-Bindung darf nicht leer sein!",
-    "获取日志失败：": "Fehler beim Abrufen des Protokolls:",
     "菜单，将绑定 Host 修改为": "Menü: Ändern Sie die Host-Zuordnung in",
     "请求后端接口失败！": "Das Anfordern der Backend-Schnittstelle ist fehlgeschlagen!",
     "请输入要拉取的模型名称！": "Bitte geben Sie den Namen des Modells ein, das Sie abrufen möchten!",
@@ -111,5 +110,6 @@
     "ollama rm &lt;模型&gt;": "ollama rm &lt;Modell&gt;",
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;Server-IP&gt;:11434/v1",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
-    "模型删除成功！": "Modell erfolgreich gelöscht!"
+    "模型删除成功！": "Modell erfolgreich gelöscht!",
+    "获取日志失败：{1}": "Protokoll konnte nicht abgerufen werden: {1}"
 }

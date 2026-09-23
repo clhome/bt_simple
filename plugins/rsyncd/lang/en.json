@@ -22,7 +22,6 @@
     "匹配0或多个字符，可以是": "Matches zero or more characters, which can be",
     "匹配任何字符，但不包括": "Matches any character, except for",
     "压缩传输": "Compressed Transmission",
-    "发送任务": "Send task",
     "发送配置": "Send configuration",
     "取消": "Cancel",
     "同步": "synchronous",
@@ -111,5 +110,6 @@
     "注意： 同步程序将本机目录：{1}的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!": "Note: The synchronization program will synchronize all data from the local directory {1} to the target server. If other files exist in the target server's synchronization directory, they will be deleted!",
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "To synchronize data from other servers to the local server, create a \"receive task\" in the receiving configuration",
     "缺少必要参数:": "Missing required parameter:",
-    "删除成功!": "Deleted successfully!"
+    "删除成功!": "Deleted successfully!",
+    "{1}发送任务": "{1} Send Task"
 }

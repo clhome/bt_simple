@@ -262,5 +262,6 @@
     "网络异常，请重试": "Erreur réseau, veuillez réessayer",
     "网络或服务请求超时": "Délai dépassé pour la requête réseau ou de service",
     "连接管理器 (Navicat 式)": "Gestionnaire de connexions (style Navicat)",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "共0条": "0 élément"
 }

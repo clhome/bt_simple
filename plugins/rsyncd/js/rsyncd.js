@@ -12,9 +12,9 @@ function createSendTask(name = ''){
         var data = rdata.data;
         console.log(data);
 
-        var layerName = '创建';
+        var layerName = pt('创建');
         if (name!=''){
-            layerName = '编辑';
+            layerName = pt('编辑');
         }
 
         var compress_true = "";
@@ -73,7 +73,7 @@ function createSendTask(name = ''){
         var layerID = layer.open({
             type: 1,
             area: ['600px','500px'],
-            title: layerName+"发送任务",
+            title: msgTpl(pt('{1}发送任务'), [layerName]),
             closeBtn: 1,
             shift: 0,
             shadeClose: false,
@@ -494,18 +494,18 @@ function lsyncdSend(){
         
 
         for (var i = 0; i < list.length; i++) {
-            var mode = '增量';
+            var mode = pt('增量');
             if (list[i]['delete'] == 'true'){
-                mode = '完全';
+                mode = pt('完全');
             } else {
-                mode = '增量';
+                mode = pt('增量');
             }
 
-            var period = "实时";
+            var period = pt("实时");
             if (list[i]['realtime'] == 'true'){
-                period = '实时';
+                period = pt('实时');
             } else {
-                period = '定时';
+                period = pt('定时');
             }
 
             con += '<tr>'+

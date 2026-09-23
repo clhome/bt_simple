@@ -557,8 +557,8 @@ function translateDataQueryDOM($container) {
         var $opt = $(this);
         var text = $opt.text().trim();
         var staticKeywords = [
-            '数据表空', '数据库空', '无字段', '空', '无可用服务器',
-            '本地服务器 (127.0.0.1)', '本地 MongoDB (127.0.0.1)', '本地 Memcached (127.0.0.1)'
+            pt('数据表空'), pt('数据库空'), pt('无字段'), pt('空'), pt('无可用服务器'),
+            pt('本地服务器 (127.0.0.1)'), pt('本地 MongoDB (127.0.0.1)'), pt('本地 Memcached (127.0.0.1)')
         ];
         var orig = $opt.attr('data-i18n-orig');
         if (!orig && staticKeywords.indexOf(text) !== -1) {

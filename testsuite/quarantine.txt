@@ -12,7 +12,7 @@
 # 可借 venv 的 pip 代装：
 #   <venv>/Scripts/pip.exe --python <门禁解释器/python.exe> install Jinja2 packaging flask
 #
-# 维护纪律（第三轮审计的结论，32 → 6）：
+# 维护纪律（第三轮审计的结论，32 → 6 → 5）：
 #   1. 「隔离」不等于「不用管」。每条都要**两种跑法都试**——
 #      `python -m unittest testsuite.<mod>` 与 `python testsuite/<mod>.py`。
 #      脚本式用例在 `-m unittest` 下永远只给 `Ran 0 tests ... OK`，
@@ -25,6 +25,5 @@
 test_about_i18n.py    # 依赖 scripts/tools/phrases_full.py；该文件已在 ef85092ce「翻译补全」被移到 test/i18n_scripts/tools/phrases_full.py（文件本身仍受 git 跟踪），用例仍按旧路径 sys.path.insert(scripts/tools) 后 import，故 ModuleNotFoundError: No module named 'phrases_full'。两条修法都各有代价，需定夺：移回文件会打断 test/i18n_scripts/tools/ 下的同目录 import；改用例路径会触发仓库契约守卫 test_repo_contract 的「用例不得引用被忽略的 test/ 目录」。
 test_index_i18n_fix.py    # 同 test_about_i18n.py 的 phrases_full 路径漂移（ModuleNotFoundError）；另有一处 AssertionError: '1041' not found in 'public.SYS_BOOT_TIME'，断言的是一个已不存在的键值对。
 test_crontab_i18n_fix.py    # 断言取错了命名空间：en/lan.js 里 crontab 有**两个**块——页面块（第 2605 行，机翻劣质："day_stock": "Stock Market Opening Day"）与菜单块（第 3644 行，正确："Stock Trading Day"）。6 个语言包都是这两块。用例走 per-count 的 t() 链拿到菜单块的值，却断言页面块期望的串，于是 AssertionError: '"Stock Trading Day"' not found。需要产品定夺：是清理页面块的劣质英文，还是让用例明确断言菜单块。
-test_plugin_i18n_complete.py    # AssertionError：clean 语言包脏键——键「日志清理」在 6 个语言包里都挂着「磁盘清理」的译文（zh-TW 为「磁碟清理」），而源码从未调用 pt('日志清理')，疑似死键 + 值复制错，涉及 6 个语言包。插件数断言 38→36 已修正。
 test_soft_i18n.py    # AssertionError：真实语言包缺陷，不是断言过时——zh-TW soft.type_runtime =「執行環境」而用例期望「運行環境」；en 侧的值是小写/连写（installed / database / systemtool / Otherplugin / Running environment），与用例的 Title-Case 期望不符，英文侧确为劣质机翻，应重译而非改断言。
 test_task_manager_i18n.py    # AssertionError：英文值断言与语言包有 3 处措辞分歧（需人工定夺，勿盲目改任一侧）——外部地址 期望 'Foreign Address' 实为 'External Address'；进程 期望 'Process' 实为小写 'process'（疑似语言包缺陷）；屏蔽此IP 期望 'Block IP' 实为 'Block this IP address'。

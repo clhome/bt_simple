@@ -424,5 +424,15 @@
   "不支持的目标存储引擎类型!": "Tipo di motore di archiviazione di destinazione non supportato!",
   "数据表引擎已成功转换为:": "Motore della tabella convertito correttamente in:",
   "读取MySQL配置失败": "Lettura della configurazione MySQL non riuscita",
-  "初始化错误(error.log尚未生成)": "Errore di inizializzazione (error.log non ancora generato)"
+  "初始化错误(error.log尚未生成)": "Errore di inizializzazione (error.log non ancora generato)",
+  "{1}日志": "Log {1}",
+  "主[服务]": "Primario [Servizio]",
+  "安装方式：": "Metodo di installazione:",
+  "极速安装(Tar)": "Installazione rapida (Tar)",
+  "源码编译": "Compila dai sorgenti",
+  "极速安装": "Installazione rapida",
+  "(预计 1~3 分钟)": "(circa 1-3 min)",
+  "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Distribuisce il pacchetto binario generico precompilato ufficiale - veloce e senza sforzo. Adatto alla maggior parte degli scenari quotidiani, a distribuzioni rapide e a server poco potenti.",
+  "(预计 20~60 分钟)": "(circa 20-60 min)",
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilazione profondamente ottimizzata in base all'hardware e all'ambiente di sistema del server. Adatto ad ambienti di produzione potenti con requisiti estremi di prestazioni del database."
 }

@@ -361,6 +361,12 @@ function runInstall(data) {
 function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   var option = '';
   var titlename = title.replace("-" + ver, "");
+  // 安装弹窗会把插件自带的 install.html 原样注入（见下方 customHtmlPath），
+  // 那段内容是插件的界面文案，必须走插件字典翻译。与 softMain 保持一致：
+  // 先异步预热语言包（命中缓存则零开销），弹窗 success 里再做 DOM 翻译。
+  if (window.YfI18n && typeof window.YfI18n.loadPluginLangAsync === 'function') {
+    window.YfI18n.loadPluginLangAsync(name);
+  }
   if (ver.indexOf('|') >= 0) {
     var veropt = ver.split("|");
     var selectVersion = '';
@@ -386,7 +392,12 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
       btn: [lan && lan.soft && t('soft.submit') || "", lan && lan.soft && t('soft.close') || ""],
       content: "<div class='bt-form pd20 c6'><div class='version line'>" + (lan && lan.soft && lan.soft.install_version || '安装版本：') + option + "</div>" + customHtml + "\
             </div>",
-      success: function () {
+      success: function (layero) {
+        // install.html 里的中文（安装方式、耗时预估、说明段落等）在此翻译。
+        // 字典未预热时 translatePluginDOM 内部会同步保底拉取，不会漏翻。
+        if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+          window.YfI18n.translatePluginDOM(layero, name);
+        }
         $('.fangshi input').on('click', function () {
           $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
         });

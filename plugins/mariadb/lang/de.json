@@ -378,5 +378,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Tabellenoptimierung abgeschlossen; Datenträgerfragmentierung wurde bereinigt!",
   "不支持的目标存储引擎类型!": "Nicht unterstützter Ziel-Speicher-Engine-Typ!",
   "数据表引擎已成功转换为:": "Tabellen-Engine erfolgreich konvertiert zu:",
-  "复制用户密码为空!": "Das Passwort des Replikationsbenutzers ist leer!"
+  "复制用户密码为空!": "Das Passwort des Replikationsbenutzers ist leer!",
+  "{1}日志": "{1}-Protokoll"
 }

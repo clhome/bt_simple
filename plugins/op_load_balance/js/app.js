@@ -94,9 +94,9 @@ function addNode(){
 
                         tbody +="<td><select name='state'>";
                         var state_option_list = {
-                            '1':'参与者',
-                            '2':'备份',
-                            '0':'停用',
+                            '1':pt('参与者'),
+                            '2':pt('备份'),
+                            '0':pt('停用'),
                         }
                         for (i in state_option_list) {
                             if (i == state){
@@ -344,9 +344,9 @@ function editBalance(data, row){
             }
 
             var state_option_list = {
-                '1':'参与者',
-                '2':'备份',
-                '0':'停用',
+                '1':pt('参与者'),
+                '2':pt('备份'),
+                '0':pt('停用'),
             }
 
             for (var n in  node_list) {

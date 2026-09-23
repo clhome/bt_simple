@@ -76,15 +76,15 @@ function varnishStatus() {
         }
 
         // 格式化 Uptime 秒数为天小时分钟
-        var uptimeStr = "0分钟";
+        var uptimeStr = pt("0分钟");
         if (uptimeVal > 0) {
             var d = Math.floor(uptimeVal / 86400);
             var h = Math.floor((uptimeVal % 86400) / 3600);
             var m = Math.floor((uptimeVal % 3600) / 60);
             uptimeStr = "";
-            if (d > 0) uptimeStr += d + "天";
-            if (h > 0) uptimeStr += h + "小时";
-            if (m > 0 || uptimeStr === "") uptimeStr += m + "分钟";
+            if (d > 0) uptimeStr += msgTpl(pt('{1}天'), [d]);
+            if (h > 0) uptimeStr += msgTpl(pt('{1}小时'), [h]);
+            if (m > 0 || uptimeStr === "") uptimeStr += msgTpl(pt('{1}分钟'), [m]);
         }
 
         // 渲染现代玻璃拟态的缓存命中率看板卡片

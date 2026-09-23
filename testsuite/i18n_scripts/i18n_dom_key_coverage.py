@@ -185,6 +185,62 @@ def find_html(plugin):
     return sorted(set(out))
 
 
+# ---------------------------------------------------------------------------
+# 全量模式：translatePluginDOM 的「通用文本节点兜底」覆盖域
+#
+# i18n.js 的 1.3 规则用 TreeWalker 扫**所有文本节点**（父节点非 skip 标签即处理），
+# 1.1 规则用 `[placeholder], [title]` 通配**任意标签**。因此新的不变量是：
+#   凡是静态 HTML 里「含中文的文本节点 / placeholder / title」，语言包都必须有键，
+#   否则该处界面在非中文语言下仍是中文（且门禁不会红 —— 静默失效）。
+# 与上面白名单模式互补：白名单模式守「已知位置」，本模式守「全部位置」。
+# ---------------------------------------------------------------------------
+SKIP_TAGS_FULL = {'script', 'style', 'noscript', 'iframe', 'textarea', 'title'}
+
+
+def collect_full(n, out):
+    for c in n.children:
+        collect_full(c, out)
+    if n.tag in SKIP_TAGS_FULL:
+        return
+    # 逐个文本节点判定（与 TreeWalker 语义一致，不跨节点合并）
+    for chunk in n.text:
+        t = chunk.strip()
+        if t and CJK.search(t):
+            out.add(t)
+    for attr in ('placeholder', 'title'):
+        v = n.attrs.get(attr)
+        if v and CJK.search(v):
+            out.add(v.strip())
+
+
+def collect_from_html(src):
+    """从一段 HTML 文本里收集「含中文的文本节点 / placeholder / title」。"""
+    tb = TreeBuilder()
+    try:
+        tb.feed(src)
+    except Exception:
+        pass
+    out = set()
+    collect_full(tb.root, out)
+    return out
+
+
+def analyze_full(plugin):
+    """返回 (含中文的文本节点/属性值总数, 语言包无键的清单)"""
+    lp = os.path.join(PLUGINS, plugin, 'lang', 'zh-CN.json')
+    if not os.path.isfile(lp):
+        return None
+    with open(lp, encoding='utf-8') as f:
+        keys = set(json.load(f).keys())
+    dom = set()
+    for fp in find_html(plugin):
+        with open(fp, encoding='utf-8', errors='replace') as _f:
+            dom |= collect_from_html(_f.read())
+    dom = {x for x in dom if not SKIP.match(x)}
+    miss = sorted(x for x in dom if x not in keys)
+    return len(dom), miss
+
+
 def analyze(plugin):
     lp = os.path.join(PLUGINS, plugin, 'lang', 'zh-CN.json')
     if not os.path.isfile(lp):
@@ -211,14 +267,16 @@ def analyze(plugin):
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    full = '--full' in sys.argv
     names = args or sorted(
         d for d in os.listdir(PLUGINS)
         if os.path.isdir(os.path.join(PLUGINS, d))
         and os.path.isfile(os.path.join(PLUGINS, d, 'lang', 'zh-CN.json'))
     )
+    fn = analyze_full if full else analyze
     rows = []
     for n in names:
-        r = analyze(n)
+        r = fn(n)
         if r:
             rows.append((n, r[0], r[1]))
     rows.sort(key=lambda r: -len(r[2]))
@@ -232,7 +290,7 @@ def main():
             print('%-18s %8d %8d' % (n, c, len(miss)))
     print('-' * 38)
     print('%-18s %8d %8d' % ('TOTAL(%d)' % len(rows), tot, tm))
-    if args:
+    if args or full:
         for n, c, miss in rows:
             if miss:
                 print('\n== %s (%d) ==' % (n, len(miss)))

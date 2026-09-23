@@ -34,7 +34,7 @@ function logsCon(id) {
         };
         layer.open({
             type: 1,
-            title: 'Docker日志',
+            title: pt('Docker日志'),
             area: '600px',
             closeBtn: 1,
             content: '<div class="bt-form">' +
@@ -314,10 +314,10 @@ function createConTemplate() {
 
                     var portval = $('#portabletr').children();
                     for (var i = 0; i < portval.length; i++) {
-                        if (portval[i].children[0].innerText == '当前未添加端口映射') continue;
+                        if (portval[i].children[0].innerText == pt('当前未添加端口映射')) continue;
                         var sport = portval[i].children[2].innerText;
                         if (name2 == sport) {
-                            layer.msg(pt('端口') + ' [' + name2 + '] 已在映射列表中!', { icon: 2 });
+                            layer.msg(msgTpl(pt('端口 [{1}] 已在映射列表中!'), [name2]), { icon: 2 });
                             return;
                         }
                     }
@@ -364,10 +364,10 @@ function createConTemplate() {
                     }
                     var portval = $('#portabletr2').children();
                     for (var i = 0; i < portval.length; i++) {
-                        if (portval[i].children[0].innerText == '当前未添加目录映射') continue;
+                        if (portval[i].children[0].innerText == pt('当前未添加目录映射')) continue;
                         var sport = portval[i].children[2].innerText;
                         if (path2 == sport) {
-                            layer.msg(pt('目录') + ' [' + path2 + '] 已在映射列表中!', { icon: 2 });
+                            layer.msg(msgTpl(pt('目录 [{1}] 已在映射列表中!'), [path2]), { icon: 2 });
                             return;
                         }
                     }
@@ -400,7 +400,7 @@ function createConTemplate() {
                 //遍历端口映射
                 for (var i = 0; i < portval.length; i++) {
 
-                    if (portval[i].children[0].innerText == '当前未添加端口映射') {
+                    if (portval[i].children[0].innerText == pt('当前未添加端口映射')) {
                         continue;
                     }
 
@@ -420,7 +420,7 @@ function createConTemplate() {
                     'mode': 'rw'
                 };
                 for (var i = 0; i < portval2.length; i++) {
-                    if (portval2[i].children[0].innerText.replace(/\s/g, ' ') == '当前未添加目录映射') {
+                    if (portval2[i].children[0].innerText.replace(/\s/g, ' ') == pt('当前未添加目录映射')) {
                         continue;
                     }
                     var dpath = portval2[i].children[2].innerText.replace(/\s/g, '');
@@ -455,7 +455,7 @@ function createConTemplate() {
                 }
 
                 if (data.cpu_shares > 100 || data.cpu_shares < 1) {
-                    layer.msg('CPU配额设置值范围应为 [1-100]!', { icon: 2 });
+                    layer.msg(pt('CPU配额设置值范围应为 [1-100]!'), { icon: 2 });
                     return;
                 }
 
@@ -1327,7 +1327,7 @@ function saveDockerAccelerator() {
     var loadT = layer.msg(pt('正在写入配置并重启 Docker 服务，请稍候...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('set_accelerator', '', { mirrors: JSON.stringify(mirrors) }, function(rdata) {
         layer.close(loadT);
-        var res = {status: false, msg: '配置保存失败'};
+        var res = {status: false, msg: pt('配置保存失败')};
         try {
             res = JSON.parse(rdata.data);
         } catch(e) {}
@@ -1426,17 +1426,17 @@ function conDetails(id) {
             if (ip) ipStr += ip + ' (' + netName + ') ';
         }
     }
-    if (!ipStr) ipStr = '无分配IP';
+    if (!ipStr) ipStr = pt('无分配IP');
 
     // Resources
-    var memStr = (con.HostConfig.Memory > 0) ? (con.HostConfig.Memory / 1024 / 1024).toFixed(0) + ' MB' : '不限制';
-    var cpuStr = (con.HostConfig.CpuShares > 0) ? con.HostConfig.CpuShares : '默认';
+    var memStr = (con.HostConfig.Memory > 0) ? (con.HostConfig.Memory / 1024 / 1024).toFixed(0) + ' MB' : pt('不限制');
+    var cpuStr = (con.HostConfig.CpuShares > 0) ? con.HostConfig.CpuShares : pt('默认');
     
     // Command / Entrypoint
     var cmdStr = (con.Config.Cmd && con.Config.Cmd.length > 0) ? con.Config.Cmd.join(' ') : '';
     var entryStr = (con.Config.Entrypoint && con.Config.Entrypoint.length > 0) ? con.Config.Entrypoint.join(' ') : '';
     var fullCmd = (entryStr + ' ' + cmdStr).trim();
-    if (!fullCmd) fullCmd = '无';
+    if (!fullCmd) fullCmd = pt('无');
     
     var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
         '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
@@ -1462,7 +1462,7 @@ function conDetails(id) {
         closeBtn: 1,
         shadeClose: false,
         content: html,
-        btn: ['关闭']
+        btn: [pt('关闭')]
     });
 }
 

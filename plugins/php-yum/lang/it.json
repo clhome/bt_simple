@@ -159,5 +159,6 @@
     "确定": "OK",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "PHP-YUM 插件自愈迁移完成": "Migrazione di auto-riparazione del plugin PHP-YUM completata",
-    "请不要输入以下特殊字符:": "Non inserire i seguenti caratteri speciali:"
+    "请不要输入以下特殊字符:": "Non inserire i seguenti caratteri speciali:",
+    "查看phpinfo()": "Visualizza phpinfo()"
 }

@@ -1,7 +1,6 @@
 {
     ",节点已经存在!": ", le nœud existe déjà !",
     "MongoDB优化修复工具": "Outil de réparation d'optimisation MongoDB",
-    "MongoDB工具箱【": "Boîte à outils MongoDB【",
     "Mongodb副本配置": "Configuration des répliques MongoDB",
     "PID保存路径": "Chemin de sauvegarde du PID",
     "ROOT权限": "Autorisations RACINE",
@@ -216,5 +215,8 @@
     "您真的要删除【{1}】吗？": "Voulez-vous vraiment supprimer 【{1}】 ?",
     "您真的要删除[{1}]吗？": "Voulez-vous vraiment supprimer [{1}] ?",
     "成功删除[{1}]个数据库!": "[{1}] base(s) de données supprimée(s) avec succès !",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "同步副本：{1}": "Synchroniser le réplica : {1}",
+    "MongoDB工具箱【{1}】": "Boîte à outils MongoDB [{1}]",
+    "仲裁员:": "Arbitre :"
 }

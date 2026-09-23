@@ -378,5 +378,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Ottimizzazione della tabella completata; la frammentazione del disco è stata recuperata!",
   "不支持的目标存储引擎类型!": "Tipo di motore di archiviazione di destinazione non supportato!",
   "数据表引擎已成功转换为:": "Motore della tabella convertito correttamente in:",
-  "复制用户密码为空!": "La password dell'utente di replica è vuota!"
+  "复制用户密码为空!": "La password dell'utente di replica è vuota!",
+  "{1}日志": "Log {1}"
 }

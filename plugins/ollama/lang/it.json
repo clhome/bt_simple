@@ -86,7 +86,6 @@
     "等待任务初始化...": "In attesa dell'inizializzazione dell'attività...",
     "系统已自动检索到配置文件:": "Il sistema ha recuperato automaticamente il file di configurazione:",
     "绑定 Host 不能为空！": "Il campo \"Host\" non può essere vuoto!",
-    "获取日志失败：": "Impossibile recuperare il log:",
     "菜单，将绑定 Host 修改为": "Nel menu, modificare l'Host associato in",
     "请求后端接口失败！": "Errore durante la richiesta all'interfaccia backend!",
     "请输入要拉取的模型名称！": "Inserisci il nome del modello che desideri scaricare!",
@@ -111,5 +110,6 @@
     "ollama rm &lt;模型&gt;": "ollama rm &lt;modello&gt;",
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;IP-server&gt;:11434/v1",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
-    "模型删除成功！": "Modello eliminato con successo!"
+    "模型删除成功！": "Modello eliminato con successo!",
+    "获取日志失败：{1}": "Recupero dei log non riuscito: {1}"
 }

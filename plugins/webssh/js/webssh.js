@@ -300,7 +300,7 @@ function webShell_Menu(){
 
 function webShell_openTermView(info) {
     if (typeof info === "undefined") {
-        info = { host: '127.0.0.1', ps: '本地服务器' }
+        info = { host: '127.0.0.1', ps: pt('本地服务器') }
     }
     var random = getRandomString(9);
     var tab_content = $('.term_content_tab');

@@ -38,5 +38,6 @@
     "配置修改": "Configuration modification",
     "重建成功!": "Rebuilding successful!",
     "重建索引": "Rebuild index",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "具体配置，仍须手动修改!!!": "Detailed configuration still requires manual modification!!!"
 }

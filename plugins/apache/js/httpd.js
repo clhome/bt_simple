@@ -20,11 +20,11 @@ function httpPluginService(_name, version){
 }
 
 function orPluginSetService(_name ,status, version){
-    var serviceCon ='<p class="status">' + pt('当前状态：') + '<span>'+(status ? '开启' : '关闭' )+
+    var serviceCon ='<p class="status">' + pt('当前状态：') + '<span>'+(status ? pt('开启') : pt('关闭') )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?'停止':'启动')+'</button>\
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?pt('停止'):pt('启动'))+'</button>\
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">' + pt('重启') + '</button>\
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">' + pt('还原默认配置') + '</button>\
         </div>' + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, version) : ''); 

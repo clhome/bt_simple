@@ -11,7 +11,6 @@
     "IP 地址": "Adresse IP",
     "IP地址": "Adresse IP",
     "IP地址池": "Pool d'adresses IP",
-    "] 已在映射列表中!": "] est déjà dans la liste de mappage !",
     "docker占用cpu资源上限": "Limite maximale d'utilisation des ressources CPU par Docker",
     "docker目录": "répertoire du menu fixe",
     "一键迁移 Docker 目录": "Migration du répertoire Docker en un clic",
@@ -242,5 +241,7 @@
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Chemin de fichier image non valide ; seuls les fichiers du répertoire de sauvegarde peuvent être importés",
     "文件路径校验失败": "Échec de la validation du chemin de fichier",
     "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Format de fichier non pris en charge ; seules les archives d'images .tar, .tar.gz et .tgz sont prises en charge",
-    "成功登录!": "Connexion réussie !"
+    "成功登录!": "Connexion réussie !",
+    "端口 [{1}] 已在映射列表中!": "Le port [{1}] est déjà dans la liste de mappage !",
+    "目录 [{1}] 已在映射列表中!": "Le répertoire [{1}] est déjà dans la liste de mappage !"
 }

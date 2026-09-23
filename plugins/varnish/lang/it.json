@@ -28,5 +28,8 @@
     "采样时间 (timestamp)": "Ora di campionamento (timestamp)",
     "此处为 {1} 主配置文件,若您不了解配置规则,请勿随意修改。": "Questo è il file di configurazione principale {1}. Se non comprendi le regole di configurazione, non modificarlo.",
     "Varnish 状态获取失败：{1}。请检查 Varnish 服务是否已启动并正常运行。": "Impossibile ottenere lo stato di Varnish: {1}. Verificare che il servizio Varnish sia avviato e funzioni correttamente.",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "{1}天": "{1}g",
+    "{1}小时": "{1}h",
+    "{1}分钟": "{1}min"
 }

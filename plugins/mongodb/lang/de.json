@@ -1,7 +1,6 @@
 {
     ",节点已经存在!": ", Der Knoten existiert bereits!",
     "MongoDB优化修复工具": "MongoDB-Optimierungs- und Reparatur-Tool",
-    "MongoDB工具箱【": "MongoDB-Toolbox [",
     "Mongodb副本配置": "Konfiguration der MongoDB-Replikate",
     "PID保存路径": "PID-Speicherpfad",
     "ROOT权限": "ROOT-Rechte",
@@ -216,5 +215,8 @@
     "您真的要删除【{1}】吗？": "Möchten Sie 【{1}】 wirklich löschen?",
     "您真的要删除[{1}]吗？": "Möchten Sie [{1}] wirklich löschen?",
     "成功删除[{1}]个数据库!": "[{1}] Datenbank(en) erfolgreich gelöscht!",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "同步副本：{1}": "Replik synchronisieren: {1}",
+    "MongoDB工具箱【{1}】": "MongoDB-Toolbox [{1}]",
+    "仲裁员:": "Arbiter:"
 }

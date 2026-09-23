@@ -1,7 +1,6 @@
 {
     ",节点已经存在!": ", the node already exists!",
     "MongoDB优化修复工具": "MongoDB optimization repair tool",
-    "MongoDB工具箱【": "MongoDB Toolbox【",
     "Mongodb副本配置": "MongoDB Replica Set Configuration",
     "PID保存路径": "PID save path",
     "ROOT权限": "ROOT permissions",
@@ -216,5 +215,8 @@
     "您真的要删除【{1}】吗？": "Are you sure you want to delete 【{1}】?",
     "您真的要删除[{1}]吗？": "Are you sure you want to delete [{1}]?",
     "成功删除[{1}]个数据库!": "Successfully deleted [{1}] database(s)!",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "同步副本：{1}": "Sync replica: {1}",
+    "MongoDB工具箱【{1}】": "MongoDB Toolbox [{1}]",
+    "仲裁员:": "Arbiter:"
 }

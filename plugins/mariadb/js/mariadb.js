@@ -443,7 +443,7 @@ function setRootPwd(type, pwd){
         title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
-        btn:["提交", "关闭", "复制ROOT密码", "强制修改"],
+        btn:[pt("提交"), pt("关闭"), pt("复制ROOT密码"), pt("强制修改")],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
@@ -1424,7 +1424,7 @@ function myBinRollingLogs(_name, func, _args, line){
             var data = rdata.data.data;
             var cmd = rdata.data.cmd;
             if(data == '') {
-                data = '当前没有日志!';
+                data = pt('当前没有日志!');
             }
 
             $('#my_rolling_cmd').html(cmd);
@@ -1443,7 +1443,7 @@ function myBinRollingLogs(_name, func, _args, line){
 
     layer.open({
         type: 1,
-        title: _name + '日志',
+        title: msgTpl(pt('{1}日志'), [_name]),
         area: ['800px','700px'],
         end: function(){
             if (reqTimer){
@@ -1510,13 +1510,13 @@ function myBinLogsRender(page){
         $('#binlog_list .look').on('click', function(){
             var i = $(this).data('index');
             var file = rdata.data[i]['name'];
-            myBinRollingLogs('查看BINLOG','binLogListLook',{'file':file },100);
+            myBinRollingLogs(pt('查看BINLOG'),'binLogListLook',{'file':file },100);
         });
 
         $('#binlog_list .look_decode').on('click', function(){
             var i = $(this).data('index');
             var file = rdata.data[i]['name'];
-            myBinRollingLogs('查看解码BINLOG','binLogListLookDecode',{'file':file },100);
+            myBinRollingLogs(pt('查看解码BINLOG'),'binLogListLookDecode',{'file':file },100);
         });
     });
 }
@@ -1543,11 +1543,11 @@ function myBinLogs(){
     myBinLogsRender(1);
 
     $('.soft-man-con .relay_trace').on('click', function(){
-        myBinRollingLogs('中继日志跟踪','binLogListTraceRelay',{'file':''},100);
+        myBinRollingLogs(pt('中继日志跟踪'),'binLogListTraceRelay',{'file':''},100);
     });
 
     $('.soft-man-con .binlog_trace').on('click', function(){
-        myBinRollingLogs('最新BINLOG日志跟踪','binLogListTraceBinLog',{'file':''},100);
+        myBinRollingLogs(pt('最新BINLOG日志跟踪'),'binLogListTraceBinLog',{'file':''},100);
     });
 }
 
@@ -2020,7 +2020,7 @@ function resetMaster(){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
         },{icon: rdata.status ? 1 : 2});   
-    },'正在执行重置master命令[reset master]');
+    },pt('正在执行重置master命令[reset master]'));
 }
 
 function getMasterRepSlaveList(){
@@ -2220,7 +2220,7 @@ function dataSyncVerify(db){
             };
 
             if (rdata.msg == ''){
-                rdata.msg = '暂无数据!';
+                rdata.msg = pt('暂无数据!');
             }
 
             $("#data_verify_log").html(rdata.msg);
@@ -2234,7 +2234,7 @@ function dataSyncVerify(db){
         type: 1,
         title: msgTpl(pt('同步数据库[{1}]数据校验'),[db]),
         area: '500px',
-        btn:[ "开始","取消","手动"],
+        btn:[ pt("开始"),pt("取消"),pt("手动")],
         content:"<div class='bt-form'>\
                 "+'<pre id="data_verify_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 395px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'+"\
             </div>",
@@ -2387,12 +2387,12 @@ function getSlaveSSHPage(page=1){
             var ip = ssh_list[i]['ip'];
             var port = ssh_list[i]['port'];
 
-            var id_rsa = '未设置';
+            var id_rsa = pt('未设置');
             if ( ssh_list[i]['port'] != ''){
-                id_rsa = '已设置';
+                id_rsa = pt('已设置');
             }
 
-            var db_user = '未设置';
+            var db_user = pt('未设置');
             if ( ssh_list[i]['db_user'] != ''){
                 db_user = ssh_list[i]['db_user'];
             }
@@ -2534,9 +2534,9 @@ function getSlaveSyncUserPage(page=1){
             var user = user_list[i]['user'];
             var apass = user_list[i]['pass'];
             
-            var cmd = '未设置';
+            var cmd = pt('未设置');
             if (user_list[i]['cmd']!=''){
-                cmd = '已设置';
+                cmd = pt('已设置');
             }
 
             list += '<tr><td>'+ip+'</td>\
@@ -2658,7 +2658,7 @@ function getSlaveSSHList(page=1){
 
     layerId = layer.open({
         type: 1,
-        title: 'SSH列表',
+        title: pt('SSH列表'),
         area: '600px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
@@ -2729,9 +2729,9 @@ function masterOrSlaveConf(version=''){
             for(i in rdata.data){
                 list += '<tr>';
                 list += '<td>' + rdata.data[i]['name'] +'</td>';
-                list += '<td>' + (rdata.data[i]['master']?'是':'否') +'</td>';
+                list += '<td>' + (rdata.data[i]['master']?pt('是'):pt('否')) +'</td>';
                 list += '<td style="text-align:right">' + 
-                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="加入或退出">'+(rdata.data[i]['master']?'退出':'加入')+'</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="加入或退出">'+(rdata.data[i]['master']?pt('退出'):pt('加入'))+'</a> | ' +
                     '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="同步命令">' + pt('同步命令') + '</a>' +
                 '</td>';
                 list += '</tr>';
@@ -2782,7 +2782,7 @@ function masterOrSlaveConf(version=''){
 
                 var status = "<a data-id="+i+" class='btlink db_error'>" + pt('异常') + "</>";
                 if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
-                    status = "正常";
+                    status = pt("正常");
                 }
 
                 list += '<tr>';
@@ -2851,21 +2851,21 @@ function masterOrSlaveConf(version=''){
                 var err_line = "";
                 err_line +="<tr>\
                     <td>" + pt('IO错误') + "</td>\
-                    <td>"+ (info['Last_IO_Error'] == '' ? '无':info['Last_IO_Error'])+"</td>\
+                    <td>"+ (info['Last_IO_Error'] == '' ? pt('无'):info['Last_IO_Error'])+"</td>\
                 </tr>";
                 err_line +="<tr>\
                     <td>" + pt('SQL错误') + "</td>\
-                    <td>"+(info['Last_SQL_Error'] == '' ? '无':info['Last_SQL_Error'])+"</td>\
+                    <td>"+(info['Last_SQL_Error'] == '' ? pt('无'):info['Last_SQL_Error'])+"</td>\
                 </tr>";
 
                 err_line +="<tr>\
                     <td>" + pt('状态') + "</td>\
-                    <td>"+(info['Slave_SQL_Running_State'] == '' ? '无':info['Slave_SQL_Running_State']) +"</td>\
+                    <td>"+(info['Slave_SQL_Running_State'] == '' ? pt('无'):info['Slave_SQL_Running_State']) +"</td>\
                 </tr>";
 
-                var btn_list = ['复制错误',"取消"];
+                var btn_list = [pt('复制错误'),pt("取消")];
                 if (info['Last_IO_Error'].search(/1236/i)>0){
-                    btn_list = ['复制错误',"取消","尝试修复"];
+                    btn_list = [pt('复制错误'),pt("取消"),pt("尝试修复")];
                 }
 
                 layer.open({
@@ -2946,7 +2946,7 @@ function masterOrSlaveConf(version=''){
                 list += '<tr>';
                 list += '<td>' + rdata.data[i]['name'] +'</td>';
                 list += '<td style="text-align:right">' + 
-                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="加入|退出">'+(rdata.data[i]['slave']?'退出':'加入')+'</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="加入|退出">'+(rdata.data[i]['slave']?pt('退出'):pt('加入'))+'</a> | ' +
                     '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\''+rdata.data[i]['name']+'\')" title="同步">' + pt('同步') + '</a> | ' +
                     '<a href="javascript:;" class="btlink" onclick="dataSyncVerify(\''+rdata.data[i]['name']+'\')" title="数据校验">' + pt('数据校验') + '</a>' +
                 '</td>';
@@ -2994,7 +2994,7 @@ function masterOrSlaveConf(version=''){
                 <hr/>\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">' + pt('Master[主]配置') + '</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
+                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? pt('未开启') : pt('已开启')) +'</button>\
                     <button class="btn btn-success btn-xs" onclick="resetMaster()">' + pt('重置') + '</button>\
                 </p>\
                 <hr/>\
@@ -3004,7 +3004,7 @@ function masterOrSlaveConf(version=''){
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">' + pt('Slave[从]配置') + '</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
+                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : pt('已启动')) +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >' + pt('同步配置') + '</button>\
                     <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >' + pt('初始化') + '</button>\
                 </p>\
@@ -3050,7 +3050,7 @@ function masterOrSlaveConf(version=''){
 
                 layer.open({
                     type:1,
-                    title:"MySQL主从模式切换",
+                    title:pt("MySQL主从模式切换"),
                     shadeClose:false,
                     btnAlign: 'c',
                     btn: [pt('切换并重启'), pt('切换不重启')],

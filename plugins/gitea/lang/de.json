@@ -5,7 +5,6 @@
     "Gitea版本信息": "Informationen zur Gitea-Version",
     "SSH 端口号": "SSH-Portnummer",
     "WEB管理": "Web-Verwaltung",
-    "]脚本设置": "]Skript-Einstellungen",
     "仅支持mysql|sqlite3配置": "Es werden nur die Konfigurationen „mysql“ und „sqlite3“ unterstützt.",
     "仅支持mysql数据操作!": "Es werden ausschließlich MySQL-Datenoperationen unterstützt!",
     "使用说明": "Gebrauchsanweisung",
@@ -110,5 +109,6 @@
     "默认使用MySQL,第一个启动加载各种配置,并修改成正确的数据库配置": "Standardmäßig wird MySQL verwendet. Beim ersten Start werden verschiedene Konfigurationen geladen und in die richtige Datenbankkonfiguration geändert.",
     "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Hinweis: Der öffentliche Schlüssel kann direkt zur SSH-Schlüsselliste von Gitea hinzugefügt werden, um Code ohne Passwort zwischen dem Server und dem Git-Repository zu übertragen.",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
-    "请先安装初始化，默认地址:": "Bitte zuerst installieren und initialisieren, Standardadresse:"
+    "请先安装初始化，默认地址:": "Bitte zuerst installieren und initialisieren, Standardadresse:",
+    "[{1}][{2}]脚本设置": "[{1}][{2}] Skript-Einstellungen"
 }

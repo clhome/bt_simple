@@ -378,5 +378,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Optimisation de la table terminée ; la fragmentation du disque a été récupérée !",
   "不支持的目标存储引擎类型!": "Type de moteur de stockage cible non pris en charge !",
   "数据表引擎已成功转换为:": "Moteur de table converti avec succès en :",
-  "复制用户密码为空!": "Le mot de passe de l'utilisateur de réplication est vide !"
+  "复制用户密码为空!": "Le mot de passe de l'utilisateur de réplication est vide !",
+  "{1}日志": "Journal {1}"
 }

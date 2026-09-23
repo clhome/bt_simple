@@ -22,7 +22,6 @@
     "匹配0或多个字符，可以是": "Corrisponde a 0 o più caratteri, che possono essere",
     "匹配任何字符，但不包括": "Corrisponde a qualsiasi carattere, eccetto",
     "压缩传输": "Trasmissione compressa",
-    "发送任务": "Invia attività",
     "发送配置": "Invia configurazione",
     "取消": "Annulla",
     "同步": "Sincronizzazione",
@@ -111,5 +110,6 @@
     "注意： 同步程序将本机目录：{1}的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!": "Nota: il programma di sincronizzazione sincronizzerà tutti i dati dalla directory locale {1} al server di destinazione. Se nella directory di sincronizzazione del server di destinazione esistono altri file, verranno eliminati!",
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "Per sincronizzare i dati da altri server al server locale, crea un'\"attività di ricezione\" nella configurazione di ricezione",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
-    "删除成功!": "Eliminazione riuscita!"
+    "删除成功!": "Eliminazione riuscita!",
+    "{1}发送任务": "{1} Attività di invio"
 }

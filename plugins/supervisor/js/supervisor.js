@@ -34,10 +34,10 @@ function supList(page, search){
 			sup_status_desc = 'start'
             if (rdata.data[i]['runStatus'] == 'RUNNING' ){
             	sup_status = 'start'
-            	sup_status_desc = '已启动'
+            	sup_status_desc = pt('已启动')
             } else{
             	sup_status = 'stop'
-            	sup_status_desc = '已停止'
+            	sup_status_desc = pt('已停止')
             }
 
             list += '<td>'+sup_status_desc+'</td>';

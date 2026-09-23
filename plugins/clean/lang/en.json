@@ -1,5 +1,5 @@
 {
-    "日志清理": "Disk Cleaner",
+    "日志清理": "Log Cleanup",
     "磁盘清理": "Disk Cleaner",
     "磁盘空间占用体检与清理": "Disk Space Inspection & Cleanup",
     "空间体检": "Disk Check",
@@ -159,7 +159,7 @@
     "未指定目标文件路径": "Target file path not specified",
     "运行日志已清空": "Run log cleared",
     "说明": "Readme",
-    "运行日志": "Run Log",
+    "运行日志": "Runtime Logs",
     "手动执行": "Manual Run",
     "服务": "Service",
     "正在获取...": "Fetching...",

@@ -28,5 +28,8 @@
     "采样时间 (timestamp)": "Erfassungszeitpunkt (Zeitstempel)",
     "此处为 {1} 主配置文件,若您不了解配置规则,请勿随意修改。": "Dies ist die Hauptkonfigurationsdatei {1}. Wenn Sie die Konfigurationsregeln nicht verstehen, ändern Sie sie bitte nicht nach Belieben.",
     "Varnish 状态获取失败：{1}。请检查 Varnish 服务是否已启动并正常运行。": "Varnish-Status konnte nicht abgerufen werden: {1}. Bitte prüfen Sie, ob der Varnish-Dienst gestartet ist und ordnungsgemäß läuft.",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "{1}天": "{1}T",
+    "{1}小时": "{1}Std.",
+    "{1}分钟": "{1}Min."
 }

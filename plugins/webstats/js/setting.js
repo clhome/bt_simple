@@ -74,19 +74,19 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 
 		var typename = $(this).attr('data-type');
 		if (typename == 'cdn_headers'){
-			var content = $(common_tpl_tips).html('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写').prop('outerHTML');
+			var content = $(common_tpl_tips).html(pt('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写')).prop('outerHTML');
 			var area = $(common_tpl_area).html(rdata['global']['cdn_headers'].join('\n')).prop('outerHTML');
 
 			content += area;
 			$('#webstats .tab-con').html(content);
 		} else if (typename == 'exclude_extension'){
 
-			var content = $(common_tpl_tips).html('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写').prop('outerHTML');
+			var content = $(common_tpl_tips).html(pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写')).prop('outerHTML');
 			var area = $(common_tpl_area).html(rdata['global']['exclude_extension'].join('\n')).prop('outerHTML');
 			content += area;
 			$('#webstats .tab-con').html(content);
 		} else if (typename == 'exclude_status'){
-			var content = $(common_tpl_tips).html('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写').prop('outerHTML');
+			var content = $(common_tpl_tips).html(pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写')).prop('outerHTML');
 			var area = $(common_tpl_area).html(rdata['global']['exclude_status'].join('\n')).prop('outerHTML');
 			content += area;
 			$('#webstats .tab-con').html(content);
@@ -124,7 +124,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 
 			$('#webstats .tab-con').html(content);
 		} else if ( typename == 'exclude_url'){
-			var txt = '* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数'
+			var txt = pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数')
 			var content = $(common_tpl_tips).html(txt).prop('outerHTML');
 
 			var _text = '';
@@ -141,7 +141,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 	                        <option value="regular" '+(_tmp[i].mode == 'regular'?'selected':'')+'>' + pt('模糊匹配') + '</option>\
 	                    </select>\
 	                </td>\
-	                <td><input name="url_val_'+i+'" style="width:290px" placeholder="'+(_tmp[i].mode == 'normal'?'例：需排除a.com/test.html请求，请填写 test.html':'包含此内容的URL请求将不会被统计，请谨慎填写')+'" type="text" value="'+_tmp[i].url+'"></td>\
+	                <td><input name="url_val_'+i+'" style="width:290px" placeholder="'+(_tmp[i].mode == 'normal'?pt('例：需排除a.com/test.html请求，请填写 test.html'):pt('包含此内容的URL请求将不会被统计，请谨慎填写'))+'" type="text" value="'+_tmp[i].url+'"></td>\
 	            </tr>';
             }
 

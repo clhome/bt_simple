@@ -159,5 +159,6 @@
     "确定": "OK",
     "缺少必要参数:": "Missing required parameter:",
     "PHP-YUM 插件自愈迁移完成": "PHP-YUM plugin self-healing migration completed",
-    "请不要输入以下特殊字符:": "Do not enter the following special characters:"
+    "请不要输入以下特殊字符:": "Do not enter the following special characters:",
+    "查看phpinfo()": "View phpinfo()"
 }

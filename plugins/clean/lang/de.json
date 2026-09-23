@@ -1,5 +1,5 @@
 {
-    "日志清理": "Festplattenbereinigung",
+    "日志清理": "Protokollbereinigung",
     "磁盘清理": "Festplattenbereinigung",
     "磁盘空间占用体检与清理": "Speicherplatzprüfung und Bereinigung",
     "空间体检": "Prüfung",
@@ -159,7 +159,7 @@
     "未指定目标文件路径": "Zieldateipfad nicht angegeben",
     "运行日志已清空": "Dienstprotokoll geleert",
     "说明": "Beschreibung",
-    "运行日志": "Betriebsprotokoll",
+    "运行日志": "Laufzeitprotokoll",
     "手动执行": "Manuell ausführen",
     "服务": "Dienst",
     "正在获取...": "Wird abgerufen...",

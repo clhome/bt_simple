@@ -86,7 +86,6 @@
     "等待任务初始化...": "Attente de l'initialisation de la tâche...",
     "系统已自动检索到配置文件:": "Le système a automatiquement récupéré le fichier de configuration :",
     "绑定 Host 不能为空！": "L'hôte de liaison ne peut pas être vide !",
-    "获取日志失败：": "Échec de l'obtention du journal :",
     "菜单，将绑定 Host 修改为": "Dans le menu, remplacez l'adresse Host par",
     "请求后端接口失败！": "La demande de l'interface backend a échoué !",
     "请输入要拉取的模型名称！": "Veuillez entrer le nom du modèle que vous souhaitez tirer !",
@@ -111,5 +110,6 @@
     "ollama rm &lt;模型&gt;": "ollama rm &lt;modèle&gt;",
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;IP-du-serveur&gt;:11434/v1",
     "缺少必要参数:": "Paramètre requis manquant :",
-    "模型删除成功！": "Modèle supprimé avec succès !"
+    "模型删除成功！": "Modèle supprimé avec succès !",
+    "获取日志失败：{1}": "Échec de la récupération des journaux : {1}"
 }

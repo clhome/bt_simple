@@ -38,5 +38,6 @@
     "配置修改": "Modification de configuration",
     "重建成功!": "Reconstruction réussie !",
     "重建索引": "Reconstruire l'index",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "具体配置，仍须手动修改!!!": "La configuration détaillée doit encore être modifiée manuellement !!!"
 }

@@ -75,10 +75,10 @@ function mongoReplStatus() {
 
 		// console.log(rdata);
 		var repl_on = 'btn-danger';
-		var repl_on_title = '未开启';
+		var repl_on_title = pt('未开启');
 		if ('repl_name' in rdata && rdata['repl_name'] != ''){
 			repl_on = '';
-			repl_on_title = '已开启';
+			repl_on_title = pt('已开启');
 		}
 
 		var con = "<p class='conf_p'>\
@@ -188,9 +188,9 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 		arbiterOnly = '1';
 	}
 
-	var title_name = '添加节点';
+	var title_name = pt('添加节点');
 	if (idx>-1){
-		title_name = '编辑节点';
+		title_name = pt('编辑节点');
 	}
 
 	layer.open({
@@ -268,15 +268,15 @@ function mongoReplCfgDelNode(host){
 function mongoReplCfgInit(){
 	api.postSilent('get_repl_config', '', '', function(data){
 		var rdata = JSON.parse(data.data);
-		$('#repl_name').html("同步副本："+rdata.data['name']);
+		$('#repl_name').html(msgTpl(pt('同步副本：{1}'), [rdata.data['name']]));
 
 		var node = '';
 		for (var i = 0; i < rdata.data['nodes'].length; i++) {
 			var t = rdata.data['nodes'][i];
 
-			var arbiterOnly = '否';
+			var arbiterOnly = pt('否');
 			if(t['arbiterOnly']==1){
-				arbiterOnly = '是';
+				arbiterOnly = pt('是');
 			}
 
 			var op = '<a href="javascript:;" class="btlink" onclick="mongoReplCfgDelNode(\''+t['host']+'\');" title="删除">' + pt('删除') + '</a>';
@@ -294,7 +294,7 @@ function mongoReplCfg(){
         area: ['580px', '380px'],
         closeBtn: 1,
         shadeClose: false,
-        btn: ["初始化","取消","添加节点","设置同步副本","关闭副本同步"],
+        btn: [pt("初始化"),pt("取消"),pt("添加节点"),pt("设置同步副本"),pt("关闭副本同步")],
         content: '<div class="pd15">\
                 <div class="db_list">\
                     <span>\
@@ -574,7 +574,7 @@ function setRootPwd(type, pwd){
         title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
-        btn:["提交", "关闭", "复制ROOT密码", "强制修改"],
+        btn:[pt("提交"), pt("关闭"), pt("复制ROOT密码"), pt("强制修改")],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
@@ -762,7 +762,7 @@ function repTools(db_name, res){
 
         layer.open({
             type: 1,
-            title: "MongoDB工具箱【" + db_name + "】",
+            title: msgTpl(pt('MongoDB工具箱【{1}】'), [db_name]),
             area: ['780px', '480px'],
             closeBtn: 1,
             shadeClose: false,

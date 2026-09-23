@@ -19,7 +19,7 @@ function giteaService(){
                     </div>';
                     $(".soft-man-con").append(html);
                 }
-            }, "正在获取访问地址...");
+            }, pt("正在获取访问地址..."));
         }
         retryCount++;
         if(retryCount > 50) clearInterval(timer);
@@ -154,7 +154,7 @@ function giteaUserList(page, search) {
         ulist = rdata['data']['data'];
         for (i in ulist){
 
-            var email = ulist[i]["email"] == '' ? '无' : ulist[i]["email"];
+            var email = ulist[i]["email"] == '' ? pt('无') : ulist[i]["email"];
             var user_url = rdata['data']['root_url'] + ulist[i]["name"];
             content += '<tr><td>'+ulist[i]["id"]+'</td>'+
                 '<td>'+ulist[i]["name"]+'</td>'+
@@ -267,7 +267,7 @@ function projectScript(user, name,has_hook){
 
     var loadOpen = layer.open({
         type: 1,
-        title: '['+user+']['+name+']脚本设置',
+        title: msgTpl(pt('[{1}][{2}]脚本设置'), [user, name]),
         area: '240px',
         content:'<div class="change-default pd20">'+html+'</div>',
         success:function(layero,index) {
@@ -764,7 +764,7 @@ function getRsaPublic(){
                 textarea.select();
                 try {
                     var successful = document.execCommand('copy');
-                    var msg = successful ? '公钥已成功复制到剪贴板！' : '复制失败，请手动选择复制。';
+                    var msg = successful ? pt('公钥已成功复制到剪贴板！') : pt('复制失败，请手动选择复制。');
                     layer.msg(msg, { icon: 1, time: 2000 });
                 } catch (err) {
                     layer.msg(pt('复制失败，请手动选择复制。'), { icon: 2, time: 2000 });

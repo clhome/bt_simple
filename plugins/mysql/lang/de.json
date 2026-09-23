@@ -424,5 +424,15 @@
   "不支持的目标存储引擎类型!": "Nicht unterstützter Ziel-Speicher-Engine-Typ!",
   "数据表引擎已成功转换为:": "Tabellen-Engine erfolgreich konvertiert zu:",
   "读取MySQL配置失败": "MySQL-Konfiguration konnte nicht gelesen werden",
-  "初始化错误(error.log尚未生成)": "Initialisierungsfehler (error.log wurde noch nicht erstellt)"
+  "初始化错误(error.log尚未生成)": "Initialisierungsfehler (error.log wurde noch nicht erstellt)",
+  "{1}日志": "{1}-Protokoll",
+  "主[服务]": "Primär [Dienst]",
+  "安装方式：": "Installationsmethode:",
+  "极速安装(Tar)": "Schnellinstallation (Tar)",
+  "源码编译": "Aus Quellcode kompilieren",
+  "极速安装": "Schnellinstallation",
+  "(预计 1~3 分钟)": "(ca. 1-3 Min.)",
+  "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Stellt das offizielle vorkompilierte Universal-Binärpaket bereit - zeitsparend und mühelos. Geeignet für die meisten Alltagsszenarien, schnelle Bereitstellung und Server mit geringer Ausstattung.",
+  "(预计 20~60 分钟)": "(ca. 20-60 Min.)",
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Tief optimierte Kompilierung basierend auf der aktuellen Server-Hardware und Systemumgebung. Geeignet für leistungsstarke Produktionsumgebungen mit höchsten Anforderungen an die Datenbankleistung."
 }

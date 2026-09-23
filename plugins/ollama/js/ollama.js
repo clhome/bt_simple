@@ -537,7 +537,7 @@ var ollama = {
                 html += '  <div class="ollama-card">';
                 html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 服务环境变量配置') + '</h4>';
                 html += '    <div style="font-size:12px;color:#64748b;background:#f8fafc;padding:10px 15px;border-radius:6px;margin-bottom:15px;border:1px dashed #cbd5e1;">';
-                html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + (config.service_file || '未找到') + '</code><br/>';
+                html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + (config.service_file || pt('未找到')) + '</code><br/>';
                 html += '      ' + pt('配置保存后，插件会自动执行') + ' <code style="font-size:10px;">systemctl daemon-reload</code> ' + pt('与服务重启，使新配置即时生效。');
                 html += '    </div>';
 
@@ -642,7 +642,7 @@ var ollama = {
             success: function (res) {
                 var logArea = $('#ollama_log_textarea');
                 if (!res.status) {
-                    logArea.val('获取日志失败：' + res.msg);
+                    logArea.val(msgTpl(pt('获取日志失败：{1}'), [res.msg]));
                     return;
                 }
                 

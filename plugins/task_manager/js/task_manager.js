@@ -144,7 +144,7 @@ $('.setting_ul_li').off('click').on('click', function (e) {
             if ($(".t-mana").length == 0) {
                     clearInterval(process_list_s);
                     process_list_s = 0;
-                    console.log('进程列表轮询任务已停止');
+                    console.log(pt('进程列表轮询任务已停止'));
                 }
                 get_process_list(null, null, true);
             }, 3000);
@@ -174,7 +174,7 @@ if (process_list_s === 0) {
         if ($(".t-mana").length == 0) {
             clearInterval(process_list_s);
             process_list_s = 0;
-            console.log('进程列表轮询任务已停止');
+            console.log(pt('进程列表轮询任务已停止'));
         }
         get_process_list(null, null, true);
     }, 3000);
@@ -366,7 +366,7 @@ function colp_process_child(pid) {
 
 function click_process_tr(e, pid, fpid) {
     select_pid = pid + '';
-    if (e.target.innerText === '结束' && fpid) {
+    if (e.target.innerText === pt('结束') && fpid) {
       select_pid = fpid + '';
     }
     var selectline = buildRealProcess()

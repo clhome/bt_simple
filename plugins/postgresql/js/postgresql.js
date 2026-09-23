@@ -358,7 +358,7 @@ function setDbAccess(name){
                     dataObj['access'] = dataObj['dataAccess'];
                     if ( dataObj['dataAccess'] == 'ip'){
                         if (dataObj['address']==''){
-                            layer.msg('IP地址不能空!',{icon:2,shade: [0.3, '#000']});
+                            layer.msg(pt('IP地址不能空!'),{icon:2,shade: [0.3, '#000']});
                             return;
                         }
                         dataObj['access'] = dataObj['address'];
@@ -741,20 +741,20 @@ function dbList(page, search){
             list += '<td>' + rdata.data[i]['addtime'] +'</td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'备份':'备份/导入') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('备份'):pt('备份/导入')) +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';
             if (typeof(rdata.data[i]['rw'])!='undefined'){
-                var rw_val = '读写';
+                var rw_val = pt('读写');
                 if (rdata.data[i]['rw'] == 'all'){
-                    rw_val = "所有";
+                    rw_val = pt("所有");
                     rw_change = 'rw';
                 } else if (rdata.data[i]['rw'] == 'rw'){
-                    rw_val = "读写";
+                    rw_val = pt("读写");
                     rw_change = 'r';
                 } else if (rdata.data[i]['rw'] == 'r'){
-                    rw_val = "只读";
+                    rw_val = pt("只读");
                     rw_change = 'all';
                 }
                 rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="设置读写">'+rw_val+'</a> | ';
@@ -1196,12 +1196,12 @@ function getSlaveSSHPage(page=1){
             var ip = ssh_list[i]['ip'];
             var port = ssh_list[i]['port'];
 
-            var id_rsa = '未设置';
+            var id_rsa = pt('未设置');
             if ( ssh_list[i]['port'] != ''){
-                id_rsa = '已设置';
+                id_rsa = pt('已设置');
             }
 
-            var db_user = '未设置';
+            var db_user = pt('未设置');
             if ( ssh_list[i]['db_user'] != ''){
                 db_user = ssh_list[i]['db_user'];
             }
@@ -1229,7 +1229,7 @@ function getSlaveSSHList(page=1){
 
     layerId = layer.open({
         type: 1,
-        title: 'SSH列表',
+        title: pt('SSH列表'),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
@@ -1315,9 +1315,9 @@ function masterOrSlaveConf(version=''){
             for(i in rdata.data){
 
                 var v = rdata.data[i];
-                var status = "异常";
+                var status = pt("异常");
                 if (v['Slave_SQL_Running'] == 'Yes' && v['Slave_IO_Running'] == 'Yes'){
-                    status = "正常";
+                    status = pt("正常");
                 }
 
                 list += '<tr>';
@@ -1373,14 +1373,14 @@ function masterOrSlaveConf(version=''){
                 <hr/>\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">' + pt('Master[主]配置') + '</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
+                    <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? pt('未开启') : pt('已开启')) +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getMasterRepSlaveListPage()" >' + pt('同步账户') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- class="conf_p" -->\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">' + pt('Slave[从]配置') + '</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
+                    <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : pt('已启动')) +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getSlaveSSHList()" >' + pt('[主]SSH配置') + '</button>\
                     <button class="btn btn-success btn-xs" onclick="slaveSyncCmd()" >' + pt('同步命令') + '</button>\
                 </p>\

@@ -86,7 +86,6 @@
     "等待任务初始化...": "Waiting for the task to initialize...",
     "系统已自动检索到配置文件:": "The system has automatically retrieved the configuration file:",
     "绑定 Host 不能为空！": "Binding Host cannot be empty!",
-    "获取日志失败：": "Failed to get log:",
     "菜单，将绑定 Host 修改为": "Menu: Change the bound Host to",
     "请求后端接口失败！": "Requesting the backend interface failed!",
     "请输入要拉取的模型名称！": "Please enter the name of the model you want to pull!",
@@ -111,5 +110,6 @@
     "ollama rm &lt;模型&gt;": "ollama rm &lt;model&gt;",
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;server-IP&gt;:11434/v1",
     "缺少必要参数:": "Missing required parameter:",
-    "模型删除成功！": "Model deleted successfully!"
+    "模型删除成功！": "Model deleted successfully!",
+    "获取日志失败：{1}": "Failed to get logs: {1}"
 }

@@ -262,5 +262,6 @@
     "网络异常，请重试": "Netzwerkfehler, bitte erneut versuchen",
     "网络或服务请求超时": "Zeitüberschreitung bei Netzwerk- oder Dienstanfrage",
     "连接管理器 (Navicat 式)": "Verbindungsmanager (Navicat-Stil)",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "共0条": "0 Einträge"
 }

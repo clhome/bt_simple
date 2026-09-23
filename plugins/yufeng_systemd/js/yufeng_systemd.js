@@ -5,7 +5,7 @@ window.onerror = function(message, source, lineno, colno, error) {
     var err_msg = pt('JS 异常: ') + message + '\n' + pt('文件: ') + source + '\n' + pt('行号: ') + lineno + ':' + colno;
     console.fail(err_msg, error);
     if (window.layer) {
-        layer.alert(err_msg.replace(/\n/g, '<br>'), {icon: 2, title: "JavaScript 运行错误"});
+        layer.alert(err_msg.replace(/\n/g, '<br>'), {icon: 2, title: pt("JavaScript 运行错误")});
     } else {
         alert(err_msg);
     }
@@ -296,7 +296,7 @@ var yufeng_systemd = {
                 };
                 var log_content = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(res.data) : escapeHtml(res.data);
                 
-                var log_html = '<div id="yufeng_log_box" style="padding: 10px; background-color: #333; color: #fff; height: 380px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;">' + (log_content || '暂无运行日志') + '</div>';
+                var log_html = '<div id="yufeng_log_box" style="padding: 10px; background-color: #333; color: #fff; height: 380px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;">' + (log_content || pt('暂无运行日志')) + '</div>';
                 layer.open({
                     type: 1,
                     title: pt('运行日志 (最近100行防OOM) - [') + service_name + ']',
@@ -315,7 +315,7 @@ var yufeng_systemd = {
                                     yufeng_systemd.request('get_service_logs', {service_name: service_name}, function(new_res) {
                                         if (new_res.status) {
                                             var new_log = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(new_res.data) : escapeHtml(new_res.data);
-                                            $('#yufeng_log_box').html(new_log || '暂无运行日志');
+                                            $('#yufeng_log_box').html(new_log || pt('暂无运行日志'));
                                         }
                                     });
                                 }

@@ -167,5 +167,6 @@
     "升级自愈正在执行中...": "Upgrade self-healing in progress...",
     "已是最新版本，无需自愈。": "Already the latest version; no self-healing needed.",
     "大版本迁移升级自愈成功完成。": "Major-version migration self-healing completed successfully.",
-    "请不要输入以下特殊字符:": "Do not enter the following special characters:"
+    "请不要输入以下特殊字符:": "Do not enter the following special characters:",
+    "查看phpinfo()": "View phpinfo()"
 }

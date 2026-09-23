@@ -346,7 +346,7 @@ function wsOverviewRequest(page){
                     $('.overview_list .overview_box:eq(6) .ov_num').text(realtime_request);
 
                     
-                    var realtime_name = select_option == 'realtime_traffic' ? '实时流量':'每秒请求';
+                    var realtime_name = select_option == 'realtime_traffic' ? pt('实时流量'):pt('每秒请求');
                     var val = realtime_request;
                     if (select_option == 'realtime_traffic'){
                         val = realtime_traffic_calc.split(' ')[0];
@@ -554,7 +554,7 @@ function initRealtimeTraffic(){
     }
     var title="" + pt('每秒请求') + "";
     if (check_realtime_second > 1){
-        title='' + pt('每') + ''+check_realtime_second+'秒请求'
+        title = msgTpl(pt('每{1}秒请求'), [check_realtime_second]);
     }
 
     $('#ov_title_req_second').text(title)
@@ -710,7 +710,7 @@ function wsSitesListRequest(page){
                 console.log(rdata);
                 layer.open({
                     type: 1,
-                    title: "【"+domain + "】监控配置",
+                    title: msgTpl(pt('【{1}】监控配置'), [domain]),
                     btn: [pt('保存'), pt('取消')], 
                     area: ['600px',"380px"],
                     closeBtn: 1,
@@ -744,19 +744,19 @@ function wsSitesListRequest(page){
 
                             var typename = $(this).attr('data-type');
                             if (typename == 'cdn_headers'){
-                                var content = $(common_tpl_tips).html('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写').prop('outerHTML');
+                                var content = $(common_tpl_tips).html(pt('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写')).prop('outerHTML');
                                 var area = $(common_tpl_area).html(rdata['cdn_headers'].join('\n')).prop('outerHTML');
 
                                 content += area;
                                 $('#site_conf .tab-con').html(content);
                             } else if (typename == 'exclude_extension'){
 
-                                var content = $(common_tpl_tips).html('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写').prop('outerHTML');
+                                var content = $(common_tpl_tips).html(pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写')).prop('outerHTML');
                                 var area = $(common_tpl_area).html(rdata['exclude_extension'].join('\n')).prop('outerHTML');
                                 content += area;
                                 $('#site_conf .tab-con').html(content);
                             } else if (typename == 'exclude_status'){
-                                var content = $(common_tpl_tips).html('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写').prop('outerHTML');
+                                var content = $(common_tpl_tips).html(pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写')).prop('outerHTML');
                                 var area = $(common_tpl_area).html(rdata['exclude_status'].join('\n')).prop('outerHTML');
                                 content += area;
                                 $('#site_conf .tab-con').html(content);
@@ -794,7 +794,7 @@ function wsSitesListRequest(page){
 
                                 $('#site_conf .tab-con').html(content);
                             } else if ( typename == 'exclude_url'){
-                                var txt = '* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数'
+                                var txt = pt('* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数')
                                 var content = $(common_tpl_tips).html(txt).prop('outerHTML');
 
                                 var _text = '';
@@ -811,7 +811,7 @@ function wsSitesListRequest(page){
                                                 <option value="regular" '+(_tmp[i].mode == 'regular'?'selected':'')+'>' + pt('模糊匹配') + '</option>\
                                             </select>\
                                         </td>\
-                                        <td><input name="url_val_'+i+'" style="width:290px" placeholder="'+(_tmp[i].mode == 'normal'?'例：需排除a.com/test.html请求，请填写 test.html':'包含此内容的URL请求将不会被统计，请谨慎填写')+'" type="text" value="'+_tmp[i].url+'"></td>\
+                                        <td><input name="url_val_'+i+'" style="width:290px" placeholder="'+(_tmp[i].mode == 'normal'?pt('例：需排除a.com/test.html请求，请填写 test.html'):pt('包含此内容的URL请求将不会被统计，请谨慎填写'))+'" type="text" value="'+_tmp[i].url+'"></td>\
                                     </tr>';
                                 }
 
@@ -1076,7 +1076,7 @@ function wsSpiderStatLogRequest(page){
         var initData = rdata.data.stat_list;
         
         var colorList = ['#6ec71e','#4885FF'];
-        var source_name = {baidu:'百度',google:'Google',bytes:'头条',soso:'搜搜',bing:'必应',qh360:'奇虎360',youdao:'有道',yandex:'Yandex',dnspod:'DNSPOD',mpcrawler:'mpcrawler',other:'其他',};
+        var source_name = {baidu:pt('百度'),google:'Google',bytes:pt('头条'),soso:pt('搜搜'),bing:pt('必应'),qh360:pt('奇虎360'),youdao:pt('有道'),yandex:'Yandex',dnspod:'DNSPOD',mpcrawler:'mpcrawler',other:pt('其他'),};
         var lenend2_obj = {};
 
         var rightEc = echarts.init(document.getElementById('echart_right_total'));
@@ -1388,7 +1388,7 @@ function wsClientStatLogRequest(page){
         var initData = rdata.data.stat_list;
         var sumData = rdata.data.sum_data;
         var colorList = ['#6ec71e','#4885FF'];
-        var source_name = {android:'安卓',iphone:'iOS',windows:'Windows',chrome:'Chrome',weixin:'微信',qh360:'360',edeg:'Edge',firefox:'火狐',safari:'Safari',mac:'Mac',linux:'Linux',msie:'IE',metasr:'搜狗',theworld:'世界之窗',tt:'腾讯TT',maxthon:'遨游',opera:'Opera',qq:'QQ浏览器',uc:'UC',pc2345:'2345',other:'其他',machine:'Machine'};
+        var source_name = {android:pt('安卓'),iphone:'iOS',windows:'Windows',chrome:'Chrome',weixin:pt('微信'),qh360:'360',edeg:'Edge',firefox:pt('火狐'),safari:'Safari',mac:'Mac',linux:'Linux',msie:'IE',metasr:pt('搜狗'),theworld:pt('世界之窗'),tt:pt('腾讯TT'),maxthon:pt('遨游'),opera:'Opera',qq:pt('QQ浏览器'),uc:'UC',pc2345:'2345',other:pt('其他'),machine:'Machine'};
         var lenend2_obj = {};
 
         var leftEc = echarts.init(document.getElementById('echart_left_total'));
@@ -1396,8 +1396,8 @@ function wsClientStatLogRequest(page){
 
 
         var datas = [
-            { value: sumData.pc, name: 'PC客服端' },
-            { value: sumData.mobile, name: '移动客服端' },
+            { value: sumData.pc, name: pt('PC客服端') },
+            { value: sumData.mobile, name: pt('移动客服端') },
         ];
 
         var leftOption = {
@@ -1408,7 +1408,7 @@ function wsClientStatLogRequest(page){
                     color: '#484848',
                     fontSize: 17
                 },
-                subtext: '总请求数',
+                subtext: pt('总请求数'),
                 subtextStyle: {
                     color: '#717171',
                     fontSize: 15
@@ -1440,7 +1440,7 @@ function wsClientStatLogRequest(page){
                                     total += datas[i].value;
                                 }
                                 if(params.name !== '') {
-                                    return params.name + '\n' + '\n' +  params.value + '/次';
+                                    return params.name + '\n' + '\n' + msgTpl(pt('{1}/次'), [params.value]);
                                 }else {
                                     return '';
                                 }
@@ -2005,7 +2005,7 @@ function wsTableErrorLogRequest(page){
             var res = data[index];
             layer.open({
                 type: 1,
-                title: "【"+res.domain + "】详情信息",
+                title: msgTpl(pt('【{1}】详情信息'), [res.domain]),
                 area: '600px',
                 closeBtn: 1,
                 shadeClose: false,
@@ -2175,18 +2175,18 @@ function wsTableLogRequest(page){
     args['tojs'] = 'wsTableLogRequest';
 
     var spider_table = {
-        "1":"百度",
-        "2":"必应",
-        "3":"奇虎360",
+        "1":pt("百度"),
+        "2":pt("必应"),
+        "3":pt("奇虎360"),
         "4":"Google",
-        "5":"头条",
-        "6":"搜狗",
-        "7":"有道",
-        "8":"搜搜",
+        "5":pt("头条"),
+        "6":pt("搜狗"),
+        "7":pt("有道"),
+        "8":pt("搜搜"),
         "9":"Dnspod",
         "10":"Yandex",
-        "11":"一搜",
-        "12":"其他",
+        "11":pt("一搜"),
+        "12":pt("其他"),
     }
 
     var req_status = $('#logs_search').attr('req');
@@ -2260,7 +2260,7 @@ function wsTableLogRequest(page){
             var res = data[index];
             layer.open({
                 type: 1,
-                title: "【"+res.domain + "】详情信息",
+                title: msgTpl(pt('【{1}】详情信息'), [res.domain]),
                 area: '600px',
                 closeBtn: 1,
                 shadeClose: false,
@@ -2309,7 +2309,7 @@ function wsTableLogRequest(page){
 
             layer.open({
                 type: 1,
-                title: "【"+res.domain + "】HTTP详情",
+                title: msgTpl(pt('【{1}】HTTP详情'), [res.domain]),
                 area: ['600px','375px'],
                 closeBtn: 1,
                 shadeClose: false,

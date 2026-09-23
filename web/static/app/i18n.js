@@ -422,6 +422,10 @@
 
     var _pluginDicts = {};
     var PLUGIN_CACHE_PREFIX = 'yf_plang_';
+    // 插件弹窗文本节点兜底翻译用：含 CJK 统一表意文字即视为需要查表
+    var CJK_RE = /[\u4e00-\u9fff]/;
+    // 兜底翻译不进入的标签（脚本/样式容器，其"文本"不是界面文案）
+    var TEXT_SCAN_SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, IFRAME: 1, TEXTAREA: 1, TITLE: 1 };
 
     /**
      * 从 localStorage 读取插件语言包缓存
@@ -469,6 +473,40 @@
 
         var pt = createPluginTranslator(pluginName);
 
+        /**
+         * 1.3 通用兜底：文本节点级精确查表。
+         *
+         * 为什么需要：上面的定向选择器是**枚举式白名单**，而各插件自定义的说明容器
+         * （卡片标题 / 步骤标题 / 提示框 / 内联 <strong> / <li> / 自定义 span 等）永远补不全，
+         * 结果是「键在语言包里、译文也在，但界面仍是中文」——比缺键更隐蔽的假翻译。
+         *
+         * 安全前提（四条同时成立才替换，缺一不可）：
+         *   ① 只改文本节点自身，绝不触碰属性值、表单控件与 innerHTML 结构；
+         *   ② 文本必须含 CJK 字符（纯英文 / 数字 / 路径 / 用户数据一律跳过）；
+         *   ③ 必须「整段文本」精确命中插件字典键，查不到即原样保留（含用户数据时必然落空）；
+         *   ④ 幂等：译文再次查表必落空，MutationObserver 重复触发不会二次替换。
+         */
+        function translateLeafTextNodes($scope) {
+            if (!$scope || !$scope[0] || !document.createTreeWalker) return;
+            var walker = document.createTreeWalker($scope[0], 4 /* SHOW_TEXT */, null, false);
+            var node, batch = [];
+            while ((node = walker.nextNode())) {
+                var parent = node.parentNode;
+                if (!parent || TEXT_SCAN_SKIP_TAGS[parent.nodeName]) continue;
+                if (!CJK_RE.test(node.nodeValue || '')) continue;
+                batch.push(node);
+            }
+            for (var i = 0; i < batch.length; i++) {
+                var raw = batch[i].nodeValue;
+                var key = raw.replace(/^\s+|\s+$/g, '');
+                if (!key) continue;
+                var trans = pt(key);
+                if (trans && trans !== key) {
+                    batch[i].nodeValue = raw.replace(key, trans);
+                }
+            }
+        }
+
         function doTranslateNodes($scope) {
             // 1. 精准定向翻译菜单项
             $scope.find('.bt-w-menu p, .man-menu-sub span, .setting_ul .setting_ul_li span').each(function() {
@@ -484,8 +522,10 @@
                 }
             });
 
-            // 1.1 精准定向翻译输入框 placeholder 与容器 title 提示
-            $scope.find('input[placeholder], textarea[placeholder], .table_config[title], span[title], a[title], label[title]').each(function() {
+            // 1.1 精准定向翻译输入框 placeholder 与元素 title 提示
+            //     注：title / placeholder 是纯提示文案，用通配属性选择器而非枚举标签，
+            //     否则 p/div/td/button 等标签上的 title 会永远漏翻（历史缺口）。
+            $scope.find('[placeholder], [title]').each(function() {
                 var $el = window.$(this);
                 var ph = $el.attr('placeholder');
                 if (ph) {
@@ -573,6 +613,9 @@
                     }
                 }
             });
+
+            // 1.3 通用兜底：文本节点级精确查表（解决白名单枚举不全的共性问题）
+            translateLeafTextNodes($scope);
 
             // 3. 通用 DOM [data-i18n] 翻译
             if ($scope[0]) {

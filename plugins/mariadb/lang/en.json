@@ -378,5 +378,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Table optimization complete; disk fragmentation has been reclaimed!",
   "不支持的目标存储引擎类型!": "Unsupported target storage engine type!",
   "数据表引擎已成功转换为:": "Table engine successfully converted to:",
-  "复制用户密码为空!": "Replication user password is empty!"
+  "复制用户密码为空!": "Replication user password is empty!",
+  "{1}日志": "{1} Log"
 }

@@ -155,9 +155,9 @@ function setPamPort() {
 }
 
 function pmaOpService(action) {
-    layer.msg(t('public.executing', '正在执行...'), { icon: 16, time: 0, shade: 0.3 });
+    layer.msg(t('public.executing', pt('正在执行...')), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', { name: 'phpmyadmin', func: action, version: '', args: '' }, function(data) {
-        var msg = data.data == 'ok' ? t('public.operation_successful', '操作成功!') : t('public.operation_failed', '操作失败!');
+        var msg = data.data == 'ok' ? t('public.operation_successful', pt('操作成功!')) : t('public.operation_failed', pt('操作失败!'));
         if (data.data == 'ok') {
             layer.msg(msg, { icon: 1 });
             setTimeout(function() {
@@ -184,7 +184,7 @@ function pmaService() {
         }
 
         var headerHtml = '<div class="sfm-opt">' +
-                            '<div class="sfm-opt-l" style="margin-top: -3px;">' + t('public.current_status', '当前状态：') + mStatus + '</div>' +
+                            '<div class="sfm-opt-l" style="margin-top: -3px;">' + t('public.current_status', pt('当前状态：')) + mStatus + '</div>' +
                             '<div class="sfm-opt-l mt15">' + opt + '</div>' +
                           '</div>';
         $(".soft-man-con").html(headerHtml);
@@ -196,8 +196,8 @@ function pmaService() {
             }
             var info = data.data;
             var html = '<div class="service-notice" style="margin-top: 15px; padding: 12px 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' +
-                '<div style="margin-bottom: 4px;"><b style="color:#333;">' + t('public.reload_configuration_reload', '重载配置 (Reload)') + '</b>' + t('public.smoothly_loads_the_latest', '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + t('public.zero_business_disruption', '业务零中断') + '</b>' + t('public.recommended_for_use_after', '，推荐日常修改配置后使用。') + '</div>' +
-                '<div><b style="color:#333;">' + t('public.restart_the_service_restart', '重启服务 (Restart)') + '</b>' + t('public.forcibly_terminates_and_restarts', '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>' +
+                '<div style="margin-bottom: 4px;"><b style="color:#333;">' + t('public.reload_configuration_reload', pt('重载配置 (Reload)')) + '</b>' + t('public.smoothly_loads_the_latest', pt('：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现')) + '<b style="color:#20a53a;">' + t('public.zero_business_disruption', pt('业务零中断')) + '</b>' + t('public.recommended_for_use_after', pt('，推荐日常修改配置后使用。')) + '</div>' +
+                '<div><b style="color:#333;">' + t('public.restart_the_service_restart', pt('重启服务 (Restart)')) + '</b>' + t('public.forcibly_terminates_and_restarts', pt('：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。')) + '</div>' +
             '</div>' +
             '<div class="pma-access-info" style="margin-top: 15px;">' +
                 '<div class="pma-info-header">' + pt('访问与认证信息') + '</div>' +
@@ -225,9 +225,9 @@ function pmaService() {
                 '</div>' +
             '</div>' +
             '<div class="pma-kill-section" style="margin-top: 18px;">' +
-                '<button class="btn btn-danger btn-sm" onclick="pluginOpService(\'php\',\'kill_all_php\',\'\',\'\')">' + t('public.kill_all_php_processes', 'kill所有php进程') + '</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="pluginOpService(\'php\',\'kill_all_php\',\'\',\'\')">' + t('public.kill_all_php_processes', pt('kill所有php进程')) + '</button>' +
                 '<div class="service-notice" style="margin-top: 10px; padding: 12px 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' +
-                    '<div><b style="color:#d9534f;">' + t('public.note', '注意') + '</b>' + t('public.forcefully_terminate_all_php', '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + t('public.after_execution_you_ll', '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>' +
+                    '<div><b style="color:#d9534f;">' + t('public.note', pt('注意')) + '</b>' + t('public.forcefully_terminate_all_php', '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + t('public.after_execution_you_ll', pt('执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。')) + '</b></div>' +
                 '</div>' +
             '</div>';
             var style = `

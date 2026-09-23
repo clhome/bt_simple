@@ -167,5 +167,6 @@
     "升级自愈正在执行中...": "Auto-réparation de la mise à niveau en cours...",
     "已是最新版本，无需自愈。": "Déjà la dernière version ; aucune auto-réparation nécessaire.",
     "大版本迁移升级自愈成功完成。": "Auto-réparation de la migration de version majeure terminée avec succès.",
-    "请不要输入以下特殊字符:": "Ne saisissez pas les caractères spéciaux suivants :"
+    "请不要输入以下特殊字符:": "Ne saisissez pas les caractères spéciaux suivants :",
+    "查看phpinfo()": "Voir phpinfo()"
 }

@@ -61,5 +61,6 @@
     "如另加端口格式为 www.domain.com:88": "Per aggiungere una porta: www.domain.com:88",
     "共{1}条": "{1} in totale",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
-    "访问节点[%s]失败": "Accesso al nodo [%s] non riuscito"
+    "访问节点[%s]失败": "Accesso al nodo [%s] non riuscito",
+    "轮询[默认]": "Polling [Predefinito]"
 }

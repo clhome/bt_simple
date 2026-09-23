@@ -424,5 +424,15 @@
   "不支持的目标存储引擎类型!": "Unsupported target storage engine type!",
   "数据表引擎已成功转换为:": "Table engine successfully converted to:",
   "读取MySQL配置失败": "Failed to read MySQL configuration",
-  "初始化错误(error.log尚未生成)": "Initialization error (error.log not yet generated)"
+  "初始化错误(error.log尚未生成)": "Initialization error (error.log not yet generated)",
+  "{1}日志": "{1} Log",
+  "主[服务]": "Primary [Service]",
+  "安装方式：": "Installation Method:",
+  "极速安装(Tar)": "Fast Install (Tar)",
+  "源码编译": "Compile from Source",
+  "极速安装": "Fast Install",
+  "(预计 1~3 分钟)": "(Est. 1-3 min)",
+  "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Deploys the official precompiled generic binary package - saving time and effort. Suitable for most daily scenarios, quick deployment and low-spec servers.",
+  "(预计 20~60 分钟)": "(Est. 20-60 min)",
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Deeply optimized compilation based on the current server hardware and system environment. Suitable for high-spec production environments with extreme database performance requirements."
 }

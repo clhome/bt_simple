@@ -1,5 +1,5 @@
 {
-    "日志清理": "Nettoyage de disque",
+    "日志清理": "Nettoyage des journaux",
     "磁盘清理": "Nettoyage de disque",
     "磁盘空间占用体检与清理": "Contrôle et nettoyage de l'espace disque",
     "空间体检": "Nettoyage",
@@ -159,7 +159,7 @@
     "未指定目标文件路径": "Chemin du fichier cible non spécifié",
     "运行日志已清空": "Journal d'exécution effacé",
     "说明": "Description",
-    "运行日志": "Journal",
+    "运行日志": "Journaux d'exécution",
     "手动执行": "Exécution manuelle",
     "服务": "Services",
     "正在获取...": "Chargement...",

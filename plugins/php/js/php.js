@@ -400,22 +400,22 @@ function setFpmConfig(version){
     var pm = $("select[name='pm']").val();
 
     if (max_children < max_spare_servers) {
-        layer.msg('max_spare_servers 不能大于 max_children', { icon: 2 });
+        layer.msg(pt('max_spare_servers 不能大于 max_children'), { icon: 2 });
         return;
     }
 
     if (min_spare_servers > start_servers) {
-        layer.msg('min_spare_servers 不能大于 start_servers', { icon: 2 });
+        layer.msg(pt('min_spare_servers 不能大于 start_servers'), { icon: 2 });
         return;
     }
 
     if (max_spare_servers < min_spare_servers) {
-        layer.msg('min_spare_servers 不能大于 max_spare_servers', { icon: 2 });
+        layer.msg(pt('min_spare_servers 不能大于 max_spare_servers'), { icon: 2 });
         return;
     }
 
     if (max_children < start_servers) {
-        layer.msg('start_servers 不能大于 max_children', { icon: 2 });
+        layer.msg(pt('start_servers 不能大于 max_children'), { icon: 2 });
         return;
     }
 
@@ -449,13 +449,13 @@ function getFpmStatus(version, pool = 'www'){
         }
 
         var rdata = tmp_data.data;
-        var php_fpm_status = '动态';
+        var php_fpm_status = pt('动态');
         if (rdata['process manager'] == 'dynamic'){
-            php_fpm_status = '动态';
+            php_fpm_status = pt('动态');
         } else if(rdata['process manager'] == 'static'){
-            php_fpm_status = '静态';
+            php_fpm_status = pt('静态');
         } else if(rdata['process manager'] == 'ondemand'){
-            php_fpm_status = '按需';
+            php_fpm_status = pt('按需');
         }
 
         var select_pool_www = '';
@@ -706,7 +706,7 @@ function setDisableFunc(version, act, fs) {
             }
         }
         fs += ',' + functions;
-        msg = '添加成功';
+        msg = pt('添加成功');
     } else {
 
         fs = '';
@@ -714,7 +714,7 @@ function setDisableFunc(version, act, fs) {
             if (act == fsArr[i]) continue;
             fs += fsArr[i] + ','
         }
-        msg = '删除成功';
+        msg = pt('删除成功');
         fs = fs.substr(0, fs.length - 1);
     }
 

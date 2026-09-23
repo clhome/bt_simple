@@ -470,6 +470,67 @@ class TestDomWhitelistCoverage(unittest.TestCase):
         self.assertEqual([], bad[:20],
                          'translatePluginDOM 白名单位置的中文串必须有语言包键')
 
+    def test_all_dom_text_nodes_have_keys(self):
+        """全量模式：所有含中文的文本节点 / placeholder / title 都必须有语言包键。
+
+        背景：i18n.js 的 1.3 规则用 TreeWalker 扫**所有文本节点**（父节点非 skip 标签即处理），
+        1.1 规则用 `[placeholder], [title]` 通配**任意标签**。因此凡是静态 HTML 里
+        「含中文的文本节点 / placeholder / title」都必须有键 —— 缺一个，该处界面在
+        非中文语言下就仍是中文，而且语言包与门禁都不会报错（静默失效）。
+        oracle 是语言包本身（独立于被守护的框架代码）。
+        """
+        try:
+            import i18n_dom_key_coverage as cov
+        except Exception as e:                     # pragma: no cover
+            self.skipTest('无法导入 i18n_dom_key_coverage: %s' % e)
+        bad = []
+        scanned = 0
+        for name in plugin_names():
+            r = cov.analyze_full(name)
+            if not r:
+                continue
+            scanned += r[0]
+            for s in r[1]:
+                bad.append('%s %r' % (name, s[:70]))
+        # 仓库级契约：扫描面过小说明护栏退化成了「真空通过」
+        self.assertGreaterEqual(scanned, 200,
+                                '扫描到的中文文本节点过少（%d），护栏可能失效' % scanned)
+        self.assertEqual([], bad[:20],
+                         '静态 HTML 里含中文的文本节点/属性值必须有语言包键')
+
+    def test_analyzer_actually_fires(self):
+        """变异自证：给分析器喂一段「键肯定不存在」的 HTML，它必须报出来。"""
+        try:
+            import i18n_dom_key_coverage as cov
+        except Exception as e:                     # pragma: no cover
+            self.skipTest('无法导入 i18n_dom_key_coverage: %s' % e)
+        src = ('<div class="x"><span>这个键肯定不存在XYZ</span>'
+               '<p title="另一个不存在的键XYZ">ok</p>'
+               '<input placeholder="第三个不存在的键XYZ" />'
+               '<script>var s = "脚本里的中文不该被收集XYZ";</script></div>')
+        got = cov.collect_from_html(src)
+        self.assertIn('这个键肯定不存在XYZ', got)
+        self.assertIn('另一个不存在的键XYZ', got)
+        self.assertIn('第三个不存在的键XYZ', got)
+        self.assertNotIn('脚本里的中文不该被收集XYZ', got)
+
+    def test_generic_text_node_fallback_wired(self):
+        """框架形状契约：i18n.js 必须保留「通用文本节点兜底」并接入 doTranslateNodes。
+
+        这是**形状检查**（不是行为检查）：白名单是枚举式的，一旦有人删掉通用兜底
+        或把 `[placeholder], [title]` 改回枚举标签，自定义说明容器就会重新变成不翻译。
+        行为层面的金标准探针见 testsuite/js/dom_i18n_probe.js（需 jsdom）。
+        """
+        js = read(os.path.join(REPO, 'web', 'static', 'app', 'i18n.js'))
+        self.assertIn('function translateLeafTextNodes', js,
+                      'i18n.js 缺少通用文本节点兜底 translateLeafTextNodes')
+        # 必须是**调用点**：`(?<!function )` 排除函数定义本身，
+        # 否则「只留定义、删掉调用」这种退化会蒙混过关（变异测试已钉住）。
+        self.assertRegex(js, r'(?<!function )translateLeafTextNodes\s*\(\s*\$scope\s*\)',
+                         '通用文本节点兜底未接入 doTranslateNodes')
+        self.assertRegex(js, r"find\(\s*'\[placeholder\],\s*\[title\]'\s*\)",
+                         'title/placeholder 规则退回了枚举标签白名单')
+
 
 # --------------------------------------------------------------------------
 # 8. 无句中拼接

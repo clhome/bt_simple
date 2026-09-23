@@ -262,5 +262,6 @@
     "网络异常，请重试": "Errore di rete, riprova",
     "网络或服务请求超时": "Timeout della richiesta di rete o del servizio",
     "连接管理器 (Navicat 式)": "Gestore connessioni (stile Navicat)",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "共0条": "0 elementi"
 }
