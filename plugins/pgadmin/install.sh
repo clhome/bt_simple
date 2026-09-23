@@ -32,9 +32,6 @@ Install_pgadmin()
 	PG_DATA_DIR=${serverPath}/pgadmin/data
 	mkdir -p $PG_DIR
 	mkdir -p $PG_DATA_DIR
-	
-	VERSION=9.15
-	echo "${VERSION}" > ${serverPath}/pgadmin/version.pl
 
 	if [ ! -f $PG_DIR/bin/activate ];then
 	    python3 -m venv $PG_DIR
@@ -57,6 +54,18 @@ Install_pgadmin()
 	fi
 
 	pip install $SYS_PIP_OPT $PIP_OPT gunicorn pgadmin4
+
+	# version.pl 记录**实际装上的版本**，而不是写死的常量。
+	# 面板显示的版本号必须可核查：pgAdmin 各版本的配置项与 setup.py 语义会变
+	# （例如 v8 起 `setup.py setup-db` 不再创建初始管理员），
+	# 版本号写错会让后续排障完全跑偏。
+	INSTALLED_VER=`pip show pgadmin4 2>/dev/null | awk '/^Version:/{print $2}'`
+	if [ -z "${INSTALLED_VER}" ];then
+		echo 'pgadmin4 安装失败'
+		exit 1
+	fi
+	echo "${INSTALLED_VER}" > ${serverPath}/pgadmin/version.pl
+	echo "pgadmin4: ${INSTALLED_VER}"
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/pgadmin/index.py start
 	echo '安装完成'

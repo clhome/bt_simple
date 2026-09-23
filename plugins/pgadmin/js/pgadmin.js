@@ -112,32 +112,44 @@ function pgService() {
                 return;
             }
             var info = data.data;
+            // 这些值都来自 cfg.json（面板上可改），直接拼进 innerHTML 会被
+            // 当标签执行 —— 一律先做实体转义再拼接
             var html = '<div class="pma-access-info">' +
                 '<div class="pma-info-header">' + pt('访问与认证信息') + '</div>' +
                 '<div class="pma-info-body">' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('内网地址：') + '</span>' +
-                        '<a href="' + info.internal_url + '" target="_blank" class="pma-info-value pma-link">' + info.internal_url + '</a>' +
+                        '<a href="' + yfMsgEscape(info.internal_url) + '" target="_blank" class="pma-info-value pma-link">' + yfMsgEscape(info.internal_url) + '</a>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('外网地址：') + '</span>' +
-                        '<a href="' + info.external_url + '" target="_blank" class="pma-info-value pma-link">' + info.external_url + '</a>' +
+                        '<a href="' + yfMsgEscape(info.external_url) + '" target="_blank" class="pma-info-value pma-link">' + yfMsgEscape(info.external_url) + '</a>' +
                     '</div>' +
                     '<div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">' +
                         '<span class="pma-info-label">' + pt('基础认证账号：') + '</span>' +
-                        '<span class="pma-info-value">' + info.username + '</span>' +
+                        '<span class="pma-info-value">' + yfMsgEscape(info.username) + '</span>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('基础认证密码：') + '</span>' +
-                        '<span class="pma-info-value">' + info.password + '</span>' +
+                        '<span class="pma-info-value">' + yfMsgEscape(info.password) + '</span>' +
                     '</div>' +
                     '<div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">' +
                         '<span class="pma-info-label">' + pt('登录用户名：') + '</span>' +
-                        '<span class="pma-info-value">' + info.web_pg_username + '</span>' +
+                        '<span class="pma-info-value">' + yfMsgEscape(info.web_pg_username) + '</span>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('登录密码：') + '</span>' +
-                        '<span class="pma-info-value">' + info.web_pg_password + '</span>' +
+                        '<span class="pma-info-value">' + yfMsgEscape(info.web_pg_password) + '</span>' +
+                    '</div>' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('账号状态：') + '</span>' +
+                        '<span class="pma-info-value">' + (info.account_ok ? pt('正常') : pt('异常')) + '</span>' +
+                        '<span class="pma-info-label">' + pt('口令校验：') + '</span>' +
+                        '<span class="pma-info-value">' + pgPasswordText(info.password_ok) + '</span>' +
+                    '</div>' +
+                    '<div class="pma-info-item">' +
+                        '<button class="btn btn-default btn-sm" onclick="checkPgAccount()">' + pt('检测账号') + '</button>' +
+                        '<button class="btn btn-success btn-sm" style="margin-left:8px" onclick="fixPgLogin()">' + pt('修复登录') + '</button>' +
                     '</div>' +
                 '</div>' +
                 '<div class="pma-info-footer">' +
@@ -214,4 +226,86 @@ function pgService() {
             }
         });
     }, 500);
+}
+
+//账号诊断：确认面板上显示的凭据在 pgAdmin 数据库里真实可用
+function checkPgAccount() {
+    api.post('check_pg_account', '', function(rdata) {
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2, time: 2000, shade: [0.3, '#000'] });
+            return;
+        }
+        var d = rdata.data;
+        var rows = '' +
+            '<div class="pma-info-item">' +
+                '<span class="pma-info-label">' + pt('数据库：') + '</span>' +
+                '<span class="pma-info-value">' + yfMsgEscape(d.db_path) + '</span>' +
+            '</div>' +
+            '<div class="pma-info-item">' +
+                '<span class="pma-info-label">' + pt('账号状态：') + '</span>' +
+                '<span class="pma-info-value">' + (d.account_ok ? pt('正常') : pt('异常')) + '</span>' +
+            '</div>' +
+            '<div class="pma-info-item">' +
+                '<span class="pma-info-label">' + pt('口令校验：') + '</span>' +
+                '<span class="pma-info-value">' + pgPasswordText(d.password_ok) + '</span>' +
+            '</div>' +
+            '<div class="pma-info-item">' +
+                '<span class="pma-info-label">' + pt('账号数：') + '</span>' +
+                '<span class="pma-info-value">' + yfMsgEscape((d.users || []).length) + '</span>' +
+            '</div>' +
+            '<div class="pma-info-item">' +
+                '<span class="pma-info-label">' + pt('原因：') + '</span>' +
+                '<span class="pma-info-value">' + yfMsgEscape(d.account_reason || '') + '</span>' +
+            '</div>' +
+            '<div class="pma-info-item">' +
+                '<button class="btn btn-success btn-sm" onclick="fixPgLogin()">' + pt('修复登录') + '</button>' +
+            '</div>';
+        // 「账号状态正常」不等于「能登录」：口令对不上时账号状态照样是正常的，
+        // 所以这里以 login_ok（结构 + 口令双通过）为准
+        var tip = (d.login_ok === true) ? '' :
+            '<div class="pma-info-footer">' +
+            pt('登录自检未通过，点「修复登录」自动重建账号。') + '</div>';
+        // layer.open(type:1) 的 content/title 都是裸 innerHTML 注入，
+        // 这里只拼 pt() 译文与已转义的值
+        layer.open({
+            type: 1,
+            title: pt('检测账号'),
+            area: ['620px', 'auto'],
+            content: '<div class="pma-access-info"><div class="pma-info-body">' +
+                rows + '</div>' + tip + '</div>'
+        });
+    });
+}
+
+//口令校验结果 -> 展示文案：true 正常 / false 异常 / null 无法判定
+function pgPasswordText(v) {
+    if (v === true) {
+        return pt('正常');
+    }
+    if (v === false) {
+        return pt('异常');
+    }
+    return pt('无法判定');
+}
+
+//一键修复登录：把面板显示的账号与口令强制写进 pgAdmin 配置库，并回读校验。
+//强制是重点 —— 不做任何「账号看起来健康就跳过」的判断，因为
+//「账号健康」并不等于「面板显示的口令能登录」（库里可能还是上一轮的旧哈希）。
+function fixPgLogin() {
+    var load = layer.load(2);
+    api.post('fix_login', '', function(rdata) {
+        layer.close(load);
+        var d = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+        if (!d || !d.status) {
+            layer.msg((d && d.msg) ? yfMsgEscape(d.msg) : pt('修复登录'), { icon: 2, time: 4000 });
+            return;
+        }
+        var info = d.data || {};
+        var ok = (info.password_ok === true);
+        // reason 是后端拼出来的文案（含库路径、异常摘要），layer.msg 走 innerHTML，
+        // 必须转义后再拼
+        layer.msg((ok ? pt('登录自检通过') : pt('登录自检未通过')) + '：' + yfMsgEscape(info.reason || ''),
+            { icon: ok ? 1 : 2, time: 5000 });
+    });
 }
