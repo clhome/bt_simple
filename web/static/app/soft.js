@@ -14,8 +14,39 @@ function resetPluginWinHeight(height) {
   $(".bt-form .bt-w-con").height(height - 42);
 }
 
+//嵌套子窗口 i18n 兜底
+//
+//为什么需要：插件常在自己的弹窗内再用 layer.open / layer.alert / layer.confirm
+//打开二级窗口（新增表单、列表、确认框）。这些二级窗口挂到 document.body 下，
+//不在主弹窗容器内，translatePluginDOM 的主 MutationObserver 够不着 —— 表现就是
+//「主界面已翻译，点开的子窗口依然中文」（键与译文其实都在，属假翻译）。
+//
+//layer.open 是所有弹层的统一入口（alert / confirm / msg / tips / prompt / tab /
+//photos 内部都调用同一个 r.open，而 layer === r），因此在插件窗口存续期间改写
+//layer.open，把二级窗口也交给同一插件字典翻译即可一处覆盖全部插件。
+//translatePluginDOM 自带的 MutationObserver 会继续兜住插件 success / ajax 后续渲染。
+function installPluginLayerTranslation() {
+  if (!window.layer || typeof window.layer.open !== 'function') return;
+  if (window.layer.__yfPluginPatched) return;
+  var origOpen = window.layer.open;
+  window.layer.open = function (opts) {
+    var pluginName = window._yfActivePlugin;
+    if (pluginName && window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function' && opts && typeof opts === 'object') {
+      var origSuccess = opts.success;
+      opts.success = function (layero, index) {
+        try { window.YfI18n.translatePluginDOM(layero, pluginName); } catch (e) {}
+        if (typeof origSuccess === 'function') return origSuccess(layero, index);
+      };
+    }
+    return origOpen.call(this, opts);
+  };
+  window.layer.__yfPluginPatched = true;
+}
+
 //软件管理窗口
 function softMain(name, title, version) {
+  installPluginLayerTranslation();
+  window._yfActivePlugin = name;
   var _title = title;
   if (version && String(version).trim() !== '' && String(version).trim() !== 'undefined') {
     var vStr = String(version).trim();
@@ -51,6 +82,7 @@ function softMain(name, title, version) {
         }
       },
       end: function () {
+        window._yfActivePlugin = null;
         if (typeof window.refreshExternalPluginStatus === 'function') {
           window.refreshExternalPluginStatus(name);
         }

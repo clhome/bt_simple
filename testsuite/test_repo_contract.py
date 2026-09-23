@@ -402,7 +402,7 @@ class TestSuiteSelfContained(unittest.TestCase):
             'repaired_functions.js', 'simulate_crontab.js',
             'verify_all_plugin_js_syntax.js', 'test_uptime_i18n_fix.js',
         }
-        allowed_dirs = {'i18n_scripts', 'tools', '.scratch', '__pycache__'}
+        allowed_dirs = {'i18n_scripts', 'tools', 'js', '.scratch', '__pycache__'}
         bad = []
         for fn in sorted(os.listdir(HERE)):
             full = os.path.join(HERE, fn)

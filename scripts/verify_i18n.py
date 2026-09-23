@@ -14,6 +14,7 @@ i18n 静态校验（CI 门禁）
   7. no-zero-placeholder    无 {0} 占位符（msgTpl 从 {1} 起替换）
   8. backend-msg-prefix     后端消息的「可翻译前缀」不含 HTML
   9. backend-msg-key        后端中文消息能查到语言包键（冒号前缀契约）
+ 10. nested-layer-hook      插件二级弹窗（嵌套 layer）i18n 钩子已安装
 
 设计约束：**自包含**。检测逻辑与自证夹具全部内嵌，只依赖标准库。
 `test/` 被 `.gitignore` 忽略，本脚本不得依赖其中任何文件——否则 CI 里
@@ -775,6 +776,32 @@ def check_backend_msg_key(ctx):
 
 
 # ---------------------------------------------------------------------------
+# 检查 10：插件二级弹窗（嵌套 layer）i18n 钩子
+# ---------------------------------------------------------------------------
+
+# 插件常在自己的弹窗内用 layer.open / layer.alert / layer.confirm 打开二级窗口，
+# 这些窗口挂在 document.body 下，不在 translatePluginDOM 主容器内（主监听器够不着）。
+# soft.js 的 installPluginLayerTranslation() 在插件存续期间改写 layer.open，把二级
+# 窗口也交给同一插件字典翻译 —— 一处修复覆盖全部插件。本检查锁死该钩子不被删除。
+NESTED_LAYER_HOOK_MARKERS = [
+    'function installPluginLayerTranslation(',
+    'window.layer.open = function',
+    'installPluginLayerTranslation();',
+    'window._yfActivePlugin = name',
+    'window._yfActivePlugin = null',
+]
+
+
+def check_nested_layer_hook(ctx):
+    path = os.path.join(WORKSPACE, 'web', 'static', 'app', 'soft.js')
+    if not os.path.isfile(path):
+        return ['缺少 web/static/app/soft.js']
+    src = read_text(path)
+    return ['soft.js 缺少嵌套层 i18n 钩子标记: %r' % m
+            for m in NESTED_LAYER_HOOK_MARKERS if m not in src]
+
+
+# ---------------------------------------------------------------------------
 # 注册表与主流程
 # ---------------------------------------------------------------------------
 
@@ -788,6 +815,7 @@ CHECKS = [
     ('no-zero-placeholder', '无 {0} 占位符', check_no_zero_placeholder),
     ('backend-msg-prefix', '后端消息可翻译前缀不含 HTML', check_backend_msg_prefix),
     ('backend-msg-key', '后端中文消息可查到语言包键', check_backend_msg_key),
+    ('nested-layer-hook', '插件二级弹窗 i18n 钩子已安装', check_nested_layer_hook),
 ]
 
 

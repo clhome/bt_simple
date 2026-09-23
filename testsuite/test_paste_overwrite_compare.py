@@ -159,7 +159,7 @@ class TestPasteOverwriteCompare(unittest.TestCase):
     def test_04_node_runtime_overwrite_html_output(self):
         """使用 Node.js 运行 renderFileOverwriteHtml，断言输出符合 200KB <= 501KB 比对语义"""
         chk_script = os.path.join(BASE_DIR, 'testsuite/check_overwrite_render.js')
-        res = subprocess.run(['node', chk_script], capture_output=True, text=True, cwd=BASE_DIR)
+        res = subprocess.run(['node', chk_script], capture_output=True, text=True, encoding='utf-8', errors='replace', cwd=BASE_DIR)
         self.assertEqual(res.returncode, 0, f"Node.js render test failed:\n{res.stderr}\n{res.stdout}")
         self.assertIn("PASS", res.stdout)
 

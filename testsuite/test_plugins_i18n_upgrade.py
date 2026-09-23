@@ -20,6 +20,7 @@
  11. zh-TW 无真简体字残留（插件包 + 全局包，需要 opencc，缺失则跳过）
  12. 插件 JS 语法全部通过（需要 node，缺失则跳过）
  13. 无 {0} 占位符 / pt() 只接受单参（含 index.html 全源扫描）
+ 14. 插件二级弹窗（嵌套 layer）i18n 钩子已安装且行为正确
 
 运行：
     python -m unittest discover -s test -p "test_plugins_i18n_upgrade.py" -v
@@ -633,6 +634,40 @@ class TestBackendMessageFallback(unittest.TestCase):
         r = subprocess.run([exe, script], capture_output=True, text=True,
                            encoding='utf-8', errors='replace')
         self.assertEqual(0, r.returncode, 'translateAny 行为测试失败:\n' + r.stdout)
+        self.assertIn('ALL PASS', r.stdout)
+
+
+# --------------------------------------------------------------------------
+# 9b. 插件二级弹窗（嵌套 layer）i18n 兜底
+# --------------------------------------------------------------------------
+class TestNestedLayerTranslation(unittest.TestCase):
+    """插件用 layer.open/alert/confirm 打开的二级窗口挂在 document.body 下，
+    translatePluginDOM 的主容器观察不到。soft.js 需在插件存续期间改写
+    layer.open，把二级窗口也交给同一插件字典翻译。"""
+
+    def test_soft_js_installs_layer_patch(self):
+        src = read(os.path.join(REPO, 'web', 'static', 'app', 'soft.js'))
+        self.assertIn('function installPluginLayerTranslation(', src,
+                      'soft.js 缺少 installPluginLayerTranslation 实现')
+        self.assertIn('window.layer.open = function', src,
+                      'installPluginLayerTranslation 未改写 layer.open')
+        self.assertIn('installPluginLayerTranslation();', src,
+                      'softMain 未调用 installPluginLayerTranslation')
+        self.assertIn('window._yfActivePlugin = name', src,
+                      'softMain 未标记当前活动插件')
+        self.assertIn('window._yfActivePlugin = null', src,
+                      '插件弹窗关闭时未清除当前活动插件')
+
+    def test_nested_layer_behaviour(self):
+        exe = next((p for p in NODE_CANDIDATES if os.path.isfile(p)), None)
+        if not exe:
+            self.skipTest('未找到 node')
+        script = os.path.join(HERE, 'js', 'test_nested_layer_i18n.js')
+        if not os.path.isfile(script):
+            self.skipTest('缺少 test_nested_layer_i18n.js')
+        r = subprocess.run([exe, script], capture_output=True, text=True,
+                           encoding='utf-8', errors='replace')
+        self.assertEqual(0, r.returncode, '嵌套 layer i18n 行为测试失败:\n' + r.stdout)
         self.assertIn('ALL PASS', r.stdout)
 
 
