@@ -573,7 +573,7 @@ resetPluginWinHeight(580);
 	var isZh = (curLang === 'zh-CN' || curLang === 'zh-TW');
 	var baseWidth = isZh ? 1000 : 1200;
 	var winWidth = $(window).width() || baseWidth;
-	var finalWidth = Math.min(baseWidth, Math.max(1000, winWidth - 40));
+	var finalWidth = Math.min(baseWidth, Math.max(900, winWidth - 40));
 	$('.layui-layer-page').css({'width': finalWidth + 'px'});
 })();
 
