@@ -423,5 +423,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Tabellenoptimierung abgeschlossen; Datenträgerfragmentierung wurde bereinigt!",
   "不支持的目标存储引擎类型!": "Nicht unterstützter Ziel-Speicher-Engine-Typ!",
   "数据表引擎已成功转换为:": "Tabellen-Engine erfolgreich konvertiert zu:",
-  "读取MySQL配置失败": "MySQL-Konfiguration konnte nicht gelesen werden"
+  "读取MySQL配置失败": "MySQL-Konfiguration konnte nicht gelesen werden",
+  "初始化错误(error.log尚未生成)": "Initialisierungsfehler (error.log wurde noch nicht erstellt)"
 }

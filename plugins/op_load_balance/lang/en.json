@@ -60,5 +60,6 @@
     "泛解析添加方法 *.domain.com": "Wildcard DNS record: *.domain.com",
     "如另加端口格式为 www.domain.com:88": "To add a port, use the format www.domain.com:88",
     "共{1}条": "{1} total",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "访问节点[%s]失败": "Failed to access node [%s]"
 }

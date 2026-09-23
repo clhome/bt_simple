@@ -76,5 +76,6 @@
     "非法的目标配置文件路径！": "Ungültiger Pfad zum Zielprofil!",
     "非法的配置文件路径！": "Ungültiger Pfad zur Konfigurationsdatei!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Dies ist die Konfigurationsdatei {1}. Wenn Sie die Konfigurationsregeln nicht kennen, nehmen Sie bitte keine Änderungen vor.",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "]重启失败!": "]Der Neustart ist fehlgeschlagen!"
 }

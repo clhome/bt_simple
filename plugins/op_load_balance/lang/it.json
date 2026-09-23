@@ -60,5 +60,6 @@
     "泛解析添加方法 *.domain.com": "Record DNS wildcard: *.domain.com",
     "如另加端口格式为 www.domain.com:88": "Per aggiungere una porta: www.domain.com:88",
     "共{1}条": "{1} in totale",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "访问节点[%s]失败": "Accesso al nodo [%s] non riuscito"
 }

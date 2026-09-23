@@ -76,5 +76,6 @@
     "非法的目标配置文件路径！": "Chemin d'accès au profil cible non valide !",
     "非法的配置文件路径！": "Chemin d'accès au fichier de configuration non valide !",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Voici le fichier de configuration {1}. Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier.",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "]重启失败!": "] Le redémarrage a échoué !"
 }

@@ -522,8 +522,8 @@ def delRec():
         return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     ok = delRecBy(name)
     if ok:
-        return yf.returnJson(False, '删除失败!')
-    return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(False, '删除失败!')
 
 
 def cmdRecSecretKey():
@@ -694,7 +694,7 @@ def lsyncdListFindName(slist, name):
 def lsyncdList():
     data = getDefaultConf()
     send = data['send']
-    return yf.returnJson(True, "设置成功!")
+    return yf.returnJson(True, "设置成功!", send)
 
 
 def lsyncdGet():

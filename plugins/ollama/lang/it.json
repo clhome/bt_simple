@@ -110,5 +110,6 @@
     "ollama stop &lt;模型&gt;": "ollama stop &lt;modello&gt;",
     "ollama rm &lt;模型&gt;": "ollama rm &lt;modello&gt;",
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;IP-server&gt;:11434/v1",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "模型删除成功！": "Modello eliminato con successo!"
 }

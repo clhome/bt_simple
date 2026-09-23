@@ -116,7 +116,7 @@ class App():
             if data_tmp[x]['title'] == title:
                 del(data_tmp[x])
                 yf.writeFile(self.__cmd_path, json.dumps(data_tmp))
-                return yf.returnJson(False, '删除无效')
+                return yf.returnJson(True, '删除成功!')
         return yf.returnJson(False, '删除无效')
 
     def get_cmd_list(self):

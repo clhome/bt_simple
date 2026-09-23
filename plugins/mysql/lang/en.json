@@ -423,5 +423,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Table optimization complete; disk fragmentation has been reclaimed!",
   "不支持的目标存储引擎类型!": "Unsupported target storage engine type!",
   "数据表引擎已成功转换为:": "Table engine successfully converted to:",
-  "读取MySQL配置失败": "Failed to read MySQL configuration"
+  "读取MySQL配置失败": "Failed to read MySQL configuration",
+  "初始化错误(error.log尚未生成)": "Initialization error (error.log not yet generated)"
 }

@@ -485,7 +485,7 @@ def restartJob():
     data = yf.execShell(cmd)
 
     if data[1] != '':
-        return yf.returnJson(True,  '[' + name + ']重启成功!')
+        return yf.returnJson(False, '[' + name + ']重启失败!')
     return yf.returnJson(True, '[' + name + ']重启成功!')
 
 

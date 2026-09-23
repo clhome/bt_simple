@@ -76,5 +76,6 @@
     "非法的目标配置文件路径！": "Percorso del profilo di destinazione non valido!",
     "非法的配置文件路径！": "Percorso del file di configurazione non valido!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Questo è il file di configurazione {1}. Se non conosci le regole di configurazione, non modificarlo.",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "]重启失败!": "]Riavvio non riuscito!"
 }

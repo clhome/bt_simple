@@ -429,7 +429,7 @@ def checkUrl():
         url = 'http://' + str(ip) + ':' + str(port) + str(path.strip())
     ret = http_get(url)
     if not ret:
-        return yf.returnJson(True, '访问节点[%s]成功' % url)
+        return yf.returnJson(False, '访问节点[%s]失败' % url)
     return yf.returnJson(True, '访问节点[%s]成功' % url)
 
 

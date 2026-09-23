@@ -77,7 +77,7 @@ def get_services():
                     })
         except Exception:
             continue
-    return yf.returnJson(True, "获取成功", res["data"])
+    return yf.returnJson(True, "获取成功", services)
 
 def get_service_detail():
     args = getArgs()
@@ -95,7 +95,7 @@ def get_service_detail():
     if f"Documentation=tag:{__target_tag}" not in content and "Documentation=https://yufeng.tag" not in content:
         return yf.returnJson(False, "越权拦截：非专属服务禁止读取配置！")
         
-    return yf.returnJson(True, "获取成功", res["data"])
+    return yf.returnJson(True, "获取成功", content)
 
 def create_or_modify_service():
     args = getArgs()

@@ -865,7 +865,7 @@ def dockerCreateCon():
             __release_port(ports)
             return yf.returnJson(True, '创建成功!')
 
-        return yf.returnJson(False, '创建失败!' + str(ex))
+        return yf.returnJson(False, '创建失败!')
     except docker.errors.APIError as ex:
         return yf.returnJson(False, '创建失败!' + str(ex))
 
@@ -907,7 +907,7 @@ def dockerLogin():
             ret['registry'] = "docker.io"
         user_info.append(ret)
         yf.writeFile(user_file, json.dumps(user_info))
-        return yf.returnJson(False, '登录失败!')
+        return yf.returnJson(True, '成功登录!')
     return yf.returnJson(False, '登录失败!')
 
 

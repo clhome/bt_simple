@@ -241,5 +241,6 @@
     "缺少文件路径参数": "Paramètre de chemin de fichier manquant",
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Chemin de fichier image non valide ; seuls les fichiers du répertoire de sauvegarde peuvent être importés",
     "文件路径校验失败": "Échec de la validation du chemin de fichier",
-    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Format de fichier non pris en charge ; seules les archives d'images .tar, .tar.gz et .tgz sont prises en charge"
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Format de fichier non pris en charge ; seules les archives d'images .tar, .tar.gz et .tgz sont prises en charge",
+    "成功登录!": "Connexion réussie !"
 }

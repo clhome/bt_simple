@@ -285,7 +285,7 @@ class App:
         cmd = "ollama rm {}".format(model_name)
         res = yf.execShell(cmd)
         if res[1] == '':
-            return yf.returnJson(False, '删除失败：{}'.format(res[1]))
+            return yf.returnJson(True, '模型删除成功！')
         return yf.returnJson(False, '删除失败：{}'.format(res[1]))
 
     def get_service_file(self):

@@ -423,5 +423,6 @@
   "数据表优化完成，磁盘碎片已回收整理!": "Ottimizzazione della tabella completata; la frammentazione del disco è stata recuperata!",
   "不支持的目标存储引擎类型!": "Tipo di motore di archiviazione di destinazione non supportato!",
   "数据表引擎已成功转换为:": "Motore della tabella convertito correttamente in:",
-  "读取MySQL配置失败": "Lettura della configurazione MySQL non riuscita"
+  "读取MySQL配置失败": "Lettura della configurazione MySQL non riuscita",
+  "初始化错误(error.log尚未生成)": "Errore di inizializzazione (error.log non ancora generato)"
 }

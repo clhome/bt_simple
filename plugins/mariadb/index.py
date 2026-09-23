@@ -2663,7 +2663,7 @@ def setDbMaster(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功', [args, dodb])
 
 
 def setDbSlave(version):
@@ -2692,7 +2692,7 @@ def setDbSlave(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功', [args, dodb])
 
 
 def getMasterStatus(version=''):
@@ -2721,7 +2721,7 @@ def getMasterStatus(version=''):
             if v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes':
                 data['slave_status'] = True
 
-        return yf.returnJson(True, '设置成功', mode)
+        return yf.returnJson(master_status, '设置成功', data)
     except Exception as e:
         return yf.returnJson(False, "数据库密码错误,在管理列表-点击【修复】!", 'pwd')
 
@@ -2750,7 +2750,7 @@ def setMasterStatus(version=''):
         yf.writeFile(conf, con)
 
     restart(version)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功')
 
 
 def getMasterRepSlaveList(version=''):
@@ -3429,16 +3429,16 @@ def initSlaveStatusSSH(version=''):
             result = stdout.read()
             result = result.decode('utf-8')
             if result.strip() == "":
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']:获取同步命令失败!')
             cmd_data = json.loads(result)
             time.sleep(1)
             ssh.close()
             if not cmd_data['status']:
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']:' + cmd_data['msg'])
 
             local_mode = recognizeDbMode()
             if local_mode != cmd_data['data']['mode']:
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
 
             u = cmd_data['data']['info']
             ps = u['username'] + "|" + u['password']

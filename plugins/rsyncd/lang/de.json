@@ -110,5 +110,6 @@
     "您真的要删除【{1}】吗？": "Möchten Sie 【{1}】 wirklich löschen?",
     "注意： 同步程序将本机目录：{1}的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!": "Hinweis: Das Synchronisierungsprogramm synchronisiert alle Daten aus dem lokalen Verzeichnis {1} mit dem Zielserver. Sollten sich weitere Dateien im Synchronisationsverzeichnis des Zielservers befinden, werden diese gelöscht!",
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "Um Daten von anderen Servern auf den lokalen Server zu synchronisieren, erstellen Sie in der Empfangskonfiguration eine „Empfangsaufgabe“",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "删除成功!": "Erfolgreich gelöscht!"
 }

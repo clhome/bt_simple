@@ -110,5 +110,6 @@
     "您真的要删除【{1}】吗？": "Voulez-vous vraiment supprimer 【{1}】 ?",
     "注意： 同步程序将本机目录：{1}的所有数据同步到目标服务器，若目标服务器的同步目录存在其它文件将被删除!": "Remarque : le programme de synchronisation synchronisera toutes les données du répertoire local {1} vers le serveur cible. Si d'autres fichiers existent dans le répertoire de synchronisation du serveur cible, ils seront supprimés !",
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "Pour synchroniser les données d'autres serveurs vers le serveur local, créez une « tâche de réception » dans la configuration de réception",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "删除成功!": "Suppression réussie !"
 }

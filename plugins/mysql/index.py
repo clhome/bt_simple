@@ -638,7 +638,7 @@ def getErrorLog():
         init_debug = '/tmp/mysql8_init_debug.log'
         if os.path.exists(init_debug):
             info = yf.getLastLine(init_debug, 50)
-            return yf.returnJson(False, '指定文件不存在!')
+            return yf.returnJson(True, '初始化错误(error.log尚未生成)', info)
         return yf.returnJson(False, '指定文件不存在!')
     if 'close' in args:
         yf.writeFile(filename, '')
@@ -3975,14 +3975,14 @@ def initSlaveStatusSSH(version=''):
             result = stdout.read()
             result = result.decode('utf-8')
             if result.strip() == "":
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']:获取同步命令失败!')
 
             cmd_data = json.loads(result)
             if not cmd_data['status']:
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']:' + cmd_data['msg'])
 
             if local_mode != cmd_data['data']['mode']:
-                return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+                return yf.returnJson(False, '[主][' + ip + ']【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
 
             u = cmd_data['data']['info']
 

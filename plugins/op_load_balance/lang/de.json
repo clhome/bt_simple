@@ -60,5 +60,6 @@
     "泛解析添加方法 *.domain.com": "Wildcard-DNS-Eintrag: *.domain.com",
     "如另加端口格式为 www.domain.com:88": "Für eine zusätzliche Portangabe: www.domain.com:88",
     "共{1}条": "{1} insgesamt",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "访问节点[%s]失败": "Zugriff auf den Knoten [%s] fehlgeschlagen"
 }

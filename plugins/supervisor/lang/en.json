@@ -76,5 +76,6 @@
     "非法的目标配置文件路径！": "Invalid target profile path!",
     "非法的配置文件路径！": "Invalid profile path!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "This is the {1} configuration file. If you are unfamiliar with the configuration rules, please do not modify it.",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "]重启失败!": "]Restart failed!"
 }

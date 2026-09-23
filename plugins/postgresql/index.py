@@ -1491,7 +1491,7 @@ def getMasterStatus(version=''):
     else:
         data['slave_status'] = True
 
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功', data)
 
 
 def setMasterStatus(version=''):

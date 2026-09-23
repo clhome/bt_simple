@@ -241,5 +241,6 @@
     "缺少文件路径参数": "Fehlender Dateipfad-Parameter",
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Ungültiger Image-Dateipfad; nur Dateien im Sicherungsverzeichnis dürfen importiert werden",
     "文件路径校验失败": "Dateipfad-Validierung fehlgeschlagen",
-    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Nicht unterstütztes Dateiformat; nur .tar-, .tar.gz- und .tgz-Image-Archive werden unterstützt"
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Nicht unterstütztes Dateiformat; nur .tar-, .tar.gz- und .tgz-Image-Archive werden unterstützt",
+    "成功登录!": "Anmeldung erfolgreich!"
 }

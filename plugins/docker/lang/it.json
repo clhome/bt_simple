@@ -241,5 +241,6 @@
     "缺少文件路径参数": "Parametro del percorso file mancante",
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Percorso del file immagine non valido; è consentito importare solo file nella directory di backup",
     "文件路径校验失败": "Convalida del percorso file non riuscita",
-    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Formato file non supportato; sono supportati solo archivi immagine .tar, .tar.gz e .tgz"
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Formato file non supportato; sono supportati solo archivi immagine .tar, .tar.gz e .tgz",
+    "成功登录!": "Accesso riuscito!"
 }

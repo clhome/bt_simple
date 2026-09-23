@@ -241,5 +241,6 @@
     "缺少文件路径参数": "Missing file path parameter",
     "非法的镜像文件路径，仅允许导入备份目录下的文件": "Invalid image file path; only files under the backup directory may be imported",
     "文件路径校验失败": "File path validation failed",
-    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Unsupported file format; only .tar, .tar.gz and .tgz image archives are supported"
+    "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Unsupported file format; only .tar, .tar.gz and .tgz image archives are supported",
+    "成功登录!": "Login successful!"
 }
