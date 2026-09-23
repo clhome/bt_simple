@@ -14,7 +14,6 @@
     "audit_port": "Port",
     "retrieving_the_log_audit": "Récupération de la liste des audits de journaux en cours...",
     "retrieving_log_audit_data": "Récupération du contenu de l'audit des journaux en cours...",
-    "logaudittable_position_relative_block": "Actualiser la liste",
     "the_panel_logs_are": "Le journal du panneau va être effacé. Voulez-vous continuer ?",
     "clear_logs_1": "Vider les journaux",
     "clearing_data_please_wait": "Chargement en cours, veuillez patienter...",
@@ -22,10 +21,12 @@
     "the_control_panel_operation": "Le journal des opérations du panneau de commande a été effacé !",
     "logs_auto_str_1": "Récupération de la liste des journaux d'audit en cours...",
     "logs_auto_str_2": "Récupération en cours du contenu de l'audit des journaux...",
+    "logs_auto_str_3": "ActualiserListe --> Utilisateur Source Port Heure racine 117.139.193.29 pts/0 25/08/2023 13h27 toujours connecté",
     "logs_auto_str_4": "Le panneau « Journaux » de Vider va s'afficher. Voulez-vous continuer ?",
-    "logs_auto_str_5": "Vider les journaux",
+    "logs_auto_str_5": "ViderJournaux",
     "logs_auto_str_6": "Chargement en cours, veuillez patienter...",
     "py_msg_c90f98": "Les fichiers « Journaux » n'existent pas !",
-    "py_msg_8d2a5b": "Le panneau ActionJournaux a été vidé !"
+    "py_msg_8d2a5b": "Le panneau ActionJournaux a été vidé !",
+    "logaudittable_position_relative_block": "Actualiser la liste"
   }
 }

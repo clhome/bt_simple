@@ -14,7 +14,6 @@
     "audit_port": "Port",
     "retrieving_the_log_audit": "Getting logAudit List...",
     "retrieving_log_audit_data": "Getting logAudit content...",
-    "logaudittable_position_relative_block": "refreshlist",
     "the_panel_logs_are": "About to clearpanellog,continue??",
     "clear_logs_1": "clearlog",
     "clearing_data_please_wait": "Now clean,Please wait...",
@@ -22,10 +21,12 @@
     "the_control_panel_operation": "Panel operation logs have been cleared!",
     "logs_auto_str_1": "Getting LogsauditList...",
     "logs_auto_str_2": "Getting LogsAudit content...",
+    "logs_auto_str_3": "RefreshList --> user Source Port Time root 117.139.193.29 pts/0 2023-08-25 13:27 still logged in",
     "logs_auto_str_4": "About to ClearpanelLogs,continue??",
     "logs_auto_str_5": "ClearLogs",
     "logs_auto_str_6": "Now clean,Please wait...",
     "py_msg_c90f98": "LogsFile does not exist!",
-    "py_msg_8d2a5b": "Panel operation logs have been cleared!"
+    "py_msg_8d2a5b": "Panel operation logs have been cleared!",
+    "logaudittable_position_relative_block": "refreshlist"
   }
 }

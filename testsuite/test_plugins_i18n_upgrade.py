@@ -28,8 +28,10 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -688,6 +690,70 @@ class TestBackendMsgKeyCoverage(unittest.TestCase):
 # --------------------------------------------------------------------------
 # 11. zh-TW 无简体残留
 # --------------------------------------------------------------------------
+# 全局 zh-TW 包残留扫描器（跑在带 opencc 的隔离 venv 里）。
+# **两个扫描面缺一不可**：
+#   - `.json` 载体面（后端读的是它）
+#   - `lan.js` 源面（前端唯一真源；`.json` 由它派生）
+# 只扫载体面会漏掉「简体藏在纯注释 / 纯属性里、派生后看不见」的键 ——
+# 2026-09-22 实测 `index.disk`（`<!-- 磁盘IO -->`）等 7 个叶子因此长期漏检。
+_ZH_TW_SCAN_SCRIPT = r'''
+import json, os, re, sys
+from opencc import OpenCC
+s2t = OpenCC("s2t"); s2twp = OpenCC("s2twp")
+B = __GDIR__
+
+def leaves(o):
+    if isinstance(o, dict):
+        for v in o.values():
+            yield from leaves(v)
+    elif isinstance(o, list):
+        for v in o:
+            yield from leaves(v)
+    elif isinstance(o, str):
+        yield o
+
+def bad(v):
+    return s2t.convert(v) != v and s2twp.convert(v) != v
+
+bad_list = []
+for f in sorted(os.listdir(B)):
+    if not f.endswith(".json"):
+        continue
+    for v in leaves(json.load(open(os.path.join(B, f), encoding="utf-8"))):
+        if bad(v):
+            bad_list.append(f + " " + repr(v[:60]))
+
+# lan.js 是唯一真源，必须一起扫（lan.js 里没有 \uXXXX 转义，直接正则取值即可）
+LAN_JS = os.path.join(B, "lan.js")
+if os.path.isfile(LAN_JS):
+    raw = open(LAN_JS, encoding="utf-8").read()
+    for m in re.finditer(r'"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"', raw):
+        if bad(m.group(2)):
+            bad_list.append("lan.js " + repr(m.group(2)[:60]))
+
+for b in bad_list[:20]:
+    print(b)
+print("COUNT=" + str(len(bad_list)))
+'''
+
+
+def opencc_exe():
+    """带 opencc 的隔离 venv 解释器；找不到返回 None（用例应 skipTest）。"""
+    return next((p for p in PY_OPENCC_CANDIDATES if os.path.isfile(p)), None)
+
+
+def zh_tw_scan(exe, gdir):
+    """在隔离 venv 里扫一个 zh-TW 包目录，返回 (命中数, stdout, returncode)。"""
+    script = _ZH_TW_SCAN_SCRIPT.replace('__GDIR__', repr(gdir))
+    r = subprocess.run([exe, '-c', script], capture_output=True, text=True,
+                       encoding='utf-8', errors='replace')
+    cnt = 0
+    for line in r.stdout.splitlines():
+        if line.startswith('COUNT='):
+            cnt = int(line.split('=')[1])
+    return cnt, r.stdout, r.returncode
+
+
 class TestZhTwNoSimplified(unittest.TestCase):
     def test_no_simplified_residue(self):
         exe = next((p for p in PY_OPENCC_CANDIDATES if os.path.isfile(p)), None)
@@ -731,50 +797,77 @@ print("COUNT=" + str(len(bad)))
 
         全局包是**嵌套结构**（template.json 顶层仅 66 键但 9341 个叶子），
         插件侧脚本不适用，需递归扫描。
+
+        **同时扫 `lan.js`**：它是唯一真源，`.json` 由它派生。只扫 `.json` 会漏掉
+        「源里有简体、但载体因为没这个键而看不见」的情形 —— 2026-09-22 实测
+        漏掉 119 个叶子，收敛（lan.js 单源派生）把它们带进载体后一次性踩出
+        238 条红线（HEAD 为 0）。扫源即可从根上堵住。
+        另外还有 7 个「藏在被剥掉的注释/属性里」的叶子（`index.disk` 等），
+        它们的派生值是空串，同样只有扫源才看得见。见 `TestZhTwScannerSelfProof`。
         """
-        exe = next((p for p in PY_OPENCC_CANDIDATES if os.path.isfile(p)), None)
+        exe = opencc_exe()
         if not exe:
             self.skipTest('未找到带 opencc 的隔离 venv')
         gdir = os.path.join(REPO, 'web', 'static', 'language', 'zh-TW')
         if not os.path.isdir(gdir):
             self.skipTest('未找到全局语言包目录')
-        script = r'''
-import json, os, sys
-from opencc import OpenCC
-s2t = OpenCC("s2t"); s2twp = OpenCC("s2twp")
-B = __GDIR__
+        cnt, out, rc = zh_tw_scan(exe, gdir)
+        if rc != 0:
+            self.skipTest('opencc 子进程失败: %s' % (out or '')[:200])
+        self.assertEqual(0, cnt, '全局 zh-TW 仍有真简体字残留:\n' + out)
 
-def leaves(o):
-    if isinstance(o, dict):
-        for v in o.values():
-            yield from leaves(v)
-    elif isinstance(o, list):
-        for v in o:
-            yield from leaves(v)
-    elif isinstance(o, str):
-        yield o
 
-bad = []
-for f in sorted(os.listdir(B)):
-    if not f.endswith(".json"):
-        continue
-    for v in leaves(json.load(open(os.path.join(B, f), encoding="utf-8"))):
-        if s2t.convert(v) != v and s2twp.convert(v) != v:
-            bad.append(f + " " + repr(v[:60]))
-for b in bad[:20]:
-    print(b)
-print("COUNT=" + str(len(bad)))
-'''
-        script = script.replace('__GDIR__', repr(gdir))
-        r = subprocess.run([exe, '-c', script], capture_output=True, text=True,
-                           encoding='utf-8', errors='replace')
-        if r.returncode != 0:
-            self.skipTest('opencc 子进程失败: %s' % (r.stderr or '')[:200])
-        cnt = 0
-        for line in r.stdout.splitlines():
-            if line.startswith('COUNT='):
-                cnt = int(line.split('=')[1])
-        self.assertEqual(0, cnt, '全局 zh-TW 仍有真简体字残留:\n' + r.stdout)
+class TestZhTwScannerSelfProof(unittest.TestCase):
+    """自证：上面那个扫描器**必须真的会响**，且两个扫描面都要覆盖。
+
+    否则 `assertEqual(0, cnt)` 恒真 —— 扫描器坏了也照样绿（等于没扫）。
+    用最小夹具把「载体面」「源面」「不该误报」各钉一条。
+    """
+
+    def setUp(self):
+        self.exe = opencc_exe()
+        if not self.exe:
+            self.skipTest('未找到带 opencc 的隔离 venv')
+
+    def _scan_dir(self, files):
+        d = tempfile.mkdtemp(prefix='zhtw_scan_')
+        self.addCleanup(shutil.rmtree, d, True)
+        for name, content in files.items():
+            with open(os.path.join(d, name), 'w', encoding='utf-8', newline='\n') as fp:
+                fp.write(content)
+        return zh_tw_scan(self.exe, d)
+
+    def test_catches_carrier_residue(self):
+        """载体面：`.json` 里的简体值必须被抓到。"""
+        cnt, out, rc = self._scan_dir({
+            'template.index.json': '{"index": {"a": "\u670d\u52a1\u5668\u72b6\u6001"}}',
+        })
+        self.assertEqual(0, rc, out)
+        self.assertGreaterEqual(cnt, 1, '载体面残留未被抓到:\n' + out)
+
+    def test_catches_source_only_residue_invisible_in_carrier(self):
+        """源面：**只在 lan.js 里、派生后看不见**的简体必须被抓到。
+
+        夹具就是实测漏掉的那一类 —— `<!-- 磁盘IO -->` 的派生值是空串，
+        只看 `.json` 载体永远发现不了（`index.disk` 即此形态）。
+        """
+        cnt, out, rc = self._scan_dir({
+            'lan.js': ('var lan = {\n\t"index": {\n'
+                       '\t\t"disk": "<!-- \u78c1\u76d8IO -->",\n'
+                       '\t\t"b": "\u6b63\u5e38"\n\t}\n};\n'),
+        })
+        self.assertEqual(0, rc, out)
+        self.assertGreaterEqual(cnt, 1, '源面残留未被抓到:\n' + out)
+
+    def test_clean_pack_not_flagged(self):
+        """反向对照：全干净时不得误报（证明判据不是「永远报」）。"""
+        cnt, out, rc = self._scan_dir({
+            'template.index.json': '{"index": {"a": "\u4f3a\u670d\u5668\u72c0\u614b"}}',
+            'lan.js': ('var lan = {\n\t"index": {\n'
+                       '\t\t"disk": "<!-- \u78c1\u789fIO -->"\n\t}\n};\n'),
+        })
+        self.assertEqual(0, rc, out)
+        self.assertEqual(0, cnt, '干净夹具被误报（判据过宽）:\n' + out)
 
 
 # --------------------------------------------------------------------------

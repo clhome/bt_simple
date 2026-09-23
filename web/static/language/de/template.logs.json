@@ -14,7 +14,6 @@
     "audit_port": "Port",
     "retrieving_the_log_audit": "Protokollaudit-Liste wird abgerufen...",
     "retrieving_log_audit_data": "Protokollaudit-Inhalt wird abgerufen...",
-    "logaudittable_position_relative_block": "Liste aktualisieren",
     "the_panel_logs_are": "Die Panel-Protokolle werden gleich geleert. Möchten Sie fortfahren?",
     "clear_logs_1": "Protokolle leeren",
     "clearing_data_please_wait": "Wird bereinigt,Bitte warten...",
@@ -22,10 +21,12 @@
     "the_control_panel_operation": "Das Panel-Betriebsprotokoll wurde geleert!",
     "logs_auto_str_1": "Wird abgerufenProtokolleAuditListe...",
     "logs_auto_str_2": "Wird abgerufenProtokolleAudit-Inhalt...",
+    "logs_auto_str_3": "AktualisierenListe --> Benutzer Quelle Port Zeit root 117.139.193.29 pts/0 2023-08-25 13:27 still logged in",
     "logs_auto_str_4": "BaldLeerenPanelProtokolle, möchten Sie fortfahren?",
     "logs_auto_str_5": "LeerenProtokolle",
     "logs_auto_str_6": "Wird bereinigt,Bitte warten...",
     "py_msg_c90f98": "ProtokolleDateienExistiert nicht!",
-    "py_msg_8d2a5b": "PanelAktionProtokollebereitsLeeren!"
+    "py_msg_8d2a5b": "PanelAktionProtokollebereitsLeeren!",
+    "logaudittable_position_relative_block": "Liste aktualisieren"
   }
 }
