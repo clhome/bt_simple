@@ -202,3 +202,4 @@ plugins/goedge-happy
 /test
 /testsuite/.scratch
 /.workbuddy-ai
+/node_modules
