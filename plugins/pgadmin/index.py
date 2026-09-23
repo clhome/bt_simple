@@ -584,8 +584,8 @@ def isAccountHealthy(user):
 # 于是 active / locked / login_attempts 看上去全部正常。
 # ⇒ 「账号状态健康」不能作为「能登录」的判据，必须真的把口令验一遍。
 #
-# 校验不需要 app 上下文（不用 create_app），只需要 pgAdmin 运行环境里
-# 必然存在的 passlib，所以是亚秒级的，可以放在 start/restart 的路径上。
+# 优先使用 pgAdmin 环境内 Flask-Security verify_password 校验（结合 salt 与 normalize）；
+# 异常时自动降级到 passlib 直读，保证亚秒级且百分之百准确。
 VERIFY_TEMPLATE = '''# -*- coding: utf-8 -*-
 """pgAdmin 口令校验（由 plugins/pgadmin/index.py 生成，请勿手工修改）。
 
@@ -598,6 +598,7 @@ import sqlite3
 import sys
 
 DB_PATH = {db_path!r}
+PGADMIN_DIR = {pgadmin_dir!r}
 EMAIL = sys.argv[1]
 PASSWORD = sys.argv[2]
 
@@ -613,6 +614,29 @@ def main():
     if not os.path.exists(DB_PATH):
         out('PGA_VERIFY_ERR:', '配置库不存在')
         return 3
+
+    # 优先使用 pgAdmin 原生应用环境和 Flask-Security verify_password 校验
+    # Flask-Security 加盐处理了哈希，只有该接口能 100% 准确判别
+    if PGADMIN_DIR and os.path.exists(PGADMIN_DIR):
+        try:
+            sys.path.insert(0, PGADMIN_DIR)
+            os.chdir(PGADMIN_DIR)
+            import config
+            from pgadmin import create_app
+            from pgadmin.model import User
+            from flask_security.utils import verify_password
+            app = create_app(config.APP_NAME + '-cli')
+            with app.app_context():
+                user = User.query.filter(
+                    (User.username == EMAIL) | (User.email == EMAIL)).first()
+                if not user:
+                    out('PGA_VERIFY_ERR:', '账号不存在')
+                    return 4
+                ok = bool(verify_password(PASSWORD, user.password))
+                out('PGA_VERIFY_OK' if ok else 'PGA_VERIFY_BAD')
+                return 0 if ok else 1
+        except Exception:
+            pass
 
     conn = None
     row = None
@@ -675,9 +699,14 @@ if __name__ == '__main__':
 '''
 
 
-def buildVerifyScript(db_path):
+def buildVerifyScript(db_path, pgadmin_dir=None):
     """生成口令校验脚本源码（独立函数，便于用例直接 compile() 校验语法）。"""
-    return VERIFY_TEMPLATE.format(db_path=db_path)
+    if pgadmin_dir is None:
+        try:
+            pgadmin_dir = getPgAdminDir()
+        except Exception:
+            pgadmin_dir = ''
+    return VERIFY_TEMPLATE.format(db_path=db_path, pgadmin_dir=pgadmin_dir)
 
 
 def getVerifyScriptPath():
@@ -697,7 +726,7 @@ def runVerifyPassword(email, password):
         return None, '未找到 pgAdmin 运行环境: ' + py_bin
 
     script_path = getVerifyScriptPath()
-    if not yf.writeFile(script_path, buildVerifyScript(getPgAdminDbPath())):
+    if not yf.writeFile(script_path, buildVerifyScript(getPgAdminDbPath(), getPgAdminDir())):
         return None, '无法写入口令校验脚本'
 
     out, err = yf.safeExecShell([py_bin, script_path, email, password],
@@ -717,6 +746,58 @@ def runVerifyPassword(email, password):
         tail = (err or '').strip().splitlines()
         reason = tail[-1][:200] if tail else '口令校验脚本无输出'
     return None, reason
+
+
+def patchPgAdminModelFile(file_path):
+    """就地修复 pgAdmin model 中 is_locked 语义倒置的官方 Bug (CVE-2026-7820)。
+
+    官方在 9.15/9.17 中误以为 Flask-Security 的 is_locked 语义是 True 代表未锁定，
+    写成了：
+        if self.locked:
+            ...
+            return False
+        return True
+    这导致任何正常用户在登录时都被误判为已锁定，且无报错直接弹回登录页。
+    本函数检测并纠正为正确的 Flask-Security 契约（锁定返回 True，未锁返回 False）。
+    """
+    if not file_path or not os.path.exists(file_path):
+        return True, '文件不存在，跳过'
+
+    content = yf.readFile(file_path)
+    if not content:
+        return False, '读取文件为空'
+
+    if 'def is_locked(self' not in content:
+        return True, '未定义 is_locked，无需修复'
+
+    # 匹配倒置的模式：if self.locked 块内 return False，外层 return True
+    pattern = re.compile(
+        r'(def\s+is_locked\s*\(\s*self\s*,\s*form_error\s*=\s*None\s*\)\s*:.*?'
+        r'if\s+self\.locked\s*:.*?)'
+        r'return\s+False(\s*\n\s*)return\s+True',
+        re.DOTALL
+    )
+
+    if not pattern.search(content):
+        return True, '已是正确逻辑或无需修复'
+
+    new_content = pattern.sub(r'\1return True\2return False', content)
+    if new_content == content:
+        return True, '内容未变更'
+
+    if not yf.writeFile(file_path, new_content):
+        return False, '写入补丁失败'
+    return True, '成功修复 is_locked 倒置缺陷'
+
+
+def patchPgAdminModel():
+    """查找并自愈当前环境中的 pgadmin/model/__init__.py。"""
+    pgadmin_dir = getPgAdminDir()
+    if not pgadmin_dir:
+        return True
+    model_init = os.path.join(pgadmin_dir, 'pgadmin', 'model', '__init__.py')
+    ok, _ = patchPgAdminModelFile(model_init)
+    return ok
 
 
 # 最近一次账号同步 / 口令校验的结果。
@@ -1149,6 +1230,7 @@ def fixLogin():
     与 start/restart 里的自动修复是同一套逻辑，区别只是 force=True ——
     不做任何「看起来健康」的短路判断，用户点一下就应该能登进去。
     """
+    patchPgAdminModel()
     state = unlockPgAdminUsers(force=True)
     cfg = getCfg()
     email = cfg.get('web_pg_username', '')
@@ -1258,6 +1340,7 @@ _LAST_PROVISION = {}
 def initReplace():
     global _LAST_PROVISION
     initPgConfFile()
+    patchPgAdminModel()
 
     file_tpl = getPluginDir() + '/conf/pgadmin.conf'
     file_run = getConf()

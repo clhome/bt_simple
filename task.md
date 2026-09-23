@@ -1,3 +1,18 @@
+# pgAdmin 登录回弹修复（CVE-2026-7820 倒置 Bug 与密码校验脚本优化）
+
+> 项目概况：根治 pgAdmin 4 登录后又跳转回登录页缺陷。定位根因为官方在修复 CVE-2026-7820 时将 `User.is_locked` 语义倒置，导致正常用户被 Flask-Security 误判为锁定并静默打回 `/login`；同时解决密码校验脚本使用裸 passlib 导致误判 BAD 的缺陷。
+> 开发规范：恪守 KISS 原则，UTF-8 无 BOM、LF 换行；所有测试脚本统一归入 test/；阶段流转即时更新。
+
+## Task List
+
+- [x] 1. 编写与完善补丁自愈逻辑：在 `plugins/pgadmin/index.py` 中实现 `patchPgAdminModel()`，并在 `initReplace()` 中调用，自动纠正 `pgadmin/model/__init__.py` 中倒置的 `is_locked` 逻辑
+- [x] 2. 改进 `VERIFY_TEMPLATE`：在 `plugins/pgadmin/index.py` 中更新密码校验脚本模板，采用 Flask-Security 应用上下文与 `verify_password`，根治 passlib 裸验误判 BAD 缺陷
+- [x] 3. 编写自动化单元测试 (`test/test_pgadmin_locked_fix.py`) 验证补丁的修复能力、幂等性与代码规范 (UTF-8/LF)
+- [x] 4. 远程目标机 (`172.17.60.248`) 部署自愈补丁、重启服务并进行真实登录链路验证，确认重定向至 `/browser/` 并成功进入管理面板
+- [x] 5. 清理测试产生的临时脚本与文件，更新任务完成状态
+
+---
+
 # 数据管理插件（data_query）报错彻底修复、反射调用优化与 PostgreSQL 免安装支持
 
 > 项目概况：解决 POST /plugins/callback 报 500 Internal Server Error 问题；修复所有数据库报 get_list() got an unexpected keyword argument 'sid' 问题；实现 PostgreSQL 免安装判断并无缝兼容 plugins/pg_docker 容器实例。
