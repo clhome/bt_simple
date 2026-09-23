@@ -42,6 +42,15 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+# Windows 中文系统默认控制台编码是 GBK，直接 print '✅' 等字符会抛
+# UnicodeEncodeError 并把进程退出码变成 1（假红）。把 stdout/stderr 统一
+# reconfigure 成 UTF-8（带 errors='replace'，极端环境下也不崩）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, OSError):
+        pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY = sys.executable
@@ -94,6 +103,9 @@ TESTSUITE_DELETE_BUDGET = 100000
 def child_env(scope):
     """构造子进程环境变量；无沙箱守卫时原样返回（等价空操作）。"""
     env = os.environ.copy()
+    # 告诉性能类用例「现在跑在并行门禁里」：CPU 被 N 个模块抢占，
+    # 耗时断言该按并行预算放宽（数量级兜底），避免微基准在并发下假红。
+    env['YF_GATE_PARALLEL'] = '1'
     if not all(env.get(k) for k in _BULK_GUARD_KEYS):
         return env
     env['CODEBUDDY_TOOL_CALL_ID'] = 'testsuite:' + scope

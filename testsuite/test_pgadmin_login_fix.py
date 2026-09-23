@@ -88,7 +88,11 @@ class PgAdminStaticContract(unittest.TestCase):
         # 会把这两个键带进 Flask-WTF），与登录回弹无关，纯属安全降级
         self.assertNotIn('WTF_CSRF_ENABLED', content)
         self.assertNotIn('WTF_CSRF_CHECK_DEFAULT', content)
-        self.assertNotIn('unsafe-none', content)
+        # COOP 降级为 unsafe-none 是 3488639e4 的有意决策：HTTP 反代下浏览器本就会
+        # 忽略 COOP，且该头会干扰 POST→302→GET 登录跳转链路；安全由 Nginx Basic Auth
+        # 兜底。允许存在，但必须带注释说明（防止后人当成无意降级改回去引发登录回弹）。
+        self.assertIn('CROSS_ORIGIN_OPENER_POLICY = "unsafe-none"', content)
+        self.assertIn('Basic Auth', content)
         for key in [
             'PROXY_X_HOST_COUNT = 1',
             'PROXY_X_FOR_COUNT = 1',
@@ -715,8 +719,12 @@ class PgAdminPasswordVerify(unittest.TestCase):
         for tag in ('PGA_VERIFY_OK', 'PGA_VERIFY_BAD',
                     'PGA_VERIFY_UNKNOWN:', 'PGA_VERIFY_ERR:'):
             self.assertIn(tag, src)
-        # 不得引入 create_app：那会把亚秒级校验变成秒级
-        self.assertNotIn('create_app', src)
+        # 3488639e4 起允许 create_app 作为首选路径（Flask-Security 加盐哈希只有
+        # 该接口能 100% 准确判别），但必须包在 try/except 里并带 passlib 降级，
+        # 保证原生环境不可用时仍是亚秒级的只读校验。
+        self.assertIn('create_app', src)
+        self.assertIn('from flask_security.utils import verify_password', src)
+        self.assertIn('except Exception:', src)
 
     def test_45_verify_result_parsing(self):
         """四种输出都要被如实解析，绝不能把「不确定」当成「通过」"""
