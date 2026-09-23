@@ -361,14 +361,12 @@ class mainClass(object):
                         return '御风面板'
 
             elif name == 'nginx':
-                default_name = 'Nginx'
-                if p_exe.find('openresty/nginx') != -1:
-                    default_name = 'OpenResty'
+                is_openresty = p_exe.find('openresty/nginx') != -1
 
                 if p.username() == 'www':
-                    return default_name+'子进程'
+                    return 'OpenResty子进程' if is_openresty else 'Nginx子进程'
                 else:
-                    return default_name+'主进程'
+                    return 'OpenResty主进程' if is_openresty else 'Nginx主进程'
             elif name == 'openresty':
                 if p.username() == 'www':
                     return 'OpenResty子进程'

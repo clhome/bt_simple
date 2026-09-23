@@ -1707,7 +1707,7 @@ function siteWafConfig(siteName, type) {
                                 </tr>\
                                 <tr>\
                                     <td>' + pt('GET-URI过滤') + '</td>\
-                                    <td>'+ rdata.get.ps + '</td>\
+                                    <td>'+ pt(rdata.get.ps) + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closeget" type="checkbox" '+ ((rdata.get === true || rdata.get.open) ? 'checked' : '') + '>\
@@ -1717,7 +1717,7 @@ function siteWafConfig(siteName, type) {
                                     <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'url\')">' + pt('规则') + '</a></td>\
                                 </tr>\
                                 <td>' + pt('GET-参数过滤') + '</td>\
-                                    <td>'+ rdata.get.ps + '</td>\
+                                    <td>'+ pt(rdata.get.ps) + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closeargs" type="checkbox" '+ ((rdata.get === true || rdata.get.open) ? 'checked' : '') + '>\
@@ -1728,7 +1728,7 @@ function siteWafConfig(siteName, type) {
                                 </tr>\
                                 <tr>\
                                     <td>' + pt('POST过滤') + '</td>\
-                                    <td>'+ rdata.post.ps + '</td>\
+                                    <td>'+ pt(rdata.post.ps) + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closepost" type="checkbox" '+ ((rdata.post === true || rdata.post.open) ? 'checked' : '') + '>\
@@ -1739,7 +1739,7 @@ function siteWafConfig(siteName, type) {
                                 </tr>\
                                 <tr>\
                                     <td>' + pt('User-Agent过滤') + '</td>\
-                                    <td>'+ rdata['user-agent'].ps + '</td>\
+                                    <td>'+ pt(rdata['user-agent'].ps) + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closeua" type="checkbox" '+ ((rdata['user-agent'] === true || rdata['user-agent'].open) ? 'checked' : '') + '>\
@@ -1750,7 +1750,7 @@ function siteWafConfig(siteName, type) {
                                 </tr>\
                                  <tr>\
                                     <td>' + pt('Cookie过滤') + '</td>\
-                                    <td>'+ rdata.cookie.ps + '</td>\
+                                    <td>'+ pt(rdata.cookie.ps) + '</td>\
                                     <td>\
                                     <div class="ssh-item" style="margin-left:0">\
                                         <input class="btswitch btswitch-ios" id="closecookie" type="checkbox" '+ ((rdata.cookie === true || rdata.cookie.open) ? 'checked' : '') + '>\

@@ -63,7 +63,7 @@ function gogsSetConfig(){
                         <option value="false" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
             }
-            mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + rdata[i].ps + '</font></p>'
+            mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + pt(rdata[i].ps) + '</font></p>'
         }
         var html = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\

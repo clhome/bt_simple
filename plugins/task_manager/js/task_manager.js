@@ -2,6 +2,24 @@ var api = window.YfPlugin ? YfPlugin.createApi('task_manager') : null;
 var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
     ? window.YfI18n.createPluginTranslator('task_manager') 
     : function(key, fallback){ return fallback || key; };
+
+// 后端返回的进程/服务/用户/计划任务备注（ps）为中文原文，必须经插件词典翻译；
+// 少数动态拼接的备注（如 PHP8.1进程、Nginx主进程）走模板或完整键匹配。
+function tmTransPs(ps) {
+    if (!ps || typeof ps !== 'string') return ps;
+    var t = pt(ps);
+    if (t !== ps) return t;
+    var m = /^PHP(.+?)进程$/.exec(ps);
+    if (m) return msgTpl(pt('PHP{1}进程'), [m[1]]);
+    return ps;
+}
+
+// 进程状态：列表页后端已转成中文，进程详情页仍是 psutil 英文状态
+function tmTransStatus(status) {
+    if (status === 'running' || status === '活动') return pt('活动');
+    if (status === 'sleeping' || status === '睡眠') return pt('睡眠');
+    return status;
+}
   
 function tmPostCallback(method, args, callback, version='1.0'){
     var req_data = {};
@@ -426,6 +444,7 @@ function createProcessTable(getboday, data) {
     var tbody_tr = '';
     for (var i = 0; i < realProcess.length; i++) {
         if (realProcess[i].status == '活动') realProcess[i].status = '<span style="color:green;">' + pt('活动') + '</span>';
+        else if (realProcess[i].status == '睡眠') realProcess[i].status = pt('睡眠');
         var colp = realProcess[i].haschild ? '<svg class="colp arrow" onclick="show_process_child(' + realProcess[i].pid + ')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18" style="border-color: rgba(0,0,0,0);border-width: bpx;border-style: undefined" filter="none">\
 			<path d="M15.811 23.47c-0.252-0.060-0.47-0.185-0.641-0.356l-10.685-10.685c-0.521-0.521-0.521-1.365 0-1.886s1.365-0.521 1.886 0l9.746 9.746 9.745-9.745c0.521-0.521 1.365-0.521 1.886 0s0.521 1.365 0 1.886l-10.685 10.685c-0.339 0.339-0.816 0.458-1.251 0.355z" fill="#999999"></path>\
         </svg>' : '';
@@ -442,7 +461,7 @@ function createProcessTable(getboday, data) {
         if (realProcess[i].haschild) {
             namewidth = "max-width:100px;"
         }
-        var processName = '<span class="size_ellipsis" style="' + (namewidth) + 'float:none;vertical-align:middle;">' + realProcess[i].ps + '</span>';
+        var processName = '<span class="size_ellipsis" style="' + (namewidth) + 'float:none;vertical-align:middle;">' + tmTransPs(realProcess[i].ps) + '</span>';
         var isProcessChild = realProcess[i].ischild ? 'process-child' : '';
         var childStyle = realProcess[i].ischild ? 'width:100px' : '';
         var selected = realProcess[i].pid + '' === select_pid || realProcess[i].isselect ? 'class="process-select"' : '';
@@ -461,7 +480,7 @@ function createProcessTable(getboday, data) {
         tbody_tr += '<tr ' + selected + selected_one + ' onclick="click_process_tr(event,' + realProcess[i].pid + ',' + realProcess[i].fpid + ')" >\
 			<td class="td-pid" style="' + (data?(data.meter_head.ps ? '' : 'display:none;'):'') + '">\
 				' + colp + '\
-				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="' + pt('名称：') + realProcess[i].ps + '\nname: ' + realProcess[i].name + '\nexe: ' + realProcess[i].exe + '"\
+				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="' + pt('名称：') + tmTransPs(realProcess[i].ps) + '\nname: ' + realProcess[i].name + '\nexe: ' + realProcess[i].exe + '"\
 				class="btlink ' + isProcessChild + '" onclick="get_process_info(' + realProcess[i].pid + ')">\
 					' + processName + '\
 					' + childNums + '\
@@ -546,7 +565,7 @@ function get_cron_list() {
             tbody_tr += '<tr title=\'' + rdata[i].command + '\'>\
 						<td>' + rdata[i].cycle + '</td>\
 						<td><a class="btlink" onclick="online_edit_file(\'' + rdata[i].exe + '\')">' + rdata[i].exe + '</a></td>\
-						<td style="text-wrap:wrap;">' + rdata[i].ps + '</td>\
+						<td style="text-wrap:wrap;">' + tmTransPs(rdata[i].ps) + '</td>\
 						<td><a class="btlink" onclick="remove_cron(' + i + ')">' + pt('删除') + '</a></td>\
 					</tr>';
         }
@@ -718,7 +737,7 @@ function get_run_list() {
 				<td>' + rdata.run_list[i].srcfile + '</td>\
 				<td>' + toSize(rdata.run_list[i].size) + '</td>\
 				<td>' + rdata.run_list[i].access + '</td>\
-				<td style="text-wrap:wrap;">' + rdata.run_list[i].ps + '</td>\
+				<td style="text-wrap:wrap;">' + tmTransPs(rdata.run_list[i].ps) + '</td>\
 				<td><a class="btlink" onclick="online_edit_file(\'' + rdata.run_list[i].srcfile + '\')">' + pt('编辑') + '</a></td>\
 			</tr>';
         }
@@ -780,7 +799,7 @@ function get_service_list() {
 				<td><a style="cursor:pointer" onclick="set_runlevel_state(4,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_4 + '</a></td>\
 				<td><a style="cursor:pointer" onclick="set_runlevel_state(5,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_5 + '</a></td>\
 				<td><a style="cursor:pointer" onclick="set_runlevel_state(6,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_6 + '</a></td>\
-				<td style="text-wrap:wrap;">' + rdata.serviceList[i].ps + '</td>\
+				<td style="text-wrap:wrap;">' + tmTransPs(rdata.serviceList[i].ps) + '</td>\
 				<td><a class="btlink" onclick="remove_service(\'' + rdata.serviceList[i].name + '\')">' + pt('删除') + '</a></td>\
 			</tr>';
         }
@@ -822,7 +841,7 @@ function get_user_list() {
 					<td>' + rdata[i].uid + '</td>\
 					<td>' + rdata[i].gid + '</td>\
 					<td>' + rdata[i].login_shell + '</td>\
-					<td style="text-wrap:wrap;">' + rdata[i].ps + '</td>\
+					<td style="text-wrap:wrap;">' + tmTransPs(rdata[i].ps) + '</td>\
 					<td><a class="btlink" onclick="userdel(\'' + rdata[i].username + '\')">' + pt('删除') + '</a></td>\
 				</tr>';
         }
@@ -1006,7 +1025,7 @@ function get_process_info(pid) {
 						<tr>\
 							<th width="70">' + pt('名称') + '</th><td width="180">' + rdata.name + '</td>\
 							<th width="50">PID</th><td width="180">' + rdata.pid + '</td>\
-							<th width="50">' + pt('状态') + '</th><td width="180">' + rdata.status + '</td>\
+							<th width="50">' + pt('状态') + '</th><td width="180">' + tmTransStatus(rdata.status) + '</td>\
 						</tr>\
 						<tr>\
 							<th>' + pt('父进程') + '</th><td>' + rdata.pname + '(' + rdata.ppid + ')</td>\
@@ -1020,7 +1039,7 @@ function get_process_info(pid) {
 						</tr>\
 						<tr>\
 							<th>' + pt('启动时间') + '</th><td>' + getLocalTime(rdata.create_time) + '</td>\
-							<th>' + pt('描述') + '</th><td colspan="3">' + rdata.ps + '</td>\
+							<th>' + pt('描述') + '</th><td colspan="3">' + tmTransPs(rdata.ps) + '</td>\
 						</tr>\
 						<tr>\
 							<th>' + pt('启动命令') + '</th><td colspan="5">' + rdata.comline.join(" ") + '</td>\
@@ -1097,7 +1116,7 @@ function dropAddress(address) {
 }
 
 function show_task() {
-    $(".ts-line").width($("#TaskManagement").width());
+    $(".ts-line").width($("#table-cont").width());
     $("#TaskManagement tbody td").on('click', function () {
         // console.log('---');
         $(this).parents("tr").addClass("active").siblings().removeClass("active");

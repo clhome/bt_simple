@@ -84,5 +84,6 @@
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "未启动": "Non avviato",
     "6 节点 (3主3从)": "6 nodi (3 primari, 3 repliche)",
-    "生产环境的标准集群架构，使用 6 个实例组建集群，并配置每个主节点携带 1 个从节点副本（`--cluster-replicas 1`），以实现自动故障转移和数据高可用防护：": "Architettura cluster standard per la produzione: crea un cluster con 6 istanze e configura ogni nodo primario con 1 replica (`--cluster-replicas 1`) per il failover automatico e l'alta disponibilità:"
+    "生产环境的标准集群架构，使用 6 个实例组建集群，并配置每个主节点携带 1 个从节点副本（`--cluster-replicas 1`），以实现自动故障转移和数据高可用防护：": "Architettura cluster standard per la produzione: crea un cluster con 6 istanze e configura ogni nodo primario con 1 replica (`--cluster-replicas 1`) per il failover automatico e l'alta disponibilità:",
+    "绑定IP(修改绑定IP可能会存在安全隐患)": "IP di binding (modificare l'IP di binding può comportare un rischio per la sicurezza)"
 }

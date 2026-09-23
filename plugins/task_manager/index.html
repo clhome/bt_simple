@@ -33,6 +33,8 @@
     border: 1px solid #ccc;
     outline: none;
     padding-left: 8px;
+    padding-right: 32px;
+    box-sizing: border-box;
     vertical-align: top;
     width: 230px;
 }
@@ -83,6 +85,26 @@
     cursor: pointer;
     display: inline-block;
     font-size: 14px;
+    white-space: nowrap;
+}
+
+/* 非中文（法/德/意）Tab 文案更长：左侧 Tab 不再被压缩折行，
+   空间不足时仅左侧区域横向滚动，避免文字上半部分被裁切、末位 Tab 丢失；
+   右侧搜索/设置区保持固定可见。 */
+.man-menu-sub > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.man-menu-sub > div:first-child::-webkit-scrollbar {
+    height: 0;
+}
+.man-menu-sub > div:last-child {
+    flex: 0 0 auto;
 }
 
 .man-menu-sub .on {
@@ -229,10 +251,17 @@
 
 #TaskManagement th {
     height: 34px;
+    /* 非中文（法/德/意等）表头较长，禁止换行，超宽交由容器横向滚动 */
+    white-space: nowrap;
 }
 
 #TaskManagement tr {
     height: 38px;
+}
+
+/* 进程名称列在非中文下也能容纳译名与排序图标 */
+#TaskManagement th.pro_name {
+    min-width: 150px;
 }
 
 #TaskManagement tr:hover {
@@ -536,7 +565,17 @@
 resetPluginWinWidth(850);
 resetPluginWinHeight(580);
 
-$('.layui-layer-page').css({'width': '1000px'});
+// 弹窗宽度：中文沿用 1000px；法/德/意等译文较长时适当加宽，
+// 同时受视口宽度约束，避免小屏溢出（超出部分由上方 Tab 栏横向滚动抽底）。
+(function () {
+	var curLang = (window.YfI18n && typeof window.YfI18n.getCurrentLang === 'function')
+		? window.YfI18n.getCurrentLang() : 'zh-CN';
+	var isZh = (curLang === 'zh-CN' || curLang === 'zh-TW');
+	var baseWidth = isZh ? 1000 : 1200;
+	var winWidth = $(window).width() || baseWidth;
+	var finalWidth = Math.min(baseWidth, Math.max(1000, winWidth - 40));
+	$('.layui-layer-page').css({'width': finalWidth + 'px'});
+})();
 
 function initTaskManagerPlugin() {
 	if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
