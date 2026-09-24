@@ -1,4 +1,11 @@
 {
+  "normal": "Normale",
+  "execute": "Esegui",
+  "edit": "Modifica",
+  "save_edit": "Salva",
+  "msg": "Suggerimento",
+  "the": "Elaborazione in corso, attendere...",
+  "list_empty": "L'elenco è vuoto, impossibile continuare!",
   "management_action": "Gestisci",
   "manage": "Gestisci",
   "stop_1": "arrestare",

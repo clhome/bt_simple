@@ -69,7 +69,7 @@ function getLogs(id, task_name) {
         clearInterval(reqTimer);
       }
     },
-    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.crontab.auto_refresh || '自动刷新') + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + '\', true)">' + (lan && lan.public && lan.public.execute || '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + (lan && lan.crontab && lan.crontab.task_name || '任务名称:') + '</span><span style="margin-left: 10px; font-weight: bold;">' + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
+    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.public.auto_refresh || '自动刷新') + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + '\', true)">' + t('crontab.execute_task', '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + t('crontab.task_name', '任务名称') + ':' + '</span><span style="margin-left: 10px; font-weight: bold;">' + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
     success: function (layero, index) {
       requestLogs(index);
       reqTimer = setInterval(function () {
@@ -117,7 +117,7 @@ function getCronData(page) {
     } else {
       for (var i = 0; i < rdata.data.length; i++) {
         //状态
-        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="停用该计划任务">' + (lan && lan.public && lan.public.normal || '正常') + '<span class="glyphicon glyphicon-play"></span></a>' : '<span onclick="setTaskStatus(' + rdata.data[i].id + ',1)" class="btClose" style="color:red;cursor:pointer" title="启用该计划任务">' + (lan && lan.crontab && lan.crontab.stopped || '停用') + '<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></a>';
+        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="' + t('crontab.disable_task_tip', '停用该计划任务') + '">' + (lan && lan.public && lan.public.normal || '正常') + '<span class="glyphicon glyphicon-play"></span></a>' : '<span onclick="setTaskStatus(' + rdata.data[i].id + ',1)" class="btClose" style="color:red;cursor:pointer" title="' + t('crontab.enable_task_tip', '启用该计划任务') + '">' + (lan && lan.crontab && lan.crontab.stopped || '停用') + '<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></a>';
         var cron_save = '--';
         if (rdata.data[i]['save'] != '') {
           cron_save = rdata.data[i]['save'] + (lan && lan.crontab && t('crontab.portion') || "");
@@ -675,7 +675,7 @@ function toBackup(type) {
 		  	</button>\
 		 	<ul class="dropdown-menu" role="menu" aria-labelledby="backdata">' + sOpt + '</ul>\
 		</div>\
-		' + changeDir + "<div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.backup_to || '备份到') + "</div><div class='dropdown planBackupTo pull-left mr20'><button class='btn btn-default dropdown-toggle' type='button' id='excode' data-toggle='dropdown' style='width:auto;'><b val='localhost'>" + (lan && lan.crontab && lan.crontab.disk || '服务器磁盘') + "</b><span class='caret'></span></button><ul class='dropdown-menu' role='menu' aria-labelledby='backupTo'>" + orderOpt + "</ul></div><div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + "</div><div class='plan_hms pull-left mr20 bt-input-text'><span><input type='number' name='save' id='save' value='3' maxlength='4' max='100' min='1'></span><span class='name'>" + (lan && lan.crontab && lan.crontab.unit_copy || '份') + "</span></div>";
+		' + changeDir + "<div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.backup_to || '备份到') + "</div><div class='dropdown planBackupTo pull-left mr20'><button class='btn btn-default dropdown-toggle' type='button' id='excode' data-toggle='dropdown' style='width:auto;'><b val='localhost'>" + (lan && lan.crontab && lan.crontab.server_disk || '服务器磁盘') + "</b><span class='caret'></span></button><ul class='dropdown-menu' role='menu' aria-labelledby='backupTo'>" + orderOpt + "</ul></div><div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + "</div><div class='plan_hms pull-left mr20 bt-input-text'><span><input type='number' name='save' id='save' value='3' maxlength='4' max='100' min='1'></span><span class='name'>" + (lan && lan.crontab && lan.crontab.portion || '份') + "</span></div>";
     $("#implement").html(sBody);
     getselectname();
     $('.changePathDir').on('click', function () {
@@ -803,7 +803,7 @@ function editTaskInfo(id) {
       if (obj.from.stype == 'path') {
         changeDir = '<span class="glyphicon glyphicon-folder-open cursor mr20 changePathDir" style="float:left;line-height: 30px;"></span>';
       }
-      var exclude_dirs_placeholder = lan && lan.crontab && t('crontab.one_rule_per_line') || "";
+      var exclude_dirs_placeholder = lan && lan.crontab && t('crontab.exclude_dir_placeholder') || "";
       layer.open({
         type: 1,
         title: (lan && lan.crontab && t('crontab.edit_scheduled_tasks') || "") + rdata.name + ']',
@@ -819,7 +819,7 @@ function editTaskInfo(id) {
     '<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + '</ul></div></div>' +
     '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.task_name || '任务名称') + '</span>' +
     '<div class="planname pull-left"><input type="text" name="name" class="bt-input-text sname_create" value="' + obj.from.name + '"></div></div>' +
-    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.execute_cycle || '执行周期') + '</span>' +
+    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.exec_cycle || '执行周期') + '</span>' +
     '<div class="dropdown  pull-left mr20"><button class="btn btn-default dropdown-toggle cycle_btn" type="button" data-toggle="dropdown" style="width:94px">' +
     '<b val="' + obj.from.stype + '">' + cycleName + '</b><span class="caret"></span></button>' +
     '<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">' + cycleDom + '</ul></div>' +
@@ -855,13 +855,13 @@ function editTaskInfo(id) {
     '<b id="sName" val="' + obj.from.sname + '">' + obj.from.sname + '</b><span class="caret"></span></button>' +
     '<ul class="dropdown-menu" role="menu" aria-labelledby="sName">' + sNameDom + '</ul></div>' +
     '<div class="info-r" style="float: left;margin-right: 25px;display:' + (obj.from.sType == "path" ? 'block;' : 'none') + '">' +
-    '<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + '" placeholder="备份目录" style="width:208px;height:33px;" disabled="disabled"></div>' + changeDir +
+    '<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + '" placeholder="' + t('crontab.backup_directory_5', '备份目录') + '" style="width:208px;height:33px;" disabled="disabled"></div>' + changeDir +
     '<div class="textname pull-left mr20">' + (lan && lan.crontab && lan.crontab.backup_to || '备份到') + '</div>' +
     '<div class="dropdown  pull-left mr20"><button class="btn btn-default dropdown-toggle backup_btn" type="button" data-toggle="dropdown" style="width:auto;">' +
     '<b val="' + obj.from.backup_to + '">' + backupsName + '</b><span class="caret"></span></button>' +
     '<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">' + backupsDom + '</ul></div>' +
     '<div class="textname pull-left mr20">' + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + '</div>' +
-    '<div class="plan_hms pull-left mr20 bt-input-text"><span><input type="number" name="save" class="save_create" value="' + obj.from.save + '" maxlength="4" max="100" min="1"></span><span class="name">' + (lan && lan.crontab && lan.crontab.unit_copy || '份') + '</span></div></div></div>' +
+    '<div class="plan_hms pull-left mr20 bt-input-text"><span><input type="number" name="save" class="save_create" value="' + obj.from.save + '" maxlength="4" max="100" min="1"></span><span class="name">' + (lan && lan.crontab && lan.crontab.portion || '份') + '</span></div></div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toShell" ? 'block;' : 'none') + '">' +
     '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.script_content || '脚本内容') + '</span>' +
     '<div style="line-height:34px"><textarea class="txtsjs bt-input-text sbody_create" name="sbody">' + obj.from.sbody + '</textarea></div></div>' +
@@ -873,7 +873,7 @@ function editTaskInfo(id) {
     '<div style="line-height:34px">' + (lan && lan.crontab && lan.crontab.release_mem_tips || '释放PHP、MYSQL、PURE-FTPD、OpenResty的内存占用,建议在每天半夜执行!') + '</div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toUrl" ? 'block;' : 'none') + '">' +
     '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.url_address || 'URL地址') + '</span>' +
-    '<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="url_address" placeholder="URL地址" value="' + obj.from.url_address + '"></div></div>' +
+    '<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="url_address" placeholder="' + t('crontab.url_address', 'URL地址') + '" value="' + obj.from.url_address + '"></div></div>' +
     '<div class="clearfix plan ptb10"><div class="bt-submit plan-submits" style="margin-left: 141px;">' + (lan && lan.public && lan.public.save_edit || '保存编辑') + '</div></div></div>',
         success: function () {
           $('.changePathDir').on('click', function () {

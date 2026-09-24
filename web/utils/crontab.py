@@ -19,6 +19,7 @@ import multiprocessing
 
 import core.yf as yf
 import thisdb
+from core.i18n import t as _t
 
 
 def _is_private_url(url):
@@ -40,7 +41,7 @@ def _validate_to_url(url):
         ok, err, _meta = validate_url(url, resolve=True)
         return ok, (err if not ok else 'OK')
     except Exception as e:
-        return False, 'URL安全校验失败: %s' % e
+        return False, _t('crontab.url_err_validate_failed', str(e))
 
 
 class crontab(object):
@@ -93,7 +94,7 @@ class crontab(object):
 
         thisdb.setCrontabData(cron_id, dbdata)
         self.syncToCrond(cron_id)
-        msg = '修改计划任务[' + data['name'] + ']成功'
+        msg = _t('crontab.modify_success', data['name'])
         yf.writeLog('计划任务', msg)
         return yf.returnData(True, msg)
 
@@ -324,7 +325,7 @@ class crontab(object):
             os.remove(cron_file)
 
         thisdb.deleteCronById(tid)
-        msg = yf.getInfo('删除计划任务[{1}]成功!', (data['name'],))
+        msg = _t('crontab.delete_success', data['name'])
         yf.writeLog('计划任务', msg)
         return yf.returnData(True, msg)
 
@@ -341,39 +342,44 @@ class crontab(object):
 
     def getCrontabHuman(self, data):
         rdata = []
+        week_keys = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
         for i in range(len(data)):
             t = data[i]
             t['type_raw'] = t['type']
             if t['type'] == "day":
-                t['type'] = '每天'
-                t['cycle'] = yf.getInfo('每天, {1}点{2}分 执行', (str(t['where_hour']), str(t['where_minute'])))
+                t['type'] = _t('crontab.cycle_type_day')
+                t['cycle'] = _t('crontab.cycle_desc_day', str(t['where_hour']), str(t['where_minute']))
             elif t['type'] == "day-n":
-                t['type'] = yf.getInfo('每{1}天', (str(t['where1']),))
-                t['cycle'] = yf.getInfo('每隔{1}天, {2}点{3}分 执行',  (str(t['where1']), str(t['where_hour']), str(t['where_minute'])))
+                t['type'] = _t('crontab.cycle_type_day_n', str(t['where1']))
+                t['cycle'] = _t('crontab.cycle_desc_day_n', str(t['where1']), str(t['where_hour']), str(t['where_minute']))
             elif t['type'] == "hour":
-                t['type'] = '每小时'
-                t['cycle'] = yf.getInfo('每小时, 第{1}分钟 执行', (str(t['where_minute']),))
+                t['type'] = _t('crontab.cycle_type_hour')
+                t['cycle'] = _t('crontab.cycle_desc_hour', str(t['where_minute']))
             elif t['type'] == "hour-n":
-                t['type'] = yf.getInfo('每{1}小时', (str(t['where1']),))
-                t['cycle'] = yf.getInfo('每{1}小时, 第{2}分钟 执行', (str(t['where1']), str(t['where_minute'])))
+                t['type'] = _t('crontab.cycle_type_hour_n', str(t['where1']))
+                t['cycle'] = _t('crontab.cycle_desc_hour_n', str(t['where1']), str(t['where_minute']))
             elif t['type'] == "minute-n":
-                t['type'] = yf.getInfo('每{1}分钟', (str(t['where1']),))
-                t['cycle'] = yf.getInfo('每隔{1}分钟执行', (str(t['where1']),))
+                t['type'] = _t('crontab.cycle_type_minute_n', str(t['where1']))
+                t['cycle'] = _t('crontab.cycle_desc_minute_n', str(t['where1']))
                 if str(t.get('min_start_en', '0')) == '1' or str(t.get('min_end_en', '0')) == '1':
                     limit_str = []
                     if str(t.get('min_start_en', '0')) == '1':
-                        limit_str.append("从%02d:%02d起" % (int(t.get('min_start_h', 0)), int(t.get('min_start_m', 0))))
+                        limit_str.append(_t('crontab.cycle_limit_from', "%02d:%02d" % (int(t.get('min_start_h', 0)), int(t.get('min_start_m', 0)))))
                     if str(t.get('min_end_en', '0')) == '1':
-                        limit_str.append("至%02d:%02d止" % (int(t.get('min_end_h', 23)), int(t.get('min_end_m', 59))))
-                    t['cycle'] += " (限制: %s)" % " ".join(limit_str)
+                        limit_str.append(_t('crontab.cycle_limit_to', "%02d:%02d" % (int(t.get('min_end_h', 23)), int(t.get('min_end_m', 59)))))
+                    t['cycle'] += _t('crontab.cycle_limit_wrap', " ".join(limit_str))
             elif t['type'] == "week":
-                t['type'] = '每周'
+                t['type'] = _t('crontab.cycle_type_week')
                 if not t['where1']:
                     t['where1'] = '0'
-                t['cycle'] = yf.getInfo('每周{1}, {2}点{3}分执行', (self.toWeek(int(t['where1'])), str(t['where_hour']), str(t['where_minute'])))
+                try:
+                    weekday = _t('crontab.' + week_keys[int(t['where1']) % 7])
+                except Exception:
+                    weekday = ''
+                t['cycle'] = _t('crontab.cycle_desc_week', weekday, str(t['where_hour']), str(t['where_minute']))
             elif t['type'] == "month":
-                t['type'] = '每月'
-                t['cycle'] = yf.getInfo('每月, {1}日 {2}点{3}分执行', (str(t['where1']), str(t['where_hour']), str(t['where_minute'])))
+                t['type'] = _t('crontab.cycle_type_month')
+                t['cycle'] = _t('crontab.cycle_desc_month', str(t['where1']), str(t['where_hour']), str(t['where_minute']))
             
             # 获取上次执行时间
             if 'last_run_time' in t and t['last_run_time'] and t['last_run_time'] != 'None':
@@ -383,16 +389,16 @@ class crontab(object):
                 if os.path.exists(log_file):
                     t['last_run_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(log_file)))
                 else:
-                    t['last_run_time'] = '从未执行'
+                    t['last_run_time'] = _t('crontab.never_run')
 
             # 获取特定日期类型限制
             day_type_map = {
-                '0': '无',
-                '1': '股票开盘日',
-                '2': '工作日',
-                '3': '节假日'
+                '0': _t('crontab.day_none'),
+                '1': _t('crontab.day_stock'),
+                '2': _t('crontab.day_workday'),
+                '3': _t('crontab.day_holiday')
             }
-            t['day_type_h'] = day_type_map.get(str(t.get('day_type', '0')), '无')
+            t['day_type_h'] = day_type_map.get(str(t.get('day_type', '0')), _t('crontab.day_none'))
 
             rdata.append(t)
         return rdata
@@ -459,16 +465,16 @@ class crontab(object):
         title = ''
         if params['type'] == "day":
             cron_cmd = self.getDay(params)
-            title = '每天'
+            title = _t('crontab.cycle_type_day')
         elif params['type'] == "day-n":
             cron_cmd = self.getDay_N(params)
-            title = yf.getInfo('每{1}天', (params['where1'],))
+            title = _t('crontab.cycle_type_day_n', str(params['where1']))
         elif params['type'] == "hour":
             cron_cmd = self.getHour(params)
-            title = '每小时'
+            title = _t('crontab.cycle_type_hour')
         elif params['type'] == "hour-n":
             cron_cmd = self.getHour_N(params)
-            title = '每小时'
+            title = _t('crontab.cycle_type_hour_n', str(params['where1']))
         elif params['type'] == "minute-n":
             cron_cmd = self.minute_N(params)
         elif params['type'] == "week":
@@ -533,7 +539,7 @@ class crontab(object):
     def cronCheck(self, params):
         if params['stype'] == 'site' or params['stype'] == 'database' or params['stype'].find('database_') > -1 or params['stype'] == 'logs' or params['stype'] == 'path':
             if params['save'] == '':
-                return False, '保留份数不能为空!'
+                return False, 'crontab.py_msg_135668'
         if params.get('stype') == 'toUrl':
             ok, err = _validate_to_url(params.get('url_address', ''))
             if not ok:
@@ -541,44 +547,44 @@ class crontab(object):
 
         if params['type'] == 'day':
             if params['hour'] == '':
-                return False, '小时不能为空!'
+                return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
 
         if params['type'] == 'day-n':
             if params['where1'] == '':
-                return False, '天不能为空!'
+                return False, 'crontab.py_msg_d510f5'
             if params['hour'] == '':
-                return False, '小时不能为空!'
+                return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
         if params['type'] == 'hour':
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
 
         if params['type'] == 'hour-n':
             if params['where1'] == '':
-                return False, '小时不能为空!'
+                return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
 
         if params['type'] == 'minute-n':
             if params['where1'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
 
         if params['type'] == 'week':
             if params['hour'] == '':
-                return False, '小时不能为空!'
+                return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
 
         if params['type'] == 'month':
             if params['where1'] == '':
-                return False, '日不能为空!'
+                return False, 'crontab.py_msg_2519d7'
             if params['hour'] == '':
-                return False, '小时不能为空!'
+                return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
-                return False, '分钟不能为空!'
+                return False, 'crontab.py_msg_21159d'
         return True, 'OK'
 
 

@@ -37,6 +37,21 @@ _BLOCKED_HOSTNAMES = (
 )
 
 
+def _msg(key, default, *args):
+    """翻译面向前端的提示；面板 i18n 层不可用时（如 CLI 直接执行）回退中文。"""
+    try:
+        from core.i18n import t as _t
+        val = _t(key, *args)
+        if val and val != key:
+            return val
+    except Exception:
+        pass
+    out = default
+    for i, a in enumerate(args, 1):
+        out = out.replace('{%d}' % i, str(a))
+    return out
+
+
 def is_public_ip(ip_str):
     try:
         ip = ipaddress.ip_address(str(ip_str).split('%')[0])
@@ -57,28 +72,28 @@ def _is_ip_literal(host):
 def parse_url(url):
     """只做语法层校验，不触发 DNS。返回 (meta, err)。"""
     if not url or not isinstance(url, str):
-        return None, 'URL不能为空'
+        return None, _msg('crontab.url_err_empty', 'URL不能为空')
     url = url.strip()
     if len(url) > 2048:
-        return None, 'URL过长'
+        return None, _msg('crontab.url_err_too_long', 'URL过长')
     try:
         parsed = urlparse(url)
     except Exception:
-        return None, 'URL解析失败'
+        return None, _msg('crontab.url_err_parse_failed', 'URL解析失败')
 
     if parsed.scheme not in ('http', 'https'):
-        return None, '仅允许 http/https 协议'
+        return None, _msg('crontab.url_err_scheme', '仅允许 http/https 协议')
     if parsed.username or parsed.password:
-        return None, 'URL不允许携带用户名/密码'
+        return None, _msg('crontab.url_err_credentials', 'URL不允许携带用户名/密码')
     host = parsed.hostname
     if not host:
-        return None, 'URL缺少主机名'
+        return None, _msg('crontab.url_err_no_host', 'URL缺少主机名')
     if str(host).lower() in _BLOCKED_HOSTNAMES:
-        return None, '禁止请求内网/回环/元数据地址（SSRF 防护）'
+        return None, _msg('crontab.url_err_blocked', '禁止请求内网/回环/元数据地址（SSRF 防护）')
     try:
         port = parsed.port or (443 if parsed.scheme == 'https' else 80)
     except ValueError:
-        return None, '端口不合法'
+        return None, _msg('crontab.url_err_bad_port', '端口不合法')
 
     return {
         'url': url,
@@ -94,7 +109,7 @@ def resolve_public(host, port):
     try:
         infos = socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)
     except Exception as e:
-        return None, '域名解析失败: %s' % e
+        return None, _msg('crontab.url_err_dns_failed', '域名解析失败: {1}', e)
 
     ips = []
     for info in infos:
@@ -105,11 +120,11 @@ def resolve_public(host, port):
         if addr in ips:
             continue
         if not is_public_ip(addr):
-            return None, '目标解析到内网/保留地址(%s)' % addr
+            return None, _msg('crontab.url_err_private_ip', '目标解析到内网/保留地址({1})', addr)
         ips.append(addr)
 
     if not ips:
-        return None, '域名无可用的公网解析结果'
+        return None, _msg('crontab.url_err_no_public_ip', '域名无可用的公网解析结果')
     return ips, 'OK'
 
 
@@ -121,7 +136,7 @@ def validate_url(url, resolve=True):
 
     if meta['host_is_ip']:
         if not is_public_ip(meta['host']):
-            return False, '禁止请求内网/回环/保留地址（SSRF 防护）', None
+            return False, _msg('crontab.url_err_ssrf_blocked', '禁止请求内网/回环/保留地址（SSRF 防护）'), None
         return True, 'OK', meta
 
     if resolve:

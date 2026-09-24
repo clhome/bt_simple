@@ -807,6 +807,13 @@
     "brand_panel": "Yufeng Panel"
   },
   "public": {
+    "normal": "Normal",
+    "execute": "Execute",
+    "edit": "Edit",
+    "save_edit": "Save",
+    "msg": "Tip",
+    "the": "Processing, please wait...",
+    "list_empty": "The object list is empty, cannot continue!",
     "management_action": "Manage",
     "manage": "Manage",
     "stop_1": "stop",
@@ -1428,7 +1435,7 @@
     "loading_terminal_components": "Loading terminal component...",
     "loading_the_file_please": "Reading file,Please wait...",
     "local_terminal": "Local Terminal",
-    "log": "log",
+    "log": "Log",
     "log_1": "log",
     "log_out": "log out",
     "log_out_1": "log out",

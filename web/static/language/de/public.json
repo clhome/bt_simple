@@ -1,4 +1,11 @@
 {
+  "normal": "Normal",
+  "execute": "Ausführen",
+  "edit": "Bearbeiten",
+  "save_edit": "Speichern",
+  "msg": "Hinweis",
+  "the": "Wird verarbeitet, bitte warten...",
+  "list_empty": "Die Objektliste ist leer, Fortsetzung nicht möglich!",
   "management_action": "Verwalten",
   "manage": "Verwalten",
   "stop_1": "stoppen",

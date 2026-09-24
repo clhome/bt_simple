@@ -807,6 +807,13 @@
     "brand_panel": "Panneau Yufeng"
   },
   "public": {
+    "normal": "Normal",
+    "execute": "Exécuter",
+    "edit": "Modifier",
+    "save_edit": "Enregistrer",
+    "msg": "Astuce",
+    "the": "Traitement en cours, veuillez patienter...",
+    "list_empty": "La liste est vide, impossible de continuer !",
     "management_action": "Gérer",
     "manage": "Gérer",
     "stop_1": "arrêter",

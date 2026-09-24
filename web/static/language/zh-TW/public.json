@@ -1,4 +1,11 @@
 {
+  "normal": "正常",
+  "execute": "執行",
+  "edit": "編輯",
+  "save_edit": "儲存編輯",
+  "msg": "提示",
+  "the": "正在處理,請稍候...",
+  "list_empty": "物件清單為空，無法繼續!",
   "management_action": "管理",
   "manage": "管理",
   "stop_1": "停止",

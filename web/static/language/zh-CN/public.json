@@ -1,4 +1,11 @@
 {
+  "normal": "正常",
+  "execute": "执行",
+  "edit": "编辑",
+  "save_edit": "保存编辑",
+  "msg": "提示",
+  "the": "正在处理,请稍候...",
+  "list_empty": "对象列表为空，无法继续!",
   "management_action": "管理",
   "manage": "管理",
   "stop_1": "停止",
