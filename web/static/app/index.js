@@ -1357,8 +1357,15 @@ function renderOverviewFromCache() {
             if ($overview.find('[data-overview-plugin="' + item.pname + '"]').length > 0) {
                 continue;
             }
+            // 概览卡片名称一律重新走多语言解析，避免旧的 localStorage 缓存把中文名带进外文界面
+            var cachedName = item.show_name || item.pname;
+            if (item.pname == 'op_waf') {
+                cachedName = t('index.yufeng_op_firewall', '御风OP防火墙');
+            } else if (item.pname == 'fail2ban') {
+                cachedName = t('index.yufeng_layer_firewall', '御风F2B底层防火墙');
+            }
             var cardHtml = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3" data-overview-plugin="' + item.pname + '">\
-                    <p class="name c9">' + (item.show_name || item.pname) + '</p>\
+                    <p class="name c9">' + cachedName + '</p>\
                     <div class="val"><a class="btlink" onclick="' + (item.onclick_str || '') + '">' + (item.count !== undefined ? item.count : '0') + '</a></div>\
                 </li>';
             $overview.append(cardHtml);
@@ -1396,7 +1403,7 @@ function loadKeyDataCount(){
 
             var show_name = pname;
             if (pname == 'op_waf') {
-                show_name = '御风OP防火墙';
+                show_name = t('index.yufeng_op_firewall', '御风OP防火墙');
             } else if (pname == 'mysql') {
                 show_name = 'MySQL';
             } else if (pname == 'gogs') {
@@ -1404,7 +1411,7 @@ function loadKeyDataCount(){
             } else if (pname == 'gitea') {
                 show_name = 'Gitea';
             } else if (pname == 'fail2ban') {
-                show_name = '御风F2B底层防火墙';
+                show_name = t('index.yufeng_layer_firewall', '御风F2B底层防火墙');
             } else if (pname == 'pg_docker') {
                 show_name = 'PostgreSQL (Docker)';
             }
