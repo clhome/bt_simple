@@ -66,11 +66,11 @@ fi
 PACKAGES=(
     chrony ntpdate net-tools locales wget curl lsof unzip tar cron expect
     lrzsz xz-utils pv bc python3-pip python3-dev python3-venv
-    libncurses5 libncurses5-dev bzip2 p7zip-full libnuma1 libaio1 libaio-dev
+    bzip2 p7zip-full libnuma1 libaio-dev
     libmecab2 libmm-dev dnsutils apache2-utils numactl xxd sshpass libbrotli-dev
     libvpx-dev libxpm-dev libwebp-dev libfreetype6 libfreetype6-dev libjpeg-dev libpng-dev
     build-essential devscripts autoconf gcc patchelf libffi-dev cmake automake make webp scons
-    liblzma-dev libpcre3 libpcre3-dev openssl libssl-dev libargon2-dev
+    liblzma-dev openssl libssl-dev libargon2-dev
     libmemcached-dev libsasl2-dev imagemagick libmagickcore-dev libmagickwand-dev
     libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev
     libgmp-dev libreadline-dev libpq-dev pkg-config libevent-dev
@@ -82,6 +82,17 @@ PACKAGES=(
 
 if [ "$VERSION_ID" != "9" ]; then
     PACKAGES+=(libjpeg62-turbo-dev)
+fi
+
+# Debian 13 (trixie) 包名适配：旧包已移除或更名
+if [ "$VERSION_ID" == "13" ]; then
+    # libncurses5/libncurses5-dev 已移除，改用 libncurses-dev
+    # libpcre3/libpcre3-dev (PCRE1) 已 EOL，改用 libpcre2-dev
+    # libaio1 已更名为 libaio1t64
+    # which 默认不再安装（大量脚本依赖），显式补装
+    PACKAGES+=(libncurses-dev libpcre2-dev libaio1t64 which)
+else
+    PACKAGES+=(libncurses5 libncurses5-dev libpcre3 libpcre3-dev libaio1 which)
 fi
 
 smart_apt_install "${PACKAGES[@]}"

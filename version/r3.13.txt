@@ -1,0 +1,6 @@
+# Python 3.13 (Debian 13 trixie 默认) 补充约束
+# scripts/lib.sh 在安装主 requirements.txt 之后按 r${major}.${minor}.txt 追加安装，
+# 此处的条目会覆盖主文件中的同名包，用于收紧/锁定 3.13 下已验证可用的版本。
+# setuptools>=75 修复 Python 3.13 下部分 sdist 构建对 distutils 兼容 shim 的依赖问题
+setuptools>=75.0.0
+wheel>=0.43.0

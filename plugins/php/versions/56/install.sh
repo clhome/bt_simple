@@ -12,6 +12,14 @@ sourcePath=${serverPath}/source
 sysName=`uname`
 SYS_ARCH=`arch`
 
+OSID=$(grep -E "^ID=" /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')
+OSVER=$(grep -E "^VERSION_ID=" /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')
+# Debian 13 (trixie) 上 PHP 5.x 依赖的老 OpenSSL/编译器组合未验证且基本无法编译，明确标记不支持
+if [ "$OSID" == "debian" ] && [ "$OSVER" == "13" ];then
+    echo "PHP 5.6 不支持在 Debian 13 (trixie) 上安装（依赖的老版本 OpenSSL/工具链已不可用），请选择 PHP 7.2+"
+    exit 1
+fi
+
 version=5.6.40
 PHP_VER=56
 md5_file_ok=c7dde3afb16ce7b761abf2805125d372

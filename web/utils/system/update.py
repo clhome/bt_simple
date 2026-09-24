@@ -31,8 +31,13 @@ def versionDiff(now, new):
         if len(new_list) > 3:
             return 'test'
 
-        from distutils.version import LooseVersion
-        if LooseVersion(new) > LooseVersion(now):
+        # distutils 已在 Python 3.12 中移除，优先使用 packaging.version；
+        # packaging 缺失时退回 distutils（Python < 3.12），保证旧环境兼容
+        try:
+            from packaging.version import Version
+        except ImportError:
+            from distutils.version import LooseVersion as Version
+        if Version(new) > Version(now):
             return 'new'
     except Exception as _e:
         pass
