@@ -258,12 +258,20 @@ def _lookup_message(key, lang):
     if key.startswith("k_"):
         return None
 
-    # 1. 查找 public.json
+    # 1. 查找 log.json（后端专属的「操作日志消息 / 类型 / 审计标题」词典）
+    #    键为语义化平面键：FILE_SAVE_SUCCESS / TYPE_FILE / TITLE_AUTH ...
+    #    必须先于 public.json：两者存在 47 个同名平面键（如 FILE_SAVE_SUCCESS），
+    #    而 log.json 才是操作日志的权威文案（public.json 是通用提示词的旧快照）。
+    lg = get_cached_json("log", lang)
+    if key in lg and isinstance(lg[key], str):
+        return lg[key]
+
+    # 2. 查找 public.json
     pub = get_cached_json("public", lang)
     if key in pub and isinstance(pub[key], str):
         return pub[key]
 
-    # 2. 查找 server.json
+    # 3. 查找 server.json
     srv = get_cached_json("server", lang)
     if key in srv and isinstance(srv[key], str):
         return srv[key]

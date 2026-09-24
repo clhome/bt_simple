@@ -380,7 +380,7 @@ def delFtp():
     pftpReload()
     conn = pftpDB()
     conn.where("id=?", (args['id'],)).delete()
-    yf.writeLog('TYPE_FTP', 'FTP_DEL_SUCCESS', (args['username'],))
+    yf.writeLog('FTP管理', '删除FTP用户[{1}]成功!', (args['username'],))
     return 'ok'
 
 

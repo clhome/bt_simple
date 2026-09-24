@@ -18,6 +18,7 @@ from admin.user_login_check import panel_login_required
 import core.yf as yf
 import utils.adult_log as adult_log
 import thisdb
+from utils.log_i18n import translate_log_type, translate_log_message
 
 # 日志页面
 blueprint = Blueprint('logs', __name__, url_prefix='/logs', template_folder='../../templates')
@@ -36,6 +37,12 @@ def get_log_list():
     search = request.form.get('search', '').strip()
 
     info = thisdb.getLogsList(page=int(p),size=int(size), search=search)
+
+    # 操作日志落库时保存的是中文原文（历史记录亦然），在输出层统一
+    # 按当前语言渲染「操作类型」与「详情」，切语言无需重写数据库。
+    for item in info['list']:
+        item['type'] = translate_log_type(item.get('type'))
+        item['log'] = translate_log_message(item.get('log'))
 
     data = {}
     data['data'] = info['list']

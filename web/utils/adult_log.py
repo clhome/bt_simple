@@ -307,51 +307,53 @@ def getAuditLogsName(log_name):
         return yf.returnData(True, 'ok!', result)
 
 def getLogsTitle(log_name):
+    from core.i18n import t as _t
+
     log_name = log_name.replace('.1', '')
     if log_name in ['mw-update.log', 'yf-update.log']:
-        return '面板更新日志'
+        return _t('TITLE_PANEL_UPDATE')
     if log_name in ['mw-install.log', 'yf-install.log']:
-        return '面板安装日志'
+        return _t('TITLE_PANEL_INSTALL')
     if log_name in ['auth.log', 'secure'] or log_name.find('auth.') == 0:
-        return '授权日志'
+        return _t('TITLE_AUTH')
     if log_name in ['dmesg'] or log_name.find('dmesg') == 0:
-        return '内核缓冲区日志'
+        return _t('TITLE_DMESG')
     if log_name in ['syslog'] or log_name.find('syslog') == 0:
-        return '系统日志'
+        return _t('TITLE_SYSLOG')
     if log_name in ['rsyncd.log']:
-        return '远程同步日志'
+        return _t('TITLE_RSYNCD')
     if log_name in ['btmp']:
-        return '失败的登录记录'
+        return _t('TITLE_BTMP')
     if log_name in ['utmp', 'wtmp']:
-        return '登录和重启记录'
+        return _t('TITLE_WTMP')
     if log_name in ['lastlog']:
-        return '用户最后登录'
+        return _t('TITLE_LASTLOG')
     if log_name in ['yum.log']:
-        return 'yum包管理器日志'
+        return _t('TITLE_YUM')
     if log_name in ['anaconda.log']:
-        return 'Anaconda日志'
+        return _t('TITLE_ANACONDA')
     if log_name in ['dpkg.log']:
-        return 'dpkg日志'
+        return _t('TITLE_DPKG')
     if log_name in ['daemon.log']:
-        return '系统后台守护进程日志'
+        return _t('TITLE_DAEMON')
     if log_name in ['boot.log']:
-        return '启动日志'
+        return _t('TITLE_BOOT')
     if log_name in ['kern.log']:
-        return '内核日志'
+        return _t('TITLE_KERN')
     if log_name in ['maillog', 'mail.log']:
-        return '邮件日志'
+        return _t('TITLE_MAIL')
     if log_name.find('Xorg') == 0:
-        return 'Xorg日志'
+        return _t('TITLE_XORG')
     if log_name in ['cron.log']:
-        return '定时任务日志'
+        return _t('TITLE_CRON')
     if log_name in ['alternatives.log']:
-        return '更新替代信息'
+        return _t('TITLE_ALTERNATIVES')
     if log_name in ['debug']:
-        return '调试信息'
+        return _t('TITLE_DEBUG')
     if log_name.find('apt') == 0:
-        return 'apt-get相关日志'
+        return _t('TITLE_APT')
     if log_name.find('installer') == 0:
-        return '系统安装相关日志'
+        return _t('TITLE_INSTALLER')
     if log_name in ['messages']:
-        return '综合日志'
-    return '{}日志'.format(log_name.split('.')[0])
+        return _t('TITLE_MESSAGES')
+    return _t('TITLE_GENERIC', log_name.split('.')[0])

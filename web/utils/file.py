@@ -121,7 +121,7 @@ def mvFile(sfile, dfile):
 
     try:
         shutil.move(sfile, dfile)
-        msg = yf.getInfo('移动或重名命文件[{1}]到[{2}]成功!', (sfile, dfile,))
+        msg = yf.getInfo('移动或重命名文件[{1}]到[{2}]成功!', (sfile, dfile,))
         yf.writeLog('文件管理', msg)
         return yf.returnData(True, 'file.py_msg_fbe5a8')
     except Exception as e:
