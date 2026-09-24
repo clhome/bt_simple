@@ -16,54 +16,31 @@ import time
 import json
 import threading
 import multiprocessing
-import ipaddress
-import urllib.parse
 
 import core.yf as yf
 import thisdb
 
 
 def _is_private_url(url):
+    """兼容旧调用：URL 是否解析为内网/保留地址（含 DNS 解析校验）。
+
+    校验组件异常时按“不安全”处理，绝不放过。
+    """
     try:
-        parsed = urllib.parse.urlparse(url.strip())
-        if parsed.scheme not in ('http', 'https'):
-            return True
-        host = parsed.hostname
-        if not host:
-            return True
-        # 阻断内网/回环/云元数据
-        try:
-            ip = ipaddress.ip_address(host)
-            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                return True
-            if str(ip) == '169.254.169.254':
-                return True
-        except ValueError:
-            # 域名形式：阻断常见内网域名
-            low = host.lower()
-            if low in ('localhost', 'metadata.google.internal'):
-                return True
-            if low.startswith('10.') or low.startswith('192.168.'):
-                return True
-        # 额外阻断 169.254.x.x 字符串形式的元数据
-        if '169.254.' in host:
-            return True
-        return False
+        from utils.urlguard import validate_url
+        ok, _err, _meta = validate_url(url, resolve=True)
+        return not ok
     except Exception:
         return True
 
 
 def _validate_to_url(url):
-    if not url or not isinstance(url, str):
-        return False, 'URL不能为空'
-    url = url.strip()
-    if len(url) > 2048:
-        return False, 'URL过长'
-    if not url.startswith(('http://', 'https://')):
-        return False, '仅允许 http/https 协议'
-    if _is_private_url(url):
-        return False, '禁止请求内网/回环/元数据地址（SSRF 防护）'
-    return True, 'OK'
+    try:
+        from utils.urlguard import validate_url
+        ok, err, _meta = validate_url(url, resolve=True)
+        return ok, (err if not ok else 'OK')
+    except Exception as e:
+        return False, 'URL安全校验失败: %s' % e
 
 
 class crontab(object):
@@ -752,14 +729,24 @@ fi
                 shell = wheres[stype]
             except Exception as _e:
                 if stype == 'toUrl':
-                    # SSRF 已在 cronCheck 拦截，此处二次校验并加 --noproxy 禁止重定向到私网
+                    # SSRF 纵深防御：
+                    #   1. cronCheck 创建任务时已解析域名并拒绝私网；
+                    #   2. 运行时由 urlguard 再次解析，并把解析结果用 curl --resolve
+                    #      固定，封堵“校验后 DNS 被改写（DNS Rebinding）”的时间窗。
                     raw_url = str(param.get('url_address', '')).strip()
-                    ok, _ = _validate_to_url(raw_url)
+                    ok, _err = _validate_to_url(raw_url)
                     if not ok:
                         shell = head + "echo 'SSRF blocked: private URL not allowed' && exit 1"
                     else:
                         safe_url = raw_url.replace("'", "'\\''")
-                        shell = head + "curl -sS --connect-timeout 10 -m 60 --noproxy '*' '" + safe_url + "'"
+                        guard_py = yf.getPanelDir() + '/web/utils/urlguard.py'
+                        shell = head + (
+                            "RESOLVE_ARG=$(python3 '" + guard_py + "' '" + safe_url + "') || "
+                            "{ echo 'SSRF blocked: private or unresolvable URL'; exit 1; }\n"
+                            "RESOLVE_OPT=''\n"
+                            'if [ -n "$RESOLVE_ARG" ]; then RESOLVE_OPT="--resolve $RESOLVE_ARG"; fi\n'
+                            "curl -sS --connect-timeout 10 -m 60 --noproxy '*' $RESOLVE_OPT '" + safe_url + "'"
+                        )
                 else:
                     shell = head + param['sbody'].replace("\r\n", "\n")
 

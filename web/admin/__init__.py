@@ -332,8 +332,18 @@ def check_socketio_origin(origin):
 socketio = SocketIO(logger=False,
     engineio_logger=False,
     cors_allowed_origins=check_socketio_origin,  # 仅允许同源与可信面板域名，杜绝 CSWSH 跨站劫持
-    async_mode='threading')
+    async_mode='threading',
+    allow_upgrades=True)  # 协议升级到 WebSocket（安装 simple-websocket 后 threading 模式即可真 WS）
 socketio.init_app(app)
+
+try:
+    # 启动自检：threading 模式只有在 simple-websocket 可用时才提供真正的 WebSocket，
+    # 否则 webssh 会退化为长轮询（高延迟）。这里只记录，不阻断启动。
+    import engineio.async_drivers.threading as _eio_threading
+    app.logger.info('SocketIO websocket support: %s',
+                    getattr(_eio_threading, '_websocket_available', 'unknown'))
+except Exception:
+    pass
 
 @socketio.on('webssh_websocketio')
 def webssh_websocketio(data):

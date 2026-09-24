@@ -38,6 +38,9 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
         return yf.returnData(False, 'file.py_msg_302ba9')
 
     abs_path = os.path.abspath(path)
+    ok, reason = safePath(abs_path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     target_file = os.path.abspath(os.path.join(abs_path, clean_name))
     if not target_file.startswith(abs_path + os.sep) and target_file != os.path.join(abs_path, clean_name):
         return yf.returnData(False, 'file.py_msg_302ba9')
@@ -103,6 +106,13 @@ def mvFile(sfile, dfile):
     if not checkDir(sfile):
         return yf.returnData(False, 'FILE_DANGER')
 
+    ok, reason = safePath(sfile)
+    if not ok:
+        return yf.returnData(False, reason)
+    ok, reason = safePath(dfile, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
+
 
     try:
         pass
@@ -120,6 +130,10 @@ def mvFile(sfile, dfile):
 def unzip(sfile, dfile, stype, path):
     if dfile == '' or dfile == '/':
         return yf.returnData(False, 'file.py_msg_960516')
+
+    ok, reason = safePath(dfile, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
 
     if not os.path.exists(sfile):
         return yf.returnData(False, 'file.py_msg_e0fb06')
@@ -147,6 +161,10 @@ def unzip(sfile, dfile, stype, path):
 def uncompress(sfile, dfile, path):
     if dfile == '' or dfile == '/':
         return yf.returnData(False, 'file.py_msg_960516')
+
+    ok, reason = safePath(dfile, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
 
     if not os.path.exists(sfile):
         return yf.returnData(False, 'file.py_msg_e0fb06')
@@ -220,6 +238,9 @@ def setBatchData(path, stype, access, user, data):
         for key in json.loads(data):
             try:
                 filename = path + '/' + key
+                ok, reason = safePath(filename, write=True)
+                if not ok:
+                    return yf.returnData(False, reason)
                 if not checkDir(filename):
                     return yf.returnData(False, 'FILE_DANGER')
                 
@@ -253,6 +274,10 @@ def setBatchData(path, stype, access, user, data):
                 topath = filename
                 if not os.path.exists(filename):
                     continue
+
+                ok, reason = safePath(filename, write=True)
+                if not ok:
+                    return yf.returnData(False, reason)
 
                 i += 1
                 yf.writeSpeed(key, i, l)
@@ -297,8 +322,9 @@ def setBatchData(path, stype, access, user, data):
 
 def batchPaste(path, stype):
     from admin import session
-    if not checkDir(path):
-        return yf.returnData(False, 'file.py_msg_27af9b')
+    ok, reason = safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     i = 0
     myfiles = json.loads(session['selected']['data'])
     l = len(myfiles)
@@ -311,6 +337,13 @@ def batchPaste(path, stype):
                 sfile = session['selected'][
                     'path'] + '/' + key
                 dfile = path + '/' + key
+
+                ok, reason = safePath(sfile)
+                if not ok:
+                    continue
+                ok, reason = safePath(dfile, write=True)
+                if not ok:
+                    continue
 
                 if os.path.isdir(sfile):
                     shutil.copytree(sfile, dfile)
@@ -332,6 +365,13 @@ def batchPaste(path, stype):
                     'path'] + '/' + key
                 dfile = path + '/' + key
 
+                ok, reason = safePath(sfile)
+                if not ok:
+                    continue
+                ok, reason = safePath(dfile, write=True)
+                if not ok:
+                    continue
+
                 shutil.move(sfile, dfile)
             except Exception as _e:
                 continue
@@ -345,6 +385,12 @@ def batchPaste(path, stype):
 
 
 def zip(sfile, dfile, stype, path):
+    ok, reason = safePath(dfile, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
+    ok, reason = safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     tmps = yf.getPanelDir() + '/logs/panel_exec.log'
     q_path = yf.shlexQuote(path)
     q_dfile = yf.shlexQuote(dfile)
@@ -436,6 +482,13 @@ def copyFile(src_file, dst_file):
     if src_file == dst_file:
         return yf.returnJson(False, 'file.py_msg_58a046')
 
+    ok, reason = safePath(src_file)
+    if not ok:
+        return yf.returnJson(False, reason)
+    ok, reason = safePath(dst_file, write=True)
+    if not ok:
+        return yf.returnJson(False, reason)
+
     if not os.path.exists(src_file):
         return yf.returnJson(False, 'file.py_msg_e0fb06')
 
@@ -496,6 +549,9 @@ def setFileAccept(filename):
 
 def createFile(file_path):
     try:
+        ok, reason = safePath(file_path, write=True)
+        if not ok:
+            return yf.returnData(False, reason)
         if not checkFileName(file_path):
             return yf.returnData(False, 'file.py_msg_4472a5')
         if os.path.exists(file_path):
@@ -513,6 +569,9 @@ def createFile(file_path):
 
 def createDir(path):
     try:
+        ok, reason = safePath(path, write=True)
+        if not ok:
+            return yf.returnData(False, reason)
         if not checkFileName(path):
             return yf.returnData(False, 'file.py_msg_e89037')
         if os.path.exists(path):
@@ -558,7 +617,95 @@ def checkDir(path):
         yf.getRootDir())
     return not path in sense_dir
 
+
+# 敏感系统路径黑名单：不允许通过文件管理器读写/删除
+_SENSITIVE_PATHS = (
+    '/etc/passwd', '/etc/shadow', '/etc/gshadow', '/etc/sudoers',
+    '/etc/sudoers.d', '/etc/ssh', '/etc/pam.d', '/etc/ld.so.preload',
+    '/etc/ld.so.conf.d', '/etc/crontab', '/etc/cron.d', '/etc/cron.daily',
+    '/etc/cron.hourly', '/etc/cron.weekly', '/etc/cron.monthly',
+    '/var/spool/cron', '/root/.ssh', '/root/.gnupg',
+    '/etc/systemd/system', '/lib/systemd/system', '/usr/lib/systemd/system',
+)
+
+# 只允许“精确命中”的系统根目录（不封其子目录，保留 /www/wwwroot 等正常运维）
+_SENSITIVE_EXACT = {
+    '/', '/etc', '/root', '/boot', '/bin', '/sbin', '/lib', '/lib64',
+    '/usr', '/sys', '/proc', '/dev', '/var', '/opt', '/srv', '/media',
+    '/mnt', '/www', '/www/server',
+}
+
+# 面板自身关键资产（相对面板根目录），防止文件管理器被用作自我提权/自毁
+_PANEL_SENSITIVE_REL = (
+    '/data/', '/ssl/', '/web/admin/', '/web/core/', '/bin/', '/scripts/',
+)
+
+
+def _posix_norm(path):
+    """把路径统一成 POSIX 风格并做词法规范化（兼容 Windows 测试环境）。"""
+    import posixpath
+    p = str(path).replace('\\', '/')
+    norm = posixpath.normpath(p)
+    # 去掉 Windows 盘符前缀（F:/etc/passwd -> /etc/passwd）
+    if len(norm) >= 2 and norm[1] == ':':
+        norm = norm[2:] if len(norm) > 2 else '/'
+    return norm or '/'
+
+
+def safePath(path, write=False):
+    """文件管理器统一路径安全校验。返回 (ok, reason)。
+
+    1. POSIX 词法规范化（消除 .. 与重复分隔符），拒绝空/NUL/根目录；
+    2. 拒绝访问敏感系统文件与目录（含软链 realpath 指向）；
+    3. 拒绝直接操作面板自身的敏感数据/密钥/核心代码。
+
+    说明：本面板以 root 运行，文件管理本身需要较高权限，这里是纵深防御，
+    用于堵住 CSRF/会话盗用等场景下的“一击致毁”，不限制 /www、站点根等正常运维路径。
+    """
+    if not path or not isinstance(path, str) or '\x00' in path:
+        return False, 'FILE_DANGER'
+    try:
+        lexical = _posix_norm(path)
+    except Exception:
+        return False, 'FILE_DANGER'
+    if lexical in ('', '/', '.', '..'):
+        return False, 'FILE_DANGER'
+
+    abs_path = os.path.abspath(os.path.normpath(path))
+    try:
+        real_path = os.path.realpath(abs_path)
+    except Exception:
+        real_path = abs_path
+
+    targets = {lexical, _posix_norm(abs_path), _posix_norm(real_path)}
+
+    for target in targets:
+        low = target.rstrip('/') or '/'
+        if low in _SENSITIVE_EXACT:
+            return False, 'FILE_DANGER'
+        for blocked in _SENSITIVE_PATHS:
+            if low == blocked or low.startswith(blocked + '/'):
+                return False, 'FILE_DANGER'
+
+    try:
+        panel_dir = _posix_norm(os.path.realpath(yf.getPanelDir())).rstrip('/')
+    except Exception:
+        panel_dir = ''
+    if panel_dir and panel_dir != '/':
+        for target in targets:
+            if target == panel_dir or target.startswith(panel_dir + '/'):
+                rel = target[len(panel_dir):] or '/'
+                for blocked_rel in _PANEL_SENSITIVE_REL:
+                    if rel == blocked_rel.rstrip('/') or rel.startswith(blocked_rel):
+                        return False, 'FILE_DANGER'
+
+    return True, 'OK'
+
+
 def getFileBody(path):
+    ok, reason = safePath(path)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_d9523e', (path,))
 
@@ -589,6 +736,9 @@ def getFileBody(path):
     return yf.returnData(True, 'OK', data)
 
 def saveBody(path, data, encoding):
+    ok, reason = safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_d9523e')
     try:
@@ -948,6 +1098,9 @@ def getAccess(fname):
 def setFileAccess(filename,user,access):
     sall = '-R'
     try:
+        ok, reason = safePath(filename, write=True)
+        if not ok:
+            return yf.returnData(False, reason)
         if not checkDir(filename):
             return yf.returnData(False, 'file.py_msg_e28c2c')
 
@@ -1045,6 +1198,9 @@ def getOccupyingProcess(path):
     return "(请检查目录/文件权限或是否被占用)"
 
 def fileDelete(path):
+    ok, reason = safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_e0fb06')
 
@@ -1083,6 +1239,9 @@ def fileDelete(path):
         return yf.returnData(False, msg)
 
 def dirDelete(path):
+    ok, reason = safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_639dba')
 

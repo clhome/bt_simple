@@ -231,6 +231,9 @@ def set_batch_data():
 @panel_login_required
 def upload_file():
     path = request.args.get('path', '')
+    ok, reason = file.safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         os.makedirs(path)
         file.setMode(path)
@@ -362,6 +365,14 @@ def download_file():
     filename = os.path.basename(raw_filename.replace('\\', '/')).strip()
     if not filename or not yf.fileNameCheck(filename):
         return yf.returnData(False, 'file.py_msg_4472a5')
+
+    try:
+        from utils.urlguard import validate_url
+        ok, reason, _meta = validate_url(url, resolve=True)
+        if not ok:
+            return yf.returnData(False, reason)
+    except Exception as _ue:
+        return yf.returnData(False, 'URL安全校验失败: %s' % _ue)
 
     abs_path = os.path.abspath(path)
     target_file = os.path.abspath(os.path.join(abs_path, filename))

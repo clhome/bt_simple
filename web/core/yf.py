@@ -2007,7 +2007,7 @@ def _get_http_pool():
                 import urllib3 as _u3
                 _u3.disable_warnings()
                 ctx = _insecure_ssl_context()
-                _HTTP_POOL = _u3.PoolManager(cert_reqs='CERT_NONE', retries=False, timeout=urllib3.Timeout(connect=5, read=10), maxsize=10, block=False, ssl_context=ctx)
+                _HTTP_POOL = _u3.PoolManager(cert_reqs='CERT_NONE', retries=False, timeout=urllib3.Timeout(connect=5, read=10), maxsize=32, block=True, ssl_context=ctx)
                 return _HTTP_POOL
             except Exception:
                 _HTTP_POOL = False

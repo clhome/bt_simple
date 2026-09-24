@@ -11,6 +11,7 @@
 
 import io
 import time
+import hmac
 
 from flask import Blueprint, render_template
 from flask import make_response
@@ -52,6 +53,105 @@ def setErrorNum(key, empty=False, expire=3600):
     cache.set(key, num + 1, expire)
     return True
 
+
+# ------------------------------------------------------------------
+# 登录限流 / 密码校验公共逻辑（do_login 与 verify_login 共用，避免
+# 2FA 第二步成为绕过验证码与封禁的旁路）
+# ------------------------------------------------------------------
+LOGIN_FAIL_LIMIT = 5           # 连续失败次数上限
+LOGIN_LIMIT_TTL = 10000        # 失败计数窗口（秒）
+LOGIN_BAN_TTL = 3600          # 触发上限后的封禁时长（秒）
+
+
+def _client_ip():
+    try:
+        return yf.getClientIp()
+    except Exception:
+        return (request.remote_addr or '127.0.0.1')
+
+
+def _login_ban_key(ip):
+    return 'ban_' + ip
+
+
+def _login_limit_key(ip):
+    return 'login_limit_' + ip
+
+
+def _is_banned(ip):
+    return bool(cache.get(_login_ban_key(ip)))
+
+
+def _register_login_failure(ip):
+    """记录一次登录失败。
+
+    返回 (是否已封禁, 剩余可尝试次数)，两个端点的失败计数与封禁完全共享。
+    """
+    limit = cache.get(_login_limit_key(ip))
+    limit = (int(limit) if limit else 0) + 1
+    if limit >= LOGIN_FAIL_LIMIT:
+        cache.set(_login_ban_key(ip), True, timeout=LOGIN_BAN_TTL)
+        cache.delete(_login_limit_key(ip))
+        return True, 0
+    cache.set(_login_limit_key(ip), limit, timeout=LOGIN_LIMIT_TTL)
+    return False, LOGIN_FAIL_LIMIT - limit
+
+
+def _reset_login_failure(ip):
+    cache.delete(_login_limit_key(ip))
+
+
+def _upgrade_password(info, password):
+    try:
+        name = info.get('name') or info.get('username')
+        if name:
+            thisdb.setUserPwdByName(name, password)
+    except Exception:
+        pass
+
+
+def _password_matches(info, password):
+    """校验密码，并即时把遗留弱哈希（MD5/SHA256）升级为 bcrypt。
+
+    MD5 仅作为一次性迁移凭据：命中即回写 bcrypt，不再长期保留弱哈希。
+    """
+    if not info or not password:
+        return False
+    stored = str(info.get('password', '') or '')
+    if not stored:
+        return False
+
+    legacy_md5 = yf.md5(password)
+    if legacy_md5 and hmac.compare_digest(stored, str(legacy_md5)):
+        _upgrade_password(info, password)
+        return True
+
+    try:
+        import hashlib
+        legacy_sha = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        if hmac.compare_digest(stored, legacy_sha):
+            _upgrade_password(info, password)
+            return True
+    except Exception:
+        pass
+
+    try:
+        return bool(yf.checkPwd(password, stored))
+    except Exception:
+        return False
+
+
+def _login_success(info, client_ip):
+    # 登录成功先清空旧会话，防止会话固定（session fixation）
+    session.clear()
+    session['login'] = True
+    session['username'] = info['name']
+    session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
+    try:
+        thisdb.updateUserLoginTime(client_ip)
+    except Exception:
+        pass
+
 def login_temp_user(token):
     if len(token) != 32:
         return '错误的参数!'
@@ -77,6 +177,7 @@ def login_temp_user(token):
 
     yf.M('temp_login').where('id=?',(tmp_data['id'],)).update({"login_time": stime, 'state': 1, 'login_addr': login_addr})
     
+    session.clear()
     session['login'] = True
     session['username'] = user_data['name']
     session['tmp_login'] = True
@@ -180,36 +281,50 @@ def check_login():
 def verifyLogin():
     import pyotp
 
+    admin_close = thisdb.getOption('admin_close')
+    if admin_close == 'yes':
+        return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
+
+    client_ip = _client_ip()
+    if _is_banned(client_ip):
+        return yf.returnJson(-1, 'dashboard.py_msg_40ded2')
+
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
 
-    info = thisdb.getUserByName(username)
-    is_correct = False
-    if info:
-        password_md5 = yf.md5(password)
-        if info['password'] == password_md5:
-            is_correct = True
-        elif yf.checkPwd(password, info['password']):
-            is_correct = True
-
-    if not is_correct:
-        return yf.returnJson(-1, 'admin.py_msg_405192')
-
-    auth = request.form.get('auth', '').strip()    
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
-    if two_step_verification['open']:
-        sec = yf.deDoubleCrypt('mdserver-web', two_step_verification['secret'])
-        totp = pyotp.TOTP(sec)
-        if totp.verify(auth):
-            session['login'] = True
-            session['username'] = info['name']
-            session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
+    # 未开启二步验证时该端点不接受登录，防止其成为绕过验证码/限流的旁路
+    if not two_step_verification.get('open'):
+        return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
 
-            client_ip = yf.getClientIp()
-            thisdb.updateUserLoginTime(client_ip)
-            yf.writeLog('用户登录', '用户[{1}]通过二次验证登录成功, 登录IP:{2}', (info['name'], client_ip))
-            return yf.returnData(1, 'dashboard.py_msg_ba7c40')
-    return yf.returnData(-1, 'admin.py_msg_0d0d9e')
+    info = thisdb.getUserByName(username)
+    if not _password_matches(info, password):
+        blocked, _remain = _register_login_failure(client_ip)
+        yf.writeLog('用户登录', '二次验证密码校验失败,帐号:{1},登录IP:{2}', (username, client_ip))
+        if blocked:
+            return yf.returnJson(-1, 'dashboard.py_msg_b5cdb3')
+        # 与验证码/密码错误统一文案，避免枚举“用户名密码是否正确”的旁路
+        return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
+
+    auth = request.form.get('auth', '').strip()
+    totp_ok = False
+    try:
+        sec = yf.deDoubleCrypt('mdserver-web', two_step_verification['secret'])
+        totp_ok = bool(pyotp.TOTP(sec).verify(auth, valid_window=1))
+    except Exception:
+        totp_ok = False
+
+    if not totp_ok:
+        blocked, _remain = _register_login_failure(client_ip)
+        yf.writeLog('用户登录', '二次验证码校验失败,帐号:{1},登录IP:{2}', (username, client_ip))
+        if blocked:
+            return yf.returnJson(-1, 'dashboard.py_msg_b5cdb3')
+        return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
+
+    _reset_login_failure(client_ip)
+    _login_success(info, client_ip)
+    yf.writeLog('用户登录', '用户[{1}]通过二次验证登录成功, 登录IP:{2}', (info['name'], client_ip))
+    return yf.returnData(1, 'dashboard.py_msg_ba7c40')
 
 # 执行登录操作
 @blueprint.route('/do_login', endpoint='do_login', methods=['POST'])
@@ -218,18 +333,15 @@ def do_login():
     if admin_close == 'yes':
         return yf.returnData(False, 'dashboard.py_msg_fefb49')
 
-    client_ip = yf.getClientIp()
-    ban_key = 'ban_' + client_ip
-    if cache.get(ban_key):
+    client_ip = _client_ip()
+    if _is_banned(client_ip):
         return yf.returnData(False, 'dashboard.py_msg_40ded2')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
     code = request.form.get('code', '').strip()
 
-    login_cache_count = 5
-    client_ip = yf.getClientIp()
-    login_limit_key = 'login_limit_' + client_ip
+    login_limit_key = _login_limit_key(client_ip)
     login_cache_limit = cache.get(login_limit_key)
 
     # 验证码安全加固：存在失败记录或已调出验证码时，强制要求提交有效验证码，防绕过与重放攻击
@@ -237,57 +349,31 @@ def do_login():
     if need_code:
         expected_code = session.pop('code', None)
         code_str = str(code).strip().lower()
-        if not expected_code or not code_str or expected_code != yf.md5(code_str):
-            if login_cache_limit == None:
-                login_cache_limit = 1
-            else:
-                login_cache_limit = int(login_cache_limit) + 1
-
-            if login_cache_limit >= login_cache_count:
-                cache.set(ban_key, True, timeout=3600)  # 封禁1小时
+        code_md5 = yf.md5(code_str) or ''
+        if not expected_code or not code_str or not hmac.compare_digest(str(expected_code), str(code_md5)):
+            blocked, remain = _register_login_failure(client_ip)
+            if blocked:
                 return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
-
-            cache.set(login_limit_key, login_cache_limit, timeout=10000)
-            login_err_msg = yf.getInfo("验证码错误或已失效,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
+            login_err_msg = yf.getInfo("验证码错误或已失效,您还可以尝试[{1}]次!", (str(remain),))
             yf.writeLog('用户登录', login_err_msg)
             return yf.returnData(False, login_err_msg)
 
     info = thisdb.getUserByName(username)
-    is_correct = False
-    if info:
-        password_md5 = yf.md5(password)
-        if info['password'] == password_md5:
-            is_correct = True
-            # 平滑迁移到 bcrypt
-            thisdb.setUserPwdByName(username, password)
-        elif yf.checkPwd(password, info['password']):
-            is_correct = True
 
-    if not is_correct:
+    if not _password_matches(info, password):
+        blocked, remain = _register_login_failure(client_ip)
         msg = yf.getInfo("<a style='color: red'>用户名或密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
-        if login_cache_limit == None:
-            login_cache_limit = 1
-        else:
-            login_cache_limit = int(login_cache_limit) + 1
-
-        if login_cache_limit >= login_cache_count:
-            cache.set(ban_key, True, timeout=3600)  # 封禁1小时
+        if blocked:
             return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
-
-        cache.set(login_limit_key, login_cache_limit, timeout=10000)
         yf.writeLog('用户登录', msg)
-        return yf.returnData(-1, yf.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
+        return yf.returnData(-1, yf.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(remain),)))
 
-    cache.delete(login_limit_key)
+    _reset_login_failure(client_ip)
     # 二步验证密钥
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:
         return yf.returnData(2, 'dashboard.py_msg_ec6cfd')
 
-    session['login'] = True
-    session['username'] = info['name']
-    session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
-    
-    thisdb.updateUserLoginTime(client_ip)
+    _login_success(info, client_ip)
     yf.writeLog('用户登录', '用户[{1}]登录成功, 登录IP:{2}', (info['name'], client_ip))
     return yf.returnData(1, 'dashboard.py_msg_c7a8de')

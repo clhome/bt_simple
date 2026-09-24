@@ -189,6 +189,17 @@ def downloadFile(url, filename, task_id=None):
             writeLogs(f"Security Error: Download protocol '{parsed.scheme}' not allowed.", task_id)
             return False
 
+        # SSRF 防护：拒绝解析到内网/回环/保留地址的下载地址
+        try:
+            from utils.urlguard import validate_url
+            _ok, _err, _meta = validate_url(url, resolve=True)
+            if not _ok:
+                writeLogs(f"Security Error: {_err}", task_id)
+                return False
+        except Exception as _ue:
+            writeLogs(f"Security Error: URL security check failed: {_ue}", task_id)
+            return False
+
         target_dir = os.path.dirname(os.path.abspath(filename))
         if not os.path.exists(target_dir):
             os.makedirs(target_dir, exist_ok=True)

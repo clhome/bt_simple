@@ -1,52 +1,84 @@
+# ---------------------------------------------------------------------------------
+# 御风面板（bt_simple）运行依赖
+#
+# 锁定策略（对应《参考/优化260910.md》R2）：
+#   1. 只对“已在代码中实际 import”的包收紧上界（防止升级到不兼容大版本），
+#      不对需要按 Python 版本现场编译的包（gevent/psutil/cryptography 等）做死版本锁定。
+#   2. Flask 2.x 生态必须协同：flask / Werkzeug / Jinja2 / SQLAlchemy 均加上界。
+#   3. 移除代码中从未使用的 flask-session（会话由 Flask 原生签名 Cookie 实现，
+#      见 web/admin/__init__.py 的 SESSION_* 配置，导入的是 flask.session）。
+#   4. WebSocket：保持 gunicorn gthread + async_mode=threading，通过
+#      simple-websocket 让 threading 驱动支持真正的 WebSocket（webssh），
+#      避免切 gevent 后长任务 execShell 阻塞事件循环导致面板整体卡死。
+# ---------------------------------------------------------------------------------
+
 setuptools>=33.1.1
-Werkzeug>=1.0.1
 wheel>=0.37.1
-gunicorn>=21.2.0
-requests>=2.34.2
-urllib3>=1.21.1
-flask>=2.0.3
-flask-session==0.3.2
+packaging
+pip>=22.0.0
+
+# --- Web 框架与模板 -----------------------------------------------------------
+flask>=2.0.3,<3.0.0
+Werkzeug>=1.0.1,<3.0.0
+Jinja2>=2.11.2,<4.0.0
+Flask-Compress
+whitenoise>5.3.0
+
+# --- 实时通信（webssh） -------------------------------------------------------
+# simple-websocket 使 threading 异步模式支持原生 WebSocket（无需 gevent）
+python-engineio>=4.6.0
+python-socketio>=5.8.0
+flask-socketio>=5.3.0
+simple-websocket>=1.0.0
+# gevent/gevent-websocket 仅作为可选的高并发部署路径保留，非默认
+gevent>=22.10.2
+gevent-websocket>=0.10.1
+flask-sockets>=0.2.1
+
+# --- 会话 / 缓存 / 认证 -------------------------------------------------------
 flask-helper==0.19
 flask-bcrypt==1.0.1
 flask-caching>=1.10.1
 cache==1.0.3
-gevent>=22.10.2
-gevent-websocket==0.10.1
+bcrypt
+pyotp
 
-psutil>=5.9.8
-chardet>=4.0.0
-SQLAlchemy>=1.4.54
-Flask-SQLAlchemy>=2.5.1
+# --- 数据库 ---------------------------------------------------------------
+SQLAlchemy>=1.4.54,<2.0.0
+Flask-SQLAlchemy>=2.5.1,<3.0.0
+PyMySQL>=1.0.2
 #Flask-Migrate==4.*
 #Flask-Security-Too==5.5.*; python_version >= '3.10'
 #Flask-Security-Too==5.4.*; python_version <= '3.9'
-pyOpenSSL==26.0.0
-cryptography>=40.0.2
-configparser==5.2.0
-python-engineio>=4.3.2
-python-socketio>=4.2.0
-flask-socketio>=5.2.0
-flask-sockets>=0.2.1
-zmq==0.0.0
-paramiko>=3.4.0
 pymongo
 pymemcache
 redis
-pillow
-Jinja2>=2.11.2
-PyMySQL>=1.0.2
-whitenoise>5.3.0
-tldextract
-pyotp
-pytz
+
+# --- 网络 / 加密 --------------------------------------------------------------
+requests>=2.27.1,<3.0.0
+urllib3>=1.21.1,<3.0.0
+pyOpenSSL==26.0.0
+cryptography>=40.0.2
+paramiko>=3.4.0
+chardet>=4.0.0
+
+# --- 系统 / 工具 --------------------------------------------------------------
+psutil>=5.9.8
+configparser==5.2.0
+gunicorn>=21.2.0
 supervisor
-pyTelegramBotAPI
-telebot
+pytz
 pyyaml
 croniter
-bcrypt
-packaging
-Flask-Compress
+tldextract
+pillow
+zmq==0.0.0
+
+# --- 通知 -------------------------------------------------------------------
+pyTelegramBotAPI
+telebot
+
+# --- 压缩（按 CPU 自适应启用，见 web/core/resources.py） ----------------------
 brotli
 zstd
 zstandard
