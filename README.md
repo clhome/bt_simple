@@ -125,15 +125,15 @@
 
 | 缺失部分 | 位置 | 说明 |
 | --- | --- | --- |
-| `libncurses5` / `libncurses5-dev` | `scripts/install/debian.sh:69` | Debian 13 已移除该包，需改用 `libncurses-dev` |
-| `libpcre3` / `libpcre3-dev` | `scripts/install/debian.sh:73` | PCRE1 已 EOL，需改用 `libpcre2-dev` |
-| `libaio1` | `scripts/install/debian.sh:69` | 已更名为 `libaio1t64`（脚本内已有软链兜底） |
-| `which` 命令依赖 | 全仓约 49 处调用 | Debian 13 默认不安装 `which`，考虑统一改为 `command -v` |
-| 面板更新检测 | `web/utils/system/update.py:34` | 依赖的 `distutils` 已被 Python 3.12 移除，导致**新版本永不提示**（静默失效），考虑改用 `packaging.version` |
-| Python 3.13 依赖分档 | `requirements.txt` / `version/` | 现有分档文件仅覆盖 3.6–3.8，3.13 未验证；且清单中含 14 个零引用的历史依赖 |
+| `libncurses5` / `libncurses5-dev` | ~~`scripts/install/debian.sh:69`~~ ✅ | 已适配：Debian 13 分档改用 `libncurses-dev` |
+| `libpcre3` / `libpcre3-dev` | ~~`scripts/install/debian.sh:73`~~ ✅ | 已适配：Debian 13 分档改用 `libpcre2-dev` |
+| `libaio1` | ~~`scripts/install/debian.sh:69`~~ ✅ | 已适配：Debian 13 分档改用 `libaio1t64`（软链兜底保留） |
+| `which` 命令依赖 | 全仓约 49 处调用 ✅ | 已适配：Debian 13 显式补装 `which` 包（幂等） |
+| 面板更新检测 | ~~`web/utils/system/update.py:34`~~ ✅ | 已适配：优先 `packaging.version`，回退 `distutils` |
+| Python 3.13 依赖分档 | `requirements.txt` / `version/` ✅ | 已适配：新增 `version/r3.13.txt`；14 个零引用历史依赖待独立清理 |
 | MySQL 5.5 源码编译 | `plugins/mysql/versions/5.5/install.sh:163` | 脚本显式判定 trixie 无法编译并退出（设计限制，非 Bug） |
-| PHP 5.2–5.6 源码编译 | — | 老 OpenSSL / 编译器组合在 trixie 上未验证 |
-| Docker 镜像 | `docker/Dockerfile:1` | 基础镜像仍为 `debian:12-slim`，未跟进 13 |
+| PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
+| Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
 
 > **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
 
