@@ -139,7 +139,7 @@ var lan = {
 			"files_release": "]files,release[",
 			"disk_space": "]diskspace!",
 			"the_currently_available_physical": "currentAvailable physical memoryless than 64M,This may cause MySQLautomaticstop,site502 etc.error,Please try to release memory!",
-			"core": "core",
+			"core": "Core(s)",
 			"model": "model:",
 			"graphics_card_temperature": "GPU Temperature:",
 			"video_memory_usage": "VRAM Usage:",

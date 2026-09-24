@@ -126,7 +126,7 @@
     "files_release": "]Datei(en),Freigeben[",
     "disk_space": "]Speicherplatz!",
     "the_currently_available_physical": "Der aktuell verfügbare physische Speicher ist kleiner als 64M, dies kann zuMySQLautomatisch beendet, Website-502-Fehler usw. Versuchen Sie, Speicher freizugeben!",
-    "core": "Kern",
+    "core": "Kern(e)",
     "model": "Modell:",
     "graphics_card_temperature": "Grafikkarten-Temperatur:",
     "video_memory_usage": "Grafikspeicher-Auslastung:",

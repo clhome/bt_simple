@@ -126,7 +126,7 @@
     "files_release": "] fichier, extraire [",
     "disk_space": "]Espace disque !",
     "the_currently_available_physical": "La mémoire physique disponible est actuellement inférieure à 64 Mo, ce qui peut entraîner l'arrêt automatique de MySQL, des erreurs 502 sur le site, etc. Veuillez essayer de libérer de la mémoire !",
-    "core": "Cœur",
+    "core": "Cœur(s)",
     "model": "Référence :",
     "graphics_card_temperature": "Température de la carte graphique :",
     "video_memory_usage": "Taux d'utilisation de la mémoire graphique :",

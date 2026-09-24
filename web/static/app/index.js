@@ -90,7 +90,8 @@ function reMemory() {
         $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html('<span style="display:none">1</span>' + lan.index.memre_ok_0 + ' <img src="/static/img/ings.gif">');
         $.post('/system/rememory', '', function(rdata) {
             var percent = getPercent(rdata.memRealUsed, rdata.memTotal);
-            var memText = Math.round(rdata.memRealUsed) + "/" + Math.round(rdata.memTotal) + " (MB)";
+            // rememory 接口返回 MB，转回字节后按统一格式（1.2G / 7.8G）展示
+            var memText = formatMemPair(rdata.memRealUsed * 1024 * 1024, rdata.memTotal * 1024 * 1024);
             percent = Math.round(percent);
             $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok);
             setCookie("mem-before", memText);
@@ -122,65 +123,148 @@ function getPercent(num, total) {
     return total <= 0 ? "0%" : (Math.round(num / total * 10000) / 100.00);
 }
 
+// ==========================================================================
+// 磁盘分区环形图：骨架屏秒开 + 本地二级缓存 + 实时数据原子替换
+// 数据未返回前先渲染环形框架（与负载/CPU/内存一致），杜绝“磁盘最后才出现”
+// ==========================================================================
+var DISK_CACHE_KEY = 'index_disk_cache';
+
+// 构建单个磁盘分区环形图 HTML（骨架/缓存/实时三态共用，确保样式绝对一致）
+function buildDiskBoxHtml(item) {
+    var percent = parseInt(String(item.size[3]).replace('%', ''), 10);
+    if (isNaN(percent)) percent = 0;
+    var LoadColor = setcolor(percent, false, 75, 90, 95);
+    var mask = '';
+
+    //判断inode信息是否存在
+    if (typeof (item['inodes']) !== 'undefined' && item['inodes']) {
+        var inodeTitle = (window.lan && lan.index && lan.index.inode_info) || t('index.inode_info', 'Inode信息');
+        var totalText = (window.lan && lan.index && lan.index.total) || t('index.total', '总数：');
+        var usedText = (window.lan && lan.index && lan.index.used) || t('index.used', '已使用：');
+        var availText = (window.lan && lan.index && lan.index.available) || t('index.available', '可用：');
+        var usageText = (window.lan && lan.index && lan.index.inode_usage) || t('index.inode_usage', 'Inode使用率：');
+
+        var inodeData = inodeTitle + '<br>' +
+            totalText + item.inodes[0] + '<br>' +
+            usedText + item.inodes[1] + '<br>' +
+            availText + item.inodes[2] + '<br>' +
+            usageText + item.inodes[3];
+        mask = '<div class="mask" style="color:' + LoadColor + '" data="' + inodeData + '"><span>' + percent + '</span>%</div>';
+    } else {
+        mask = '<div class="mask" style="color:' + LoadColor + '"><span>' + percent + '</span>%</div>';
+    }
+
+    return '<li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center diskbox">' +
+        '<h3 class="c5 f15">' + item.path + '</h3>' +
+        '<div class="circle" style="background:' + LoadColor + '">' +
+        '<div class="pie_left">' +
+        '<div class="left"></div>' +
+        '</div>' +
+        '<div class="pie_right">' +
+        '<div class="right"></div>' +
+        '</div>' + mask + '</div>' +
+        '<h4 class="c5 f15">' + item.size[1] + ' / ' + item.size[0] + '</h4>' +
+        '</li>';
+}
+
+// 骨架屏：磁盘数据返回前先绘制空环形框架，杜绝空窗期与后续布局跳动
+function renderDiskSkeleton(count) {
+    var $list = $("#systemInfoList");
+    if (!$list.length) return;
+    $list.find('.diskbox').remove();
+    count = parseInt(count, 10) > 0 ? parseInt(count, 10) : 1;
+    var html = '';
+    for (var i = 0; i < count; i++) {
+        html += '<li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center diskbox disk-skeleton">' +
+            '<h3 class="c5 f15"><span class="disk-sk-bar"></span></h3>' +
+            '<div class="circle" style="background:#e9edf2">' +
+            '<div class="pie_left">' +
+            '<div class="left"></div>' +
+            '</div>' +
+            '<div class="pie_right">' +
+            '<div class="right"></div>' +
+            '</div>' +
+            '<div class="mask"><span class="disk-sk-pct">···</span></div>' +
+            '</div>' +
+            '<h4 class="c5 f15"><span class="disk-sk-bar disk-sk-bar-sm"></span></h4>' +
+            '</li>';
+    }
+    $list.append(html);
+}
+
+// 本地缓存秒开：刷新页面先用上次分区数据绘制，接口返回后再无闪烁刷新
+function renderDiskFromCache() {
+    var cached = null;
+    try {
+        cached = JSON.parse(localStorage.getItem(DISK_CACHE_KEY) || 'null');
+    } catch (e) {
+        cached = null;
+    }
+    if (!cached || !cached.length) return false;
+    var html = '';
+    for (var i = 0; i < cached.length; i++) {
+        var item = cached[i];
+        if (!item || !item.path || !item.size || item.size.length < 4) continue;
+        html += buildDiskBoxHtml(item);
+    }
+    if (!html) return false;
+    $("#systemInfoList").find('.diskbox').remove();
+    $("#systemInfoList").append(html);
+    setImg();
+    return true;
+}
+
+// 磁盘数据统一渲染入口：先移除骨架/旧数据，再原子追加，避免重复与抖动
+function renderDiskList(list, persist) {
+    if (!list || !list.length) return;
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+        html += buildDiskBoxHtml(list[i]);
+    }
+    $("#systemInfoList").find('.diskbox').remove();
+    $("#systemInfoList").append(html);
+    if (persist) {
+        try {
+            localStorage.setItem(DISK_CACHE_KEY, JSON.stringify(list));
+        } catch (e) {}
+    }
+    setImg();
+}
+
+// 0ms 启动占位：优先本地缓存，无缓存则渲染骨架屏
+function initDiskPlaceholder() {
+    if (renderDiskFromCache()) return;
+    renderDiskSkeleton(1);
+}
+
 function getDiskInfo() {
     $.get('/system/disk_info', function(rdata) {
-        var rdata = rdata.data;
-        var dBody;
-        for (var i = 0; i < rdata.length; i++) {
-            var LoadColor = setcolor(parseInt(rdata[i].size[3].replace('%', '')), false, 75, 90, 95);
-
-            //判断inode信息是否存在
-            var inodes = '';
-            if ( typeof(rdata[i]['inodes']) !=='undefined' ){
-                var inodeTitle = (window.lan && lan.index && lan.index.inode_info) || t('index.inode_info', 'Inode信息');
-                var totalText = (window.lan && lan.index && lan.index.total) || t('index.total', '总数：');
-                var usedText = (window.lan && lan.index && lan.index.used) || t('index.used', '已使用：');
-                var availText = (window.lan && lan.index && lan.index.available) || t('index.available', '可用：');
-                var usageText = (window.lan && lan.index && lan.index.inode_usage) || t('index.inode_usage', 'Inode使用率：');
-                
-                var inodeData = inodeTitle + '<br>' +
-                                totalText + rdata[i].inodes[0] + '<br>' +
-                                usedText + rdata[i].inodes[1] + '<br>' +
-                                availText + rdata[i].inodes[2] + '<br>' +
-                                usageText + rdata[i].inodes[3];
-                inodes = '<div class="mask" style="color:' + LoadColor + '" data="' + inodeData + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
-
-                var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
+        var diskList = rdata && rdata.data;
+        if (!diskList || !diskList.length) return;
+        for (var i = 0; i < diskList.length; i++) {
+            if (typeof (diskList[i]['inodes']) !== 'undefined' && diskList[i]['inodes']) {
+                var ipre = parseInt(String(diskList[i].inodes[3]).replace('%', ''), 10);
                 if (ipre > 95) {
                     var partText = (window.lan && lan.index && lan.index.partition) || t('index.partition', '分区[');
                     var exceedText = (window.lan && lan.index && lan.index.inode_usage_exceed) || t('index.inode_usage_exceed', '当前Inode使用率超过');
                     var reachText = (window.lan && lan.index && lan.index.when_the_usage_reaches) || t('index.when_the_usage_reaches', '%，当使用率满100%时将无法在此分区创建文件，请及时清理!');
                     var cleanText = (window.lan && lan.index && lan.index.clean_up_trash) || t('index.clean_up_trash', '[清理垃圾]');
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + partText + rdata[i].path + '] ' + exceedText + ' ' + ipre + reachText + '<a class="btlink" href="javascript:clearSystem();">' + cleanText + '</a></p>');
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + partText + diskList[i].path + '] ' + exceedText + ' ' + ipre + reachText + '<a class="btlink" href="javascript:clearSystem();">' + cleanText + '</a></p>');
                 }
-            } else {
-                inodes = '<div class="mask" style="color:' + LoadColor + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
             }
 
-            if (rdata[i].path == '/' || rdata[i].path == '/www') {
-                if (rdata[i].size[2].indexOf('M') != -1) {
-                    var cleanText = (window.lan && lan.index && lan.index.clean_up_trash) || t('index.clean_up_trash', '[清理垃圾]');
-                    var diskMsg = (window.lan && typeof window.lan.get === 'function' ? lan.get('diskinfo_span_1', [rdata[i].path]) : '磁盘分区[' + rdata[i].path + ']的可用容量小于1GB，这可能会导致MySQL自动停止，面板无法访问等问题，请及时清理！');
+            if (diskList[i].path == '/' || diskList[i].path == '/www') {
+                if (String(diskList[i].size[2]).indexOf('M') != -1) {
+                    var cleanText2 = (window.lan && lan.index && lan.index.clean_up_trash) || t('index.clean_up_trash', '[清理垃圾]');
+                    var diskMsg = (window.lan && typeof window.lan.get === 'function' ? lan.get('diskinfo_span_1', [diskList[i].path]) : '磁盘分区[' + diskList[i].path + ']的可用容量小于1GB，这可能会导致MySQL自动停止，面板无法访问等问题，请及时清理！');
                     $("#messageError").show();
-                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + diskMsg + '<a class="btlink" href="javascript:clearSystem();">' + cleanText + '</a></p>');
-                } 
+                    $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + diskMsg + '<a class="btlink" href="javascript:clearSystem();">' + cleanText2 + '</a></p>');
+                }
             }
-           
-            dBody = '<li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center diskbox">' +
-                '<h3 class="c5 f15">' + rdata[i].path + '</h3>' +
-                '<div class="circle" style="background:' + LoadColor + '">' +
-                '<div class="pie_left">' +
-                '<div class="left"></div>' +
-                '</div>' +
-                '<div class="pie_right">' +
-                '<div class="right"></div>' +
-                '</div>'+ inodes +'</div>' +
-                '<h4 class="c5 f15">' + rdata[i].size[1] + '/' + rdata[i].size[0] + '</h4>' +
-                '</li>';
-            $("#systemInfoList").append(dBody);
-            setImg();
         }
+
+        renderDiskList(diskList, true);
     },'json');
 }
 
@@ -197,16 +281,26 @@ function clearSystem() {
     });
 }
 
+// 内存容量成对格式化：统一按总量单位换算，保留 1 位小数四舍五入，如 1.2G / 7.8G
+function formatMemPair(usedBytes, totalBytes) {
+    var units = ['B', 'K', 'M', 'G', 'T', 'P'];
+    var step = 1024;
+    var used = parseFloat(usedBytes);
+    var total = parseFloat(totalBytes);
+    if (isNaN(used)) used = 0;
+    if (isNaN(total)) total = 0;
+    var idx = 0;
+    while (total >= step && idx < units.length - 1) {
+        total /= step;
+        used /= step;
+        idx++;
+    }
+    return used.toFixed(1) + units[idx] + ' / ' + total.toFixed(1) + units[idx];
+}
+
 function setMemImg(info){
 
-    var memRealUsed = toSize(info.memRealUsed);
-    var memTotal = toSize(info.memTotal);
-
-    var memRealUsedVal = memRealUsed.split(' ')[0];
-    var memTotalVal = memTotal.split(' ')[0];
-    var unit = memTotal.split(' ')[1];
-
-    var mem_txt = memRealUsedVal + '/' + memTotalVal + ' ('+ unit +')';
+    var mem_txt = formatMemPair(info.memRealUsed, info.memTotal);
     setCookie("mem-before", mem_txt);
     $("#memory").html(mem_txt);
 
@@ -346,7 +440,7 @@ function getNet() {
         $("#downAll").attr('title', pkgText + ':' + net.downPackets);
         $("#upAll").html(toSize(net.upTotal));
         $("#upAll").attr('title', pkgText + ':' + net.upPackets);
-        var coreText = (window.lan && lan.index && lan.index.cpu_core) || t('index.cpu_core', '个物理核心，');
+        var coreText = (window.lan && lan.index && lan.index.core) || t('index.core', '核心');
         $("#core").html(net.cpu[1] + " " + coreText);
         $("#state").html(parseFloat(net.cpu[0]).toFixed(1));
         setcolor(net.cpu[0], "#state", 30, 70, 90);
@@ -586,7 +680,9 @@ function setImg() {
     if (setImgTimer) clearTimeout(setImgTimer);
     setImgTimer = setTimeout(function() {
         $('.circle').each(function(index, el) {
-            var num = $(this).find('span').text() * 3.6;
+            // 骨架屏/加载中占位（如 ···、...）不是数字，按 0% 保持灰色空环，避免无效 transform
+            var val = parseFloat($(this).find('span').first().text());
+            var num = isNaN(val) ? 0 : val * 3.6;
             if (num <= 180) {
                 $(this).find('.left').css('transform', "rotate(0deg)");
                 $(this).find('.right').css('transform', "rotate(" + num + "deg)");
@@ -596,7 +692,7 @@ function setImg() {
             };
         });
 
-        $('.diskbox .mask').off().on('mouseenter', function() {
+        $('.diskbox .mask[data]').off().on('mouseenter', function() {
             layer.closeAll('tips');
             var that = this;
             var conterError = $(this).attr("data");
@@ -1367,6 +1463,7 @@ function loadKeyDataCount(){
 
 $(function() {
     renderOverviewFromCache();
+    initDiskPlaceholder();
     $(".mem-release").on('mouseenter', function() {
         $(this).addClass("shine_green");
         if (!($(this).hasClass("mem-action"))) {
@@ -1929,7 +2026,7 @@ var index = {
             $("#diskTime").html(iostat_select.read_time+":"+iostat_select.write_time +" ms");
 
 
-            $("#core").html(net.cpu[1] + " " + lan.index.cpu_core);
+            $("#core").html(net.cpu[1] + " " + lan.index.core);
             $("#state").html(net.cpu[0]);
             
             setcolor(net.cpu[0], "#state", 30, 70, 90);

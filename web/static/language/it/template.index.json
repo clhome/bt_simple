@@ -126,7 +126,7 @@
     "files_release": "] file, rilascia[",
     "disk_space": "]Spazio su disco!",
     "the_currently_available_physical": "La memoria fisica attualmente disponibile è inferiore a 64 MB, il che potrebbe causare l'arresto automatico di MySQL, il sito 502 e altri errori. Prova a liberare la memoria!",
-    "core": "nucleo",
+    "core": "Core",
     "model": "modello:",
     "graphics_card_temperature": "Temperatura della scheda grafica:",
     "video_memory_usage": "Utilizzo della memoria video:",

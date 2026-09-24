@@ -85,7 +85,7 @@
                         <h4 id="core" class="c5 f15" data-i18n="public.getting">{{ t('public.getting', '获取中...') }}</h4>
                     </li>
                     {% if data['gpu_detect'] == 'yes' %}
-                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="gpuChart" style="display: none;">
+                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="gpuChart">
                         <h3 class="c5 f15" data-i18n="index.gpu_usage">{{ t('index.gpu_usage', 'GPU使用率') }}</h3>
                         <div class="circle">
                             <div class="pie_left">
@@ -255,6 +255,12 @@ if (typeof renderOverviewFromCache === 'function') {
     renderOverviewFromCache();
 }
 
+// 0.1 磁盘分区环形图 0ms 先绘制框架（优先本地缓存，无缓存则骨架屏），
+//     数据返回后仅填充数值，与负载/CPU/内存环形图同时出现，杜绝“磁盘最后才显示”
+if (typeof initDiskPlaceholder === 'function') {
+    initDiskPlaceholder();
+}
+
 // 1. 首页软件展示以最高优先级立即执行（支持 0ms 瞬间秒开）
 indexSoft(startLoadStatus);
 
@@ -277,10 +283,10 @@ function startLoadStatus() {
         loadKeyDataCount();
     }, 600);
 
-    // D. 磁盘高 I/O 挂载分区信息，错峰延迟 800ms 启动
+    // D. 磁盘高 I/O 挂载分区信息，错峰延迟 500ms 启动（框架已由骨架屏/缓存提前绘制，仅填充数值）
     setTimeout(function() {
         getDiskInfo();
-    }, 800);
+    }, 500);
 }
 
 </script>

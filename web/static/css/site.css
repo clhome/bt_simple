@@ -5904,6 +5904,41 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     font-size: 16px !important;
 }
 
+/* 3.1 磁盘分区骨架屏：数据返回前先绘制空环形框架，杜绝“磁盘最后才出现” */
+.server-circle .disk-skeleton .circle {
+    background: #e9edf2 !important;
+}
+.server-circle .disk-skeleton .left,
+.server-circle .disk-skeleton .right {
+    background: #dfe4ea;
+}
+.server-circle .disk-skeleton .mask {
+    background: #fff;
+}
+.server-circle .disk-skeleton .disk-sk-bar {
+    display: inline-block;
+    width: 46px;
+    height: 12px;
+    border-radius: 6px;
+    background: #e9edf2;
+    vertical-align: middle;
+}
+.server-circle .disk-skeleton .disk-sk-bar-sm {
+    width: 58px;
+    height: 10px;
+}
+.server-circle .disk-skeleton .disk-sk-pct {
+    color: #c3cbd6;
+}
+.server-circle .disk-skeleton .disk-sk-bar,
+.server-circle .disk-skeleton .disk-sk-pct {
+    animation: diskSkPulse 1.2s ease-in-out infinite;
+}
+@keyframes diskSkPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
 /* 4. 概览模块精简：由下方 neu-btn-card 轻拟态按键模块统合管理 */
 
 /* 5. 首页现代轻拟态（Soft UI+）按键与浮岛重构 */
