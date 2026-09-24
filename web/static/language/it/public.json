@@ -715,5 +715,12 @@
   "waiting": "Aspettare",
   "your_browser_security_settings": "Le impostazioni di sicurezza del tuo browser non supportano gli script che leggono gli appunti, utilizza Ctrl+V per incollare direttamente!",
   "your_session_has_expired": "Il tuo stato di accesso è scaduto, effettua nuovamente l'accesso!",
-  "yufeng_technology_co": "Yufeng Technology Co., Ltd."
+  "yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+  "complete": "Fine",
+  "del_title": "Conferma eliminazione",
+  "load_fail": "Caricamento non riuscito",
+  "retry_later": "Richiesta non riuscita. Riprova più tardi.",
+  "success": "Operazione riuscita",
+  "the_del": "Eliminazione in corso, attendere...",
+  "the_save": "Salvataggio in corso..."
 }

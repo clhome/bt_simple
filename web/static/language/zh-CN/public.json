@@ -715,5 +715,12 @@
   "waiting": "等待",
   "your_browser_security_settings": "您的浏览器安全设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！",
   "your_session_has_expired": "您的登陆状态已过期，请重新登陆!",
-  "yufeng_technology_co": "御风科技有限公司"
+  "yufeng_technology_co": "御风科技有限公司",
+  "complete": "完成",
+  "del_title": "删除确认",
+  "load_fail": "加载失败",
+  "retry_later": "请求失败，请稍后重试。",
+  "success": "操作成功",
+  "the_del": "正在删除，请稍候...",
+  "the_save": "正在保存..."
 }

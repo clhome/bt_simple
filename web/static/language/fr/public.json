@@ -715,5 +715,12 @@
   "waiting": "Attendre",
   "your_browser_security_settings": "Les paramètres de sécurité de votre navigateur ne permettent pas aux scripts d'accéder au presse-papiers. Veuillez utiliser directement la combinaison de touches Ctrl+V pour coller le texte !",
   "your_session_has_expired": "Votre session a expiré. Veuillez vous reconnecter !",
-  "yufeng_technology_co": "Yufeng Technology Co., Ltd."
+  "yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+  "complete": "Terminer",
+  "del_title": "Confirmer la suppression",
+  "load_fail": "Échec du chargement",
+  "retry_later": "Échec de la requête. Veuillez réessayer plus tard.",
+  "success": "Opération réussie",
+  "the_del": "Suppression en cours, veuillez patienter...",
+  "the_save": "Enregistrement..."
 }

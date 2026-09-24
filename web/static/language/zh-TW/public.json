@@ -715,5 +715,12 @@
   "waiting": "等待",
   "your_browser_security_settings": "您的瀏覽器安全設定不支援指令碼讀取剪貼簿，請直接使用 Ctrl+V 貼上！",
   "your_session_has_expired": "您的登陸狀態已過期，請重新登陸!",
-  "yufeng_technology_co": "御風科技有限公司"
+  "yufeng_technology_co": "御風科技有限公司",
+  "complete": "完成",
+  "del_title": "刪除確認",
+  "load_fail": "載入失敗",
+  "retry_later": "請求失敗，請稍後重試。",
+  "success": "操作成功",
+  "the_del": "正在刪除，請稍候...",
+  "the_save": "正在儲存..."
 }

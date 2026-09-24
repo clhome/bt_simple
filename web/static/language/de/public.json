@@ -715,5 +715,12 @@
   "waiting": "Warten",
   "your_browser_security_settings": "Ihre Browser-Sicherheitseinstellungen erlauben es Skripten nicht, die Zwischenablage zu lesen. Verwenden Sie bitte direkt Ctrl+V Einfügen!",
   "your_session_has_expired": "Ihr Anmeldestatus ist abgelaufen, bitte melden Sie sich erneut an!",
-  "yufeng_technology_co": "Yufeng Technology Co., Ltd."
+  "yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+  "complete": "Fertig",
+  "del_title": "Löschen bestätigen",
+  "load_fail": "Laden fehlgeschlagen",
+  "retry_later": "Anfrage fehlgeschlagen. Bitte versuchen Sie es später erneut.",
+  "success": "Vorgang erfolgreich",
+  "the_del": "Löschen läuft, bitte warten...",
+  "the_save": "Speichern..."
 }

@@ -715,5 +715,12 @@
   "waiting": "wait",
   "your_browser_security_settings": "Your browser security settings do not support scripts reading the clipboard. Please use Ctrl+V to paste directly!",
   "your_session_has_expired": "Your loginstatusexpired,Please log in again!",
-  "yufeng_technology_co": "Yufeng Technology Co., Ltd."
+  "yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+  "complete": "Done",
+  "del_title": "Confirm Deletion",
+  "load_fail": "Failed to load",
+  "retry_later": "Request failed. Please try again later.",
+  "success": "Operation successful",
+  "the_del": "Deleting, please wait...",
+  "the_save": "Saving..."
 }
