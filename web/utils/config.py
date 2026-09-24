@@ -17,6 +17,48 @@ import thisdb
 
 _menu_cache = None
 
+# 静态资源指纹缓存: {rel_path: (token, cache_time)}
+_asset_version_cache = {}
+_ASSET_VERSION_TTL = 30  # 秒
+
+def getAssetVersion(rel_path):
+    '''
+    返回静态资源的缓存指纹（基于文件 mtime + size）。
+
+    为什么需要：layout.html 里一直用写死的 `?v={{config.version}}&t=20260527`
+    做缓存击穿。但 config.version 自 1.1.18(2026-05-20) 起未变，t 令牌自
+    2026-05-27 起未变，而后端对所有 /static/ 资源下发了
+    `Cache-Control: public, max-age=604800, immutable`（7 天强缓存）。
+    于是 site.css 在 2026-09-15 更新（追加首页轻拟态 neu-btn-card 规则）后，
+    URL 完全没变，浏览器在 7 天内继续命中旧 CSS —— 表现就是
+    “首页/Dashboard 样式丢失，强刷或等到缓存过期才恢复”。
+
+    本函数让指纹随文件本身变化，文件一改 URL 必变，强缓存自然失效，
+    同时保留长缓存带来的性能收益。
+
+    rel_path: 相对 web/static 的路径，例如 'css/site.css'。
+    异常时返回 '0'，保证模板渲染绝不因静态资源缺失而失败。
+    '''
+    global _asset_version_cache
+    import time
+    now = time.time()
+    cached = _asset_version_cache.get(rel_path)
+    if cached and (now - cached[1]) < _ASSET_VERSION_TTL:
+        return cached[0]
+
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # web/
+    full = os.path.join(base, 'static', rel_path)
+    token = '0'
+    try:
+        st = os.stat(full)
+        # mtime 秒级十六进制 + 文件大小，任一变化都会改变指纹
+        token = '%x%x' % (int(st.st_mtime), st.st_size)
+    except Exception:
+        token = '0'
+
+    _asset_version_cache[rel_path] = (token, now)
+    return token
+
 def get_menu_config():
     global _menu_cache
     if _menu_cache is not None:

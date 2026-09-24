@@ -21,7 +21,7 @@
 {% else %}
 <link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
 {% endif %}
-    <link href="/static/css/site.css?v={{config.version}}&t=20260527" rel="stylesheet" />
+    <link href="/static/css/site.css?v={{config.version}}&t={{ asset_v('css/site.css') }}" rel="stylesheet" />
     {% if data['use_cdn'] == 'yes' %}
 <link
       href="https://cdn.staticfile.org/codemirror/5.65.16/codemirror.min.css"
@@ -44,7 +44,7 @@
     <script src="/static/language/{{ current_lang }}/lan.js?v={{config.version}}"></script>
     <script src="/static/app/i18n.js?v={{config.version}}"></script>
     <script src="/static/app/tpl/i18n_tpl.js?v={{config.version}}"></script>
-    <script src="/static/app/plugin_api.js?v={{config.version}}"></script>
+    <script src="/static/app/plugin_api.js?v={{config.version}}&t={{ asset_v('app/plugin_api.js') }}"></script>
     <!--[if lte IE 9]>
       <script src="/static/js/requestAnimationFrame.js?v={{config.version}}"></script>
     <![endif]-->
@@ -169,8 +169,8 @@
 
 
         <!-- Local custom configurations and utilities -->
-        <script src="/static/app/upload.js?v={{config.version}}"></script>
-        <script src="/static/app/public.js?v={{config.version}}&t=20260908"></script>
+        <script src="/static/app/upload.js?v={{config.version}}&t={{ asset_v('app/upload.js') }}"></script>
+        <script src="/static/app/public.js?v={{config.version}}&t={{ asset_v('app/public.js') }}"></script>
 
         <!-- jQuery dragsort (本地，较小且定制多) -->
         <script src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>

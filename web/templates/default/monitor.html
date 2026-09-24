@@ -301,12 +301,26 @@
 				</div>
 			</div>
 		</div>
-	</div>
-</div>{% if data and data['use_cdn'] == 'yes' %}
+	</div>{% if data and data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/echarts/5.6.0/echarts.min.js"></script>
-<script>window.echarts || document.write('<script src="/static/js/echarts.min.js?v={{config.version}}"><\/script>')</script>
+<script>
+// CDN 兜底：文档解析阶段用 document.write 同步补载；
+// Pjax 局部刷新时内联脚本会在加载完成后重跑，document.write 会清空整页，
+// 因此非解析阶段必须改用 DOM 追加。
+(function () {
+    if (window.echarts) return;
+    var local = '/static/js/echarts.min.js?v={{config.version}}&t={{ asset_v('js/echarts.min.js') }}';
+    if (document.readyState === 'loading') {
+        document.write('<script src="' + local + '"><\/script>');
+    } else {
+        var s = document.createElement('script');
+        s.src = local;
+        document.head.appendChild(s);
+    }
+})();
+</script>
 {% else %}
-<script src="/static/js/echarts.min.js?v={{config.version}}"></script>
+<script src="/static/js/echarts.min.js?v={{config.version}}&t={{ asset_v('js/echarts.min.js') }}"></script>
 {% endif %}
-<script src="/static/app/control.js?v={{config.version}}"></script>
+<script src="/static/app/control.js?v={{config.version}}&t={{ asset_v('app/control.js') }}"></script>
 {% endblock %}

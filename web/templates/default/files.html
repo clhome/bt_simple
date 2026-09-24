@@ -353,7 +353,7 @@
 <input type="file" id="manual_upload_files" multiple style="display:none">
 <input type="file" id="manual_upload_dir" webkitdirectory style="display:none">
 
-<script src="/static/app/files.js?v={{config.version}}"></script>
+<script src="/static/app/files.js?v={{config.version}}&t={{ asset_v('app/files.js') }}"></script>
 <script type="text/javascript">
     // 在加载 jQuery UI 之前，保存 Bootstrap 的 $.fn.button
     window._bootstrapButton = $.fn.button;

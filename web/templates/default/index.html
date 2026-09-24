@@ -225,13 +225,29 @@
 </div>
 {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/echarts/5.6.0/echarts.min.js"></script>
-<script>window.echarts || document.write('<script src="/static/js/echarts.min.js?v={{config.version}}"><\/script>')</script>
+<script>
+// CDN 兜底：仅在文档解析阶段用 document.write 同步补载；
+// Pjax 局部刷新时本页内联脚本会在文档加载完成后被重新执行，
+// 此时 document.write 会触发 document.open() 清空整个文档（样式/内容全丢），
+// 必须改用 DOM 方式追加脚本，避免首页被整页清空。
+(function () {
+    if (window.echarts) return;
+    var local = '/static/js/echarts.min.js?v={{config.version}}&t={{ asset_v('js/echarts.min.js') }}';
+    if (document.readyState === 'loading') {
+        document.write('<script src="' + local + '"><\/script>');
+    } else {
+        var s = document.createElement('script');
+        s.src = local;
+        document.head.appendChild(s);
+    }
+})();
+</script>
 {% else %}
-<script src="/static/js/echarts.min.js?v={{config.version}}"></script>
+<script src="/static/js/echarts.min.js?v={{config.version}}&t={{ asset_v('js/echarts.min.js') }}"></script>
 {% endif %}
-<script type="text/javascript" src="/static/app/site.js?v={{config.version}}"></script>
-<script type="text/javascript" src="/static/app/soft.js?v={{config.version}}&t=20260908_v3"></script>
-<script type="text/javascript" src="/static/app/index.js?v={{config.version}}"></script>
+<script type="text/javascript" src="/static/app/site.js?v={{config.version}}&t={{ asset_v('app/site.js') }}"></script>
+<script type="text/javascript" src="/static/app/soft.js?v={{config.version}}&t={{ asset_v('app/soft.js') }}"></script>
+<script type="text/javascript" src="/static/app/index.js?v={{config.version}}&t={{ asset_v('app/index.js') }}"></script>
 <script type="text/javascript">
 
 // 0. 概览模块 0ms 极速从本地缓存绘制已有卡片，杜绝延迟等待与布局跳动

@@ -288,6 +288,7 @@ def inject_global_variables():
         app_ver = app_ver + str(time.time())
 
     data = utils_config.getGlobalVar()
+    asset_v = utils_config.getAssetVersion
     try:
         from core.i18n import t as _t, SUPPORTED_LANGUAGES, get_current_lang
         cur_lang = getattr(g, 'lang', None) or get_current_lang()
@@ -307,6 +308,7 @@ def inject_global_variables():
         data=data,
         current_lang=cur_lang,
         t=_t,
+        asset_v=asset_v,
         supported_languages=SUPPORTED_LANGUAGES
     )
 

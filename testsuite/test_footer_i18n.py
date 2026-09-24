@@ -92,6 +92,7 @@ class TestFooterI18n(unittest.TestCase):
             lang = 'zh-CN'
 
         self.env.globals['t'] = backend_t
+        self.env.globals['asset_v'] = lambda path: 'test'
         tpl = self.env.get_template("layout.html")
         rendered = tpl.render(
             g=MockG(),

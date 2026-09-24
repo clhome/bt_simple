@@ -31,6 +31,7 @@ class TestMonitorI18n(unittest.TestCase):
             lang = 'zh-CN'
 
         self.env.globals['t'] = fake_t
+        self.env.globals['asset_v'] = lambda path: 'test'
         try:
             tpl = self.env.get_template("monitor.html")
             rendered = tpl.render(

@@ -56,6 +56,7 @@ class TestMonitorOptimization(unittest.TestCase):
             lang = 'zh-CN'
 
         env.globals['t'] = mock_t
+        env.globals['asset_v'] = lambda path: 'test'
         env.globals['config'] = {'version': '2.0.0', 'title': '御风面板'}
 
         template = env.get_template("monitor.html")
