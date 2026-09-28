@@ -1421,7 +1421,7 @@ function setBackup(db_name){
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
-                    <div class="db_list" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">\
+                    <div class="db_list" style="display: flex;flex-wrap:wrap; align-items: center; justify-content: space-between; width: 100%;">\
                         <div>\
                             <button id="btn_backup" class="btn btn-success btn-sm" type="button">' + pt('备份') + '</button>\
                             <button id="btn_local_import" class="btn btn-success btn-sm" type="button">' + pt('外部导入') + '</button>\

@@ -6,7 +6,7 @@
     "删除成功!": "Deletion successful!",
     "删除无效": "Delete Invalid",
     "取消": "Cancel",
-    "命令内容": "Command content",
+    "命令内容": "Command",
     "命令内容为空，请检查是否填写了\"命令内容\"！": "The command content is empty, please check whether the \"command content\" is filled in!",
     "命令名称": "Command Name",
     "备注": "Note",
@@ -22,7 +22,7 @@
     "添加服务器SSH信息": "Add Server SSH Information",
     "确定": "Confirm",
     "私钥": "Private Key",
-    "私钥密码": "Private Key Password",
+    "私钥密码": "Key Password",
     "私钥验证": "Private Key Verification",
     "端口": "Port",
     "终端未连接": "Terminal not connected",
@@ -40,7 +40,7 @@
     "输入SSH账号": "Enter SSH account",
     "输入服务器IP": "Enter server IP",
     "错误:": "Error:",
-    "验证方式": "Verification method",
+    "验证方式": "Auth method",
     "已经关闭【{1}】": "Closed [{1}]",
     "缺少必要参数:": "Missing required parameter:"
 }

@@ -326,7 +326,7 @@ function switchCleanTab(tabName, elem) {
 var currentScanData = null;
 
 function renderOverviewTab() {
-    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+    var html = '<div style="margin-bottom:14px; display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center;">\
         <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('磁盘空间占用体检与清理') + '</h4>\
         <div>\
             <button class="btn btn-default btn-sm" onclick="renderOverviewTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('重新扫描') + '</button>\
@@ -512,7 +512,7 @@ function startCleanAction() {
 
 // ---------------- 2. Top 10 大文件榜 Tab ----------------
 function renderTopLogsTab() {
-    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+    var html = '<div style="margin-bottom:14px; display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center;">\
         <div>\
             <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('Top 10 巨型日志大文件榜单') + '</h4>\
             <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">' + pt('精准揪出磁盘吞噬者，支持单文件即时截断清零') + '</p>\
@@ -722,7 +722,7 @@ function saveStrategyConfig() {
 
 // ---------------- 4. 清理战报与历史 Tab ----------------
 function renderHistoryTab() {
-    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+    var html = '<div style="margin-bottom:14px; display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center;">\
         <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('清理审计与历史战报') + '</h4>\
         <div>\
             <button class="btn btn-default btn-sm" onclick="renderHistoryTab()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新历史') + '</button>\
@@ -830,7 +830,7 @@ function showHistoryDetail(index) {
 
 // ---------------- 5. 后台守护服务与计划任务状态 Tab ----------------
 function renderServiceTab() {
-    var html = '<div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">\
+    var html = '<div style="margin-bottom:14px; display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center;">\
         <div>\
             <h4 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">' + pt('后台守护服务与计划任务状态') + '</h4>\
             <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">' + pt('实时查看自动清理服务运行状态、控制服务启停与查看最新运行日志') + '</p>\
@@ -869,7 +869,7 @@ function renderServiceTab() {
 
         var sHtml = '\
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:20px 24px; margin-bottom:20px;">\
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">\
+            <div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">\
                 <div style="display:flex; align-items:center;">\
                     <div style="width:14px; height:14px; border-radius:50%; background:' + (isActive ? '#22c55e' : '#94a3b8') + '; margin-right:10px; box-shadow:0 0 0 3px ' + (isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(148, 163, 184, 0.2)') + ';"></div>\
                     <div>\
@@ -899,7 +899,7 @@ function renderServiceTab() {
         </div>\
         \
         <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">\
-            <div style="background:#f1f5f9; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0;">\
+            <div style="background:#f1f5f9; padding:10px 14px; display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0;">\
                 <span style="font-weight:600; font-size:13px; color:#334155;"><i class="glyphicon glyphicon-console" style="margin-right:6px;"></i> ' + pt('服务运行日志') + ' (clean.log)</span>\
                 <div>\
                     <button class="btn btn-xs btn-default" onclick="fetchServiceLog()"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新日志') + '</button>\

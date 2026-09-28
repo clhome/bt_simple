@@ -14,7 +14,7 @@
     "文件内容获取中...": "Récupération du contenu du fichier...",
     "日志": "Journaux",
     "服务": "Servir",
-    "服务配置": "Configuration des services",
+    "服务配置": "Config svc",
     "未获取到有效的 Varnish 运行状态。请确保服务已在“服务”标签页中启动。": "Aucun état d'exécution Varnish valide n'a été obtenu. Veuillez vous assurer que le service est démarré dans l'onglet Services.",
     "正在获取...": "Obtenir...",
     "状态": "Statut",

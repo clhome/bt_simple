@@ -235,7 +235,7 @@ function f2bBanIpSave(black_ip){
 function f2bLogs(){
     var con = '<div class="divtable">' +
                 '<textarea class="bt-input-text" style="height: 440px; width: 100%; line-height:22px; padding: 10px; background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; border: none; border-radius: 4px;" id="f2bLogBody" readonly></textarea>' +
-                '<div style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">' +
+                '<div style="margin-top:10px; display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;">' +
                     '<button id="f2bClearLogBtn" class="btn btn-default btn-sm">' + pt('清空日志') + '</button>' +
                     '<button id="f2bRefreshLogBtn" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新日志') + '</button>' +
                 '</div>' +
@@ -277,7 +277,7 @@ function f2bLogs(){
 
 function f2bBanIp() {
     var html = '<div class="waf-drop-ip-con">\
-        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
+        <div style="margin-bottom: 15px; display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;">\
             <div style="display:flex; align-items:center;">\
                 <input class="bt-input-text" type="text" id="f2b_add_ip_input" placeholder="' + pt('输入IP地址，例如1.1.1.1') + '" style="width: 200px; margin-right: 5px;">\
                 <button class="btn btn-success btn-sm" onclick="f2bAddDropIp();">' + pt('添加黑名单') + '</button>\
@@ -857,7 +857,7 @@ function f2bLogRequest(page){
                             '+ list +'\
                             </tbody></table>\
                         </div>\
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">\
+                        <div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:10px;">\
                             <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">' + pt('导出excel') + '</button></div>\
                             <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
                         </div>';
@@ -957,7 +957,7 @@ function f2bIpDetails(ip) {
 function f2bSiteHistory(){
     var randstr = getRandomString(10);
     var html = '<div>\
-                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-bottom:10px;">\
                     <div style="display: flex; align-items: center;">\
                         <span style="margin-left:10px">' + pt('时间:') + ' </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
@@ -970,7 +970,7 @@ function f2bSiteHistory(){
                             <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
-                    <div>\
+                    <div style="margin-left: auto; flex-shrink: 0; white-space: nowrap;">\
                         <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">' + pt('刷新') + '</button>\
                     </div>\
                 </div>\

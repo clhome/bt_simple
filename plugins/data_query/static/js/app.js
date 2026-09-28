@@ -882,7 +882,7 @@ function openConnectionModal(defaultDbType, editId, onSavedCallback) {
         '   <label>' + pt('备注说明') + ':</label>' +
         '   <div class="form-con"><input type="text" id="dq_conn_notes" placeholder="' + pt('选填备注') + '" class="bt-input-text"></div>' +
         '</div>' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:15px; border-top:1px solid #e2e8f0;">' +
+        '<div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:20px; padding-top:15px; border-top:1px solid #e2e8f0;">' +
         '   <button type="button" class="btn btn-default btn-sm" id="btn_dq_test_conn"><span class="glyphicon glyphicon-flash"></span> ' + pt('测试连接') + '</button>' +
         '   <div>' +
         '       <button type="button" class="btn btn-default btn-sm mr5" id="btn_dq_cancel_conn">' + pt('取消') + '</button>' +
@@ -1054,7 +1054,7 @@ function openConnectionModal(defaultDbType, editId, onSavedCallback) {
 // 打开连接管理列表模态框 (Navicat 风格)
 function openManageConnectionsModal(defaultDbType) {
     var manageHtml = '<div style="padding: 15px 20px;">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+        '<div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
         '   <div style="font-size:13px; font-weight:600; color:#334155;">' + pt('已保存的数据库连接记录') + '</div>' +
         '   <button class="btn btn-success btn-xs" id="btn_modal_add_conn"><span class="glyphicon glyphicon-plus"></span> ' + pt('新建连接') + '</button>' +
         '</div>' +
@@ -1297,7 +1297,7 @@ function renderSyncServersDialog(items) {
         '       <tbody>' + rowsHtml + '</tbody>' +
         '   </table>' +
         '</div>' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">' +
+        '<div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-top:15px;">' +
         '   <div>' +
         '       <a href="javascript:;" id="btn_sync_select_diff" class="btlink" style="margin-right:12px; font-size:12px;">' + pt('仅选有差异项') + '</a>' +
         '       <a href="javascript:;" id="btn_sync_clear_all" class="btlink" style="font-size:12px; color:#64748b;">' + pt('取消全选') + '</a>' +
@@ -3551,7 +3551,7 @@ function showInstallPgDriverDialog() {
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="bt-form pd20" style="background:#1e1e1e;color:#eee;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">' +
-            '<div style="margin-bottom:10px;font-size:13px;color:#bbb;display:flex;justify-content:space-between;align-items:center;">' +
+            '<div style="margin-bottom:10px;font-size:13px;color:#bbb;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;">' +
                 '<span><i class="glyphicon glyphicon-console"></i> ' + pt('正在调用后台 pip 安装 psycopg2-binary 驱动，请稍候...') + '</span>' +
                 '<span id="pg_install_status_badge" class="badge" style="background:#f0ad4e;">' + pt('准备中') + '</span>' +
             '</div>' +

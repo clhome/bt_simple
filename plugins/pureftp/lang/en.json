@@ -47,7 +47,7 @@
     "绑定根目录": "bind root directory",
     "若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请": "If you are using a cloud server (such as Alibaba Cloud or Tencent Cloud), in addition to the control panel's built-in firewall, please",
     "被动数据端口范围：": "Passive Data Port Range:",
-    "配置修改": "Configuration modification",
+    "配置修改": "Configuration",
     "重启": "Restart",
     "重载配置": "Overload configuration",
     "随机密码": "random password",

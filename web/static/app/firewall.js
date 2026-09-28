@@ -101,13 +101,13 @@ function sshMgr() {
       '<input class="btswitch btswitch-ios" id="pass_status" type="checkbox" ' + pass_prohibit_status + '>' +
       '<label class="btswitch-btn" for="pass_status" onclick="setSshPassStatus()"></label>' +
       '</div></div>' +
-      '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
+      '<div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_pubkey || '允许密钥登陆') + '</span>' +
       '<div class="ssh-item" style="margin-left:0">' +
       '<input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" ' + pubkey_prohibit_status + '>' +
       '<label class="btswitch-btn" for="pubkey_status" onclick="setSshPubkeyStatus()"></label>' +
       '</div></div>' +
-      '<div style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">' +
+      '<div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; padding-top: 5px;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.root_key || 'Root密钥') + '</span>' +
       '<div class="ssh-item" style="margin-left:0; display: flex; gap: 10px;">' +
       '<button class="btn btn-default btn-sm" onclick="downloadRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">' + (lan && lan.firewall && lan.firewall.download_key || '下载密钥') + '</button>' +

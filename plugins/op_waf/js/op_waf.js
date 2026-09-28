@@ -2158,7 +2158,7 @@ function wafLogRequest(page){
                             '+ list +'\
                             </tbody></table>\
                         </div>\
-                        <div style="display:flex; justify-content:space-between; align-items:center;">\
+                        <div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center;">\
                             <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">' + pt('导出excel') + '</button></div>\
                             <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
                         </div>';
@@ -2202,7 +2202,7 @@ function wafLogs(site){
 
 
     var html = '<div>\
-                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-bottom:10px;">\
                     <div style="display: flex; align-items: center;">\
                         <span>' + pt('网站:') + ' </span>\
                         <select class="bt-input-text" name="site" style="margin-left:4px;width:160px;">\
@@ -2219,7 +2219,7 @@ function wafLogs(site){
                             <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
-                    <div>\
+                    <div style="margin-left: auto; flex-shrink: 0; white-space: nowrap;">\
                         <button id="UncoverAll" class="btn btn-success btn-sm" style="padding-left: 5px;padding-right: 5px;">' + pt('解封所有') + '</button>\
                         <button id="testRun" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px;">' + pt('测试') + '</button>\
                         <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">' + pt('刷新') + '</button>\
@@ -2386,7 +2386,7 @@ function wafOpLogs(){
 
 function wafDropIpList() {
     var html = '<div class="waf-drop-ip-con">\
-        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
+        <div style="margin-bottom: 15px; display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;">\
             <h4 style="margin:0; font-weight:bold;">' + pt('当前封禁 IP 列表') + '</h4>\
             <button class="btn btn-default btn-sm" onclick="wafDropIpList();"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新') + '</button>\
         </div>\
@@ -2582,7 +2582,7 @@ function setHoneypotDialog() {
                 请配置高危蜜罐路径（每行一个）。当访客尝试请求以下任意路径时，防火墙会立刻将其信誉积分扣满（默认 100 分）并触发封禁。推荐填入不存在的敏感路径。\
             </div>\
             <textarea id="honeypot_paths_input" style="width: 100%; height: 230px; line-height: 22px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; white-space: pre; font-family: Consolas, monospace;">' + paths.join('\n') + '</textarea>\
-            <div style="margin-top: 15px; display: flex; justify-content: space-between;">\
+            <div style="margin-top: 15px; display: flex;flex-wrap:wrap; justify-content: space-between;">\
                 <button class="btn btn-default btn-sm" style="color: #d9534f; border-color: #d9534f;" onclick="restoreHoneypotDefault()">' + pt('还原默认配置') + '</button>\
                 <button class="btn btn-success btn-sm" onclick="saveHoneypotPaths()">' + pt('保存配置') + '</button>\
             </div>\
@@ -2666,7 +2666,7 @@ function setSpiderDialog() {
                     </label>\
                 </div>\
             </div>\
-            <div style="margin-bottom: 12px; font-weight: bold; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">\
+            <div style="margin-bottom: 12px; font-weight: bold; color: #0f172a; display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;">\
                 <span>🌐 ' + pt('当前权威蜘蛛 IP 池分布') + ' (' + pt('共') + ' <span style="color:#20a53a; font-weight:bold;">' + total + '</span> ' + pt('条网段') + ')</span>\
                 <div>\
                     <button class="btn btn-default btn-xs" onclick="manageSpiderIpDialog()">' + pt('查看/编辑规则') + '</button>\

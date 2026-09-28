@@ -14,7 +14,7 @@
     "文件内容获取中...": "Acquisizione del contenuto del file in corso...",
     "日志": "Log",
     "服务": "Servizi",
-    "服务配置": "Configurazione dei servizi",
+    "服务配置": "Config serv.",
     "未获取到有效的 Varnish 运行状态。请确保服务已在“服务”标签页中启动。": "Non è stato ottenuto uno stato di esecuzione Varnish valido. Assicurati che il servizio sia avviato nella scheda Servizi.",
     "正在获取...": "Caricamento in corso...",
     "状态": "Stato",

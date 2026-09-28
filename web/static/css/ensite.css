@@ -4229,6 +4229,15 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     top: 0 !important;
 }
 
+/*
+ * 消息盒子左侧菜单：菜单项带「(0)」计数尾巴，非中文译文更长（英文 Execution Log(0)
+ * ≈127px，已是“高质量译文”护栏锁定的基线不允许缩写）。这里只给消息盒子菜单 +20px，
+ * 不动其它弹窗 120px 的约定。
+ */
+.layui-layer-page .msg-box-form .bt-w-menu {
+    width: 140px !important;
+}
+
 .layui-layer-page .bt-w-con {
     float: none !important;
     flex: 1 !important;

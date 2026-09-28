@@ -621,7 +621,7 @@ var ollama = {
         var _this = this;
         var html = '<div class="ollama-container">';
         html += '  <div class="ollama-card">';
-        html += '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">';
+        html += '    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:15px;">';
         html += '      <h4 style="margin:0;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 运行系统日志 (最新 100 行)') + '</h4>';
         html += '      <button class="ollama-btn ollama-btn-default" style="padding:4px 12px;font-size:11px;" onclick="ollama.refreshLogs()"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新日志') + '</button>';
         html += '    </div>';

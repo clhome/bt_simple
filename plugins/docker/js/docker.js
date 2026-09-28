@@ -1109,11 +1109,11 @@ function repoLogin() {
         content: '<div class="bt-docker-con docker_content">' +
             '<style>.line .tname{width:120px;}</style>' +
             '<div class="soft-man-con pd20 pb70 private_pull">' +
-            '<div class="line"><span class="tname">Repository Type</span><div class="info-r c4"><select class="bt-input-text mr5 project_version" name="dtype" style="width:250px">' + _option1 + '</select></div></div>' +
+            '<div class="line"><span class="tname">Repo Type</span><div class="info-r c4"><select class="bt-input-text mr5 project_version" name="dtype" style="width:250px">' + _option1 + '</select></div></div>' +
             '<div class="line"><span class="tname">Name:</span><div class="info-r"><input class="bt-input-text" type="text" name="ctm_name" style="width:250px" value="' + obj.name + '"></div></div>' +
             '<div class="line"><span class="tname">Username:</span><div class="info-r"><input class="bt-input-text" type="text" name="user" style="width:250px" value="' + obj.user_name + '"></div></div>' +
             '<div class="line"><span class="tname">Password:</span><div class="info-r"><input class="bt-input-text" type="password" name="passwd" style="width:250px" value="' + obj.user_pass + '"></div></div>' +
-            '<div class="line"><span class="tname">Repository Name:</span><div class="info-r"><input class="bt-input-text" type="text" name="hub_name" style="width:250px" value="' + obj.hub_name + '"></div></div>' +
+            '<div class="line"><span class="tname">Repo Name:</span><div class="info-r"><input class="bt-input-text" type="text" name="hub_name" style="width:250px" value="' + obj.hub_name + '"></div></div>' +
             '<div class="line"><span class="tname">Namespaces:</span><div class="info-r"><input class="bt-input-text" type="text" name="namespace" style="width:250px" value="' + obj.namespace + '"></div></div>' +
             '<div class="line" style="display:none"><span class="tname">Registry:</span><div class="info-r"><input class="bt-input-text" type="text" name="registry" style="width:250px" value="' + obj.registry + '"></div></div>' +
             '<div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-success login_aliyun">' + pt('登录') + '</button></div>' +
@@ -1278,7 +1278,7 @@ function dockerAccelerator() {
             '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">' + pt('还原默认') + '</button>' +
             '</div>' +
             '<div class="help-info-text c7" style="margin-bottom:10px;">' + pt('注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。') + '</div>' +
-            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
+            '<div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
             '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> ' + pt('开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)') + '</label>' +
             '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">' + pt('保存并重启 Docker') + '</button>' +
             '</div>' +

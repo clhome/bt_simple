@@ -567,7 +567,7 @@ function showUpdateUI(version, title, content, speedName) {
                 + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>'
                 + '    </div>'
                 + '    <div style="margin-bottom: 4px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">3. 安装更新并重启服务</span><span id="install-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>'
+                + '        <div style="display:flex;flex-wrap:wrap; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">3. 安装更新并重启服务</span><span id="install-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>'
                 + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>'
                 + '    </div>'
                 + '</div>'
@@ -2252,7 +2252,7 @@ function renderSpeedTestModal(historyData) {
         '    </div>' +
         '    <pre id="speed_log_lst" style="display:none;"></pre>' +
         '    <!-- 底部控制栏与出品信息 -->' +
-        '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' +
+        '    <div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' +
         '        <div>' +
         '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' +
         '                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>' + t('index.re_test', '再次测试') +
@@ -2823,7 +2823,7 @@ function getRecentLogins(forceRefresh) {
 // 弹窗展示全部登录记录 (支持分页与多维筛选)
 function showAllLoginLogs() {
     var modalHtml = '<div class="pd15 all-login-logs-modal" style="padding: 15px 20px;">\
-        <div class="tootls_group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">\
+        <div class="tootls_group" style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; margin-bottom: 12px;">\
             <div style="display: flex; align-items: center; gap: 8px;">\
                 <span class="f12 c6">' + t('index.status_filter', '状态筛选:') + '</span>\
                 <select id="loginLogStatusFilter" class="bt-input-text" style="height: 28px; font-size: 12px; padding: 2px 8px; border-radius: 3px;">\

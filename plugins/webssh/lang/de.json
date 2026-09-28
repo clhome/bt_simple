@@ -21,8 +21,8 @@
     "添加成功!": "Erfolgreich hinzugefügt!",
     "添加服务器SSH信息": "SSH-Daten des Servers hinzufügen",
     "确定": "Bestätigen",
-    "私钥": "Privater Schlüssel",
-    "私钥密码": "Passwort für den privaten Schlüssel",
+    "私钥": "Privatkey",
+    "私钥密码": "Key-Passwort",
     "私钥验证": "Überprüfung des privaten Schlüssels",
     "端口": "Port",
     "终端未连接": "Das Endgerät ist nicht verbunden",
@@ -40,7 +40,7 @@
     "输入SSH账号": "SSH-Zugangsdaten eingeben",
     "输入服务器IP": "Geben Sie die IP-Adresse des Servers ein",
     "错误:": "Fehler:",
-    "验证方式": "Überprüfungsmethode",
+    "验证方式": "Prüfmethode",
     "已经关闭【{1}】": "Geschlossen [{1}]",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:"
 }

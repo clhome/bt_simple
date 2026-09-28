@@ -2397,7 +2397,7 @@ var html = '<div>\
                         <option value="12">' + pt('其他') + '</option>\
                     </select>\
                     <span>IP: </span>\
-                    <div class="input-group" style="width:163px;display:inline-flex;">\
+                    <div class="input-group" style="width:163px;display:inline-table;">\
                         <input type="text" name="ip" class="form-control btn-group-sm" autocomplete="off" placeholder="IP地址" style="font-size: 12px;padding: 0 10px;height:30px;">\
                     </div>\
                 </div>\
@@ -2421,7 +2421,7 @@ var html = '<div>\
                         <option value="100">' + pt('大于100kb') + '</option>\
                     </select>\
                     <span style="margin-left:10px;">' + pt('URL过滤:') + ' </span>\
-                    <div class="input-group" style="width:210px;display:inline-flex;">\
+                    <div class="input-group" style="width:210px;display:inline-table;">\
                         <input type="text" name="search_uri" class="form-control btn-group-sm" autocomplete="off" placeholder="URI搜索" style="font-size: 12px;padding: 0 10px;height:30px;">\
                         <div class="input-group-btn btn-group-sm">\
                             <button id="logs_search" type="button" class="btn btn-default">' + pt('搜索') + '</button>\

@@ -77,7 +77,7 @@
     "越界访问被拒绝！": "Zugriff außerhalb des zulässigen Bereichs wurde verweigert!",
     "运行以来执行过的命令的总数量": "Gesamtzahl der seit Inbetriebnahme ausgeführten Befehle",
     "运行以来连接过的客户端的总数量": "Gesamtzahl der Clients, die seit Inbetriebnahme eine Verbindung hergestellt haben",
-    "运行日志": "Ausführungsprotokoll",
+    "运行日志": "Betriebs-Log",
     "连接主库HOST": "Master-Host",
     "连接主库PORT": "Master-Port",
     "连接主库状态": "Master-Verbindungsstatus",
