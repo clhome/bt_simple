@@ -1092,6 +1092,13 @@ function pluginInit(){
     },'json');
 }
 
+// 概览数字展示：xx/xx 形式的比值统一格式化为 xx / xx，提升可读性
+function formatOverviewCount(value) {
+    var str = (value === undefined || value === null) ? '0' : String(value);
+    if (str.indexOf('/') === -1) return str;
+    return str.replace(/\s*\/\s*/g, ' / ');
+}
+
 // 概览模块 0ms 瞬间秒开：从本地 localStorage 缓存优先渲染已有卡片
 function renderOverviewFromCache() {
     var $overview = $('#index_overview');
@@ -1117,7 +1124,7 @@ function renderOverviewFromCache() {
             }
             var cardHtml = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3" data-overview-plugin="' + item.pname + '">\
                     <p class="name c9">' + cachedName + '</p>\
-                    <div class="val"><a class="btlink" onclick="' + (item.onclick_str || '') + '">' + (item.count !== undefined ? item.count : '0') + '</a></div>\
+                    <div class="val"><a class="btlink" onclick="' + (item.onclick_str || '') + '">' + formatOverviewCount(item.count) + '</a></div>\
                 </li>';
             $overview.append(cardHtml);
         }
@@ -1166,7 +1173,7 @@ function loadKeyDataCount(){
             } else if (pname == 'pg_docker') {
                 show_name = 'PostgreSQL (Docker)';
             }
-            var count_str = rdata['data'] && rdata['data']['count'] !== undefined ? String(rdata['data']['count']) : '0';
+            var count_str = formatOverviewCount(rdata['data'] && rdata['data']['count'] !== undefined ? rdata['data']['count'] : '0');
             var ver_str = rdata['data'] && rdata['data']['ver'] !== undefined ? rdata['data']['ver'] : '';
             var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+ver_str+'\')';
             if (pname == 'mysql') {
