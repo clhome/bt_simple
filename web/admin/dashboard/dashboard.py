@@ -42,6 +42,18 @@ def index():
 def admin_safe_path(path):
     login = request.args.get('login', '')
     if login != '':
+        client_ip = yf.getClientIp()
+
+        # 与正常登录共享封禁/失败计数，堵住“快捷登录旁路”被用作无限爆破入口。
+        try:
+            from .login import (_is_banned, _register_login_failure,
+                               _reset_login_failure, _password_matches)
+        except Exception:
+            _is_banned = _register_login_failure = _reset_login_failure = _password_matches = None
+
+        if _is_banned is not None and _is_banned(client_ip):
+            return redirect('/')
+
         try:
             # print(login)
             login_str = base64.b64decode(login)
@@ -49,28 +61,37 @@ def admin_safe_path(path):
             data = json.loads(login_str)
 
             time_now = time.time() * 1000
-            time_diff = time_now - data['time']
+            time_diff = time_now - float(data['time'])
 
-            if time_diff > 2000:
+            # 防止时钟回拨/未来时间戳绕过新鲜度校验
+            if time_diff > 2000 or time_diff < -2000:
                 return redirect('/')
-
 
             info = thisdb.getUserByName(data['username'])
-            if info is None:
+            if info is None or _password_matches is None \
+                    or not _password_matches(info, data.get('password', '')):
+                if _register_login_failure is not None:
+                    _register_login_failure(client_ip)
                 return redirect('/')
 
-            if info['password'] != yf.md5(data['password']):
-                return redirect('/')
+            if _reset_login_failure is not None:
+                _reset_login_failure(client_ip)
 
+            # 先清空旧会话，防止会话固定（session fixation）
+            session.clear()
             session['login'] = True
             session['username'] = info['name']
             session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
 
-            client_ip = yf.getClientIp()
             thisdb.updateUserLoginTime(client_ip)
             yf.writeLog('用户登录', '用户[{1}]通过安全入口快捷登录成功, 登录IP:{2}', (info['name'], client_ip))
             return redirect('/')
         except Exception as e:
+            if _register_login_failure is not None:
+                try:
+                    _register_login_failure(client_ip)
+                except Exception:
+                    pass
             pass
         
 

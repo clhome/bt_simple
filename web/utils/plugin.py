@@ -20,6 +20,34 @@ import multiprocessing
 import core.yf as yf
 import thisdb
 
+
+# ---------------------------------------------------------------------------------
+# 插件名 / 路径安全校验（防御命令注入与目录穿越）
+#   - 插件名严格白名单：字母、数字、下划线、短横线；
+#   - 传入的临时目录必须真实位于面板 temp 目录内（realpath 比较，杜绝 ../ 逃逸与软链绕过）。
+# ---------------------------------------------------------------------------------
+_PLUGIN_NAME_RE = re.compile(r'^[a-zA-Z0-9_\-]+$')
+
+def _valid_plugin_name(name):
+    name = str(name or '').strip()
+    return bool(name) and bool(_PLUGIN_NAME_RE.match(name))
+
+def _valid_script_name(name):
+    name = str(name or '').strip()
+    return bool(name) and bool(re.match(r'^[a-zA-Z0-9_]+$', name))
+
+def _path_inside(base, target):
+    """target 的 realpath 是否严格位于 base 的 realpath 之内（含相等由调用方決定）。"""
+    try:
+        real_base = os.path.realpath(base).rstrip('/\\')
+        real_target = os.path.realpath(target).rstrip('/\\')
+        if not real_base or not real_target:
+            return False
+        return real_target == real_base or real_target.startswith(real_base + os.sep)
+    except Exception:
+        return False
+
+
 class pg_thread(threading.Thread):
 
     def __init__(self, func, args, name=''):
@@ -483,7 +511,8 @@ class plugin(object):
             yf.shlexQuote(version)
         )
         self.hookUninstall(info_data)
-        data = yf.execShell(exec_bash)
+        # 卸载脚本可能很慢（清理数据/停服务），但仍需有上界，避免永久占死 gunicorn 线程
+        data = yf.execShell(exec_bash, timeout=1800)
         self.removeIndex(name, version)
         yf.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
@@ -1369,7 +1398,7 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_7ed95c')
 
         request_zip.save(tmp_file)
-        yf.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
+        yf.safeExecShell(['unzip', '-o', '-q', tmp_file, '-d', tmp_path])
         os.remove(tmp_file)
 
         p_info = tmp_path + '/info.json'
@@ -1390,12 +1419,16 @@ class plugin(object):
                 p_info = tmp_path + '/info.json'
         try:
             data = json.loads(yf.readFile(p_info))
+            # 安全：info.json 中的 name 完全来自上传包，必须白名单校验后才能拼路径/进临时目录
+            if not isinstance(data, dict) or not _valid_plugin_name(data.get('name')):
+                yf.removeDir(tmp_path)
+                return yf.returnData(False, 'plugin.py_msg_311637')
             data['size'] = yf.getPathSize(tmp_path)
             if not 'author' in data:
                 data['author'] = '未知'
             if not 'home' in data:
                 data['home'] = 'https://github.com/clhome/bt_simple'
-            plugin_path = yf.getPluginDir() + data['name'] + '/info.json'
+            plugin_path = yf.getPluginDir() + '/' + data['name'] + '/info.json'
             data['old_version'] = '0'
             data['tmp_path'] = tmp_path
             if os.path.exists(plugin_path):
@@ -1414,18 +1447,48 @@ class plugin(object):
         return data
 
     def inputZipApi(self, plugin_name,tmp_path):
-        if not os.path.exists(tmp_path):
+        # 安全收口：插件名白名单 + 临时目录必须位于面板 temp 目录内，
+        # 彻底堵住 "plugin_name/tmp_path 拼进 shell" 的命令注入与目录穿越。
+        if not _valid_plugin_name(plugin_name):
             return yf.returnData(False, 'plugin.py_msg_2ca3e3')
-        plugin_path = yf.getPluginDir() + '/' + plugin_name
-        if not os.path.exists(plugin_path):
-            print(yf.makeDirs(plugin_path))
-        yf.execShell("cp -rf " + tmp_path + '/* ' + plugin_path + '/')
-        yf.execShell('chmod -R 755 ' + plugin_path)
+
+        base_tmp = yf.getPanelDir() + '/temp'
+        if not os.path.exists(tmp_path) or not _path_inside(base_tmp, tmp_path) \
+                or os.path.realpath(tmp_path) == os.path.realpath(base_tmp):
+            return yf.returnData(False, 'plugin.py_msg_2ca3e3')
+
+        plugin_path = os.path.abspath(yf.getPluginDir() + '/' + plugin_name)
+        try:
+            if not os.path.exists(plugin_path):
+                yf.makeDirs(plugin_path)
+
+            # 使用 Python 文件 API 替代 cp/chmod 字符串拼接（无 shell，无注入面）
+            import shutil
+            shutil.copytree(tmp_path, plugin_path, dirs_exist_ok=True)
+            for root, dirs, files in os.walk(plugin_path):
+                for d in dirs:
+                    try:
+                        os.chmod(os.path.join(root, d), 0o755)
+                    except Exception:
+                        pass
+                for f in files:
+                    try:
+                        os.chmod(os.path.join(root, f), 0o755)
+                    except Exception:
+                        pass
+        except Exception as _e:
+            yf.writeFileLog('[plugin.inputZipApi] %s: %s\n%s' % (plugin_name, _e, yf.getTracebackInfo()))
+            yf.removeDir(plugin_path)
+            return yf.returnData(False, 'plugin.py_msg_99993a')
+
         p_info = yf.readFile(plugin_path + '/info.json')
         if p_info:
-            self.__plugin_list_static_cache = None
-            yf.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
-            return yf.returnData(True, 'plugin.py_msg_f1e512')
+            try:
+                self.__plugin_list_static_cache = None
+                yf.writeLog('软件管理', '安装第三方插件[%s]' % json.loads(p_info).get('title', plugin_name))
+                return yf.returnData(True, 'plugin.py_msg_f1e512')
+            except Exception as _e:
+                pass
         yf.removeDir(plugin_path)
         return yf.returnData(False, 'plugin.py_msg_99993a')
 
@@ -1511,6 +1574,13 @@ class plugin(object):
         args  = '',
         script  = 'index',
     ):
+        # 安全：name/script 会被拼接为子进程脚本路径，必须与 callback() 同级的白名单校验，
+        # 否则可通过 name=='..' + script 跨目录执行面板内的任意 .py（路径穿越 → 任意代码执行）。
+        name = str(name).strip()
+        script = str(script).strip() or 'index'
+        if not _valid_plugin_name(name) or not _valid_script_name(script):
+            return ('', '非法的调用参数!')
+
         is_state_func = (
             yf.inArray(['start','stop','restart','reload','uninstall_pre_inspection','install','uninstall'], func)
             or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
@@ -1539,7 +1609,16 @@ class plugin(object):
             if args != '':
                 cmd_list.append(str(args))
 
-            data = yf.safeExecShell(cmd_list, cwd=yf.getPanelDir())
+            # 超时按时长分类：纯状态查询 30s，启/停/重启类放宽到 300s（数据库崩溃恢复、
+            # AOF 重载等常常 >30s），其余交互式调用 600s。固定 30s 会误杀正常启停。
+            is_status_query = (func == 'status' or func.startswith('status_'))
+            if is_status_query:
+                op_timeout = 30
+            elif is_state_func:
+                op_timeout = 300
+            else:
+                op_timeout = 600
+            data = yf.safeExecShell(cmd_list, cwd=yf.getPanelDir(), timeout=op_timeout)
 
             if yf.isDebugMode():
                 print('run cmd_list:', cmd_list)

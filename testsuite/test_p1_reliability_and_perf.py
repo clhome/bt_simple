@@ -49,7 +49,10 @@ class TestP1ReliabilityAndPerf(unittest.TestCase):
         with open(PANEL_TASK_PY, "r", encoding="utf-8") as f:
             code = f.read()
 
-        self.assertIn("res = execShell(run_task['cmd'], task_id=run_task['id'])", code)
+        # 调用签名后来追加了 timeout=TASK_MAX_RUNTIME（任务级超时收口），语义不变；
+        # 拆成两段断言，避免与具体参数顺序耦合。
+        self.assertIn("res = execShell(run_task['cmd']", code)
+        self.assertIn("task_id=run_task['id'])", code)
         self.assertIn("if res and res[0] == '0':", code)
         self.assertIn("status = 1 if success else 2", code, "未根据真实执行结果区分 status=1 与 status=2！")
         self.assertIn("thisdb.setTaskStatus(run_task['id'], status)", code)

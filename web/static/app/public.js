@@ -1871,9 +1871,9 @@ function getPanelList() {
     }
     var rdata = rdata.data;
     for (var i = 0; i < rdata.length; i++) {
-      con += '<h3 class="mypcip mypcipnew" style="opacity:.6;cursor: pointer;" data-url="' + rdata[i].url + '" data-user="' + rdata[i].username + '" data-pw="' + rdata[i].password + '">\
+      con += '<h3 class="mypcip mypcipnew" data-id="' + rdata[i].id + '" style="opacity:.6;cursor: pointer;">\
 				<span class="f14 cw">' + rdata[i].title + '</span>\
-				<em class="btedit" onclick="bindPanel(0,\'c\',\'' + rdata[i].title + '\',\'' + rdata[i].id + '\',\'' + rdata[i].url + '\',\'' + rdata[i].username + '\',\'' + rdata[i].password + '\')"></em>\
+				<em class="btedit" onclick="bindPanel(0,\'c\',\'' + rdata[i].title + '\',\'' + rdata[i].id + '\',\'' + rdata[i].url + '\',\'' + rdata[i].username + '\',\'\')"></em>\
 				</h3>';
     }
     $("#newbtpc").html(con);
@@ -1882,49 +1882,19 @@ function getPanelList() {
     }).on('mouseleave', function () {
       $(this).css("opacity", ".6");
     }).on('click', function () {
-      // $("#panel_form").remove();
-      var murl = $(this).attr("data-url");
-      var user = $(this).attr("data-user");
-      var pw = $(this).attr("data-pw");
-      var random_str = getRandomString(8);
-      var timestamp = Date.parse(new Date());
-      var data = {
-        'rand': random_str,
-        'username': user,
-        'password': pw,
-        'time': timestamp
-      };
-      data_json = JSON.stringify(data);
-      login_args = base64_encode(data_json);
-      endpoint_url = murl + '?login=' + login_args;
-      window.open(endpoint_url);
-      // layer.open({
-      // 	type: 2,
-      // 	title: false,
-      //  	closeBtn: 0, //不显示关闭按钮
-      // 	shade: [0],
-      // 	area: ['340px', '215px'],
-      // 	offset: 'rb', //右下角弹出
-      // 	time: 5, //2秒后自动关闭
-      // 	anim: 2,
-      // 	content: [murl, 'no']
-      // });
-      // window.open(murl);
-      // 
-      // var loginForm ='<div id="panel_form" style="display:none"><form id="toBtpanel" action="'+now_url.origin+'/do_login" method="post" target="btpfrom">\
-      // 	<input name="username" value="'+user+'" type="text">\
-      // 	<input name="password" value="'+pw+'" type="password">\
-      // 	<input name="code" id="bt_code" value="" type="text">\
-      // </form><iframe name="btpfrom" src=""></iframe></div>';
-      // $("body").append(loginForm);
-      // // console.log($("panel_form").html());
-      // layer.msg('正在打开面板...',{icon:16,shade: [0.3, '#000'],time:1000});
-      // setTimeout(function(){
-      // 	$("#toBtpanel").submit();
-      // },1000);
-      // setTimeout(function(){
-      // 	window.open(murl);
-      // },2000);
+      // 服务端按需现签登录串：浏览器不再持有明文口令，避免 DOM/页面缓存泄露
+      var panel_id = $(this).attr("data-id");
+      $.post("/setting/get_panel_login", {
+        id: panel_id
+      }, function (res) {
+        if (res && res.status && res.data && res.data.url) {
+          window.open(res.data.url);
+        } else {
+          layer.msg((res && res.msg) || t('public.ERROR'), {
+            icon: 2
+          });
+        }
+      }, 'json');
     });
     $(".btedit").on('click', function (e) {
       e.stopPropagation();
@@ -1960,7 +1930,8 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     var btpassword = encodeURIComponent($("#btpassword").val());
     var bttitle = $("#bttitle").val();
     var data = "title=" + bttitle + "&url=" + encodeURIComponent(btaddress) + "&username=" + btuser + "&password=" + btpassword;
-    if (btaddress == "" || btuser == "" || btpassword == "" || bttitle == "") {
+    // 编辑场景（type=c）密码留空表示不修改，不再强制必填
+    if (btaddress == "" || btuser == "" || bttitle == "" || (btpassword == "" && type != "c")) {
       layer.msg(t('public.panel_err_empty', '所有字段均不能为空'), {
         icon: 8
       });

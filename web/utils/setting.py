@@ -197,7 +197,7 @@ class setting(object):
             return yf.returnData(False, 'setting.py_msg_448940')
 
         # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
-        yf.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
+        yf.safeExecShell([acme_dir + '/acme.sh', '--set-default-ca', '--server', 'letsencrypt'])
 
         main_domain = domains[0]
         
@@ -238,7 +238,7 @@ class setting(object):
 
         yf.buildSoftLink(src_cert, dst_cert, True)
         yf.buildSoftLink(src_key, dst_key, True)
-        yf.execShell('echo "acme" > "' + dst_path + '/README"')
+        yf.writeFile(dst_path + '/README', 'acme')
 
         # 4. 更新数据库配置，开启面板 nginx SSL 并重启面板
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})

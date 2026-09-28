@@ -81,6 +81,12 @@ if not os.path.exists(g_log_file):
     except:
         pass
 
+# 任务最大运行时长（秒）：避免卡死任务永久堵死队列，超时则杀进程组并标记失败。
+# 取一个足够宽裕的上限（编译/大库导入等重活仍能跑完），只堵“永不返回”。
+TASK_MAX_RUNTIME = 7200        # execshell 类任务（含软件编译安装）
+DOWNLOAD_MAX_RUNTIME = 3600    # download 类任务
+
+
 def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     import subprocess
     import time
@@ -104,6 +110,35 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         sub_kwargs['preexec_fn'] = os.setsid
 
     sub = subprocess.Popen(cmdstring, **sub_kwargs)
+
+    # 超时看门狗：到点杀掉整个进程组（setsid 后子进程及其派生进程同组）
+    timed_out = {'v': False}
+
+    def _kill_tree():
+        try:
+            if hasattr(os, 'killpg') and not yf.isAppleSystem() and os.name != 'nt':
+                os.killpg(os.getpgid(sub.pid), signal.SIGKILL)
+            else:
+                sub.kill()
+        except Exception:
+            try:
+                sub.kill()
+            except Exception:
+                pass
+
+    if timeout and timeout > 0:
+        def _watchdog():
+            try:
+                sub.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                timed_out['v'] = True
+                _kill_tree()
+            except Exception:
+                pass
+
+        _wt = threading.Thread(target=_watchdog, name='PanelTaskTimeoutWatchdog')
+        _wt.daemon = True
+        _wt.start()
 
     cur_task_pid_file = os.path.join(yf.getPanelDir(), 'tmp', 'panel_task_sub.pid')
     if task_id:
@@ -196,6 +231,28 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         except:
             pass
 
+    if timed_out['v']:
+        # 超时被杀：向任务日志明确告知，上游据此置为失败而不是误判为成功
+        msg = '\n[Error] 任务执行超时（超过 %s 秒），已强制终止!\n' % timeout
+        writeLogs(msg, task_id=task_id)
+        try:
+            sub.wait(timeout=5)
+        except Exception:
+            pass
+        for _pipe in (sub.stdout, sub.stdin):
+            try:
+                if _pipe:
+                    _pipe.close()
+            except Exception:
+                pass
+        return ('timeout', msg)
+
+    for _pipe in (sub.stdout, sub.stdin):
+        try:
+            if _pipe:
+                _pipe.close()
+        except Exception:
+            pass
     return (str(sub.returncode), '')
 
 
@@ -221,14 +278,34 @@ def writeLogs(data, task_id=None):
         except:
             pass
 
+def _make_safe_redirect_handler():
+    """构造一个对每次跳转都重新做 SSRF 校验的重定向处理器。
+
+    原实现只对初始 URL 做了 urlguard 校验，但 urllib 默认跟随 302/301，
+    攻击者可用公网 URL 302 跳 http://169.254.169.254/ 绕过校验。
+    """
+    import urllib.request as _ur
+    import urllib.error as _ue
+    from utils.urlguard import validate_url as _validate
+
+    class _SafeRedirectHandler(_ur.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            _ok, _err, _meta = _validate(newurl, resolve=True)
+            if not _ok:
+                raise _ue.HTTPError(newurl, code,
+                                    'redirect blocked: %s' % _err, headers, fp)
+            return super(_SafeRedirectHandler, self).redirect_request(
+                req, fp, code, msg, headers, newurl)
+
+    return _SafeRedirectHandler()
+
+
 def downloadFile(url, filename, task_id=None):
     # 下载文件
     try:
         import urllib
-        import socket
+        import urllib.request
         from urllib.parse import urlparse
-
-        socket.setdefaulttimeout(300)
 
         url = str(url).strip()
         parsed = urlparse(url)
@@ -252,28 +329,45 @@ def downloadFile(url, filename, task_id=None):
             os.makedirs(target_dir, exist_ok=True)
 
         headers = ('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36')
-        opener = urllib.request.build_opener()
+        # 每次跳转重新做 SSRF 校验；超时改为局部参数（不再污染整个进程的 socket 默认超时）
+        opener = urllib.request.build_opener(_make_safe_redirect_handler())
         opener.addheaders = [headers]
-        urllib.request.install_opener(opener)
 
-        # 闭包缓存变量
-        downloadHook.last_pre = -1
-        downloadHook.last_time = 0
+        resp = opener.open(url, timeout=300)
+        try:
+            total = resp.headers.get('Content-Length')
+            total = int(total) if (total and str(total).isdigit()) else 0
+        except Exception:
+            total = 0
 
-        def downloadHook(count, blockSize, totalSize):
-            # 下载文件进度回调
-            used = count * blockSize
-            pre = int((100.0 * used / totalSize))
-            now = time.time()
-            
-            # 节流机制：进度变化 >= 1% 或 距离上次写入超过 1 秒，才触发写盘
-            if pre != downloadHook.last_pre or (now - downloadHook.last_time >= 1.0):
-                speed = {'total': totalSize, 'used': used, 'pre': pre}
-                writeLogs(json.dumps(speed), task_id)
-                downloadHook.last_pre = pre
-                downloadHook.last_time = now
-
-        urllib.request.urlretrieve(url, filename=filename, reporthook=downloadHook)
+        used = 0
+        last_pre = -1
+        last_time = 0.0
+        deadline = time.time() + DOWNLOAD_MAX_RUNTIME
+        try:
+            with open(filename, 'wb') as out:
+                while True:
+                    if time.time() > deadline:
+                        writeLogs('[Error] 下载超时（超过 %s 秒），已终止!' % DOWNLOAD_MAX_RUNTIME, task_id)
+                        return False
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    out.write(chunk)
+                    used += len(chunk)
+                    now = time.time()
+                    if total:
+                        pre = int(100.0 * used / total)
+                        # 节流：进度变化 >= 1% 或距上次写入超过 1 秒
+                        if pre != last_pre or (now - last_time >= 1.0):
+                            writeLogs(json.dumps({'total': total, 'used': used, 'pre': pre}), task_id)
+                            last_pre = pre
+                            last_time = now
+        finally:
+            try:
+                resp.close()
+            except Exception:
+                pass
 
         if not yf.isAppleSystem():
             try:
@@ -313,7 +407,7 @@ def runPanelTask():
                     argv = run_task['cmd'].split('|yf|')
                     success = downloadFile(argv[0], argv[1], task_id=run_task['id'])
                 elif run_task['type'] == 'execshell':
-                    res = execShell(run_task['cmd'], task_id=run_task['id'])
+                    res = execShell(run_task['cmd'], timeout=TASK_MAX_RUNTIME, task_id=run_task['id'])
                     if res and res[0] == '0':
                         success = True
                     else:

@@ -208,8 +208,17 @@ class Sql():
 
     def getDbField(self,name):
         global _table_fields_cache
-        if name in _table_fields_cache:
-            return _table_fields_cache[name]
+        self.__getConn()
+        # 缓存带 schema_version：ALTER TABLE 后版本号变化，自动失效重建，
+        # 避免旧字段列表把 SELECT * 的结果列错位映射。
+        try:
+            row = self.__DB_CONN.execute("PRAGMA schema_version").fetchone()
+            ver = row[0] if row else None
+        except Exception:
+            ver = None
+        cached = _table_fields_cache.get(name)
+        if cached is not None and cached[0] == ver:
+            return cached[1]
 
         sql = "PRAGMA table_info(%s)" % name
         result = self.__DB_CONN.execute(sql)
@@ -219,7 +228,7 @@ class Sql():
         for i in data:
             fields.append(i[1])
             
-        _table_fields_cache[name] = fields
+        _table_fields_cache[name] = (ver, fields)
         return fields
 
     def getDbFieldString(self,name):

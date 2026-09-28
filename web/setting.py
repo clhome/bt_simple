@@ -29,8 +29,17 @@ import utils.system as system
 import thisdb
 
 cpu_info = system.getCpuInfo()
-# Flask-SocketIO 要求 worker 数量必须为 1，多 worker 会导致 SocketIO 握手 400 错误
+# Flask-SocketIO 要求 worker 数量必须为 1，多 worker 会导致 SocketIO 握手 400 错误。
+# 此外 yf.writeSpeed/getSpeed 的进度是**进程内存态**，登录状态缓存也是进程内存态，
+# 多 worker 下会出现上传/下载进度串台、封禁计数不共享。默认固定 1。
 workers = 1
+if os.environ.get('YF_ALLOW_MULTI_WORKER', '') == '1':
+    try:
+        workers = max(1, int(os.environ.get('YF_WORKERS', '2')))
+    except Exception:
+        workers = 2
+    print('[WARN] YF_ALLOW_MULTI_WORKER=1：已放开 %d 个 worker。'
+          '上传/下载进度、登录封禁缓存将按进程隔离，可能出现串台/校验不一致，请确认已理解风险。' % workers)
 
 panel_dir = yf.getPanelDir()
 log_dir = yf.getYfLogs()
@@ -75,7 +84,14 @@ if panel_ssl_data['open']:
             http2 = True
 
 
+# 线程数按 CPU 自适应：低配 2（少线程少内存），高配最多 8。
+# 长阻塞操作已另有超时上界（见 panel_task / utils.plugin），多线程可提升并发容错。
 threads = 4
+try:
+    _ncpu = os.cpu_count() or 2
+    threads = max(2, min(8, _ncpu * 2))
+except Exception:
+    threads = 4
 backlog = 512
 reload = False
 daemon = True

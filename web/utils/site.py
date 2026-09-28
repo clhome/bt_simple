@@ -419,7 +419,7 @@ class sites(object):
         # 如果目录原来有.user.ini,先强制删除
         user_ini = self.sitePath + '/.user.ini'
         if os.path.exists(user_ini):
-            yf.execShell("which chattr && chattr -i " + user_ini)
+            yf.safeExecShell(['chattr', '-i', user_ini])
             os.remove(user_ini)
             
         # 创建完成后，调用重新开启防跨站
@@ -1000,7 +1000,7 @@ class sites(object):
     def delUserInI(self, path, up=0):
         filename = path + '/.user.ini'
         if os.path.exists(filename):
-            yf.execShell("which chattr && chattr -i " + filename)
+            yf.safeExecShell(['chattr', '-i', filename])
             os.remove(filename)
         
         for f in os.listdir(path):
@@ -1014,7 +1014,7 @@ class sites(object):
                 print('ff:',user_ini)
                 if not os.path.exists(user_ini):
                     continue
-                yf.execShell('which chattr && chattr -i ' + user_ini)
+                yf.safeExecShell(['chattr', '-i', user_ini])
                 os.remove(user_ini)
             except Exception as _e:
                 continue
@@ -1037,10 +1037,10 @@ class sites(object):
             if content and '/www/server/php' in content:
                 return yf.returnData(True, 'site.py_msg_bf9941')
             else:
-                yf.execShell("which chattr && chattr -i " + filename)
+                yf.safeExecShell(['chattr', '-i', filename])
 
         yf.writeFile(filename, new_content)
-        yf.execShell("which chattr && chattr +i " + filename)
+        yf.safeExecShell(['chattr', '+i', filename])
         return yf.returnData(True, 'site.py_msg_bf9941')
 
     def setDirUserIni(self, site_path, run_path):
@@ -2721,7 +2721,7 @@ location  {from} {\n\
 
         yf.buildSoftLink(src_cert, dst_cert, True)
         yf.buildSoftLink(src_key, dst_key, True)
-        yf.execShell('echo "acme" > "' + dst_path + '/README"')
+        yf.writeFile(dst_path + '/README', 'acme')
 
         # 写入配置文件
         result = self.setSslConf(site_name)
@@ -2843,7 +2843,7 @@ export PATH
 
             yf.buildSoftLink(src_cert, dst_cert, True)
             yf.buildSoftLink(src_key, dst_key, True)
-            yf.execShell('echo "acme" > "' + dst_path + '/README"')
+            yf.writeFile(dst_path + '/README', 'acme')
 
             # 写入配置文件
             result = self.setSslConf(site_name)
@@ -2947,7 +2947,7 @@ export PATH
 
             yf.buildSoftLink(src_cert, dst_cert, True)
             yf.buildSoftLink(src_key, dst_key, True)
-            yf.execShell('echo "acme" > "' + dst_path + '/README"')
+            yf.writeFile(dst_path + '/README', 'acme')
 
             # 写入配置文件
             result = self.setSslConf(site_name)
@@ -3060,7 +3060,7 @@ export PATH
         yf.makeDirs(dst_letpath)
         yf.buildSoftLink(src_csrpath, dst_csrpath, True)
         yf.buildSoftLink(src_keypath, dst_keypath, True)
-        yf.execShell('echo "lets" > "' + dst_letpath + '/README"')
+        yf.writeFile(dst_letpath + '/README', 'lets')
 
         # 写入配置文件
         result = self.setSslConf(site_name)

@@ -234,10 +234,18 @@ class App():
         return yf.returnJson(True, '添加成功!')
 
 if __name__ == "__main__":
+    # 安全：彻底废除 eval 反射，改为白名单方法分派，防止 func 参数注入任意 Python 表达式
+    _ALLOWED_FUNCS = (
+        'status', 'get_cmd_list', 'add_cmd', 'del_cmd',
+        'get_server_list', 'get_server_by_host', 'add_server', 'del_server',
+    )
+    if len(sys.argv) < 2 or sys.argv[1] not in _ALLOWED_FUNCS:
+        print(yf.returnJson(False, '错误: 非法的调用参数!'))
+        sys.exit(1)
     func = sys.argv[1]
     classApp = App()
     try:
-        data = eval("classApp." + func + "()")
+        data = getattr(classApp, func)()
         print(data)
     except Exception as e:
         print(yf.getTracebackInfo())

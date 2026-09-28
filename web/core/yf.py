@@ -1982,50 +1982,84 @@ def _insecure_ssl_context():
     except Exception:
         return None
 
-_HTTP_POOL = None
+_HTTP_POOL = None            # 验证证书的连接池（默认路径）
+_HTTP_POOL_INSECURE = None   # 不验证证书的连接池（降级兼底：老系统 CA 缺失时）
 _HTTP_POOL_LOCK = None
 
-def _get_http_pool():
-    global _HTTP_POOL, _HTTP_POOL_LOCK
-    if _HTTP_POOL is not None:
-        return _HTTP_POOL
+def _get_http_pool(insecure=False):
+    global _HTTP_POOL, _HTTP_POOL_INSECURE, _HTTP_POOL_LOCK
+    cached = _HTTP_POOL_INSECURE if insecure else _HTTP_POOL
+    if cached is not None:
+        return cached
     try:
         import threading as _th
         if _HTTP_POOL_LOCK is None:
             _HTTP_POOL_LOCK = _th.Lock()
         with _HTTP_POOL_LOCK:
-            if _HTTP_POOL is not None:
-                return _HTTP_POOL
+            cached = _HTTP_POOL_INSECURE if insecure else _HTTP_POOL
+            if cached is not None:
+                return cached
             try:
                 import urllib3 as _u3
                 _u3.disable_warnings()
-                ctx = _insecure_ssl_context()
-                _HTTP_POOL = _u3.PoolManager(cert_reqs='CERT_NONE', retries=False, timeout=urllib3.Timeout(connect=5, read=10), maxsize=32, block=True, ssl_context=ctx)
-                return _HTTP_POOL
+                _timeout = _u3.Timeout(connect=5, read=10)
+                if insecure:
+                    pool = _u3.PoolManager(cert_reqs='CERT_NONE', retries=False,
+                                           timeout=_timeout, maxsize=32, block=True,
+                                           ssl_context=_insecure_ssl_context())
+                    _HTTP_POOL_INSECURE = pool
+                else:
+                    # 验证优先：使用系统/urllib3 默认 CA 束
+                    pool = _u3.PoolManager(cert_reqs='CERT_REQUIRED', retries=False,
+                                           timeout=_timeout, maxsize=32, block=True)
+                    _HTTP_POOL = pool
+                return pool
             except Exception:
-                _HTTP_POOL = False
+                if insecure:
+                    _HTTP_POOL_INSECURE = False
+                else:
+                    _HTTP_POOL = False
                 return None
     except Exception:
         return None
-    return None
 
-def HttpGet(url, timeout=10):
+
+def _pool_request(method, url, timeout, body=None, headers=None):
+    """先用「验证证书」的连接池请求；失败再降级到不校验证书的池。
+
+    返回解码后的字符串；两者都失败返回 None。保留降级路径是因为部分老系统
+    CA 束缺失，强验证会导致插件/GitHub 下载全面失败。
     """
-    发送GET请求（优先 urllib3 PoolManager 复用连接，局部 unverified context，不污染全局）
-    @url 被请求的URL地址(必需)
-    @timeout 超时时间默认60秒
-    return string
-    """
-    pool = _get_http_pool()
-    if pool:
+    for insecure in (False, True):
+        pool = _get_http_pool(insecure=insecure)
+        if not pool:
+            continue
         try:
-            resp = pool.request('GET', url, timeout=timeout, retries=False)
+            kwargs = {'timeout': timeout, 'retries': False}
+            if body is not None:
+                kwargs['body'] = body
+            if headers is not None:
+                kwargs['headers'] = headers
+            resp = pool.request(method, url, **kwargs)
             data = resp.data
             if isinstance(data, bytes):
                 data = data[:1048576].decode('utf-8', errors='replace') if len(data) > 1048576 else data.decode('utf-8', errors='replace')
             return data
         except Exception:
-            pass
+            continue
+    return None
+
+
+def HttpGet(url, timeout=10):
+    """
+    发送GET请求（验证优先，失败降级；连接池复用）
+    @url 被请求的URL地址(必需)
+    @timeout 超时时间默认60秒
+    return string
+    """
+    data = _pool_request('GET', url, timeout)
+    if data is not None:
+        return data
     try:
         import urllib.request
         ctx = _insecure_ssl_context()
@@ -2042,16 +2076,9 @@ def HttpGet(url, timeout=10):
 
 
 def HttpGet2(url, timeout):
-    pool = _get_http_pool()
-    if pool:
-        try:
-            resp = pool.request('GET', url, timeout=timeout, retries=False)
-            data = resp.data
-            if isinstance(data, bytes):
-                data = data[:1048576].decode('utf-8', errors='replace') if len(data) > 1048576 else data.decode('utf-8', errors='replace')
-            return data
-        except Exception:
-            pass
+    data = _pool_request('GET', url, timeout)
+    if data is not None:
+        return data
     import urllib.request
     try:
         ctx = _insecure_ssl_context()
@@ -2073,31 +2100,23 @@ def httpGet(url, timeout=10):
 
 def HttpPost(url, data, timeout=10):
     """
-    发送POST请求（优先 PoolManager 复用，局部 unverified context + 1MB 响应截断）
+    发送POST请求（验证优先，失败降级；1MB 响应截断）
     @url 被请求的URL地址(必需)
     @data POST参数，可以是字符串或字典(必需)
     @timeout 超时时间默认60秒
     return string
     """
-    pool = _get_http_pool()
-    if pool:
-        try:
-            body = data
-            headers = {'User-Agent': 'bt_simple/1.0', 'Content-Type': 'application/x-www-form-urlencoded'}
-            if isinstance(data, dict):
-                if len(str(data)) > 65536:
-                    return "POST data too large"
-                import urllib.parse as _up
-                body = _up.urlencode(data)
-            elif isinstance(data, str):
-                body = data
-            resp = pool.request('POST', url, body=body, headers=headers, timeout=timeout, retries=False)
-            result = resp.data
-            if isinstance(result, bytes):
-                result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
-            return result
-        except Exception:
-            pass
+    headers = {'User-Agent': 'bt_simple/1.0', 'Content-Type': 'application/x-www-form-urlencoded'}
+    if isinstance(data, dict):
+        if len(str(data)) > 65536:
+            return "POST data too large"
+        import urllib.parse as _up
+        body = _up.urlencode(data)
+    else:
+        body = data
+    result = _pool_request('POST', url, timeout, body=body, headers=headers)
+    if result is not None:
+        return result
     try:
         import urllib.request
         ctx = _insecure_ssl_context()

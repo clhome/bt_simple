@@ -5,6 +5,7 @@ import io
 import os
 import time
 import re
+import ast
 import json
 import shlex
 
@@ -840,6 +841,15 @@ def dockerCreateCon():
     ports = ports.replace('[', '(').replace(']', ')')
     volumes = args['volumes']
 
+    # 安全：修复原 eval(ports) 的任意代码执行漏洞（ports 完全来自前端请求），
+    # 改用 ast.literal_eval 仅允许字面量容器（dict/list/tuple）。
+    try:
+        ports_parsed = ast.literal_eval(ports)
+    except Exception:
+        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
+    if not isinstance(ports_parsed, (dict, list, tuple)):
+        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
+
     # if __name__ == "__main__":
     #     print(args)
     try:
@@ -849,7 +859,7 @@ def dockerCreateCon():
             name=name,
             image=image,
             mem_limit=mem_limit + 'M',
-            ports=eval(ports),
+            ports=ports_parsed,
             auto_remove=False,
             command=command,
             detach=True,

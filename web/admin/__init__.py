@@ -130,6 +130,10 @@ if panel_ssl_data['open']:
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
+# 单请求体积硬上限（DoS 纵深防御）：文件管理为分片上传，常规运维不会超 4GB。
+# 超限由 Werkzeug 直接返回 413，避免超大 body 撑满磁盘/内存。
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024 * 1024
+
 # db的配置
 # app.config['SQLALCHEMY_DATABASE_URI'] = yf.getSqitePrefix()+config.SQLITE_PATH+"?timeout=20"  # 使用 SQLite 数据库
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

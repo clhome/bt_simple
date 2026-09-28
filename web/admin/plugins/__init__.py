@@ -11,6 +11,7 @@
 
 import os
 import json
+import time
 
 from flask import Blueprint, render_template
 from flask import request
@@ -293,7 +294,35 @@ def setting():
 
 
 # 插件缓存字典
+# 安全/性能：cache_key 含用户可控的 args，无上限时会因不同 args 而内存单调增长。
+# 这里统一加 TTL + 容量上限（超过先清过期，再淘汰最旧一半）。
 RUN_CACHE = {}
+RUN_CACHE_TTL = 3600      # 条目最长存活（秒）
+RUN_CACHE_MAX = 512       # 条目上限
+
+
+def _run_cache_get(key, ttl):
+    item = RUN_CACHE.get(key)
+    if not item:
+        return None
+    data, ts = item
+    if ttl <= 0 or (time.time() - ts) >= ttl:
+        RUN_CACHE.pop(key, None)
+        return None
+    return data
+
+
+def _run_cache_set(key, value):
+    now = time.time()
+    if len(RUN_CACHE) >= RUN_CACHE_MAX:
+        # 先清 TTL 已过期项
+        for k in [k for k, v in RUN_CACHE.items() if now - v[1] >= RUN_CACHE_TTL]:
+            RUN_CACHE.pop(k, None)
+    if len(RUN_CACHE) >= RUN_CACHE_MAX:
+        # 仍超限：淘汰最旧的一半，避免缓存成为内存放大器
+        for k in sorted(RUN_CACHE, key=lambda x: RUN_CACHE[x][1])[:max(1, len(RUN_CACHE) // 2)]:
+            RUN_CACHE.pop(k, None)
+    RUN_CACHE[key] = (value, now)
 
 # 插件统一回调入口API
 @blueprint.route('/run', endpoint='run', methods=['GET','POST'])
@@ -314,10 +343,10 @@ def run():
         is_status_query = func == 'status' or func.startswith('status_')
         cache_ttl = 10 if func == 'get_total_statistics' else (2 if is_status_query else 0)
 
-        if cache_ttl > 0 and cache_key in RUN_CACHE:
-            cache_data, cache_time = RUN_CACHE[cache_key]
-            if now - cache_time < cache_ttl:
-                return cache_data
+        if cache_ttl > 0:
+            cached = _run_cache_get(cache_key, cache_ttl)
+            if cached is not None:
+                return cached
 
         # 写操作立即清除该插件的状态缓存与数据库缓存
         is_state_op = (
@@ -357,7 +386,7 @@ def run():
                 pass
 
         if cache_ttl > 0:
-            RUN_CACHE[cache_key] = (r, now)
+            _run_cache_set(cache_key, r)
 
         return r
     except Exception as e:
@@ -444,11 +473,10 @@ def run_batch():
         script = item.get('script', 'index')
 
         cache_key = (name, func, version, args, script)
-        if func == 'get_total_statistics' and cache_key in RUN_CACHE:
-            cache_data, cache_time = RUN_CACHE[cache_key]
-            if now - cache_time < 10:
-                results[name] = cache_data
-                continue
+        cached = _run_cache_get(cache_key, 10) if func == 'get_total_statistics' else None
+        if cached is not None:
+            results[name] = cached
+            continue
 
         tasks_to_run.append({
             'name': name,
@@ -470,7 +498,14 @@ def run_batch():
             except Exception as e:
                 return task, (None, None), e
 
-        max_workers = min(len(tasks_to_run), 10)
+        # 并发上限按机器规格自适应（低配 1，高配最多 4），硬上限 10。
+        # 每个任务是独立 Python 子进程，1C1G 上多开会把单核打满。
+        try:
+            from core.resources import get_background_job_limit
+            _job_limit = max(1, int(get_background_job_limit()))
+        except Exception:
+            _job_limit = 4
+        max_workers = min(len(tasks_to_run), _job_limit, 10)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(run_single_task, t) for t in tasks_to_run]
             for future in futures:
@@ -488,7 +523,7 @@ def run_batch():
                         r = yf.returnData(False, data[1].strip())
 
                 if func == 'get_total_statistics' and not exc:
-                    RUN_CACHE[cache_key] = (r, now)
+                    _run_cache_set(cache_key, r)
 
                 results[name] = r
 

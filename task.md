@@ -83,3 +83,88 @@
 - **无新增依赖**，无数据库结构变更，无接口签名变更。
 - 跨进程唤醒仅依赖 Linux `SIGUSR1` + `/proc`；Windows/macOS 或 `/proc` 不可用时自动退化为原轮询节奏。
 - 回退粒度小：前端为纯 JS 行为调整，后端为局部函数替换，均可单独还原而不影响其余功能。
+
+---
+---
+
+# task.md —— 第 1 层「安全 / 可靠性 / 性能」收口记录
+
+> 来源：本轮全仓安全·可靠性·性能复审（对照《参考/优化260910.md》剔除已落地项后的**剩余问题**）。
+> 纪律：每修完一类代码即跑 `python testsuite/run_all.py` 全量门禁，不通过则继续修正，直至全绿。
+> 基线：154 模块 / 1074 用例 / 4 个既有隔离项，全部通过。
+
+## A. 安全性 — 注入收口（P0）
+
+- [x] A1 插件 zip 安装接口命令注入：`web/utils/plugin.py:inputZipApi()` 的 `plugin_name`/`tmp_path` 未过滤即拼进 `execShell`
+- [x] A2 webssh 插件 `eval("classApp."+func+"()")` 任意代码执行：`plugins/webssh/index.py:__main__`
+- [x] A3 Docker 插件 `eval(ports)`：`plugins/docker/index.py:852`
+- [x] A4 插件 `/run` 路径穿越执行任意 `.py`：`web/utils/plugin.py:run()` 未校验 `name`/`script`
+- [x] A5 站点路径未加引号拼接进 shell：`web/utils/site.py` 多处 `chattr ±i " + path`
+
+> A 类验证：新增 `testsuite/test_p3_injection_hardening.py`（9 用例，含恶意输入拒绝 + 源码危险写法断言）；
+> `python testsuite/run_all.py` → **155 模块 / 1083 用例全部通过**。
+
+## B. 安全性 — 凭据处理（P0）
+
+- [x] B1 快捷登录绕过限流/会话固定/仅支持 MD5：`web/admin/dashboard/dashboard.py:admin_safe_path()`
+- [x] B2 关联面板密码明文入库并明文上 URL：`web/admin/setting/panel_bookmark.py`
+
+> B 类验证：新增 `testsuite/test_p3_credential_hardening.py`（9 用例）。
+> B1：快捷登录改用 `_is_banned/_register_login_failure/_reset_login_failure/_password_matches`，`session.clear()`，双向时间窗。
+> B2：密码落库 `enDoubleCrypt`；`get_panel_list` 不再回传 `password`；新增 `/setting/get_panel_login` 服务端现签；前端去除 `data-pw`。
+
+## C. 安全性 — SSRF 与传输（P1）
+
+- [x] C1 计划任务下载 SSRF 可被 302 绕过 + `socket.setdefaulttimeout` 全局副作用：`panel_task.py:downloadFile()`
+- [x] C2 出口 HTTPS 不校验证书，改为「先验证、失败再降级」双重策略：`web/core/yf.py:_insecure_ssl_context()`
+
+> C 类验证：新增 `testsuite/test_p3_ssrf_and_transport.py`（6 用例，含重定向处理器运行时拒绝 169.254/127.0.0.1）。
+
+## D. 可靠性（P1）
+
+- [x] D1 重型任务无超时，卡死任务永久堵队列：`panel_task.py:execShell()` / `runPanelTask()`
+- [x] D2 插件 `uninstall` 同步执行且无超时，占死 gunicorn 线程：`web/utils/plugin.py:uninstall()`
+- [x] D3 `plugin.run()` 固定 30s 超时误杀正常启停：`web/utils/plugin.py:run()`
+- [x] D4 内存态进度强依赖 `workers=1`，缺少启动告警：`web/setting.py`
+- [x] D5 `_table_fields_cache` 永不失效，`ALTER TABLE` 后字段错位：`web/core/db.py`
+
+> D 类验证：新增 `testsuite/test_p3_reliability_timeouts.py`（7 用例，含实时验证 `execShell` 2s 杀掉 60s 睡眠进程）。
+> 同步更新了旧用例 `test_p1_reliability_and_perf.py` 对调用签名的字面断言（追加 timeout 参数，语义不变）。
+
+## E. 执行性能（P2）
+
+- [x] E1 `RUN_CACHE` 无上限且 key 含用户可控 `args`，可致内存单调增长：`web/admin/plugins/__init__.py`
+- [x] E2 `run_batch` 硬编码 10 并发子进程，低配打满单核：`web/admin/plugins/__init__.py`
+- [x] E3 gunicorn `threads=4` 硬编码 + 缺少 `MAX_CONTENT_LENGTH`：`web/setting.py` / `web/admin/__init__.py`
+
+> E 类验证：新增 `testsuite/test_p3_perf_hardening.py`（6 用例，含 RUN_CACHE TTL/容量上限行为断言）。
+
+## F. 经复核「已实现 / 接受现状」
+
+- [x] F1 语言包按主菜单分片懒加载（P-3）——**已实现**：`web/core/i18n.py` `_MENU_NAMES` + `template.<menu>.json`
+- [x] F2 出口 HTTPS 证书校验（C2）改为验证优先 + 降级兜底后即闭环
+- [x] F3 `os.system` 收口、`flock`、SSRF urlguard、`FileSystemCache`、资源分档自适应等（《优化260910.md》S-1/R-2/S-3/P-1/H-*）——**已实现**，本轮不重复
+
+---
+
+## 验证记录
+
+| 阶段 | 命令 | 结果 |
+|------|------|------|
+| 基线 | `python testsuite/run_all.py` | 154 模块 / 1074 用例，全绿 |
+| A 类后 | 同上 | **155 模块 / 1083 用例，全绿** |
+| B 类后 | 同上 | **156 模块 / 1092 用例，全绿** |
+| C 类后 | 同上 | **157 模块 / 1098 用例，全绿** |
+| D 类后 | 同上 | **158 模块 / 1105 用例，全绿**（含修正 1 处旧断言） |
+| E 类后 | 同上 | **159 模块 / 1111 用例，全绿**（4 个隔离项为改动前既有语言包问题，未新增） |
+
+新增回归用例（均纳入门禁）：
+- `testsuite/test_p3_injection_hardening.py`（9）
+- `testsuite/test_p3_credential_hardening.py`（9）
+- `testsuite/test_p3_ssrf_and_transport.py`（6）
+- `testsuite/test_p3_reliability_timeouts.py`（7）
+- `testsuite/test_p3_perf_hardening.py`（6）
+
+运行时/构建校验：所有改动文件 `py_compile` 通过；`web/static/app/public.js` `node --check` 通过；
+全部保持 UTF-8 无 BOM + LF。
+
