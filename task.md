@@ -31,6 +31,8 @@
 |------|------|
 | `web/core/yf.py` | `writeSpeed()` 不再落盘 `data/panel_speed.pl`，改为模块级 `_SPEED_STATE` + `threading.Lock`；`getSpeed()` 返回副本。顺带修正 `total=0` 的除零风险。 |
 | `web/core/yf.py` | 顶部补充 `import threading`（原文件仅在 2300+ 行才导入，内存态锁需提前可用），并移除后置的重复导入。 |
+| `web/admin/files/files.py` | 补齐历史上遗漏的 `/files/get_speed` 路由（支持 GET/POST，受登录态保护），打通前端读内存进度的完整链路。 |
+| `web/static/app/public.js` | 优化 `getSpeed()`：增加 DOM 存在性双重校验（弹窗关闭后立即终止递归，杜绝僵尸轮询）；兼容包装与扁平响应结构；增加 `.fail()` 容错降频。 |
 
 ### 4. `panel_task.py` 空转改事件驱动
 | 位置 | 改动 |

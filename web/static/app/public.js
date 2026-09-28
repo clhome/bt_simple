@@ -2029,12 +2029,21 @@ function bindPaneldel(id) {
   }, 'json');
 }
 function getSpeed(sele) {
-  if (!$(sele)) {
+  var $elem = $(sele);
+  // 核心防御：若当前进度容器不存在于 DOM 中（例如弹窗已关闭、操作已完成），立刻终止递归轮询，防止僵尸轮询与内存泄漏
+  if (!$elem || $elem.length === 0) {
     return;
   }
   $.get('/files/get_speed', function (data) {
-    var speed = data['data'];
-    if (speed.title === null) {
+    // 再次确认容器是否仍在 DOM 中（网络请求返回期间弹窗可能已被关闭）
+    if ($(sele).length === 0) {
+      return;
+    }
+    var speed = (data && typeof data === 'object' && 'data' in data) ? data['data'] : data;
+    if (!speed || speed.title === null || typeof speed.title === 'undefined') {
+      setTimeout(function () {
+        getSpeed(sele);
+      }, yfVisible() ? 1000 : 3000);
       return;
     }
     var mspeed = '';
@@ -2056,7 +2065,13 @@ function getSpeed(sele) {
     setTimeout(function () {
       getSpeed(sele);
     }, yfVisible() ? 1000 : 3000);
-  }, 'json');
+  }, 'json').fail(function () {
+    if ($(sele).length > 0) {
+      setTimeout(function () {
+        getSpeed(sele);
+      }, 3000);
+    }
+  });
 }
 function tasklist() {
   var con = '<div style="height: 100%; display: flex; flex-direction: column; position: relative;">\

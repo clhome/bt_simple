@@ -392,6 +392,13 @@ def download_file():
 def close_logs():
     return file.closeLogs()
 
+# 获取文件操作进度（纯内存态）
+@blueprint.route('/get_speed', endpoint='get_speed', methods=['GET', 'POST'])
+@panel_login_required
+def get_speed():
+    return yf.returnData(True, 'ok', yf.getSpeed())
+
+
 
 
 
