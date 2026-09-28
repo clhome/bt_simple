@@ -1335,8 +1335,14 @@ function allDeleteFileSub(data,path){
 }
 
 //重载文件列表
+var reloadFilesTimer = null;
 function reloadFiles(){
-    setInterval(function(){
+    // 先清理旧定时器，避免重复调用时轮询叠加
+    if (reloadFilesTimer) {
+        clearInterval(reloadFilesTimer);
+    }
+    reloadFilesTimer = setInterval(function(){
+        if (document.visibilityState !== 'visible') return; // 后台标签页暂停
         var path = $("#DirPathPlace input").val();
         getFiles(path);
     },3000);

@@ -17,6 +17,7 @@ import sys
 import os
 import json
 import time
+import signal
 import threading
 
 web_dir = os.getcwd() + "/web"
@@ -25,6 +26,52 @@ sys.path.append(web_dir)
 
 import core.yf as yf
 import thisdb
+
+# ---------------------------------------------------------------------------------
+# 事件驱动唤醒（第 0 层空转治理）
+# 原实现：重型任务线程固定每 3 秒醒来检查任务表，空闲时纯空转。
+# 新实现：Web 侧 yf.triggerTask()/restartPanel() 写入触发文件后，再通过 SIGUSR1
+#         唤醒本进程，线程无任务时阻塞等待，仅在兜底超时或收到信号时醒来。
+#         非 Linux / 无 SIGUSR1 环境下自动退化为短间隔轮询，功能不回退。
+# ---------------------------------------------------------------------------------
+_TASK_WAKE_EVENT = threading.Event()      # 唤醒重型任务队列线程
+_WATCHDOG_WAKE_EVENT = threading.Event()  # 唤醒看门狗（restart.pl 等文件型触发）
+_WAKE_SIGNAL_ENABLED = False
+
+
+def _on_wake_signal(signum, frame):
+    _TASK_WAKE_EVENT.set()
+    _WATCHDOG_WAKE_EVENT.set()
+
+
+def setupWakeSignal():
+    global _WAKE_SIGNAL_ENABLED
+    if not hasattr(signal, 'SIGUSR1'):
+        _WAKE_SIGNAL_ENABLED = False
+        return False
+    try:
+        signal.signal(signal.SIGUSR1, _on_wake_signal)
+        _WAKE_SIGNAL_ENABLED = True
+    except Exception:
+        _WAKE_SIGNAL_ENABLED = False
+    return _WAKE_SIGNAL_ENABLED
+
+
+def writePanelTaskPidFile():
+    try:
+        with open(yf.getPanelTaskPidFile(), 'w') as f:
+            f.write(str(os.getpid()))
+    except Exception:
+        pass
+
+
+def removePanelTaskPidFile():
+    try:
+        pid_file = yf.getPanelTaskPidFile()
+        if os.path.exists(pid_file):
+            os.remove(pid_file)
+    except Exception:
+        pass
 
 g_log_file = yf.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
@@ -481,7 +528,6 @@ class TaskScheduler:
         })
         
     def run(self):
-        event = threading.Event()
         while True:
             now = time.time()
             next_run_times = []
@@ -493,23 +539,32 @@ class TaskScheduler:
                         print("Task {} failed: {}".format(task['func'].__name__, str(e)))
                     task['next_run'] = time.time() + task['interval']
                 next_run_times.append(task['next_run'])
-            
-            # 计算距离下一次最近任务的等待时间
-            next_time = min(next_run_times)
-            wait_time = next_time - time.time()
-            # 限制等待范围 0.1s - 2.0s，兼顾 CPU 挂起节能与文件检查的响应延时
-            wait_time = max(0.1, min(wait_time, 2.0))
-            event.wait(timeout=wait_time)
+
+            # 精确等待到下一个任务到期（上限 30s），取代固定 2s 空转；
+            # 收到 SIGUSR1 唤醒信号时立即重新调度（restart.pl 等文件型触发）。
+            next_time = min(next_run_times) if next_run_times else time.time() + 30.0
+            wait_time = max(0.1, min(next_time - time.time(), 30.0))
+            _WATCHDOG_WAKE_EVENT.wait(timeout=wait_time)
+            _WATCHDOG_WAKE_EVENT.clear()
 
 def run():
+    # 事件驱动唤醒初始化（SIGUSR1），非 Linux 自动退化为短间隔轮询
+    setupWakeSignal()
+    writePanelTaskPidFile()
+
+    # 文件型触发（restart.pl / restart_nginx.pl）的检测间隔：
+    # 有信号唤醒时可放宽到 10s（与面板重启倒计时一致，且由 Web 侧主动唤醒），
+    # 否则保持 3s 保证响应。看门狗本身最快也要每 10s 醒来一次（check502）。
+    file_check_interval = 10 if _WAKE_SIGNAL_ENABLED else 3
+
     # 通道 1：高频轻量看门狗与监控调度器（负责毫秒级高频检测与自愈，绝不执行阻塞长任务）
     watchdog_scheduler = TaskScheduler()
     watchdog_scheduler.add_task(systemTask_step, 15)
     watchdog_scheduler.add_task(check502Task_step, 10)
-    watchdog_scheduler.add_task(openrestyRestartAtOnce_step, 3)
+    watchdog_scheduler.add_task(openrestyRestartAtOnce_step, file_check_interval)
     watchdog_scheduler.add_task(openrestyAutoRestart_step, 86400)
     watchdog_scheduler.add_task(panelPluginStatusCheck_step, 90)
-    watchdog_scheduler.add_task(restartPanelService_step, 3)
+    watchdog_scheduler.add_task(restartPanelService_step, file_check_interval)
 
     t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
     t_watchdog.daemon = True
@@ -517,22 +572,27 @@ def run():
 
     # 通道 2：重型长耗时任务队列执行器（独立线程执行，软件编译安装期间完全不阻塞通道 1 看门狗）
     def heavy_task_worker():
-        event = threading.Event()
         while True:
             try:
                 startPanelTask_step()
             except Exception as e:
                 print("heavy_task_worker error:", str(e))
-            event.wait(timeout=3.0)
+            # 事件驱动：yf.triggerTask() 发 SIGUSR1 时立即唤醒处理新任务；
+            # 兜底超时防止极端漏唤醒，无信号能力时退回 3s 短轮询。
+            idle_timeout = 60.0 if _WAKE_SIGNAL_ENABLED else 3.0
+            _TASK_WAKE_EVENT.wait(timeout=idle_timeout)
+            _TASK_WAKE_EVENT.clear()
 
     t_heavy = threading.Thread(target=heavy_task_worker, name="HeavyTaskWorkerThread")
     t_heavy.daemon = True
     t_heavy.start()
 
     # 保持主线程运行
-    while True:
-        time.sleep(86400)
-        time.sleep(86400)
+    try:
+        while True:
+            time.sleep(86400)
+    finally:
+        removePanelTaskPidFile()
 
 if __name__ == "__main__":
     from admin import setup

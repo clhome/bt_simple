@@ -1,6 +1,40 @@
 // ============================================
 // 全局 Layer 弹窗多语言无缝增强与防中文硬编码
 // ============================================
+// ============================================
+// 自适应轮询公共助手（第 0 层轮询治理）
+// ============================================
+// yfVisible(): 页面是否处于前台可见状态（后台标签页不执行高频轮询）
+function yfVisible() {
+  return (typeof document === 'undefined' || document.visibilityState !== 'hidden');
+}
+
+// yfPacer(maxIdle): 配合 setInterval 使用的"可见性感知 + 空闲退避"节拍器。
+//   var pacer = yfPacer(4);
+//   var timer = setInterval(function () {
+//     if (!pacer.tick()) return;          // 后台标签页 / 退避期 → 跳过本拍
+//     doPoll(function (hasWork) {
+//       pacer.setIdle(!hasWork);          // 上报无活跃工作，下次进入退避
+//     });
+//   }, 2000);
+// 保留原生 interval id 语义，clearInterval(timer) 仍可直接停止。
+function yfPacer(maxIdle) {
+  var idle = 0;
+  var max = (typeof maxIdle === 'number' && maxIdle > 0) ? maxIdle : 3;
+  return {
+    tick: function () {
+      if (!yfVisible()) return false;
+      if (idle > 0) {
+        idle--;
+        return false;
+      }
+      return true;
+    },
+    setIdle: function (isIdle) {
+      idle = isIdle ? max : 0;
+    }
+  };
+}
 function initLayerI18n() {
   if (!window.layer || window.layer._i18nEnhanced) return;
   window.layer._i18nEnhanced = true;
@@ -1698,7 +1732,7 @@ function getTaskCount() {
   }, 'json');
 }
 getTaskCount();
-// 仅在非首页时，启动每 6 秒的任务数轮询（首页已由 getNet 高频接口大合并接管，彻底消除了首页并发 API 队头阻塞）
+// 仅在非首页时，启动每 6 秒的任务数轮询（首页已由 index.getData 的高频接口大合并接管，彻底消除了首页并发 API 队头阻塞）
 if (!(window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname === '')) {
   setInterval(function () {
     if (document.visibilityState !== 'visible') {
@@ -2021,7 +2055,7 @@ function getSpeed(sele) {
     $(sele).html(body);
     setTimeout(function () {
       getSpeed(sele);
-    }, 1000);
+    }, yfVisible() ? 1000 : 3000);
   }, 'json');
 }
 function tasklist() {
@@ -2052,23 +2086,34 @@ function messageBox() {
         $(this).addClass("bgw").siblings().removeClass("bgw");
       });
       tasklist();
+      function renderMsgBoxSysInfo(net) {
+        if ($("#msg_box_sys_info").length === 0) return;
+        if (!net) return;
+        if (net.cpu) {
+          $("#msg_box_cpu").text(net.cpu[0] + "%");
+        }
+        if (net.mem) {
+          var memUsed = net.mem.memRealUsed;
+          var memTotal = net.mem.memTotal;
+          var memPercent = memTotal > 0 ? (memUsed / memTotal * 100).toFixed(1) : 0;
+          $("#msg_box_mem").text(memPercent + "% (" + toSize(memUsed) + "/" + toSize(memTotal) + ")");
+        }
+        if (net.network && net.network.ALL) {
+          $("#msg_box_up").text(toSize(net.network.ALL.up) + "/s");
+          $("#msg_box_down").text(toSize(net.network.ALL.down) + "/s");
+        }
+      }
       function updateSysInfo() {
         if ($("#msg_box_sys_info").length === 0) return;
+        if (!yfVisible()) return; // 后台标签页暂停，回到前台后自动恢复
+        // 首页 index.getData 已在轮询 /system/network，直接复用其最新结果避免重复请求
+        var cached = window.__lastNetworkStat;
+        if (window.location.pathname === '/' && cached && (Date.now() - (cached.__ts || 0)) < 6000) {
+          renderMsgBoxSysInfo(cached.data);
+          return;
+        }
         $.get("/system/network", function (net) {
-          if ($("#msg_box_sys_info").length === 0) return;
-          if (net.cpu) {
-            $("#msg_box_cpu").text(net.cpu[0] + "%");
-          }
-          if (net.mem) {
-            var memUsed = net.mem.memRealUsed;
-            var memTotal = net.mem.memTotal;
-            var memPercent = memTotal > 0 ? (memUsed / memTotal * 100).toFixed(1) : 0;
-            $("#msg_box_mem").text(memPercent + "% (" + toSize(memUsed) + "/" + toSize(memTotal) + ")");
-          }
-          if (net.network && net.network.ALL) {
-            $("#msg_box_up").text(toSize(net.network.ALL.up) + "/s");
-            $("#msg_box_down").text(toSize(net.network.ALL.down) + "/s");
-          }
+          renderMsgBoxSysInfo(net);
         }, 'json');
       }
       updateSysInfo();
@@ -2228,7 +2273,7 @@ function getReloads() {
   if (speed) {
     return;
   }
-  function renderRunTask() {
+  function renderRunTask(pacer) {
     if (!$("#taskList").hasClass("bgw")) {
       clearInterval(speed);
       speed = null;
@@ -2236,10 +2281,12 @@ function getReloads() {
     }
     $.post('/task/get_task_speed', '', function (h) {
       if (h.task == undefined || h.task.length === 0) {
+        if (pacer) pacer.setIdle(true); // 无任务时退避，避免 2s 空转
         $(".task_count").text(0);
         $(".cmdlist").html('<li style="border:none; text-align:center; padding-top:100px; color:#999;">' + t('public.there_are_currently_no', '当前没有任务!') + '</li>');
         return;
       }
+      if (pacer) pacer.setIdle(false); // 有任务时恢复高频刷新
       var b = '';
       var d = '';
       var c = '';
@@ -2286,12 +2333,16 @@ function getReloads() {
           if ($(".cmd")[0] && $(".cmd")[0].scrollHeight) $(".cmd").scrollTop($(".cmd")[0].scrollHeight);
         } catch (e) {}
       }
-    }, 'json').fail(function () {});
+    }, 'json').fail(function () {
+      if (pacer) pacer.setIdle(true);
+    });
   }
   renderRunTask();
+  // 自适应：可见且存在任务时 2s 刷新；无任务时退避；后台标签页自动降频
+  var taskPacer = yfPacer(4);
   speed = setInterval(function () {
-    renderRunTask();
-
+    if (!taskPacer.tick()) return;
+    renderRunTask(taskPacer);
   }, 2000);
 }
 

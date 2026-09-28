@@ -342,6 +342,7 @@ function getSList(isdisplay) {
     if (window.softTimer) clearTimeout(window.softTimer);
     if (window.document.location.pathname.indexOf('/soft') === 0) {
       var delay = has_active_task ? 8000 : 30000; // 有任务8秒，无任务30秒
+      if (document.visibilityState !== 'visible') delay = 60000; // 后台标签页进一步降频
       window.softTimer = setTimeout(function () {
         getSList(true); // 传入 true，避免弹出 loading 遮罩
       }, delay);

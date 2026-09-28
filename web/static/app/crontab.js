@@ -73,6 +73,7 @@ function getLogs(id, task_name) {
     success: function (layero, index) {
       requestLogs(index);
       reqTimer = setInterval(function () {
+        if (document.visibilityState !== 'visible') return; // 后台标签页暂停日志轮询
         requestLogs(index);
       }, 5000);
       var btnRow = layero.find('.layui-layer-btn');

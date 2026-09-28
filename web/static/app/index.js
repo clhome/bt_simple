@@ -31,7 +31,7 @@ function getLoad(data) {
 }
 
 $('#LoadList .circle').on('click', function() {
-    // getNet();
+    // 负载环形图点击不再触发额外请求（系统状态已由 index.getData 统一轮询）
 });
 
 $('#LoadList .mask').on('mouseenter', function() {
@@ -423,255 +423,6 @@ function setcolor(pre, s, s1, s2, s3) {
     var co = $(s).parent('.mask');
     co.css("color", LoadColor);
     co.parent('.circle').css("background", LoadColor);
-}
-
-
-function getNet() {
-    var up, down;
-    $.get("/system/network?t=" + new Date().getTime(), function(net) {
-
-        console.log(net);
-
-        $("#InterfaceSpeed").html(((window.lan && lan.index && lan.index.interfacespeed) || t('index.interfacespeed', '接口速率')) + "： 1.0Gbps");
-        $("#upSpeed").html(toSize(net.up));
-        $("#downSpeed").html(toSize(net.down));
-        $("#downAll").html(toSize(net.downTotal));
-        var pkgText = (window.lan && lan.index && lan.index.package) || t('index.package', '数据包');
-        $("#downAll").attr('title', pkgText + ':' + net.downPackets);
-        $("#upAll").html(toSize(net.upTotal));
-        $("#upAll").attr('title', pkgText + ':' + net.upPackets);
-        var coreText = (window.lan && lan.index && lan.index.core) || t('index.core', '核心');
-        $("#core").html(net.cpu[1] + " " + coreText);
-        $("#state").html(parseFloat(net.cpu[0]).toFixed(1));
-        setcolor(net.cpu[0], "#state", 30, 70, 90);
-        setCookie("upNet", net.up);
-        setCookie("downNet", net.down);
-
-        // 自动更新左侧与顶部的排队任务总数，完成首页接口合并
-        if (typeof(net.task_count) !== 'undefined') {
-            $(".task").text(net.task_count);
-        }
-
-        //负载
-        getLoad(net.load);
-
-        //内存
-        setMemImg(net.mem);
-
-        //绑定hover事件
-        setImg();
-        showCpuTips(net);
-
-        if (typeof window.updateNetChart === 'function') {
-            window.updateNetChart();
-        }
-    },'json');
-}
-
-//网络IO
-function netImg() {
-    
-    var xData = [];
-    var yData = [];
-    var zData = [];
-
-    function getTime() {
-        var now = new Date();
-        var hour = now.getHours();
-        var minute = now.getMinutes();
-        var second = now.getSeconds();
-        if (minute < 10) {
-            minute = "0" + minute;
-        }
-        if (second < 10) {
-            second = "0" + second;
-        }
-        var nowdate = hour + ":" + minute + ":" + second;
-        return nowdate;
-    }
-
-    function ts(m) { return m < 10 ? '0' + m : m }
-
-    function format(sjc) {
-        var time = new Date(sjc);
-        var h = time.getHours();
-        var mm = time.getMinutes();
-        var s = time.getSeconds();
-        return ts(h) + ':' + ts(mm) + ':' + ts(s);
-    }
-
-    var default_unit = 'KB/s';
-    function addData(shift) {
-        xData.push(getTime());
-
-        if (getCookie("upNet") > getCookie("downNet") ){
-            tmp = getCookie("upNet");
-        } else {
-            tmp = getCookie("downNet");
-        }
-        var tmpSize = toSize(tmp);
-        default_unit = tmpSize.split(' ')[1] + '/s';
-
-
-        var upNetTmp = toSize(getCookie("upNet"));
-        var downNetTmp = toSize(getCookie("downNet"));
-        
-        var upNetTmpSize = upNetTmp.split(' ')[0];
-        var downNetTmp = downNetTmp.split(' ')[0];
-        
-        yData.push(upNetTmpSize);
-        zData.push(downNetTmp);
-        if (shift) {
-            xData.shift();
-            yData.shift();
-            zData.shift();
-        }
-    }
-    for (var i = 8; i >= 0; i--) {
-        var time = (new Date()).getTime();
-        xData.push(format(time - (i * 3 * 1000)));
-        yData.push(0);
-        zData.push(0);
-    }
-
-    var upName = (window.lan && lan.index && lan.index.net_up) || t('index.net_up', '上行');
-    var downName = (window.lan && lan.index && lan.index.net_down) || t('index.net_down', '下行');
-    var unitLabel = (window.lan && lan.index && lan.index.unit) || t('index.unit', '单位 ');
-
-    // 指定图表的配置项和数据
-    var option = {
-        title: {
-            text: (window.lan && lan.index && lan.index.interface_net) || t('index.interface_net', '接口流量实时'),
-            left: 'center',
-            textStyle: {
-                color: '#888888',
-                fontStyle: 'normal',
-                fontFamily: "宋体",
-                fontSize: 16,
-            }
-        },
-        tooltip: {
-            trigger: 'axis'
-        },
-        legend: {
-            data: [upName, downName],
-            bottom: '2%'
-        },
-        xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: xData,
-            axisLine: {
-                lineStyle: {
-                    color: "#666"
-                }
-            }
-        },
-        yAxis: {
-            name: unitLabel + default_unit,
-            splitLine: {
-                lineStyle: { color: "#eee" }
-            },
-            axisLine: {
-                lineStyle: { color: "#666" }
-            }
-        },
-        series: [{
-            name: upName,
-            type: 'line',
-            data: yData,
-            smooth: true,
-            showSymbol: false,
-            symbol: 'circle',
-            symbolSize: 6,
-            areaStyle: {
-                normal: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                        offset: 0,
-                        color: 'rgba(255, 140, 0,0.5)'
-                    }, {
-                        offset: 1,
-                        color: 'rgba(255, 140, 0,0.8)'
-                    }], false)
-                }
-            },
-            itemStyle: {
-                normal: {
-                    color: '#f7b851'
-                }
-            },
-            lineStyle: {
-                normal: {
-                    width: 1
-                }
-            }
-        },
-        {
-            name: downName,
-            type: 'line',
-            data: zData,
-            smooth: true,
-            showSymbol: false,
-            symbol: 'circle',
-            symbolSize: 6,
-            areaStyle: {
-                normal: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                        offset: 0,
-                        color: 'rgba(30, 144, 255,0.5)',
-                    }, {
-                        offset: 1,
-                        color: 'rgba(30, 144, 255,0.8)',
-                    }], false)
-                }
-            },
-            itemStyle: {
-                normal: {
-                    color: '#52a9ff',
-                }
-            },
-            lineStyle: {
-                normal: {
-                    width: 1,
-                }
-            }
-        }]
-    };
-
-    var echartsNetImg = echarts.init(document.getElementById('netImg'));
-    window.updateNetChart = function() {
-        addData(true);
-        echartsNetImg.setOption({
-            yAxis: {
-                name: unitLabel + default_unit,
-                splitLine: { lineStyle: { color: "#eee" } },
-                axisLine: { lineStyle: { color: "#666" } }
-            },
-            xAxis: {
-                data: xData
-            },
-            series: [{
-                name: upName,
-                data: yData
-            }, {
-                name: downName,
-                data: zData
-            }]
-        });
-    };
-
-    setInterval(function() {
-        if (document.visibilityState !== 'visible') {
-            return; // 网页切入后台，自动暂停高频轮询以节省能耗与带宽
-        }
-        getNet();
-    }, 3000);
-
-    // 使用刚指定的配置项和数据显示图表。
-    echartsNetImg.setOption(option);
-    window.addEventListener("resize", function() {
-        echartsNetImg.resize();
-    });
 }
 
 
@@ -1993,6 +1744,12 @@ var index = {
     getData:function(){
 
         $.get("/system/network", function(net) {
+            // 缓存最近一次系统状态，供消息盒子复用，避免同一页面重复请求 /system/network
+            window.__lastNetworkStat = { data: net, __ts: Date.now() };
+            // 自动更新左侧与顶部的排队任务总数（合并自原 getNet 的接口大合并逻辑）
+            if (typeof(net.task_count) !== 'undefined') {
+                $(".task").text(net.task_count);
+            }
 
             //网络IO
             var network_io_key = getCookie('network_io_key');
@@ -2052,8 +1809,10 @@ var index = {
         },'json');
     },
     task:function(){
-        // index.getData();
         setInterval(function() {
+            if (document.visibilityState !== 'visible') {
+                return; // 后台标签页暂停首页高频轮询，回到前台自动恢复
+            }
             index.getData();
         }, 3000);
     },

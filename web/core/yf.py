@@ -17,6 +17,7 @@
 import os
 import sys
 import time
+import threading
 import string
 import json
 import hashlib
@@ -1673,43 +1674,35 @@ def writeDbLog(stype, msg, args=(), uid=1):
         print("writeDbLog:"+str(e))
         return False
 
-_LAST_WRITE_TIME = 0
+# ---------------------------------------------------------------------------------
+# 文件操作进度：内存态（第 0 层磁盘 I/O 治理）
+# 原实现每次进度变化都落盘 data/panel_speed.pl（批量删除/复制/清空回收站时
+# 产生持续的小文件写放大）。生产环境 workers=1（Flask-SocketIO 约束），
+# 进度生产者 web/utils/file.py 与消费者 /files 接口处于同一进程，
+# 因此改为纯内存状态，彻底消除该写放大。
+# ---------------------------------------------------------------------------------
+_SPEED_LOCK = threading.Lock()
+_SPEED_STATE = {'title': None, 'progress': 0, 'total': 0, 'used': 0, 'speed': 0}
 
 def writeSpeed(title, used, total, speed=0):
-    global _LAST_WRITE_TIME
-    now = time.time()
-
-    panel_dir = getPanelDir()
-    speed_file= panel_dir + '/data/panel_speed.pl'
-    # 写进度
+    # 更新内存进度（不落盘）
     if not title:
-        data = {'title': None, 'progress': 0,'total': 0, 'used': 0, 'speed': 0}
-        writeFile(speed_file, json.dumps(data))
-        _LAST_WRITE_TIME = now
-        return True
-        
-    progress = int((100.0 * used / total))
-    data = {'title': title, 'progress': progress,'total': total, 'used': used, 'speed': speed}
-    
-    # 节流：1秒内不重复落盘，除非进度跑完或结束
-    if now - _LAST_WRITE_TIME < 1 and progress < 100:
-        return True
-        
-    writeFile(speed_file, json.dumps(data))
-    _LAST_WRITE_TIME = now
+        data = {'title': None, 'progress': 0, 'total': 0, 'used': 0, 'speed': 0}
+    else:
+        try:
+            progress = int((100.0 * used / total)) if total else 0
+        except Exception:
+            progress = 0
+        data = {'title': title, 'progress': progress, 'total': total, 'used': used, 'speed': speed}
+    with _SPEED_LOCK:
+        _SPEED_STATE.update(data)
     return True
 
 
 def getSpeed():
-    panel_dir = getPanelDir()
-    speed_file= panel_dir + '/data/panel_speed.pl'
-    # 取进度
-    path = getPanelDir()
-    data = readFile(speed_file)
-    if not data:
-        data = json.dumps({'title': None, 'progress': 0,'total': 0, 'used': 0, 'speed': 0})
-        writeFile(speed_file, data)
-    return json.loads(data)
+    # 取内存进度（副本，避免调用方并发修改）
+    with _SPEED_LOCK:
+        return dict(_SPEED_STATE)
 
 
 
@@ -2173,9 +2166,45 @@ def fileNameCheck(filename):
 def getTriggerTaskLockFile():
     return getPanelDir() + '/logs/panel_task.lock'
 
+def getPanelTaskPidFile():
+    return getYfLogs() + '/panel_task.pid'
+
+
+def wakePanelTask():
+    # 事件驱动：通知后台 panel_task 进程立即处理新任务，避免其固定间隔空转。
+    # 仅在有 /proc 的 Linux 环境下按 cmdline 严格校验 PID 归属后才发信号，
+    # 杜绝 PID 复用导致的误伤（panel_task.py 会注册 SIGUSR1 处理器）。
+    import signal
+    if not hasattr(signal, 'SIGUSR1'):
+        return False
+    try:
+        if not os.path.isdir('/proc'):
+            return False
+        pid_file = getPanelTaskPidFile()
+        if not os.path.exists(pid_file):
+            return False
+        with open(pid_file, 'r') as f:
+            pid = int((f.read() or '').strip())
+        if pid <= 1:
+            return False
+        cmdline_file = '/proc/%d/cmdline' % pid
+        if not os.path.exists(cmdline_file):
+            return False
+        with open(cmdline_file, 'rb') as cf:
+            cmdline = cf.read().decode('utf-8', 'ignore')
+        if 'panel_task.py' not in cmdline:
+            return False
+        os.kill(pid, signal.SIGUSR1)
+        return True
+    except Exception:
+        return False
+
+
 def triggerTask():
     lock_file = getTriggerTaskLockFile()
     writeFile(lock_file, 'True')
+    # 立即唤醒后台任务进程，替代固定 3 秒空转轮询
+    wakePanelTask()
 
 def restartTask():
     initd = getPanelDir() + '/scripts/init.d/yf'
@@ -2186,6 +2215,8 @@ def restartTask():
 def restartPanel():
     restart_file = getPanelDir()+'/data/restart.pl'
     writeFile(restart_file, 'True')
+    # 立即唤醒看门狗执行重启，替代 3 秒空转检测
+    wakePanelTask()
     return True
 
 def panelCmd(method):
@@ -2300,7 +2331,6 @@ def isInstalledWeb():
         return True
     return False
 
-import threading
 _reload_timer = None
 _reload_lock = threading.Lock()
 
