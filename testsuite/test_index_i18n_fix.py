@@ -43,11 +43,12 @@ LANGUAGES = ["zh-CN", "zh-TW", "en", "fr", "de", "it"]
 
 class TestIndexI18nFix(unittest.TestCase):
     
-    def test_01_phrases_full_definitions(self):
-        """测试 phrases_full.py 中已录入全部 11 个新词条"""
-        from phrases_full import FULL_I18N_DICTIONARY
-        index_dict = FULL_I18N_DICTIONARY.get("index", {})
-        
+    def test_01_index_new_keys_in_shipped_packs(self):
+        """测试 1: 首页新增词条已录入**已出库**的 6 语言语言包（原 phrases_full 校验已废）
+
+        原用例校验的是未入库的构建输入 `phrases_full.py`（现已不存在于仓库）。
+        改为直接校验收件人看到的那份：`web/static/language/<lang>/template.index.json`。
+        """
         required_keys = [
             "running_prefix",
             "ip_type_lan",
@@ -61,19 +62,21 @@ class TestIndexI18nFix(unittest.TestCase):
             "login_details_password_err",
             "login_details_active_session"
         ]
-        
-        for k in required_keys:
-            self.assertIn(k, index_dict, f"phrases_full.py index 模块缺失 key: {k}")
-            for lang in LANGUAGES:
-                val = index_dict[k].get(lang)
-                self.assertTrue(val, f"phrases_full.py index 模块 {k} 缺少语言: {lang}")
-                
-        # 验证英文词条质量
-        self.assertEqual(index_dict["running_prefix"]["en"], "Uptime: ")
-        self.assertEqual(index_dict["ip_type_lan"]["en"], "Local LAN")
-        self.assertEqual(index_dict["login_details_web"]["en"], "Web Password Login")
-        self.assertEqual(index_dict["login_details_ssh"]["en"], "SSH Terminal Login")
-        print("[PASS] 1. phrases_full.py 词条定义与英文母语对照完整！")
+        packs = {}
+        for lang in LANGUAGES:
+            path = os.path.join(LANG_DIR, lang, "template.index.json")
+            with open(path, encoding="utf-8") as f:
+                packs[lang] = json.load(f).get("index", {})
+            for k in required_keys:
+                self.assertTrue(packs[lang].get(k), f"{lang}/template.index.json 缺失词条: {k}")
+
+        # 英文词条质量锁定
+        en = packs["en"]
+        self.assertEqual(en["running_prefix"], "Uptime: ")
+        self.assertEqual(en["ip_type_lan"], "Local LAN")
+        self.assertEqual(en["login_details_web"], "Web Password Login")
+        self.assertEqual(en["login_details_ssh"], "SSH Terminal Login")
+        print("[PASS] 1. 首页新增词条已在 6 语言包中完整录入，英文母语对照正确！")
 
     def test_02_all_language_packages_integrity(self):
         """测试 6 国语言 template.json 与 lan.js 是否均包含 11 个新词条"""

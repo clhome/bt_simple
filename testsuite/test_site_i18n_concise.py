@@ -32,7 +32,7 @@ class TestSiteI18nConcise(unittest.TestCase):
             'backed_up': ['Yes', 'has Backup'],
             'config_settings': ['Settings', 'set'],
             'all_categories': ['All', 'All Categories', '全部分类', 'allcategories'],
-            'default_category': ['Default', 'Default Category', '默认分类', 'defaultcategory']
+            'default_category': ['Default', 'Default Category', 'Default category', '默认分类']
         }
         
         for lang in ['en', 'de', 'fr', 'it']:

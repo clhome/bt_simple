@@ -877,6 +877,15 @@
     "open_cmd_title": "開啟指令"
   },
   "login": {
+    "feature_free": "永久免費",
+    "feature_lightweight": "羽量級無負擔",
+    "feature_opensource": "永久開源",
+    "feature_reliable": "安全可靠",
+    "input_code": "請填寫4位驗證碼",
+    "input_password": "請填寫密碼",
+    "input_username": "請填寫賬戶",
+    "intro_subtitle": "為你打造的高效伺服器面板",
+    "intro_title": "探索無界，管理隨心",
     "N1": "請填寫帳號",
     "N2": "格式不對",
     "N3": "帳號",

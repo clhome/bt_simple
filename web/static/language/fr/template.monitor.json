@@ -1,5 +1,7 @@
 {
   "control": {
+    "down": "Réception",
+    "up": "Envoi",
     "hours_24": "24 heures",
     "H1": "Tableau de bord",
     "H2": "Surveillance du système",

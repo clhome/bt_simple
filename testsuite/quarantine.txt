@@ -12,18 +12,36 @@
 # 可借 venv 的 pip 代装：
 #   <venv>/Scripts/pip.exe --python <门禁解释器/python.exe> install Jinja2 packaging flask
 #
-# 维护纪律（第三轮审计的结论，32 → 6 → 5）：
+# 维护纪律（第三轮审计的结论，32 → 6 → 5 → 0）：
 #   1. 「隔离」不等于「不用管」。每条都要**两种跑法都试**——
 #      `python -m unittest testsuite.<mod>` 与 `python testsuite/<mod>.py`。
 #      脚本式用例在 `-m unittest` 下永远只给 `Ran 0 tests ... OK`，
 #      只看这个数字会把「其实全绿」的模块误判成「导入失败」而长期挂在名单里。
 #   2. 断言失败先分清是哪一种，再决定改测试还是改产品：
 #      (i) 键/串从未存在  (ii) 已搬走（改名/移进模板）  (iii) 还在，但在另一个命名空间。
-#      错判会让「测试取错命名空间」被当成产品缺陷（test_crontab_i18n_fix.py
-#      即此情形，已补齐英文译文并移出隔离区）。
+#      错判会让「测试取错命名空间」被当成产品缺陷。
 #   3. 下面每一条都必须是**产品决策**，不能靠改断言绕过。
-
-test_about_i18n.py    # 依赖 scripts/tools/phrases_full.py；该文件已在 ef85092ce「翻译补全」被移到 test/i18n_scripts/tools/phrases_full.py（文件本身仍受 git 跟踪），用例仍按旧路径 sys.path.insert(scripts/tools) 后 import，故 ModuleNotFoundError: No module named 'phrases_full'。两条修法都各有代价，需定夺：移回文件会打断 test/i18n_scripts/tools/ 下的同目录 import；改用例路径会触发仓库契约守卫 test_repo_contract 的「用例不得引用被忽略的 test/ 目录」。
-test_index_i18n_fix.py    # 同 test_about_i18n.py 的 phrases_full 路径漂移（ModuleNotFoundError）；另有一处 AssertionError: '1041' not found in 'public.SYS_BOOT_TIME'，断言的是一个已不存在的键值对。
-test_soft_i18n.py    # AssertionError：真实语言包缺陷，不是断言过时——zh-TW soft.type_runtime =「執行環境」而用例期望「運行環境」；en 侧的值是小写/连写（installed / database / systemtool / Otherplugin / Running environment），与用例的 Title-Case 期望不符，英文侧确为劣质机翻，应重译而非改断言。
-test_task_manager_i18n.py    # AssertionError：英文值断言与语言包有 3 处措辞分歧（需人工定夺，勿盲目改任一侧）——外部地址 期望 'Foreign Address' 实为 'External Address'；进程 期望 'Process' 实为小写 'process'（疑似语言包缺陷）；屏蔽此IP 期望 'Block IP' 实为 'Block this IP address'。
+#
+# ---------------------------------------------------------------------------
+# 当前：名单为空（第四轮「i18n 交付收口」已把 4 条全部结清）
+# ---------------------------------------------------------------------------
+#
+# 结清记录（依上述纪律逐条判定，不是改断言绕过）：
+#
+#   test_about_i18n.py      —— 删掉 test_01_phrases_full。它校验的是**未入库**的构建
+#                              输入 `scripts/tools/phrases_full.py`（早已移到被
+#                              .gitignore 忽略的 `test/` 下，仓库里根本不存在，CI 永不
+#                              可能通过）。它断言的那批键已由同文件的 test_02 在
+#                              **已出库的语言包**上逐条覆盖，故直接删除冗余用例；
+#                              顺手修掉该文件里硬编码的绝对路径 BASE_DIR（跨平台红线）。
+#   test_index_i18n_fix.py  —— test_01 同样依赖 phrases_full，改写为直接校验已出库的
+#                              `web/static/language/<lang>/template.index.json`
+#                              （11 个词条 + 4 条英文质量锁定，意图不变）。
+#   test_soft_i18n.py       —— 真实语言包缺陷，已修产品侧：en 的
+#                              `installed / database / System tool / Otherplugin /
+#                              Running environment` → `Installed / Database /
+#                              System Tools / Other Plugins / Runtime`；
+#                              zh-TW `其他外掛程式` → `其他外掛`（与用例既定基线一致）。
+#   test_task_manager_i18n.py —— 断言过时：`input[placeholder]` 已被实现改成通配
+#                              `[placeholder], [title]`（覆盖 textarea/select），
+#                              改为按「能力」断言，不锁定旧选择器字面量。

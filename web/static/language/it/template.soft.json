@@ -2,7 +2,7 @@
   "soft": {
     "type_all": "Tutti",
     "type_installed": "Installato",
-    "type_runtime": "Ambiente di esecuzione",
+    "type_runtime": "Ambiente di runtime",
     "type_database": "Database",
     "type_code_mgr": "Gestione del codice",
     "type_system_tools": "Strumenti di sistema",

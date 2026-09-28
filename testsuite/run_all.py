@@ -151,7 +151,7 @@ def script_style_tests(path):
 
 # 静态门禁：不依赖 testsuite/ 下的用例，直接调用仓库里的独立工具
 STATIC_GATES = [
-    ('i18n 静态门禁（10 项）', [PY, 'scripts/verify_i18n.py']),
+    ('i18n 静态门禁（11 项）', [PY, 'scripts/verify_i18n.py']),
     ('i18n 检测器自证', [PY, 'scripts/verify_i18n.py', '--self-test']),
 ]
 
@@ -159,22 +159,31 @@ STATIC_GATES = [
 # --------------------------------------------------------------------------
 # 隔离区
 # --------------------------------------------------------------------------
+def parse_quarantine(text):
+    """解析隔离名单文本：`模块名  # 原因` → {模块名: 原因}。
+
+    单独拆出来是为了让门禁自证（`test_gate_selftest.py`）能用**内嵌夹具**
+    证明解析器有效 —— 真实名单随时可能被结清成空表，「名单非空」不能当判据。
+    """
+    out = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        mod, _, reason = line.partition('#')
+        mod = mod.strip()
+        if mod:
+            out[mod] = reason.strip() or '（未填写原因）'
+    return out
+
+
 def load_quarantine():
     """读 quarantine.txt：`模块名  # 原因`，返回 {模块名: 原因}。"""
     path = os.path.join(HERE, 'quarantine.txt')
-    out = {}
     if not os.path.isfile(path):
-        return out
+        return {}
     with open(path, 'r', encoding='utf-8') as fp:
-        for line in fp:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            mod, _, reason = line.partition('#')
-            mod = mod.strip()
-            if mod:
-                out[mod] = reason.strip() or '（未填写原因）'
-    return out
+        return parse_quarantine(fp.read())
 
 
 # --------------------------------------------------------------------------

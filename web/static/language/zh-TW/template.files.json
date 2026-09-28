@@ -1,5 +1,6 @@
 {
   "files": {
+    "py_msg_invalid_protocol": "僅支援 HTTP/HTTPS 協議",
     "BTN1": "後退",
     "BTN2": "重新整理",
     "BTN3": "上傳",
@@ -308,6 +309,14 @@
     "py_msg_d88584": "已清空資源回收筒!"
   },
   "upload": {
+    "file_err": "錯誤的檔案",
+    "file_err_empty": "不能為空位元組檔案!",
+    "file_type_err": "不允許上傳的檔案型別!",
+    "ie_err": "抱歉,IE 6/7/8 不支援請更換瀏覽器再上傳",
+    "select_file": "請選擇檔案!",
+    "up_err": " 上傳錯誤",
+    "up_sleep": "等待上傳",
+    "up_the": "已上傳",
     "saving": "正在儲存..",
     "upload_progress": "上傳進度:",
     "upload_successful": "已上傳成功",

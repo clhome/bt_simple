@@ -18,6 +18,7 @@
 """
 
 import os
+import re
 import sys
 import time
 import importlib.util
@@ -82,7 +83,18 @@ class TestStaticAssetCacheBusting(unittest.TestCase):
     def test_03_templates_use_dynamic_token(self):
         """测试 3: 模板禁止写死缓存令牌，必须使用 asset_v 动态指纹"""
         checks = {
-            'layout.html': ["asset_v('css/site.css')", "asset_v('app/public.js')"],
+            'layout.html': [
+                "asset_v('css/site.css')", "asset_v('app/public.js')",
+                # i18n 三个核心脚本 + 语言包必须带内容指纹：版本号不变时
+                # `?v=` 是常量，而 `/static/` 是 7 天 immutable，改译文将不可见
+                "asset_v('app/i18n.js')",
+                "asset_v('app/tpl/i18n_tpl.js')",
+                "asset_v('language/' + current_lang + '/lan.js')",
+            ],
+            'login.html': [
+                "asset_v('app/i18n.js')",
+                "asset_v('language/' + current_lang + '/lan.js')",
+            ],
             'index.html': [
                 "asset_v('app/index.js')", "asset_v('app/soft.js')",
                 "asset_v('app/site.js')", "asset_v('js/echarts.min.js')",
@@ -116,6 +128,26 @@ class TestStaticAssetCacheBusting(unittest.TestCase):
             code = f.read()
         self.assertIn('asset_v=asset_v', code, '上下文处理器未注入 asset_v')
         self.assertIn('getAssetVersion', code, '未引用 getAssetVersion')
+
+    def test_06_i18n_assets_never_lack_fingerprint(self):
+        """测试 6: 模板里的 i18n 核心脚本 / 语言包引用不允许缺 `&t=` 指纹。
+
+        防的是「新增模板忘了加指纹」这个复发路径：只靠 test_03 的固定清单
+        会漏掉将来新增的模板。
+        """
+        tpl_dir = os.path.join(WEB_DIR, 'templates', 'default')
+        pat = re.compile(
+            r'<script[^>]+src="(/static/(?:language/|app/i18n\.js|app/tpl/i18n_tpl\.js))[^"]*"')
+        bad = []
+        for fn in sorted(os.listdir(tpl_dir)):
+            if not fn.endswith('.html'):
+                continue
+            with open(os.path.join(tpl_dir, fn), encoding='utf-8') as f:
+                content = f.read()
+            for m in pat.finditer(content):
+                if 'asset_v(' not in m.group(0):
+                    bad.append('%s: %s' % (fn, m.group(0)))
+        self.assertEqual(bad, [], '以下 i18n 静态引用缺少内容指纹:\n' + '\n'.join(bad))
 
     def test_05_pjax_document_write_guarded(self):
         """测试 5: Pjax 会重跑内联脚本，echarts 兜底不得裸用 document.write"""

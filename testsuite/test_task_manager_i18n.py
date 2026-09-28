@@ -94,7 +94,10 @@ class TestTaskManagerI18n(unittest.TestCase):
         
         self.assertIn(".man-menu-sub span", content, "translatePluginDOM should support .man-menu-sub span")
         self.assertIn(".setting_ul .setting_ul_li span", content, "translatePluginDOM should support setting dropdown items")
-        self.assertIn("input[placeholder]", content, "translatePluginDOM should support input placeholder")
+        # 实现已从枚举 `input[placeholder]` 改为通配 `[placeholder], [title]`（覆盖
+        # textarea/select），所以按「能力」断言，不锁定旧选择器字面量。
+        self.assertIn("[placeholder]", content, "translatePluginDOM should support placeholder")
+        self.assertIn("[title]", content, "translatePluginDOM should support title")
 
     def test_05_all_tabs_and_columns_have_translations(self):
         """测试 5: 验证 task_manager 所有 Tab 标签和表头设置项均拥有 6 国语言翻译"""

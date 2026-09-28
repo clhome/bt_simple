@@ -1,12 +1,12 @@
 {
   "soft": {
-    "type_all": "Tous",
+    "type_all": "Tout",
     "type_installed": "Installé",
     "type_runtime": "Environnement d'exécution",
-    "type_database": "Bases de données",
+    "type_database": "Base de données",
     "type_code_mgr": "Gestion du code",
     "type_system_tools": "Outils système",
-    "type_other_plugins": "Autres extensions",
+    "type_other_plugins": "Autres plugins",
     "type_php": "PHP",
     "H1": "Tableau de bord",
     "H2": "Gestion des logiciels",

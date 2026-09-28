@@ -1,5 +1,8 @@
 {
   "config": {
+    "new_password": "新密碼",
+    "old_password": "原密碼",
+    "ssl_ps": "請先確認風險!",
     "H1": "首頁",
     "H2": "面板設定",
     "I1": "關閉面板",
@@ -676,6 +679,8 @@
     "verify_keyword": "我要還原"
   },
   "setting": {
+    "py_msg_invalid_db_path": "資料庫檔案路徑不合法",
+    "py_msg_invalid_dbs": "資料庫名稱不合法",
     "api_enabled_successfully": "開啟API成功!",
     "the_api_was_successfully": "關閉API成功!",
     "the_ip_restriction_cannot": "IP限製不能為空!",
@@ -828,6 +833,7 @@
     "py_msg_6d1701": "設定網域名稱成功!"
   },
   "common": {
+    "param_error": "引數錯誤",
     "add_success": "新增成功!",
     "add_failed": "新增失敗!",
     "del_success": "刪除成功",
@@ -843,6 +849,20 @@
     "brand_panel": "御風面板"
   },
   "public": {
+    "config": "正在設定...",
+    "detail": "詳情",
+    "disabled": "已關閉",
+    "enabled": "已開啟",
+    "ok": "確定",
+    "page": "頁",
+    "page_prefix": "第",
+    "save_success": "儲存成功",
+    "the_get": "正在獲取,請稍候...",
+    "title": "提示",
+    "total": "共",
+    "uninstalling": "正在解除安裝...",
+    "unit_item": "條",
+    "warning": "警告",
     "normal": "正常",
     "execute": "執行",
     "edit": "編輯",

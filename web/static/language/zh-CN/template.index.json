@@ -877,6 +877,15 @@
     "open_cmd_title": "开启命令"
   },
   "login": {
+    "feature_free": "永久免费",
+    "feature_lightweight": "羽量级无负担",
+    "feature_opensource": "永久开源",
+    "feature_reliable": "安全可靠",
+    "input_code": "请填写4位验证码",
+    "input_password": "请填写密码",
+    "input_username": "请填写账户",
+    "intro_subtitle": "为你打造的高效服务器面板",
+    "intro_title": "探索无界，管理随心",
     "N1": "请填写账号",
     "N2": "格式不对",
     "N3": "账号",

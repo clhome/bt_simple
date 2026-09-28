@@ -3,9 +3,9 @@
 # 独立于上游 MW 的构建/发布 workflow（python-app-*.yml / release.yml），
 # 只做 i18n 静态检查，失败不影响发布链路。
 #
-# 检查项见 scripts/verify_i18n.py（共 9 项）：插件/全局键集一致、译文无 HTML、
+# 检查项见 scripts/verify_i18n.py（共 11 项）：插件/全局键集一致、译文无 HTML、
 # 无脏键、无多参 pt()、msgTpl 首参含 pt(、无 {0} 占位符、后端消息前缀不含 HTML、
-# 后端中文消息可查到语言包键。
+# 后端中文消息可查到语言包键、二级弹窗钩子、被引用键无空白/中文泄漏/机翻拼接。
 #
 # 脚本自包含（仅标准库 + 内嵌自证夹具），不依赖被 .gitignore 忽略的 test/。
 

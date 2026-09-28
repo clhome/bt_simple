@@ -1,5 +1,6 @@
 {
   "files": {
+    "py_msg_invalid_protocol": "仅支持 HTTP/HTTPS 协议",
     "BTN1": "后退",
     "BTN2": "刷新",
     "BTN3": "上传",
@@ -308,6 +309,14 @@
     "py_msg_d88584": "已清空回收站!"
   },
   "upload": {
+    "file_err": "错误的文件",
+    "file_err_empty": "不能为空字节文件!",
+    "file_type_err": "不允许上传的文件类型!",
+    "ie_err": "抱歉,IE 6/7/8 不支持请更换浏览器再上传",
+    "select_file": "请选择文件!",
+    "up_err": " 上传错误",
+    "up_sleep": "等待上传",
+    "up_the": "已上传",
     "saving": "正在保存..",
     "upload_progress": "上传进度:",
     "upload_successful": "已上传成功",

@@ -877,6 +877,15 @@
     "open_cmd_title": "Comando di abilitazione"
   },
   "login": {
+    "feature_free": "Gratuito per sempre",
+    "feature_lightweight": "Leggerissimo e senza pensieri",
+    "feature_opensource": "Open source per sempre",
+    "feature_reliable": "Sicuro e affidabile",
+    "input_code": "Inserisci il codice di 4 cifre",
+    "input_password": "Inserisci la password",
+    "input_username": "Inserisci l'account",
+    "intro_subtitle": "Un pannello server efficiente fatto per te",
+    "intro_title": "Esplora senza confini, gestisci con facilità",
     "N1": "Si prega di inserire il numero di conto",
     "N2": "Formato sbagliato",
     "N3": "account",

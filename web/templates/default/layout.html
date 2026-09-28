@@ -41,9 +41,9 @@
 <link href="/static/codemirror/addon/dialog/dialog.css?v={{config.version}}" rel="stylesheet" />
 {% endif %}
     <script>window._SERVER_LANG = "{{ current_lang }}";</script>
-    <script src="/static/language/{{ current_lang }}/lan.js?v={{config.version}}"></script>
-    <script src="/static/app/i18n.js?v={{config.version}}"></script>
-    <script src="/static/app/tpl/i18n_tpl.js?v={{config.version}}"></script>
+    <script src="/static/language/{{ current_lang }}/lan.js?v={{config.version}}&t={{ asset_v('language/' + current_lang + '/lan.js') }}"></script>
+    <script src="/static/app/i18n.js?v={{config.version}}&t={{ asset_v('app/i18n.js') }}"></script>
+    <script src="/static/app/tpl/i18n_tpl.js?v={{config.version}}&t={{ asset_v('app/tpl/i18n_tpl.js') }}"></script>
     <script src="/static/app/plugin_api.js?v={{config.version}}&t={{ asset_v('app/plugin_api.js') }}"></script>
     <!--[if lte IE 9]>
       <script src="/static/js/requestAnimationFrame.js?v={{config.version}}"></script>

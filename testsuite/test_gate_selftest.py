@@ -179,10 +179,24 @@ class TestDiscoveryAndQuarantine(unittest.TestCase):
         """`_isolation.py` 是共享助手，不能被当成用例模块去跑。"""
         self.assertNotIn('_isolation.py', gate.discover_modules())
 
+    QUARANTINE_FIXTURE = (
+        "# 注释行应被忽略\n"
+        "\n"
+        "test_a.py    # AssertionError: boom\n"
+        "test_b.py    # 纯中文原因，无法校验\n"
+        "test_c.py\n"
+    )
+
     def test_quarantine_parsed_with_reasons(self):
-        q = gate.load_quarantine()
-        self.assertTrue(q, '隔离区解析为空，说明解析逻辑坏了')
-        for mod, reason in q.items():
+        """解析器自证用**内嵌夹具**：真实名单允许为空（已结清），不能当判据。"""
+        q = gate.parse_quarantine(self.QUARANTINE_FIXTURE)
+        self.assertEqual(sorted(q), ['test_a.py', 'test_b.py', 'test_c.py'])
+        self.assertIn('AssertionError', q['test_a.py'])
+        self.assertEqual(q['test_c.py'], '（未填写原因）')
+
+        # 真实名单：允许为空，但只要有条目就必须写成「模块名 + 原因」
+        real = gate.load_quarantine()
+        for mod, reason in real.items():
             self.assertTrue(mod.endswith('.py'), mod)
             self.assertTrue(reason.strip(), '%s 缺少原因' % mod)
 
@@ -234,6 +248,8 @@ class TestStaleQuarantineReason(unittest.TestCase):
         带异常类型的原因占多数 —— 否则 `stale_reason()` 等于形同虚设。
         """
         q = gate.load_quarantine()
+        if not q:
+            self.skipTest('隔离区已结清（空名单），无可校验原因')
         typed = [m for m, r in q.items() if gate.EXC_IN_REASON_RE.search(r)]
         self.assertGreater(len(typed), len(q) // 2,
                            '超过一半的隔离原因没有写异常类型，名单太模糊，无法校验')

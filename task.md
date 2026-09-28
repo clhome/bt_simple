@@ -168,3 +168,96 @@
 运行时/构建校验：所有改动文件 `py_compile` 通过；`web/static/app/public.js` `node --check` 通过；
 全部保持 UTF-8 无 BOM + LF。
 
+---
+---
+
+# 第 2 层「i18n 交付收口」—— 商业发布阻断项修复（task list）
+
+> 来源：i18n 分支可发布性审计（本轮）。P0-1「caddy / acme 插件下线」经产品确认系**主动移除**（存在严重安全问题），不在本清单内。
+> 纪律：每完成一项即跑对应验证，通过后在本文件打勾（`[x]`）。全部完成后跑全量门禁。
+> 基线：`python testsuite/run_all.py` 161 模块 / 1131 用例全绿；`scripts/verify_i18n.py` 10 项全通过。
+> 实测缺陷基线：`test/i18n_user_visible_damage.py` → en/de/fr/it **663 条用户可见损坏**（EMPTY 113×4、GLUE en83/de119/fr5/it4）。
+
+## 第 1 步：EMPTY —— 键在语言包里查不到（452 条 / 113 键）
+
+根因：i18n 分支重写 `lan.js` 时**丢掉了 master 旧包里的键**，而调用点已改为 `t('sec.key')`，
+于是查表落空 → 外文界面回落硬编码中文；无兜底的调用点（如 `t('site.default_doc')`）直接渲染**空白**。
+
+- [x] 1.1 恢复 master 旧包被丢弃、且仍被调用的 **37 个键**（zh-CN 原文取自 master，补 zh-TW/en/fr/de/it）
+- [x] 1.2 补齐 **69 个**「调用点已引用但六语言全缺」的键（zh-CN 取自调用点兜底与上下文）
+- [x] 1.3 清理 4 处 dead fallback（`|| t('template.xxx')`，`public.*` 同义键已存在）与 3 个非翻译键误报（`OK`/`ok`/`size`）
+- [x] 1.4 由 `lan.js` 单源重新派生 72 个 `.json` 载体，并跑 `test_lang_carrier_derivation`（28 项）
+- [x] 1.5 复测 `test/i18n_user_visible_damage.py`：EMPTY = 0
+
+## 第 2 步：GLUE —— 逐词机翻拼接乱码（211 条）
+
+- [x] 2.1 重译 en 83 / de 119 / fr 5 / it 4 处乱码（如 `If forgotten, password,can be SSHpassbscommand to closeBasicAuthverify`）
+- [x] 2.2 重新派生载体 + 跑护栏（28 项）
+- [x] 2.3 复测 GLUE = 0（其中 1 条 `crontab.import_system_scheduled_tasks[fr]` 为 `\n` 转义序列引起的**假阳性**，已修正判定器）
+
+## 第 3 步：英文「小写连写」机翻异味
+
+- [x] 3.1 修 **63 个**被前端引用的 en 值（`clearlog`/`releasememory`/`setsuccessful`/`forcedelete`/`modifypassword`…）
+- [x] 3.2 一并扫掉其余未被引用的同类 en 值（按值去重 82 个，共 137 处；另修「语义键」残留 GLUE 65 处）
+- [x] 3.3 重新派生载体 + 跑护栏；引用键审计 = 0、语义键残留 GLUE = 0
+  > 副产品：判定器补了三处假阳性修正（`\n` 转义序列、LEGIT 前缀匹配、新增 pgAdmin/pyOpenSSL/getBakPost 等组件名与 JS 函数名）。
+
+- [x] 3.4 **精简复核（用户新增要求）**：槽位审计从 15 处超宽 → **0**；另按「最短可懂」重写了本轮新增的长句（en 31 / de 41 / fr 16 / it 16 处）。
+  > 同步修正 1 条把缺陷值写进白名单的旧用例（`test_site_i18n_concise.py` 的 `default_category` 允许列表含 `defaultcategory`）。
+
+## 第 4 步：把上述红线变成可执行门禁（防回归）
+
+- [x] 4.1 `scripts/verify_i18n.py` 新增 `user-visible-damage` 检查（自包含、仅标准库：内嵌 lan.js 解析 + 引用扫描 + EMPTY/UNKNOWN/ZH_LEAK/GLUE/LOW 判定）
+- [x] 4.2 补内嵌自证夹具（五类各一例 + 「合法译文不得误报」+ 真实语言包注入变异自证）
+- [x] 4.3 `.github/workflows/i18n-check.yml` 覆盖新检查；同步 `run_all.py` / `plugins_check.md` 的项数（9→11）
+
+## 第 5 步：P0-3 版本号与静态缓存（否则用户收不到本次修复）
+
+- [x] 5.1 `web/version.py` `APP_SMALL_VERSION` 18 → 19（内置更新器依赖它与 GitHub tag 比较）
+- [x] 5.2 `layout.html` / `login.html` 的 `lan.js`、`i18n.js`、`i18n_tpl.js` 接入 `&t={{ asset_v(...) }}` 内容指纹（当前只有 `?v=1.1.18`，而 `/static/` 是 7 天 `immutable`）
+- [x] 5.3 新增回归用例锁定「语言包/核心 i18n 脚本必须带内容指纹」（`test_static_asset_cache_busting` 新增 test_06，且覆盖全部模板）
+
+## 第 6 步：P1 打包与仓库洁癖（商业产品形象）
+
+- [x] 6.1 `scripts/plugin_compress.sh` 排除 `*.i18n.bak` 与 `__pycache__`（否则 33 个备份、1.6MB 随插件包下发）
+- [x] 6.2 `.gitattributes` 增加 `export-ignore`：`*.i18n.bak`、`*.bak`、`web/static/app/*.bak`、`plugins/*.md`
+- [x] 6.3 删除死文件 `web/static/language/lang.json`（全仓零引用）；`list.json` / `zh-cn.js` 经核实为 master 遗留且全仓零引用，为避免影响外部直链（`/static/language/list.json`）本次保留不动
+- [x] 6.4 27 个插件「死键」归因：**0 个真孤儿**，全部是「键字符串是插件源码里更长中文字面量的子串」的预留前缀键（含 3 条弱归因：clean/服务 命中文档路径、data_query/容器 命中代码注释、task_manager/发送·接收 命中说明文案），保留不动
+
+## 第 7 步：总验证与收尾
+
+- [x] 7.1 `python scripts/verify_i18n.py --verbose` 全绿（**11 项检查**，含新增第 11 项）
+- [x] 7.2 `python testsuite/run_all.py` 全绿：**165 模块 / 1157 用例 / 0 隔离项**
+- [x] 7.3 `test/i18n_user_visible_damage.py` → **0 条**；`test/audit_panel_slots.py` → **0 处超宽**；
+      `export_lang_carriers.py`（干跑）→ 0 变更（载体与 `lan.js` 同源）；`verify_menu_merge.py` → PASS
+- [x] 7.4 清理本轮 29 个临时脚本 + 23 个中间产物；本文档回填验证记录
+
+## 验证记录
+
+| 阶段 | 命令 | 结果 |
+|------|------|------|
+| 基线 | `test/i18n_user_visible_damage.py` | en/de/fr/it **663 条**用户可见损坏（EMPTY 452 / GLUE 211） |
+| 第 1 步后 | 同上 | EMPTY **452 → 0**（GLUE 剩 211） |
+| 第 2 步后 | 同上 | **0 条**（含 1 条 `\n` 转义引起的假阳性修正） |
+| 第 3 步后 | 语义键残留 GLUE | **76 → 0**；小写连写：引用键 63 + 未引用 137 处按值扫净 |
+| 第 3.4 步后 | `test/audit_panel_slots.py` | 新增键带来的 **15 处超宽 → 0** |
+| 第 4 步后 | `scripts/verify_i18n.py` | 9 → **11 项**（`user-visible-damage` + 自证夹具 + 真实数据路径变异自证） |
+| 第 5 步后 | `test_static_asset_cache_busting` | 5 → **6 项**（新增 test_06 全模板指纹护栏） |
+| 第 6 步后 | `git status` | `.gitattributes`/`plugin_compress.sh` 排除开发产物；`lang.json` 删除 |
+| 收尾 | `python testsuite/run_all.py` | **165 模块 / 1157 用例全绿，隔离区 32 → 6 → 5 → 0** |
+
+### 顺手结清的隔离区（4 条，均按“隔离≠不管”纪律逐条定性）
+
+| 模块 | 真实原因 | 处置 |
+|------|---------|------|
+| `test_soft_i18n.py` | en 分类标签小写/连写（`installed`/`Otherplugin`/`Running environment`）+ zh-TW 用词过长 | **改产品侧**：`Installed`/`Database`/`System Tools`/`Other Plugins`/`Runtime`、`其他外掛` |
+| `test_task_manager_i18n.py` | 断言锁定已被改写的旧选择器 `input[placeholder]` | 改为按能力断言 `[placeholder]` + `[title]` |
+| `test_about_i18n.py` | 依赖**未入库**的构建输入 `phrases_full.py`（CI 永不可能通过）；另含硬编码绝对路径 | 删冗余用例（同文件 test_02 已在出库语言包上覆盖同一批键）；`BASE_DIR` 改为相对推导 |
+| `test_index_i18n_fix.py` | 同上依赖 `phrases_full.py` | 改写为直接校验收件的 `template.index.json`（11 词条 + 4 条英文质量锁定） |
+| （连带）`test_gate_selftest.py` | 隔离区清空后“名单非空”不再是有效判据 | 解析器拆出 `parse_quarantine()`，自证改用内嵌夹具；真实名单为空时跳过比例校验 |
+
+### 一句话总结
+
+本轮把「外语界面能看到的东西」从 **663 处空白/乱码**降到 **0**，并把这四类损坏写成 CI 可执行门禁（含自证夹具 + 真实数据路径变异自证）；版本号已提、语言包/核心脚本已接内容指纹，用户升级后能真正拿到这批修复。
+
+

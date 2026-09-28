@@ -3578,9 +3578,9 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var tipText = t('public.tip_use_ctrl_to_2') || t('public.editor_tip') || t('template.tip_use_ctrl_to_2') || t('tip_use_ctrl_to_2') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!';
-  var thisIsText = t('public.this_is_2') || t('template.this_is_2') || t('this_is_2') || '此处为【';
-  var mainCfgText = t('public.main_configuration_file_if_1') || t('template.main_configuration_file_if_1') || t('main_configuration_file_if_1') || '】主配置文件,若您不了解配置规则,请勿随意修改。';
+  var tipText = t('public.tip_use_ctrl_to_2') || t('public.editor_tip') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!';
+  var thisIsText = t('public.this_is_2') || '此处为【';
+  var mainCfgText = t('public.main_configuration_file_if_1') || '】主配置文件,若您不了解配置规则,请勿随意修改。';
   var pleaseText = t('public.please') || '请选择';
   var saveText = t('public.save_5') || t('public.save') || '保存';
 
@@ -3615,7 +3615,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     $('#config_tpl').on('change', function () {
       var selected = $(this).val();
       if (selected != '0') {
-        var loadMsg = t('public.retrieving_configuration_template') || t('template.retrieving_configuration_template') || '正在获取配置模版...';
+        var loadMsg = t('public.retrieving_configuration_template') || '正在获取配置模版...';
         var loadT = layer.msg(loadMsg, {
           icon: 16,
           time: 0,

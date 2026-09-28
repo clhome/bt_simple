@@ -15,6 +15,7 @@ i18n 静态校验（CI 门禁）
   8. backend-msg-prefix     后端消息的「可翻译前缀」不含 HTML
   9. backend-msg-key        后端中文消息能查到语言包键（冒号前缀契约）
  10. nested-layer-hook      插件二级弹窗（嵌套 layer）i18n 钩子已安装
+ 11. user-visible-damage    被代码引用到的键，其译文不得空白 / 中文泄漏 / 机翻拼接
 
 设计约束：**自包含**。检测逻辑与自证夹具全部内嵌，只依赖标准库。
 `test/` 被 `.gitignore` 忽略，本脚本不得依赖其中任何文件——否则 CI 里
@@ -802,6 +803,294 @@ def check_nested_layer_hook(ctx):
 
 
 # ---------------------------------------------------------------------------
+# user-visible-damage：被代码引用到的键，其译文在目标语言下是否「用户可见损坏」
+# ---------------------------------------------------------------------------
+# 背景：载体里可以有一堆乱码键，但只要没人引用就永远看不到；反过来，只要
+# `t('sec.key')` 被调用而译文缺失/是机翻拼接产物，用户就会看到空白或乱码。
+# 本检查只盯「被 web/ 下代码引用到的键」，三类判定：
+#   EMPTY   键在语言包里查不到（界面空白，或回落硬编码中文）
+#   ZH_LEAK 目标语言拿到中文
+#   GLUE    glossary 逐词拼接产物（形如 `If forgotten, password,can be SSHpassbs...`）
+#   LOW     英文全小写粘连连写（形如 `deleteselected`）
+# 全部判定都要求「目标语言的解析结果确实坏了」，不看载体与 lan.js 的分歧。
+
+DAMAGE_LANGS = ('en', 'de', 'fr', 'it')
+DAMAGE_ALL_LANGS = ('zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it')
+
+# glossary 拼接指纹：**小写开头**的词里出现 小写→大写 边界，并要求其后跟小写。
+# 要求小写开头是为了放过 BasicAuth / JavaScript 这类合法标识符。
+_GLUE_RE = re.compile(r'(?<![A-Za-z])[a-z][a-z0-9]*[A-Z][a-z]')
+_GLUE_TOKEN_RE = re.compile(r'[A-Za-z][A-Za-z0-9_.\-+]*')
+_GLUE_LEGIT = {
+    'BasicAuth', 'JavaScript', 'TypeScript', 'MySQL', 'MariaDB', 'PostgreSQL',
+    'MongoDB', 'Redis', 'OpenSSL', 'phpMyAdmin', 'pgAdmin', 'jQuery', 'Layui',
+    'WordPress', 'WebSocket', 'Nginx', 'Apache', 'Tomcat', 'Memcached', 'SQLite',
+    'IPv4', 'IPv6', 'Base64', 'Docker', 'Ollama', 'ACME', 'NodeJS', 'GitHub',
+    'pyOpenSSL', 'getBakPost', 'updateMsg', 'showDangerIP', 'bt_simple', 'CronTab',
+}
+
+# 小写连写的「原子词表」：从语言包自身派生（独立出现的全小写单词）+ 少量核心词，
+# 再定点剔除「本身就能切分」的复合词。判据要求切出 >=2 段且每段 >=3 字符，
+# 因此 uninstall / installer 这类合法单词不会被误判。
+_CORE_WORDS = {
+    'add', 'delete', 'modify', 'save', 'set', 'clear', 'refresh', 'split', 'log',
+    'configuration', 'password', 'application', 'address', 'code', 'category',
+    'database', 'selected', 'task', 'memory', 'page', 'project', 'parameter',
+    'version', 'size', 'disk', 'session', 'expired', 'reload', 'success',
+    'successful', 'force', 'uninstall', 'install', 'cache', 'software', 'confirm',
+    'network', 'host', 'key', 'record', 'details', 'list', 'item', 'redirect',
+    'type', 'method', 'security', 'monitor', 'system', 'domain', 'certificate',
+    'ssl', 'directory', 'file', 'backup', 'restore', 'root', 'path', 'speed',
+    'traffic', 'uptime', 'load', 'process', 'thread', 'timeout', 'status',
+    'enabled', 'disabled', 'account', 'behavior', 'location', 'warning',
+    'yesterday', 'number', 'rename', 'static', 'update', 'public', 'manage',
+    'failed', 'loaded', 'change', 'permanent', 'temporary', 'available',
+    'remaining', 'verify', 'error', 'info', 'release', 'high', 'risk', 'tip',
+    'date', 'restrict', 'tool', 'other', 'plugin', 'panel', 'service', 'server',
+    'physical', 'virtual', 'volume', 'multi', 'clean', 'install', 'remove',
+}
+
+# 允许保留的全小写值（例如确实只有一个词、但会被切分器误判）
+_LOW_ALLOW = set()
+
+
+def _parse_lan_js(path):
+    """极简 lan.js 解析器（独立实现：不 import scripts/tools，避免共同失效模式）。
+
+    lan.js 由生成器写出，形态规整：`var lan = { "sec": { "k": "v", ... }, ... };`
+    字符串只含标准 JSON 转义。本解析器只认这种形态，遇到不认识的写法主动报错，
+    不做“尽力而为”，以免静默拿到半个字典造成假绿。
+    """
+    src = read_text(path)
+    m = re.search(r'\bvar\s+lan\s*=\s*\{', src)
+    if not m:
+        raise ValueError('%s: 找不到 `var lan = {`' % path)
+    i, n = m.end() - 1, len(src)
+
+    def ws(j):
+        while j < n and src[j] in ' \t\r\n':
+            j += 1
+        return j
+
+    def string(j):
+        # src[j] == '"'
+        j += 1
+        buf = []
+        while j < n:
+            c = src[j]
+            if c == '\\':
+                nxt = src[j + 1]
+                buf.append({'n': '\n', 't': '\t', 'r': '\r', 'b': '\b',
+                            'f': '\f', '/': '/', '"': '"', '\\': '\\'}.get(nxt, '\\' + nxt))
+                j += 2
+                continue
+            if c == '"':
+                return ''.join(buf), j + 1
+            buf.append(c)
+            j += 1
+        raise ValueError('%s: 字符串未闭合' % path)
+
+    def value(j):
+        c = src[j]
+        if c == '"':
+            return string(j)
+        if c == '{':
+            return obj(j)
+        if src.startswith('function', j):
+            # 跳过 `function(...){...}`（lan.get 的 msgs 块），括号配对即可
+            k = src.index('{', j)
+            depth = 0
+            while k < n:
+                if src[k] == '{':
+                    depth += 1
+                elif src[k] == '}':
+                    depth -= 1
+                    if depth == 0:
+                        return None, k + 1
+                k += 1
+            raise ValueError('%s: function 体未闭合' % path)
+        raise ValueError('%s: 不支持的取值形态 %r' % (path, src[j:j + 20]))
+
+    def obj(j):
+        assert src[j] == '{'
+        j = ws(j + 1)
+        out = {}
+        while j < n and src[j] != '}':
+            if src[j] != '"':
+                raise ValueError('%s: 键必须以引号开头 %r' % (path, src[j:j + 20]))
+            k, j = string(j)
+            j = ws(j)
+            if j >= n or src[j] != ':':
+                raise ValueError('%s: 键 %r 后缺少冒号' % (path, k))
+            j = ws(j + 1)
+            v, j = value(j)
+            if v is not None:
+                out[k] = v
+            j = ws(j)
+            if j < n and src[j] == ',':
+                j = ws(j + 1)
+        return out, j + 1
+
+    top, _ = obj(i)
+    sections = {k: v for k, v in top.items() if isinstance(v, dict)}
+    return sections
+
+
+_T_KEY_RE = re.compile(
+    r"""\bt\(\s*['"]([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)['"]""")
+_DI18N_RE = re.compile(
+    r"""data-i18n=['"]([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)['"]""")
+_PY_MSG_RE = re.compile(
+    r"""\breturn(?:Data|Json)\(\s*[^,]+,\s*['"]([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)['"]""")
+
+
+def _damage_refs():
+    """收集 web/ 下被代码引用的「section.key」（前端 t()/data-i18n + 后端 returnJson）。"""
+    web = os.path.join(WORKSPACE, 'web')
+    refs = set()
+    for root, dirs, files in os.walk(web):
+        dirs[:] = [d for d in dirs if d not in ('__pycache__', 'node_modules')]
+        if os.sep + 'static' + os.sep + 'language' in root:
+            continue
+        for fn in files:
+            if fn.endswith('.js'):
+                pats = (_T_KEY_RE,)
+            elif fn.endswith('.html'):
+                pats = (_T_KEY_RE, _DI18N_RE)
+            elif fn.endswith('.py'):
+                pats = (_PY_MSG_RE,)
+            else:
+                continue
+            src = read_text(os.path.join(root, fn))
+            for pat in pats:
+                for m in pat.finditer(src):
+                    refs.add(m.group(1))
+    return refs
+
+
+def _damage_glue(val):
+    """是否为 glossary 逐词拼接产物。先还原 JS 转义序列，再打字面量白名单。"""
+    val = val.replace('\\n', '\n').replace('\\t', '\t').replace('\\r', '\r')
+    for m in _GLUE_RE.finditer(val):
+        tok = m.group(0)
+        if tok in _GLUE_LEGIT:
+            continue
+        tail = _GLUE_TOKEN_RE.match(val, m.start())
+        full = tail.group(0) if tail else tok
+        if full in _GLUE_LEGIT or any(full.startswith(x) for x in _GLUE_LEGIT):
+            continue
+        if any(tok.startswith(x) for x in _GLUE_LEGIT):
+            continue
+        return True
+    return False
+
+
+def _low_atoms(packs):
+    """派生「小写原子词表」：包内独立出现的全小写单词 + 核心词，剔除可切分的复合词。"""
+    atoms = set(_CORE_WORDS)
+    for data in packs.values():
+        for v in _flatten(data).values():
+            t = (v or '').strip()
+            if re.match(r'^[a-z]{2,}$', t):
+                atoms.add(t)
+
+    def splitable(tok, parts):
+        if not tok:
+            return parts >= 2
+        for i in range(len(tok), 2, -1):
+            head = tok[:i]
+            if head in atoms and splitable(tok[i:], parts + 1):
+                return True
+        return False
+
+    changed = True
+    while changed:                      # 定点：词表里本身可切分的，视为复合词
+        changed = False
+        for w in sorted(atoms, key=len, reverse=True):
+            if len(w) >= 6 and splitable(w, 0):
+                atoms.discard(w)
+                changed = True
+    return atoms
+
+
+def _low_compound(val, atoms):
+    """英文全小写粘连连写（`deleteselected`）。要求每段 >=3 字符以放过 uninstall。"""
+    t = (val or '').strip()
+    if not re.match(r'^[a-z]{7,}$', t) or t in atoms or t in _LOW_ALLOW:
+        return False
+    return _low_splitable(t, atoms, 0)
+
+
+def _low_splitable(tok, atoms, parts):
+    if not tok:
+        return parts >= 2
+    for i in range(len(tok), 2, -1):
+        head = tok[:i]
+        if head in atoms and _low_splitable(tok[i:], atoms, parts + 1):
+            return True
+    return False
+
+
+def _flatten(obj, prefix='', out=None):
+    out = {} if out is None else out
+    if not isinstance(obj, dict):
+        return out
+    for k, v in obj.items():
+        if isinstance(v, dict):
+            _flatten(v, prefix + k + '.', out)
+        elif isinstance(v, str):
+            out[prefix + k] = v
+            # 「键名自带点」的扁平键：`public` 段里确有
+            # site.py_msg_config_error / firewall.py_msg_special_port 这类键，
+            # 后端按**整串**查表，因此额外建一个别名字段。
+            if '.' in k:
+                out.setdefault(k, v)
+    return out
+
+
+def _damage_scan(packs, refs):
+    """纯函数：返回 [(lang, key, kind, value)]。packs 为 {lang: 嵌套字典}。
+
+    两类「键本身不在包里」的情形分开报，因为修法不同：
+      EMPTY    zh-CN 有、目标语言缺失 → 补译文
+      UNKNOWN  六语言都没有 → 调用点键名写错，或漏建键（界面会渲染空白/硬编码中文）
+    """
+    atoms = _low_atoms(packs)
+    zh = _flatten(packs.get('zh-CN') or {})
+    findings = []
+    for key in sorted(refs):
+        if key not in zh:
+            findings.append(('*', key, 'UNKNOWN', ''))
+    for lang in DAMAGE_LANGS:
+        flat = _flatten(packs.get(lang) or {})
+        for key in sorted(refs):
+            if key not in zh:
+                continue
+            val = flat.get(key)
+            if not val:
+                findings.append((lang, key, 'EMPTY', ''))
+                continue
+            if re.search(r'[\u4e00-\u9fff]', val):
+                findings.append((lang, key, 'ZH_LEAK', val))
+                continue
+            if _damage_glue(val):
+                findings.append((lang, key, 'GLUE', val))
+                continue
+            if lang == 'en' and _low_compound(val, atoms):
+                findings.append((lang, key, 'LOW', val))
+    return findings
+
+
+def check_user_visible_damage(ctx):
+    packs = {}
+    for lang in DAMAGE_ALL_LANGS:
+        packs[lang] = _parse_lan_js(os.path.join(GLOBAL_LANG_ROOT, lang, 'lan.js'))
+    refs = _damage_refs()
+    return ['%s %s %s %r' % (lang, kind, key, val[:70])
+            for lang, key, kind, val in _damage_scan(packs, refs)]
+
+
+# ---------------------------------------------------------------------------
 # 注册表与主流程
 # ---------------------------------------------------------------------------
 
@@ -816,6 +1105,7 @@ CHECKS = [
     ('backend-msg-prefix', '后端消息可翻译前缀不含 HTML', check_backend_msg_prefix),
     ('backend-msg-key', '后端中文消息可查到语言包键', check_backend_msg_key),
     ('nested-layer-hook', '插件二级弹窗 i18n 钩子已安装', check_nested_layer_hook),
+    ('user-visible-damage', '被引用键的译文无空白/中文泄漏/机翻拼接', check_user_visible_damage),
 ]
 
 
@@ -1070,8 +1360,76 @@ def self_test():
     # 6) 当前代码库：未命中数必须为 0（例外已在 check_backend_msg_key 中扣除）
     report('当前代码库后端消息未命中数', len(check_backend_msg_key({})), 0)
 
+    # 7) user-visible-damage 检测器自证（内嵌夹具：已知答案 + 真实数据路径变异）
+    report('damage 内嵌夹具命中种类', _fixture_damage_kinds(),
+           {'EMPTY', 'UNKNOWN', 'ZH_LEAK', 'GLUE', 'LOW'})
+    report('damage 夹具「合法译文」被误报数', _fixture_damage_clean(), 0)
+    try:
+        real = {lg: _parse_lan_js(os.path.join(GLOBAL_LANG_ROOT, lg, 'lan.js'))
+                for lg in DAMAGE_ALL_LANGS}
+        report('damage 真实语言包解析成功', bool(real['en']), True)
+        report('真实数据路径：注入 EMPTY 后命中', _mutate_real(real, 'site.default_doc', ''),
+               ['EMPTY'])
+        report('真实数据路径：注入 GLUE 后命中',
+               _mutate_real(real, 'site.default_doc', 'clearLogNowPlease'), ['GLUE'])
+        report('真实数据路径：注入 LOW 后命中',
+               _mutate_real(real, 'site.default_doc', 'deleteselected'), ['LOW'])
+        report('真实数据路径：注入中文后命中',
+               _mutate_real(real, 'site.default_doc', '默认文档'), ['ZH_LEAK'])
+    except Exception as e:
+        report('damage 真实数据路径自证', '异常: %r' % e, 'no-exception')
+
     print('自证结果: %s' % ('全部通过' if ok else '存在失败'))
     return 0 if ok else 1
+
+
+def _fixture_damage_kinds():
+    """内嵌夹具：五类损坏各一例 + 干净翻译。"""
+    packs = {
+        'zh-CN': {'site': {'a_good': '默认文档', 'a_empty': '默认文档', 'a_zh': '默认文档',
+                           'a_glue': '默认文档', 'a_low': '默认文档'}},
+        'en': {'site': {'a_good': 'Default document', 'a_zh': '默认文档',
+                        'a_glue': 'defaultDocument,Please install!',
+                        'a_low': 'deleteselected'}},
+    }
+    refs = {'site.' + k for k in packs['zh-CN']['site']} | {'site.a_missing'}
+    return {kind for _lang, _key, kind, _v in _damage_scan(packs, refs)}
+
+
+def _fixture_damage_clean():
+    """夹具中「合法译文」与「合法标识符」一律不得报。"""
+    packs = {
+        'zh-CN': {'site': {k: '默认文档' for k in
+                           ('a_plain', 'a_ident', 'a_escape', 'a_compound_word')}},
+        'en': {'site': {
+            'a_plain': 'Default document',
+            'a_ident': 'Failed to enable SSL: pyOpenSSL auto-install failed. Try: pip install pyOpenSSL',
+            'a_escape': 'Import the tasks.\nAre you sure you want to sync?',
+            'a_compound_word': 'uninstaller',
+        }},
+        'de': {'site': {'a_plain': 'Standarddokument', 'a_ident': 'pgAdmin-Port',
+                        'a_escape': 'Importieren.\nFortfahren?',
+                        'a_compound_word': 'Deinstallation'}},
+        'fr': {'site': {'a_plain': 'Document par défaut', 'a_ident': 'pgAdmin',
+                        'a_escape': 'Importer.\nContinuer ?', 'a_compound_word': 'désinstallation'}},
+        'it': {'site': {'a_plain': 'Documento predefinito', 'a_ident': 'pgAdmin',
+                        'a_escape': 'Importare.\nContinuare?', 'a_compound_word': 'disinstallazione'}},
+    }
+    refs = {'site.' + k for k in packs['zh-CN']['site']}
+    return len(_damage_scan(packs, refs))
+
+
+def _mutate_real(real, key, value):
+    """在真实语言包的内存副本上植入一处损坏，返回命中的 kind 列表（去重）。"""
+    import copy as _copy
+    packs = _copy.deepcopy(real)
+    sec, _, leaf = key.partition('.')
+    packs['en'][sec][leaf] = value
+    if value == '':
+        packs['en'][sec].pop(leaf, None)
+    kinds = {k for lg, _key, k, _v in _damage_scan(packs, {key})
+             if lg == 'en' and k != 'UNKNOWN'}
+    return sorted(kinds)
 
 
 def main():

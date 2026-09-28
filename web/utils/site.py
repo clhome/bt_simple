@@ -830,7 +830,11 @@ class sites(object):
         if not isError:
             yf.restoreFile(file)
             err_html = '<a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-            return yf.returnData(False, 'site.cert_err_detail', None, err_html)
+            # 可翻译前缀走 t()，NGINX 报错原文（含 HTML）在翻译后拼接，
+            # 避开 t() 对插值参数的 HTML 转义（否则报错详情会被转成纯文本）。
+            res = yf.returnData(False, 'site.cert_err_detail', None)
+            res['msg'] = str(res.get('msg') or '') + err_html
+            return res
     
         self.saveCert(site_name, keyPath, certPath)
         msg = yf.getInfo('网站[{1}]开启SSL成功!', (site_name,))

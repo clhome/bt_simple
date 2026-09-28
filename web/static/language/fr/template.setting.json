@@ -1,5 +1,8 @@
 {
   "config": {
+    "new_password": "Nouveau mot de passe",
+    "old_password": "Mot de passe actuel",
+    "ssl_ps": "Veuillez d'abord confirmer le risque !",
     "H1": "Tableau de bord",
     "H2": "Paramètres du panneau",
     "I1": "Fermer le panneau",
@@ -293,7 +296,7 @@
     "cancel_5": "Annuler",
     "configure_basicauth_authentication": "Configuration de l'authentification BasicAuth",
     "username_3": "Utilisateur",
-    "after_disabling_basicauth_authentication": "Une fois l'authentification BasicAuth désactivée, la connexion au panneau de contrôle ne vérifiera plus l'authentification BasicAuth, ce qui entraînera une baisse du niveau de sécurité du panneau de contrôle. Continuer ?",
+    "after_disabling_basicauth_authentication": "Après désactivation, la connexion au panneau ne vérifie plus BasicAuth. La sécurité diminue. Continuer ?",
     "confirm_7": "Confirmer",
     "cancel_6": "Annuler",
     "should_basicauth_authentication_be": "L'authentification BasicAuth est-elle désactivée ?",
@@ -676,6 +679,8 @@
     "verify_keyword": "RESTAURER"
   },
   "setting": {
+    "py_msg_invalid_db_path": "Chemin du fichier de base de données invalide",
+    "py_msg_invalid_dbs": "Nom de base de données invalide",
     "api_enabled_successfully": "L'API a été activée avec succès !",
     "the_api_was_successfully": "L'API a été désactivée avec succès !",
     "the_ip_restriction_cannot": "Le champ « Restriction IP » ne doit pas être vide !",
@@ -828,6 +833,7 @@
     "py_msg_6d1701": "Le domaine a été configuré avec succès !"
   },
   "common": {
+    "param_error": "Paramètre invalide",
     "add_success": "Ajouté avec succès!",
     "add_failed": "Échec de l'ajout!",
     "del_success": "Supprimé avec succès",
@@ -843,6 +849,20 @@
     "brand_panel": "Panneau Yufeng"
   },
   "public": {
+    "config": "Configuration en cours...",
+    "detail": "Détails",
+    "disabled": "Désactivé",
+    "enabled": "Activé",
+    "ok": "OK",
+    "page": "page",
+    "page_prefix": "Page",
+    "save_success": "Enregistré avec succès",
+    "the_get": "Chargement, veuillez patienter...",
+    "title": "Remarque",
+    "total": "Total",
+    "uninstalling": "Désinstallation...",
+    "unit_item": "éléments",
+    "warning": "Avertissement",
     "normal": "Normal",
     "execute": "Exécuter",
     "edit": "Modifier",
@@ -1190,7 +1210,7 @@
     "copy": "Copier",
     "copied": "Copié",
     "copy_fail": "Échec de copie. Veuillez copier manuellement.",
-    "all": "Tous",
+    "all": "Tout",
     "hours": "Heures",
     "minutes": "Minutes",
     "getting": "Récupération : ",

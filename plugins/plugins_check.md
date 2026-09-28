@@ -131,6 +131,8 @@ python scripts/verify_i18n.py --self-test  # 校验检测器本身（已知答�
 | `no-zero-placeholder` | 无 `{0}` 占位符 |
 | `backend-msg-prefix` | 后端消息「可翻译前缀」不含 HTML |
 | `backend-msg-key` | 后端中文消息能查到语言包键 |
+| `nested-layer-hook` | 插件二级弹窗 i18n 钩子已安装 |
+| `user-visible-damage` | 被引用键的译文不得空白（EMPTY）/ 中文泄漏（ZH_LEAK）/ glossary 拼接产物（GLUE）/ 英文小写连写（LOW） |
 
 CI workflow：`.github/workflows/i18n-check.yml`（独立文件，不改上游 7 个构建/发布 workflow）。
 Python 3.10 与 3.13 均已实测通过。

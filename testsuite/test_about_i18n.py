@@ -11,8 +11,7 @@ import unittest
 if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
-BASE_DIR = r"f:\git\gitea20250909\bt_simple"
-TOOLS_DIR = os.path.join(BASE_DIR, "scripts", "tools")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LANG_DIR = os.path.join(BASE_DIR, "web", "static", "language")
 PUBLIC_JS = os.path.join(BASE_DIR, "web", "static", "app", "public.js")
 
@@ -59,26 +58,9 @@ REQUIRED_AUTO_KEYS = [
 chinese_char_pattern = re.compile(r'[\u4e00-\u9fff]')
 
 class TestAboutI18n(unittest.TestCase):
-    def test_01_phrases_full(self):
-        """测试 phrases_full.py 中的词典"""
-        sys.path.insert(0, TOOLS_DIR)
-        import phrases_full
-        dict_full = phrases_full.FULL_I18N_DICTIONARY
-        public_dict = dict_full.get("public", {})
-
-        for k in REQUIRED_PUBLIC_KEYS:
-            self.assertIn(k, public_dict, f"phrases_full.py public section 缺失键: {k}")
-            item = public_dict[k]
-            for lang in ['en', 'fr', 'de', 'it']:
-                val = item.get(lang, '')
-                self.assertFalse(chinese_char_pattern.search(val), f"phrases_full.py [{k}] 在 {lang} 中含有中文: {val}")
-
-        for k in REQUIRED_AUTO_KEYS:
-            self.assertIn(k, public_dict, f"phrases_full.py public section 缺失自动键: {k}")
-            item = public_dict[k]
-            for lang in ['en', 'fr', 'de', 'it']:
-                val = item.get(lang, '')
-                self.assertFalse(chinese_char_pattern.search(val), f"phrases_full.py [{k}] 在 {lang} 中含有中文: {val}")
+    # 原 test_01_phrases_full 已删：它校验的是**未入库**的构建输入
+    # `scripts/tools/phrases_full.py`（早已移到被 .gitignore 忽略的 `test/` 下，
+    # 仓库里根本不存在）；它断言的那批键已由 test_02 在**已出库的语言包**上逐条覆盖。
 
     def test_02_languages_json_and_lan_js(self):
         """测试 6 国语言包 (zh-CN, zh-TW, en, fr, de, it) 的 public.json, template.json 和 lan.js"""
