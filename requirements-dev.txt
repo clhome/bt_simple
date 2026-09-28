@@ -1,0 +1,24 @@
+# 开发 / CI 专用依赖 —— **不随产品下发到用户机器**
+#
+# 与 requirements.txt（运行依赖）分开的理由：
+#   1. 用户机器只需要运行面板，多装扫描器只会放大攻击面与安装时间；
+#   2. 扫描器自身的版本需要能独立升级，不该被运行依赖的版本策略拖住。
+#
+# 用法：pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# 依赖漏洞扫描（对应 H4.2）
+pip-audit>=2.7.0
+
+# Python 安全静态扫描：重点盯 os.system / subprocess shell=True / eval（对应 H4.2）
+bandit>=1.7.5
+
+# 静态检查（先以「报告」形式起步，规则收紧后再转为阻断，对应 H4.2）
+ruff>=0.4.0
+
+# 测试与门禁用（run_all.py 的 YAML 结构校验会用到）
+pyyaml>=6.0
+
+# SBOM 生成（Release 附件，对应 H4.3）
+cyclonedx-bom>=4.1.0

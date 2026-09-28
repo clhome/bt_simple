@@ -260,4 +260,316 @@
 
 本轮把「外语界面能看到的东西」从 **663 处空白/乱码**降到 **0**，并把这四类损坏写成 CI 可执行门禁（含自证夹具 + 真实数据路径变异自证）；版本号已提、语言包/核心脚本已接内容指纹，用户升级后能真正拿到这批修复。
 
+---
+---
+
+# 第 3 层「商业化收口」—— 安全红线 / 工程化底座 / 发布卫生（方案待评审）
+
+> 来源：本轮「标准商业化产品」全仓复审（诊断见下「零、诊断摘要」）。
+> 已确认前提（用户 2026-09-28 决策）：
+> 1. 商业形态 = **开源社区版 + 商业增强版分层**（本轮不做 RBAC/License 激活，只定分层边界）。
+> 2. 本轮聚焦三条线：**P0 安全红线 + 工程化底座 + 仓库与发布卫生**。
+> 3. 改动约束 = **可改 DB schema + 可新增运行时依赖**。
+> 4. 推进方式 = **先出方案清单，评审通过后再动手**（本文档即清单，`[ ]` 为未开工）。
+>
+> 基线：`python testsuite/run_all.py` → 165 模块 / 1157 用例 / 0 隔离项全绿。
+> 纪律：每完成一项即跑对应验证 + 全量门禁，通过后在本文件打勾。
+
+---
+
+## 零、诊断摘要（商业化视角）
+
+| 维度 | 就绪度 | 一句话判断 |
+|---|---|---|
+| 功能完整度 | ★★★★☆ | 36 插件 + 站点/计划任务/防火墙，够用 |
+| 应用安全 | ★★★☆☆ | 框架层已收口，CSRF/会话/错误脱敏仍有硬伤 |
+| **供应链安全** | **★☆☆☆☆** | 安装即执行第三方代理下发的 root 脚本 —— **最大风险** |
+| 权限与审计 | ★★☆☆☆ | 单管理员、审计日志无身份且有「一键清空」 |
+| 可靠性/可运维 | ★★★☆☆ | ORM 异常当返回值、174 处裸 except、无迁移框架 |
+| 工程化/可维护 | ★★☆☆☆ | 5273 行单文件、自研测试 runner、无依赖锁定/CVE 扫描 |
+| 仓库/发布卫生 | ★★☆☆☆ | clone 即下发 794MB 工作区、无签名校验 |
+
+**与总目标的三条对应关系**：
+- 「安全」→ G 组（供应链 + 请求安全 + 审计）
+- 「可靠」→ H 组（迁移框架 + 异常语义 + 可观测性）
+- 「高效」→ H4/H5 + I 组（发布体积 794MB → 5.6MB）
+
+**本轮已核对并更正的两处既有认知（避免方案写错前提）**：
+- `参考/` 目录**未入库**（`.gitignore` 已忽略），无需处理。
+- `plugins/*/js/*.i18n.bak` 是**已决策保留**的 i18n 回滚快照（`.workbuddy-ai/memory/MEMORY.md` 明确「禁止删除」）→ 本方案**不删**，改由 G1 的 tarball 发布形态让 `export-ignore` 生效，进而不再下发给客户。
+
+---
+
+## G. P0 安全红线
+
+### G1 发布链路改为「签名 tarball + 强制验签」，替代裸 `git clone`（本轮核心）
+
+> ⚠️ **前置约束（用户 2026-09-28 明确）**：中国大陆服务器直连 GitHub 经常失败，项目内置多套代理。
+> **修改必须保证所有现存代理地址继续可用**。因此本项设计反转为：
+> **代理全部保留、可继续随便换；安全性由「发布包签名」保证，而不靠限制代理。**
+> 代理只是传输层，签名校验在下载之后、解压之前——**走哪个代理都与安全无关**。
+> 这也让仓库里 420 处 `wget --no-check-certificate` / `curl --insecure`（大陆网络必需）
+> 从「致命嗅探洞」降为「可接受的传输层风险」。
+
+**现状（已在代码中逐条核实）**：
+- `deploy.sh:20-31`：本地无 `scripts/github_download.sh` 时，从 `raw.githubusercontent.com` **或第三方代理**下载后 `source` 执行（root 权限）——这是**未验签就执行代码**的唯一路径。
+- `deploy.sh:745-816`：主程序走 `git clone`，tag 不做签名/校验和验证。
+- `deploy.sh:240`：`curl ... | sh` 安装 acme.sh。
+- `web/core/yf.py:429-440`：运行期在 5 个第三方代理间测速切换。
+- 实测：`git archive HEAD` 发布包 **5.6MB**；`git clone` 落地 **794MB**（含 94MB `.git`、`文档/` 14.4MB、`testsuite/` 2MB、`cl_tasks/` 0.8MB、`.i18n.bak` 1.6MB）。
+- **代理列表在 3 处重复且已不一致**：`scripts/github_download.sh:_GH_PROXY_LIST`（5 条，含 `gh.ddlc.top`）、
+  `deploy.sh`（第 108/133-136/229 行硬编码，**缺 `gh.ddlc.top`**）、`web/core/yf.py`（4 条）。
+  曾经导致「同一个包在脚本里能下、在面板里不能下」。
+
+**目标**：
+- [x] G1.1 新增 `scripts/tools/yf_release_sign.py`（Ed25519/minisign 布局签名器，含 `genkey` / `sums` / `sign` / `release`）与 `keys/` 目录约定（公钥入库、私钥只进 CI Secrets）。
+- [x] G1.2 新增 `scripts/tools/yf_release_verify.py`：纯 Python + `cryptography` 的引导级校验器，**刻意不依赖 `minisign`/`gpg`/`openssl` 二进制**（避免「校验工具本身怎么可信」的死循环）。
+- [x] G1.3 自证：`testsuite/test_release_signature.py`（**12 项**，含往返 + 5 类篡改拒绝 + 占位公钥拒绝 + CLI 退出码）。
+- [ ] G1.4 `.github/workflows/release.yml`：tag 推送时用 `git archive` 产出 `yf-panel-<ver>.tar.gz`（**自动应用 `export-ignore`**，实测 5.6MB）+ `SHA256SUMS` + 签名，一并作为 Release 附件。
+- [ ] G1.5 `deploy.sh`：改为「用**现有代理机制**下载 tarball + `SHA256SUMS` + `.minisig` → **验签通过才解压**」；验签失败立即中止。
+  - [x] 引导级辅助函数已落地：`yf_bootstrap_download` / `yf_verify_release` / `yf_fetch_signed_release` / `yf_load_download_lib_from_release`
+  - [ ] `download_code()` 接入上述路径（目前函数已就位但尚未被调用）
+- [x] G1.6 `deploy.sh` 删除「从网络拉脚本并 `source`」路径：引导阶段改用**内联最小下载器**（同代理列表），拿到已签名 tarball 后，后续一律使用**包内**的 `scripts/github_download.sh`。
+- [x] G1.7 代理列表**漂移守卫**：`testsuite/test_deploy_bootstrap.py::test_04` 断言 `deploy.sh` 内联列表与 `scripts/github_download.sh:_GH_PROXY_LIST` 严格一致；内嵌校验器/公钥同样逐字节守卫（`test_01` / `test_02`）；`test_05` 守住「不得再出现下载脚本后 source」红线。
+- [x] G1.9 **验签范围守卫**（用户 2026-09-28 追加口径）：
+  本发布密钥**只能**用于校验面板自身产物 `yf-panel-<版本>.tar.gz`；
+  插件拉取的 openresty / php / mysql / jdk / acme.sh / docker 等**第三方仓库一律不验签**。
+  由 `test_08_verification_scope_is_panel_release_only` 锁死（调用点唯一性 + 产物名固定 + 插件目录不得出现发布公钥/校验器）。
+  - 理由：拿不到也不该拿第三方的私钥；且我们不掌握其发布节奏，强制验签会把上游升级全部卡死。
+  - **已知残留风险（不在本轮范围）**：被劫持的代理仍可能下发恶意第三方包。缓解手段（可选、后续）：
+    插件内校验上游官方 checksum（`plugins/php/versions/*/install.sh` 已有 `sha256sum` 雏形），或按插件版本内置已知良好哈希。
+- [ ] G1.8 保留自定义源能力（`BT_SIMPLE_REPO`），自定义源**同样必须提供签名**；仅允许 `YF_ALLOW_UNSIGNED=1` 显式降级，降级时打印醒目警告并写审计日志。
+
+> ❗**上线顺序警告**：真实密钥生成前，`keys/yf-release.pub` 为占位符，`deploy.sh` 会 **fail-closed 拒绝安装**。
+> 落地顺序必须是：先跑 `release.yml` 产出签名包 → 再启用 `deploy.sh` 强制验签。一次性密钥步骤见 `keys/README.md`。
+
+### G2 自动更新改为可控 + 可回滚
+
+- [ ] G2.1 `web/admin/setup/init_cron.py:78` 的「[可删]面板自动更新」改为**默认不创建**（新装不再静默自动升级）。
+- [ ] G2.2 面板设置页新增「自动更新」开关 + 维护窗口（星期/时间）。
+- [ ] G2.3 更新前自动备份 `web/` + `data/panel.db` + `data/*.pl` 到 `/www/backup/yf_panel_<ver>_<ts>/`，并记录版本。
+- [ ] G2.4 新增 `yf rollback`，回滚到上一版本目录 + 数据备份（与 G1 的版本化 tarball 配套）。
+
+### G3 状态变更强制 POST + CSRF Token
+
+**现状**：CSRF 仅校验 POST 的 Referer；以下端点可 GET 改状态并绕过：
+`/plugins/run`（`web/admin/plugins/__init__.py:328`，参数取自 `request.args`）、`/plugins/callback`（:399）、`/plugins/clear_cache`（GET）、`web/admin/site/ssl.py:94 /remove_cert`、`/login?signout=True`。
+`SameSite=Lax` 只挡跨站子资源请求，**顶层导航型 CSRF 仍可触发**。
+
+- [x] G3.1 全部状态变更端点强制 `methods=['POST']`；并**只从表单取参**。
+  - 实测前端这些端点**全部已是 `$.post`**（无 `$.get`/`href` 调用）→ **零前端破坏面**。
+  - 已改：`/plugins/run`、`/plugins/callback`、`/plugins/clear_cache`、
+    `ssl/set_dnsapi|set_cert_to_site|remove_cert|http_to_https|close_to_https`、`/del_panel_info`。
+- [x] G3.2 双提交 CSRF Token：会话级 token → 模板 `meta` → 前端 `$.ajaxSetup` 统一带 `X-CSRF-Token`。
+  - 判定逻辑抽到 `web/core/security.py::csrf_decision()`（**纯函数、无 Flask 依赖**），便于真值表单测。
+- [x] G3.3 **OR 语义（关键设计，保证零回归）**：`token ∥ referer/origin ∥ App-Id ∥ 豁免路径`。
+  任何今天能过的请求明天还能过；同时**修好了「隐私插件/反向代理剥掉 Referer 导致正常用户被拦」**。
+  仅靠单侧通过时会打 debug 日志，作为「何时收紧为强制 Token」的度量依据。
+- [x] G3.4 Referer/Origin 校验**保留**作为纵深防御（未删除）。
+- [x] G3.5 回归用例：`testsuite/test_request_security_hardening.py`（**23 项**），
+  CSRF 部分为 11 条真值表（安全方法 / token-only / referer-only / 双错 / API 头 / 豁免 / 常量时间比较…）。
+
+### G4 审计日志可信化（为商业版合规打底）
+
+**现状**：`web/core/yf.py:1620` `writeLog()` **硬编码 `uid=0`**（取值代码被注释掉），无来源 IP / UA / 请求指纹；`/logs/del_panel_logs` 允许一键物理清空。
+
+- [ ] G4.1 `writeLog()` 补齐 `uid / username / ip / ua / request_path / result`，`uid` 从 session 取。
+- [ ] G4.2 新增 `panel_audit` 表（append-only）：`id, ts, uid, username, ip, ua, path, method, action, target, result, detail`。
+- [ ] G4.3 写操作类接口统一落审计：插件启停/卸载、文件删除/重命名、站点增删、DB 操作、设置变更、计划任务增删。
+- [ ] G4.4 `del_panel_logs` 由「物理删除」改为「归档」（导出 CSV/JSON + 打标记），**归档动作本身也记审计**。
+- [ ] G4.5 商业增强版预留（本轮只留表结构与接口，不实现）：审计**哈希链**（含前一条 hash）+ 远端 syslog 转发。
+
+### G5 错误信息脱敏 + 全局异常兜底
+
+- [x] G5.1 新增 `core/yf.py::userSafeError()`：内部细节（绝对路径/SQL/依赖版本）只进日志，
+  前端只拿「操作失败 + 追踪号」。已接入 `/plugins/run` 与 `/plugins/callback`。
+- [x] G5.2 新增 `@app.errorhandler(500)` + `@app.errorhandler(Exception)`（保留 HTTPException 原语义），
+  兜底页不回显堆栈。
+- [x] G5.3 回归用例：断言脱敏后不含内部路径/组件名且带追踪号；兜底页无异常插值。
+
+---
+
+## H. 工程化底座
+
+### H1 DB 迁移框架（已完成，含「自愈」语义）
+
+**现状（已核实）**：`web/thisdb/user.py`、`crontab.py`、`firewall.py` 顶层每次导入都执行
+`ALTER TABLE ... ADD COLUMN` 并 `except: pass`；而 `core/db.py::Sql.execute()` 失败时
+只返回 `"error: ..."` 字符串、**从不抛异常** —— 那层 except 是摆设，失败即静默半残库。
+
+> 实测发现（重要）：`web/admin/setup/sql/default.sql` **缺** crontab 的
+> `min_start_en / min_start_h / min_start_m / min_end_en / min_end_h / min_end_m` 六个字段，
+> 也就是说**全新安装也会缺**，全靠那批 import 期 ALTER 兜底。已由新框架补齐。
+
+- [x] H1.1 新增 `web/core/migrations/`（纯标准库 + 复用 `core.resources` 的 SQLite 调优）：
+  `schema.py`（期望结构真值）/ `steps.py`（版本化数据迁移）/ `runner.py`（引擎）/ `__init__.py`（对外 API）。
+- [x] H1.2 结构对齐与版本解耦 —— **自愈的关键**：
+  结构对齐（缺表/缺列）**每次启动都跑、不查版本号**；只有数据迁移走版本号。
+  这样「上次迁移被 kill」「从旧备份恢复库」「版本表丢失」都能自动收敛。
+- [x] H1.3 改结构前自动备份（sqlite3 在线备份 API，含 WAL 已提交页，保留最近 5 份）；
+  **无变更时零备份开销**（先只读探测再决定是否写）。
+- [x] H1.4 跨进程串行化（`BEGIN IMMEDIATE`）+ 每步 `SAVEPOINT` 子事务隔离；
+  单步失败只回滚该步、不牵连结构对齐成果，且**不记版本**（下次启动自动重试）。
+- [x] H1.5 降级不破坏：库版本 > 代码版本时只告警、不动数据。
+- [x] H1.6 失败可观测：写 `data/migration_failed.pl` 标记 + 落 `schema_migration_log` 表；
+  引擎**永不抛异常**（面板哪怕 schema 不全也要能起来）。
+- [x] H1.7 接入点：`web/thisdb/__init__.py` 在导入子模块**之前**调 `_bootstrap_schema()`，
+  因此 web / `panel_task.py` / `panel_tools.py` 任何入口碰面板库都会先自愈。
+- [x] H1.8 回归用例 `testsuite/test_db_migration_selfheal.py`（**14 项**）：
+  缺列/缺表/半途状态收敛、幂等、无变更不备份、降级不丢数据、失败回滚+重试、
+  损坏库不抛异常、只读探测、隔离不碰真实库、短路与 force。
+
+### H2 ORM 异常语义修正（本层风险最高）
+
+**现状（本轮实测统计）—— 两套 DB 层的失败语义不同，不能混改：**
+
+| 层 | 实现 | 失败时返回 | 涉及文件 | 调用点 | 其中丢弃返回值 |
+|---|---|---|---|---|---|
+| **A. 站点/插件 DB** | `web/core/orm.py::ORM` | **异常对象**（`return ex`） | 8 | 470 | 172 |
+| **B. 面板 SQLite** | `web/core/db.py::Sql` | `"error: ..."` **字符串** | 29 | 125 | 53 |
+
+A 层重灾区（按调用点）：`plugins/mysql/index.py` 189、`plugins/mariadb/index.py` 180、
+`plugins/data_query/sql_mysql.py` 41、`plugins/postgresql/index.py` 29、`web/core/yf.py` 15、
+`plugins/sphinx/...` 11、`plugins/gitea/index.py` 3。
+
+**两类真实故障形态：**
+1. **静默失败**：172（A）+ 53（B）处直接丢弃返回值。写操作失败时**没有任何信号**，
+   表现为「界面提示成功、数据没落库」。
+2. **异常被当数据用**：若调用方只做真值判断（`if row:`），异常对象是 **truthy**，
+   会直接被当成「查到了数据」，后续取字段时报 `AttributeError` 或得到无意义值。
+
+- [x] H2.1 产出调用点清单与风险分级（即上表）。
+- [ ] H2.2 引入 `ORMError`，`ORM.execute/query` 改为抛出；按上表逐层、逐文件适配。
+- [ ] H2.3 `Sql.execute/query` 保持返回字符串（兼容面太大），但**新增** `Sql.executeStrict()`
+  供新代码使用，并给旧调用点逐步迁移到 strict。
+- [ ] H2.4 回归用例：连接失败 / SQL 错误 / 正常三条路径的返回类型断言。
+
+> 为何不在本轮直接改：A+B 共 **595 个调用点、37 个文件**，包含本仓最大的两个文件
+> （`mysql/index.py` 5273 行、`mariadb/index.py` 4371 行）。一次性改语义会把这轮改动
+> 从「可审查的安全收口」变成「不可审查的大规模重构」，风险与收益不匹配。
+> 正确做法是先把清单钉死，下一轮按「A 层先、B 层后」分文件推进。
+
+> ❓**决策点 3（待确认）**：下一轮是否按上述顺序开工？
+
+### H3 裸 except 收口（棘轮机制，不搞一刀切）
+
+- [x] H3.2 新增 `scripts/verify_code_quality.py`：三个指标（`bare_except` / `silent_except` / `print_in_web`）
+  的**只减不增**棘轮，基线存 `scripts/code_quality_baseline.json`，已挂进 `run_all.py --static`（静态门禁 2 → **4 项**）。
+  - **用 `ast` 而不是正则**：正则分不清「真裸 except」与「字符串/注释里的 except」，
+    也数不准字符串里的 `print(`；一旦误报就会被人当噪音忽略，门禁也就废了。语法解析失败才降级为正则。
+  - 自带 `--self-test` 夹具（三类各命中 1 + 合法写法零误报）。
+  - 基线：`bare_except 172` / `silent_except 518` / `print_in_web 46`。
+  - `--update` 默认**拒绝上调**，需显式 `--allow-increase` 并写明理由。
+- [ ] H3.1 存量 172 处裸 `except:` / 518 处静默 `except: pass` 的**逐批清理**（棘轮已锁死不再恶化，
+  后续每轮清一批并把基线调低即可）。
+
+### H6 路径守卫（新增：根因于本轮清理的工作区垃圾）
+
+**现象**：源码树里出现了 `web/MagicMock/mock()/<id>/…` 与 `web/{}/redis/data/redis.log` 两个垃圾目录。
+**根因**：测试里对 `getPanelDir()` / `getServerDir()` 的 mock 未完全配置（返回 `MagicMock`）或格式化串缺少参数（留下字面量 `{}`），
+而生产代码**不做路径合法性校验就 `makedirs`**，把非法路径当真写进了源码树。
+**风险**：同类问题在真实运行中表现为「把数据写到了意外位置」（尤以 root 身份运行时危害更大），且极难排查。
+
+- [ ] H6.1 在统一的目录创建入口（`yf.makeDirs` / 路径拼接处）加守卫：必须为**绝对路径**、无 `{}` 等未展开占位符、位于允许的根（`/www` 或工作区）之下；不满足则报错而非静默创建。
+- [ ] H6.2 回归用例：非法路径（含 `MagicMock`/`{}`/相对路径）必须被拒绝，且不产生任何目录。
+
+### H4 依赖与 CI 安全门禁
+
+- [ ] H4.1 `requirements.txt` 拆分运行/开发依赖，并生成带哈希的 `requirements.lock`。
+- [ ] H4.2 CI 新增：`pip-audit`（CVE 扫描）、`bandit`（重点盯 `os.system` / `shell=True`）、`ruff`（先宽松规则起步）。
+- [ ] H4.3 Release 附带 SBOM（`cyclonedx-bom`）。
+- [ ] H4.4 （可选）`os.system` 存量（mysql/mariadb/php/pureftp/rsyncd…）分批替换为 `safeExecShell`，先出清单定优先级。
+
+### H5 可观测性最小闭环
+
+- [ ] H5.1 `web/` 下 47 处 `print()` → `logging`（按模块分档）。
+- [ ] H5.2 请求级 `X-Request-Id` 贯穿响应头与日志。
+- [ ] H5.3 新增 `/healthz`（进程 + DB + 关键目录可写 + 磁盘余量）；`/metrics`（Prometheus 文本，默认关闭）预留。
+
+---
+
+## I. 仓库与发布卫生
+
+- [x] I0 更正既有认知：`参考/` 未入库（无需处理）；`.i18n.bak` 为已决策保留的回滚快照（**不删**，由 G1 的 `export-ignore` 生效解决下发问题）。
+- [x] I1 清理工作区垃圾：已删 `grep.exe.stackdump`、空目录 `web/MagicMock/mock()/`、`web/{}/redis/`；`.gitignore` 已补 `*.stackdump` 与 `/keys/*.key`。
+  > 根因并入 H6：这两个目录是**测试 mock 未配置**时，生产代码把非法路径（`MagicMock/mock()`、`{}`）当真写进了源码树——缺路径守卫。
+- [ ] I2 发布流程规范化：`RELEASE_TEMPLATE.md` 增加「变更类型（安全/功能/修复）」「升级说明」「回滚方法」必填段；CI 断言 `tag == APP_VERSION`。
+- [ ] I3 `文档/` 瘦身：`文档/待审核插件/zabbix/data/*.sql.gz`（8.2MB）移出仓库或改挂 Release 附件。
+  > ❓**决策点 2**：该 zabbix 数据是否属于交付内容？
+- [ ] I4 商业版分层**边界约定**（本轮只落地骨架，不实现 RBAC/激活）：`web/core/edition.py`（`EDITION` 常量 + `is_pro` 探测）+ 商业专属代码目录约定 + `git archive` 剔除脚本；配一个示例探测器与回归用例。
+
+---
+
+## 验证门禁（本层新增）
+
+- `python testsuite/run_all.py`（全量，基线 165 模块 / 1157 用例 / 0 隔离项）
+- `scripts/verify_code_quality.py`（裸 except / print 棘轮）
+- `scripts/verify_release_integrity.py`（发布包签名校验三路径自证）
+- CSRF / HTTP 方法 / 错误脱敏 / 迁移幂等 回归用例
+- 所有改动保持 **UTF-8 无 BOM + LF**
+
+---
+
+## 建议实施顺序（每步独立可验证、可回退）
+
+| 批次 | 内容 | 理由 |
+|---|---|---|
+| 1 | G1 + G2 + I1 + I2 | 供应链与发布形态，收益最大且互相配套 |
+| 2 | G3 + G5 + H3 | 请求安全与错误面，纯代码层、风险可控 |
+| 3 | G4 + H1 | 审计与迁移，含改表，需要第 1 批的发布可回滚能力兜底 |
+| 4 | H4 + H5 + I3 + I4 | 工程化与分层的长期底座 |
+
+## 待你确认的 3 个决策点
+
+1. ✅ **G1 签名方案 = minisign 完整签名**（用户 2026-09-28 已拍板）。
+2. ⏸️ **I3（zabbix 8.2MB sql.gz）**：未答，**按推荐默认执行 → 不动**（`文档/` 已 export-ignore，换 tarball 发布后本就不下发）。
+3. ⏸️ **H2（ORM 异常语义）**：未答，**按推荐默认执行 → 本轮只出调用点清单**，完整修正留下一轮。
+
+---
+
+## 本层进度记录
+
+| 批次 | 项 | 状态 | 验证 |
+|---|---|---|---|
+| 1 | G1.1 签名器 `scripts/tools/yf_release_sign.py` | ✅ | 被下述用例覆盖 |
+| 1 | G1.2 引导级校验器 `scripts/tools/yf_release_verify.py` | ✅ | 纯 Python + `cryptography`，无二进制依赖 |
+| 1 | G1.3 签名链路自证 `testsuite/test_release_signature.py` | ✅ | **12 用例全绿**（往返 + 5 类篡改拒绝 + 占位公钥拒绝 + CLI 退出码 + SHA256SUMS 兼容解析） |
+| 1 | `keys/` 目录约定 + `.gitignore` 屏蔽私钥 | ✅ | `keys/README.md` 含一次性激活三步 |
+| 1 | I0 认知更正（`参考/` 未入库、`.i18n.bak` 不删） | ✅ | 见上文 |
+| 1 | I1 工作区垃圾清理 | ✅ | 已删 `grep.exe.stackdump`、`web/MagicMock/`、`web/{}/`；`.gitignore` 补两条 |
+| — | 门禁回归 | ✅ | `run_all.py --static` 全绿；`-k release_signature` → 12/12 |
+| 1 | G1.4 `release.yml` 产出签名 tarball | ✅ | `git archive` 实测 **5.4MB / 1943 条目**，`文档/`/`testsuite/`/`.i18n.bak` 全部 export-ignore 生效；版本断言本地试跑 PASS |
+| 1 | G1.5/G1.6 `deploy.sh` 内嵌公钥+校验器、内联代理下载器、删除远端 source | 🟡 函数就位 | `test_deploy_bootstrap.py` **8 项全绿**（含逐字节漂移守卫；语法检查在 Windows 下跳过，`bash -n` 已手工确认 OK） |
+| 1 | G1.5 `download_code()` 接入签名路径 | ✅ | 默认**放行**（用户口径）；回退带醒目告警与 `YF_REQUIRE_SIGNATURE=1` 指引 |
+| 1 | G1.7 代理列表漂移守卫 | ✅ | `test_04` 锁死两处列表一致 |
+| 1 | G1.9 验签范围守卫（仅面板自身产物） | ✅ | `test_08` 锁死 |
+| 1 | 真实发布密钥生成与验证 | ✅ | 用户已 `genkey`；探针 `test/verify_real_pubkey_negative.py` **14/14**（含正向对照 + 10 类伪造全拒） |
+| 3 | H1 面板库自愈迁移框架 | ✅ | `test_db_migration_selfheal.py` **14 项**；实测补出 `default.sql` 缺失的 **6 列**，且不碰仓库真实库 |
+| 2 | G2 自动更新可控 + 回滚 | ✅ | 默认关闭 + 移除历史任务 + `yf rollback`（回滚本身可回滚）；**并堵住更严重的洞**：`yf update` 原为「从 panel.yftec.top 拉脚本无校验执行」 |
+| 2 | G3 状态变更强制 POST + CSRF Token | ✅ | `test_request_security_hardening.py` **23 项**；OR 语义保证零回归 |
+| 2 | G5 错误脱敏 + 500 兜底 | ✅ | `userSafeError()` 追踪号机制 |
+| 2 | H3.2 代码质量棘轮 | ✅ | 静态门禁 2 → **4 项**；基线 172/518/46 |
+| 4 | G2.2 自动更新 UI 开关 | ⏳ 待做 | 后端 option + 端点已就位，缺前端开关与 6 语言词条 |
+| 4 | H2/H4/H5/H6、I2/I4 | ⏳ 待做 | — |
+
+### 全量门禁
+
+| 阶段 | 命令 | 结果 |
+|------|------|------|
+| 基线 | `python testsuite/run_all.py` | 165 模块 / 1157 用例 / 0 隔离 / 2 静态门禁 |
+| 第 1 批后 | 同上 | 168 模块 / 1194 用例 |
+| 第 2 批后 | 同上 | **170 模块 / 1227 用例 / 0 隔离 / 4 静态门禁 全绿** |
+
+### 本轮新发现（已并入清单）
+
+- **H6 路径守卫**（P1）：源码树里凭空出现 `web/MagicMock/mock()/<id>/` 与 `web/{}/redis/data/redis.log`，
+  根因是测试 mock 未配置 / 格式化串缺参时，**生产代码不校验路径就 `makedirs`**。真实运行下表现为「把数据写到意外位置」，
+  以 root 运行时尤危。已清理现场，并新增 H6 防御项。
+- **代理列表 3 处重复且已不一致**（P1）：`deploy.sh` 硬编码了 3 组代理串，且**缺 `gh.ddlc.top`**；
+  与 `scripts/github_download.sh:_GH_PROXY_LIST`、`web/core/yf.py` 各自为政。已升为 G1.7 单一真源 + 漂移守卫。
+- **420 处 `wget --no-check-certificate` / `curl --insecure`**（已被 G1 降级为可接受）：
+  大陆网络+代理环境下无法普遍开启 TLS 强校验，**保留不动**；安全性改由发布包签名兜底。
+  这也正是 G1 的核心价值论证：**验签后，不可信代理变得可以接受**。
+
+
 

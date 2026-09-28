@@ -260,16 +260,50 @@ function AutoSizeStr(){
     echo -e " ❖   ${1}${FIX_SPACE}${2})"
 }
 
+# ------------------------------------------------------------------
+# 更新入口：一律执行**本地** deploy.sh
+#
+# 安全背景（重要，勿改回）：历史上这里是
+#     bash <(curl -fsSL https://panel.yftec.top/deploy.sh) update
+# 即「从第三方域名拉脚本、无任何校验、以 root 自动执行」。
+# 配合安装时写入的月度自动更新计划任务，等于把每台面板的 root 权限
+# 交给一个可变 URL —— 域名被劫持/过期即全网 RCE。
+# 现在改为执行本地已落地的 deploy.sh；它自己会走「已签名发布包 + 验签」
+# 路径（见 deploy.sh 的 yf_fetch_signed_release）。
+# ------------------------------------------------------------------
+yf_deploy_script(){
+    if [ -f "${PANEL_DIR}/deploy.sh" ]; then
+        echo "${PANEL_DIR}/deploy.sh"
+        return 0
+    fi
+    return 1
+}
+
+yf_require_deploy_script(){
+    local script
+    script=$(yf_deploy_script) || {
+        echo -e "${RED}未找到本地更新脚本 ${PANEL_DIR}/deploy.sh${PLAIN}"
+        echo "出于安全考虑，不再从网络直接拉取脚本执行。"
+        echo "请重新执行一次官方安装命令以恢复（下载后先查看再执行）："
+        echo "  curl -fsSL https://panel.yftec.top/deploy.sh -o /tmp/yf_deploy.sh"
+        echo "  bash /tmp/yf_deploy.sh install"
+        return 1
+    }
+    echo "$script"
+}
+
 yf_install(){
    if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
         exit 0
     fi
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh) install"
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    echo "bash ${script} install"
+    bash "${script}" install
     yf_clean_lib
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
+    bash "${script}" install
 }
 
 yf_update()
@@ -279,8 +313,10 @@ yf_update()
         exit 0
     fi
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh) update"
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh) update
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    echo "bash ${script} update"
+    bash "${script}" update
 }
 
 yf_update_dev()
@@ -290,9 +326,11 @@ yf_update_dev()
         exit 0
     fi
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    echo "bash ${script}"
     yf_clean_lib
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
+    bash "${script}"
     cd ${PANEL_DIR}
 }
 
@@ -303,8 +341,10 @@ yf_dev()
         exit 0
     fi
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    echo "bash ${script}"
+    bash "${script}"
     cd ${PANEL_DIR}
 }
 
@@ -314,10 +354,33 @@ yf_update_venv()
     rm -rf ${PANEL_DIR}/lib64
     rm -rf ${PANEL_DIR}/lib
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
-    
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    echo "bash ${script}"
+    bash "${script}"
+
     cd ${PANEL_DIR}
+}
+
+# 回滚到上一次升级前的代码与数据（升级前由 deploy.sh 自动备份）
+yf_rollback(){
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    bash "${script}" rollback
+}
+
+# 面板库结构诊断（只读，不改库）
+yf_db_check(){
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    bash "${script}" db-check
+}
+
+# 面板库结构自愈（对齐缺失的表/列，升级前也会自动跑）
+yf_migrate(){
+    local script
+    script=$(yf_require_deploy_script) || exit 1
+    bash "${script}" migrate
 }
 
 yf_mirror()
@@ -568,6 +631,9 @@ yf_list(){
     echo -e "yf install         - 执行安装脚本"
     echo -e "yf update          - 更新到正式环境最新代码"
     echo -e "yf update_dev      - 更新到测试环境最新代码"
+    echo -e "yf rollback        - 回滚到上一次升级前的版本"
+    echo -e "yf db-check        - 诊断面板库结构（只读）"
+    echo -e "yf migrate         - 对齐面板库结构（自愈）"
     echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
     echo -e "yf debug           - 调式开发面板"
     echo -e "yf list            - 显示命令列表"
@@ -650,6 +716,9 @@ case "$1" in
     'open') yf_open;;
     'install') yf_install;;
     'update') yf_update;;
+    'rollback') yf_rollback;;
+    'db-check') yf_db_check;;
+    'migrate') yf_migrate;;
     'dev') yf_dev;;
     'update_dev') yf_update_dev;;
     'install_app') yf_install_app;;

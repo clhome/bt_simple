@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="csrf-token" content="{{ csrf_token }}">
 <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
 <title>{{data['title']}}</title>
@@ -185,6 +186,23 @@
 	</div>
 </div>
 <script type="text/javascript" src="/static/js/jquery-3.7.1.min.js?v={{config.version}}"></script>
+<!-- CSRF 双提交：登录/二步验证等 POST 自动带 X-CSRF-Token（与后端 Referer 校验为 OR 关系） -->
+<script type="text/javascript">
+  (function () {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    window.YF_CSRF_TOKEN = m ? m.getAttribute('content') : '';
+    if (window.jQuery && window.YF_CSRF_TOKEN) {
+      jQuery.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+          var method = (settings && settings.type) || 'GET';
+          if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(method)) {
+            xhr.setRequestHeader('X-CSRF-Token', window.YF_CSRF_TOKEN);
+          }
+        }
+      });
+    }
+  })();
+</script>
 <script>window._SERVER_LANG = "{{ current_lang }}";</script>
 <script src="/static/language/{{ current_lang }}/lan.js?v={{config.version}}&t={{ asset_v('language/' + current_lang + '/lan.js') }}"></script>
 <script src="/static/app/i18n.js?v={{config.version}}&t={{ asset_v('app/i18n.js') }}"></script>

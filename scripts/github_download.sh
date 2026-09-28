@@ -23,6 +23,7 @@ _GH_PROXY_LIST=(
     "https://cors.zme.ink/"
     "https://gh.ddlc.top/"
     "https://ghproxy.net/"
+    "https://gh.con.sh/"
 )
 
 # ---------- 内部辅助函数 ----------

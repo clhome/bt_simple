@@ -153,6 +153,8 @@ def script_style_tests(path):
 STATIC_GATES = [
     ('i18n 静态门禁（11 项）', [PY, 'scripts/verify_i18n.py']),
     ('i18n 检测器自证', [PY, 'scripts/verify_i18n.py', '--self-test']),
+    ('代码质量棘轮（裸 except/静默 pass/print）', [PY, 'scripts/verify_code_quality.py']),
+    ('代码质量检测器自证', [PY, 'scripts/verify_code_quality.py', '--self-test']),
 ]
 
 

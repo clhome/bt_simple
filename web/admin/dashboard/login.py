@@ -197,12 +197,9 @@ def login():
     if token != '':
         return login_temp_user(token)
 
-    # 注销登录
-    signout = request.args.get('signout', '')
-    if signout == 'True':
-        session.clear()
-        session['login'] = False
-        session['overdue'] = 0
+    # 注销登录：**不再接受 GET 参数**。
+    # `GET /login?signout=True` 属于「用 GET 改状态」，可被顶层导航型 CSRF 触发
+    # （攻击者能把已登录用户强制踢下线）。统一走 POST /do_signout。
 
     admin_path = thisdb.getOption('admin_path', default='')
     if admin_path == '':

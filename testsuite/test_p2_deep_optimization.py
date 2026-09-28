@@ -133,7 +133,10 @@ class TestP2DeepOptimization(unittest.TestCase):
         self.assertIn('name="old_password" id="p_old"', config_js)
         self.assertIn('old_password=" + encodeURIComponent(pOld)', config_js)
         self.assertIn('!/[A-Za-z]/.test(p1) || !/[0-9]/.test(p1)', config_js)
-        self.assertIn("window.location.href = '/login?signout=True'", config_js)
+        # 注销必须走 POST：`GET /login?signout=True` 属「用 GET 改状态」，
+        # 可被顶层导航型 CSRF 触发（把已登录用户强制踢下线）。
+        self.assertIn("$.post('/do_signout'", config_js)
+        self.assertNotIn("/login?signout=True", config_js)
 
         # 逻辑测试
         import core.yf as yf

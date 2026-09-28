@@ -114,7 +114,7 @@ def get_panel_login():
 
 
 # 删除面板书签
-@blueprint.route('/del_panel_info', endpoint='del_panel_info', methods=['GET','POST'])
+@blueprint.route('/del_panel_info', endpoint='del_panel_info', methods=['POST'])
 @panel_login_required
 def del_panel_info():
     panel_id = request.form.get('id', '')

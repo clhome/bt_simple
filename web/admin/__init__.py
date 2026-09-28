@@ -201,8 +201,30 @@ def requestCheck():
     # 检测 Pjax 片段请求（前端发送 X-PJAX: true 时，只需返回内容片段）
     g.is_pjax = request.headers.get('X-PJAX', '') == 'true'
 
-    # 豁免 acme 挑战路由
-    if request.path.startswith('/.well-known/acme-challenge/'):
+    # 请求级追踪号：上游（Nginx）可传入，否则自生成。
+    # 与 `yf.userSafeError()` 的追踪号统一 —— 用户报「追踪号 abc123」时，
+    # 可以直接在日志里按这个 ID 把一次请求的完整链路串起来。
+    g.request_id = (request.headers.get('X-Request-Id', '') or '')[:64].strip()
+    if not g.request_id:
+        g.request_id = uuid.uuid4().hex[:12]
+
+    # CSRF Token（双提交）：每会话一个，模板注入 meta，前端统一带 X-CSRF-Token。
+    # 与 Referer 校验是 **OR** 关系（见下方）：
+    #   - 零回归：漏带 token 的调用会退回今天的 Referer 行为，不会比今天更差；
+    #   - 修体验：隐私插件/代理剥掉 Referer 时，带 token 的请求不再被误拦；
+    #   - 可度量：仅靠 Referer 通过的请求会打 debug 日志，便于判断何时能切成强制 token。
+    try:
+        _csrf = session.get('csrf_token')
+        if not _csrf:
+            import secrets as _secrets
+            _csrf = _secrets.token_urlsafe(32)
+            session['csrf_token'] = _csrf
+        g.csrf_token = _csrf
+    except Exception:
+        g.csrf_token = ''
+
+    # 豁免 acme 挑战与运维探针（探针不能被「安全入口/关站」重定向，否则监控永远看不到真状态）
+    if request.path.startswith('/.well-known/acme-challenge/') or request.path == '/healthz':
         return
 
     admin_close = getRequestCheckOption('admin_close', default='no')
@@ -227,44 +249,31 @@ def requestCheck():
         if basic_user != basic_auth['basic_user'] or basic_pwd != basic_auth['basic_pwd']:
             return sendAuthenticated()
 
-    # CSRF 防护：POST 请求校验 Referer
-    if request.method == 'POST':
-        # API 调用走 Header 认证，跳过
-        if request.headers.get('App-Id', ''):
-            pass
-        else:
-            referer = request.headers.get('Referer', '')
-            origin = request.headers.get('Origin', '')
-            host = request.host
-
-            # 若 referer 和 origin 均为空，拦截以防御空 Referer 攻击
-            if not referer and not origin:
-                return Response('Forbidden', status=403)
-
-            def get_netloc(url_str):
-                if not url_str:
-                    return ""
-                if "://" not in url_str:
-                    url_str = "http://" + url_str
-                try:
-                    from urllib.parse import urlparse
-                    return urlparse(url_str).netloc
-                except Exception as _e:
-                    return ""
-
-            if referer:
-                ref_netloc = get_netloc(referer)
-                if ref_netloc != host:
-                    return Response('Forbidden', status=403)
-            elif origin:
-                orig_netloc = get_netloc(origin)
-                if orig_netloc != host:
-                    return Response('Forbidden', status=403)
+    # CSRF 防护：Referer/Origin 校验 + 双提交 Token（两者满足其一即可）
+    # 判定逻辑集中在 core/security.py（纯函数，有真值表单测）
+    if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+        from core.security import csrf_decision, extract_supplied_token
+        allowed, reason = csrf_decision(
+            method=request.method,
+            path=request.path,
+            host=request.host,
+            referer=request.headers.get('Referer', ''),
+            origin=request.headers.get('Origin', ''),
+            token_expected=getattr(g, 'csrf_token', '') or '',
+            token_supplied=extract_supplied_token(request.headers, request.form),
+            has_app_id=bool(request.headers.get('App-Id', '')),
+        )
+        if not allowed:
+            return Response('Forbidden', status=403)
+        if reason in ('token-only', 'referer-only'):
+            # 便于评估「收紧为强制 Token」的时机：这两类不该长期高频出现
+            app.logger.debug('CSRF passed by %s: %s %s', reason, request.method, request.path)
 
 
 @app.after_request
 def requestAfter(response):
     response.headers['X-Response-Time'] = round(time.time() - request.start_time, 4) 
+    response.headers['X-Request-Id'] = getattr(g, 'request_id', '')
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-XSS-Protection'] = '1; mode=block'
@@ -277,11 +286,80 @@ def requestAfter(response):
     return response
 
 
+@app.route('/healthz')
+def healthz():
+    """运维健康探针（供负载均衡/监控/容器编排使用）。
+
+    设计取舍：
+      * **不要求登录**：探针通常在未登录的监控进程里跑；
+      * **只回最小信息**：不回版本号/路径/主机名（避免变成指纹接口）；
+      * **真检查**：不只报「进程活着」，而是实际探测面板库可读且结构完整、
+        data 目录可写 —— 否则升级后「进程活着但库半残」会被探针放过去；
+      * 不健康时返回 **503**，让负载均衡能自动摘掉。
+    """
+    checks = {}
+    try:
+        import core.migrations as migrations
+        st = migrations.get_status()
+        checks['database'] = bool(
+            st.get('exists')
+            and not st.get('errors')
+            and not st.get('missing_tables')
+            and not st.get('missing_columns'))
+    except Exception:
+        checks['database'] = False
+
+    try:
+        import core.yf as yf
+        data_dir = yf.getPanelDataDir()
+        checks['data_writable'] = os.path.isdir(data_dir) and os.access(data_dir, os.W_OK)
+    except Exception:
+        checks['data_writable'] = False
+
+    healthy = bool(checks) and all(checks.values())
+    body = json.dumps({'status': 'ok' if healthy else 'degraded', 'checks': checks})
+    resp = Response(body, status=200 if healthy else 503, mimetype='application/json')
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
 @app.errorhandler(404)
 def page_unauthorized(error):
     from flask import redirect
     return redirect('/', code=302)
     # return render_template_string('404 not found', error_info=error), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    """统一兜底：**不向前端暴露任何内部细节**（堆栈/路径/SQL 只进日志）。
+
+    历史上没有 500 处理器，未捕获异常会由 Flask 自己渲染，
+    在调试开关误开、或反向代理透传时容易把 traceback 漏给浏览器。
+    """
+    try:
+        app.logger.error('Internal Server Error: %s %s -> %s',
+                         request.method, request.path, error)
+    except Exception:
+        pass
+    html = (
+        '<!DOCTYPE html><html><head><meta charset="utf-8">'
+        '<title>500</title></head><body style="font-family:sans-serif;'
+        'text-align:center;padding-top:80px;color:#666">'
+        '<h2>服务器内部错误</h2>'
+        '<p>操作未能完成，请稍后重试；若持续出现请查看面板日志。</p>'
+        '<p><a href="/">返回首页</a></p></body></html>'
+    )
+    return Response(html, status=500, mimetype='text/html')
+
+
+@app.errorhandler(Exception)
+def unhandled_exception(error):
+    """未预期异常一律走 500 兜底（保留 HTTPException 的原语义）。"""
+    from werkzeug.exceptions import HTTPException
+    if isinstance(error, HTTPException):
+        return error
+    return internal_server_error(error)
 
 
 # 设置模板全局变量
@@ -313,6 +391,7 @@ def inject_global_variables():
         current_lang=cur_lang,
         t=_t,
         asset_v=asset_v,
+        csrf_token=getattr(g, 'csrf_token', ''),
         supported_languages=SUPPORTED_LANGUAGES
     )
 

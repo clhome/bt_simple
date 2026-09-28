@@ -75,15 +75,36 @@ def init_acme_cron():
     crontab.instance().add(params)
     return True
 
+AUTO_UPDATE_CRON_NAME = '[可删]面板自动更新'
+
+
 def init_auto_update():
-    name = "[可删]面板自动更新"
-    res = yf.M("crontab").field("id, name").where("name=?", (name,)).find()
+    """面板自动更新计划任务：**默认不创建**，由用户在设置里显式开启。
+
+    安全背景（勿改回默认开启）：
+      `yf update` 曾经是「从第三方域名拉脚本、无校验、root 自动执行」，
+      配合本函数写入的月度计划任务，等于把每台面板的 root 权限交给一个可变 URL。
+      即使现已改为执行本地 deploy.sh（见 scripts/init.d/yf.tpl），
+      「无人值守自动变更生产面板」仍属高风险行为，必须用户主动开启。
+
+    关闭时不只是「不创建」，还会**移除已存在的旧任务** ——
+    否则历史安装（曾经默认开启）会永远带着这个任务跑下去。
+    """
+    enabled = thisdb.getOption('auto_update', default='no') == 'yes'
+    res = yf.M("crontab").field("id, name").where("name=?", (AUTO_UPDATE_CRON_NAME,)).find()
+
+    if not enabled:
+        if res:
+            yf.M('crontab').where('id=?', (res['id'],)).delete()
+            yf.writeLog('面板设置', '已移除面板自动更新计划任务!')
+        return False
+
     if res:
         return False
 
     cmd = "yf update"
     params = {
-        'name': name,
+        'name': AUTO_UPDATE_CRON_NAME,
         'type': 'month',
         'week': "",
         'where1': "1",

@@ -17,19 +17,486 @@ cleanup_tmp() {
 trap cleanup_tmp EXIT
 
 # 引入统一的 GitHub 下载函数库
+#
+# 重要（供应链可信）：只有在「本地已有仓库」时才 source 它。
+# 单脚本一键安装场景下**绝不从网络拉脚本再执行** —— 引导期改用下方内联下载器，
+# 它只用同一个代理列表去取回**已签名**的发布包，验签通过后才解压；
+# 之后的下载一律复用**包内**的 scripts/github_download.sh。
+# 这样既保住了多代理能力（大陆网络必需），又切断了「未验签就执行远端代码」这条路。
 _gh_deploy_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/scripts/github_download.sh"
 if [ -f "$_gh_deploy_lib" ]; then
     source "$_gh_deploy_lib"
 else
-    _gh_deploy_lib="$YF_TMP_DIR/github_download.sh"
-    _gh_dl_url="https://raw.githubusercontent.com/clhome/bt_simple/master/scripts/github_download.sh"
-    # 本地不存在时尝试网络拉取（兼容单脚本一键安装场景），使用 -f 参数避免下载到 502 HTML 错误页
-    if curl -sSLf --connect-timeout 2 "$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null || \
-       curl -sSLf "https://gh-proxy.com/$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null || \
-       curl -sSLf "https://ghproxy.net/$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null; then
-        source "$_gh_deploy_lib"
-    fi
+    YF_BOOTSTRAP_MODE=1
+    echo -e "\033[33m[WARN]\033[0m 未检测到本地下载库，进入引导模式：将强制校验发布包签名后再解压。"
 fi
+
+# =====================================================================
+# 供应链可信：内嵌发布公钥 + 引导级校验器
+# =====================================================================
+# 设计要点：
+#   1. 公钥与校验器都**内嵌**在 deploy.sh 里。单脚本一键安装时仓库还不存在，
+#      不能依赖外部文件，也不能再「先下工具再信工具」（那是死循环）。
+#   2. 校验器只用 Python + cryptography（面板已有依赖），刻意不依赖
+#      minisign/gpg/openssl 二进制，避免引入新的引导依赖。
+#   3. 两段内嵌副本由 testsuite/test_deploy_bootstrap.py 做**逐字节漂移守卫**：
+#      改了 scripts/tools/yf_release_verify.py 或 keys/yf-release.pub 而没同步这里，
+#      门禁会直接变红。
+# =====================================================================
+YF_VERIFIER_PY="$YF_TMP_DIR/yf_release_verify.py"
+YF_PUBKEY_FILE="$YF_TMP_DIR/yf-release.pub"
+YF_PUBKEY_PLACEHOLDER=1
+
+cat > "$YF_VERIFIER_PY" <<'YF_VERIFY_EOF'
+# coding: utf-8
+
+# ---------------------------------------------------------------------------------
+# 御风面板（bt_simple）
+# ---------------------------------------------------------------------------------
+# copyright (c) 2018-∞(https://github.com/midoks/mdserver-web) All rights reserved.
+# copyright (c)2026-∞(https://github.com/clhome/bt_simple) All rights reserved.
+# ---------------------------------------------------------------------------------
+# 发布包完整性校验（Ed25519 / minisign 兼容布局）
+# ---------------------------------------------------------------------------------
+"""
+发布包完整性校验器 —— 供应链可信的**唯一**引导级实现。
+
+设计约束（改动前请先读懂）：
+
+1. **纯 Python，仅依赖 `cryptography`**（面板运行依赖里已有）。
+   刻意不调用 `minisign` / `gpg` / `openssl` 二进制：安装期的引导依赖越少越可信，
+   否则「校验工具本身怎么保证可信」会变成死循环。
+
+2. **可整文件嵌入 `deploy.sh`**（用 heredoc），从而在「仓库还没落地」时就能验签。
+   因此本文件必须：
+     - 无第三方 import（除 cryptography）；
+     - 无相对 import、无包内引用；
+     - 顶层除 `def` / `if __name__ == '__main__'` 外不产生副作用。
+   `testsuite/test_release_signature.py` 会**逐字节比对** deploy.sh 里嵌的副本与本文件，
+   任何一边改动而另一边没同步 → 门禁变红。
+
+3. **fail-closed**：任何一步（缺文件 / 格式错 / keyid 不匹配 / 签名不通过 / 校验和不符）
+   都必须返回失败，绝不返回「无法校验就当通过」。
+
+文件格式（minisign 布局，UTF-8 + LF）：
+
+    公钥 yf-release.pub
+        untrusted comment: minisign public key <KEYID_HEX>
+        <base64( b'Ed' + keyid(8) + pubkey(32) )>
+
+    签名 SHA256SUMS.minisig
+        untrusted comment: signature from minisign secret key
+        <base64( b'Ed' + keyid(8) + sig(64) )>
+        trusted comment: <自由文本>
+        <base64( b'ED' + keyid(8) + global_sig(64) )>
+
+    keyid   = BLAKE2b-256(公钥原始 32 字节)[:8]
+    sig        = Ed25519(对 SHA256SUMS 文件的原始字节签名)
+    global_sig = Ed25519(对 sig_raw(64) + trusted_comment 的 UTF-8 字节签名)
+
+    SHA256SUMS（标准 `sha256sum` 输出）
+        <hex>  <filename>
+
+用法：
+    python scripts/tools/yf_release_verify.py \
+        --pubkey keys/yf-release.pub \
+        --sums   dist/SHA256SUMS \
+        --sig    dist/SHA256SUMS.minisig \
+        --file   dist/yf-panel-1.1.19.tar.gz
+
+退出码：0 = 通过；2 = 用法错误；3 = 校验失败。
+"""
+
+import argparse
+import base64
+import binascii
+import hashlib
+import os
+import sys
+
+EXIT_OK = 0
+EXIT_USAGE = 2
+EXIT_FAIL = 3
+
+ALG_SIG = b'Ed'
+ALG_GLOBAL = b'ED'
+
+KEYID_LEN = 8
+PUBKEY_LEN = 32
+SIG_LEN = 64
+
+
+class VerifyError(Exception):
+    """校验失败（fail-closed）。"""
+
+
+# ---------------------------------------------------------------- 编解码
+
+def _b64e(raw):
+    return base64.b64encode(raw).decode('ascii')
+
+
+def _b64d(text):
+    text = ''.join(text.split())
+    if not text:
+        raise VerifyError('base64 内容为空')
+    try:
+        return base64.b64decode(text, validate=True)
+    except (binascii.Error, ValueError):
+        raise VerifyError('base64 解码失败')
+
+
+def key_id(pubkey_raw):
+    """按 minisign 约定推导 keyid：BLAKE2b-256(公钥)[:8]。"""
+    if len(pubkey_raw) != PUBKEY_LEN:
+        raise VerifyError('公钥长度非法：%d（应为 %d）' % (len(pubkey_raw), PUBKEY_LEN))
+    digest = hashlib.blake2b(pubkey_raw, digest_size=32).digest()
+    return digest[:KEYID_LEN]
+
+
+def key_id_hex(keyid):
+    return binascii.hexlify(keyid).decode('ascii').upper()
+
+
+# ---------------------------------------------------------------- 解析
+
+def parse_public_key(text):
+    """解析公钥文件内容 -> (keyid: bytes, pubkey_raw: bytes)。"""
+    lines = [ln.rstrip('\r\n') for ln in text.splitlines() if ln.strip()]
+    if len(lines) < 2:
+        raise VerifyError('公钥文件格式非法（至少需要注释行 + 数据行）')
+    blob = _b64d(lines[-1])
+    if len(blob) != 2 + KEYID_LEN + PUBKEY_LEN:
+        raise VerifyError('公钥数据长度非法：%d' % len(blob))
+    if blob[:2] != ALG_SIG:
+        raise VerifyError('公钥算法标识非法（期望 Ed）')
+    keyid = blob[2:2 + KEYID_LEN]
+    pubkey_raw = blob[2 + KEYID_LEN:]
+    # 自洽性：文件声明的 keyid 必须等于按公钥推导出的 keyid
+    if keyid != key_id(pubkey_raw):
+        raise VerifyError('公钥 keyid 与其内容不自洽（文件被篡改或生成有误）')
+    return keyid, pubkey_raw
+
+
+def parse_signature(text):
+    """解析签名文件内容 -> dict(keyid, sig, trusted_comment, global_sig)。"""
+    lines = [ln.rstrip('\r\n') for ln in text.splitlines() if ln.strip()]
+    if len(lines) < 4:
+        raise VerifyError('签名文件格式非法（需要 4 行：注释/签名/信任注释/全局签名）')
+    trusted_comment = ''
+    for ln in lines:
+        if ln.startswith('trusted comment: '):
+            trusted_comment = ln[len('trusted comment: '):]
+            break
+    if not trusted_comment:
+        raise VerifyError('签名文件缺少 trusted comment')
+
+    sig_blob = _b64d(lines[1])
+    if len(sig_blob) != 2 + KEYID_LEN + SIG_LEN or sig_blob[:2] != ALG_SIG:
+        raise VerifyError('签名数据块非法')
+
+    glob_blob = _b64d(lines[-1])
+    if len(glob_blob) != 2 + KEYID_LEN + SIG_LEN or glob_blob[:2] != ALG_GLOBAL:
+        raise VerifyError('全局签名数据块非法')
+
+    keyid = sig_blob[2:2 + KEYID_LEN]
+    if glob_blob[2:2 + KEYID_LEN] != keyid:
+        raise VerifyError('签名块与全局签名块的 keyid 不一致')
+
+    return {
+        'keyid': keyid,
+        'sig': sig_blob[2 + KEYID_LEN:],
+        'trusted_comment': trusted_comment,
+        'global_sig': glob_blob[2 + KEYID_LEN:],
+    }
+
+
+def parse_sums(text):
+    """解析 `sha256sum` 输出 -> {filename: hexdigest}。"""
+    entries = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        # 兼容 `sha256sum` 的两种输出：`<hex>  <name>` 与 `<hex> *<name>`（二进制模式）
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            raise VerifyError('SHA256SUMS 行格式非法：%r' % raw)
+        digest, name = parts[0].strip().lower(), parts[1].strip()
+        if name.startswith('*'):
+            name = name[1:]
+        name = name.lstrip('./')
+        if len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
+            raise VerifyError('SHA256SUMS 摘要非法：%r' % raw)
+        entries[name] = digest
+    if not entries:
+        raise VerifyError('SHA256SUMS 为空')
+    return entries
+
+
+# ---------------------------------------------------------------- 校验
+
+def _ed25519_verify(pubkey_raw, signature, message):
+    """Ed25519 验签；失败抛 VerifyError。"""
+    try:
+        from cryptography.exceptions import InvalidSignature
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    except ImportError:
+        raise VerifyError('缺少 cryptography 依赖，无法校验发布包签名')
+    if len(signature) != SIG_LEN:
+        raise VerifyError('签名长度非法：%d' % len(signature))
+    try:
+        pub = Ed25519PublicKey.from_public_bytes(pubkey_raw)
+        pub.verify(signature, message)
+    except InvalidSignature:
+        raise VerifyError('Ed25519 签名验证不通过')
+    except VerifyError:
+        raise
+    except Exception as exc:
+        raise VerifyError('签名验证异常：%s' % exc)
+
+
+def verify_signed_bytes(message, pubkey_text, sig_text):
+    """校验「一段字节 + 公钥 + 分离签名」。失败抛 VerifyError；成功返回 trusted_comment。"""
+    pk_keyid, pubkey_raw = parse_public_key(pubkey_text)
+    sig = parse_signature(sig_text)
+
+    if sig['keyid'] != pk_keyid:
+        raise VerifyError('签名所用密钥与本机内置公钥不匹配（keyid 不同）')
+
+    _ed25519_verify(pubkey_raw, sig['sig'], message)
+
+    # 全局签名覆盖「签名块 + trusted comment」，防止中间人改写信任注释
+    glob_msg = sig['sig'] + sig['trusted_comment'].encode('utf-8')
+    _ed25519_verify(pubkey_raw, sig['global_sig'], glob_msg)
+
+    return sig['trusted_comment']
+
+
+def sha256_file(path, chunk_size=1024 * 1024):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as fh:
+        while True:
+            chunk = fh.read(chunk_size)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_release(target_file, sums_path, sig_path, pubkey_path):
+    """完整校验一个发布件。
+
+    返回 (ok: bool, reason: str, detail: dict)。任何异常都转成 (False, ...)，绝不抛出。
+    """
+    detail = {}
+    for label, path in (('发布包', target_file), ('校验和', sums_path),
+                        ('签名', sig_path), ('公钥', pubkey_path)):
+        if not path or not os.path.isfile(path):
+            return False, '缺少%s文件：%s' % (label, path), detail
+
+    try:
+        with open(pubkey_path, 'r', encoding='utf-8') as fh:
+            pubkey_text = fh.read()
+        with open(sig_path, 'r', encoding='utf-8') as fh:
+            sig_text = fh.read()
+
+        sums_bytes = None
+        with open(sums_path, 'rb') as fh:
+            sums_bytes = fh.read()
+
+        trusted_comment = verify_signed_bytes(sums_bytes, pubkey_text, sig_text)
+        detail['trusted_comment'] = trusted_comment
+
+        entries = parse_sums(sums_bytes.decode('utf-8'))
+        name = os.path.basename(target_file)
+        if name not in entries:
+            return False, 'SHA256SUMS 中没有 %s 的记录' % name, detail
+
+        actual = sha256_file(target_file)
+        detail['expected'] = entries[name]
+        detail['actual'] = actual
+        if actual != entries[name]:
+            return False, '%s 的 SHA256 与清单不符' % name, detail
+
+        return True, '校验通过', detail
+    except VerifyError as exc:
+        return False, str(exc), detail
+    except OSError as exc:
+        return False, '读取文件失败：%s' % exc, detail
+    except Exception as exc:  # 兜底：绝不因未预期异常而放行
+        return False, '校验异常：%s' % exc, detail
+
+
+# ---------------------------------------------------------------- CLI
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description='御风面板发布包完整性校验（Ed25519 / minisign 布局）')
+    parser.add_argument('--pubkey', required=True, help='公钥文件（内置发布公钥）')
+    parser.add_argument('--sums', required=True, help='SHA256SUMS 文件')
+    parser.add_argument('--sig', required=True, help='SHA256SUMS.minisig 签名文件')
+    parser.add_argument('--file', required=True, help='待校验的发布包（tar.gz）')
+    parser.add_argument('-q', '--quiet', action='store_true', help='只输出失败信息')
+    args = parser.parse_args(argv)
+
+    ok, reason, detail = verify_release(args.file, args.sums, args.sig, args.pubkey)
+    if ok:
+        if not args.quiet:
+            print('[OK] 发布包签名与校验和验证通过：%s' % os.path.basename(args.file))
+            if detail.get('trusted_comment'):
+                print('     %s' % detail['trusted_comment'])
+        return EXIT_OK
+
+    print('[FAIL] 发布包校验失败：%s' % reason, file=sys.stderr)
+    return EXIT_FAIL
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+YF_VERIFY_EOF
+
+cat > "$YF_PUBKEY_FILE" <<'YF_PUBKEY_EOF'
+untrusted comment: minisign public key AAEBC18DBD082C3B
+RWSq68GNvQgsO+uZzBZLQ+5luMPlqDaa3Z4bp0QoyhaJmQ/PXgZoilRK
+YF_PUBKEY_EOF
+if grep -q 'PLACEHOLDER_NOT_GENERATED' "$YF_PUBKEY_FILE" 2>/dev/null; then
+    YF_PUBKEY_PLACEHOLDER=1
+else
+    YF_PUBKEY_PLACEHOLDER=0
+fi
+
+# 签名强制开关。
+#   0（默认）= 放行：优先用已签名发布包，失败则回退 git clone 并醒目告警。
+#   1        = fail-closed：验签失败就中止安装，不回退。
+# 待首个签名 Release 在真机验证通过后，再把默认值改为 1（上线节奏安排，见 task.md）。
+YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-0}"
+
+# 引导期代理列表 —— 与 scripts/github_download.sh 的 _GH_PROXY_LIST 严格一致
+# （testsuite/test_deploy_bootstrap.py 有漂移守卫用例，两处必须同步增删）
+YF_BOOTSTRAP_PROXY_LIST=(
+    ""
+    "https://gh-proxy.com/"
+    "https://cors.zme.ink/"
+    "https://gh.ddlc.top/"
+    "https://ghproxy.net/"
+    "https://gh.con.sh/"
+)
+
+# 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。
+# 注意：只下载、不执行；下载物必须验签通过才会被解压。
+yf_bootstrap_download() {
+    local out="$1" url="$2" timeout="${3:-60}"
+    local prefix final
+    for prefix in "${YF_BOOTSTRAP_PROXY_LIST[@]}"; do
+        if [ -z "$prefix" ]; then
+            final="$url"
+        else
+            final="${prefix}${url#https://}"
+        fi
+        rm -f "$out" 2>/dev/null
+        if command -v curl >/dev/null 2>&1; then
+            curl -sSLf -k --connect-timeout 5 -m "$timeout" -o "$out" "$final" 2>/dev/null
+        else
+            wget --no-check-certificate -q -O "$out" --timeout="$timeout" --tries=1 "$final" 2>/dev/null
+        fi
+        if [ -s "$out" ]; then
+            return 0
+        fi
+        rm -f "$out" 2>/dev/null
+    done
+    return 1
+}
+
+# 计算发布仓库 slug（调用时求值，因为 GIT_REPO 在后面才定义）
+yf_release_slug() {
+    local repo="${GIT_REPO:-https://github.com/clhome/bt_simple.git}"
+    if [[ "$repo" == *"github.com"* ]]; then
+        echo "$repo" | sed -E 's|.*/github.com/||; s|\.git$||'
+    else
+        echo "clhome/bt_simple"
+    fi
+}
+
+# 验签：把候选包解压**之前**的最后一道闸门
+yf_verify_release() {
+    if [ ! -f "$YF_VERIFIER_PY" ]; then
+        return 1
+    fi
+    python3 "$YF_VERIFIER_PY" --quiet \
+        --pubkey "$YF_PUBKEY_FILE" \
+        --sums "$2" --sig "$3" --file "$1" 2>&1
+}
+
+# 下载「已签名」的发布包 -> 验签 -> 解压到 /tmp/bt_simple_deploy
+# 返回 0=成功；非 0=失败（调用方决定是否降级）
+yf_fetch_signed_release() {
+    local tag="$1"
+    if [ -z "$tag" ]; then
+        return 1
+    fi
+    if [ "$YF_PUBKEY_PLACEHOLDER" = "1" ]; then
+        log_error "发布公钥尚未配置（keys/yf-release.pub 仍是占位符），无法验签。"
+        log_error "  维护者：python scripts/tools/yf_release_sign.py genkey --out-dir keys"
+        log_error "  并把公钥同步进 deploy.sh 的内嵌块（见 keys/README.md）。"
+        return 2
+    fi
+
+    local slug=$(yf_release_slug)
+    local ver="${tag#v}"
+    local asset="yf-panel-${ver}.tar.gz"
+    local base="https://github.com/${slug}/releases/download/${tag}"
+    local work="$YF_TMP_DIR/release"
+    mkdir -p "$work"
+
+    log_info "下载发布包并校验签名：${tag}"
+    yf_bootstrap_download "$work/$asset" "$base/$asset" 300 \
+        || { log_warn "发布包下载失败：$asset"; return 1; }
+    yf_bootstrap_download "$work/SHA256SUMS" "$base/SHA256SUMS" 60 \
+        || { log_warn "SHA256SUMS 下载失败"; return 1; }
+    yf_bootstrap_download "$work/SHA256SUMS.minisig" "$base/SHA256SUMS.minisig" 60 \
+        || { log_warn "SHA256SUMS.minisig 下载失败"; return 1; }
+
+    local verify_out
+    verify_out=$(yf_verify_release "$work/$asset" "$work/SHA256SUMS" "$work/SHA256SUMS.minisig")
+    if [ $? -ne 0 ]; then
+        log_error "发布包验签失败：$verify_out"
+        return 1
+    fi
+    log_info "验签通过，开始解压..."
+
+    rm -rf /tmp/bt_simple_deploy
+    mkdir -p /tmp/bt_simple_deploy
+    if ! tar -xzf "$work/$asset" -C /tmp/bt_simple_deploy --strip-components=1 2>/dev/null; then
+        log_error "发布包解压失败（可能不是预期格式）"
+        return 1
+    fi
+    if [ ! -d /tmp/bt_simple_deploy/web ]; then
+        log_error "发布包内容异常：缺少 web 目录"
+        return 1
+    fi
+    return 0
+}
+
+# 如果引导模式（无本地下载库），从已验签的发布包内导入统一下载库
+# 后续所有插件/依赖下载都走它，能力与原来完全一致（直连 + 多代理轮询）
+yf_load_download_lib_from_release() {
+    # 本地已有下载库（仓库模式）时就无需重复导入，避免函数被二次定义
+    if command -v github_download >/dev/null 2>&1; then
+        return 0
+    fi
+    if [ -n "${YF_DOWNLOAD_LIB_LOADED:-}" ]; then
+        return 0
+    fi
+    local lib="/tmp/bt_simple_deploy/scripts/github_download.sh"
+    if [ -f "$lib" ]; then
+        source "$lib"
+        YF_DOWNLOAD_LIB_LOADED=1
+        log_info "已从验签通过的发布包导入统一下载库"
+        return 0
+    fi
+    return 1
+}
 
 # ---------- 颜色定义 ----------
 RED='\033[31m'
@@ -128,13 +595,14 @@ setup_china_git_config() {
             best_proxy="$_GH_BEST_PROXY"
         fi
         
-        # 定义备用代理列表 (与 github_download.sh 保持一致，用于清理旧规则)
-        local proxies=(
-            "https://gh-proxy.com/"
-            "https://cors.zme.ink/"
-            "https://gh.ddlc.top/"
-            "https://ghproxy.net/"
-        )
+        # 备用代理列表：**从引导期单一真源派生**（跳过空串=官方直连）。
+        # 不在这里再手写一份：曾经因为三处各写一份且不一致，
+        # 导致「某个代理的旧 git 规则永远清不掉」，进而把直连也带偏。
+        local proxies=()
+        local _p
+        for _p in "${YF_BOOTSTRAP_PROXY_LIST[@]}"; do
+            [ -n "$_p" ] && proxies+=("$_p")
+        done
         
         # 先清理以前可能设置过的所有代理规则，防止堆积
         for proxy in "${proxies[@]}"; do
@@ -578,6 +1046,132 @@ backup_mdserver_web() {
     fi
 }
 
+# =====================================================================
+# 面板库结构对齐（自愈）
+# =====================================================================
+# 为什么升级流程要**显式**跑一次，而不是只靠面板启动时的自动自愈：
+#   `web/thisdb/__init__.py` 在导入时会跑 `ensure_schema()`，但那要求
+#   面板（或 panel_task）**能启动**。一旦升级后启动失败（依赖缺失、
+#   配置损坏……），自愈就不会发生，用户会卡在「库结构半残 + 面板起不来」
+#   的双重故障里，而且看不出原因。
+#   在升级流程里先对齐一次，能让「用户无感升级」不依赖启动是否成功。
+#
+# 用法：
+#   align_panel_db          对齐结构（幂等，失败不阻断升级）
+#   align_panel_db --check  只读诊断（不写入），用于排查
+# =====================================================================
+align_panel_db() {
+    local mode="${1:-apply}"
+    if [ ! -f "${PANEL_DIR}/web/core/migrations/__init__.py" ]; then
+        log_warn "未找到自愈迁移模块（老版本代码？），跳过库结构对齐"
+        return 0
+    fi
+
+    if [ "$mode" = "--check" ]; then
+        log_info "面板库结构诊断（只读）..."
+    else
+        log_info "正在对齐面板数据库结构（自愈）..."
+    fi
+
+    cd "${PANEL_DIR}" || return 1
+    YF_PANEL_DIR="${PANEL_DIR}" YF_DB_MODE="${mode}" python3 - <<'YF_DB_PY' || {
+import os
+import sys
+
+panel_dir = os.environ.get('YF_PANEL_DIR', os.getcwd())
+sys.path.insert(0, os.path.join(panel_dir, 'web'))
+
+try:
+    from core.migrations import ensure_schema, format_report, get_status
+    mode = os.environ.get('YF_DB_MODE', 'apply')
+    if mode == '--check':
+        st = get_status()
+        print('[db] 库路径   : %s' % st['db_path'])
+        print('[db] 库存在   : %s' % st['exists'])
+        print('[db] 结构版本 : %s' % st['version'])
+        print('[db] 缺表     : %s' % (st['missing_tables'] or '无'))
+        print('[db] 缺列     : %s' % (st['missing_columns'] or '无'))
+        print('[db] 缺索引   : %s' % (st['missing_indexes'] or '无'))
+        for e in st['errors']:
+            print('[db] 错误     : %s' % e)
+        # 只读诊断：有缺失则以非 0 退出，便于脚本判断
+        sys.exit(1 if (st['missing_tables'] or st['missing_columns'] or st['errors']) else 0)
+    else:
+        report = ensure_schema()
+        for line in format_report(report):
+            print('[db] %s' % line)
+        if report.get('errors'):
+            print('[db] 迁移存在错误，已留标记；面板启动时会自动重试')
+except Exception as exc:
+    # 自愈失败绝不阻断升级：面板启动时还会再试一次
+    print('[db] 自愈调用异常（不影响升级，启动时会重试）: %s' % exc)
+YF_DB_PY
+        log_warn "面板库自愈未正常完成（不影响升级；面板启动时会自动重试）"
+    }
+    return 0
+}
+
+# =====================================================================
+# 回滚到上一次升级前的版本
+# =====================================================================
+# 备份由 `backup_mdserver_web()` 在**升级前**自动生成，
+# 归档内容为 `-C /www/server yufeng_panel`，因此已包含：
+#   * 面板代码（web/ scripts/ panel_task.py ...）
+#   * 面板自身数据（data/panel.db、data/*.pl）
+#   * 已安装的插件目录 plugins/
+# 设计要点：
+#   1. 回滚**本身也要可回滚** —— 解压前先把当前状态另存一份。
+#   2. 解压失败不得把现场搞得更坏：失败则原样启动并报错。
+#   3. 预存文件用 `yufeng_panel.prerollback.<ts>.tar.gz`（点号分隔），
+#      不匹配 `yufeng_panel-*`，避免「再回滚一次」时误选到回滚后的状态。
+rollback_panel() {
+    mkdir -p $BACKUP_DIR
+
+    local backup_file=$(ls -t ${BACKUP_DIR}/yufeng_panel-*.tar.gz 2>/dev/null | head -1)
+    if [ -z "$backup_file" ]; then
+        log_error "未找到面板升级备份（${BACKUP_DIR}/yufeng_panel-*.tar.gz），无法回滚。"
+        log_error "提示：只有通过本脚本升级过的面板才会自动生成备份。"
+        return 1
+    fi
+
+    if [ -f "${PANEL_DIR}/.version" ]; then
+        log_info "当前版本: $(cat ${PANEL_DIR}/.version | tr -d '\r\n ')"
+    fi
+    log_info "将回滚到备份: $backup_file"
+
+    # 1) 先把当前状态另存一份，保证「回滚」这个动作本身可撤销
+    local ts=$(date +%Y%m%d%H%M%S)
+    local pre_rollback="${BACKUP_DIR}/yufeng_panel.prerollback.${ts}.tar.gz"
+    log_info "先保存当前状态: $pre_rollback"
+    tar -czf "$pre_rollback" \
+        --exclude='yufeng_panel/bin' \
+        --exclude='yufeng_panel/lib' \
+        --exclude='yufeng_panel/lib64' \
+        --exclude='yufeng_panel/include' \
+        -C /www/server yufeng_panel 2>/dev/null
+
+    # 2) 停服 -> 解压覆盖 -> 起服
+    stop_panel
+    log_info "正在解压备份覆盖当前代码与数据..."
+    if ! tar -xzf "$backup_file" -C /www/server 2>/dev/null; then
+        log_error "备份解压失败！未对现有代码做进一步破坏，正在重新启动面板..."
+        log_error "请手动检查归档完整性: $backup_file"
+        start_panel
+        return 1
+    fi
+
+    chmod 755 ${PANEL_DIR}/data 2>/dev/null
+    chmod 755 ${PANEL_DIR}/cli.sh 2>/dev/null
+    start_panel
+
+    if [ -f "${PANEL_DIR}/.version" ]; then
+        log_info "回滚后版本: $(cat ${PANEL_DIR}/.version | tr -d '\r\n ')"
+    fi
+    log_info "回滚完成。"
+    log_info "如需撤销本次回滚，可手动解压: $pre_rollback"
+    return 0
+}
+
 backup_bt_panel() {
     log_info "备份宝塔面板..."
     mkdir -p $BACKUP_DIR
@@ -764,6 +1358,28 @@ download_code() {
         fi
     fi
 
+    # ---- 主路径：已签名发布包（供应链可信，同时把下载量从 794MB 降到 ~5MB）----
+    local signed_rc=0
+    yf_fetch_signed_release "$GIT_BRANCH" || signed_rc=$?
+    if [ "$signed_rc" = "0" ]; then
+        yf_load_download_lib_from_release
+        log_info "代码下载完成（已通过发布包签名校验）"
+        return 0
+    fi
+
+    # ---- 回退决策 ----
+    if [ "$signed_rc" = "2" ]; then
+        log_info "发布公钥尚未配置，本次跳过签名校验（不影响安装）。"
+    fi
+    if [ "$YF_REQUIRE_SIGNATURE" = "1" ]; then
+        log_error "发布包验签失败，已中止安装（YF_REQUIRE_SIGNATURE=1，fail-closed）。"
+        log_error "  常见原因：该版本尚未发布签名包 / 网络与代理异常 / 签名文件缺失。"
+        exit 1
+    fi
+    log_warn "未能使用「已签名发布包」，回退到 git clone（未验签，存在供应链风险）。"
+    log_warn "  原因通常是：该版本尚未发布签名包 / 网络与代理异常 / 签名文件缺失。"
+    log_warn "  如需启用强制验签：YF_REQUIRE_SIGNATURE=1 bash deploy.sh ..."
+
     local download_url=$(get_github_url ${GIT_REPO})
     local clone_ret=0
 
@@ -844,6 +1460,9 @@ deploy_code() {
     # 确保目录权限
     chmod 755 ${PANEL_DIR}/data 2>/dev/null
     chmod 755 ${PANEL_DIR}/cli.sh 2>/dev/null
+
+    # 升级后立刻对齐库结构（不依赖面板能否成功启动）
+    align_panel_db
 
     rm -rf /tmp/bt_simple_deploy
     log_info "代码部署完成"
@@ -1624,6 +2243,21 @@ main() {
             rollback_yufeng_panel
             exit 0
             ;;
+        rollback)
+            SILENT_MODE=true
+            rollback_panel
+            exit 0
+            ;;
+        migrate)
+            SILENT_MODE=true
+            align_panel_db
+            exit 0
+            ;;
+        db-check)
+            SILENT_MODE=true
+            align_panel_db --check
+            exit 0
+            ;;
         rollback_bt)
             rollback_bt_panel
             exit 0
@@ -1650,9 +2284,10 @@ main() {
         echo "  1) 检查并升级 (自动比对稳定版版本)"
         echo "  2) 强制覆盖升级 (不比对版本，适用于环境修复或回退正式版)"
         echo "  3) 强制升级至开发预览版 (拉取 master 最新提交，存在不稳定风险)"
-        echo "  4) 取消"
+        echo "  4) 回滚到上一次升级前的版本"
+        echo "  5) 取消"
         echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-4]: " choice; else read -p "请选择 [1-4]: " choice < /dev/tty 2>/dev/null || choice="4"; fi
+        if [ -t 0 ]; then read -p "请选择 [1-5]: " choice; else read -p "请选择 [1-5]: " choice < /dev/tty 2>/dev/null || choice="5"; fi
         case "$choice" in
             1) check_version_and_update ;;
             2) migrate_from_mw ;;
@@ -1660,6 +2295,7 @@ main() {
                 export BT_SIMPLE_BRANCH="master"
                 migrate_from_mw
                 ;;
+            4) SILENT_MODE=true; rollback_panel ;;
             *) echo "已取消"; exit 0 ;;
         esac
     elif $HAS_BT && $HAS_MW; then

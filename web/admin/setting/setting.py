@@ -237,6 +237,30 @@ def set_gpu_detect():
     yf.writeLog('面板设置', '关闭英伟达GPU首页检测!')
     return yf.returnData(True, 'setting.py_msg_d0a336')
 
+# 设置面板自动更新状态
+# 安全口径：自动更新**默认关闭**；开启后会在计划任务里新增 `yf update`，
+# 关闭时会立即移除该任务（不必等面板重启）。
+@blueprint.route('/set_auto_update_status', endpoint='set_auto_update_status', methods=['POST'])
+@panel_login_required
+def set_auto_update_status():
+    auto_update = thisdb.getOption('auto_update', default='no')
+    if auto_update == 'no':
+        thisdb.setOption('auto_update', 'yes')
+        yf.writeLog('面板设置', '开启面板自动更新!')
+    else:
+        thisdb.setOption('auto_update', 'no')
+        yf.writeLog('面板设置', '关闭面板自动更新!')
+    utils_config.clearGlobalVarCache()
+
+    # 立即同步计划任务（否则要等下次面板启动才生效）
+    try:
+        from admin.setup.init_cron import init_auto_update
+        init_auto_update()
+    except Exception as e:
+        yf.writeLog('面板设置', '自动更新计划任务同步异常: %s' % e)
+
+    return yf.returnData(True, 'common.set_success')
+
 # 设置面板用户
 @blueprint.route('/set_name', endpoint='set_name', methods=['POST'])
 @panel_login_required

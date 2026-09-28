@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="renderer" content="webkit" />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
     <title>{{data['title']}}</title>
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
     {% if data['use_cdn'] == 'yes' %}
@@ -128,6 +129,24 @@
 {% else %}
 <script src="/static/js/jquery-3.7.1.min.js?v={{config.version}}"></script>
 {% endif %}
+<!-- CSRF 双提交：为所有非安全方法自动带 X-CSRF-Token。
+     与后端 Referer 校验是 OR 关系：即使某些调用漏带，也只是退回旧行为，不会变差。 -->
+<script>
+  (function () {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    window.YF_CSRF_TOKEN = m ? m.getAttribute('content') : '';
+    if (window.jQuery && window.YF_CSRF_TOKEN) {
+      jQuery.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+          var method = (settings && settings.type) || 'GET';
+          if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(method)) {
+            xhr.setRequestHeader('X-CSRF-Token', window.YF_CSRF_TOKEN);
+          }
+        }
+      });
+    }
+  })();
+</script>
 
         <!-- jQuery Cookie -->
         {% if data['use_cdn'] == 'yes' %}

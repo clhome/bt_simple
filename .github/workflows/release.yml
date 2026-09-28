@@ -1,25 +1,150 @@
-name: 自动发布 Release
+name: 构建并发布签名 Release
+
+# 供应链可信（P0-1）的核心一环：
+#   产出「面板自身发布包」+ SHA256SUMS + Ed25519 签名，作为 Release 附件。
+#   deploy.sh 会下载这三样、先验签再解压（见 yf_fetch_signed_release）。
+#
+# 为什么用 `git archive` 而不是 GitHub 自动生成的源码包：
+#   1. `git archive` **保证应用 .gitattributes 的 export-ignore**，
+#      从而不下发 文档/、testsuite/、cl_tasks/、*.i18n.bak 等开发产物
+#      （实测 794MB 工作区 -> 5.6MB 发布包）；
+#   2. 产物名与版本号由本工作流掌控，deploy.sh 才能稳定拼出下载 URL。
+#
+# ⚠️ 需要仓库 Secret：YF_RELEASE_KEY = keys/yf-release.key 的完整内容
+#    （生成方式见 keys/README.md）。缺失时本工作流直接失败，不会静默产出未签名包。
 
 on:
   push:
     tags:
-      - "v*" # 当推送以 v 开头的标签时触发，例如 v1.0.0
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要构建的 tag（如 v1.1.19）"
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
-
-      - name: 创建 GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: actions/checkout@v4
         with:
-          # 自动根据 commit 记录生成发布说明，并附加模板内容
+          fetch-depth: 0            # git archive 需要完整对象与 tag
+
+      - name: 安装 Python 与签名依赖
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --no-cache-dir "cryptography>=40.0.2"
+
+      - name: 解析版本号
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ver=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 断言 tag 与 web/version.py 一致
+        run: |
+          python - "${{ steps.ver.outputs.tag }}" <<'PY'
+          import re, sys, pathlib
+          tag = sys.argv[1]
+          text = pathlib.Path('web/version.py').read_text(encoding='utf-8')
+          def grab(name):
+              m = re.search(r'^\s*%s\s*=\s*(.+?)\s*$' % name, text, re.M)
+              if not m:
+                  sys.exit('version.py 中找不到 %s' % name)
+              return m.group(1).strip().strip('"').strip("'")
+          ver = '%s.%s.%s' % (grab('APP_RELEASE'), grab('APP_REVISION'), grab('APP_SMALL_VERSION'))
+          suffix = grab('APP_SUFFIX')
+          if suffix:
+              ver = '%s-%s' % (ver, suffix)
+          expect = tag[1:] if tag.startswith('v') else tag
+          if ver != expect:
+              sys.exit('tag(%s) 与 web/version.py 的版本(%s) 不一致；'
+                       '请先同步版本号再打 tag' % (tag, ver))
+          print('版本号校验通过: %s' % ver)
+          PY
+
+      - name: 生成发布包（自动应用 export-ignore）
+        run: |
+          set -e
+          VER="${{ steps.ver.outputs.ver }}"
+          mkdir -p dist
+          git archive --format=tar.gz \
+              --prefix="yf-panel-${VER}/" \
+              -o "dist/yf-panel-${VER}.tar.gz" \
+              HEAD
+          ls -lh dist/
+
+      - name: 发布包内容自检（防止把开发产物下发给客户）
+        run: |
+          set -e
+          VER="${{ steps.ver.outputs.ver }}"
+          TARBALL="dist/yf-panel-${VER}.tar.gz"
+          LIST=$(tar -tzf "$TARBALL")
+          for need in "yf-panel-${VER}/deploy.sh" "yf-panel-${VER}/web/version.py" \
+                      "yf-panel-${VER}/plugins/" "yf-panel-${VER}/scripts/tools/yf_release_verify.py"; do
+            echo "$LIST" | grep -q "^${need}" || { echo "缺少必要内容: $need"; exit 1; }
+          done
+          for forbid in "testsuite/" "文档/" "cl_tasks/" ".i18n.bak" ".git/"; do
+            if echo "$LIST" | grep -q "${forbid}"; then
+              echo "发布包混入开发产物: ${forbid}（检查 .gitattributes 的 export-ignore）"
+              exit 1
+            fi
+          done
+          echo "内容自检通过，共 $(echo "$LIST" | wc -l) 个条目"
+
+      - name: 写入签名私钥
+        env:
+          YF_RELEASE_KEY: ${{ secrets.YF_RELEASE_KEY }}
+        run: |
+          set -e
+          if [ -z "${YF_RELEASE_KEY}" ]; then
+            echo "缺少 Secret YF_RELEASE_KEY，拒绝产出未签名发布包（见 keys/README.md）"
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "${YF_RELEASE_KEY}" > /tmp/yf-release.key
+          chmod 600 /tmp/yf-release.key
+
+      - name: 生成 SHA256SUMS 并签名
+        run: |
+          set -e
+          python scripts/tools/yf_release_sign.py release \
+              --dist dist --key /tmp/yf-release.key \
+              --comment "yf-panel ${{ steps.ver.outputs.ver }} (tag ${{ steps.ver.outputs.tag }})"
+          rm -f /tmp/yf-release.key
+          ls -l dist/
+
+      - name: 出包后立即自验（用仓库公钥验一遍，验不过就不发布）
+        run: |
+          set -e
+          VER="${{ steps.ver.outputs.ver }}"
+          python scripts/tools/yf_release_verify.py \
+              --pubkey keys/yf-release.pub \
+              --sums   dist/SHA256SUMS \
+              --sig    dist/SHA256SUMS.minisig \
+              --file   "dist/yf-panel-${VER}.tar.gz"
+
+      - name: 创建 GitHub Release 并上传附件
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
-          # 使用根目录下的模板文件
           body_path: RELEASE_TEMPLATE.md
-          # 设置发布名称
-          name: Release ${{ github.ref_name }}
+          name: Release ${{ steps.ver.outputs.tag }}
+          files: |
+            dist/yf-panel-${{ steps.ver.outputs.ver }}.tar.gz
+            dist/SHA256SUMS
+            dist/SHA256SUMS.minisig
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

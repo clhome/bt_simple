@@ -1,0 +1,127 @@
+name: 供应链安全扫描
+
+# H4：依赖漏洞（CVE）+ Python 安全静态扫描 + SBOM。
+#
+# 独立于构建/发布 workflow，理由：
+#   * 发布链路不应因为「新披露了一个 CVE」而突然卡住（那是运维决策，不是代码问题）；
+#   * 但 PR 与定时巡检必须能看到，且**高危必须阻断**。
+#
+# 分级口径（刻意保守，避免变成噪音门禁）：
+#   pip-audit  -> 阻断。真实 CVE，误报率低；确有不可修复项时写进 security/audit-ignore.txt 并注明理由。
+#   bandit     -> 只阻断 **HIGH**（-lll）。中低危先以报告形式积累，避免一上来几百条导致门禁被无视。
+#   ruff       -> 仅报告（--exit-zero）。规则收紧前不阻断。
+#
+# 首次运行若变红，那是扫描器在干活：按报告 triage 后再合并，不要直接把 job 改成 continue-on-error。
+
+on:
+  push:
+    branches: [master, main, i18n]
+    paths:
+      - 'requirements*.txt'
+      - 'web/**.py'
+      - 'plugins/**/*.py'
+      - 'panel_task.py'
+      - 'panel_tools.py'
+      - '.github/workflows/security-scan.yml'
+  pull_request:
+    paths:
+      - 'requirements*.txt'
+      - 'web/**.py'
+      - 'plugins/**/*.py'
+      - 'panel_task.py'
+      - 'panel_tools.py'
+      - '.github/workflows/security-scan.yml'
+  schedule:
+    # 每周一 03:00 UTC 巡检（CVE 随时可能新披露，不能只靠 PR 触发）
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    name: 依赖漏洞扫描（pip-audit）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 安装扫描器
+        run: pip install --no-cache-dir "pip-audit>=2.7.0"
+      - name: 扫描 requirements.txt
+        run: |
+          set -e
+          ARGS=""
+          if [ -f security/audit-ignore.txt ]; then
+            while read -r vuln; do
+              [ -z "$vuln" ] && continue
+              case "$vuln" in \#*) continue;; esac
+              ARGS="$ARGS --ignore-vuln $vuln"
+            done < security/audit-ignore.txt
+          fi
+          echo "pip-audit $ARGS"
+          pip-audit -r requirements.txt --strict $ARGS
+
+  bandit-scan:
+    name: 安全静态扫描（bandit / 仅阻断 HIGH）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --no-cache-dir "bandit>=1.7.5"
+      - name: bandit（HIGH 阻断）
+        run: |
+          set -e
+          bandit -r web scripts panel_task.py panel_tools.py \
+            -x testsuite,test,node_modules,.git \
+            -lll \
+            -f txt
+      - name: bandit（全量报告，不阻断）
+        if: always()
+        run: |
+          bandit -r web scripts panel_task.py panel_tools.py \
+            -x testsuite,test,node_modules,.git \
+            -f json -o bandit-report.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          if-no-files-found: ignore
+
+  ruff-report:
+    name: 静态检查（ruff / 仅报告）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --no-cache-dir "ruff>=0.4.0"
+      # 起步阶段只看 E9/F 类（语法与未定义名），不引入风格规则
+      - run: ruff check web scripts panel_task.py panel_tools.py --select E9,F --exit-zero
+
+  sbom:
+    name: 生成 SBOM（Release 附件用）
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --no-cache-dir "cyclonedx-bom>=4.1.0"
+      - name: 生成 CycloneDX SBOM
+        run: |
+          set -e
+          pip install --no-cache-dir -r requirements.txt
+          cyclonedx-py environment -o sbom.json --output-format json
+          ls -lh sbom.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json

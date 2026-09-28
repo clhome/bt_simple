@@ -231,7 +231,7 @@ def input_zip():
 
 
 # 清除插件缓存
-@blueprint.route('/clear_cache', endpoint='clear_cache', methods=['POST', 'GET'])
+@blueprint.route('/clear_cache', endpoint='clear_cache', methods=['POST'])
 @panel_login_required
 def clear_cache():
     YfPlugin.instance().clearCache()
@@ -325,15 +325,20 @@ def _run_cache_set(key, value):
     RUN_CACHE[key] = (value, now)
 
 # 插件统一回调入口API
-@blueprint.route('/run', endpoint='run', methods=['GET','POST'])
+# 插件执行入口
+# 安全：本端点是**可改状态**的（func=start/stop/restart/reload/uninstall...），
+# 因此强制 POST 且只从表单取参。
+# 历史写法允许 `request.args` 取参 + `methods=['GET','POST']`，
+# 等价于开放了「GET 改状态」：攻击者用 <img>/顶层导航就能带上 cookie 触发停机。
+@blueprint.route('/run', endpoint='run', methods=['POST'])
 @panel_login_required
 def run():
     try:
-        name = request.form.get('name', '') or request.args.get('name', '')
-        func = request.form.get('func', '') or request.args.get('func', '')
-        version = request.form.get('version', '') or request.args.get('version', '')
-        args = request.form.get('args', '') or request.args.get('args', '')
-        script = request.form.get('script', 'index') or request.args.get('script', 'index')
+        name = request.form.get('name', '')
+        func = request.form.get('func', '')
+        version = request.form.get('version', '')
+        args = request.form.get('args', '')
+        script = request.form.get('script', '') or 'index'
 
         import time
         now = time.time()
@@ -391,19 +396,21 @@ def run():
         return r
     except Exception as e:
         import traceback
-        yf.writeLog('插件管理', f"插件[{request.form.get('name', '') or request.args.get('name', '')}]执行操作[{request.form.get('func', '') or request.args.get('func', '')}]异常: {str(e)}")
-        return {'status': False, 'msg': f"操作执行异常: {str(e)}", 'data': ''}
+        yf.writeLog('插件管理', f"插件[{request.form.get('name', '')}]执行操作[{request.form.get('func', '')}]异常: {str(e)}")
+        # 脱敏：内部细节（路径/SQL/版本）不进前端，只给追踪号
+        return {'status': False, 'msg': yf.userSafeError(e), 'data': ''}
 
 
 # 插件统一回调入口API
-@blueprint.route('/callback', endpoint='callback', methods=['GET','POST'])
+@blueprint.route('/callback', endpoint='callback', methods=['POST'])
 @panel_login_required
 def callback():
     try:
-        name = request.form.get('name', '') or request.args.get('name', '')
-        func = request.form.get('func', '') or request.args.get('func', '')
-        args = request.form.get('args', '') or request.args.get('args', '')
-        script = request.form.get('script', '') or request.args.get('script', '') or 'index'
+        # 同 /run：可改状态，强制 POST + 只从表单取参
+        name = request.form.get('name', '')
+        func = request.form.get('func', '')
+        args = request.form.get('args', '')
+        script = request.form.get('script', '') or 'index'
 
         is_state_op = (
             func in ('start', 'stop', 'restart', 'reload')
@@ -443,9 +450,9 @@ def callback():
     except Exception as e:
         if yf.isDebugMode():
             print(yf.getTracebackInfo())
-        yf.writeLog('插件管理', f"插件[{request.form.get('name', '') or request.args.get('name', '')}]回调操作[{request.form.get('func', '') or request.args.get('func', '')}]异常: {str(e)}")
+        yf.writeLog('插件管理', f"插件[{request.form.get('name', '')}]回调操作[{request.form.get('func', '')}]异常: {str(e)}")
         from flask import Response
-        err_json = yf.returnJson(False, f"操作执行异常: {str(e)}")
+        err_json = yf.returnJson(False, yf.userSafeError(e))
         return Response(err_json, mimetype='application/json')
 
 # 插件统一批量回调入口API (专门用于前端聚合查询等性能优化场景)

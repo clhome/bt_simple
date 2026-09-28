@@ -186,7 +186,42 @@ def shlexQuote(s):
     import shlex
     return shlex.quote(str(s))
 
+#: 路径里绝不应该出现的「垃圾片段」——mock 对象字面量与未展开的格式化占位符
+# 实测现场：源码树里凭空出现了 `web/MagicMock/mock()/<id>/` 与 `web/{}/redis/data/redis.log`，
+# 根因是测试 mock 未配置 / 格式化串缺参时，**生产代码不校验路径就 makedirs**，
+# 把非法路径当真写进了源码树。真实运行下表现为「数据写到意外位置」，以 root 跑时尤危。
+_PATH_JUNK_RE = re.compile(r'MagicMock|<MagicMock|mock\(\)')
+_PATH_PLACEHOLDER_RE = re.compile(r'\{[^{}]*\}|%[sd]')
+
+
+def invalidPathReason(path):
+    """返回路径被拒绝的原因；`None` 表示放行。
+
+    刻意**不**要求「必须是绝对路径」：有些合法调用会传相对路径，
+    一刀切会误伤。这里只拦「无论怎么解释都不可能是合法目录」的输入。
+    """
+    if not isinstance(path, str):
+        return '路径不是字符串（实际是 %s）' % type(path).__name__
+    if not path.strip():
+        return '路径为空'
+    if _PATH_JUNK_RE.search(path):
+        return '路径含 mock/测试对象字面量'
+    if _PATH_PLACEHOLDER_RE.search(path):
+        return '路径含未展开的格式占位符'
+    normalized = os.path.normpath(path)
+    if normalized in ('/', os.sep, '//', '.'):
+        return '路径为文件系统根'
+    if re.fullmatch(r'[A-Za-z]:[\\/]', path):
+        return '路径为盘符根'
+    return None
+
+
 def makeDirs(path):
+    reason = invalidPathReason(path)
+    if reason:
+        # 不静默：否则现场只剩一个莫名其妙的目录，排查成本极高
+        writeFileLog('[makeDirs] 拒绝创建目录：%s -> %r' % (reason, path))
+        return False
     try:
         os.makedirs(path, exist_ok=True)
         return True
@@ -196,6 +231,12 @@ def makeDirs(path):
 def removeDir(path):
     import shutil
     import stat
+
+    # 递归删除是高危操作：路径非法时宁可拒绝，也不要把现场搞得更坏
+    reason = invalidPathReason(path)
+    if reason:
+        writeFileLog('[removeDir] 拒绝删除：%s -> %r' % (reason, path))
+        return False
 
     def _handle_remove_readonly(func, file_path, exc_info):
         try:
@@ -432,13 +473,9 @@ def getGithubProxyInfo(wait_if_testing=False):
     
     def test_speed_bg():
         global _IS_TESTING_GITHUB
-        test_list = {
-            "direct": "",
-            "ghproxy.net": "https://ghproxy.net/",
-            "gh.con.sh": "https://gh.con.sh/",
-            "gh-proxy.com": "https://gh-proxy.com/",
-            "cors.zme.ink": "https://cors.zme.ink/"
-        }
+        # 测速表从 _GITHUB_PROXY_LIST 派生（单一真源），
+        # 避免「代理列表加了新站、测速表还是旧的」导致新站永远选不上
+        test_list = {name: prefix for prefix, name in _GITHUB_PROXY_NAMED}
         
         test_url = "https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz"
         best_speed = -1.0
@@ -511,14 +548,35 @@ def getGithubProxyName():
     return getGithubProxyInfo()['name']
 
 
-# ---------- GitHub 代理站列表（与 scripts/github_download.sh 保持一致） ----------
+# ---------- GitHub 代理站列表 ----------
+# ⚠️ **单一真源**。以下位置必须与本列表逐项一致：
+#   * `scripts/github_download.sh` 的 `_GH_PROXY_LIST`
+#   * `deploy.sh` 的 `YF_BOOTSTRAP_PROXY_LIST`（引导期验签下载用）
+#   * `deploy.sh` 的 `setup_china_git_config` 内联 `proxies` 数组
+# 由 `testsuite/test_deploy_bootstrap.py::test_04` 守卫。
+#
+# 为什么强调这件事：曾经三处各写一份且**不一致**（面板侧少了 `gh.ddlc.top`），
+# 结果是「同一个包在脚本里下得动、在面板里下不动」，极难排查。
+# 中国大陆直连 GitHub 经常失败，本列表是可用性的生命线，只许增不许减。
 _GITHUB_PROXY_LIST = [
     "",
-    "https://ghproxy.net/",
-    "https://gh.con.sh/",
     "https://gh-proxy.com/",
     "https://cors.zme.ink/",
+    "https://gh.ddlc.top/",
+    "https://ghproxy.net/",
+    "https://gh.con.sh/",
 ]
+
+
+def _proxy_display_name(prefix):
+    """把代理前缀转成用于展示/测速的名字（`''` -> direct）。"""
+    if not prefix:
+        return 'direct'
+    return prefix.rstrip('/').replace('https://', '').replace('http://', '')
+
+
+#: 带名字的代理表，**由上面单一真源派生**，避免「列表改了、测速表没改」的漂移
+_GITHUB_PROXY_NAMED = [(p, _proxy_display_name(p)) for p in _GITHUB_PROXY_LIST]
 
 def _makeGithubProxyUrl(proxy_prefix, original_url):
     """
@@ -1617,6 +1675,36 @@ def debugLog(*data):
     if isDebugMode():
         print(data)
     return True
+
+
+def userSafeError(exc, trace_id=None):
+    """把内部异常转成「可安全展示给前端」的短消息。
+
+    为什么要脱敏：把 `str(e)` 直接回前端会泄露绝对路径、SQL 片段、依赖版本
+    与内网地址 —— 这些恰好是攻击者做下一步利用最想要的信息。
+    完整堆栈只进面板日志，前端只拿一个追踪号，便于用户报障时对账。
+
+    追踪号优先复用请求级 `g.request_id`（见 admin/__init__.py 的 before_request），
+    这样「用户报的追踪号」与「日志里的请求 ID」是同一个，排查时能直接串起整条链路。
+    """
+    tid = trace_id
+    if not tid:
+        try:
+            from flask import g as _g
+            tid = getattr(_g, 'request_id', None)
+        except Exception:
+            tid = None
+    if not tid:
+        try:
+            import uuid as _uuid
+            tid = _uuid.uuid4().hex[:12]
+        except Exception:
+            tid = 'unknown'
+    try:
+        writeFileLog('[userSafeError][%s] %s\n%s' % (tid, exc, getTracebackInfo()))
+    except Exception:
+        pass
+    return '操作失败，请稍后重试或查看面板日志（追踪号 %s）' % tid
 
 
 def writeLog(stype, msg, args=()):

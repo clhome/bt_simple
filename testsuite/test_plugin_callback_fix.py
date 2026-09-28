@@ -161,12 +161,17 @@ class TestPluginCallbackFix(unittest.TestCase):
             code = f.read()
 
         # 验证路由定义与异常处理
-        self.assertIn("@blueprint.route('/callback', endpoint='callback', methods=['GET','POST'])", code)
+        # 注：本端点已改为「仅 POST」——历史上 `methods=['GET','POST']` 且从 request.args
+        # 取参，等于开放了「GET 改状态」，可被顶层导航型 CSRF 触发。
+        self.assertIn("@blueprint.route('/callback', endpoint='callback', methods=['POST'])", code)
+        self.assertNotIn("endpoint='callback', methods=['GET','POST']", code)
         self.assertIn("def callback():", code)
         self.assertIn("try:", code)
         self.assertIn("except Exception as e:", code)
         self.assertIn("yf.writeLog('插件管理'", code)
-        self.assertIn("return {'status': False, 'msg': f\"操作执行异常: {str(e)}\", 'data': ''}", code)
+        # 异常信息必须经 userSafeError 脱敏，不得把 str(e) 直接回前端
+        self.assertIn("'msg': yf.userSafeError(e)", code)
+        self.assertNotIn("操作执行异常: {str(e)}", code)
 
         # 若本地存在 Flask，则运行真实的路由测试
         try:
@@ -192,7 +197,9 @@ class TestPluginCallbackFix(unittest.TestCase):
                 self.assertEqual(resp.status_code, 200)
                 res_json = json.loads(resp.data.decode('utf-8'))
                 self.assertFalse(res_json.get('status'))
-                self.assertIn("Simulated Critical Error", res_json.get('msg'))
+                # 脱敏：内部异常原文不得回给前端（只给追踪号）
+                self.assertNotIn("Simulated Critical Error", res_json.get('msg'))
+                self.assertIn('追踪号', res_json.get('msg'))
         except ImportError:
             pass  # 无 Flask 环境下静态 AST 已验证安全保护
 

@@ -553,7 +553,10 @@ function setPassword() {
             time: 2000
           }, function() {
             try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
-            window.location.href = '/login?signout=True';
+            // 注销改用 POST（GET 注销可被 CSRF 触发）；无论成败都跳登录页
+            $.post('/do_signout', {}).always(function () {
+              window.location.href = '/login';
+            });
           });
         } else {
           layer.msg(b.msg, {

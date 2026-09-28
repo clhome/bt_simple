@@ -75,7 +75,7 @@ def get_dnsapi():
     return YfSites.instance().getDnsapi()
 
 # 设置DNSAPI
-@blueprint.route('/set_dnsapi', endpoint='set_dnsapi', methods=['GET','POST'])
+@blueprint.route('/set_dnsapi', endpoint='set_dnsapi', methods=['POST'])
 @panel_login_required
 def set_dnsapi():
     type = request.form.get('type', '')
@@ -83,7 +83,7 @@ def set_dnsapi():
     return YfSites.instance().setDnsapi(type,data)
 
 # 设置证书到站点
-@blueprint.route('/set_cert_to_site', endpoint='set_cert_to_site', methods=['GET','POST'])
+@blueprint.route('/set_cert_to_site', endpoint='set_cert_to_site', methods=['POST'])
 @panel_login_required
 def set_cert_to_site():
     site_name = request.form.get('siteName', '')
@@ -91,21 +91,21 @@ def set_cert_to_site():
     return YfSites.instance().setCertToSite(site_name, cert_name)
 
 # 删除证书
-@blueprint.route('/remove_cert', endpoint='remove_cert', methods=['GET','POST'])
+@blueprint.route('/remove_cert', endpoint='remove_cert', methods=['POST'])
 @panel_login_required
 def remove_cert():
     cert_name = request.form.get('certName', '')
     return YfSites.instance().removeCert(cert_name)
 
 # 强制开启HTTPS
-@blueprint.route('/http_to_https', endpoint='http_to_https', methods=['GET','POST'])
+@blueprint.route('/http_to_https', endpoint='http_to_https', methods=['POST'])
 @panel_login_required
 def http_to_https():
     site_name = request.form.get('siteName', '')
     return YfSites.instance().httpToHttps(site_name)
 
 # 强制关闭HTTPS
-@blueprint.route('/close_to_https', endpoint='close_to_https', methods=['GET','POST'])
+@blueprint.route('/close_to_https', endpoint='close_to_https', methods=['POST'])
 @panel_login_required
 def close_to_https():
     site_name = request.form.get('siteName', '')
