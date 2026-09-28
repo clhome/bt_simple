@@ -3976,7 +3976,8 @@ html .menu .menu_exit:hover {
 /* 全局弹窗圆角与弥散阴影美化 */
 .layui-layer {
     border-radius: 10px !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15) !important;
+    /* 性能：36px 弥散阴影在大弹窗上光栅化很贵，收窄到 20px */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14) !important;
     overflow: hidden !important;
 }
 .layui-layer-title {
@@ -4156,8 +4157,7 @@ html .menu .menu_exit:hover {
     color: #d6d7d9 !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     cursor: pointer !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    /* 性能：纯色底上的 backdrop-filter 无视觉收益，删除 */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     outline: none !important;
     transition: all 0.3s ease !important;
@@ -4947,5 +4947,55 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
 
 .bt-window-restart .btn-neu-confirm:active {
     transform: scale(0.97) !important;
+}
+
+/* ==========================================================================
+   弹窗（layer）动画性能覆写（与 site.css 保持一致，确保中英双语版行为统一）
+   --------------------------------------------------------------------------
+   layer 默认进场是 bounceIn（scale(.5)→1，300ms）、关闭是 bounceOut；叠加
+   .layui-layer 的 overflow:hidden + border-radius + 大阴影后无法纯 GPU 合成，
+   每帧都要重新光栅化，大弹窗必然掉帧。这里统一换成淡入淡出 + 微位移。
+   ========================================================================== */
+
+@keyframes yfLayerIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes yfLayerOut {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate3d(0, 4px, 0);
+    }
+}
+
+.layui-layer[class*="layer-anim"] {
+    animation-name: yfLayerIn !important;
+    animation-duration: 0.16s !important;
+    animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    will-change: transform, opacity;
+}
+
+/* 关闭动画：必须放在进场规则之后，同权重下后者生效 */
+.layui-layer[class*="layer-anim-close"] {
+    animation-name: yfLayerOut !important;
+    animation-duration: 0.12s !important;
+}
+
+/* 尊重系统「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+    .layui-layer[class*="layer-anim"] {
+        animation: none !important;
+    }
 }
 

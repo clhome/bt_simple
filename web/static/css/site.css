@@ -37,8 +37,23 @@
     --transition-normal: 0.3s ease;
 }
 
-* {
-    transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+/* 性能：原为 `* { transition: ... }`，会给文档里每一个节点（含弹窗内成百上千个表格单元）
+   注册过渡记录，且把 transform / box-shadow 也纳入过渡——前者会强行插值 JS 驱动的
+   位移与拖拽、破坏合成器优化，后者每帧都要重绘。这里收窄到真正需要视觉反馈的交互控件。 */
+a,
+button,
+.btn,
+input,
+select,
+textarea,
+label,
+.menu li a,
+.list-list tr,
+.fileList tr,
+.layui-layer-btn a,
+.layui-layer-title {
+    transition: background-color var(--transition-fast), border-color var(--transition-fast),
+        color var(--transition-fast), opacity var(--transition-fast);
 }
 
 html, body {
@@ -913,8 +928,7 @@ html {
 .menu li a:hover {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    /* 性能：侧边栏是纯色深底，菜单项模糊无视觉收益，删除以免悬停时反复重算 */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.05);
     transform: translateZ(0);
@@ -6239,13 +6253,13 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .main-content .pr8 > .bgw,
 .main-content .pl7 > .bgw {
     background: var(--glass-bg) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    /* 性能：撤掉 backdrop-filter。页面底色是纯色 #f4f6f8，模糊纯色视觉上零差异，
+       却会在弹窗遮罩/动画期间反复触发大面积模糊重算（弹窗掉帧的主要来源之一）。 */
     border: 1px solid var(--glass-border) !important;
     box-shadow: var(--card-shadow) !important;
     border-radius: 8px !important;
-    /* 保留并回归系统自带的高效内边距比例，彻底消除头部标题行突兀变大的问题 */
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important; /* 丝滑缓动 */
+    /* 只过渡真正会变的两个属性：all + box-shadow 会让整块大卡片在 hover 时整帧重绘 */
+    transition: box-shadow 0.18s ease, border-color 0.18s ease !important;
 }
 
 /* 强制对齐左边“软件”卡片和右边“流量/磁盘IO”卡片的高度，使其像素级绝对一致，告别错落感 */
@@ -6279,7 +6293,8 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 /* 全局弹窗圆角与弥散阴影美化 */
 .layui-layer {
     border-radius: 10px !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15) !important;
+    /* 性能：36px 弥散阴影在大弹窗上光栅化很贵，收窄到 20px，观感几乎无差别 */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14) !important;
     overflow: hidden !important;
 }
 .layui-layer-title {
@@ -6442,7 +6457,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .safe.bgw { border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 20px; transition: box-shadow var(--transition-fast); }
 .safe.bgw:hover { box-shadow: var(--shadow-md); }
 
-.pos-box.bgw { border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 0 20px; background-color: var(--glass-bg); backdrop-filter: blur(10px); }
+.pos-box.bgw { border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 0 20px; background-color: var(--glass-bg); }
 .ser-text { border-radius: var(--radius-sm) 0 0 var(--radius-sm); border: 1px solid var(--border-color); transition: all var(--transition-fast); }
 .ser-text:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
 .ser-sub { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
@@ -6670,8 +6685,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     color: #d6d7d9 !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     cursor: pointer !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    /* 性能：纯色底上的 backdrop-filter 无视觉收益，删除 */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     outline: none !important;
     transition: all 0.3s ease !important;
@@ -6968,6 +6982,61 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     padding: 4px 10px !important;
     border-radius: var(--radius-sm, 4px) !important;
     box-sizing: border-box;
+}
+
+/* ==========================================================================
+   弹窗（layer）动画性能覆写
+   --------------------------------------------------------------------------
+   问题：layer 默认 anim:0 走 bounceIn（scale(.5) → 1，300ms），关闭走 bounceOut。
+   而本项目又给 .layui-layer 加了 overflow:hidden + border-radius + 大阴影，
+   「缩放 × 圆角裁剪 × 大阴影」无法被合成为纯 GPU 变换，每帧都要重新光栅化，
+   大弹窗必然掉帧 —— 这就是「所有弹窗动画都顿」的根因。
+
+   方案：统一替换为合成器友好的「淡入淡出 + 4~6px 微位移」，时长压到 0.16s/0.12s。
+   只覆写 animation-*，不改 DOM 结构与 JS 逻辑，因此 CDN 版与本地版 layer 均生效。
+   ========================================================================== */
+
+@keyframes yfLayerIn {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes yfLayerOut {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate3d(0, 4px, 0);
+    }
+}
+
+/* layer-anim / layer-anim-01..06 全部收敛到同一个轻量进场动画 */
+.layui-layer[class*="layer-anim"] {
+    animation-name: yfLayerIn !important;
+    animation-duration: 0.16s !important;
+    animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    will-change: transform, opacity;
+}
+
+/* 关闭动画：必须放在进场规则之后，同权重下后者生效 */
+.layui-layer[class*="layer-anim-close"] {
+    animation-name: yfLayerOut !important;
+    animation-duration: 0.12s !important;
+}
+
+/* 尊重系统「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+    .layui-layer[class*="layer-anim"] {
+        animation: none !important;
+    }
 }
 
 

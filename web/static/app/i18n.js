@@ -471,6 +471,24 @@
             if ($con.length === 0) return;
         }
 
+        // 幂等闸门：同一个容器只做一次「全量」扫描。
+        // 插件弹窗历史上会被 soft.js 的 layer.open 全局包装与业务自身 success
+        // 各调一次 translatePluginDOM，等于对同一棵大树同步扫两遍，弹窗越大越卡。
+        // 后续动态内容由下方 MutationObserver 做增量兜底，不会漏翻。
+        // 用 DOM 自身属性而非 jQuery .data()，以便在精简的 jQuery 仿真环境下同样可靠；
+        // 非 DOM 容器（无真实元素）不参与幂等判定，保持原有行为。
+        var realCount = 0;
+        var unscannedCount = 0;
+        for (var ci = 0; ci < $con.length; ci++) {
+            if (!$con[ci]) continue;
+            realCount++;
+            if (!$con[ci].__yfI18nScanned) unscannedCount++;
+        }
+        if (realCount > 0 && unscannedCount === 0) return;
+        for (var cj = 0; cj < $con.length; cj++) {
+            if ($con[cj]) $con[cj].__yfI18nScanned = true;
+        }
+
         var pt = createPluginTranslator(pluginName);
 
         /**
@@ -559,10 +577,26 @@
                 
                 var orig = $el.attr('data-i18n-orig');
                 if (!orig) {
-                    // 获取纯文本，忽略内部图标标签
-                    var $cloned = $el.clone();
-                    $cloned.children('i, span.glyphicon').remove();
-                    orig = $cloned.text().trim();
+                    // 获取纯文本，忽略内部图标标签。
+                    // 性能：原实现无条件 clone 整个子树再取文本，表格类弹窗一次要 clone
+                    // 成百上千个节点（打开卡顿的次要来源）。只有真的带图标子节点时才需要
+                    // clone，其余直接取 text()，结果完全等价。
+                    var $kids = $el.children();
+                    var hasIconChild = false;
+                    for (var k = 0; k < $kids.length; k++) {
+                        var kid = $kids[k];
+                        if (kid.nodeName === 'I' || (kid.nodeName === 'SPAN' && /(^|\s)glyphicon(\s|$)/.test(kid.className || ''))) {
+                            hasIconChild = true;
+                            break;
+                        }
+                    }
+                    if (hasIconChild) {
+                        var $cloned = $el.clone();
+                        $cloned.children('i, span.glyphicon').remove();
+                        orig = $cloned.text().trim();
+                    } else {
+                        orig = $el.text().trim();
+                    }
                     if (orig) $el.attr('data-i18n-orig', orig);
                 }
                 if (orig && /[\u4e00-\u9fa5]/.test(orig)) {
@@ -623,33 +657,91 @@
             }
         }
 
-        // 首次即刻执行完整扫描翻译
+        // 首次即刻执行完整扫描翻译（保持同步：打开瞬间即译文，不闪现原文）
         doTranslateNodes($con);
 
-        // 挂载动态内容监听器 (MutationObserver)，自动翻译 Ajax / 动态注入的表格与内容
-        if (window.MutationObserver && !$con.data('yf-i18n-obs-active')) {
+        // 字典是异步补的（不再用同步 XHR 阻塞主线程）：到达后对本容器补扫一次，
+        // 保证「主线程不冻结」与「译文不漏翻」两者兼得。
+        if (!_pluginDicts[pluginName]) {
+            onPluginDictReady(pluginName, function () {
+                if ($con[0] && document.body.contains($con[0])) doTranslateNodes($con);
+            });
+        }
+
+        // 挂载动态内容监听器 (MutationObserver)，自动翻译 Ajax / 动态注入的内容。
+        // 关键性能约束：只扫「本次新增的子树」，不再每次变更都重扫整个弹窗。
+        // 弹窗内普遍存在轮询（文件列表 3s / 任务进度 2s / 消息盒子 3s），
+        // 历史实现会把整棵子树反复全量重扫，是「弹窗开着就发顿」的主因。
+        if (window.MutationObserver && $con[0] && !$con.data('yf-i18n-obs-active')) {
             $con.data('yf-i18n-obs-active', true);
             var obsDebounce = null;
-            var observer = new MutationObserver(function(mutations) {
-                var hasAdded = false;
+            var pendingRoots = [];
+
+            var pushPendingRoot = function (p) {
+                if (!p || p.nodeType !== 1) return;
+                for (var i = 0; i < pendingRoots.length; i++) {
+                    if (pendingRoots[i] === p) return;
+                    // 已有祖先在等待扫描，后代无需重复加入
+                    if (pendingRoots[i].contains && pendingRoots[i].contains(p)) return;
+                }
+                // 新加入的是祖先：吞掉已被它覆盖的后代，避免同一块内容扫两遍
+                for (var j = pendingRoots.length - 1; j >= 0; j--) {
+                    if (p.contains && p.contains(pendingRoots[j])) pendingRoots.splice(j, 1);
+                }
+                pendingRoots.push(p);
+            };
+
+            var observer = new MutationObserver(function (mutations) {
                 for (var i = 0; i < mutations.length; i++) {
-                    if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
-                        hasAdded = true;
-                        break;
+                    var added = mutations[i].addedNodes;
+                    if (!added || !added.length) continue;
+                    for (var j = 0; j < added.length; j++) {
+                        var node = added[j];
+                        var p = node.parentNode;
+                        if (!p || TEXT_SCAN_SKIP_TAGS[p.nodeName]) continue;
+                        // 元素节点（整块新增）与文本节点（既有元素文案被整体替换）都要覆盖；
+                        // 其余类型（注释等）与文案无关，直接跳过。
+                        if (node.nodeType === 1 || node.nodeType === 3) pushPendingRoot(p);
                     }
                 }
-                if (hasAdded) {
-                    if (obsDebounce) clearTimeout(obsDebounce);
-                    obsDebounce = setTimeout(function() {
-                        observer.disconnect();
-                        doTranslateNodes($con);
-                        if ($con[0] && document.body.contains($con[0])) {
-                            observer.observe($con[0], { childList: true, subtree: true });
-                        }
-                    }, 50);
-                }
+                if (!pendingRoots.length) return;
+                if (obsDebounce) clearTimeout(obsDebounce);
+                obsDebounce = setTimeout(function () {
+                    var roots = pendingRoots;
+                    pendingRoots = [];
+                    observer.disconnect();
+                    for (var k = 0; k < roots.length; k++) {
+                        if (document.body.contains(roots[k])) doTranslateNodes(window.$(roots[k]));
+                    }
+                    if ($con[0] && document.body.contains($con[0])) {
+                        observer.observe($con[0], { childList: true, subtree: true });
+                    }
+                }, 50);
             });
             observer.observe($con[0], { childList: true, subtree: true });
+        }
+    }
+
+    // 在途的插件语言包请求：同一插件的并发调用只发一次 HTTP，其余挂回调等待。
+    // 背景：softMain 会预热一次、translatePluginDOM 命中不到缓存时还会再触发一次，
+    // 历史上这两条链路会重复发请求。
+    var _pluginDictPending = {};
+    // 字典异步到达后的重扫钩子：用来替代历史上的同步 XHR 兜底，
+    // 做到「主线程不冻结」与「译文不漏翻」兼得。
+    var _pluginDictReadyHooks = {};
+
+    function onPluginDictReady(pluginName, fn) {
+        if (typeof fn !== 'function') return;
+        if (!_pluginDictReadyHooks[pluginName]) _pluginDictReadyHooks[pluginName] = [];
+        _pluginDictReadyHooks[pluginName].push(fn);
+    }
+
+    function firePluginDictReady(pluginName) {
+        var hooks = _pluginDictReadyHooks[pluginName];
+        if (!hooks || !hooks.length) return;
+        delete _pluginDictReadyHooks[pluginName];
+        for (var i = 0; i < hooks.length; i++) {
+            try { hooks[i](); } catch (e) {}
         }
     }
 
@@ -676,41 +768,54 @@
             return;
         }
 
-        if (window.$) {
-            window.$.ajax({
-                url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
-                dataType: 'json',
-                async: true,
-                success: function(data) {
-                    var dict = data || {};
-                    _pluginDicts[pluginName] = dict;
-                    setPluginDictToStorage(pluginName, lang, dict);
-                    if (typeof callback === 'function') callback(dict);
-                },
-                error: function() {
-                    if (lang !== 'zh-CN') {
-                        window.$.ajax({
-                            url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
-                            dataType: 'json',
-                            async: true,
-                            success: function(data) {
-                                var dict = data || {};
-                                _pluginDicts[pluginName] = dict;
-                                setPluginDictToStorage(pluginName, lang, dict);
-                                if (typeof callback === 'function') callback(dict);
-                            },
-                            error: function() {
-                                _pluginDicts[pluginName] = {};
-                                if (typeof callback === 'function') callback({});
-                            }
-                        });
-                    } else {
-                        _pluginDicts[pluginName] = {};
-                        if (typeof callback === 'function') callback({});
-                    }
-                }
-            });
+        // 1. 已有在途请求：只挂回调，绝不重复发请求
+        if (_pluginDictPending[pluginName]) {
+            if (typeof callback === 'function') _pluginDictPending[pluginName].push(callback);
+            return;
         }
+
+        if (!window.$) return;
+
+        var waiters = _pluginDictPending[pluginName] = [];
+        if (typeof callback === 'function') waiters.push(callback);
+
+        function settle(dict) {
+            dict = dict || {};
+            _pluginDicts[pluginName] = dict;
+            delete _pluginDictPending[pluginName];
+            for (var i = 0; i < waiters.length; i++) {
+                try { if (typeof waiters[i] === 'function') waiters[i](dict); } catch (e) {}
+            }
+            firePluginDictReady(pluginName);
+        }
+
+        window.$.ajax({
+            url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
+            dataType: 'json',
+            async: true,
+            success: function(data) {
+                var dict = data || {};
+                setPluginDictToStorage(pluginName, lang, dict);
+                settle(dict);
+            },
+            error: function() {
+                if (lang !== 'zh-CN') {
+                    window.$.ajax({
+                        url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
+                        dataType: 'json',
+                        async: true,
+                        success: function(data) {
+                            var dict = data || {};
+                            setPluginDictToStorage(pluginName, lang, dict);
+                            settle(dict);
+                        },
+                        error: function() { settle({}); }
+                    });
+                } else {
+                    settle({});
+                }
+            }
+        });
     }
 
     /**
@@ -732,39 +837,12 @@
             var localCached = getPluginDictFromStorage(pluginName, lang);
             if (localCached) {
                 _pluginDicts[pluginName] = localCached;
-            } else if (window.$) {
-                // 2. 首次未命中缓存时同步保底拉取，并立即持久化至 localStorage
-                window.$.ajax({
-                    url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
-                    dataType: 'json',
-                    async: false,
-                    success: function(data) {
-                        var dict = data || {};
-                        _pluginDicts[pluginName] = dict;
-                        setPluginDictToStorage(pluginName, lang, dict);
-                    },
-                    error: function() {
-                        if (lang !== 'zh-CN') {
-                            window.$.ajax({
-                                url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
-                                dataType: 'json',
-                                async: false,
-                                success: function(data) {
-                                    var dict = data || {};
-                                    _pluginDicts[pluginName] = dict;
-                                    setPluginDictToStorage(pluginName, lang, dict);
-                                },
-                                error: function() {
-                                    _pluginDicts[pluginName] = {};
-                                }
-                            });
-                        } else {
-                            _pluginDicts[pluginName] = {};
-                        }
-                    }
-                });
             } else {
-                _pluginDicts[pluginName] = {};
+                // 2. 未命中缓存时走【异步】补齐，本次同步渲染先用原文。
+                //    这里原先是 async:false 的同步 XHR 兜底：它会在弹窗打开的瞬间
+                //    冻结整个渲染主线程（网络多慢就卡多久），是「点击弹窗后长时间
+                //    无响应」的直接元凶。改异步后由 onPluginDictReady 回填重扫，译文不丢。
+                loadPluginLangAsync(pluginName);
             }
         }
 
@@ -774,7 +852,19 @@
             if (!dict && window._pluginDicts && window._pluginDicts[pluginName]) {
                 dict = _pluginDicts[pluginName] = window._pluginDicts[pluginName];
             }
-            var msg = (dict && dict[key]) ? dict[key] : key;
+            var msg;
+            if (dict && dict[key] !== undefined) {
+                msg = dict[key];
+            } else {
+                msg = key;
+                // 插件字典尚未异步到达时，回退全局公共字典（同步可用），
+                // 避免英文界面下 loading 这类公共提示退回中文原文。
+                // 仅在字典整体缺失时启用，不会影响已加载插件的既有翻译结果。
+                if (!dict) {
+                    var globalMsg = t(key);
+                    if (globalMsg && globalMsg !== key) msg = globalMsg;
+                }
+            }
             if (arguments.length > 1) {
                 for (var i = 1; i < arguments.length; i++) {
                     msg = msg.replace('{' + i + '}', arguments[i]);
