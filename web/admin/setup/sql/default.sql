@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS `logs` (
   `type` TEXT,
   `log` TEXT,
   `uid` INTEGER DEFAULT '1',
+  `ip` TEXT,
   `add_time` TEXT
 );
 
@@ -177,3 +178,31 @@ CREATE INDEX IF NOT EXISTS logs_type_idx ON logs(type);
 CREATE INDEX IF NOT EXISTS logs_add_time_idx ON logs(add_time);
 
 CREATE INDEX IF NOT EXISTS tasks_status_idx ON tasks(status);
+
+-- 审计流水（append-only，带哈希链）
+-- 与 `logs`（面向界面的操作日志，可归档/清理）刻意分开：
+--   1. `logs` 的内容会被翻译层改写后展示，且历史上可被「一键清空」；
+--   2. 审计流水要保留「谁、从哪、做了什么、结果如何」的原始事实，不可改不可删。
+-- prev_hash/row_hash 构成哈希链：任何中间行被改动或删除，后续行的校验都会断，
+-- 从而具备**可发现性**（而非仅仅「不可改」的口头承诺）。
+CREATE TABLE IF NOT EXISTS `panel_audit` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `ts` TEXT,
+  `uid` INTEGER DEFAULT 0,
+  `username` TEXT,
+  `ip` TEXT,
+  `ua` TEXT,
+  `method` TEXT,
+  `path` TEXT,
+  `action` TEXT,
+  `target` TEXT,
+  `result` TEXT,
+  `detail` TEXT,
+  `request_id` TEXT,
+  `prev_hash` TEXT,
+  `row_hash` TEXT
+);
+
+CREATE INDEX IF NOT EXISTS panel_audit_ts_idx ON panel_audit(ts);
+CREATE INDEX IF NOT EXISTS panel_audit_uid_idx ON panel_audit(uid);
+CREATE INDEX IF NOT EXISTS panel_audit_action_idx ON panel_audit(action);

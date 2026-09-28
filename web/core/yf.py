@@ -1707,18 +1707,88 @@ def userSafeError(exc, trace_id=None):
     return '操作失败，请稍后重试或查看面板日志（追踪号 %s）' % tid
 
 
+def _logIdentity():
+    """取当前操作者身份 (uid, username, ip)。无请求上下文时返回 (0, '', '')。
+
+    历史问题：`writeLog` 把 uid **硬编码为 0**（取 session 的代码被注释掉了），
+    于是操作日志里「谁做的」永远查不到，也不记来源 IP —— 商业版的审计合规
+    直接卡在这一条上。
+    """
+    uid, username, ip = 0, '', ''
+    in_request = False
+    try:
+        from flask import session, request
+        try:
+            request.remote_addr  # 不在请求上下文会抛异常
+            in_request = True
+        except Exception:
+            in_request = False
+        if in_request:
+            try:
+                if 'uid' in session:
+                    uid = int(session.get('uid') or 0)
+                elif session.get('login'):
+                    uid = 1
+                username = session.get('username') or ''
+            except Exception:
+                # 会话不可读（签名失效/未登录）：按匿名处理
+                uid, username = 0, ''
+    except Exception:
+        in_request = False
+
+    if in_request:
+        try:
+            ip = getClientIp()
+        except Exception:
+            try:
+                from flask import request as _r
+                ip = getattr(_r, 'remote_addr', '') or ''
+            except Exception:
+                ip = ''
+    return uid, username, ip
+
+
 def writeLog(stype, msg, args=()):
-    # 写日志
-    uid = 0
-    # try:
-    #     from flask import session
-    #     if 'uid' in session:
-    #         uid = session['uid']
-    # except Exception as e:
-    #     print("writeLog:"+str(e))
-        # pass
-        # writeFileLog(getTracebackInfo())
-    return writeDbLog(stype, msg, args, uid)
+    """写操作日志（面向界面）。
+
+    同时**落审计流水**（append-only + 哈希链），从而让已有的 120 处
+    `writeLog` 调用点无需逐个改造就获得完整审计覆盖。
+    """
+    uid, username, ip = _logIdentity()
+    ok = writeDbLog(stype, msg, args, uid, ip=ip)
+
+    try:
+        from core import audit
+        audit.write_audit(action=stype, target='', result='ok',
+                          detail=getInfo(msg, args), uid=uid, username=username)
+    except Exception as exc:
+        # 审计失败不能拖垮业务操作，但也不能完全无声（否则审计静默失效无人察觉）
+        writeFileLog('writeLog 审计落库失败: %s' % exc)
+    return ok
+
+def writeAudit(action, target='', result='ok', detail=''):
+    """显式写一条语义化审计记录（推荐在关键写操作里调用）。
+
+    与 `writeLog` 的分工：`writeLog` 记录「面板做了什么」供界面展示；
+    `writeAudit` 额外记录「对哪个对象、结果如何」，供合规审计检索。
+    永不抛异常。
+    """
+    try:
+        from core import audit
+        return audit.write_audit(action=action, target=target,
+                                 result=result, detail=detail)
+    except Exception:
+        return False
+
+
+def verifyAuditChain(limit=0):
+    """校验审计流水哈希链完整性。返回 (ok, problems, checked)。"""
+    try:
+        from core import audit
+        return audit.verify_chain(limit=limit)
+    except Exception as exc:
+        return False, ['审计校验调用异常：%s' % exc], 0
+
 
 def writeFileLog(msg, path=None, limit_size=50 * 1024 * 1024, save_limit=3):
     log_file = getPanelDir() + '/logs/debug.log'
@@ -1752,14 +1822,15 @@ def writeFileLog(msg, path=None, limit_size=50 * 1024 * 1024, save_limit=3):
     f.close()
     return True
 
-def writeDbLog(stype, msg, args=(), uid=1):
+def writeDbLog(stype, msg, args=(), uid=1, ip=''):
     try:
         import thisdb
         format_msg = getInfo(msg, args)
-        thisdb.addLog(stype, format_msg, uid=uid)
+        thisdb.addLog(stype, format_msg, uid, ip=ip)
         return True
     except Exception as e:
-        print("writeDbLog:"+str(e))
+        # 不能只 print：面板进程的 stdout 会丢，日志落盘才能排查
+        writeFileLog('writeDbLog 失败: %s' % e)
         return False
 
 # ---------------------------------------------------------------------------------

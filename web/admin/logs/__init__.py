@@ -49,13 +49,65 @@ def get_log_list():
     data['page'] = yf.getPage({'count':info['count'],'tojs':'getLogs','p':p,'row':size})
     return data
 
-# 日志清空
+# 日志清空 —— 改为「**归档**」而非物理删除
+#
+# 为什么改：原实现是一键抹掉全部操作痕迹，管理员（或拿到会话的攻击者）
+# 可以借此消灭证据，审计合规直接不过。现在先导出到
+# `data/log_archive/panel_logs_<时间>.json`，再清空界面日志；
+# 且归档动作本身会进审计流水（append-only），所以「何时、由谁清空的」仍可查。
 @blueprint.route('/del_panel_logs', endpoint='del_panel_logs', methods=['POST'])
 @panel_login_required
 def del_panel_logs():
-    thisdb.clearLog()
-    yf.writeLog('面板设置', '面板操作日志已清空!')
-    return yf.returnData(True, 'logs.py_msg_8d2a5b')
+    try:
+        path, count = thisdb.archiveLogs()
+    except Exception as e:
+        yf.writeLog('面板设置', '面板操作日志归档失败: %s' % e)
+        return yf.returnData(False, 'logs.py_msg_8d2a5b')
+    yf.writeLog('面板设置', '面板操作日志已归档(%d 条)并清空!' % count)
+    return yf.returnData(True, 'logs.py_msg_8d2a5b', {'archive': path, 'count': count})
+
+
+# 审计流水列表（append-only，供合规检索）
+@blueprint.route('/get_audit_trail', endpoint='get_audit_trail', methods=['POST'])
+@panel_login_required
+def get_audit_trail():
+    p = request.form.get('p', '1').strip() or '1'
+    size = request.form.get('limit', '20').strip() or '20'
+    try:
+        page = max(1, int(p))
+        row = max(1, min(200, int(size)))
+    except ValueError:
+        page, row = 1, 20
+
+    field = ('id,ts,uid,username,ip,ua,method,path,action,target,result,'
+             'detail,request_id,row_hash')
+    m = yf.M('panel_audit').field(field)
+    total = m.count()
+    start = (page - 1) * row
+    rows = (yf.M('panel_audit').field(field)
+            .limit('%d,%d' % (start, row)).order('id desc').select())
+    if not isinstance(rows, list):
+        rows = []
+    return yf.returnData(True, 'ok', {
+        'list': rows,
+        'count': total,
+        'page': yf.getPage({'count': total, 'tojs': 'getAuditTrail',
+                            'p': str(page), 'row': str(row)}),
+    })
+
+
+# 审计哈希链完整性校验（篡改可发现）
+@blueprint.route('/verify_audit_chain', endpoint='verify_audit_chain', methods=['POST'])
+@panel_login_required
+def verify_audit_chain():
+    ok, problems, checked = yf.verifyAuditChain()
+    if not ok:
+        # 链断了是重大事件，必须留痕
+        yf.writeLog('面板设置', '审计流水哈希链校验未通过（%d 处异常）' % len(problems))
+    return yf.returnData(ok, 'ok', {
+        'checked': checked,
+        'problems': problems[:50],
+    })
 
 # 系统审计日志列表
 @blueprint.route('/get_audit_logs_files', endpoint='get_audit_logs_files', methods=['POST'])

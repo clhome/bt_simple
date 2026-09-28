@@ -290,6 +290,34 @@ class MigrationSelfHealTest(unittest.TestCase):
         self.assertLess(idx_call, idx_sub,
                         '自愈必须在导入 thisdb 子模块（其 import 期会 ALTER）之前执行')
 
+    def test_16_baseline_comments_do_not_break_table_creation(self):
+        """`default.sql` 里的 `--` 注释不得让补表逻辑静默失效。
+
+        踩过的坑：`default.sql` 是按 `;` 朴素切分的，切出来的片段会把
+        「上一条语句之后的注释块」带到下一条开头，于是
+        `stmt.startswith('CREATE')` 误判为假，**该建的表被静默跳过**。
+        这类失败最难发现——升级后表没建出来，却没有任何报错。
+        """
+        from core.migrations.runner import _strip_sql_comments
+
+        stmt = ('-- 审计流水（append-only，带哈希链）\n'
+                '-- 第二行注释\n'
+                'CREATE TABLE IF NOT EXISTS foo (id INTEGER)')
+        self.assertTrue(_strip_sql_comments(stmt).startswith('CREATE'))
+        self.assertEqual(_strip_sql_comments('-- 只有注释'), '')
+
+        # 端到端：删掉审计表后必须能被补回来（走真实 default.sql）
+        runner.reset_cache()
+        conn = _connect(self.db)
+        conn.execute('DROP TABLE IF EXISTS panel_audit')
+        conn.close()
+        self.assertNotIn('panel_audit', _tables(self.db))
+
+        report = migrations.ensure_schema(self.db, force=True)
+        self.assertIn('panel_audit', _tables(self.db),
+                      '带注释的建表语句又被跳过了')
+        self.assertIn('panel_audit', report['created_tables'])
+
     def test_14_short_circuit_and_force(self):
         """同进程内只跑一次；force=True 可强制重跑。"""
         migrations.ensure_schema(self.db)

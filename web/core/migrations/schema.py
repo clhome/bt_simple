@@ -52,7 +52,34 @@ REQUIRED_COLUMNS = {
         ('status', 'INTEGER DEFAULT 1'),
         ('type', "TEXT DEFAULT 'port'"),
     ],
+    # 操作日志补「来源 IP」：商业版审计要求「谁、从哪、做了什么」
+    'logs': [
+        ('ip', 'TEXT'),
+    ],
 }
+
+# 必须存在的表。
+# 与 REQUIRED_COLUMNS 的区别：那个管「已有表缺列」，这个管「整张表不存在」。
+# 升级场景下用户库是老的，新加的表不会凭空出现 —— 靠这份清单 + `default.sql`
+# （全是 CREATE TABLE IF NOT EXISTS）自动补齐。
+REQUIRED_TABLES = [
+    'backup',
+    'binding',
+    'crontab',
+    'firewall',
+    'logs',
+    'sites',
+    'site_types',
+    'domain',
+    'users',
+    'tasks',
+    'temp_login',
+    'panel',
+    'app',
+    'option',
+    # 审计流水（append-only，含哈希链）：为商业版合规打底
+    'panel_audit',
+]
 
 # 索引自愈机制（当前留空：default.sql 已建好必要索引，不凭空发明索引）。
 # 需要时按 ('索引名', '表名', '列清单', 是否唯一) 追加。

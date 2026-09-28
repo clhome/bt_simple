@@ -43,6 +43,8 @@
     "listen_ipv6_tips": "开启后允许使用ipv6访问面板",
     "use_cdn": "使用CDN",
     "use_cdn_tips": "当主机速度非常慢才建议开启，会导致面板打开速度不可控",
+    "auto_update": "自动更新",
+    "auto_update_tips": "开启后每月自动更新面板，请确认可回滚",
     "gpu_detect": "英伟达GPU首页检测",
     "gpu_detect_tips": "开启后首页将尝试获取英伟达GPU信息",
     "tab_basic": "基础配置",

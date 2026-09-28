@@ -216,6 +216,57 @@ class SupplyChainGuardTest(unittest.TestCase):
             self.assertNotIn(tool, runtime,
                              '%s 不应出现在运行依赖里' % tool)
 
+    def test_14_auto_update_ui_switch_wired(self):
+        """G2.2：自动更新开关必须端到端接完（后端 option → 模板 → 前端 → 六语言词条）。
+
+        只做后端不做前端 = 一个用户根本找不到的安全设置，等于没做。
+        """
+        # 1) 后端把 option 喂给模板
+        cfg = _read('web/utils/config.py')
+        self.assertIn("data['auto_update'] = thisdb.getOption('auto_update', default='no')", cfg)
+
+        # 2) 模板开关（复用 use_cdn 的范式）
+        tpl = _read('web/templates/default/setting.html')
+        self.assertIn("id='panelAutoUpdate'", tpl)
+        self.assertIn('onclick="setAutoUpdate()"', tpl)
+        self.assertIn("data['auto_update'] == 'yes'", tpl)
+
+        # 3) 前端调用后端端点
+        js = _read('web/static/app/config.js')
+        self.assertIn('function setAutoUpdate()', js)
+        self.assertIn("/setting/set_auto_update_status", js)
+        # 开启是高风险动作，必须先确认（不能一点就开）
+        self.assertIn('layer.confirm', js[js.index('function setAutoUpdate()'):
+                                        js.index('function doSetAutoUpdate()')])
+
+        # 4) 六语言词条齐备
+        for lang in ('zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it'):
+            text = _read('web/static/language/%s/lan.js' % lang)
+            for key in ('"auto_update"', '"auto_update_tips"'):
+                self.assertIn(key, text, '%s 缺少 %s' % (lang, key))
+
+    def test_15_audit_identity_and_immutability(self):
+        """G4：审计流水必须有身份、不可被一键抹除。"""
+        yf_text = _read('web/core/yf.py')
+        self.assertIn('def _logIdentity()', yf_text)
+        # 不得再硬编码 uid=0
+        self.assertNotIn('def writeLog(stype, msg, args=()):\n    # 写日志\n    uid = 0', yf_text)
+        self.assertIn('audit.write_audit', yf_text)
+
+        logs_text = _read('web/thisdb/logs.py')
+        self.assertIn('def archiveLogs()', logs_text)
+        self.assertIn("'uid':uid", logs_text.replace(' ', ''),
+                      'addLog 仍未写入 uid（历史上那列永远是默认值）')
+        self.assertIn("'ip':ip", logs_text.replace(' ', ''))
+
+        audit_text = _read('web/core/audit.py')
+        self.assertIn('def verify_chain(', audit_text)
+        self.assertIn('prev_hash', audit_text)
+        self.assertIn('row_hash', audit_text)
+
+        sql = _read('web/admin/setup/sql/default.sql')
+        self.assertIn('panel_audit', sql)
+
     def test_10_release_workflow_yaml_parses(self):
         raw = _read('.github/workflows/release.yml')
 

@@ -3745,6 +3745,8 @@
     "listen_ipv6_tips": "開啟後允許使用ipv6造訪面板",
     "use_cdn": "使用CDN",
     "use_cdn_tips": "當主機速度非常慢才建議開啟，會導致面板開啟速度不可控",
+    "auto_update": "自動更新",
+    "auto_update_tips": "開啟後每月自動更新面板，請確認可回滾",
     "gpu_detect": "輝達GPU首頁檢測",
     "gpu_detect_tips": "開啟後首頁將嘗試獲取輝達GPU資訊",
     "tab_basic": "基礎配置",

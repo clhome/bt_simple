@@ -218,6 +218,14 @@
                 </div>
             </div>
 
+            <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.auto_update_tips" title="{{ t('config.auto_update_tips', '开启后每月自动更新面板，请确认可回滚') }}">
+                <em data-i18n="config.auto_update">{{ t('config.auto_update', '自动更新') }}</em>
+                <div class='ssh-item'>
+                    <input class='btswitch btswitch-ios' id='panelAutoUpdate' type='checkbox' {% if data['auto_update'] == 'yes' %}checked{% endif %}>
+                    <label class='btswitch-btn' for='panelAutoUpdate' onclick="setAutoUpdate()"></label>
+                </div>
+            </div>
+
             <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.gpu_detect_tips" title="{{ t('config.gpu_detect_tips', '开启后首页将尝试获取英伟达GPU信息') }}">
                 <em data-i18n="config.gpu_detect">{{ t('config.gpu_detect', '英伟达GPU首页检测') }}</em>
                 <div class='ssh-item'>

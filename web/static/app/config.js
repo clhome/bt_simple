@@ -723,6 +723,49 @@ function setCDN() {
     }, 1500);
   }, 'json');
 }
+function setAutoUpdate() {
+  // 延迟获取最新状态，避免 label 的 onclick 读到旧状态（与 setGpuDetect 同理）
+  setTimeout(function () {
+    var isChecked = $("#panelAutoUpdate").prop("checked");
+    if (isChecked) {
+      // 开启 = 允许面板在无人值守时自行变更生产环境，必须先让用户确认
+      layer.confirm(lan && lan.config && t('config.auto_update_tips') || "", {
+        icon: 3,
+        title: lan && lan.config && t('config.auto_update') || ""
+      }, function (idx) {
+        layer.close(idx);
+        doSetAutoUpdate();
+      }, function () {
+        $("#panelAutoUpdate").prop("checked", false);
+      });
+      return;
+    }
+    doSetAutoUpdate();
+  }, 10);
+}
+function doSetAutoUpdate() {
+  var loadT = layer.msg(lan && lan.config && t('config.configuring_please_wait_1') || "", {
+    icon: 16,
+    time: 0,
+    shade: [0.3, '#000']
+  });
+  $.post('/setting/set_auto_update_status', {}, function (rdata) {
+    layer.close(loadT);
+    layer.msg(rdata.msg, {
+      icon: rdata.status ? 1 : 2
+    });
+    setTimeout(function () {
+      window.location.reload();
+    }, 1500);
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    // 请求失败时回退开关，避免界面状态与后端不一致
+    $("#panelAutoUpdate").prop("checked", !$("#panelAutoUpdate").prop("checked"));
+    layer.msg(lan && lan.config && t('config.configuring_please_wait_1') || "", {
+      icon: 2
+    });
+  });
+}
 function setGpuDetect() {
   // 延迟获取最新状态，避免 label 的 onclick 获取到旧状态
   setTimeout(function () {

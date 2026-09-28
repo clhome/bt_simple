@@ -201,10 +201,28 @@ def _record_log(conn, level, message):
 
 # ---------------------------------------------------------------- 结构对齐
 
+def _strip_sql_comments(stmt):
+    """去掉语句里的 `--` 行注释。
+
+    为什么必需：`default.sql` 是按 `;` 朴素切分的，切出来的片段会把
+    「上一条语句之后的注释块」带到下一条语句开头。
+    于是 `stmt.startswith('CREATE')` 会因为开头是 `-- 说明...` 而误判，
+    把该建的表静默跳过（踩过一次：`panel_audit` 建不出来）。
+    """
+    kept = [ln for ln in stmt.split('\n') if not ln.strip().startswith('--')]
+    return '\n'.join(kept).strip()
+
+
 def _create_missing_tables(conn, report):
-    """缺表时用 baseline 建表脚本补齐（脚本内是 CREATE TABLE IF NOT EXISTS）。"""
-    missing = [t for t in ('users', 'crontab', 'firewall', 'option', 'sites', 'logs')
-               if not _table_exists(conn, t)]
+    """缺表时用 baseline 建表脚本补齐（脚本内是 CREATE TABLE IF NOT EXISTS）。
+
+    清单来自 `schema.REQUIRED_TABLES` —— 升级场景下用户库是老的，
+    代码里新加的表不会凭空出现，必须靠这里补。
+    """
+    from core.migrations.schema import REQUIRED_TABLES
+
+    existing = _list_tables(conn)
+    missing = [t for t in REQUIRED_TABLES if t not in existing]
     if not missing:
         return
     sql_file = _baseline_sql_path()
@@ -217,18 +235,29 @@ def _create_missing_tables(conn, report):
     except OSError as exc:
         report['warnings'].append('读取 baseline 脚本失败：%s' % exc)
         return
-    # baseline 里含 seed INSERT（firewall 默认端口），重复执行可能命中唯一索引而报错；
-    # 这里逐条执行并忽略单条失败，保证 CREATE 全部生效。
-    for stmt in script.split(';'):
-        stmt = stmt.strip()
+    # 只执行 CREATE 语句：
+    #   baseline 里还含 seed INSERT（如 firewall 默认端口），
+    #   在「库已有数据」的场景重跑会命中唯一索引而报错，
+    #   而我们这里的目标只是「把缺的表建出来」，不应动用户数据。
+    for raw_stmt in script.split(';'):
+        stmt = _strip_sql_comments(raw_stmt)
         if not stmt:
+            continue
+        if not stmt[:20].upper().lstrip('(').startswith('CREATE'):
             continue
         try:
             conn.execute(stmt)
         except Exception as exc:
-            report['warnings'].append('baseline 语句跳过（%s）：%s'
+            report['warnings'].append('baseline 建表语句跳过（%s）：%s'
                                       % (str(exc).split('\n')[0], stmt.split('\n')[0][:60]))
-    report['created_tables'].extend(missing)
+    # 只把「确实补上了」的表计入报告
+    after = _list_tables(conn)
+    created = [t for t in missing if t in after]
+    if created:
+        report['created_tables'].extend(created)
+    still_missing = [t for t in missing if t not in after]
+    if still_missing:
+        report['warnings'].append('以下表未能补齐（检查 default.sql）：%r' % still_missing)
 
 
 def _baseline_sql_path():
@@ -351,7 +380,7 @@ def ensure_schema(db_path=None, force=False, backup_keep=5):
         conn = _connect(db_path)
 
         # 先做「只读探测」，决定是否真的需要写 -> 无变更时零备份开销
-        from core.migrations.schema import REQUIRED_COLUMNS, REQUIRED_INDEXES
+        from core.migrations.schema import REQUIRED_COLUMNS, REQUIRED_INDEXES, REQUIRED_TABLES
         from core.migrations.steps import STEPS, LATEST_VERSION
 
         tables = _list_tables(conn)
@@ -361,10 +390,12 @@ def ensure_schema(db_path=None, force=False, backup_keep=5):
             return report
 
         structural_gap = []
-        for table, columns in REQUIRED_COLUMNS.items():
+        for table in REQUIRED_TABLES:
             if table not in tables:
                 structural_gap.append('table:%s' % table)
-                continue
+        for table, columns in REQUIRED_COLUMNS.items():
+            if table not in tables:
+                continue                    # 缺表由 REQUIRED_TABLES 统一负责
             existing = _columns_of(conn, table)
             for name, _ddl in columns:
                 if name not in existing:

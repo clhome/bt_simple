@@ -191,6 +191,9 @@ def getGlobalVar():
     data['panel_ssl'] = thisdb.getOptionByJson('panel_ssl', default={'open':False})
     data['panel_domain'] = thisdb.getOption('panel_domain', default='')
     data['use_cdn'] = thisdb.getOption('use_cdn', default='no')
+    # 自动更新：**默认关闭**（安全口径）。开启后由 `init_auto_update()`
+    # 在计划任务里新增 `yf update`，关闭时立即移除。
+    data['auto_update'] = thisdb.getOption('auto_update', default='no')
     data['home_notice'] = thisdb.getOption('home_notice', default='')
 
     # 将没有动态时间的原始数据存入缓存

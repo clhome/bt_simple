@@ -1947,6 +1947,8 @@ var lan = {
 			"listen_ipv6_tips": "Allow accessing panel over IPv6",
 			"use_cdn": "Use CDN",
 			"use_cdn_tips": "Only recommended if server connection is slow.",
+			"auto_update": "Auto update",
+			"auto_update_tips": "Monthly update; keep rollback ready",
 			"gpu_detect": "NVIDIA GPU Detection",
 			"gpu_detect_tips": "Attempt to detect and display NVIDIA GPU stats on dashboard",
 			"tab_basic": "Basic Settings",

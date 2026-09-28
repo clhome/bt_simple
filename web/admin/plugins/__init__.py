@@ -110,7 +110,11 @@ def install():
         upgrade = True
 
     pg = YfPlugin.instance()
-    return pg.install(name, version, upgrade=upgrade)
+    rdata = pg.install(name, version, upgrade=upgrade)
+    yf.writeAudit('plugin.install', target=name,
+                  result='ok' if (isinstance(rdata, dict) and rdata.get('status')) else 'fail',
+                  detail='version=%s upgrade=%s' % (version, bool(upgrade)))
+    return rdata
 
 # 插件卸载
 @blueprint.route('/uninstall', endpoint='uninstall', methods=['POST'])
@@ -121,7 +125,11 @@ def uninstall():
     force = request.form.get('force', '0') == '1'
     backup = request.form.get('backup', '0') == '1'
     pg = YfPlugin.instance()
-    return pg.uninstall(name, version, force=force, backup=backup)
+    rdata = pg.uninstall(name, version, force=force, backup=backup)
+    yf.writeAudit('plugin.uninstall', target=name,
+                  result='ok' if (isinstance(rdata, dict) and rdata.get('status')) else 'fail',
+                  detail='version=%s force=%s backup=%s' % (version, force, backup))
+    return rdata
 
 # 文件读取
 @blueprint.route('/menu', endpoint='menu', methods=['GET'])
@@ -389,6 +397,10 @@ def run():
                 YfPlugin.instance().runByCache(name, func, version, op_result=op_ok)
             except Exception:
                 pass
+            # 插件启/停/重启/重载是最典型的「改状态」操作，单独记语义化审计
+            yf.writeAudit('plugin.%s' % (func or 'unknown'), target=name,
+                          result='ok' if r.get('status') else 'fail',
+                          detail='version=%s script=%s' % (version, script))
 
         if cache_ttl > 0:
             _run_cache_set(cache_key, r)

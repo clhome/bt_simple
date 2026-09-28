@@ -3745,6 +3745,8 @@
     "listen_ipv6_tips": "Consente l'accesso al pannello tramite IPv6",
     "use_cdn": "Usa CDN",
     "use_cdn_tips": "Consigliato solo se la connessione del server è lenta.",
+    "auto_update": "Aggiornamento auto",
+    "auto_update_tips": "Mensile; rollback pronto",
     "gpu_detect": "Rilevamento GPU NVIDIA",
     "gpu_detect_tips": "Rileva e mostra le informazioni sulla GPU NVIDIA nella dashboard",
     "tab_basic": "Configurazione di base",
