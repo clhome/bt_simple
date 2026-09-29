@@ -206,3 +206,33 @@ CREATE TABLE IF NOT EXISTS `panel_audit` (
 CREATE INDEX IF NOT EXISTS panel_audit_ts_idx ON panel_audit(ts);
 CREATE INDEX IF NOT EXISTS panel_audit_uid_idx ON panel_audit(uid);
 CREATE INDEX IF NOT EXISTS panel_audit_action_idx ON panel_audit(action);
+
+-- 服务端会话：登录态的服务端副本，使「强制下线 / 会话列表」成为可能
+CREATE TABLE IF NOT EXISTS `panel_session` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `session_id` TEXT UNIQUE,
+  `uid` INTEGER DEFAULT 0,
+  `username` TEXT,
+  `ip` TEXT,
+  `ua` TEXT,
+  `created_at` INTEGER DEFAULT 0,
+  `last_seen` INTEGER DEFAULT 0,
+  `expires_at` INTEGER DEFAULT 0,
+  `revoked` INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS panel_session_uid_idx ON panel_session(uid);
+
+-- 登录失败计数：IP 与账号两个维度各一行，落库保证多 worker / 重启口径一致
+CREATE TABLE IF NOT EXISTS `panel_login_failure` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `kind` TEXT,
+  `value` TEXT,
+  `fail_count` INTEGER DEFAULT 0,
+  `first_at` INTEGER DEFAULT 0,
+  `last_at` INTEGER DEFAULT 0,
+  `banned_until` INTEGER DEFAULT 0
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS panel_login_failure_kv_idx
+  ON panel_login_failure(kind, value);

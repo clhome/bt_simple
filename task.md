@@ -653,3 +653,74 @@ CI 在 Python 3.11 解析，只看得见 `>=3.9` 分支 → 门禁真实有效�
 
 
 
+# 第 5 层「会话可撤销 + 登录限流双维度」—— B1 / B2（本轮）
+
+> 来源：`参考/20260928优化.md` §2 B 类 P1（B1 会话不可撤销、B2 限流只按 IP）。
+> 门禁基线：**174 模块 / 1294 用例 / 0 隔离 / 4 项静态门禁 全绿**
+> （本轮起点：173 模块 / 1276 用例 / 0 隔离 / 4 静态门禁）
+> 本轮**不碰** C1 ORM 异常语义（用户拍板：高风险项单独立项）。
+
+## 一、交付内容
+
+| 组 | 项 | 关键实现 | 状态 |
+|---|---|---|---|
+| B1 | 服务端会话存储 | 新增 `web/core/panel_session.py` + `panel_session` 表；登录态有服务端副本（`session_id/uid/ip/ua/created_at/last_seen/expires_at/revoked`） | ✅ |
+| B1 | 可撤销 / 可强制下线 | `touch()` 每请求校验；改密码 `revoke_user_sessions()` 踢掉所有设备；二步验证变更同样撤销（保留当前会话） | ✅ |
+| B1 | 会话列表 UI + 接口 | `/setting/get_sessions`、`/setting/revoke_session` + 设置页「登录会话」入口（layer 弹窗：IP/设备/登录时间/最后活跃/下线） | ✅ |
+| B1 | 生命周期统一 | `session['overdue']` 由 7 天改为 1 天，与 `PERMANENT_SESSION_LIFETIME`、`panel_session.SESSION_TTL` 三者一致 | ✅ |
+| B1 | 降级（fail-open） | 会话表不可用 / 查询异常时 `touch()` 放行，退回纯签名 Cookie；`create()` 未落库则返回空串（不制造查不到的服务端会话） | ✅ |
+| B2 | 双维度限流 | 新增 `web/core/login_guard.py` + `panel_login_failure` 表；IP 与**账号**各记一份，任一超限即封禁 | ✅ |
+| B2 | 计数落库 | 计数 / 封禁窗口落库（多 worker、重启口径一致）；表不可用时自动退回进程内存计数 | ✅ |
+| B2 | 封禁审计 + 解封 | 触发封禁写 `panel_audit`（`login.banned`）；新增 `/setting/unlock_login` 供管理员解封（防账号维度误伤） | ✅ |
+| — | 表自愈 | 两张新表 + 索引登记进 `core/migrations/schema.py`，老库升级自动补齐 | ✅ |
+| — | i18n | 9 个新词条 × 6 语言；已跑 `export_lang_carriers.py --apply` 重派载体 | ✅ |
+
+## 二、关键设计决策（含取舍）
+
+1. **fail-open 与 fail-closed 的边界**：
+   * 「表不可用 / 查询异常」→ **放行**（fail-open），绝不把所有人锁在门外；
+   * 「表可用，但明确查不到 / 已撤销 / 已过期」→ **拒绝**（fail-closed）。
+   为区分二者，`panel_session.touch()` 用 `query()` 的**错误串**判定 DB 异常，
+   而不是复用 `find()` —— 后者把「读失败」和「查无结果」都返回 `None`，会误判。
+2. **登录缓存与撤销时效**：撤销后主动 `invalidate_login_cache()`，
+   因此 20s 缓存不会拖延「下一次请求即被登出」。多 worker 下其他进程仍有 ≤20s 延迟
+   （面板默认 `workers=1`，已在 `invalidate_login_cache` docstring 写明）。
+3. **旧 Cookie 一次性采纳**：升级前已登录的浏览器没有 `session_id`，
+   首次请求时由 `isLogined()` 登记为服务端会话，纳入可撤销管理，用户无感。
+4. **不改 C1**：`orm.py::return ex` 的语义未动，本轮只在新增模块里用 `query()` + 错误串判定。
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|---|---|---|
+| 新增用例 | `PYTHONUTF8=1 python testsuite/test_session_revocable.py` | **18/18**（表自愈 / 创建·撤销·过期·列表 / fail-open / IP·账号双维度 / 内存降级 / 调用点静态守卫） |
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **174 模块 / 1294 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| i18n | `python scripts/verify_i18n.py` | 11 项全绿 |
+| 代码质量棘轮 | `python scripts/verify_code_quality.py` | bare 172 / silent 517 / print 45（只减不增） |
+| JS 语法 | `node --check web/static/app/config.js` | 通过 |
+
+## 四、已知边界（明确记录）
+
+1. **多 worker 撤销延迟**：`_login_cache` 是进程内字典，多 worker 下其他进程最长 20s 才感知撤销。
+   彻底解决需外置缓存（与 D6「单 worker 硬约束」同一议题），本轮不动。
+2. **账号维度可被恶意锁定**：攻击者用同一用户名失败 N 次可触发 1 小时封禁（自 DoS）。
+   已提供 `/setting/unlock_login` 解封入口，且封禁 1 小时后自动失效；如需更强（只对已存在账号计数、
+   或对账号维度用更长窗口）属产品策略，待评估。
+3. **`session_id` 随 Cookie 一起丢失**：清理 Cookie 即登出，符合预期。
+4. **会话清理**：`prune()` 只删「过期或已撤销且超过 7 天」的行，登录时节流触发，不另起定时器。
+
+---
+
+# 后续排期（第 5 层未做项，按 `参考/20260928优化.md` 对照）
+
+| 优先级 | 内容 | 说明 |
+|---|---|---|
+| P1 | B7 代理池单一真源 | 4 份安装/更新脚本 + 3 处运行时统一到 `scripts/proxies.list` |
+| P2 | D1 审计流水 UI | 后端 `/logs/get_audit_trail` 已就绪，缺展示入口 |
+| P2 | B5 `os.system` 47 处 / C3 `print` 45 处 | 机械但量大 |
+| P2 | B4 去掉 Flask monkey patch / C4 `requirements.lock` | 需版本确认 / 需联网 |
+| P0（需真机/CI） | A1 翻转签名开关 / A2 首个签名 Release | 依赖外部环境 |
+| 立项（高风险/产品决策） | C1 ORM 异常语义 / C5 巨型文件拆分 / D3~D6 | 单独立项 |
+
+
+

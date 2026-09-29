@@ -1578,6 +1578,73 @@ function setStatusCode(o) {
     }
   });
 }
+// 登录会话管理（查看登录设备 / 强制下线）
+function sessionManage() {
+  var html = '<div class="login_view_table pd20">' +
+    '<div class="divtable mt10">' +
+    '<table class="table table-hover">' +
+    '<thead><tr>' +
+    '<th>' + (lan && lan.config && t('config.login_ip') || '\u767b\u5f55IP') + '</th>' +
+    '<th>' + (lan && lan.config && t('config.session_device') || '\u8bbe\u5907') + '</th>' +
+    '<th>' + (lan && lan.config && t('config.login_time') || '\u767b\u5f55\u65f6\u95f4') + '</th>' +
+    '<th>' + (lan && lan.config && t('config.session_last_seen') || '\u6700\u540e\u6d3b\u8dc3') + '</th>' +
+    '<th style="text-align:right;">' + (lan && lan.config && t('config.operations') || '\u64cd\u4f5c') + '</th>' +
+    '</tr></thead>' +
+    '<tbody id="session_view_tbody"><tr><td colspan="5" class="c9">' + (lan && lan.config && t('config.session_empty') || '\u52a0\u8f7d\u4e2d...') + '</td></tr></tbody>' +
+    '</table></div></div>';
+  layer.open({
+    area: ['760px', '420px'],
+    title: lan && lan.config && t('config.session_manage') || '\u767b\u5f55\u4f1a\u8bdd',
+    closeBtn: 1,
+    shift: 0,
+    type: 1,
+    content: html,
+    success: function () {
+      sessionManageReq();
+    }
+  });
+}
+
+function sessionManageReq() {
+  $.post('/setting/get_sessions', {}, function (rdata) {
+    var tbody = $('#session_view_tbody');
+    var list = (rdata && rdata.data) || [];
+    if (!list.length) {
+      tbody.html('<tr><td colspan="5" class="c9">' + (lan && lan.config && t('config.session_empty') || '\u6682\u65e0\u5176\u5b83\u767b\u5f55\u4f1a\u8bdd') + '</td></tr>');
+      return;
+    }
+    var rows = '';
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i] || {};
+      var tag = it.current ? ' <span class="label label-success">' + (lan && lan.config && t('config.session_current') || '\u5f53\u524d\u8bbe\u5907') + '</span>' : '';
+      var op = it.current ? '-' : '<a href="javascript:;" class="session_revoke" data-sid="' + it.session_id + '">' + (lan && lan.config && t('config.session_revoke') || '\u4e0b\u7ebf') + '</a>';
+      rows += '<tr><td>' + it.ip + tag + '</td>' +
+        '<td style="max-width:260px;word-break:break-all;">' + it.ua + '</td>' +
+        '<td>' + it.created_at + '</td>' +
+        '<td>' + it.last_seen + '</td>' +
+        '<td style="text-align:right;">' + op + '</td></tr>';
+    }
+    tbody.html(rows);
+    tbody.off('click', '.session_revoke').on('click', '.session_revoke', function () {
+      sessionRevoke($(this).attr('data-sid'));
+    });
+  }, 'json');
+}
+
+function sessionRevoke(sid) {
+  if (!sid) { return; }
+  layer.confirm(lan && lan.config && t('config.session_revoke_confirm') || '\u786e\u5b9a\u4e0b\u7ebf\u8be5\u767b\u5f55\u4f1a\u8bdd\u5417\uff1f', {
+    title: lan && lan.config && t('config.session_manage') || '\u767b\u5f55\u4f1a\u8bdd',
+    closeBtn: 1,
+    icon: 13
+  }, function (idx) {
+    $.post('/setting/revoke_session', {session_id: sid}, function (rdata) {
+      layer.close(idx);
+      showMsg(rdata.msg, function () { sessionManageReq(); }, {icon: rdata.status ? 1 : 2}, 1000);
+    }, 'json');
+  });
+}
+
 function setTempAccess() {
   layer.open({
     area: ['700px', '380px'],

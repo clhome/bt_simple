@@ -411,6 +411,14 @@
                     </div>
 
                     <div class="setting-item">
+                        <span class="set-tit" data-i18n="config.session_manage" data-i18n-attr="title" title="{{ t('config.session_manage', '登录会话') }}">{{ t('config.session_manage', '登录会话') }}</span>
+                        <div class="set-input-group">
+                            <button type="button" class="btn btn-success btn-sm" onclick="sessionManage()" data-i18n="config.session_manage_btn">{{ t('config.session_manage_btn', '会话管理') }}</button>
+                        </div>
+                        <span class="set-info" data-i18n="config.session_manage_tips">{{ t('config.session_manage_tips', '查看当前登录的设备，可强制下线其它可疑会话') }}</span>
+                    </div>
+
+                    <div class="setting-item">
                         <span class="set-tit" data-i18n="config.two_step_auth" data-i18n-attr="title" title="{{ t('config.two_step_auth', '二步验证') }}">{{ t('config.two_step_auth', '二步验证') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">

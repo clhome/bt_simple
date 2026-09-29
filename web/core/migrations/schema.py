@@ -79,12 +79,18 @@ REQUIRED_TABLES = [
     'option',
     # 审计流水（append-only，含哈希链）：为商业版合规打底
     'panel_audit',
+    # 服务端会话：让登录态可撤销（改密码/二步验证变更可强制下线）
+    'panel_session',
+    # 登录失败计数（IP + 账号双维度，落库跨进程/重启一致）
+    'panel_login_failure',
 ]
 
-# 索引自愈机制（当前留空：default.sql 已建好必要索引，不凭空发明索引）。
+# 索引自愈机制。
 # 需要时按 ('索引名', '表名', '列清单', 是否唯一) 追加。
-# 例如：('idx_logs_type', 'logs', 'type', False)
-REQUIRED_INDEXES = []
+REQUIRED_INDEXES = [
+    ('panel_session_uid_idx', 'panel_session', 'uid', False),
+    ('panel_login_failure_kv_idx', 'panel_login_failure', 'kind,value', True),
+]
 
 # 基线版本号：STRUCTURE 对齐完成即视为达到该版本。
 # 后续「数据迁移」步骤从 BASELINE_VERSION + 1 开始编号。

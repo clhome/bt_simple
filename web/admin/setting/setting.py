@@ -18,10 +18,13 @@ from flask import Blueprint, render_template
 from flask import request
 
 from admin import session
+from admin.common import invalidate_login_cache
 from admin.user_login_check import panel_login_required
 
 
 import core.yf as yf
+import core.panel_session as panel_session
+import core.login_guard as login_guard
 import thisdb
 import utils.config as utils_config
 
@@ -316,12 +319,79 @@ def set_password():
     thisdb.setUserPwdByName(username, password1)
     yf.writeLog('面板设置', '管理员[{1}]成功修改了面板密码', (username,))
 
+    # 强制下线：撤销该账号的全部服务端会话（含当前会话），
+    # 其他设备下一次请求即被登出；同时清空进程内登录缓存，避免 20s 延迟。
+    try:
+        panel_session.revoke_user_sessions(session.get('uid') or 1)
+    except Exception as exc:
+        yf.writeFileLog('改密后撤销其它会话失败（不阻断改密）：%s' % exc)
+    invalidate_login_cache()
+
     # 会话注销，强制重新使用新密码登录
     session.clear()
     session['login'] = False
     session['overdue'] = 0
 
     return yf.returnData(True, '密码修改成功，请使用新密码重新登录！')
+
+# 登录会话管理（可列举 / 可强制下线）
+@blueprint.route('/get_sessions', endpoint='get_sessions', methods=['POST'])
+@panel_login_required
+def get_sessions():
+    uid = session.get('uid') or 1
+    current = session.get('session_id') or ''
+    try:
+        rows = panel_session.list_sessions(uid)
+    except Exception:
+        rows = []
+    data = []
+    for r in rows:
+        sid = r.get('session_id', '') or ''
+        data.append({
+            'session_id': sid,
+            'ip': r.get('ip', '') or '-',
+            'ua': r.get('ua', '') or '-',
+            'created_at': yf.formatDate('%Y-%m-%d %H:%M:%S', int(r.get('created_at') or 0)),
+            'last_seen': yf.formatDate('%Y-%m-%d %H:%M:%S', int(r.get('last_seen') or 0)),
+            'current': sid == current,
+        })
+    return yf.returnData(True, '获取成功', data)
+
+
+@blueprint.route('/revoke_session', endpoint='revoke_session', methods=['POST'])
+@panel_login_required
+def revoke_session():
+    uid = session.get('uid') or 1
+    sid = (request.form.get('session_id', '') or '').strip()
+    if not sid:
+        return yf.returnData(False, '参数错误')
+    # 只能下线自己的会话（先从服务端副本确认归属，防越权操作他人会话）
+    row = panel_session.get(sid)
+    if not row or int(row.get('uid') or 0) != int(uid):
+        return yf.returnData(False, '会话不存在')
+    panel_session.revoke(sid)
+    invalidate_login_cache(sid)
+    yf.writeAudit('session.revoke', target=sid[:12], result='ok',
+                  detail='管理员下线了一个登录会话')
+    # 若下线的正是当前会话，同时也结束本地登录态
+    if sid == (session.get('session_id') or ''):
+        session.clear()
+    return yf.returnData(True, '已下线该会话')
+
+
+@blueprint.route('/unlock_login', endpoint='unlock_login', methods=['POST'])
+@panel_login_required
+def unlock_login():
+    """清除当前账号与来源 IP 的登录失败封禁（防“账号维度锁定”误伤管理员）。"""
+    username = session.get('username') or ''
+    try:
+        client_ip = yf.getClientIp()
+    except Exception:
+        client_ip = ''
+    login_guard.reset(client_ip, username)
+    yf.writeAudit('login.unban', target=username, result='ok', detail='管理员解除登录封禁')
+    return yf.returnData(True, '已解除登录封禁')
+
 
 # 设置面板端口
 @blueprint.route('/set_port', endpoint='set_port', methods=['POST'])

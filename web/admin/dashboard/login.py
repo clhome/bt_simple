@@ -19,11 +19,13 @@ from flask import redirect
 from flask import Response
 from flask import request,g
 
-from admin.common import isLogined
+from admin.common import isLogined, invalidate_login_cache
 from admin.user_login_check import panel_login_required
 from admin import cache,session
 
 import core.yf as yf
+import core.login_guard as login_guard
+import core.panel_session as panel_session
 import thisdb
 
 from .dashboard import blueprint
@@ -57,10 +59,12 @@ def setErrorNum(key, empty=False, expire=3600):
 # ------------------------------------------------------------------
 # 登录限流 / 密码校验公共逻辑（do_login 与 verify_login 共用，避免
 # 2FA 第二步成为绕过验证码与封禁的旁路）
+# 计数落 `panel_login_failure` 表（IP + 账号双维度），
+# 具体实现见 core/login_guard.py（表不可用时自动退回进程内存）。
 # ------------------------------------------------------------------
-LOGIN_FAIL_LIMIT = 5           # 连续失败次数上限
-LOGIN_LIMIT_TTL = 10000        # 失败计数窗口（秒）
-LOGIN_BAN_TTL = 3600          # 触发上限后的封禁时长（秒）
+LOGIN_FAIL_LIMIT = login_guard.LOGIN_FAIL_LIMIT  # 连续失败次数上限
+LOGIN_LIMIT_TTL = login_guard.LOGIN_LIMIT_TTL    # 失败计数窗口（秒）
+LOGIN_BAN_TTL = login_guard.LOGIN_BAN_TTL        # 触发上限后的封禁时长（秒）
 
 
 def _client_ip():
@@ -70,35 +74,29 @@ def _client_ip():
         return (request.remote_addr or '127.0.0.1')
 
 
-def _login_ban_key(ip):
-    return 'ban_' + ip
+def _client_ua():
+    try:
+        return request.headers.get('User-Agent', '') or ''
+    except Exception:
+        return ''
 
 
-def _login_limit_key(ip):
-    return 'login_limit_' + ip
+def _is_banned(ip, username=None):
+    """IP 或账号任一处于封禁中即视为封禁。"""
+    return login_guard.is_banned(ip, username)
 
 
-def _is_banned(ip):
-    return bool(cache.get(_login_ban_key(ip)))
-
-
-def _register_login_failure(ip):
+def _register_login_failure(ip, username=None):
     """记录一次登录失败。
 
     返回 (是否已封禁, 剩余可尝试次数)，两个端点的失败计数与封禁完全共享。
+    IP 与账号双维度各记一份，任一超限即封禁。
     """
-    limit = cache.get(_login_limit_key(ip))
-    limit = (int(limit) if limit else 0) + 1
-    if limit >= LOGIN_FAIL_LIMIT:
-        cache.set(_login_ban_key(ip), True, timeout=LOGIN_BAN_TTL)
-        cache.delete(_login_limit_key(ip))
-        return True, 0
-    cache.set(_login_limit_key(ip), limit, timeout=LOGIN_LIMIT_TTL)
-    return False, LOGIN_FAIL_LIMIT - limit
+    return login_guard.register_failure(ip, username)
 
 
-def _reset_login_failure(ip):
-    cache.delete(_login_limit_key(ip))
+def _reset_login_failure(ip, username=None):
+    login_guard.reset(ip, username)
 
 
 def _upgrade_password(info, password):
@@ -134,7 +132,16 @@ def _login_success(info, client_ip):
     session.clear()
     session['login'] = True
     session['username'] = info['name']
-    session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
+    session['uid'] = info.get('id') or 1
+    # 与服务端会话寿命（panel_session.SESSION_TTL）及
+    # PERMANENT_SESSION_LIFETIME(=1天) 统一；旧实现写 7 天，两条寿命语义冲突。
+    session['overdue'] = int(time.time()) + panel_session.SESSION_TTL
+    # 登记服务端会话副本：这是「可撤销 / 可强制下线」的前提。
+    # 若会话表不可用，create() 返回空串，本次退回纯签名 Cookie（fail-open）。
+    sid = panel_session.create(info.get('id') or 1, info['name'],
+                               client_ip, _client_ua())
+    if sid:
+        session['session_id'] = sid
     try:
         thisdb.updateUserLoginTime(client_ip)
     except Exception:
@@ -172,6 +179,13 @@ def login_temp_user(token):
     session['tmp_login_id'] = str(tmp_data['id'])
     session['tmp_login_expire'] = int(tmp_data['expire'])
     session['uid'] = user_data['id']
+    # 临时登录同样登记服务端会话（过期时间与一次性授权对齐），
+    # 这样管理员可以在会话列表中看到并下线它。
+    sid = panel_session.create(user_data['id'], user_data['name'],
+                               yf.getClientIp(), _client_ua(),
+                               expires_at=int(tmp_data['expire']))
+    if sid:
+        session['session_id'] = sid
     
     return redirect('/')
 
@@ -200,6 +214,11 @@ def login():
 
 @blueprint.route('/do_signout', endpoint='do_signout', methods=['POST'])
 def do_signout():
+    # 注销时同步撤销服务端会话，避免「登出后 Cookie 被重放仍可用」
+    sid = session.get('session_id')
+    if sid:
+        panel_session.revoke(sid)
+        invalidate_login_cache(sid)
     session.clear()
     session['login'] = False
     session['overdue'] = 0
@@ -271,11 +290,12 @@ def verifyLogin():
         return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
 
     client_ip = _client_ip()
-    if _is_banned(client_ip):
-        return yf.returnJson(-1, 'dashboard.py_msg_40ded2')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
+
+    if _is_banned(client_ip, username):
+        return yf.returnJson(-1, 'dashboard.py_msg_40ded2')
 
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     # 未开启二步验证时该端点不接受登录，防止其成为绕过验证码/限流的旁路
@@ -284,9 +304,11 @@ def verifyLogin():
 
     info = thisdb.getUserByName(username)
     if not _password_matches(info, password):
-        blocked, _remain = _register_login_failure(client_ip)
+        blocked, _remain = _register_login_failure(client_ip, username)
         yf.writeLog('用户登录', '二次验证密码校验失败,帐号:{1},登录IP:{2}', (username, client_ip))
         if blocked:
+            yf.writeAudit('login.banned', target=username, result='denied',
+                          detail='二次验证密码连续失败触发封禁')
             return yf.returnJson(-1, 'dashboard.py_msg_b5cdb3')
         # 与验证码/密码错误统一文案，避免枚举“用户名密码是否正确”的旁路
         return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
@@ -300,13 +322,15 @@ def verifyLogin():
         totp_ok = False
 
     if not totp_ok:
-        blocked, _remain = _register_login_failure(client_ip)
+        blocked, _remain = _register_login_failure(client_ip, username)
         yf.writeLog('用户登录', '二次验证码校验失败,帐号:{1},登录IP:{2}', (username, client_ip))
         if blocked:
+            yf.writeAudit('login.banned', target=username, result='denied',
+                          detail='二次验证码连续失败触发封禁')
             return yf.returnJson(-1, 'dashboard.py_msg_b5cdb3')
         return yf.returnJson(-1, 'admin.py_msg_0d0d9e')
 
-    _reset_login_failure(client_ip)
+    _reset_login_failure(client_ip, username)
     _login_success(info, client_ip)
     yf.writeLog('用户登录', '用户[{1}]通过二次验证登录成功, 登录IP:{2}', (info['name'], client_ip))
     return yf.returnData(1, 'dashboard.py_msg_ba7c40')
@@ -319,15 +343,15 @@ def do_login():
         return yf.returnData(False, 'dashboard.py_msg_fefb49')
 
     client_ip = _client_ip()
-    if _is_banned(client_ip):
-        return yf.returnData(False, 'dashboard.py_msg_40ded2')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
     code = request.form.get('code', '').strip()
 
-    login_limit_key = _login_limit_key(client_ip)
-    login_cache_limit = cache.get(login_limit_key)
+    if _is_banned(client_ip, username):
+        return yf.returnData(False, 'dashboard.py_msg_40ded2')
+
+    login_cache_limit = login_guard.failure_count(client_ip, username) or None
 
     # 验证码安全加固：存在失败记录或已调出验证码时，强制要求提交有效验证码，防绕过与重放攻击
     need_code = 'code' in session or (login_cache_limit is not None and int(login_cache_limit) > 0)
@@ -336,8 +360,10 @@ def do_login():
         code_str = str(code).strip().lower()
         code_md5 = yf.md5(code_str) or ''
         if not expected_code or not code_str or not hmac.compare_digest(str(expected_code), str(code_md5)):
-            blocked, remain = _register_login_failure(client_ip)
+            blocked, remain = _register_login_failure(client_ip, username)
             if blocked:
+                yf.writeAudit('login.banned', target=username, result='denied',
+                              detail='验证码连续失败触发封禁')
                 return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
             login_err_msg = yf.getInfo("验证码错误或已失效,您还可以尝试[{1}]次!", (str(remain),))
             yf.writeLog('用户登录', login_err_msg)
@@ -346,14 +372,16 @@ def do_login():
     info = thisdb.getUserByName(username)
 
     if not _password_matches(info, password):
-        blocked, remain = _register_login_failure(client_ip)
+        blocked, remain = _register_login_failure(client_ip, username)
         msg = yf.getInfo("<a style='color: red'>用户名或密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
         if blocked:
+            yf.writeAudit('login.banned', target=username, result='denied',
+                          detail='密码连续失败触发封禁')
             return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
         yf.writeLog('用户登录', msg)
         return yf.returnData(-1, yf.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(remain),)))
 
-    _reset_login_failure(client_ip)
+    _reset_login_failure(client_ip, username)
     # 二步验证密钥
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:

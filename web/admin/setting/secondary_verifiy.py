@@ -18,13 +18,25 @@ from flask import Blueprint, render_template
 from flask import request
 
 from admin import session
+from admin.common import invalidate_login_cache
 from admin.user_login_check import panel_login_required
 
 import core.yf as yf
+import core.panel_session as panel_session
 import utils.config as utils_config
 
 from .setting import blueprint
 import thisdb
+
+
+def _revoke_other_sessions():
+    """二步验证凭据变更后，强制其它设备重新登录（保留当前会话）。"""
+    try:
+        panel_session.revoke_user_sessions(session.get('uid') or 1,
+                                           keep_session_id=session.get('session_id'))
+    except Exception as exc:
+        yf.writeFileLog('二步验证变更后撤销其它会话失败（不阻断操作）：%s' % exc)
+    invalidate_login_cache()
 
 # 获取二次验证信息
 @blueprint.route('/get_auth_secret', endpoint='get_auth_secret', methods=['POST'])
@@ -43,6 +55,8 @@ def get_auth_secret():
         crypt_data = yf.enDoubleCrypt(tag, secret)
         two_step_verification['secret'] = crypt_data
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
+        # 重置密钥 = 旧验证器全部失效，强制其它设备重新登录
+        _revoke_other_sessions()
 
     ip = yf.getHostAddr()
     url = pyotp.totp.TOTP(secret).provisioning_uri(name=ip, issuer_name='YuFeng_panel')
@@ -61,10 +75,13 @@ def set_auth_secret():
     if two_step_verification['open']:
         two_step_verification['open'] = False
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
+        # 关闭二步验证 = 安全基线下降，强制其它设备重新登录
+        _revoke_other_sessions()
         return yf.returnData(True, 'setting.py_msg_4d5ac8', 0)
     else:
         two_step_verification['open'] = True
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
+        _revoke_other_sessions()
         return yf.returnData(True, 'setting.py_msg_8e0047', 1)
 
 
