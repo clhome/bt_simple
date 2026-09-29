@@ -11,7 +11,7 @@
 # 代码质量棘轮门禁
 # ---------------------------------------------------------------------------------
 """
-统计三类「静默失败 / 不可诊断」的写法，并做**棘轮**约束：只减不增。
+统计四类「静默失败 / 不可诊断 / 命令注入」的写法，并做**棘轮**约束：只减不增。
 
 为什么是棘轮而不是「一把清零」：
     本仓现存 170+ 处裸 `except:`、近 200 处 `except Exception: pass`、几十处 `print`。
@@ -24,6 +24,12 @@
     bare_except           裸 `except:` —— 会吞掉 KeyboardInterrupt / SystemExit
     silent_except         `except Exception:` 紧接 `pass` —— 静默失败，线上无法诊断
     print_in_web          `web/` 下的 `print(` —— 生产代码应走 logging
+    os_system_count       `os.system(...)` —— 字符串拼接进 shell，命令注入风险
+
+    为什么 os_system_count 不是 0：
+        剩下 5 处是「必须经 shell 才能完成」的（多级管道 / 进程替换 / `cd && source activate && python`），
+        且已确认**无变量进入 shell**。它们如实计入基线（=5）而不是用豁免标记抹掉，
+        这样数字真实反映存量，日后任何新增 os.system 都会直接变红。
 
 print 的两类**豁免**（必须是真·CLI 输出，不是偷懒）：
     1. 位于 `if __name__ == '__main__':` 块内（直接跑脚本的入口，输出就该走 stdout）；
@@ -57,7 +63,8 @@ EXCLUDE_DIRS = {'__pycache__', 'node_modules', 'test', 'testsuite', '参考', '�
 RE_BARE_EXCEPT = re.compile(r'^\s*except\s*:\s*(#.*)?$')
 RE_EXCEPT = re.compile(r'^\s*except\b')
 RE_PRINT = re.compile(r'(?<![\w.])print\s*\(')
-METRICS = ('bare_except', 'silent_except', 'print_in_web')
+RE_OS_SYSTEM = re.compile(r'(?<![\w.])os\.system\s*\(')
+METRICS = ('bare_except', 'silent_except', 'print_in_web', 'os_system_count')
 
 
 def _iter_py_files():
@@ -142,6 +149,10 @@ def scan_text(text, path, in_web):
                 found['bare_except'].append((node.lineno, snippet(node.lineno)))
             elif len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
                 found['silent_except'].append((node.lineno, snippet(node.lineno)))
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+              and node.func.attr == 'system'
+              and isinstance(node.func.value, ast.Name) and node.func.value.id == 'os'):
+            found['os_system_count'].append((node.lineno, snippet(node.lineno)))
 
     if in_web:
         found['print_in_web'] = _collect_web_prints(tree, lines)
@@ -169,6 +180,8 @@ def _scan_text_regex(text, in_web):
                 break
         if in_web and RE_PRINT.search(line) and 'print-ok' not in line:
             found['print_in_web'].append((idx, line.strip()))
+        if RE_OS_SYSTEM.search(line) and not line.strip().startswith('#'):
+            found['os_system_count'].append((idx, line.strip()))
     return found
 
 
@@ -199,7 +212,7 @@ def counts_of(result):
 
 
 def self_test():
-    """检测器自证：用夹具确认三类都能被识别，且合法写法不被误报。"""
+    """检测器自证：用夹具确认四类都能被识别，且合法写法不被误报。"""
     fixture = (
         "def a():\n"
         "    try:\n"
@@ -220,15 +233,19 @@ def self_test():
         "    print('x')  # print-ok: 夹具\n"  # 豁免：显式标记
         "    d = {'except': 1}\n"          # 字符串里的 except 不得误报
         "    x = 'print('\n"               # 字符串里的 print 不得误报
+        "    os.system('ls ' + a)\n"       # 1 处 os.system
+        "    os.system('id')\n"           # 1 处 os.system
+        "    # os.system('x')\n"          # 注释行不计
         "    return d, x\n"
     )
     got = scan_text(fixture, '<fixture>', in_web=True)
     counts = {m: len(got[m]) for m in METRICS}
-    expected = {'bare_except': 1, 'silent_except': 1, 'print_in_web': 1}
+    expected = {'bare_except': 1, 'silent_except': 1, 'print_in_web': 1,
+                'os_system_count': 2}
     if counts != expected:
         print('[FAIL] 自证失败：期望 %r，实际 %r' % (expected, counts))
         return 1
-    print('[OK] 检测器自证通过（三类各命中 1，合法写法零误报，两类 print 豁免生效）')
+    print('[OK] 检测器自证通过（四类均命中，合法写法零误报，两类 print 豁免生效）')
     return 0
 
 
@@ -302,7 +319,7 @@ def main(argv=None):
               '用 --update --allow-increase 并说明理由。')
         return 1
 
-    print('\n[OK] 代码质量棘轮通过（三类指标均未恶化）')
+    print('\n[OK] 代码质量棘轮通过（各指标均未恶化）')
     return 0
 
 

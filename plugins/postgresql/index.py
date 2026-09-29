@@ -1830,7 +1830,8 @@ def getMasterRepSlaveUserCmd(version=''):
 
 def slaveSyncCmd(version=''):
     data = {}
-    data['cmd'] = 'cd " + yf.getPanelDir() + " && python3 plugins/postgresql/index.py do_full_sync'
+    data['cmd'] = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/postgresql/index.py') + ' do_full_sync'
     return yf.returnJson(True, 'ok!', data)
 
 
@@ -1898,7 +1899,9 @@ def doFullSync(version=''):
     if copy_status == None:
         writeDbSyncStatus({'code': 2, 'msg': '数据库信息同步本地完成...', 'progress': 40})
 
-    cmd = 'cd " + yf.getPanelDir() + " && python3 plugins/postgresql/index.py get_master_rep_slave_user_cmd {"username":"","db":""}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/postgresql/index.py') + \
+        ' get_master_rep_slave_user_cmd ' + yf.shlexQuote(json.dumps({'username': '', 'db': ''}))
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')

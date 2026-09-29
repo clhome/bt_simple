@@ -1172,8 +1172,6 @@ A 层 8 个文件：`plugins/mysql/index.py`（189）、`plugins/mariadb/index.p
 `*Strict` + 显式 `try/except`，集中在 `mysql/index.py`（105+75）、`mariadb/index.py`（78）——
 这两个文件正是同步/备份主线，**无真机可测**，故按用户决定不在本轮动。
 
-
-
 # 第 14 层「task-10：其余本地可验证项（H4.1 / I2 / I4 / 库卫生）」
 
 | 项 | 结论 | 证据 |
@@ -1220,6 +1218,80 @@ A 层 8 个文件：`plugins/mysql/index.py`（189）、`plugins/mariadb/index.p
 | D1/D2 审计 UI / 远端转发 | 后端已就绪，前端与「日志离开本机」属新功能 |
 | D3 授权/激活/计费；D4 RBAC；D5 插件签名；D6 多 worker | 产品决策 / 压测基线 |
 | E1 `.i18n.bak`；E2 zabbix sql.gz；E3 `.git` 体积 | 刻意保留 / 待用户确认 / 禁止改写历史 |
+
+---
+
+# 第 16 层「小 bug 修复（用户点名 4 项 + 同族 10 处同步链路）」
+
+## 一、用户点名 4 项的实测结论
+
+| 点名项 | 实测结论 | 处理 |
+|---|---|---|
+| acme.sh 安装命令多一个 `curl` | **真 bug**（`curl -sS curl <url>` 会把 `curl` 当第一个 URL） | ✅ 修为 `curl -fsSL https://get.acme.sh \| sh`（`setting.py` / `site.py`），顺带把 `site.py` 的 `--set-default-ca` 由 `execShell(拼接串)` 改为 `safeExecShell([...])` |
+| `web/utils/crontab.py` 重复导入 | **误报**：两处 `from utils.urlguard import validate_url` 分属 `_is_private_url()` 与 `_validate_to_url()` **两个不同函数**的局部导入（避开循环导入的保守写法），**不是同一作用域重复** | 不改代码，仅更正记录 |
+| `plugins/php/versions/{53,54,55,56}/install.sh` CRLF | **无需处理**：git 索引为 `i/lf` 且属性 `eol=lf`，Linux 检出必为 LF；仅本机工作区 CRLF | 不改 |
+| `task_manager` 网络统计启动路径 | **真脆弱**：`yf.getServerDir() + '/mdserver-web'` 依赖 deploy.sh 建的兼容软链，自定义安装目录时不存在 | ✅ 改用 `yf.getPanelDir()`；另修 `pid` 读取（`readFile` 失败返 `False` 时 `'/proc/' + False` 会 TypeError）+ 启动命令路径 `shlexQuote` |
+
+## 二、顺带发现：JS 式拼接写进了 Python 字符串字面量（同族 10 处）
+
+**根因**：把 JS 的 `" + x + "` 拼接写法直接写进了 Python 单引号字符串里。
+`getSPluginDir()` 甚至直接把字面量当返回值：
+
+```python
+def getSPluginDir():
+    return '" + yf.getPanelDir() + "/plugins/' + getPluginName()
+```
+
+于是发出去的命令成了 `cd " + yf.getPanelDir() + " && ...`：`cd` 必然失败、`&&` 短路 →
+**主从同步链路成片不可用**（命令要么走 `ssh.exec_command` 到远端，要么回给前端执行）。
+
+| 文件 | 处数 | 说明 |
+|---|---|---|
+| `plugins/mysql/index.py` | 5 | `getSPluginDir()` 定义 + `get_master_rep_slave_user_cmd`×2 + `dump_mysql_data` + `sync_database_repair` + `do_full_sync` |
+| `plugins/mariadb/index.py` | 3 | `get_master_rep_slave_user_cmd_ssh` + `get_master_rep_slave_user_cmd` + `do_full_sync` |
+| `plugins/postgresql/index.py` | 2 | `slaveSyncCmd`（回给前端）+ `get_master_rep_slave_user_cmd`（远端） |
+| `plugins/mongodb/index.py` | 3 | 仅在 **docstring 示例**里，只影响文档 |
+| `plugins/task_manager/task_manager_index.py` | 1 | `exe_keys` 字典键，字面量永远不命中 → 面板插件进程漏标 |
+
+**同时修掉的连带缺陷**：
+- `plugins/mysql/index.py:1890` `importDbBackupProgress` 的面板根仍是 `getServerDir()+'/mdserver-web'` → 改 `getPanelDir()`。
+- `plugins/mariadb/index.py::getArgs()` **没有 JSON 分支**（mysql 有）：负载加上正确引号后反而会解析失败（`args['sign']` → KeyError）。已按 mysql 对齐补上 JSON 分支，并把旧分支的 `t[1]` 直取改为长度校验（无 `:` 时不再 IndexError）。
+
+**修复后的命令形式**（演示）：
+
+```
+cd /www/server/yufeng_panel && source bin/activate && python3 /www/server/yufeng_panel/plugins/mysql/index.py do_full_sync '{"db": "demo1", "sign": "abc"}'
+```
+
+三处（`cd` 目标 / 脚本路径 / JSON 负载）均经 `yf.shlexQuote`，负载作为**单个 argv** 到达，
+接收端 `json.loads` 能正常解析；同时消除了 mariadb `fullSyncCmd` 原先的**命令注入面**（db/sign 未校验）。
+
+## 三、死文件仅登记不删（用户拍板）
+
+`plugins/mysql/index_mysql.py` 与 `plugins/mariadb/index_mariadb.py` 含同样的 `getSPluginDir()` 坏定义，
+但经全仓扫描（`web/`+`plugins/`+`testsuite/`）**零引用**。按用户拍板**只登记不删**，已写入守卫例外清单并由 `test_03` 持续验证「仍为零引用」。
+
+## 四、新增守卫：`testsuite/test_panel_cmd_path_guard.py`（17 项）
+
+| 组 | 项 | 内容 |
+|---|---|---|
+| JS 拼接 | 1~3 | 字面量里不得出现 `" + 函数调用(`；例外清单不得长大；两个死文件仍零引用 |
+| acme | 4 | 安装命令恰 1 个 URL、带 `-f`、不得把 `curl` 当参数 |
+| 面板根 | 5 | 不得出现 `+ '/mdserver-web'` 拼接（进程匹配类如 `.find('mdserver-web/plugins')` 不误伤） |
+| 脚本/负载引用 | 6~8 | 同步命令串的脚本路径与负载必须 `shlexQuote`；`getSPluginDir()` 必须返回真实路径 |
+| mariadb 行为 | 9~11 | **真跑** `getArgs()`：JSON 负载解析、旧写法不崩、无 `:` 不 IndexError |
+| task_manager | 12~15 | 启动路径用 `getPanelDir()`；pid 读取容错；路径引用；`exe_keys` 运行时计算 |
+| shell 往返 | 16~17 | 用 `shlex.split` 模拟 POSIX shell：负载作为单 argv 到达；注入字符不被拆成独立命令 |
+
+**变异自证 4/4 全部命中**（回退 JS 字面量 / 回退 `curl -sS curl` / 回退 `mdserver-web` 拼接 / 去掉 mariadb JSON 分支 → 守卫均 FAIL；字节级快照还原，无残留）。
+
+## 五、验证与边界
+
+- 全量门禁：**179 模块 / 1343 用例 / 0 隔离 / 4 静态门禁 全绿**；代码质量棘轮未动（bare 0 / silent 0 / print 0 / os.system 5）。
+- `py_compile` 8 个改动文件 OK；所有改动文件保持 **LF**（无 CRLF 污染）。
+- **不能替代的验证**：主从同步真实链路（需 MySQL/PostgreSQL/MongoDB + 远端主机）。本轮只保证「命令串构造正确 + 参数解析正确」，已在用例 docstring 与守卫文件头明确声明。
+- **保留未改（需真机确认）**：`task_manager`/`postgresql`/`sphinx`/`varnish` 里的 `cmdline.find('mdserver-web')` 与 `ps -ef | grep -v mdserver-web` 仍是**字符串匹配**：面板改名为 `yufeng_panel` 后，这些匹配可能不再命中（轻则分类显示不准，重则过滤失效）。**不能靠静态判断，需真机看进程表**，留作下一轮。
+- **临时脚本事故记录**：变异自证首次用 `read_text()`/`write_text()` 改写插件文件，未加 `finally` 还原 + Windows 下静默把全文转成 CRLF。已修为「字节快照 + `finally` 还原 + `newline='\n'`」。教训：**擅自改写业务文件的验证脚本必须有恢复保障**。
 
 
 

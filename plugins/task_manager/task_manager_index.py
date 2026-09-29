@@ -392,7 +392,7 @@ class mainClass(object):
 
         if p_exe:
             exe_keys = {
-                '" + yf.getPanelDir() + "/plugins/': '面板插件',
+                yf.getPanelDir() + '/plugins/': '面板插件',
                 '/www/server/cron/': '计划任务进程',
                 'pm2': 'PM2进程管理器',
                 'PM2': 'PM2进程管理器',
@@ -530,7 +530,9 @@ class mainClass(object):
 
     # 获取python的路径
     def get_python_bin(self):
-        yf_dir = yf.getServerDir() + '/mdserver-web'
+        # 用 getPanelDir()：面板根目录才是权威路径，/www/server/mdserver-web
+        # 只是 deploy.sh 建的向下兼容软链，自定义安装目录时不存在。
+        yf_dir = yf.getPanelDir()
         bin_file = yf_dir + '/bin/python3'
         if os.path.exists(bin_file):
             return bin_file
@@ -538,15 +540,15 @@ class mainClass(object):
 
     # 检查process_network_total.py是否运行
     def check_process_net_total(self):
-        yf_dir = yf.getServerDir() + '/mdserver-web'
+        yf_dir = yf.getPanelDir()
         _pid_file = yf_dir+'/logs/process_network_total.pid'
         if os.path.exists(_pid_file):
-            pid = yf.readFile(_pid_file)
-            if os.path.exists('/proc/' + pid): return True
+            pid = str(yf.readFile(_pid_file) or '').strip()
+            if pid and os.path.exists('/proc/' + pid): return True
 
         cmd_file = yf_dir+'/plugins/task_manager/process_network_total.py'
         python_bin = self.get_python_bin()
-        _cmd = 'nohup {} {} &> /tmp/net.log &'.format(python_bin, cmd_file)
+        _cmd = 'nohup {} {} &> /tmp/net.log &'.format(yf.shlexQuote(python_bin), yf.shlexQuote(cmd_file))
         yf.execShell(_cmd)
 
     # 进程折叠，将子进程折叠到父进程下，并将使用资源累加。

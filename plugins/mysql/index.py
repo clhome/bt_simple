@@ -44,7 +44,7 @@ def getPluginDir():
 
 
 def getSPluginDir():
-    return '" + yf.getPanelDir() + "/plugins/' + getPluginName()
+    return yf.getPanelDir() + '/plugins/' + getPluginName()
 
 
 def getServerDir():
@@ -1886,9 +1886,9 @@ def importDbBackupProgress():
     name = args['name']
 
     json_args = json.dumps({"file": file, "name": name})
-    server_dir = yf.getServerDir()
-    cmd = 'cd ' + shlex.quote(server_dir + '/mdserver-web') + ' && source bin/activate && '
-    cmd += 'python3 ' + shlex.quote(server_dir + '/mdserver-web/plugins/mysql/index.py') + ' import_db_backup_progress_bar ' + shlex.quote(json_args)
+    server_dir = yf.getPanelDir()
+    cmd = 'cd ' + shlex.quote(server_dir) + ' && source bin/activate && '
+    cmd += 'python3 ' + shlex.quote(server_dir + '/plugins/mysql/index.py') + ' import_db_backup_progress_bar ' + shlex.quote(json_args)
     return yf.returnJson(True, 'ok', cmd)
 
 def importDbBackupProgressBar():
@@ -3973,10 +3973,11 @@ def initSlaveStatusSSH(version=''):
                         username='root', pkey=key)
 
             db_user = data['db_user']
-            cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 ' + \
-                getSPluginDir() + \
-                '/index.py get_master_rep_slave_user_cmd {"username":"' + \
-                db_user + '","db":""}'
+            cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + \
+                ' && source bin/activate && python3 ' + \
+                yf.shlexQuote(getSPluginDir() + '/index.py') + \
+                ' get_master_rep_slave_user_cmd ' + \
+                yf.shlexQuote(json.dumps({'username': db_user, 'db': ''}))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             result = stdout.read()
             result = result.decode('utf-8')
@@ -4135,7 +4136,9 @@ def syncDatabaseRepairLog(version=''):
         return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     op = args['op']
     tmp_log = syncDatabaseRepairTempFile()
-    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py sync_database_repair  {"db":"'+sync_args_db+'","sign":"'+sync_args_sign+'"}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && source bin/activate && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/mysql/index.py') + ' sync_database_repair ' + \
+        yf.shlexQuote(json.dumps({"db": sync_args_db, "sign": sync_args_sign}))
     # print(cmd)
 
     if op == 'get':
@@ -4413,7 +4416,9 @@ def fullSyncCmd():
     if not safe_check_args(db_name=db, sign_val=sign):
         return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
-    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py do_full_sync  {"db":"'+db+'","sign":"'+sign+'"}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && source bin/activate && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/mysql/index.py') + ' do_full_sync ' + \
+        yf.shlexQuote(json.dumps({"db": db, "sign": sign}))
     return yf.returnJson(True,'ok',cmd)
 
 def doFullSync(version=''):
@@ -4714,8 +4719,9 @@ def doFullSyncSSH(version=''):
     writeDbSyncStatus({'code': 0, 'msg': '登录Master成功...', 'progress': 5})
 
     dbname = args['db']
-    cmd = "cd " + yf.getPanelDir() + " && source bin/activate && python3 " + \
-        getSPluginDir() + "/index.py dump_mysql_data {\"db\":'" + dbname + "'}"
+    cmd = "cd " + yf.shlexQuote(yf.getPanelDir()) + " && source bin/activate && python3 " + \
+        yf.shlexQuote(getSPluginDir() + "/index.py") + " dump_mysql_data " + \
+        yf.shlexQuote(json.dumps({'db': dbname}))
     print(cmd)
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
@@ -4738,10 +4744,11 @@ def doFullSyncSSH(version=''):
     if copy_status == None:
         writeDbSyncStatus({'code': 2, 'msg': '数据同步本地完成...', 'progress': 40})
 
-    cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 ' + \
-        getSPluginDir() + \
-        '/index.py get_master_rep_slave_user_cmd {"username":"' + \
-        db_user + '","db":""}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + \
+        ' && source bin/activate && python3 ' + \
+        yf.shlexQuote(getSPluginDir() + '/index.py') + \
+        ' get_master_rep_slave_user_cmd ' + \
+        yf.shlexQuote(json.dumps({'username': db_user, 'db': ''}))
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')

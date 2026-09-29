@@ -55,17 +55,30 @@ def getArgs():
     args = sys.argv[2:]
     tmp = {}
     args_len = len(args)
-
     if args_len == 1:
-        t = args[0].strip('{').strip('}').strip()
-        if (t == ''):
-            return tmp
-        t = t.split(':')
-        tmp[t[0]] = t[1]
+        val = args[0].strip()
+        # JSON 负载：调用方用 shlexQuote 传入时会保留双引号，优先按 JSON 解析。
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                return json.loads(val)
+            except Exception as _e:
+                _log.debug('[mariadb] getArgs 异常已忽略: %s', _e)
+        t = val.strip('{').strip('}')
+        if t.strip() == '':
+            tmp = {}
+        else:
+            t = t.split(':', 1)
+            if len(t) == 2:
+                k = t[0].strip().strip('"').strip("'")
+                v = t[1].strip().strip('"').strip("'")
+                tmp[k] = v
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            t = args[i].split(':', 1)
+            if len(t) == 2:
+                k = t[0].strip().strip('"').strip("'")
+                v = t[1].strip().strip('"').strip("'")
+                tmp[k] = v
     return tmp
 
 
@@ -3428,7 +3441,11 @@ def initSlaveStatusSSH(version=''):
                         username='root', pkey=key)
 
             db_user = data['db_user']
-            cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 plugins/mariadb/index.py get_master_rep_slave_user_cmd_ssh {"username":"' + db_user + '","db":""}'
+            cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + \
+                ' && source bin/activate && python3 ' + \
+                yf.shlexQuote(yf.getPanelDir() + '/plugins/mariadb/index.py') + \
+                ' get_master_rep_slave_user_cmd_ssh ' + \
+                yf.shlexQuote(json.dumps({'username': db_user, 'db': ''}))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             result = stdout.read()
             result = result.decode('utf-8')
@@ -3903,7 +3920,9 @@ def fullSyncCmd():
     db = args['db']
     sign = args['sign']
 
-    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mariadb/index.py do_full_sync  {"db":"'+db+'","sign":"'+sign+'"}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && source bin/activate && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/mariadb/index.py') + ' do_full_sync ' + \
+        yf.shlexQuote(json.dumps({"db": db, "sign": sign}))
     return yf.returnJson(True,'ok',cmd)
 
 # python3 plugins/mariadb/index.py do_full_sync {"db":"demo1","sign":"","beigin":"1"}
@@ -4111,7 +4130,11 @@ def doFullSyncSSH(version=''):
     if copy_status == None:
         writeDbSyncStatus({'code': 2, 'msg': '数据同步本地完成...', 'progress': 40})
 
-    cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 plugins/mariadb/index.py get_master_rep_slave_user_cmd {"username":"' + db_user + '","db":""}'
+    cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + \
+        ' && source bin/activate && python3 ' + \
+        yf.shlexQuote(yf.getPanelDir() + '/plugins/mariadb/index.py') + \
+        ' get_master_rep_slave_user_cmd ' + \
+        yf.shlexQuote(json.dumps({'username': db_user, 'db': ''}))
     stdin, stdout, stderr = ssh.exec_command(cmd)
     result = stdout.read()
     result = result.decode('utf-8')

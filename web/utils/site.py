@@ -2981,14 +2981,14 @@ export PATH
         acme_dir = yf.getAcmeDir()
         if not os.path.exists(acme_dir):
             try:
-                yf.execShell("curl -sS curl https://get.acme.sh | sh")
+                yf.execShell("curl -fsSL https://get.acme.sh | sh")
             except Exception as _e:
                 yf.writeFileLog('[site] 安装 acme.sh 失败: %s' % _e)
         if not os.path.exists(acme_dir):
             return yf.returnData(False, 'site.py_msg_448940')
 
         # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
-        yf.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
+        yf.safeExecShell([acme_dir + '/acme.sh', '--set-default-ca', '--server', 'letsencrypt'])
 
         # 避免频繁执行
         checkAcmeRun = yf.execShell('ps -ef|grep acme.sh |grep -v grep')
