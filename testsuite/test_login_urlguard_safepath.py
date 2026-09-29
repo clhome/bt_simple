@@ -166,7 +166,10 @@ class TestStaticHardening(unittest.TestCase):
         src = _read('web/admin/dashboard/login.py')
         body = src.split('def _password_matches')[1].split('def _login_success')[0]
         self.assertIn('_upgrade_password', body)
-        self.assertIn('legacy_md5', body)
+        # 弱哈希比对已收敛到 yf.checkPwdCompat（bcrypt 优先 + 历史 MD5/SHA256 回退），
+        # 命中后由 isLegacyPwdHash 判定是否回写 bcrypt
+        self.assertIn('yf.checkPwdCompat(', body)
+        self.assertIn('yf.isLegacyPwdHash(', body)
 
     def test_crontab_delegates_to_urlguard(self):
         src = _read('web/utils/crontab.py')

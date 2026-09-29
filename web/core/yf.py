@@ -21,6 +21,7 @@ import threading
 import string
 import json
 import hashlib
+import hmac
 import shlex
 import datetime
 import subprocess
@@ -147,8 +148,10 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
         cmdstring_list = cmdstring
     else:
         cmdstring_list = shlex.split(cmdstring)
+    # B602 豁免：execShell 是面板「执行 shell 命令」的核心原语，shell 由调用方决定；
+    # 调用点集中在受控路径（常量 / 白名单校验后的参数），此处不改为 shell=False。
     sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,
-                           shell=shell, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                           shell=shell, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec B602  # execShell 为面板执行 shell 的核心原语
 
     try:
         data = sub.communicate(timeout=timeout)
@@ -1019,8 +1022,10 @@ def strfToTime(sdate):
 
 def md5(content):
     # 生成MD5
+    # B324 豁免：本函数仅用于缓存键 / 文件名指纹 / 校验和，以及历史弱口令哈希的一次性比对
+    # （命中后立即回写 bcrypt，见 checkPwdCompat）；MD5 不用于新写入的任何安全凭据。
     try:
-        m = hashlib.md5()
+        m = hashlib.md5()  # nosec B324  # 缓存键/指纹/历史哈希比对，见上方说明
         m.update(content.encode("utf-8"))
         return m.hexdigest()
     except Exception as ex:
@@ -1052,13 +1057,57 @@ def checkPwd(password, hashed):
     except Exception as _e:
         return False
 
-    
+
+def isLegacyPwdHash(hashed):
+    '''是否为历史遗留弱哈希（32 位 MD5 / 64 位 SHA256 十六进制）。
+
+    仅用于判断「命中后是否需要回写 bcrypt」；新口令一律经 hasPwd() 走 bcrypt，
+    不再产生此类值。
+    '''
+    if not hashed:
+        return False
+    return bool(re.match(r'^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{64})$', str(hashed)))
+
+
+def checkPwdCompat(password, stored):
+    '''口令校验兼容层：bcrypt 优先，历史 MD5/SHA256 哈希回退比对。
+
+    历史分支只服务于「老安装升级到 bcrypt」：调用方命中后应立即回写新哈希
+    （见 admin/dashboard/login.py::_password_matches）。
+    '''
+    if not password or not stored:
+        return False
+
+    try:
+        bcrypt_ok = bool(checkPwd(password, stored))
+    except Exception as _e:
+        # checkPwd 自身已吞异常；此处仅兜底，bcrypt 异常不得阻断历史哈希比对
+        bcrypt_ok = False
+    if bcrypt_ok:
+        return True
+
+    if not isLegacyPwdHash(stored):
+        return False
+
+    legacy_md5 = md5(password)
+    if legacy_md5 and hmac.compare_digest(str(legacy_md5), str(stored)):
+        return True
+
+    try:
+        legacy_sha = hashlib.sha256(password.encode('utf-8')).hexdigest()
+    except Exception as _e:
+        legacy_sha = ''
+    if legacy_sha and hmac.compare_digest(legacy_sha, str(stored)):
+        return True
+    return False
+
+
 def getFileMd5(filename):
     # 文件的MD5值
     if not os.path.isfile(filename):
         return False
 
-    myhash = hashlib.md5()
+    myhash = hashlib.md5()  # nosec B324  # 文件校验和，非安全用途（Python<3.9 无 usedforsecurity 参数）
     f = open(filename, 'rb')
     while True:
         b = f.read(8096)
@@ -2047,56 +2096,6 @@ def aesDecrypt(data, key=None, vi=None):
 
     return uppadded_data
 
-def aesEncrypt_Crypto(data, key, vi):
-    # 该方法保留，暂时不使用
-    # aes加密
-    # @param data 被加密的数据
-    # @param key 加解密密匙 16位
-    # @param vi 16位
-
-    from Crypto.Cipher import AES
-    cryptor = AES.new(key.encode('utf8'), AES.MODE_CBC, vi.encode('utf8'))
-    # 判断是否含有中文
-    zhmodel = re.compile(u'[\u4e00-\u9fff]')
-    match = zhmodel.search(data)
-    if match == None:
-        # 无中文时
-        add = 16 - len(data) % 16
-        pad = lambda s: s + add * chr(add)
-        data = pad(data)
-        enctext = cryptor.encrypt(data.encode('utf8'))
-    else:
-        # 含有中文时
-        data = data.encode()
-        add = 16 - len(data) % 16
-        data = data + add * (chr(add)).encode()
-        enctext = cryptor.encrypt(data)
-    encodestrs = base64.b64encode(enctext).decode('utf8')
-    return encodestrs
-
-
-def aesDecrypt_Crypto(data, key, vi):
-    # 该方法保留，暂时不使用
-    # aes加密
-    # @param data 被加密的数据
-    # @param key 加解密密匙 16位
-    # @param vi 16位
-
-    from crypto.Cipher import AES
-    data = data.encode('utf8')
-    encodebytes = base64.urlsafe_b64decode(data)
-    cipher = AES.new(key.encode('utf8'), AES.MODE_CBC, vi.encode('utf8'))
-    text_decrypted = cipher.decrypt(encodebytes)
-    # 判断是否含有中文
-    zhmodel = re.compile(u'[\u4e00-\u9fff]')
-    match = zhmodel.search(text_decrypted)
-    if match == False:
-        # 无中文时补位
-        unpad = lambda s: s[0:-s[-1]]
-        text_decrypted = unpad(text_decrypted)
-    text_decrypted = text_decrypted.decode('utf8').rstrip()  # 去掉补位的右侧空格
-    return text_decrypted
-
 def getDefault(data,val,def_val=''):
     if val in data:
         return data[val]
@@ -2908,7 +2907,8 @@ def connectSsh():
     import paramiko
     ssh = paramiko.SSHClient()
     createSshInfo()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # B507 豁免：仅连接本机 127.0.0.1/localhost 的面板 SSH，主机密钥为面板自己生成
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # nosec B507  # 仅连本机 127.0.0.1
 
     port = getSSHPort()
     try:

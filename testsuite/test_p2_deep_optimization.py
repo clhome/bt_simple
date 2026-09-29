@@ -120,7 +120,9 @@ class TestP2DeepOptimization(unittest.TestCase):
         ast.parse(setting_code)
 
         self.assertIn("old_password = request.form.get('old_password', '').strip()", setting_code)
-        self.assertIn("user_info.get('password') == yf.md5(old_password)", setting_code)
+        # B324 收口：原密码校验改走统一兼容层（bcrypt 优先，历史 MD5/SHA256 回退）
+        self.assertIn("yf.checkPwdCompat(old_password, user_info.get('password', ''))",
+                      setting_code)
         self.assertIn("len(password1) < 8", setting_code)
         self.assertIn("re.search(r'[A-Za-z]', password1)", setting_code)
         self.assertIn("re.search(r'[0-9]', password1)", setting_code)

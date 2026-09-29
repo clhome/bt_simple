@@ -389,7 +389,9 @@ class sites(object):
                     shutil.copyfile(favicon_src, os.path.join(path, 'favicon.ico'))
                 except Exception:
                     pass
-            chmodR(path, 755)
+            # chmodR 内部按八进制解析（int(str(mode), 8)），因此必须传字符串；
+            # 传十进制字面量 755 会被 bandit 误判为 0o1363（B103），行为并未变。
+            chmodR(path, '755')
             if not yf.isAppleSystem():
                 chownR(path, 'www', 'www')
 

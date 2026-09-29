@@ -286,6 +286,83 @@ class SupplyChainGuardTest(unittest.TestCase):
         self.assertIn('jobs', data)
         self.assertIn('release', data['jobs'])
         self.assertIn('steps', data['jobs']['release'])
+    # ------------------------------------------------------- H4 红色门禁修复
+
+    def test_18_requirements_are_tiered_for_patched_versions(self):
+        """H4：依赖漏洞修复不能被「为了兼容老 Python」而回退。
+
+        flask/Werkzeug/pyOpenSSL/cryptography 的修复版均要求 Python>=3.9，
+        故 requirements.txt 必须以 python_version 分档：
+          >=3.9 走修复版；<3.9 保留旧版（上游无修复，属已知残留风险）。
+        CI 的 pip-audit 以 Python 3.11 解析，只看得到 >=3.9 分支 → 门禁真实有效。
+        """
+        lines = [ln.strip() for ln in _read('requirements.txt').split('\n')]
+        lines = [ln for ln in lines if ln and not ln.startswith('#')]
+
+        def _name(ln):
+            m = re.match(r'^([A-Za-z0-9_.\-]+)', ln)
+            return m.group(1).lower() if m else ''
+
+        floors = {'Flask': '3.1.3', 'Werkzeug': '3.1.6',
+                  'pyOpenSSL': '26.4.0', 'cryptography': '50.0.0'}
+        for pkg, floor in floors.items():
+            hits = [ln for ln in lines if _name(ln) == pkg.lower()]
+            modern = [ln for ln in hits if "python_version >= '3.9'" in ln]
+            legacy = [ln for ln in hits if "python_version < '3.9'" in ln]
+            self.assertTrue(modern, '%s 缺少 >=3.9 的修复版分支' % pkg)
+            self.assertTrue(legacy, '%s 缺少 <3.9 的兼容分支（老系统会装不上面板）' % pkg)
+            self.assertIn('>=%s' % floor, modern[0],
+                          '%s 的 >=3.9 下界低于修复版本 %s：%s' % (pkg, floor, modern[0]))
+            self.assertNotIn('python_version', legacy[0].split(';')[0],
+                             '%s 的旧版本分支必须带 <3.9 标记' % pkg)
+
+    def test_16_bandit_exemptions_are_justified(self):
+        """H4：bandit 的每一处豁免都必须写清理由（防止门禁变成静默放行）。
+
+        `# nosec Bxxx` 是绕过安全门禁的唯一手段，因此：
+          1. 必须带理由尾注（`# nosec Bxxx  # 理由`），不能只挂一个豁免；
+          2. 说明性注释不得以 `# nosec` 开头 —— bandit 会把它作用于下一行，
+             可能掩盖真正的告警（踩过一次：注释里的 `# nosec B507：...`）。
+        """
+        files = ('panel_tools.py', 'scripts/logs_backup.py', 'web/core/yf.py',
+                 'web/utils/site.py', 'web/utils/ssh/ssh_local.py',
+                 'web/utils/ssh/ssh_terminal.py', 'scripts/tools/build_edition.py')
+        total = 0
+        for rel in files:
+            for i, line in enumerate(_read(rel).split('\n'), 1):
+                if '# nosec' not in line:
+                    continue
+                total += 1
+                self.assertIn('  # ', line,
+                              '%s:%d nosec 缺理由尾注：%s' % (rel, i, line.strip()))
+                self.assertFalse(line.strip().startswith('# nosec'),
+                                 '%s:%d 独立成行的 nosec 会误作用于下一行' % (rel, i))
+        self.assertGreaterEqual(
+            total, 25,
+            'bandit 豁免数量异常减少（%d）；若确实是修好了某条，请同步调整本用例' % total)
+
+    def test_17_basic_auth_no_longer_stores_md5(self):
+        """B324 收口：basic_auth 与旧密码校验改走统一兼容层，不再自存 MD5。
+
+        历史 MD5 只作为「一次性迁移凭据」由 checkPwdCompat 比对，
+        新写入一律 bcrypt（hasPwd）。
+        """
+        setting = _read('web/admin/setting/setting.py')
+        seg = setting[setting.index('def set_basic_auth'):
+                      setting.index('def set_status_code')]
+        self.assertNotIn('yf.md5(', seg, 'basic_auth 不得再用 MD5 存口令')
+        self.assertIn('yf.hasPwd(', seg)
+
+        init = _read('web/admin/__init__.py')
+        seg2 = init[init.index("salt = basic_auth["):]
+        seg2 = seg2[:seg2.index('sendAuthenticated()')]
+        self.assertNotIn('yf.md5(', seg2, 'basic_auth 校验不得再用 MD5')
+        self.assertIn('yf.checkPwdCompat(', seg2)
+
+        yf_text = _read('web/core/yf.py')
+        self.assertIn('def checkPwdCompat(', yf_text)
+        self.assertIn('def isLegacyPwdHash(', yf_text)
+        self.assertIn('# nosec B324', yf_text)
 
 
 if __name__ == '__main__':

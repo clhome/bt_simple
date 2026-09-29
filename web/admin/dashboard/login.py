@@ -121,24 +121,12 @@ def _password_matches(info, password):
     if not stored:
         return False
 
-    legacy_md5 = yf.md5(password)
-    if legacy_md5 and hmac.compare_digest(stored, str(legacy_md5)):
-        _upgrade_password(info, password)
-        return True
-
-    try:
-        import hashlib
-        legacy_sha = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        if hmac.compare_digest(stored, legacy_sha):
-            _upgrade_password(info, password)
-            return True
-    except Exception:
-        pass
-
-    try:
-        return bool(yf.checkPwd(password, stored))
-    except Exception:
+    if not yf.checkPwdCompat(password, stored):
         return False
+    # 遗留弱哈希命中即回写 bcrypt，弱哈希不再长期留存
+    if yf.isLegacyPwdHash(stored):
+        _upgrade_password(info, password)
+    return True
 
 
 def _login_success(info, client_ip):

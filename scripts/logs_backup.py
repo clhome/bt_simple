@@ -74,4 +74,4 @@ if __name__ == '__main__':
         if os.path.exists(errOldFileName):
             split_logs(errOldFileName, num)
     path = yf.getServerDir()
-    os.system("kill -USR1 `cat " + path + "/openresty/nginx/logs/nginx.pid`")
+    os.system("kill -USR1 `cat " + path + "/openresty/nginx/logs/nginx.pid`")  # nosec B605  # path 为面板自身服务目录（yf.getServerDir()）

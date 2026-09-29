@@ -244,9 +244,12 @@ def requestCheck():
             return sendAuthenticated()
 
         salt = basic_auth['salt']
-        basic_user = yf.md5(auth.username.strip() + salt)
-        basic_pwd = yf.md5(auth.password.strip() + salt)
-        if basic_user != basic_auth['basic_user'] or basic_pwd != basic_auth['basic_pwd']:
+        # 口令以 bcrypt 存储；老安装的 MD5 存量值由 checkPwdCompat 兼容比对
+        basic_user_ok = yf.checkPwdCompat(auth.username.strip() + salt,
+                                          basic_auth.get('basic_user', ''))
+        basic_pwd_ok = yf.checkPwdCompat(auth.password.strip() + salt,
+                                         basic_auth.get('basic_pwd', ''))
+        if not (basic_user_ok and basic_pwd_ok):
             return sendAuthenticated()
 
     # CSRF 防护：Referer/Origin 校验 + 双提交 Token（两者满足其一即可）

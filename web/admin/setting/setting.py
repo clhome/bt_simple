@@ -137,8 +137,10 @@ def set_basic_auth():
     salt = yf.getRandomString(6)
     data = {}
     data['salt'] = salt
-    data['basic_user'] = yf.md5(basic_user + salt)
-    data['basic_pwd'] = yf.md5(basic_pwd + salt)
+    # 口令用 bcrypt 存储；salt 仅用于兼容历史 MD5 存量值的一次性比对，
+    # 校验侧见 web/admin/__init__.py。
+    data['basic_user'] = yf.hasPwd(basic_user + salt)
+    data['basic_pwd'] = yf.hasPwd(basic_pwd + salt)
     data['open'] = is_open
 
     thisdb.setOption('basic_auth', json.dumps(data))
@@ -291,17 +293,11 @@ def set_password():
     if not user_info:
         return yf.returnData(False, '用户不存在！')
 
-    # 原密码校验（支持 bcrypt 及 md5 回退）
+    # 原密码校验（支持 bcrypt 及历史 MD5/SHA256 回退）
     if not old_password:
         return yf.returnData(False, '请输入原密码！')
 
-    old_correct = False
-    if user_info.get('password') == yf.md5(old_password):
-        old_correct = True
-    elif yf.checkPwd(old_password, user_info.get('password', '')):
-        old_correct = True
-
-    if not old_correct:
+    if not yf.checkPwdCompat(old_password, user_info.get('password', '')):
         return yf.returnData(False, '原密码错误，请重新输入！')
 
     if password1 != password2:

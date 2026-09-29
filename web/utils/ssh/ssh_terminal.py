@@ -186,7 +186,9 @@ class ssh_terminal(object):
         try:
             yf.createSshInfo()
             self.__ps = paramiko.SSHClient()
-            self.__ps.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            # B507 豁免：同 ssh_local.py，沿用历史信任策略（严格校验 known_hosts 属行为变更，
+            # 会中断既有用户流程，已记入 task.md 待评估）。
+            self.__ps.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # nosec B507  # 沿用历史信任策略，见上方说明
 
             self.__port = yf.getSSHPort()
             

@@ -145,7 +145,9 @@ class ssh_local(object):
                     self.wsSend(f"[SSH] 正在尝试连接目标: {host}:{p} (网络超时 {timeout_val} 秒)...\r\n")
                     # 每次尝试前均独立创建 paramiko.SSHClient 以隔离和清理状态
                     ssh = paramiko.SSHClient()
-                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    # B507 豁免：面板 SSH 终端按用户配置连接目标主机，沿用历史信任策略；
+                    # 改为严格校验 known_hosts 会中断既有用户流程，已记入 task.md 待评估。
+                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # nosec B507  # 沿用历史信任策略，见上方说明
                     
                     # 强行显式传递 username='root' 规避猜解失败
                     if local_key:

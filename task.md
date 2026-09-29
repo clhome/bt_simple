@@ -572,4 +572,84 @@ A 层重灾区（按调用点）：`plugins/mysql/index.py` 189、`plugins/maria
   这也正是 G1 的核心价值论证：**验签后，不可信代理变得可以接受**。
 
 
+---
+
+# 第 4 层「供应链门禁红灯修复」—— `security-scan.yml` 首次运行后的 triage
+
+> 触发：推送「安全增强」提交后，`供应链安全扫描` 的两个阻断型 job 变红。
+> 口径：这是扫描器在干活，按报告 triage 后再合并，**不把 job 改成 `continue-on-error`**。
+
+## 一、依赖漏洞扫描（pip-audit：21 条 / 3 包）
+
+| 包 | 修复前 | 修复后（py≥3.9） | 依据 |
+|----|--------|------------------|------|
+| flask | 2.3.3 | 3.1.3 | PYSEC-2026-2151（会话页缺 `Vary: Cookie`，可被缓存投毒）；2.x 无修复版 |
+| Werkzeug | 2.3.8 | 3.1.9 | 调试器 RCE / multipart 资源耗尽 / `safe_join` 处理 Windows 设备名 |
+| cryptography | 46.0.7 | 50.0.1 | PKCS#7 预言机、证书链指数膨胀、通配符越权；GHSA-537c 为 wheel 内置 OpenSSL |
+| pyOpenSSL | 26.0.0 | 26.4.0 | 26.0.0 写死 `cryptography<47`，是 cryptography 卡在 46.x 的直接原因 |
+
+核心矛盾：**修复版本全部要求 Python≥3.9**，而面板仍需支持 CentOS 7.9 / Debian 10 这类只自带
+Python 3.6~3.8 的系统。故采用**环境标记分档**（与仓库既有 `version/r3.x.txt` 分档思路一致）：
+
+```
+flask>=3.1.3,<4.0.0; python_version >= '3.9'
+flask>=2.0.3,<3.0.0; python_version < '3.9'      # 老系统：上游已无修复版，已知残留风险
+```
+
+CI 在 Python 3.11 解析，只看得见 `>=3.9` 分支 → 门禁真实有效，且不会把老系统装不上面板。
+
+- [x] `requirements.txt` 四处依赖（flask / Werkzeug / pyOpenSSL / cryptography）改为 `python_version` 分档
+- [x] `pip-audit -r requirements.txt --strict` 本地复跑：**No known vulnerabilities found**
+- [x] 实测解析结果：flask 3.1.3 / Werkzeug 3.1.9 / pyOpenSSL 26.4.0 / cryptography 50.0.1
+
+## 二、安全静态扫描（bandit：33 条 HIGH）
+
+逐条 triage，**不用全局 skip**（全局 skip 等于把门禁废掉），全部以行内 `# nosec Bxxx  # 理由` 记录：
+
+| 规则 | 数量 | 处置 |
+|------|------|------|
+| B605/B602 shell 调用 | 25 | **豁免**：面板本职即执行 shell；`panel_tools.py` 是 root 交互 CLI，命令串只由 `INIT_CMD` 常量与面板自身目录拼接，`yf_input` 仅作分支选择 |
+| B507 paramiko `AutoAddPolicy` | 3 | **豁免**：沿用历史信任策略（改严格 known_hosts 属行为变更，见「残留风险」） |
+| B324 `hashlib.md5` | 2 | **豁免 + 真修**：`md5()` 保留给缓存键/指纹/历史哈希比对；basic_auth 与旧密码校验改 bcrypt |
+| B413 `Crypto.Cipher.AES` | 1 | **真修**：删除死代码 `aesEncrypt_Crypto` / `aesDecrypt_Crypto` |
+| B202 `tarfile.extractall` | 1 | **真修**：改 `filter='data'`（tarfile 官方安全解压入口） |
+| B103 `chmodR(path, 755)` | 1 | **真修（误报）**：`chmodR` 按八进制解析，改传字符串 `'755'`；bandit 此前把十进制 755 误判为 0o1363 |
+
+### MD5 → bcrypt 的具体收口
+
+- `web/core/yf.py` 新增 `isLegacyPwdHash()` / `checkPwdCompat()`：**bcrypt 优先，历史 MD5/SHA256 仅作一次性比对**（`hmac.compare_digest` 常量时间），`admin/__init__.py` 的 basic_auth 校验与 `setting.py` 的原密码校验统一走它。
+- `setting.py::set_basic_auth` 改为 `yf.hasPwd()`（bcrypt）落库；老安装的 MD5 存量值仍可登录，下次改密即自动升级。
+- `login.py::_password_matches` 收敛到兼容层，命中遗留弱哈希后仍即时回写 bcrypt。
+
+- [x] `bandit ... -lll` 本地复跑：**No issues identified**，`High: 0`，30 处豁免全部带理由
+- [x] 语法与静态门禁：`py_compile` 全通过；`run_all.py --static` 4 项全绿
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|------|------|------|
+| 依赖漏洞 | `pip-audit -r requirements.txt --strict` | 无漏洞（21 条全消） |
+| 安全静态 | `bandit -r web scripts panel_task.py panel_tools.py -x testsuite,test,node_modules,.git -lll` | 退出码 0，High 0 |
+| 密码兼容层 | `test/_pwd_compat_probe.py`（20 断言，跑完已删） | 全通过（bcrypt / MD5 / SHA256 / 空值 / 非法哈希 / basic_auth 新旧值） |
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **173 模块 / 1276 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 回归守卫 | `testsuite/test_supply_chain_guards.py` 新增 `test_16/17/18` | 锁死依赖分档、nosec 必须带理由、basic_auth 不得再用 MD5 |
+
+> 说明：`test_db_migration_selfheal` / `test_edition_layering` 的两条失败是 **Windows 子进程中文编码**
+> 既有问题（`PYTHONUTF8=1` 下全绿，Linux CI 不复现），与本次改动无关。
+
+## 四、已知残留风险（明确记录，不粉饰）
+
+1. **Python<3.9 的系统仍带 CVE**：Flask 2.x / Werkzeug 2.x / cryptography 46.x 在其支持范围内上游已无修复版。分档只保证「新系统真修复 + 老系统不被拖死」，不等于老系统安全。
+2. **SSH 主机密钥不校验**（B507 ×3）：`ssh_local.py` / `ssh_terminal.py` 连接用户配置的**非本机**目标时仍沿用 `AutoAddPolicy`，存在中间人风险。改严格校验会中断既有用户流程，**待专门评估**（本轮未动）。
+3. **MD5 仍存在于非口令场景**：缓存键、文件名指纹、校验和、以及 `yf.md5()` 派生的 Fernet key 未动（后者改动会破坏存量加密数据），以带理由的 nosec 显式豁免。
+4. **`security/audit-ignore.txt` 未启用**：本轮全部靠「真修复 + 分档」解决，不需要豁免文件兜底。
+
+### 顺带结清的既有测试期望
+
+| 文件 | 原因 |
+|------|------|
+| `testsuite/test_p2_deep_optimization.py` | 原断言写死了 `yf.md5(old_password)`（旧实现），改为校验 `yf.checkPwdCompat(...)` |
+| `testsuite/test_login_urlguard_safepath.py` | 原断言要求 `_password_matches` 内含 `legacy_md5` 局部变量，改为校验兼容层调用 |
+
+
 
