@@ -101,50 +101,86 @@ def getConf():
     return path
 
 
+_MYCNF_CACHE = {'key': None, 'content': ''}
+
+
+def _readCnf():
+    """读取 my.cnf 内容（按「路径 + mtime + size + 读取实现」失效）。
+
+    getDbPort()/getSocketFile() 等在同一请求里会被反复调用（实测本文件 27/3/10 次），
+    每次都重新读盘 + 正则。这里只缓存「同一份未变化的文件内容」：文件一旦被改写
+    （mtime/size 变）立刻失效，因此语义与直读一致，不会读到旧值。
+    把 yf.readFile 的当前实现也计入 key，避免测试 patch 掉 yf.readFile 后跨用例串味。
+    """
+    path = getConf()
+    try:
+        st = os.stat(path)
+    except OSError:
+        _MYCNF_CACHE.update({'key': None, 'content': ''})
+        return ''
+    key = (path, st.st_mtime_ns, st.st_size, yf.readFile)
+    if _MYCNF_CACHE['key'] == key:
+        return _MYCNF_CACHE['content']
+    content = yf.readFile(path)
+    if not isinstance(content, str):
+        content = ''
+    _MYCNF_CACHE.update({'key': key, 'content': content})
+    return content
+
+
+def _cnfValue(pattern, default=''):
+    """从 my.cnf 取 pattern 第 1 个捕获组；文件缺失/无该配置时返回 default。
+
+    历史实现在 10 个 getter 里直接 `re.search(rep, content)` + `tmp.groups()`，
+    当 my.cnf 缺失（content=False）或未配置该项（tmp=None）时会抛
+    TypeError/AttributeError（mysql 侧对应函数多数已有守卫，此处对齐并统一收口）。
+    """
+    content = _readCnf()
+    if content:
+        tmp = re.search(pattern, content)
+        if tmp:
+            return tmp.groups()[0].strip()
+    return default
+
+
 def getDataDir():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'datadir\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    datadir = _cnfValue(r'datadir\s*=\s*(.*)')
+    if datadir:
+        return datadir
+    for d in [getServerDir() + '/data', '/var/lib/mysql', '/www/server/data']:
+        if os.path.exists(d):
+            return d
+    return getServerDir() + '/data'
 
 def getLogBinName():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'log-bin\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return _cnfValue(r'log-bin\s*=\s*(.*)', 'mysql-bin')
 
 def getPidFile():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'pid-file\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    pid = _cnfValue(r'pid-file\s*=\s*(.*)')
+    if pid:
+        return pid
+    for p in [getServerDir() + '/data/mysql.pid', '/var/run/mysqld/mysqld.pid', '/tmp/mysql.pid']:
+        if os.path.exists(p):
+            return p
+    return getServerDir() + '/data/mysql.pid'
 
 
 def getDbPort():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'port\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return _cnfValue(r'port\s*=\s*(.*)', '3306')
 
 
 def getDbServerId():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'server-id\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return _cnfValue(r'server-id\s*=\s*(.*)', '1')
 
 
 def getSocketFile():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'socket\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    sock = _cnfValue(r'socket\s*=\s*(.*)')
+    if sock:
+        return sock
+    for s in ['/tmp/mysql.sock', '/var/run/mysqld/mysqld.sock', getServerDir() + '/mysql.sock']:
+        if os.path.exists(s):
+            return s
+    return '/tmp/mysql.sock'
 
 
 def getInitdTpl(version=''):
@@ -750,11 +786,8 @@ def getErrorLog():
 
 
 def getShowLogFile():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'slow-query-log-file\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    # 未配置时返回空串（旧实现会直接 AttributeError），由调用方按「无慢日志」处理
+    return _cnfValue(r'slow-query-log-file\s*=\s*(.*)')
 
 
 def pGetDbUser():
@@ -926,11 +959,7 @@ def initdUinstall():
 
 
 def getMyDbPos():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'datadir\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return _cnfValue(r'datadir\s*=\s*(.*)', getServerDir() + '/data')
 
 
 def setMyDbPos():
@@ -976,11 +1005,7 @@ def setMyDbPos():
 
 
 def getMyPort():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'port\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return _cnfValue(r'port\s*=\s*(.*)', '3306')
 
 
 def setMyPort():
@@ -1208,7 +1233,14 @@ def setDbBackup():
     import subprocess
     cmd = ['python3', scDir, 'database', name, '3']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p.communicate()
+    out, err = p.communicate()
+    # 旧实现直接丢弃 out/err 并无条件返回成功：备份脚本报错也会显示「备份成功」。
+    # 这里与 mysql 侧对齐，必须看到明确的失败信号才允许报错。
+    out_s = (out or b'').decode('utf-8', 'replace')
+    err_s = (err or b'').decode('utf-8', 'replace')
+    if p.returncode != 0 or '备份失败' in out_s or '备份失败' in err_s:
+        _log.warning('[mariadb] setDbBackup 失败 name=%s rc=%s err=%s', name, p.returncode, err_s[:500])
+        return yf.returnJson(False, '数据库备份失败: ' + name)
     return yf.returnJson(True, 'ok')
 
 
@@ -1993,33 +2025,130 @@ def addDb():
     return yf.returnJson(True, '添加成功!')
 
 
+# 面板自建的用户名 / mysql.user.Host 允许的字符集：DROP USER 里的用户名是标识符，
+# 无法用参数占位，只能白名单化后再拼字面量，避免 `'; DROP ...` 这类注入。
+_DB_USER_IDENT_RE = re.compile(r'^[A-Za-z0-9_.:%-]+$')
+
+
+def _dropUserTargets(username, hosts):
+    """拼 `'user'@'host'` 字面量列表；任一项含白名单外字符则整体放弃（返回空表）。
+
+    整体放弃而不是部分跳过：宁可留下待人工清理的授权，也不要拼出半截语句。
+    """
+    user = str(username or '')
+    if not _DB_USER_IDENT_RE.match(user):
+        return []
+    targets = []
+    for host in hosts:
+        h = str(host or '')
+        if not _DB_USER_IDENT_RE.match(h):
+            return []
+        targets.append("'" + user + "'@'" + h + "'")
+    return targets
+
+
 def delDb():
     args = getArgs()
     data = checkArgs(args, ['id', 'name'])
     if not data[0]:
         return data[1]
     try:
-        id = args['id']
+        sid = args['id']
         name = args['name']
+        # 库名白名单：name 会被拼进 DROP DATABASE 的反引号标识符（无法参数化）
+        if not re.match(r"^[\w\.-]+$", name):
+            return yf.returnJson(False, '数据库名称不合法!')
+
         psdb = pSqliteDb('databases')
-        pdb = pMysqlDb('mysql')
-        find = psdb.where("id=?", (id,)).field(
+        find = psdb.where("id=?", (sid,)).field(
             'id,pid,name,username,password,accept,ps,addtime').find()
-        accept = find['accept']
+        if not find:
+            return yf.returnJson(False, '删除失败! 数据库在面板记录中不存在。')
+
         username = find['username']
 
-        # 删除MYSQL
-        result = pdb.execute("drop database `" + name + "`")
+        # 数据库连接参数
+        db_host = 'localhost'
+        db_port = int(getDbPort())
+        db_pass = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        db_socket = getSocketFile()
 
-        users = pdb.query("select Host from user where User='" +
-                          username + "' AND Host!='localhost'")
-        pdb.execute("drop user '" + username + "'@'localhost'")
-        for us in users:
-            pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
-        pdb.execute("flush privileges")
+        import pymysql
+        import warnings
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+        # 与 mysql 插件同构：连接超时 + 1008 容错 + 返回值不丢弃 + 单条 DROP USER。
+        # 历史实现走 ORM 且把 pdb.execute() 的返回值全部丢弃：
+        # 「库已不存在」、「用户不存在」这类失败完全不可见，前端一律看到「删除成功」。
+        def doDeleteDb(read_timeout_val=30):
+            conn = None
+            try:
+                conn = pymysql.connect(
+                    host=db_host,
+                    user='root',
+                    password=db_pass,
+                    port=db_port,
+                    unix_socket=db_socket,
+                    connect_timeout=5,
+                    read_timeout=read_timeout_val,
+                    cursorclass=pymysql.cursors.DictCursor
+                )
+                with conn.cursor() as cursor:
+                    # 1. 删除数据库（库已不存在时忽略该错误）
+                    try:
+                        cursor.execute("DROP DATABASE `" + name + "`")
+                    except Exception as e_db:
+                        # 1008 == ER_DB_DROP_EXISTS
+                        if getattr(e_db, 'args', None) and e_db.args[0] == 1008:
+                            pass
+                        else:
+                            raise e_db
+
+                    # 2/3/4. 一次取出该用户在 mysql.user 里的**全部** Host，再用单条
+                    #        DROP USER 批量删除（原来是本地 1 条 + 每个 Host 1 条）。
+                    #        不用 IF EXISTS（MySQL 5.7.8+ 才有），兼容 5.5/5.6。
+                    cursor.execute("SELECT Host FROM mysql.user WHERE User=%s", (username,))
+                    targets = _dropUserTargets(username, [r['Host'] for r in cursor.fetchall()])
+                    if targets:
+                        cursor.execute("DROP USER " + ','.join(targets))
+                    else:
+                        _log.warning('[mariadb] delDb 跳过删除用户（用户名/Host 含非白名单字符）: %s', username)
+
+                    # 5. 刷新权限
+                    cursor.execute("FLUSH PRIVILEGES")
+
+                conn.commit()
+                return True, None
+            except Exception as e:
+                return False, e
+            finally:
+                if conn:
+                    try:
+                        conn.close()
+                    except Exception as _e:
+                        _log.debug('[mariadb] delDb 异常已忽略: %s', _e)
+
+        ok, err = doDeleteDb(read_timeout_val=30)
+        if not ok:
+            # 超过 30 秒超时或遇到锁等待阻碍，自动重启数据库后重试一次
+            try:
+                db_version = version
+            except NameError:
+                db_version = "10.6"
+                version_pl = getServerDir() + "/version.pl"
+                if os.path.exists(version_pl):
+                    db_version = yf.readFile(version_pl).strip()
+
+            yf.writeFileLog('删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mariadb...')
+            restart(db_version)
+            time.sleep(3)
+
+            ok2, err2 = doDeleteDb(read_timeout_val=60)
+            if not ok2:
+                raise Exception("重启后尝试删除数据库依然失败: " + str(err2))
 
         # 删除SQLITE
-        psdb.where("id=?", (id,)).delete()
+        psdb.where("id=?", (sid,)).delete()
         return yf.returnJson(True, '删除成功!')
     except Exception as ex:
         return yf.returnJson(False, '删除失败!' + str(ex))

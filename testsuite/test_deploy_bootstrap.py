@@ -29,9 +29,13 @@ PROXY_CONSUMERS = ('scripts/install.sh', 'scripts/install_dev.sh',
                    'scripts/update.sh', 'scripts/update_dev.sh')
 
 
+from testsuite._yf_pkg import resolve_text
+
+
 def _read(path):
-    with open(path, 'r', encoding='utf-8') as fh:
-        return fh.read().replace('\r\n', '\n')
+    # yf 已拆包为 web/core/yf/（2026-09-29），凡 yf 路径一律返回包内源码拼接，
+    # 保证本用例搜的仍是「同一批代码」。映射实现见 testsuite/_yf_pkg.py。
+    return resolve_text(path)
 
 
 def _extract_heredoc(text, marker):
@@ -159,7 +163,7 @@ class DeployBootstrapGuardTest(unittest.TestCase):
         self.assertIn('proxies.list', gh_text,
                       'github_download.sh 未从单一真源读取代理')
         self.assertIn('proxies.list', yf_text,
-                      'web/core/yf.py 未从单一真源读取代理')
+                      'web/core/yf 未从单一真源读取代理')
         self.assertNotIn('"https://gh-proxy.com/",', gh_text,
                          'github_download.sh 仍有硬编码代理副本')
 

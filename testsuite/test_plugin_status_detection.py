@@ -32,7 +32,11 @@ if WEB_DIR not in sys.path:
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
+from testsuite._yf_pkg import module_files as yf_module_files  # noqa: E402
+
 YF_PY = os.path.join(WEB_DIR, 'core', 'yf.py')
+# yf 已拆包为 web/core/yf/（2026-09-29）：编码/LF 校验必须覆盖包内每个源文件
+YF_SRC_FILES = yf_module_files()
 PLUGIN_PY = os.path.join(WEB_DIR, 'utils', 'plugin.py')
 REDIS_INDEX_PY = os.path.join(ROOT_DIR, 'plugins', 'redis', 'index.py')
 
@@ -51,7 +55,7 @@ class TestPluginStatusDetection(unittest.TestCase):
 
     def test_01_encoding_and_lf(self):
         """测试 1: 验证修改的关键文件均为 UTF-8 无 BOM 且使用 LF 换行符"""
-        for fpath in [YF_PY, PLUGIN_PY]:
+        for fpath in YF_SRC_FILES + [PLUGIN_PY]:
             self.assertTrue(os.path.exists(fpath), f"文件不存在: {fpath}")
             with open(fpath, "rb") as f:
                 content = f.read()

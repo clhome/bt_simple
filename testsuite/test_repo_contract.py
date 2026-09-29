@@ -397,6 +397,8 @@ class TestSuiteSelfContained(unittest.TestCase):
             'run_all.py', 'install_hooks.py', 'quarantine.txt', 'testsuite.md',
             # 共享助手：用例的进程级隔离（把 panelDir/serverDir 指向临时区）
             '_isolation.py',
+            # 共享助手：web/core/yf 源码读取（兼容单文件/拆包两种形态，2026-09-29）
+            '_yf_pkg.py',
             # 已入库的夹具/工具脚本（被 test_*.py 以路径形式引用）
             'check_lan_syntax.js', 'check_overwrite_render.js',
             'repaired_functions.js', 'simulate_crontab.js',

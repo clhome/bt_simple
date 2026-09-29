@@ -1293,6 +1293,131 @@ cd /www/server/yufeng_panel && source bin/activate && python3 /www/server/yufeng
 - **保留未改（需真机确认）**：`task_manager`/`postgresql`/`sphinx`/`varnish` 里的 `cmdline.find('mdserver-web')` 与 `ps -ef | grep -v mdserver-web` 仍是**字符串匹配**：面板改名为 `yufeng_panel` 后，这些匹配可能不再命中（轻则分类显示不准，重则过滤失效）。**不能靠静态判断，需真机看进程表**，留作下一轮。
 - **临时脚本事故记录**：变异自证首次用 `read_text()`/`write_text()` 改写插件文件，未加 `finally` 还原 + Windows 下静默把全文转成 CRLF。已修为「字节快照 + `finally` 还原 + `newline='\n'`」。教训：**擅自改写业务文件的验证脚本必须有恢复保障**。
 
+---
+
+# 第 17 层「C5 巨型文件：安全 / 可靠性 / 性能优化（用户拍板范围）」
+
+## 零、侦察结论（先纠正前提）
+
+| 文件 | 行数 | 顶层定义 | 真实性质 |
+|---|---|---|---|
+| `plugins/mysql/index.py` | 5288 | 163 函数 | CLI **脚本入口**（`__main__` 196 分支分发） |
+| `plugins/mariadb/index.py` | 4398 | 141 函数 | 与 mysql **136 同名函数，其中 95 已漂移** |
+| `web/utils/site.py` | 3199 | 1 个 `sites` 类（119 方法）+ 2 模块函数 | 被 13 处 `from utils.site import sites` 使用 |
+| `web/core/yf.py` | 3206 | 197 函数 | **198 符号 / 7682 处 `yf.X` 调用点**，80 函数内部互调 |
+
+**结论：按行数切分本身几乎不产生安全/可靠/性能收益（只省几 ms 导入解析）。真收益在切分过程中暴露的结构问题。**
+
+## 一、用户拍定范围
+
+| 维度 | 拍定 | 内容 |
+|---|---|---|
+| 安全+可靠性 | 都修 | 对齐 `mariadb::delDb` 到 mysql 版（pymysql 直连 + 超时 + 1008 容错 + `find` 空值保护）；`mysql::setDbBackup` 补库名白名单；不再丢弃返回值 |
+| 性能 | 两项都做 | my.cnf 读取加 mtime 失效缓存；`delDb` 的 N 次 `DROP USER` 合并为单条 |
+| 结构 | 只拆 yf.py | `web/core/yf/` 包 + `__init__.py` 完整重导出，7682 调用点零改动 |
+
+## 二、实施清单
+
+- [x] A1 `mariadb::delDb` 对齐 mysql（含 `find` 空值保护 + 友好报错）
+- [x] A2 `mariadb::getSocketFile` 修无守卫导致的 `TypeError`/`AttributeError`
+- [x] A3 `mariadb::getDbPort` 补守卫（同上）—— 另发现 mysql 侧 `getShowLogFile/getMyDbPos/getMyPort/getAuthPolicy` 同样无守卫，一并收口
+- [x] A4 `mysql::setDbBackup` 补库名白名单
+- [x] A5 `mariadb::setDbBackup` 不再丢弃 backup 输出（原无条件返回成功）
+- [x] A6 两插件 `delDb`：单条 `DROP USER` 合并 + 用户名/Host 白名单
+- [x] B1 两插件 my.cnf 读取缓存（mtime+size+读取实现 三重 key）
+- [x] C1 `web/core/yf.py` → `web/core/yf/` 包（保留猴补丁语义）
+- [x] T1 新增守卫用例（加固对齐 + 猴补丁语义 + 符号等价）
+- [x] V  全量门禁 + 三约束证据 + `task.md` 收尾
+
+## 三、实施结果
+
+### 3.1 A/B：安全 + 可靠性 + 性能（两个数据库插件）
+
+| 项 | 改前 | 改后 |
+|---|---|---|
+| `mariadb::delDb` | 30 行：ORM + 字符串拼 SQL + **丢弃 `execute()` 返回值** + `find['accept']` 直接下标 | 105 行：pymysql 直连 + DictCursor + `connect_timeout=5`/`read_timeout` + `1008` 容错 + `if not find` 友好报错 + 超时重启重试 |
+| `mysql::delDb` | 本地 1 条 + 每 Host 1 条 `DROP USER`（N 次往返）；用户名/Host 直拼字面量 | 单条 `DROP USER 'u'@'h1','u'@'h2'`（不用 `IF EXISTS`，兼容 5.5/5.6）；`_dropUserTargets()` 白名单化 |
+| `mysql::setDbBackup` | 无库名校验 | 补 `^[\w\.-]+$` 白名单（与 mariadb 对齐） |
+| `mariadb::setDbBackup` | `p.communicate()` 丢弃 + **无条件返回成功** | 检查 `returncode` 与「备份失败」字样，失败必报错 |
+| my.cnf 读取 | 每个 getter 各自 `yf.readFile(getConf())` + 裸 `re.search`（mysql 29/5/12 次、mariadb 27/3/10 次） | 统一 `_readCnf()`（**路径+mtime_ns+size+`yf.readFile` 实现** 四元组作 key）+ `_cnfValue()`；文件一改立刻失效，绝不返回旧值 |
+| mariadb 10 个 my.cnf getter | `re.search(rep, content)` + `tmp.groups()` 无守卫 → my.cnf 缺失抛 `TypeError`、无该项抛 `AttributeError` | 全部走 `_cnfValue(pattern, default)`，永不抛异常 |
+
+**新增守卫** `testsuite/test_db_plugin_hardening.py` **18 项**：AST 扫「my.cnf 读后未判空即 re.search」（两插件 0 残留）、缓存命中/失效/stat 失败语义、`_dropUserTargets` 注入拦截、两插件 `delDb` 加固口径逐项比对、真跑 `mariadb::setDbBackup` 失败路径。**变异自证 4/4 命中**。
+
+**过程中抓到的自造 bug**：`mysql::setDbBackup` 内部有局部 `import re`，导致我新加的 `re.match` 触发 `UnboundLocalError`（`re` 被视为局部名）—— 已删掉那个冗余的局部导入。
+
+### 3.2 C：`web/core/yf.py` → `web/core/yf/` 包
+
+**形态**：`__init__.py` 3206 → **1078 行**（门面：模块级状态 + 44 个必须留驻的函数），外迁 **153 个函数 / 约 2333 行**到 10 个子模块（138~492 行）。
+
+```
+web/core/yf/
+  __init__.py  1078 行   模块级状态 + 被补丁符号 + 枢纽函数 + 重导出
+  panel.py      492 行   面板任务 / 网站操作 / 通知
+  net.py        430 行   HTTP 池 / 证书 / IP / SSH
+  system.py     380 行   os / 信息 / 页面 / json 工具
+  fileio.py     286 行   文件读写 / 备份 / 大小
+  shell.py      278 行   命令执行 / 权限 / 进程
+  security.py   245 行   口令 / 加解密 / RSA
+  textutil.py   236 行   时间 / 字符串 / 数字
+  log.py        219 行   日志 / 审计 / CLI 输出
+  paths.py      163 行   目录 / 端口 / 路径
+  github.py     138 行   代理列表 / 下载 / 测速
+```
+
+**猴补丁语义怎么保住的**（拆包最大的静默风险）：
+
+* 实测有 **21 个符号**被测试补丁过，两类机制都要算：`yf.X = ...` **和** `patch.object(yf, 'X')` / `patch('core.yf.X')`（第一版只扫了前者，全量门禁直接红 40 项）。
+* 这 21 个符号**定义一律留在 `__init__.py`**（这样 `yf.X` 才是被替换的那个对象）；
+* 子模块里对它们的调用一律走**运行时经包解析的 shim**（`_pkg().X(...)`），而不是 `from . import X`（静态导入会让补丁失效，产生「设了补丁却没测到」的假绿）；
+* 子模块之间**不互相 import**，统一 `from . import <name>` 经包命名空间取，导入顺序由 codemod 按拓扑序生成，从根上排除循环导入。
+
+**其他必须留驻 `__init__.py` 的三类函数**（codemod 自动识别并打印理由）：
+
+1. 被补丁的 21 个符号；
+2. 有 `global X` 重绑定语句的 7 个（`fixCrlf`/`getGithubProxyInfo`/`getLanguage`/`getAesKey`/`_get_http_pool`/`opWeb`/`notifyMessageTry`）—— 外迁后重绑定的是子模块的名字，与包内读数分叉；
+3. 模块级语句在导入期直接调用的（`_load_github_proxy_list`/`_proxy_display_name`，用于 `_GITHUB_PROXY_LIST` 顶层求值）；
+4. 读取被补丁**模块级状态** `_PANEL_ROOT_DIR` 的函数（`getRunDir`/`getRootDir`/`getFatherDir`）；
+5. 被其它模块引用、且处于循环依赖环里的**枢纽**函数（`readFile`/`writeFileLog`/`writeLog`/`M`/`checkPid` 等）—— 提升到门面即打破环，比「把整个环的模块合并」好得多（试过后者：一次环就把 10 个模块并成 1 个，拆包直接退化）。
+
+**搬迁工具** `scripts/tools/split_yf_module.py`（保留供审阅，带 `--dry-run` / `--restore`）：只按 AST 行号切片，**不改写任何函数体**；写盘前打印完整计划，写盘后做三重自检（`py_compile` + **未解析全局名静态扫描** + **符号等价对比**）。
+
+### 3.3 顺带修掉的 3 个原文件潜伏 bug（静态自检抓出）
+
+`split_yf_module.py` 的「未解析全局名」检查（symtable）在搬迁后报出 3 个 `NameError` —— 复核备份确认**都是原 `web/core/yf.py` 里就存在的**，不是搬迁造成：
+
+| 位置 | 问题 | 处理 |
+|---|---|---|
+| `requestFcgiPHP` | 调用了不存在的 `url_encode` → `pdata` 为 dict 时必 500 | ✅ 改 `urllib.parse.urlencode`（`load_url_public` 内部用 `StringIO`，故不 `.encode()`） |
+| `tgbotNotifyObject` | 引用未定义的 `app_token` → 必 500 | ✅ 改 `t['app_token']`（与 `tgbotNotifyChatID` 的 `t['chat_id']`、`notify_tgbot.py` 同源） |
+| `getFpmAddress` | 引用未定义的 `bind` → `NameError` 被外层 `except` 吞掉，于是「php-fpm 监听 TCP」时静默返回 unix socket 路径（连不上） | ✅ 补回丢失的参数 `bind=False`（保持原 if/else 结构）。**已核实** `fcgi_client.FCGIApp::_getConnection` 对 tuple 走 `socket.create_connection`，即返回元组是有意设计 |
+
+### 3.4 新增/迁移的守卫
+
+| 用例 | 项数 | 内容 |
+|---|---|---|
+| `testsuite/test_db_plugin_hardening.py` | 18 | A/B 的加固口径与缓存语义 |
+| `testsuite/test_yf_package_contract.py` | 13 | 包形态、`_PANEL_ROOT_DIR`、重导出可解析、符号数下限、**补丁语义端到端**（补 `yf.getPanelDir` → `net.getLocalIp` 读到被补目录；补 `isAppleSystem`+`execShell` → `paths.getAcmeDir` 走 macOS 分支）、子模块不得静态导入被补符号、shim 不得进重导出清单、**补丁集新鲜度**（testsuite 里新出现的补丁目标未登记即红灯） |
+| `testsuite/_yf_pkg.py`（新助手） | — | 兼容「单文件 / 拆包」两形态的源码读取；已登记进 `test_repo_contract` 白名单 |
+| 6 个按路径读 `web/core/yf.py` 的守卫 | — | 改为经 `_yf_pkg.resolve_text()` 读**包内源码拼接**，保证拆包后仍覆盖同一批代码：`test_deploy_bootstrap` / `test_p3_ssrf_and_transport` / `test_path_guard` / `test_plugin_status_detection` / `test_site_delete_fix` / `test_supply_chain_guards` |
+| `plugins/mariadb/lang/*.json`（6 语言） | 2 键 | A5/A1 新增的两条用户可见消息补进语言包（复用 mysql 译文，六语言键集保持一致） |
+
+### 3.5 验证
+
+* 全量门禁：**181 模块 / 1374 用例 / 0 隔离 / 4 静态门禁 全绿**（约 52s）。
+* i18n 11 项静态门禁全绿；代码质量棘轮未动（bare 0 / silent 0 / print 0 / os.system 5）。
+* 包内 11 个文件全部 **LF / 无 BOM**。
+* `web/core/yf.py` 已删除；原文件备份在 `test/tmp_yf_split/yf.py`（收尾删除）。
+
+### 3.6 本轮未做 / 需真机确认
+
+* **`web/utils/site.py`（3199 行 / 119 方法）与两个数据库插件的主体未拆**：用户拍板本轮只拆 `yf.py`。
+* **mysql/mariadb 仍是两份副本**（136 同名 / 95 漂移）：本轮只对齐了安全相关函数，未抽共享模块（用户拍板）。
+* **需真机验证**：`delDb` 的「超时→重启数据库→重试」分支、`getFpmAddress` 的 TCP 分支（tuple）在真实 php-fpm 配置下的连通性、主从同步真实链路。
+* `plugins/*/scripts/{tools,test}.py` 依赖不存在的 `class/core` 且全库零引用（死脚本），本轮只登记未处理。
+
+
+
 
 
 

@@ -33,6 +33,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import core.yf as yf  # noqa: E402
+from testsuite._yf_pkg import resolve_text  # noqa: E402
 
 
 class InvalidPathReasonTest(unittest.TestCase):
@@ -139,8 +140,8 @@ class RepoHygieneTest(unittest.TestCase):
 
     def test_09_make_dirs_guard_is_wired(self):
         """守卫必须在统一入口上，而不是散落在调用方。"""
-        with open(os.path.join(web_dir, 'core', 'yf.py'), encoding='utf-8') as fh:
-            text = fh.read()
+        # 拆包后 resolve_text 返回包内源码拼接（makeDirs/removeDir 在 shell.py）
+        text = resolve_text(os.path.join(web_dir, 'core', 'yf.py'))
         self.assertIn('def invalidPathReason(', text)
         # makeDirs 与 removeDir 都要走守卫
         self.assertIn('def makeDirs(path):\n    reason = invalidPathReason(path)', text)

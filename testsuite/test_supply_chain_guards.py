@@ -18,14 +18,19 @@
 """
 import os
 import re
+import sys
 import unittest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from testsuite._yf_pkg import resolve_text  # noqa: E402
 
 
 def _read(rel):
-    with open(os.path.join(ROOT, rel), 'r', encoding='utf-8') as fh:
-        return fh.read().replace('\r\n', '\n')
+    # yf 已拆包为 web/core/yf/（2026-09-29），yf 路径统一返回包内源码拼接
+    return resolve_text(os.path.join(ROOT, rel))
 
 
 def _fn_body(text, signature):

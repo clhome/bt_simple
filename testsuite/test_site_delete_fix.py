@@ -8,6 +8,9 @@ import unittest
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_DIR, 'web'))
+sys.path.insert(0, PROJECT_DIR)
+
+from testsuite._yf_pkg import module_files as yf_module_files  # noqa: E402
 
 class TestSiteDeleteFix(unittest.TestCase):
     def test_public_js_safemessage_execution_order(self):
@@ -105,7 +108,8 @@ class TestSiteDeleteFix(unittest.TestCase):
             os.path.join(PROJECT_DIR, 'web', 'static', 'app', 'public.js'),
             os.path.join(PROJECT_DIR, 'web', 'static', 'app', 'site.js'),
             os.path.join(PROJECT_DIR, 'web', 'utils', 'site.py'),
-            os.path.join(PROJECT_DIR, 'web', 'core', 'yf.py'),
+            # yf 已拆包为 web/core/yf/（2026-09-29）：包内每个文件都要验编码与 LF
+            *yf_module_files(),
             os.path.join(PROJECT_DIR, 'task.md'),
         ]
 

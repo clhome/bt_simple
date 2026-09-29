@@ -10,7 +10,7 @@
 #
 # 引用方（改这一个文件即可，全仓生效）：
 #   * scripts/github_download.sh::_GH_PROXY_LIST          （rt / both，自动回退顺序）
-#   * web/core/yf.py::_GITHUB_PROXY_LIST                  （rt / both，面板下载 + 测速）
+#   * web/core/yf/__init__.py::_GITHUB_PROXY_LIST       （rt / both，面板下载 + 测速）
 #   * scripts/install.sh / install_dev.sh / update.sh / update_dev.sh
 #                                                         （ui / both，交互菜单 + 测速）
 #

@@ -16,9 +16,12 @@ if WEB_DIR not in sys.path:
     sys.path.insert(0, WEB_DIR)
 
 
+from testsuite._yf_pkg import resolve_text
+
+
 def _read(rel):
-    with open(os.path.join(project_dir, rel), encoding='utf-8') as f:
-        return f.read()
+    # yf 已拆包为 web/core/yf/（2026-09-29），yf 路径统一返回包内源码拼接
+    return resolve_text(os.path.join(project_dir, rel))
 
 
 class TestDownloadSsrf(unittest.TestCase):
