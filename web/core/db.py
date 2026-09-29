@@ -129,7 +129,7 @@ class Sql():
                 
                 self.__DB_CONN = _local.connections[self.__DB_FILE]
         except Exception as ex:
-            print(getTracebackInfo())
+            yf.writeFileLog(getTracebackInfo())
             return "error: " + str(ex)
 
     def changeTextFactoryToBytes(self):
@@ -244,8 +244,8 @@ class Sql():
                 self.__OPT_WHERE + self.__OPT_GROUP + self.__OPT_ORDER + self.__OPT_LIMIT
 
             if self.__debug:
-                print(sql)
-                print(self.__OPT_PARAM)
+                yf.writeFileLog(sql)
+                yf.writeFileLog(str(self.__OPT_PARAM))
 
             result = _execute_with_retry(self.__DB_CONN, sql, self.__OPT_PARAM)
             data = result.fetchall()
@@ -380,7 +380,7 @@ class Sql():
             self.__DB_CONN.commit()
             return last_id
         except Exception as ex:
-            print(str(ex))
+            yf.writeFileLog(str(ex))
             return 0
 
     # 插入数据
@@ -455,7 +455,7 @@ class Sql():
             sql = "UPDATE " + self.__DB_TABLE + " SET " + opt + self.__OPT_WHERE
 
             if self.__debug:
-                print(sql, param)
+                yf.writeFileLog(sql + ' ' + str(param))
 
             # 处理拼接WHERE与UPDATE参数
             tmp = list(param)

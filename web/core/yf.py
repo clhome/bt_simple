@@ -552,23 +552,43 @@ def getGithubProxyName():
 
 
 # ---------- GitHub 代理站列表 ----------
-# ⚠️ **单一真源**。以下位置必须与本列表逐项一致：
-#   * `scripts/github_download.sh` 的 `_GH_PROXY_LIST`
-#   * `deploy.sh` 的 `YF_BOOTSTRAP_PROXY_LIST`（引导期验签下载用）
-#   * `deploy.sh` 的 `setup_china_git_config` 内联 `proxies` 数组
-# 由 `testsuite/test_deploy_bootstrap.py::test_04` 守卫。
+# ⚠️ **单一真源 = 仓库根目录 `scripts/proxies.list`**（取作用域 rt / both，保持文件顺序）。
+# 与脚本侧的分工：
+#   * `scripts/github_download.sh` 读同一文件（shell 侧）
+#   * `deploy.sh` 引导期在仓库落地前运行、读不到文件，保留内嵌副本
+# 由 `testsuite/test_deploy_bootstrap.py::test_04` 守卫「文件 == deploy 内嵌 == 本列表」。
 #
-# 为什么强调这件事：曾经三处各写一份且**不一致**（面板侧少了 `gh.ddlc.top`），
+# 为什么强调这件事：曾经多处各写一份且**不一致**（面板侧少了 `gh.ddlc.top`），
 # 结果是「同一个包在脚本里下得动、在面板里下不动」，极难排查。
 # 中国大陆直连 GitHub 经常失败，本列表是可用性的生命线，只许增不许减。
-_GITHUB_PROXY_LIST = [
-    "",
-    "https://gh-proxy.com/",
-    "https://cors.zme.ink/",
-    "https://gh.ddlc.top/",
-    "https://ghproxy.net/",
-    "https://gh.con.sh/",
-]
+_PROXY_LIST_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    'scripts', 'proxies.list')
+
+
+def _load_github_proxy_list():
+    """从 `scripts/proxies.list` 读取运行时回退顺序（rt / both）。
+
+    读不到 / 解析为空时退化为「仅官方直连」，绝不因清单缺失而卡死下载。
+    """
+    items = []
+    try:
+        with open(_PROXY_LIST_FILE, 'r', encoding='utf-8') as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line or line.startswith('#'):
+                    continue
+                parts = line.split('|')
+                if len(parts) < 3:
+                    continue
+                if parts[2].strip() in ('rt', 'both'):
+                    items.append(parts[1].strip())
+    except OSError:
+        items = []
+    return items or ['']
+
+
+_GITHUB_PROXY_LIST = _load_github_proxy_list()
 
 
 def _proxy_display_name(prefix):
@@ -1722,7 +1742,7 @@ def isOpenPort(port):
 
 def debugLog(*data):
     if isDebugMode():
-        print(data)
+        writeFileLog(str(data))
     return True
 
 
@@ -2945,7 +2965,7 @@ done
 '''
     if not isAppleSystem():
         info = execShell(sh)
-        print(info[0], info[1])
+        writeFileLog(str(info[0]) + ' ' + str(info[1]))
 ##################### ssh  end   #########################################
         
 ##################### notify  start #########################################
@@ -3049,10 +3069,10 @@ def emailNotifyMessage(data):
                         data['username'], data['password'],
                         data['to_mail_addr'], data['subject'], data['content'])
 
-            print(r)
+            writeFileLog(str(r))
         return True
     except Exception as e:
-        print(getTracebackInfo())
+        writeFileLog(getTracebackInfo())
         return str(e)
     return False
 
@@ -3123,19 +3143,19 @@ def notifyMessage(msg, stype='common', trigger_time=300, is_write_log=True):
 # ---------------------------------------------------------------------------------
 
 def echoStart(tag):
-    print("=" * 89)
-    print("★开始{}[{}]".format(tag, formatDate()))
-    print("=" * 89)
+    print("=" * 89)  # print-ok: panel_tools CLI 输出
+    print("★开始{}[{}]".format(tag, formatDate()))  # print-ok: panel_tools CLI 输出
+    print("=" * 89)  # print-ok: panel_tools CLI 输出
 
 
 def echoEnd(tag):
-    print("=" * 89)
-    print("☆{}完成[{}]".format(tag, formatDate()))
-    print("=" * 89)
+    print("=" * 89)  # print-ok: panel_tools CLI 输出
+    print("☆{}完成[{}]".format(tag, formatDate()))  # print-ok: panel_tools CLI 输出
+    print("=" * 89)  # print-ok: panel_tools CLI 输出
 
 
 def echoInfo(msg):
-    print("|-{}".format(msg))
+    print("|-{}".format(msg))  # print-ok: panel_tools CLI 输出
 
 # ---------------------------------------------------------------------------------
 # 打印相关 END

@@ -37,7 +37,11 @@ whitenoise>5.3.0
 # simple-websocket 使 threading 异步模式支持原生 WebSocket（无需 gevent）
 python-engineio>=4.6.0
 python-socketio>=5.8.0
-flask-socketio>=5.3.0
+# 下界 5.3.6：首个兼容 Flask 3.x 的版本。低于它会触发
+# `RequestContext.session` 无 setter 的 AttributeError，历史上靠
+# web/admin/__init__.py 的 monkey patch 兜底；该补丁已删除，
+# 因此这里必须把下界顶到 5.3.6（testsuite 有守卫锁死）。
+flask-socketio>=5.3.6
 simple-websocket>=1.0.0
 # gevent/gevent-websocket 仅作为可选的高并发部署路径保留，非默认
 gevent>=22.10.2

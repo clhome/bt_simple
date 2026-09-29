@@ -147,8 +147,22 @@ class TestStaticHardening(unittest.TestCase):
         self.assertFalse(any(l.startswith('requests>=2.34.2') for l in lines))
         self.assertFalse(any(l.startswith('flask-session') for l in lines))
         self.assertTrue(any(l.startswith('simple-websocket') for l in lines))
-        self.assertTrue(any(l.startswith('flask-socketio>=5.3.0') for l in lines))
+        self.assertTrue(any(l.startswith('flask-socketio>=5.3.6') for l in lines))
         self.assertTrue(any(l.startswith('python-engineio>=4.6.0') for l in lines))
+
+    def test_no_request_context_monkey_patch(self):
+        """B4：不得再给 flask RequestContext.session 打 monkey patch。
+
+        该补丁是为「高版本 Flask + 低版本 flask_socketio」兼容而引入的，
+        随 `flask-socketio>=5.3.6` 下界顶起，已无保留必要。补丁会静默改变
+        Flask 会话语义（且原实现 `except: pass` 失败无声），属于应当消除的隐患。
+        """
+        src = _read('web/admin/__init__.py')
+        self.assertNotIn('RequestContext', src, 'monkey patch 被重新引入')
+        self.assertNotIn('patch_err', src, 'monkey patch 被重新引入')
+        req = _read('requirements.txt')
+        self.assertNotIn('flask-socketio>=5.3.0\n', req,
+                         '下界仍是 5.3.0，不兼容 Flask 3.x')
 
     def test_login_shared_rate_limit(self):
         src = _read('web/admin/dashboard/login.py')

@@ -19,6 +19,7 @@ import time
 import sys
 import random
 import os
+import logging
 
 # 初始化db
 from admin import setup
@@ -27,6 +28,8 @@ setup.init()
 import core.yf as yf
 import utils.system as system 
 import thisdb
+
+_log = logging.getLogger('yf.setting')
 
 cpu_info = system.getCpuInfo()
 # Flask-SocketIO 要求 worker 数量必须为 1，多 worker 会导致 SocketIO 握手 400 错误。
@@ -38,8 +41,8 @@ if os.environ.get('YF_ALLOW_MULTI_WORKER', '') == '1':
         workers = max(1, int(os.environ.get('YF_WORKERS', '2')))
     except Exception:
         workers = 2
-    print('[WARN] YF_ALLOW_MULTI_WORKER=1：已放开 %d 个 worker。'
-          '上传/下载进度、登录封禁缓存将按进程隔离，可能出现串台/校验不一致，请确认已理解风险。' % workers)
+    _log.warning('YF_ALLOW_MULTI_WORKER=1：已放开 %d 个 worker。'
+                 '上传/下载进度、登录封禁缓存将按进程隔离，可能出现串台/校验不一致，请确认已理解风险。', workers)
 
 panel_dir = yf.getPanelDir()
 log_dir = yf.getYfLogs()

@@ -5,8 +5,11 @@ import os
 import sys
 import queue
 import threading
+import logging
 
 import pymysql.cursors
+
+log = logging.getLogger('yf.orm')
 
 class SimpleMySQLPool:
     def __init__(self, max_connections=5):
@@ -199,7 +202,7 @@ class ORM:
         try:
             self.__DB_CONN.ping()
         except Exception as e:
-            print(e)
+            log.warning('连接保活检测失败: %s', e)
         return True
 
     def find(self, sql, params=None):

@@ -258,7 +258,7 @@ def parseAuditFile(log_name, result):
         try:
             _line = parseAuditFileLine(log_name, _line)
         except Exception as e:
-            print(str(e))
+            yf.writeFileLog(str(e))
         
         log_list.append(_line)
     return log_list

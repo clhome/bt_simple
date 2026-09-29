@@ -40,15 +40,23 @@ if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
 	LOCAL_ADDR=cn
 fi
 
+# 代理清单单一真源：scripts/proxies.list（作用域 ui / both）
+_yf_proxy_list_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/proxies.list"
+
 if [ "$LOCAL_ADDR" != "common" ];then
 	declare -A PROXY_URL
-    PROXY_URL["github_do"]="https://github.do/"
-    PROXY_URL["gh_llkk_cc"]="https://gh.llkk.cc/https://"
-    PROXY_URL["gh_felicity_ac_cn"]="https://gh.felicity.ac.cn/https://"
-    PROXY_URL["ghfast_top"]="https://ghfast.top/"
-    PROXY_URL["ghproxy_net"]="https://gh-proxy.org/"
-    PROXY_URL["gh_927223_xyz"]="https://gh.927223.xyz/https://"
-    PROXY_URL["gh_proxy_net"]="https://gh-proxy.net/"
+    if [ -f "$_yf_proxy_list_file" ]; then
+        while IFS='|' read -r _yf_p_name _yf_p_url _yf_p_scope; do
+            case "$_yf_p_name" in
+                ''|'#'*) continue ;;
+            esac
+            case "$_yf_p_scope" in
+                ui|both) PROXY_URL["$_yf_p_name"]="$_yf_p_url" ;;
+            esac
+        done < "$_yf_proxy_list_file"
+    else
+        echo -e "\033[33m[WARN]\033[0m 未找到代理清单 $_yf_proxy_list_file，仅提供官方直连。" >&2
+    fi
     
     PROXY_URL["source"]="https://"
 
@@ -86,13 +94,18 @@ function AutoChooseProxyURL(){
 	local BEST_PREFIX="https://"
 	local BEST_NAME="Direct"
 
-	# 预设稳定测试列表
+	# 测速候选同样来自单一真源（作用域 ui / both）
 	declare -A TEST_LIST
-	TEST_LIST["gh-proxy.org"]="https://gh-proxy.org/"
-	TEST_LIST["ghfast.top"]="https://ghfast.top/"
-	TEST_LIST["ghp.ci"]="https://ghp.ci/https://"
-	TEST_LIST["github.do"]="https://github.do/"
-	TEST_LIST["gh-proxy.net"]="https://gh-proxy.net/"
+	if [ -f "$_yf_proxy_list_file" ]; then
+		while IFS='|' read -r _yf_p_name _yf_p_url _yf_p_scope; do
+			case "$_yf_p_name" in
+				''|'#'*) continue ;;
+			esac
+			case "$_yf_p_scope" in
+				ui|both) TEST_LIST["$_yf_p_name"]="$_yf_p_url" ;;
+			esac
+		done < "$_yf_proxy_list_file"
+	fi
 
 	for name in "${!TEST_LIST[@]}"; do
 		local prefix=${TEST_LIST[$name]}

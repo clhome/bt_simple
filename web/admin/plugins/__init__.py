@@ -461,7 +461,7 @@ def callback():
         return Response(json_str, mimetype='application/json')
     except Exception as e:
         if yf.isDebugMode():
-            print(yf.getTracebackInfo())
+            yf.writeFileLog(yf.getTracebackInfo())
         yf.writeLog('插件管理', f"插件[{request.form.get('name', '')}]回调操作[{request.form.get('func', '')}]异常: {str(e)}")
         from flask import Response
         err_json = yf.returnJson(False, yf.userSafeError(e))

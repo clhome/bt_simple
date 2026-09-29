@@ -277,7 +277,7 @@ def get_recent_logins():
         limit_str = f"{start},{limit}"
         raw_logs = yf.M('logs').field('id,type,log,uid,add_time').where(sql_where, tuple(params)).order('id desc').limit(limit_str).select()
     except Exception as ex:
-        print("get_recent_logins db error:", ex)
+        yf.writeFileLog("get_recent_logins db error: %s" % ex)
         raw_logs = []
     
     result_list = []
@@ -430,7 +430,7 @@ def get_recent_logins():
             'row': limit
         })
     except Exception as ex:
-        print("getPage error:", ex)
+        yf.writeFileLog("getPage error: %s" % ex)
         page_html = ''
 
     return yf.returnData(True, 'ok', {

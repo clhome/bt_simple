@@ -50,7 +50,7 @@ def addDomain(site_id, site_name, domain):
 	if len(d) == 2:
 		port = d[1]
 	if thisdb.checkSitesDomainIsExist(name, port):
-		print('您添加的域名[{}:{}],已使用。请仔细检查!'.format(name, port))
+		print('您添加的域名[{}:{}],已使用。请仔细检查!'.format(name, port))  # print-ok: site_reflect CLI 诊断
 		return True
 	thisdb.addDomain(site_id, name, port)
 	return True
@@ -86,7 +86,7 @@ def parseSite(d):
 	sn_list = getServerName(content)
 
 	if thisdb.isSitesExist(domain):
-		print('您添加的站点[%s]已存在!' % domain)
+		print('您添加的站点[%s]已存在!' % domain)  # print-ok: site_reflect CLI 诊断
 	else:
 		thisdb.addSites(domain, root_dir)
 	info = thisdb.getSitesByName(domain)

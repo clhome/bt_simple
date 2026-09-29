@@ -25,6 +25,11 @@
     silent_except         `except Exception:` 紧接 `pass` —— 静默失败，线上无法诊断
     print_in_web          `web/` 下的 `print(` —— 生产代码应走 logging
 
+print 的两类**豁免**（必须是真·CLI 输出，不是偷懒）：
+    1. 位于 `if __name__ == '__main__':` 块内（直接跑脚本的入口，输出就该走 stdout）；
+    2. 行内带 `# print-ok: 理由` 标记（如 `panel_tools.py` 依赖的 terminal 输出）。
+    其余一律用 `yf.writeFileLog(...)` / `logging`，让面板进程的诊断信息有处可查。
+
 用法：
     python scripts/verify_code_quality.py              # 校验（超出基线即失败）
     python scripts/verify_code_quality.py --verbose    # 列出具体位置
@@ -75,6 +80,44 @@ def _rel(path):
     return os.path.relpath(path, ROOT).replace(os.sep, '/')
 
 
+def _is_main_guard(test):
+    """判断 `if __name__ == '__main__':` 的条件表达式。"""
+    if not (isinstance(test, ast.Compare) and len(test.ops) == 1
+            and isinstance(test.ops[0], ast.Eq) and len(test.comparators) == 1):
+        return False
+
+    def literal(node):
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Constant):
+            return node.value
+        return None
+
+    return {literal(test.left), literal(test.comparators[0])} == {'__name__', '__main__'}
+
+
+def _collect_web_prints(tree, lines):
+    """收集需要整改的 `print(`：排除 CLI 入口块与带 `# print-ok` 标记的行。"""
+    out = []
+
+    def visit(node, in_main):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                and node.func.id == 'print'):
+            if not in_main:
+                src = lines[node.lineno - 1] if 0 < node.lineno <= len(lines) else ''
+                if 'print-ok' not in src:
+                    out.append((node.lineno, src.strip()))
+        for child in ast.iter_child_nodes(node):
+            child_main = in_main
+            if isinstance(child, ast.If) and _is_main_guard(child.test):
+                child_main = True
+            visit(child, child_main)
+
+    visit(tree, False)
+    out.sort()
+    return out
+
+
 def scan_text(text, path, in_web):
     """扫描单份源码，返回 {metric: [(行号, 片段)]}。
 
@@ -99,9 +142,9 @@ def scan_text(text, path, in_web):
                 found['bare_except'].append((node.lineno, snippet(node.lineno)))
             elif len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
                 found['silent_except'].append((node.lineno, snippet(node.lineno)))
-        elif (in_web and isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Name) and node.func.id == 'print'):
-            found['print_in_web'].append((node.lineno, snippet(node.lineno)))
+
+    if in_web:
+        found['print_in_web'] = _collect_web_prints(tree, lines)
 
     for metric in found:
         found[metric].sort()
@@ -124,7 +167,7 @@ def _scan_text_regex(text, in_web):
                 if nxt == 'pass':
                     found['silent_except'].append((idx, line.strip()))
                 break
-        if in_web and RE_PRINT.search(line):
+        if in_web and RE_PRINT.search(line) and 'print-ok' not in line:
             found['print_in_web'].append((idx, line.strip()))
     return found
 
@@ -172,6 +215,9 @@ def self_test():
         "        pass\n"
         "    except ValueError as e:\n"   # 不算静默（有日志）
         "        logging.warning(e)\n"
+        "    if __name__ == '__main__':\n"
+        "        print('cli')\n"          # 豁免：CLI 入口
+        "    print('x')  # print-ok: 夹具\n"  # 豁免：显式标记
         "    d = {'except': 1}\n"          # 字符串里的 except 不得误报
         "    x = 'print('\n"               # 字符串里的 print 不得误报
         "    return d, x\n"
@@ -182,7 +228,7 @@ def self_test():
     if counts != expected:
         print('[FAIL] 自证失败：期望 %r，实际 %r' % (expected, counts))
         return 1
-    print('[OK] 检测器自证通过（三类各命中 1，合法写法零误报）')
+    print('[OK] 检测器自证通过（三类各命中 1，合法写法零误报，两类 print 豁免生效）')
     return 0
 
 

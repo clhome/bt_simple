@@ -5,7 +5,7 @@ deploy.sh 引导块漂移守卫（供应链可信 P0-1）
 deploy.sh 为了能在「仓库尚未落地」时验签，内嵌了两份副本：
   1. 引导级校验器（与 scripts/tools/yf_release_verify.py 必须逐字节一致）
   2. 发布公钥（与 keys/yf-release.pub 必须逐字节一致）
-以及一份代理列表（与 scripts/github_download.sh 的 _GH_PROXY_LIST 必须一致）。
+以及一份代理列表（与 scripts/proxies.list 的运行时子集必须一致）。
 
 这些副本一旦脱节，最坏结果是「本地验签通过、用户装机验签失败」或
 「脚本能下的包、面板下不动」——都是极难排查的问题。所以这里做硬比对。
@@ -24,19 +24,14 @@ DEPLOY = os.path.join(ROOT, 'deploy.sh')
 VERIFIER = os.path.join(ROOT, 'scripts', 'tools', 'yf_release_verify.py')
 PUBKEY = os.path.join(ROOT, 'keys', 'yf-release.pub')
 GH_DL = os.path.join(ROOT, 'scripts', 'github_download.sh')
+PROXIES = os.path.join(ROOT, 'scripts', 'proxies.list')
+PROXY_CONSUMERS = ('scripts/install.sh', 'scripts/install_dev.sh',
+                   'scripts/update.sh', 'scripts/update_dev.sh')
 
 
 def _read(path):
     with open(path, 'r', encoding='utf-8') as fh:
         return fh.read().replace('\r\n', '\n')
-
-
-def _extract_py_str_list(text, name):
-    """取出 Python 源码里 `NAME = [ "...", ... ]` 的字符串项（保持顺序）。"""
-    m = re.search(re.escape(name) + r"\s*=\s*\[(.*?)\]", text, re.S)
-    if not m:
-        raise AssertionError('找不到 Python 列表：%s' % name)
-    return re.findall(r'"([^"]*)"', m.group(1))
 
 
 def _extract_heredoc(text, marker):
@@ -50,6 +45,20 @@ def _extract_heredoc(text, marker):
     if end < 0:
         raise AssertionError('deploy.sh 中找不到 heredoc 结束标记 %s' % marker)
     return text[body_start:end + 1]
+
+
+def _parse_proxies(path):
+    """解析 scripts/proxies.list -> [(name, url, scope), ...]（忽略注释/空行）。"""
+    entries = []
+    for raw in _read(path).splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = line.split('|')
+        if len(parts) < 3:
+            continue
+        entries.append((parts[0].strip(), parts[1].strip(), parts[2].strip()))
+    return entries
 
 
 def _extract_bash_array(text, name):
@@ -120,34 +129,72 @@ class DeployBootstrapGuardTest(unittest.TestCase):
             self.assertEqual(len(pubkey_raw), 32)
 
     def test_04_proxy_list_single_source(self):
-        """代理列表必须单一真源：三处（shell 库 / deploy.sh 引导 / 面板 yf.py）逐项一致。
+        """代理清单必须单一真源：scripts/proxies.list。
 
         用户明确要求（2026-09-28）：修改必须保证所有内置代理地址继续可用。
-        实测历史上三处各写一份且**不一致**（面板侧少了 `gh.ddlc.top`），
+        实测历史上多处各写一份且**不一致**（面板侧少了 `gh.ddlc.top`），
         于是出现「同一个包在脚本里下得动、在面板里下不动」——大陆环境极难排查。
-        本用例锁死：三处必须逐项相等，且都包含已知的全部代理。
+
+        本用例锁死：
+          1. `proxies.list` 解析出的 rt 集合 == deploy.sh 内嵌副本；
+          2. deploy.sh 引导期、github_download.sh、web/core/yf.py、
+             4 个安装/更新脚本都从该文件读取，不得再各自硬编码 URL；
+          3. 已知代理一个都不能少，且首位必须是空串（官方直连优先）。
         """
+        entries = _parse_proxies(PROXIES)
+        runtime = [url for _name, url, scope in entries if scope in ('rt', 'both')]
+        ui = [url for _name, url, scope in entries if scope in ('ui', 'both')]
+
         deploy_text = _read(DEPLOY)
         gh_text = _read(GH_DL)
         yf_text = _read(os.path.join(ROOT, 'web', 'core', 'yf.py'))
 
         boot = _extract_bash_array(deploy_text, 'YF_BOOTSTRAP_PROXY_LIST')
-        main = _extract_bash_array(gh_text, '_GH_PROXY_LIST')
-        panel = _extract_py_str_list(yf_text, '_GITHUB_PROXY_LIST')
+        self.assertEqual(
+            runtime, boot,
+            'proxies.list 与 deploy.sh 引导期副本已脱节：\n'
+            '  proxies.list = %r\n  deploy.sh    = %r' % (runtime, boot))
 
-        self.assertEqual(
-            boot, main,
-            '代理列表已脱节：\n  deploy.sh 引导期 = %r\n  github_download.sh = %r' % (boot, main))
-        self.assertEqual(
-            panel, main,
-            '面板侧代理列表与脚本侧脱节（会导致「脚本能下、面板下不动」）：\n'
-            '  web/core/yf.py = %r\n  github_download.sh = %r' % (panel, main))
+        # 运行时消费方必须读文件，不得再内嵌一份可漂移的副本
+        self.assertIn('proxies.list', gh_text,
+                      'github_download.sh 未从单一真源读取代理')
+        self.assertIn('proxies.list', yf_text,
+                      'web/core/yf.py 未从单一真源读取代理')
+        self.assertNotIn('"https://gh-proxy.com/",', gh_text,
+                         'github_download.sh 仍有硬编码代理副本')
+
+        # 4 个安装/更新脚本：引用单一真源，且不得再硬编码 URL
+        for rel in PROXY_CONSUMERS:
+            consumer = _read(os.path.join(ROOT, rel))
+            self.assertIn('proxies.list', consumer,
+                          '%s 未引用单一真源 scripts/proxies.list' % rel)
+            self.assertEqual(
+                re.findall(r'PROXY_URL\["(?!source")[^"]+"\]="https?://', consumer), [],
+                '%s 仍有硬编码的代理 URL，应改从 proxies.list 读取' % rel)
+            self.assertEqual(
+                re.findall(r'TEST_LIST\["[^"]+"\]="https?://', consumer), [],
+                '%s 仍有硬编码的测速候选，应改从 proxies.list 读取' % rel)
 
         # 已知代理一个都不能少（大陆可用性生命线，只许增不许减）
         for required in ('https://gh-proxy.com/', 'https://cors.zme.ink/',
                          'https://gh.ddlc.top/', 'https://ghproxy.net/'):
-            self.assertIn(required, main, '代理被删了：%s' % required)
-        self.assertEqual(main[0], '', '首位必须留空串（官方直连优先）')
+            self.assertIn(required, runtime, '代理被删了：%s' % required)
+        self.assertEqual(runtime[0], '', '首位必须留空串（官方直连优先）')
+
+        # 交互菜单同样不得丢失历史代理（含 install.sh 独有的 gh-proxy.com）
+        for required in ('https://gh-proxy.com/', 'https://ghproxy.net/',
+                         'https://gh-proxy.org/', 'https://github.do/',
+                         'https://gh.llkk.cc/https://', 'https://ghfast.top/',
+                         'https://gh.927223.xyz/https://', 'https://ghp.ci/https://'):
+            self.assertIn(required, ui, '交互菜单代理被删了：%s' % required)
+
+        # B8：键名必须与域名一致（不再出现 ghproxy_net -> gh-proxy.org 的错配）
+        by_name = {name: url for name, url, _scope in entries}
+        for name, url in by_name.items():
+            if not name or name == 'direct':
+                continue
+            self.assertIn(name, url,
+                          '键名与域名不一致：%s -> %s' % (name, url))
 
         # deploy.sh 的 git 清理列表必须从单一真源派生，不得再手写一份
         self.assertIn('for _p in "${YF_BOOTSTRAP_PROXY_LIST[@]}"', deploy_text,

@@ -1,0 +1,34 @@
+# GitHub 下载代理地址 —— 单一真源（SINGLE SOURCE OF TRUTH）
+#
+# 格式:  <键名>|<URL>|<作用域>
+#   * 键名：仅用于安装期交互菜单的展示标签，必须与域名一致（不再出现 ghproxy_net 指向 gh-proxy.org 的错配）
+#   * URL ：拼在 `github.com/...` 前面的前缀；某些站点形如 `https://x/https://` 是历史沿用的写法
+#   * 作用域：
+#       rt   = 运行时有序回退列表（首位必须是 direct，代表官方直连）
+#       ui   = 安装期交互菜单 / 测速候选
+#       both = 两者都用
+#
+# 引用方（改这一个文件即可，全仓生效）：
+#   * scripts/github_download.sh::_GH_PROXY_LIST          （rt / both，自动回退顺序）
+#   * web/core/yf.py::_GITHUB_PROXY_LIST                  （rt / both，面板下载 + 测速）
+#   * scripts/install.sh / install_dev.sh / update.sh / update_dev.sh
+#                                                         （ui / both，交互菜单 + 测速）
+#
+# ⚠️ deploy.sh 的引导期在仓库落地**之前**运行，读不到本文件，因此保留内嵌副本
+#    `YF_BOOTSTRAP_PROXY_LIST`，由 testsuite/test_deploy_bootstrap.py::test_04 与本文件比对。
+# ⚠️ 中国大陆直连 GitHub 经常失败，本列表是可用性的生命线：**只许增，不许减**。
+#
+# 键名|URL|作用域
+direct||rt
+gh-proxy.com|https://gh-proxy.com/|both
+cors.zme.ink|https://cors.zme.ink/|rt
+gh.ddlc.top|https://gh.ddlc.top/|rt
+ghproxy.net|https://ghproxy.net/|both
+gh.con.sh|https://gh.con.sh/|rt
+gh-proxy.org|https://gh-proxy.org/|ui
+github.do|https://github.do/|ui
+gh.llkk.cc|https://gh.llkk.cc/https://|ui
+gh.felicity.ac.cn|https://gh.felicity.ac.cn/https://|ui
+ghfast.top|https://ghfast.top/|ui
+gh.927223.xyz|https://gh.927223.xyz/https://|ui
+ghp.ci|https://ghp.ci/https://|ui

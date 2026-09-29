@@ -462,7 +462,7 @@ class plugin(object):
                         tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
                         yf.execShell(tar_cmd)
                     except Exception as bex:
-                        print("卸载前打包备份失败:", yf.getTracebackInfo())
+                        yf.writeFileLog("卸载前打包备份失败: " + yf.getTracebackInfo())
 
         # 强制卸载（直接物理删除并清理首页图标配置）
         if force:
@@ -1147,7 +1147,7 @@ class plugin(object):
                         thisdb.setOption(self.__plugin_status_cachekey, json.dumps(curr_data))
                         self.__plugin_status_data = curr_data
                     except Exception as e:
-                        print('async refresh plugin status error:', str(e))
+                        yf.writeFileLog('async refresh plugin status error: ' + str(e))
 
                 refresh_thread = threading.Thread(target=_async_refresh)
                 refresh_thread.daemon = True
@@ -1185,8 +1185,8 @@ class plugin(object):
                 thisdb.setOption(self.__plugin_status_cachekey, json.dumps(curr_data))
 
         except Exception as e:
-            print(yf.getTracebackInfo())
-            print('checkStatusMThreadsByCache:', str(e))
+            yf.writeFileLog(yf.getTracebackInfo())
+            yf.writeFileLog('checkStatusMThreadsByCache: ' + str(e))
         return info
 
 
@@ -1217,7 +1217,7 @@ class plugin(object):
                 self.__plugin_status_data = status_data
                 thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
             except Exception as e:
-                print('autoCachePluginStatus error:', yf.getTracebackInfo())
+                yf.writeFileLog('autoCachePluginStatus error: ' + yf.getTracebackInfo())
 
         import threading
         t = threading.Thread(target=_do_cache)
@@ -1243,7 +1243,7 @@ class plugin(object):
                 t = threads[i].getResult()
                 info[i]['status'] = t
         except Exception as e:
-            print('checkStatusMThreads:', str(e))
+            yf.writeFileLog('checkStatusMThreads: ' + str(e))
 
         return info
 
@@ -1271,7 +1271,7 @@ class plugin(object):
                     
                     self.__plugin_list_static_cache = None
         except Exception as e:
-            print('checkAndAutoFixFail2ban error:', str(e))
+            yf.writeFileLog('checkAndAutoFixFail2ban error: ' + str(e))
 
     def getAllPluginList(
         self,
@@ -1559,14 +1559,14 @@ class plugin(object):
                             self.__plugin_status_data = curr_data
                 except Exception as e:
                     if yf.isDebugMode():
-                        print('delay calibrate status error:', str(e))
+                        yf.writeFileLog('delay calibrate status error: ' + str(e))
 
             t = threading.Thread(target=delay_calibrate)
             t.daemon = True
             t.start()
         except Exception as e:
             if yf.isDebugMode():
-                print(f"runByCache exception: {e}")
+                yf.writeFileLog(f"runByCache exception: {e}")
 
     # shell/bash方式调用
     def run(self, name, func,
@@ -1593,7 +1593,7 @@ class plugin(object):
                 self.runByCache(name, func, version)
         except Exception as e:
             if yf.isDebugMode():
-                print(f"runByCache error: {e}")
+                yf.writeFileLog(f"runByCache error: {e}")
 
         try:
             path = self.__plugin_dir + '/' + name + '/' + script + '.py'
@@ -1621,8 +1621,8 @@ class plugin(object):
             data = yf.safeExecShell(cmd_list, cwd=yf.getPanelDir(), timeout=op_timeout)
 
             if yf.isDebugMode():
-                print('run cmd_list:', cmd_list)
-                print(data)
+                yf.writeFileLog('run cmd_list: ' + str(cmd_list))
+                yf.writeFileLog(str(data))
             out = data[0].strip() if data and len(data) > 0 and data[0] else ''
             err = data[1].strip() if data and len(data) > 1 and data[1] else ''
 
@@ -1636,7 +1636,7 @@ class plugin(object):
             return (out, err)
         except Exception as e:
             if yf.isDebugMode():
-                print(f"plugin run execution exception: {e}")
+                yf.writeFileLog(f"plugin run execution exception: {e}")
             return ('', str(e))
 
     # 映射包调用（安全反射实现，彻底废除 eval）
@@ -1669,7 +1669,7 @@ class plugin(object):
                 script_file = alt_file
 
         if yf.isDebugMode():
-            print('callback safe reflection:', script, func, args)
+            yf.writeFileLog('callback safe reflection: ' + str(script) + ' ' + str(func) + ' ' + str(args))
 
         data = None
         try:
@@ -1770,7 +1770,7 @@ class plugin(object):
             data = target_func(*call_args, **call_kwargs)
         except Exception as e:
             if yf.isDebugMode():
-                print(yf.getTracebackInfo())
+                yf.writeFileLog(yf.getTracebackInfo())
             err_msg = str(e)
             if isinstance(e, KeyError):
                 err_msg = f"缺少参数或配置: {err_msg}"

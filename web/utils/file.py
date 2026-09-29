@@ -582,7 +582,7 @@ def createDir(path):
         yf.writeLog('文件管理', msg)
         return yf.returnData(True, 'file.py_msg_f50f32')
     except Exception as e:
-        print(e)
+        yf.writeFileLog(str(e))
         return yf.returnData(False, 'file.py_msg_7c6668')
 
 # 检查敏感目录

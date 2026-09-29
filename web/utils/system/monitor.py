@@ -203,7 +203,7 @@ class monitor:
                 disk_objm.where("addtime<?", (deltime,)).delete()
                 load_objm.where("addtime<?", (deltime,)).delete()
             except Exception as clean_ex:
-                print("clean history monitor error:", str(clean_ex))
+                yf.writeFileLog("clean history monitor error: " + str(clean_ex))
 
         return True
 

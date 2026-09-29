@@ -15,16 +15,25 @@
 # =========================================================================
 
 # ---------- 代理站列表 ----------
-# 与 scripts/install.sh 和 web/core/yf.py 保持一致
-# 首位为空表示官方直连，使直连也能参与测速并默认优先
-_GH_PROXY_LIST=(
-    ""
-    "https://gh-proxy.com/"
-    "https://cors.zme.ink/"
-    "https://gh.ddlc.top/"
-    "https://ghproxy.net/"
-    "https://gh.con.sh/"
-)
+# 单一真源：scripts/proxies.list（取作用域 rt / both，保持文件中的顺序）。
+# 首位为空串表示官方直连，使直连也能参与测速并默认优先。
+# 清单文件由发布包/仓库提供；万一缺失则退化为「仅官方直连」——
+# 绝不因为读不到清单而卡死安装（testsuite/test_deploy_bootstrap.py::test_04 有守卫）。
+_GH_PROXY_LIST=()
+_yf_proxy_list_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/proxies.list"
+if [ -f "$_yf_proxy_list_file" ]; then
+    while IFS='|' read -r _yf_p_name _yf_p_url _yf_p_scope; do
+        case "$_yf_p_name" in
+            ''|'#'*) continue ;;
+        esac
+        case "$_yf_p_scope" in
+            rt|both) _GH_PROXY_LIST+=("$_yf_p_url") ;;
+        esac
+    done < "$_yf_proxy_list_file"
+fi
+if [ "${#_GH_PROXY_LIST[@]}" -eq 0 ]; then
+    _GH_PROXY_LIST=("")
+fi
 
 # ---------- 内部辅助函数 ----------
 

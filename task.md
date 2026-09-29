@@ -724,3 +724,81 @@ CI 在 Python 3.11 解析，只看得见 `>=3.9` 分支 → 门禁真实有效�
 
 
 
+# 第 6 层「可本地存量清理（批次 1）」—— B7 / B8 / C3 / B4
+
+> 来源：`参考/20260928优化.md` §2（B7/B8/B4/C3）。
+> 用户拍板（2026-09-29）：可本地存量清理分 4 批，**本轮只做批次 1**
+> （代理单一真源 + 日志/补丁卫生），节奏为「先清单后改，逐批验证」。
+> 门禁基线：**174 模块 / 1295 用例 / 0 隔离 / 4 项静态门禁 全绿**
+> （本轮起点：174 模块 / 1294 用例 / 0 隔离 / 4 静态门禁）
+
+## 一、交付内容
+
+| 项 | 内容 | 验证 |
+|---|---|---|
+| **B7** 代理单一真源 | 新增 `scripts/proxies.list`（13 条：`键名\|URL\|作用域`）。5 个消费者全部改为读取：`scripts/github_download.sh`、`web/core/yf.py`、`scripts/{install,install_dev,update,update_dev}.sh`；`deploy.sh` 引导期因仓库未落地无法读文件，保留内嵌副本。 | `test_deploy_bootstrap::test_04` |
+| **B8** 键名与域名对齐 | `ghproxy_net=gh-proxy.org` 错配消失（文件里键名统一为 `gh-proxy.org`）；`test_04` 新增「键名必须包含在 URL 中」断言。 | `test_04` |
+| **C3** `print` → 日志 | `web/` 下 45 → **0**；36 处异常/诊断改用 `yf.writeFileLog` / `logging`；7 处 CLI 输出（`echoStart/echoEnd/echoInfo`）与 2 处 `site_reflect.py` 修复工具输出用 `# print-ok:` 豁免（内嵌 `__main__` 块自动豁免）。 | `verify_code_quality.py` |
+| **B4** 删 Flask monkey patch | `web/admin/__init__.py` 删除 `RequestContext.session` property 补丁；`flask-socketio` 下界 `>=5.3.0` → **`>=5.3.6`**（首个兼容 Flask 3.x 的版本）。 | `test_login_urlguard_safepath::test_no_request_context_monkey_patch` |
+
+## 二、关键设计（含取舍）
+
+### B7：为什么 `deploy.sh` 仍需内嵌副本
+
+`deploy.sh` 的引导期在仓库/发布包落地**之前**运行，此时磁盘上没有 `scripts/proxies.list`，
+所以它必须内嵌 `YF_BOOTSTRAP_PROXY_LIST`。这不是漏网，而是固有约束——
+由 `test_04` 把「内嵌副本 == 文件 rt 子集」钉死。
+
+### B7：读不到文件的降级
+
+`github_download.sh` / `yf.py` / 4 个脚本均做了 fail-soft：文件缺失时退化为
+
+- 运行时列表：`[""]`（仅官方直连）；
+- 交互菜单：只剩 `source`（官方直连），并打印警告。
+
+**绝不因清单缺失而卡死安装**——与「大陆可用性优先」的既定口径一致。
+
+### B7：作用域而不是硬编码子集
+
+文件用 `rt` / `ui` / `both` 表达「运行时回退顺序」与「安装期菜单/测速」两个不同用途，
+避免了「强行合并会改变安装体验」。新增代理只改 `scripts/proxies.list` 一行。
+
+### C3：豁免标记而非一刀切
+
+`panel_tools.py` 的 `echoInfo(...)` 是 **CLI 面向终端**的输出，改成日志后运维就看不到结果了。
+所以计数器新增两类豁免：
+1. 结构性：`if __name__ == '__main__':` 块内的 `print`（不依赖人工标记）；
+2. 行内标记：`# print-ok: 理由`（用于跨模块的 CLI 输出）。
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|---|---|---|
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **174 模块 / 1295 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 代理单一真源 | `-k deploy_bootstrap` | 11/11 |
+| 代码质量 | `scripts/verify_code_quality.py` | bare 172 / silent 517 / **print 0**（基线已同步下调） |
+| 检测器自证 | `verify_code_quality.py --self-test` | 通过（含两类 print 豁免夹具） |
+| B4 守卫 | `test_login_urlguard_safepath` | 18/18 |
+| Shell 语法 | `bash -n`（5 个脚本） | 全部通过 |
+| 代理派生实测 | 读取 `proxies.list` 后打印 | 运行时 6 项与 `deploy.sh` 内嵌副本逐项一致；交互菜单 9 项 |
+
+## 四、已知边界（不粉饰）
+
+1. **B4 未经运行时验证**：本机无 Flask/flask-socketio，webssh 握手无法本地跑。
+   补丁删除依赖 `python-app-*.yml`（`workflow_dispatch`，真启 gunicorn）或真机确认。
+   已在 `requirements.txt` 与测试注释写明原因。
+2. **C3 仍有合理 print**：`web/` 之外（`plugins/`、`panel_tools.py`）未在计数器范围内，
+   `panel_tools.py` 本身大量使用 `yf.echoInfo` 输出，保留不动。
+3. **`print-ok` 标记可能被滥用**：它是人工豁免，没有强制校验；
+   但基数已是 0，任何新增都要显式写理由，比静默增长强。
+
+## 五、批次 2~4（未做，待下轮）
+
+| 批次 | 内容 | 状态 |
+|---|---|---|
+| 2 | C2 异常存量清理（`web/core` + `web/admin` 约 40 处，分轮降基线） | 未开始 |
+| 3 | B5 `os.system` 47 处（先出「变量来源可控性」清单） | 未开始 |
+| 4 | C1 ORM 异常语义（高风险，595 调用点） | 未开始 |
+
+
+

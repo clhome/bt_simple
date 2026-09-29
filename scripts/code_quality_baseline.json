@@ -1,5 +1,5 @@
 {
   "bare_except": 172,
-  "print_in_web": 45,
-  "silent_except": 518
+  "print_in_web": 0,
+  "silent_except": 517
 }

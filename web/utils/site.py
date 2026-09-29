@@ -1017,7 +1017,6 @@ class sites(object):
                         self.delUserInI(npath, up + 1)
 
                 user_ini = npath + '/.user.ini'
-                print('ff:',user_ini)
                 if not os.path.exists(user_ini):
                     continue
                 yf.safeExecShell(['chattr', '-i', user_ini])

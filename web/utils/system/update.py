@@ -312,7 +312,7 @@ def updateServer(stype, version='', step='all'):
                 # 升级覆盖前强制执行核心快照备份，确保出现异常可立即回滚自愈
                 backup_status, backup_msg = backup_panel()
                 if not backup_status and step == 'all':
-                    print("Update pre-install backup warning:", backup_msg)
+                    yf.writeFileLog("Update pre-install backup warning: " + str(backup_msg))
 
                 # 兼容带 v 和不带 v 的版本号目录名
                 v_version = version if version.startswith('v') else 'v' + version
@@ -377,7 +377,7 @@ fi
                     from admin.setup.cleanup import cleanup_legacy_plugins
                     cleanup_legacy_plugins()
                 except Exception as e:
-                    print("cleanup_legacy_plugins error:", str(e))
+                    yf.writeFileLog("cleanup_legacy_plugins error: " + str(e))
 
                 yf.restartPanel()
                 return yf.returnData(True, 'system.py_msg_f9fd8e')
