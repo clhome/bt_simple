@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.webstats')
 from utils.crontab import crontab as YfCrontab
 
 app_debug = False
@@ -88,7 +91,8 @@ def migrateSiteHotLogs(site_name, query_date):
         shutil.copy(hot_db, hot_db_tmp)
         if not os.path.exists(hot_db_tmp):
             return yf.returnMsg(False, "migrating fail, copy tmp file!")
-    except:
+    except Exception as _e:
+        _log.debug('[webstats] migrateSiteHotLogs 异常已忽略: %s', _e)
         return yf.returnMsg(False, "{} migrating fail.".format(site_name))
     finally:
         if os.path.exists(migrating_flag):

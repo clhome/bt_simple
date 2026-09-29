@@ -11,6 +11,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.swap')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -52,8 +55,8 @@ def getArgs():
             val = args[0].strip()
             if val.startswith('{') and val.endswith('}'):
                 return json.loads(val)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[swap] getArgs 异常已忽略: %s', _e)
 
         # 降级采用单次冒号切分，防范参数值包含冒号时被意外截断
         for i in range(args_len):
@@ -234,8 +237,8 @@ def swapStatus():
                 if len(parts) >= 2:
                     try:
                         system_total = int(parts[1])
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[swap] swapStatus 异常已忽略: %s', _e)
 
     # 获取物理内存总量 (MB)
     mem_total = 0
@@ -256,8 +259,8 @@ def swapStatus():
                 if len(parts) >= 2:
                     try:
                         mem_total = int(parts[1])
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[swap] swapStatus 异常已忽略: %s', _e)
 
     data = {
         'size': size,

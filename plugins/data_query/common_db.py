@@ -15,6 +15,9 @@ if os.path.exists(web_dir):
         sys.path.append(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query')
 
 DEFAULT_PORTS = {
     'mysql': 3306,
@@ -120,8 +123,8 @@ def detectInstalledPort(db_type, sid=None):
                     m = re.search(r'PORT\s*=\s*(\d+)', content)
                     if m:
                         return int(m.group(1).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[data_query] detectInstalledPort 异常已忽略: %s', _e)
 
     return default_p
 
@@ -146,8 +149,8 @@ def getDbPort(db_type, sid=None):
                     'is_custom': True,
                     'default_port': p
                 }
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] getDbPort 异常已忽略: %s', _e)
 
     detected_default = detectInstalledPort(db_type, sid)
 
@@ -591,8 +594,8 @@ def _get_sqlite_field(db_path, table, field, where_clause=None):
             if row and row[0] is not None and str(row[0]).strip():
                 conn.close()
                 return str(row[0]).strip()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] _get_sqlite_field 异常已忽略: %s', _e)
 
         # 2. 尝试根据 where_clause 或 id=1 查询
         w = where_clause or "id=1"
@@ -602,8 +605,8 @@ def _get_sqlite_field(db_path, table, field, where_clause=None):
             if row and row[0] is not None and str(row[0]).strip():
                 conn.close()
                 return str(row[0]).strip()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] _get_sqlite_field 异常已忽略: %s', _e)
 
         # 3. 尝试键值映射 (如 key-value 形式: SELECT val/value FROM table WHERE key/name = field)
         for val_col in ['val', 'value', 'v']:
@@ -614,12 +617,12 @@ def _get_sqlite_field(db_path, table, field, where_clause=None):
                     if row and row[0] is not None and str(row[0]).strip():
                         conn.close()
                         return str(row[0]).strip()
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _get_sqlite_field 异常已忽略: %s', _e)
 
         conn.close()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[data_query] _get_sqlite_field 异常已忽略: %s', _e)
     return None
 
 def detectLocalMySQLPasswords():
@@ -655,15 +658,15 @@ def detectLocalMySQLPasswords():
     try:
         p = yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
         _add_pwd(p)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[data_query] detectLocalMySQLPasswords 异常已忽略: %s', _e)
 
     for m_name in ['mysql', 'mariadb']:
         try:
             p = yf.M('config').dbPos(os.path.join(yf.getServerDir(), m_name), m_name).where('id=?', (1,)).getField('mysql_root')
             _add_pwd(p)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] detectLocalMySQLPasswords 异常已忽略: %s', _e)
 
     # 4. 尝试读取面板主配置数据库 default.db (支持宝塔/御风面板历史与最新路径)
     panel_db_candidates = [
@@ -708,8 +711,8 @@ def detectLocalMySQLPasswords():
                 txt = yf.readFile(pl)
                 if txt:
                     _add_pwd(txt.strip())
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] detectLocalMySQLPasswords 异常已忽略: %s', _e)
 
     # 6. 尝试读取 Linux 本地客户端配置与免密凭证 (/root/.my.cnf, /etc/my.cnf, debian.cnf)
     cnf_candidates = [
@@ -730,8 +733,8 @@ def detectLocalMySQLPasswords():
                     matches = re.findall(r'(?:^|\n)\s*password\s*=\s*["\']?([^"\'\r\n\s]+)', txt)
                     for m in matches:
                         _add_pwd(m.strip())
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] detectLocalMySQLPasswords 异常已忽略: %s', _e)
 
     # 7. 加入默认空密码与常见初始密码作为备选
     if "" not in passwords:
@@ -901,8 +904,8 @@ def scanCurrentLocalConfigs(target_db_type=None):
                             parsed = json.loads(content)
                             if isinstance(parsed, dict):
                                 instances_data.update(parsed)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] scanCurrentLocalConfigs 异常已忽略: %s', _e)
 
             docker_base_dir = "/docker_data"
             if os.path.exists(docker_base_dir) and os.path.isdir(docker_base_dir):
@@ -959,8 +962,8 @@ def scanCurrentLocalConfigs(target_db_type=None):
                         'notes': f'__auto_docker_pg_{clean_name}__',
                         'instance_type': 'docker'
                     })
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] scanCurrentLocalConfigs 异常已忽略: %s', _e)
 
         # 3. Redis 自动探测
         elif dt == 'redis':
@@ -1194,8 +1197,8 @@ def applyLocalSync(args=None):
                 sync_items = d.get('sync_items', [])
             elif isinstance(d, list):
                 sync_items = d
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] applyLocalSync 异常已忽略: %s', _e)
 
     if not sync_items:
         return yf.returnData(False, '未选择任何需要更新的配置项')
@@ -1303,8 +1306,8 @@ def getUnifiedServerList(args=None):
         if row:
             has_saved_local = True
         conn.close()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[data_query] getUnifiedServerList 异常已忽略: %s', _e)
 
     # 仅在无本地记录时执行静默初次探测
     if not has_saved_local:

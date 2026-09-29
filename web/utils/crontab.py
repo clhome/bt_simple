@@ -19,6 +19,9 @@ import multiprocessing
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.crontab')
 from core.i18n import t as _t
 
 
@@ -177,14 +180,14 @@ class crontab(object):
                     if os.path.exists(src):
                         try:
                             os.replace(src, dst)
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[crontab] 轮转日志失败: %s', _e)
                 try:
                     os.replace(log_file, f"{log_file}.1")
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                except Exception as _e:
+                    _log.debug('[crontab] 轮转主日志失败: %s', _e)
+        except Exception as _e:
+            _log.debug('[crontab] 读取日志目录失败: %s', _e)
 
     def _cron_pid_file(self, cron_id):
         return os.path.join(yf.getPanelTmp(), f"cron_{cron_id}.pid")
@@ -202,23 +205,23 @@ class crontab(object):
                         import signal as _sig
                         try:
                             os.kill(pid, _sig.SIGTERM)
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[crontab] SIGTERM 失败（进程可能已退出）: %s', _e)
                         time.sleep(1)
                         if yf.checkPid(pid):
                             try:
                                 os.kill(pid, _sig.SIGKILL)
-                            except Exception:
-                                pass
+                            except Exception as _e:
+                                _log.debug('[crontab] SIGKILL 失败: %s', _e)
                         yf.writeFileLog(f"[crontab] killed stale cron {cron_id} pid={pid} after {timeout_sec}s\n")
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    yf.writeFileLog('[crontab] 清理残留 cron 进程失败: %s' % _e)
             else:
                 try:
                     os.remove(pf)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[crontab] 清理 PID 文件失败: %s', _e)
             return False
         except Exception:
             return False
@@ -230,8 +233,8 @@ class crontab(object):
              self.syncToCrond(cron_id)
         try:
             os.chmod(cmd_file, 0o750)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[crontab] 设置任务脚本权限失败: %s', _e)
         import subprocess as _sp
         log_file = cmd_file + '.log'
         self._rotate_cron_log(log_file)
@@ -243,17 +246,17 @@ class crontab(object):
             proc = _sp.Popen([cmd_file], stdout=lf, stderr=_sp.STDOUT, start_new_session=True, close_fds=True)
             try:
                 yf.writeFile(pid_file, str(proc.pid))
-            except Exception:
-                pass
+            except Exception as _e:
+                yf.writeFileLog('[crontab] 写 PID 文件失败（将无法跟踪该任务）: %s' % _e)
             try:
                 lf.close()
-            except Exception:
-                pass
-        except Exception:
+            except Exception as _e:
+                _log.debug('[crontab] 关闭日志句柄失败: %s', _e)
+        except Exception as _e:
             try:
                 yf.execShell(yf.shlexQuote(cmd_file) + ' >> ' + yf.shlexQuote(log_file) + ' 2>&1 &')
-            except Exception:
-                pass
+            except Exception as _e2:
+                yf.writeFileLog('[crontab] 启动任务脚本彻底失败: %s / %s' % (_e, _e2))
         thisdb.setCrontabData(cron_id, {'last_run_time': yf.formatDate()})
         return yf.returnData(True, 'crontab.py_msg_13a0ef', None, data['name'])
 
@@ -425,7 +428,7 @@ class crontab(object):
                     return True
                 f.seek(0); f.truncate(); f.write(new_content); f.flush()
                 try: os.fsync(f.fileno())
-                except Exception: pass
+                except Exception as _e: _log.debug('[crontab] fsync 失败: %s', _e)
                 fcntl.flock(f, fcntl.LOCK_UN)
             self.crondReload()
             return True
@@ -819,7 +822,7 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
                 f.write(str(bash_script) + "\n")
                 f.flush()
                 try: os.fsync(f.fileno())
-                except Exception: pass
+                except Exception as _e: _log.debug('[crontab] fsync 失败: %s', _e)
                 fcntl.flock(f, fcntl.LOCK_UN)
             # 权限收敛（不使用 shell 拼接）
             try:
@@ -831,10 +834,10 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
                     try: gid = _grp.getgrnam('crontab').gr_gid
                     except Exception: gid = _grp.getgrnam('root').gr_gid
                     os.chown(file, uid, gid)
-                except Exception:
-                    pass
-            except Exception:
-                pass
+                except Exception as _e:
+                    _log.debug('[crontab] chown crontab 文件失败: %s', _e)
+            except Exception as _e:
+                _log.debug('[crontab] 设置 crontab 文件属主失败: %s', _e)
             return yf.returnData(True, 'ok')
         except Exception:
             # 回退旧路径（无锁）

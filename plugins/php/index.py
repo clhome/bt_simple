@@ -19,6 +19,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.php')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -93,7 +96,8 @@ def getArgs():
             tmp = json.loads(args[0])
             if type(tmp) != dict:
                 tmp = {}
-        except:
+        except Exception as _e:
+            _log.debug('[php] getArgs 异常已忽略: %s', _e)
             t = args[0].strip('{').strip('}')
             if t.strip() == '':
                 tmp = []
@@ -122,8 +126,8 @@ def getConf(version):
     except Exception:
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getConf 异常已忽略: %s', _e)
     return path
 
 
@@ -135,8 +139,8 @@ def getFpmConfFile(version, pool='www'):
     if not os.path.exists(path):
         try:
             phpFpmPoolReplace(version, pool)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getFpmConfFile 异常已忽略: %s', _e)
     return path
 
 def getFpmFile(version):
@@ -144,8 +148,8 @@ def getFpmFile(version):
     if not os.path.exists(path):
         try:
             phpFpmReplace(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getFpmFile 异常已忽略: %s', _e)
     return path
 
 
@@ -183,8 +187,8 @@ def status(version):
     '''
     try:
         checkPluginUpgrade(version)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[php] status 异常已忽略: %s', _e)
 
     server_dir = getServerDir()
     ver_dir = server_dir + '/' + version
@@ -200,8 +204,8 @@ def status(version):
         try:
             if not os.path.exists(pid_file) or yf.readFile(pid_file).strip() != live_pid:
                 yf.writeFile(pid_file, live_pid)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] status 异常已忽略: %s', _e)
         return 'start'
 
     # 3. PID 文件信号探活降级
@@ -217,8 +221,8 @@ def status(version):
             # 进程已死，安全清理僵尸 PID 文件
             try:
                 os.remove(pid_file)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php] status 异常已忽略: %s', _e)
 
     # 4. 降级模糊匹配（兼容部分定制发行版进程名）
     cmd_fallback = f"ps aux | grep 'php/{version}/sbin/php-fpm' | grep -v grep | awk '{{print $2}}'"
@@ -714,8 +718,8 @@ def phpOp(version, method):
             sub_items = os.listdir(err_ver_dir)
             if not sub_items or sub_items == ['var']:
                 shutil.rmtree(err_ver_dir, ignore_errors=True)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[php] phpOp 异常已忽略: %s', _e)
 
 
     if method in ['stop', 'restart']:
@@ -760,8 +764,8 @@ def phpOp(version, method):
                         os.kill(pid, 0)
                     except OSError:
                         os.remove(pid_file)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php] phpOp 异常已忽略: %s', _e)
 
         # 4. 重置 systemd 失败状态
         yf.execShell(f'systemctl reset-failed php{version} 2>/dev/null')
@@ -1004,8 +1008,8 @@ def checkPluginUpgrade(version=''):
                 mig_func(version)
         try:
             yf.writeFile(ver_file, CURRENT_PLUGIN_VERSION)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] checkPluginUpgrade 异常已忽略: %s', _e)
         return yf.returnJson(True, '大版本迁移升级自愈成功完成。')
     finally:
         _PHP_UPGRADE_CHECKING = False
@@ -1106,8 +1110,8 @@ def getPhpConf(version):
     if not os.path.exists(ini_path):
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getPhpConf 异常已忽略: %s', _e)
 
     phpini = yf.readFile(ini_path)
     if not phpini or isinstance(phpini, bool):
@@ -1167,8 +1171,8 @@ def resetPhpConf(version):
     if not os.path.exists(filename):
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] resetPhpConf 异常已忽略: %s', _e)
     phpini = yf.readFile(filename)
     if not phpini or isinstance(phpini, bool):
         phpini = ''
@@ -1267,8 +1271,8 @@ def getFpmConfig(version, pool = 'www'):
     if not os.path.exists(filefpm):
         try:
             phpFpmPoolReplace(version, pool)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getFpmConfig 异常已忽略: %s', _e)
 
     conf = yf.readFile(filefpm)
     if not conf or isinstance(conf, bool):
@@ -1315,8 +1319,8 @@ def setFpmConfig(version):
     if not os.path.exists(file):
         try:
             phpFpmPoolReplace(version, pool)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] setFpmConfig 异常已忽略: %s', _e)
 
     conf = yf.readFile(file)
     if not conf or isinstance(conf, bool):
@@ -1381,7 +1385,8 @@ def getFpmAddress(version, pool='www'):
         else:
             fpm_address = ('127.0.0.1', int(tmp[0]))
         return fpm_address
-    except:
+    except Exception as _e:
+        _log.debug('[php] getFpmAddress 异常已忽略: %s', _e)
         return fpm_address
 
 
@@ -1441,8 +1446,8 @@ def getSessionConf(version):
     if not os.path.exists(filename):
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getSessionConf 异常已忽略: %s', _e)
 
     phpini = yf.readFile(filename)
     if not phpini or isinstance(phpini, bool):
@@ -1465,8 +1470,8 @@ def getSessionConf(version):
         try:
             save_path = save_path_match.group(1)
             port = save_path_match.group(2)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getSessionConf 异常已忽略: %s', _e)
 
     passwd = passwd_match.group(1).strip() if passwd_match else ""
 
@@ -1494,7 +1499,8 @@ def setSessionConf(version):
             port = int(port)
             if port >= 65535 or port < 1:
                 return yf.returnJson(False, '请输入正确的端口号')
-        except:
+        except Exception as _e:
+            _log.debug('[php] setSessionConf 异常已忽略: %s', _e)
             return yf.returnJson(False, '请输入正确的端口号')
         prep = r"[\~\`\/\=]"
         if re.search(prep, passwd):
@@ -1613,8 +1619,8 @@ def getDisableFunc(version):
     if not os.path.exists(filename) or os.path.getsize(filename) < 50:
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] getDisableFunc 异常已忽略: %s', _e)
 
     phpini = yf.readFile(filename)
     if not phpini or isinstance(phpini, bool):
@@ -1633,8 +1639,8 @@ def getDisableFunc(version):
                 else:
                     phpini = phpini.rstrip() + f'\ndisable_functions = {DEFAULT_DISABLE_FUNCTIONS}\n'
                 yf.writeFile(filename, phpini)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php] getDisableFunc 异常已忽略: %s', _e)
 
     return yf.getJson(data)
 
@@ -1644,8 +1650,8 @@ def setDisableFunc(version, disable_functions=None):
     if not os.path.exists(filename):
         try:
             makePhpIni(version)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php] setDisableFunc 异常已忽略: %s', _e)
     if not os.path.exists(filename):
         return yf.returnJson(False, '指定PHP版本不存在!')
 
@@ -1687,7 +1693,7 @@ def getPhpinfo(version):
     yf.makeDirs(root_dir)
     yf.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = yf.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
-    os.system("rm -rf " + root_dir)
+    yf.removeDir(root_dir)
     phpinfo = str(sock_data, encoding='utf-8')
     return phpinfo
 

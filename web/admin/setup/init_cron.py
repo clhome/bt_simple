@@ -187,7 +187,7 @@ def init_cron():
                         thisdb.addCrontab(add_dbdata)
                         count += 1
                 except Exception as _e:
-                    pass
+                    yf.writeFileLog('[init_cron] 创建系统计划任务失败: %s' % _e)
             else:
                 # 其它系统任务
                 # 先根据 echo 匹配，避免重复

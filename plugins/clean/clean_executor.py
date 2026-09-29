@@ -20,6 +20,10 @@ try:
 except Exception:
     yf = None
 
+import logging
+
+_log = logging.getLogger('yf.clean')
+
 
 def get_history_file():
     """获取清理历史审计文件存储路径"""
@@ -31,8 +35,8 @@ def get_history_file():
     if not os.path.exists(base_dir):
         try:
             os.makedirs(base_dir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] get_history_file 异常已忽略: %s', _e)
     return base_dir + '/clean_history.json'
 
 
@@ -45,8 +49,8 @@ def load_clean_history(limit=50):
                 records = json.load(f)
                 if isinstance(records, list):
                     return records[:limit]
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] load_clean_history 异常已忽略: %s', _e)
     return []
 
 
@@ -60,8 +64,8 @@ def save_clean_history(record):
     try:
         with open(h_file, 'w', encoding='utf-8') as f:
             json.dump(records, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[clean] save_clean_history 异常已忽略: %s', _e)
 
 
 def get_run_log_file():
@@ -74,8 +78,8 @@ def get_run_log_file():
     if not os.path.exists(base_dir):
         try:
             os.makedirs(base_dir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] get_run_log_file 异常已忽略: %s', _e)
     return base_dir + '/clean.log'
 
 
@@ -91,13 +95,13 @@ def append_run_log(log_text):
                 lines = lines[-1500:]
                 with open(log_file, 'w', encoding='utf-8') as f:
                     f.writelines(lines)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[clean] append_run_log 异常已忽略: %s', _e)
 
         with open(log_file, 'a', encoding='utf-8', errors='ignore') as f:
             f.write(log_text.rstrip() + '\n\n')
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[clean] append_run_log 异常已忽略: %s', _e)
 
 
 def execute_clean(options=None):
@@ -215,8 +219,8 @@ def execute_clean(options=None):
         try:
             # 针对 OpenResty / Nginx 刷新文件句柄
             yf.execShell("pkill -USR1 -f nginx 2>/dev/null || true")
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] execute_clean 异常已忽略: %s', _e)
 
     duration = round(time.time() - start_time, 2)
 

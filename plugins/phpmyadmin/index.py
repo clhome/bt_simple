@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.phpmyadmin')
 import thisdb
 from utils.site import sites as YfSites
 
@@ -44,7 +47,7 @@ def getArgs():
             try:
                 return json.loads(val)
             except Exception as e:
-                pass
+                _log.debug('[phpmyadmin] getArgs 异常已忽略: %s', e)
         t = val.strip('{').strip('}').split(':')
         if len(t) >= 2:
             tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
@@ -82,8 +85,8 @@ def getPort():
                 tmp = re.search(rep, content)
                 if tmp:
                     return tmp.groups()[0].strip()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[phpmyadmin] getPort 异常已忽略: %s', _e)
     try:
         return str(getCfg().get('port', '888'))
     except Exception:
@@ -203,7 +206,8 @@ def setCfg(key, val):
     if os.path.exists(cfg):
         try:
             data = json.loads(yf.readFile(cfg))
-        except:
+        except Exception as _e:
+            _log.debug('[phpmyadmin] setCfg 异常已忽略: %s', _e)
             data = {}
     data[key] = val
     yf.writeFile(cfg, json.dumps(data))
@@ -216,7 +220,8 @@ def getCfg():
     data = {}
     try:
         data = json.loads(yf.readFile(cfg))
-    except:
+    except Exception as _e:
+        _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
         initCfg()
         data = json.loads(yf.readFile(cfg))
 
@@ -231,7 +236,8 @@ def getCfg():
         if os.path.exists(server_dir + "/" + path):
             try:
                 os.rename(server_dir + "/" + path, server_dir + "/" + new_path)
-            except:
+            except Exception as _e:
+                _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
                 yf.execShell("mv " + server_dir + "/" + path + " " + server_dir + "/" + new_path)
         
         # 只有新目录真正存在了（或者老目录不存在了），才算更名成功
@@ -255,10 +261,11 @@ def getCfg():
                 try:
                     import shutil
                     shutil.move(nested_dir + "/" + f, server_dir + "/" + path + "/" + f)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
             try: os.rmdir(nested_dir)
-            except: pass
+            except Exception as _e:
+                _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
             
         nested_dir2 = server_dir + "/" + path + "/phpmyadmin_" + path
         if os.path.exists(nested_dir2) and os.path.exists(nested_dir2 + "/index.php"):
@@ -266,18 +273,19 @@ def getCfg():
                 try:
                     import shutil
                     shutil.move(nested_dir2 + "/" + f, server_dir + "/" + path + "/" + f)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
             try: os.rmdir(nested_dir2)
-            except: pass
+            except Exception as _e:
+                _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
 
         # 验证修复后（或原本）内部是否有 index.php，如果没有，说明这是一个假目录，继续往下走探测，否则直接返回
         if os.path.exists(server_dir + "/" + path + "/index.php"):
             if need_save:
                 try:
                     yf.writeFile(cfg, json.dumps(data))
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
             return data
 
     # 3. 自动探测 server_dir 下只有一个目录时（因为去掉了前缀不好正则，且该目录下一般只有这一个主程序目录）
@@ -309,7 +317,8 @@ def getCfg():
                     os.rmdir(server_dir + "/phpmyadmin")
                 else:
                     shutil.move(server_dir + "/phpmyadmin", dst)
-            except:
+            except Exception as _e:
+                _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
                 yf.execShell("mv " + server_dir + "/phpmyadmin/* " + dst + "/ 2>/dev/null || mv " + server_dir + "/phpmyadmin " + dst)
             
             # 如果重命名失败，且目标目录还是没生成，强制使用 phpmyadmin 作为路径，避免 404
@@ -324,22 +333,22 @@ def getCfg():
             if not os.path.exists(dst):
                 try:
                     os.mkdir(dst)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
             if os.path.exists(dst):
                 for f in os.listdir(server_dir):
                     if f not in ['pma.pass', 'version.pl', 'cfg.json', 'tmp', path]:
                         try:
                             import shutil
                             shutil.move(server_dir + "/" + f, dst + "/" + f)
-                        except:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
 
     if need_save:
         try:
             yf.writeFile(cfg, json.dumps(data))
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
 
     return data
 
@@ -427,8 +436,8 @@ def start():
         try:
             os.mkdir(tmp)
             yf.execShell("chown -R www:www " + tmp)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[phpmyadmin] start 异常已忽略: %s', _e)
 
     log_a = accessLog()
     log_e = errorLog()
@@ -678,12 +687,14 @@ def getPmaAccessInfo():
             s.connect(('8.8.8.8', 80))
             internal_ip = s.getsockname()[0]
             s.close()
-        except:
+        except Exception as _e:
+            _log.debug('[phpmyadmin] getPmaAccessInfo 异常已忽略: %s', _e)
             internal_ip = '127.0.0.1'
             
         try:
             external_ip = yf.getHostAddr()
-        except:
+        except Exception as _e:
+            _log.debug('[phpmyadmin] getPmaAccessInfo 异常已忽略: %s', _e)
             external_ip = internal_ip
         
         rand_path = cfg['path']

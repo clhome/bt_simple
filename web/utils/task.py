@@ -18,6 +18,9 @@ import time
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.task')
 
 def getTaskPage(page=1,size=10):
     info = thisdb.getTaskPage(page=page, size=size)
@@ -42,7 +45,7 @@ def removeTaskRecursion(pid):
                 os.killpg(os.getpgid(pid), signal.SIGKILL)
                 return 'ok'
             except Exception as _e:
-                pass
+                yf.writeFileLog('[task] 强杀进程 %s 失败: %s' % (pid, _e))
             cmd = "ps -ef|grep %s | grep -v grep |sed -n '2,1p' | awk '{print $2}'" % pid
             sub_pid = yf.execShell(cmd)[0].strip()
             if sub_pid and sub_pid != str(pid):
@@ -76,7 +79,7 @@ def removeTask(task_id):
                         if p_id.isdigit():
                             p_to_kill = int(p_id)
             except Exception as _e:
-                pass
+                _log.debug('[task] 解析任务 PID 失败: %s', _e)
 
         if is_cur_running:
             sub_killed = False
@@ -87,7 +90,7 @@ def removeTask(task_id):
                     if os.path.exists(cur_task_pid_file):
                         os.remove(cur_task_pid_file)
                 except Exception as _e:
-                    pass
+                    _log.debug('[task] 清理任务 PID 文件失败: %s', _e)
 
             # 2. 保底机制：若未精准获取 PID，仅查找由 panel_task 衍生的工作子进程
             if not sub_killed and os.name != 'nt':
@@ -98,7 +101,7 @@ def removeTask(task_id):
 
             yf.triggerTask()
     except Exception as e:
-        pass
+        yf.writeFileLog('[task] 触发任务失败: %s' % e)
 
     # 删除日志
     task_log = yf.getPanelDir() + "/tmp/panelTask.pl"
@@ -110,6 +113,6 @@ def removeTask(task_id):
         try:
             os.remove(specific_log)
         except Exception as _e:
-            pass
+            _log.debug('[task] 清理任务日志失败: %s', _e)
             
     return yf.returnData(True, 'task.py_msg_454577')

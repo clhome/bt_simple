@@ -19,6 +19,9 @@ import multiprocessing
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.plugin')
 
 
 # ---------------------------------------------------------------------------------
@@ -441,7 +444,7 @@ class plugin(object):
                     
                     real_install_path = os.path.abspath(install_path)
             except Exception as e:
-                pass
+                yf.writeFileLog('[plugin] 解析插件安装路径失败: %s' % e)
 
         server_base_dir = os.path.abspath(yf.getServerDir()) # 即 /www/server
 
@@ -491,7 +494,7 @@ class plugin(object):
                         newIndexList.append(i)
                 thisdb.setOption('display_index', json.dumps(newIndexList))
             except Exception as e:
-                pass
+                yf.writeFileLog('[plugin] 保存插件显示顺序失败: %s' % e)
 
             self.__plugin_list_static_cache = None
             return yf.returnData(True, 'plugin.py_msg_c956b1')
@@ -564,8 +567,8 @@ class plugin(object):
                     ver = m.group(1).strip()
                     yf.writeFile(version_pl, ver)
                     return ver
-        except Exception:
-            pass
+        except Exception as e:
+            yf.writeFileLog('[plugin] 写入插件版本文件失败: %s' % e)
 
         return ''
 
@@ -914,8 +917,8 @@ class plugin(object):
                     pid = yf.readFile(pid_file).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 openresty PID 失败: %s', _e)
             return None
 
         # 2. MySQL / MariaDB 快速探测
@@ -930,8 +933,8 @@ class plugin(object):
                     pid = yf.readFile(pid_file).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 MySQL/MariaDB PID 失败: %s', _e)
             return None
 
         # 3. Redis 快速探测
@@ -942,8 +945,8 @@ class plugin(object):
                     pid = yf.readFile(pid_file).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 Redis PID 失败: %s', _e)
             return None
 
         # 4. Pure-FTPd 快速探测
@@ -954,8 +957,8 @@ class plugin(object):
                     pid = yf.readFile(pid_file).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 Pure-FTPd PID 失败: %s', _e)
             return None
 
         # 5. PHP (多版本共存) 快速探测
@@ -969,8 +972,8 @@ class plugin(object):
                             pid = yf.readFile(pid_candidate).strip()
                             if pid and yf.checkPid(int(pid)):
                                 return True
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[plugin] 读取 PHP-FPM(sury) PID 失败: %s', _e)
             return None
         elif name.startswith('php') or (name == 'php' and version):
             ver_clean = str(version).replace('.', '')
@@ -980,8 +983,8 @@ class plugin(object):
                     pid = yf.readFile(pid_file).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 PHP-FPM PID 失败: %s', _e)
             return None
 
         # 6. Docker 快速探测
@@ -992,8 +995,8 @@ class plugin(object):
                     pid = yf.readFile(docker_pid).strip()
                     if pid and yf.checkPid(int(pid)):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 读取 Docker PID 失败: %s', _e)
             sock_file = '/var/run/docker.sock'
             if os.path.exists(sock_file):
                 import stat
@@ -1001,8 +1004,8 @@ class plugin(object):
                     mode = os.stat(sock_file).st_mode
                     if stat.S_ISSOCK(mode):
                         return True
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 检测 docker.sock 失败: %s', _e)
             return None
 
         # 7. OP_WAF 防火墙快速探测
@@ -1026,8 +1029,8 @@ class plugin(object):
                         pid = yf.readFile(pid_file).strip()
                         if pid and yf.checkPid(int(pid)):
                             return True
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[plugin] 读取 fail2ban PID 失败: %s', _e)
             sock_file = '/run/fail2ban/fail2ban.sock'
             if not os.path.exists(sock_file):
                 return False
@@ -1046,8 +1049,8 @@ class plugin(object):
                         if sfile_posix in content or sfile in content or '/swap/swapfile' in content:
                             return True
                         return False
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 解析 /proc/swaps 失败: %s', _e)
             return None
 
         return None
@@ -1345,8 +1348,8 @@ class plugin(object):
                     try:
                         with open(lang_file, 'r', encoding='utf-8') as f:
                             ld = json.load(f)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[plugin] 读取插件语言包失败: %s -> %s', lang_file, _e)
                 self._plugin_lang_dict_cache[cache_key] = ld
             else:
                 ld = self._plugin_lang_dict_cache[cache_key]
@@ -1377,8 +1380,8 @@ class plugin(object):
                 try:
                     from core.i18n import t as _t
                     item_copy['title'] = _t(item_copy['key'], item_copy['title'])
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 翻译插件标题失败: %s', _e)
             type_list.append(item_copy)
         rdata['type'] = type_list
     
@@ -1436,7 +1439,7 @@ class plugin(object):
                     old_info = json.loads(yf.readFile(plugin_path))
                     data['old_version'] = old_info['versions']
                 except Exception as _e:
-                    pass
+                    _log.debug('[plugin] 读取插件旧版信息失败: %s', _e)
         except Exception as _e:
             yf.removeDir(tmp_path)
             return yf.returnData(False, 'plugin.py_msg_311637')
@@ -1469,13 +1472,13 @@ class plugin(object):
                 for d in dirs:
                     try:
                         os.chmod(os.path.join(root, d), 0o755)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[plugin] 设置插件目录权限失败: %s', _e)
                 for f in files:
                     try:
                         os.chmod(os.path.join(root, f), 0o755)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[plugin] 设置插件文件权限失败: %s', _e)
         except Exception as _e:
             yf.writeFileLog('[plugin.inputZipApi] %s: %s\n%s' % (plugin_name, _e, yf.getTracebackInfo()))
             yf.removeDir(plugin_path)
@@ -1488,7 +1491,7 @@ class plugin(object):
                 yf.writeLog('软件管理', '安装第三方插件[%s]' % json.loads(p_info).get('title', plugin_name))
                 return yf.returnData(True, 'plugin.py_msg_f1e512')
             except Exception as _e:
-                pass
+                yf.writeFileLog('[plugin] 安装第三方插件失败: %s' % _e)
         yf.removeDir(plugin_path)
         return yf.returnData(False, 'plugin.py_msg_99993a')
 
@@ -1630,8 +1633,8 @@ class plugin(object):
                 try:
                     op_ok = (out == 'ok' or err == '')
                     self.runByCache(name, func, version, op_result=op_ok)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[plugin] 回写插件状态缓存失败: %s -> %s', name, _e)
 
             return (out, err)
         except Exception as e:
@@ -1685,8 +1688,8 @@ class plugin(object):
                             try:
                                 mod = importlib.reload(mod)
                                 _PLUGIN_MODULE_MTIME[(name, script)] = cur_mtime
-                            except Exception:
-                                pass
+                            except Exception as _e:
+                                _log.debug('[plugin] 热重载插件模块失败: %s -> %s', name, _e)
                 else:
                     mod = importlib.import_module(script)
                     if os.path.exists(script_file):

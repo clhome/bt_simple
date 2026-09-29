@@ -14,6 +14,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.op_waf')
 
 
 app_debug = False
@@ -42,8 +45,8 @@ def getArgs():
         try:
             if val.startswith('{') and val.endswith('}'):
                 return json.loads(val)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getArgs 异常已忽略: %s', _e)
 
         import base64
         import urllib.parse
@@ -51,8 +54,8 @@ def getArgs():
             decoded = urllib.parse.unquote(base64.b64decode(val.encode('utf-8')).decode('utf-8'))
             if decoded.startswith('{') and decoded.endswith('}'):
                 return json.loads(decoded)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getArgs 异常已忽略: %s', _e)
 
         for i in range(args_len):
             t = args[i].split(':', 1)
@@ -397,8 +400,8 @@ def initDefaultInfo(conf_reload=False):
             content_json = json.loads(content)
             for i in content_json:
                 dlist.append(i["name"])
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[op_waf] initDefaultInfo 异常已忽略: %s', _e)
 
     ddata = {}
     ddata["list"] = dlist
@@ -421,8 +424,8 @@ def getSiteListData():
             content_json = json.loads(content)
             for i in content_json:
                 dlist.append(i["name"])
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[op_waf] getSiteListData 异常已忽略: %s', _e)
 
     default_site = yf.readFile(dst_path)
     if default_site:
@@ -874,8 +877,8 @@ def setBanSync():
     # 1. 只重编 waf_config.lua（避免全量重编 nginx 配置），让 Lua 侧拿到新开关
     try:
         autoMakeLuaImportSingle('config', True)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[op_waf] setBanSync 异常已忽略: %s', _e)
 
     # 2. 维护 spool 文件 —— 它是联动开关的唯一真实来源
     spool = banSpoolPath()
@@ -890,20 +893,20 @@ def setBanSync():
             yf.writeFile(conf_path, yf.getJson(cobj))
             try:
                 autoMakeLuaImportSingle('config', True)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[op_waf] setBanSync 异常已忽略: %s', _e)
             # 详情写入面板日志，返回给前端的消息保持为可翻译的单一键
             try:
                 yf.writeLog('OP防火墙', '创建情报文件失败: ' + str(e))
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[op_waf] setBanSync 异常已忽略: %s', _e)
             return yf.returnJson(False, '创建情报文件失败')
     else:
         try:
             if os.path.exists(spool):
                 os.remove(spool)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] setBanSync 异常已忽略: %s', _e)
 
     # 3. 通知 fail2ban 重新同步 jail（幂等；对端异常不影响本插件开关本身）
     sync_ok, sync_msg = callFail2banSync()
@@ -911,8 +914,8 @@ def setBanSync():
     # 4. 平滑 reload，让 Lua 侧立即生效（reload 不掐断在线连接）
     try:
         yf.opWeb('reload')
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[op_waf] setBanSync 异常已忽略: %s', _e)
 
     # 返回消息必须是「可翻译的单一完整键」：拼接式文案在德/法/意下语义会破碎
     if not sync_ok and sync_msg != 'not_installed':
@@ -1623,8 +1626,8 @@ def getSafeLogs():
                     continue
                 try:
                     retData.append(json.loads(line))
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[op_waf] getSafeLogs 异常已忽略: %s', _e)
                 if len(retData) >= 5000:
                     break
     except Exception as e:
@@ -1714,7 +1717,7 @@ def getTotalStatistics():
             data['ver'] = info_data['versions'][0]
             return yf.returnJson(True, 'ok', data)
         except Exception as e:
-            pass
+            _log.debug('[op_waf] getTotalStatistics 异常已忽略: %s', e)
             
     data['status'] = False
     data['count'] = '0/0'
@@ -1941,8 +1944,8 @@ def get_location_from_pconline(ip):
                     "org": org,
                     "query": ip
                 }
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[op_waf] get_location_from_pconline 异常已忽略: %s', _e)
     return {
         "status": "fail",
         "query": ip
@@ -2086,8 +2089,8 @@ def getDropIpLogs():
     for log in logs:
         try:
             log['time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(log['time']))
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getDropIpLogs 异常已忽略: %s', _e)
             
     return yf.returnJson(True, 'ok!', logs)
 
@@ -2181,15 +2184,15 @@ def getSpiderConf():
             cobj = json.loads(yf.readFile(conf_path))
             if 'spider' in cobj:
                 spider_conf.update(cobj['spider'])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getSpiderConf 异常已忽略: %s', _e)
 
     ip_list = []
     if os.path.exists(rule_path):
         try:
             ip_list = json.loads(yf.readFile(rule_path))
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getSpiderConf 异常已忽略: %s', _e)
 
     engine_stats = {
         'baidu': 0,
@@ -2278,8 +2281,8 @@ def getSpiderIpList():
             content = yf.readFile(rule_path)
             if type(content) != bool and content:
                 ip_list = json.loads(content)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] getSpiderIpList 异常已忽略: %s', _e)
     return yf.returnJson(True, 'ok', ip_list)
 
 
@@ -2303,8 +2306,8 @@ def addSpiderIp():
             content = yf.readFile(rule_path)
             if type(content) != bool and content:
                 ip_list = json.loads(content)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[op_waf] addSpiderIp 异常已忽略: %s', _e)
 
     for item in ip_list:
         if item[0] == ip:
@@ -2358,8 +2361,8 @@ def syncSpiderIp():
                         ps = r[1] if len(r) > 1 else ''
                         if '自定义' in ps or ps == '':
                             custom_rules.append(r)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[op_waf] syncSpiderIp 异常已忽略: %s', _e)
 
         base_rules = json.loads(content)
         existing_ips = {r[0] for r in base_rules}

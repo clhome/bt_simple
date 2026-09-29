@@ -192,7 +192,7 @@ class setting(object):
             try:
                 yf.execShell("curl -sS curl https://get.acme.sh | sh")
             except Exception as _e:
-                pass
+                yf.writeFileLog('[setting] 安装 acme.sh 失败: %s' % _e)
         if not os.path.exists(acme_dir):
             return yf.returnData(False, 'setting.py_msg_448940')
 

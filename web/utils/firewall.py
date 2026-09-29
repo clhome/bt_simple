@@ -20,6 +20,9 @@ import glob
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.firewall')
 
 class Firewall(object):
 
@@ -226,10 +229,10 @@ class Firewall(object):
                                 'pid': p.pid,
                                 'cmdline': cmdline_str
                             }
-                        except (psutil.NoSuchProcess, psutil.AccessDenied):
-                            pass
-        except Exception:
-            pass
+                        except (psutil.NoSuchProcess, psutil.AccessDenied) as _e:
+                            _log.debug('[firewall] 读取进程信息失败（进程已退出或无权限）: %s', _e)
+        except Exception as _e:
+            _log.debug('[firewall] 遍历进程列表失败: %s', _e)
         return None
 
     def getList(self, page=1, size=10, search_port='', search_ps='', stype='port', sort_dir=''):
@@ -335,8 +338,8 @@ class Firewall(object):
                     if pname and pname.lower().startswith('sshd'):
                         status = True
                         break
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                    pass
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as _e:
+                    _log.debug('[firewall] 检测端口占用时进程已退出: %s', _e)
         except Exception:
             status = False
 

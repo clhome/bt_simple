@@ -802,3 +802,432 @@ CI 在 Python 3.11 解析，只看得见 `>=3.9` 分支 → 门禁真实有效�
 
 
 
+# 第 7 层「P1-1：B5 `os.system` 存量收口」
+
+> 来源：`参考/20260928优化.md` §B5（H4.4）。
+> 用户拍板（2026-09-29）：全部改造（含 `plugins/*/t/` 测试目录与 `plugins/待审核/`），
+> 管道类用 `shlex.quote` 逐段引用，新增 `os_system_count` 棘轮指标。
+> 门禁基线：**174 模块 / 1295 用例 / 0 隔离 / 4 项静态门禁 全绿**（本轮起点同）
+
+## 一、交付内容
+
+| 项 | 结果 |
+|---|---|
+| 总量 | 实测 **47 行命中 = 44 处生效 + 3 行注释**；另发现 `panel_tools.py`（扫描器含它但文档口径只有 `web/`+`plugins/`）另有 **32 处** → **全量 76 处** |
+| 真注入（用户可控） | 15 处：`rsyncd:args['path']`×6、`pureftp:path`×2、`{mysql,mariadb}/scripts/tools.py:password`×2、`mysql:import_sql/name`×2、`mysql:sync_args_*`×2、`待审核/acme:domain/email`×1 |
+| 服务端路径/常量 | 29 处：`rm -rf SSH_PRIVATE_KEY/bak_file`、`mkdir/chown/chmod`、`expect`、sphinx、task_manager、`t/` 测试目录 |
+| `panel_tools.py` | 32 处：15 处 `INIT_CMD` 常量列表化、12 处路径/管道列表化、**5 处必须用 shell 的如实保留并计入基线** |
+| 新增指标 | `scripts/verify_code_quality.py` 新增第 4 指标 `os_system_count`（ast 级，注释行天然不计），基线 **5** |
+| 顺带修 bug | `plugins/task_manager/process_network_total.py` 缺 `import yf`（必 NameError），已补 `sys.path` + `import core.yf as yf` |
+
+## 二、关键决策（含取舍）
+
+1. **否决「换成 `yf.execShell` 就交差」**。读了 `yf.py:106` 的 `sanitizeCmdScripts`，它只修脚本 CRLF，
+   **不做注入消毒**，`execShell` 同样 `shell=True`。所以每处要么列表化、要么 `shlexQuote`，
+   不能换原语糊弄（那是指标作弊）。
+2. **管道类（`pv | mysql`）用 `shlexQuote` 逐段引用**（用户选定）——管道无法列表化，
+   最小改动保持行为；`pwd/sock/bak_file/sync_db` 均为拼接进 shell 的变量，全部引用。
+3. **撤回 `# os-system-ok` 豁免机制**。初版给 5 处加豁免标记→计数变 0，与用户拍板的
+   「基线锁 ≈5」不一致，且这 5 处会**从计数里消失不可见**。改为如实计入基线=5，
+   行内注释说明「为何必须保留」。
+4. **`rm -rf` 一律改 `yf.removeDir`**（已有 `invalidPathReason` 拒绝非法路径），
+   `mkdir/chown/chmod` 改 `os.makedirs` + `yf.safeExecShell` 列表参数；
+   `pureftp` 的 `chown` 改 `shutil.chown`（顺带消除 macOS/BSD 的 `www.www` vs `www:www` 分支）。
+5. ** `acme` 待审核插件**：`getDnsapiExportVar` 初版 `"="+值` 遇值内含 `"`/`$()` 即可注入，
+   改为变量名正则校验 + `shlexQuote`。
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|---|---|---|
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **174 模块 / 1295 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| os.system 实测 | `verify_code_quality.py` | 76 → **5**（全部为「必须经 shell」且无变量进入） |
+| 检测器自证 | `--self-test` | 通过（四类均命中，注释行不计） |
+| 语法 | `py_compile`（15 个改动 py） | 全部 OK |
+| Shell | `bash -n`（`scripts/*.sh` + `scripts/install/*.sh` + `deploy.sh`） | 0 失败 |
+| 棘轮基线 | `--update` | bare 172 / silent 516 / print 0 / **os_system_count 5** |
+| 守卫用例 | `test_supply_chain_guards::test_16` | nosec 下限 `25 → 7`（B5 删了 23 处 `# nosec B605`，属用例自述的「确实是修好了某条」） |
+
+## 四、发现与边界（不粉饰）
+
+1. **`process_network_total.py` 另外还有一处隐患（未修，已确认非 bug）**：它被
+   `task_manager_index.py:536` 用 `yf.getServerDir() + '/mdserver-web'` 拼路径拉起。
+   实测 `deploy.sh:1539/1664/1969` 会创建 `/www/server/mdserver-web -> yufeng_panel` 软链接，
+   故该路径**能工作**（与 mysql/mariadb 里的同类路径一致），不是缺陷。
+2. **5 处保留的 `os.system`** —— 精确口径（前一份记录写得不准，此处更正）：
+   - **3 处纯字面量、确实无任何变量进入 shell**：多级管道杀进程（`panel_tools.py:187`）、
+     `bash <(curl -sSL https://linuxmirrors.cn/main.sh)`（`:322`，URL 常量）、
+     `curl -Lso- bench.sh | bash`（`:326`，命令全字面量）；
+   - **2 处拼接了服务端常量路径**（`:633` / `:685`）：
+     `"cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py ..."`。
+     该值是面板自身安装目录（来自 `__file__` 推导），**不是用户输入**，因此不构成注入面；
+     但「无变量进入 shell」这句话对这两处**不成立**，特此更正（审计指出）。
+     若要彻底清零，需要改成 `yf.safeExecShell([...], cwd=...)` + 直接调 venv 解释器，
+     但这会引入「venv 内 python 路径探测」的新不确定性，故本轮保留。
+   它们不是命令注入面，但仍是供应链面（下载即执行），已登记（见 B6 同类问题）。
+3. **服务端路径类（如 `bak_file`/`SSH_PRIVATE_KEY`）本次未做白名单校验**，只做了引用。
+   若将来这些值变成外部输入，需再评估。
+
+
+
+# 第 8 层「P1-2：C2 静默 `except: pass` 存量清理（web/core + web/admin）」
+
+> 来源：`参考/20260928优化.md` §C2（H3.1）。
+> 用户拍板（2026-09-29）：本轮清 `web/core` + `web/admin`；日志级别「按站点判断」
+> （真异常→`yf.writeFileLog`，预期内→`logging.debug`）。
+> 门禁基线：**174 模块 / 1295 用例 / 0 隔离 / 4 项静态门禁 全绿**
+
+## 一、实测修正与交付
+
+| 项 | 结果 |
+|---|---|
+| 文档口径偏差 | 文档说「裸 except 172 / 静默 518」，但**实测 `web/` 里裸 except = 0**；172 处裸 except 全在 `panel_task.py`(19) + `panel_tools.py`(4) + `plugins/`(149) |
+| 本轮范围 | `web/core` 71 + `web/admin` 38 = **109 处 silent_except**，清零 |
+| 基线变化 | `silent_except` **516 → 407**（−109，单调下调）；`bare_except` 172 不变（web/ 本就没有） |
+| 新增 logger | `yf.admin` / `yf.plugin` / `yf.dashboard` / `yf.files` / `yf.system` / `yf.i18n` / `yf.resources` / `yf.core`；`yf.migrations` 补 `import logging`；`yf.orm` 复用已有 `log` |
+
+## 二、关键设计（含取舍）
+
+1. **「按站点判断」而非一刀切**：
+   - 真异常（DB/IO/子进程/备份还原/审计落库失败）→ `yf.writeFileLog`，线上可查；
+   - 预期内（探测/回退/清收/权限不足/第三方接口）→ `logging.debug`，不刷 `logs/debug.log`。
+2. **判定型接口不改日志，而是重构去掉 `pass`**：`yf.isNumber` / `yf.isVaildIp` 里的
+   `except ...: pass` 是**正常分支而非错误**，加日志会产生高频噪音。改为嵌套 `return False`，
+   语义逐输入比对无差异（含 `½`/`٣`/`１２`/`fe80::1%eth0` 等边界，全部 OK）。
+3. **`del RUN_CACHE[k]` + `except KeyError: pass` → `RUN_CACHE.pop(k, None)`**：
+   行为等价、代码更短，顺带消掉 2 处静默 except。
+4. **日志本体失败不得递归**：`userSafeError` / 500 处理里的「写日志」自身抛异常时退回模块 logger。
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|---|---|---|
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **174 模块 / 1295 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 语法 | `py_compile`（21 个改动 py） | 全部 OK |
+| 计数 | `verify_code_quality.py` | silent 516→**407**；web/core+web/admin 残留 **0** |
+| 棘轮基线 | `--update` | bare 172 / silent 407 / print 0 / os.system 5 |
+| 等价性自检 | `isNumber`/`isVaildIp` 新老实现逐输入对比 | 全部 OK（无行为差异） |
+
+## 四、边界（不粉饰）
+
+本轮只动了 `web/core` + `web/admin`。剩余 silent_except 仍在：
+`web/utils` 104 · `plugins/` 约 290 · `panel_task.py` 8；裸 except（172）全在
+`panel_task.py`/`panel_tools.py`/`plugins/`，属后续批次。
+
+
+
+# 第 9 层「P1-3：C7 静态资源去重 + N1 /metrics 探针 + 跨系统静态守卫」
+
+> 来源：`参考/20260928优化.md` §C7；以及 `task.md` 第 3 层 H5.3 的 `/metrics` 预留。
+> 用户拍板（2026-09-29）：`/metrics` 用 `thisdb.getOption('metrics_open', default='no')` 开关，
+> 未开启返回 **404**（不暴露端点存在）；只暴露健康类指标。
+> 门禁基线：**176 模块 / 1310 用例 / 0 隔离 / 4 项静态门禁 全绿**
+
+## 一、交付内容
+
+| 项 | 结果 |
+|---|---|
+| **C7** 删 `bootstrap-3.3.5` | `git rm -r web/static/bootstrap-3.3.5`（10 个文件 372K）。全仓引用扫描：`web/`+`plugins/` **0 命中**；`文档/jq升级3.7/jq升级3.7.md:175` 证实它是 3.4.1 迁移后的遗留目录 |
+| **N1** `/metrics` | `web/admin/__init__.py` 新增路由：默认关闭（`metrics_open` 默认 `'no'`）→ `abort(404)`；开启后不需登录（同 `/healthz` 口径）；只出 `yf_up` / `yf_db_ok` / `yf_data_writable`，`text/plain; version=0.0.4`，`Cache-Control: no-store`；不回显版本/路径指纹 |
+| 豁免接线 | 关站/安全入口豁免行改为 `request.path == '/healthz' or request.path == '/metrics'`（**保留 healthz 字面量**，不破既有 `test_25` 断言） |
+| 新增守卫 | `testsuite/test_p1_misc_cleanup.py`（10 项：C7 目录/引用/动态拼接/单版本 + N1 路由/默认 404/豁免/Prometheus 格式/无指纹/只读） |
+| 新增守卫 | `testsuite/test_cross_platform_guard.py`（5 项：索引无 CRLF / 全源文件声明 `eol=lf` / `.gitattributes` 根规则 / 无 UTF-8 BOM / 15 类安装脚本齐备且带 shebang） |
+
+## 二、关键设计（含取舍）
+
+1. **`/metrics` 未开启返回 404 而不是 403**：403 等于告诉扫描器「这里有个端点」，
+   默认关闭的探针应该连存在性都不暴露。
+2. **探针无鉴权但默认关闭**：与 `/healthz` 同理（抓取方常是独立监控进程），
+   正因为无鉴权才必须默认关闭 + 显式开启，并在注释里写明需自建网络隔离。
+3. **跨平台守卫查「索引 + 属性」而非工作区**：Windows 上 `w/crlf` 是正常现象
+   （实测 4 个 `plugins/php/versions/*/install.sh`），只要 `i/lf` 且 `attr eol=lf`，
+   Linux 检出就一定是 LF——这才是决定生产行为的证据（实测 1349/1349 源文件均 `eol=lf`）。
+4. **刻意不做的两项跨平台检查**（写进用例 docstring 备案）：
+   - 「硬编码反斜杠路径」扫描：实测 25 命中 **全为误报**（都是 SQL 转义单引号 `'\\''`）；
+   - 「源文件必须可 UTF-8 解码」：实测 2 个历史文件不满足，不塞进门禁卡住所有人。
+
+## 三、验证记录
+
+| 项目 | 命令 | 结果 |
+|---|---|---|
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **176 模块 / 1310 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| C7+N1 守卫 | `testsuite/test_p1_misc_cleanup.py` | 10/10 |
+| 跨平台守卫 | `testsuite/test_cross_platform_guard.py` | 5/5 |
+| 删除范围确认 | `git ls-files web/static/bootstrap-3.3.5`（删前） | 10 个文件，精确路径无通配符 |
+| 语法 | `py_compile`（`web/admin/__init__.py` + 2 个新用例） | OK |
+
+## 四、发现与边界（不粉饰）
+
+1. **根目录 `fonts.css` 是 UTF-16LE**（BOM `FF FE` + NUL 字节），且在仓库根而非 `web/static/`。
+   属仓库卫生问题（疑似误提交），**本次未动**（需你先定“删还是转码”）。
+2. **`web/static/codemirror/addon/search/search_backup.js` 含非法 UTF-8 字节**，
+   从命名看是 `search.js` 的备份副本（同一目录下 `search.js` 才是被引用的那个）。
+   同上，**本次未动**，仅登记。
+3. **`/metrics` 未做 UI 开关**：只支持 `thisdb.setOption('metrics_open','yes')`；
+   若需要图形开关，属后续小改动（会牵涉 i18n 6 语言）。
+
+
+
+# 第 10 层：P1 批次收尾验证（本轮终态）
+
+> 用户2026-09-29 圈定本轮只做 **P1（安全与质量收口）**；本层为逐项复核与归档。
+
+## 一、任务闭环
+
+| Task | 内容 | 状态 |
+|---|---|---|
+| task-1 | 存量盘点 + 范围圈定（用户拍板 P1） | ✅ |
+| task-2 | P1-1 B5 `os.system` 收口（76 处 → 5） | ✅ |
+| task-3 | P1-2 C2 静默 except 清理（web/core + web/admin 109 处） | ✅ |
+| task-4 | P1-3 C7 删 `bootstrap-3.3.5` + N1 `/metrics` + 跨平台守卫 | ✅ |
+| task-5 | 收尾验证 + task.md + 记忆归档 | ✅ |
+
+## 二、最终验证证据（逐项实测）
+
+| 证据项 | 命令 | 结果 |
+|---|---|---|
+| 全量门禁 | `PYTHONUTF8=1 python testsuite/run_all.py` | **176 模块 / 1310 用例 / 0 活跃隔离 / 4 静态门禁 全绿**（48s） |
+| 代理单一真源 | `python testsuite/run_all.py -k deploy_bootstrap` | 11/11（含 `test_04` 代理一致 + 内嵌副本漂移 + `test_11` 测速表派生） |
+| 15 类系统安装脚本 | `bash -n scripts/install/*.sh` | 15/15 通过，0 失败 |
+| 全部 `.sh` 语法 | `testsuite/test_shell_syntax.py`（已挂门禁） | 全库 `.sh` 均过 `bash -n` |
+| 代码质量棘轮 | `python scripts/verify_code_quality.py` | bare 172 / silent 407 / print **0** / os.system **5**，均未恶化 |
+| 新增守卫 | `test_p1_misc_cleanup.py`(10) + `test_cross_platform_guard.py`(5) | 15/15 |
+| i18n 静态门禁 | `run_all.py --static` | 11 项全绿 |
+
+## 三、三条硬约束的逐项交代
+
+### 1）适配全部 15 类受支持系统
+- 本轮所有改动均为跨平台写法：新增/改写均用 `yf.safeExecShell([...])` 列表参数、
+  `os.makedirs`、`shutil.chown`、`yf.shlexQuote`，**未新增任何平台特定分支**；
+- 新增 `test_cross_platform_guard.py`：索引无 CRLF、1349 个源文件均带 `eol=lf` 属性、
+  `.gitattributes` 根规则存在、无 UTF-8 BOM、15 类安装脚本齐备且带 shebang；
+- `pureftp` 的 chown 从「`www.www` / `www.staff` 手写分支」改为 `shutil.chown`，
+  顺带消除了平台分支。
+- **未做真机逐发行版实跑**（已与你约定以静态守卫 + `bash -n` + testsuite 为证据）。
+
+### 2）SQLite 自愈升级（复用 `schema_version`）
+- **本轮没有新增/修改任何表结构**（B5/C2/C7/N1 均不碰 DB）；
+- 已有 `panel_session` / `panel_login_failure` / `panel_audit` 等新表仍走原自愈路径：
+  结构对齐每次启动幂等跑，数据迁移按 `schema_version` 只跑一次；
+- 回归：`run_all.py -k db_migration_selfheal`（16 项，含升级路径 heredoc 真跑）全绿。
+
+### 3）中国地区代理可用
+- 未新增任何硬编码代理；`scripts/proxies.list` 仍是唯一真源，
+  `test_04` 锁死「文件 rt 子集 == `deploy.sh` 内嵌副本」；
+- 本轮改动的 shell 部分不涉及代理（`install/*.sh` 的 loader 未动）；
+- 本地测速/代理回退逻辑（`_load_github_proxy_list` / `_GH_PROXY_LIST`）未动。
+
+## 四、本轮结束后仍存在（已登记，不在 P1 范围）
+
+| 项 | 实测 |
+|---|---|
+| C2 余额 | silent_except 407（`web/utils` 104 / `plugins/` ~290 / `panel_task.py` 8）；bare_except 172（全在 `panel_task.py`/`panel_tools.py`/`plugins/`） |
+| B5 余额 | 5 处 `os.system`：3 处纯字面量；2 处拼服务端常量路径 `yf.getPanelDir()`（非用户输入，无注入面，已注释理由并计入基线 5） |
+| C1 | `web/core/orm.py` 仍 `return ex`（595 调用点，高风险，单独立项） |
+| D1/D2 | 审计流水 UI / 远端转发未接（后端已就绪） |
+| 外部依赖项 | A1/A2/B6/C4/C6/D6/E1/E2/E3（需真机/CI/联网/产品决策） |
+| 新发现 | 根目录 `fonts.css`(UTF-16LE)、`search_backup.js`(非法 UTF-8) 仓库卫生问题 |
+
+**设计一致性结论**：本轮所有改动都满足「向上不新增硬编码代理、不新增平台分支、
+不改表结构（因此不涉及自愈路径变更）、不降低任何门禁强度」四条约束。
+
+
+
+# 第 11 层「C2 批次 2：web/utils + web/thisdb」
+
+> 审计驳回指出目标要求「所有可本地自动化验证的已知问题」，P1 只是第一批；
+> 用户授权「全量推进到底」。本层为批次 2。
+> 门禁基线：**176 模块 / 1310 用例 / 0 隔离 / 4 静态门禁 全绿**
+
+## 一、交付
+
+| 项 | 结果 |
+|---|---|
+| 范围 | `web/utils` 104 + `web/thisdb` 5 = **109 处** silent_except，全部清零 |
+| 基线变化 | `silent_except` **407 → 298**（−109，单调下调）；`bare_except` 172 不变（这两目录本无裸 except） |
+| 新增 logger | `yf.thisdb.crontab` / `yf.thisdb.firewall` / `yf.task` / `yf.firewall` / `yf.system` / `yf.system.update` / `yf.system.stats` / `yf.ssh` / `yf.ssh_terminal` / `yf.page` / `yf.urlguard` / `yf.fcgi` / `yf.crontab` / `yf.file` / `yf.plugin` / `yf.site` |
+| 重点文件 | `site.py` 25 / `file.py` 21 / `plugin.py` 21 / `crontab.py` 15 / `task.py` 5 / 其余 12 文件 |
+
+## 二、分级口径（沿用第 8 层）
+
+- **真异常**（站点配置 rename/symlink/删除失败、PID 文件写入失败、任务启动失败、
+  插件安装/版本文件写入失败、acme.sh 安装失败、user.ini 清理失败）→ `yf.writeFileLog`；
+- **预期内**（psutil 进程已退出、pid 文件缺失、`chattr` 权限不足、缓存读写、
+  `os.chmod/chown` 非 root、目录扫描、自适应分页上限探测、ffi 日志写入）→ `logging.debug`。
+
+## 三、验证
+
+| 项目 | 结果 |
+|---|---|
+| `py_compile`（16 个改动文件） | 全部 OK |
+| `verify_code_quality.py` | silent 407→**298**；`web/` 与 `web/thisdb` 残留 **0** |
+| 全量门禁 | **176 模块 / 1310 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 基线 | `--update` 已落：bare 172 / silent 298 / print 0 / os.system 5 |
+
+## 四、发现（已登记，未修）
+
+1. **`web/utils/setting.py:194` 与 `web/utils/site.py:2981` 的 acme.sh 安装命令写错了**：
+   `yf.execShell("curl -sS curl https://get.acme.sh | sh")` —— 多了一个 `curl` 参数，
+   curl 会把 `curl` 当成 URL 去请求，**安装实际不会成功**（且属「下载即执行」供应链面）。
+   本轮只把静默 `pass` 改成 `writeFileLog`（让失败可见），**命令本身未改**（涉及安装流程，单独评估）。
+2. `web/utils/crontab.py` 顶部有 **重复导入** `from utils.urlguard import validate_url`（同一行出现两次）。
+
+
+
+# 第 12 层「C2 批次 3 + 4：panel_*.py 与 plugins/ 全量归零」
+
+> 用户授权「全量推进到底」。其中 plugins/ 已从 436 处机械清理。
+> 终态门禁：**176 模块 / 1310 用例 / 0 隔离 / 4 静态门禁 全绿**
+
+## 一、交付（C2 全部完成）
+
+| 批次 | 范围 | silent | bare |
+|---|---|---|---|
+| 批次 1 | `web/core` + `web/admin` | 516→407 | 172（不变） |
+| 批次 2 | `web/utils` + `web/thisdb` | 407→298 | — |
+| 批次 3 | `panel_task.py` + `panel_tools.py` | 298→287 | 172→149 |
+| 批次 4 | `plugins/`（47 个文件） | 287→**0** | 149→**0** |
+
+**终态：`bare_except = 0`、`silent_except = 0`、`print_in_web = 0`、`os_system_count = 5`**
+
+改动规模：97 个文件；新增模块 logger 约 60 个（`yf.<plugin>` 命名）。
+
+## 二、关键工程方法（值得回看）
+
+一次性手改 436 处不现实，因此写了临时工具 `test/qfix.py`（收尾时删除）自动生成
+「唯一 oldText + newText」编辑对，再由 `edit` 工具落地。工具踩过 3 个坑：
+
+1. **相邻嵌套 except 会产出重叠编辑** → 改为「按变更行聚类 + 唯一性扩展 + 强制不重叠」；
+2. **裸 `except:` 的 body 若是 `return`/赋值，不能被日志覆盖**（否则吞掉控制流）→ 仅 `pass` body
+   才替换，否则**在 body 前插日志**；
+3. **`except ValueError: pass` 不能直接用 `_e`**（未绑定）→ 正则补 `as _e`；已有 `as X` 的沿用 X。
+
+另一个真实事故：`plugins/clean/clean_executor.py` 的 `import core.yf as yf` 在 `try:` **内部**，
+用无锚点旧文本插入 logger 导致缩进错位 → 语法错（已修）。教训：
+**header 锚点必须限定顶格（`^import core.yf as yf`）**，事后逐个 `py_compile` 才抳得住。
+
+## 三、验证
+
+| 项目 | 结果 |
+|---|---|
+| `py_compile`（94 个改动 py） | 0 失败 |
+| `verify_code_quality.py` | **bare 0 / silent 0** / print 0 / os.system 5 |
+| 全量门禁 | **176 模块 / 1310 用例 / 0 隔离 / 4 静态门禁 全绿** |
+
+## 四、边界（不粉饰）
+
+1. **机制是「加日志」，不是「修正业务逻辑」**：本次只把静默 `pass` 改成具名异常 + `debug` 日志，
+   并保留原有控制流；插件里真正「吞异常后继续用错误返回值」的**语义缺陷仍需逐个排查**，
+   不在本次机械清理范围内（文档 §C2 也只要求先清静态存量）。
+2. **日志级别以 `debug` 为主**（插件探测/解析/回退均属预期内），默认不会输出；
+   排查时需临时调高 `yf.*` 日志级别。
+
+
+
+# 第 13 层「C1：ORM/DB 异常语义（方案 B 兼容层，核心层）」
+
+> 用户拍板：采用 **方案 B（兼容层 + 新 Strict 接口）**；本轮只做 **核心层 + 守卫**，
+> 8 个调用点文件按 `yf.py → gitea → sphinx → postgresql → data_query → mariadb → mysql`
+> 顺序**分次**迁移（不在本轮）。
+> 门禁：**177 模块 / 1321 用例 / 0 隔离 / 4 静态门禁 全绿**
+
+## 一、调用点依赖矩阵（实测）
+
+| 层 | 实现 | 失败时旧返回 | 文件数 | 调用点 | 其中丢弃返回值 |
+|---|---|---|---|---|---|
+| A 外部库 | `web/core/orm.py::ORM` | **异常对象**（truthy） | 8 | 470（`execute` 161 / `query` 192 / `find` 约 100+） | **180** |
+| B 面板 SQLite | `web/core/db.py::Sql` | `"error: ..."` 字符串 | 29 | 125 | 53 |
+
+A 层 8 个文件：`plugins/mysql/index.py`（189）、`plugins/mariadb/index.py`（180）、
+`plugins/data_query/sql_mysql.py`（41）、`plugins/postgresql/index.py`（29）、
+`web/core/yf.py`（15）、`plugins/sphinx/class/sphinx_make.py`（11）、
+`plugins/gitea/index.py`（3）、`plugins/mariadb/scripts/test.py`（2）。
+
+三条旧故障语义：① 连接失败 → 错误字符串；② SQL 错 → **异常对象**（`if orm.execute(...)` 恒真）；
+③ 正常 → 结果。额外缺陷：`find()` 会在异常对象上 `len()` → **TypeError**。
+
+## 二、本层交付
+
+| 项 | 内容 |
+|---|---|
+| `ORMError` | 带 `sql` / `params` / `orig` 字段；**继承 Exception**（关键：已有 5 处 `isinstance(res, Exception)` 判断，继承后 100% 兼容） |
+| A 层旧 API | `execute/query` 保留旧返回形状，但失败时 **ERROR 日志 + 返回 `ORMError`**（不再静默）；`find()` 遇错误对象直接返回它（不再 `len()` 崩） |
+| A 层新 API | `executeStrict` / `queryStrict` / `findStrict`：连接失败与 SQL 错**一律抛 `ORMError`** |
+| `SqlError` | B 层新异常；`Sql.executeStrict` / `queryStrict` / `findStrict` 失败即抛 |
+| B 层旧 API | **完全不改**（仍返回 `"error: ..."`）——调用面 29 文件/125 处，一次改语义不可审查 |
+| 守卫用例 | `testsuite/test_orm_error_semantics.py`（11 项）：三路径 × 旧/新 API + `ORMError` 继承红线 + `find()` 回归 + 静态守卫（不得再有无日志的 `return ex`） |
+
+## 三、验证
+
+| 项目 | 结果 |
+|---|---|
+| 新用例 | `test_orm_error_semantics.py` **11/11**（本机无 pymysql，注入假模块真跑，非 skip） |
+| 全量门禁 | **177 模块 / 1321 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| `py_compile` | `orm.py` / `db.py` / 新用例 均 OK |
+
+## 四、遗留（已登记，按用户「调用点分次」决定）
+
+**180 处丢弃返回值的调用点仍是「truthy 陷阱」**：现在失败会打 ERROR 日志、不再静默，
+但调用方若只做真值判断，依旧会把 `ORMError` 当成功。彻底消除需要逐文件改用
+`*Strict` + 显式 `try/except`，集中在 `mysql/index.py`（105+75）、`mariadb/index.py`（78）——
+这两个文件正是同步/备份主线，**无真机可测**，故按用户决定不在本轮动。
+
+
+
+# 第 14 层「task-10：其余本地可验证项（H4.1 / I2 / I4 / 库卫生）」
+
+| 项 | 结论 | 证据 |
+|---|---|---|
+| **H4.1 `requirements.lock`** | **需联网**（本机离线无法 `pip-compile --generate-hashes`）→ 改为 **CI 生成** | `.github/workflows/security-scan.yml` 新增 `lock` job；产物 `requirements-lock` artifact；新增守卫 `testsuite/test_dependency_lock_and_hygiene.py` 锁死「**锁文件不得取代 `requirements.txt`**」（真正安装入口是 `scripts/lib.sh::install_requirements`，带 PIPSRC 镜像回退） |
+| **I2 发布模板** | **已本地闭环**（实测已完成） | `RELEASE_TEMPLATE.md` 含「变更类型 / 升级说明 / 回滚方法 / 发布前自检」；`release.yml:143` `body_path` 引用；既有守卫 `test_edition_layering.py` 已覆盖 |
+| **I4 商业版分层** | **已本地闭环**（实测已完成） | `web/core/edition.py` + `web/pro/`；`test_edition_layering.py` 12 项全绿 |
+| **库卫生** | **可本地验证 → 已修** | 根目录 `fonts.css`（UTF-16LE，位置也异常）与 `web/static/codemirror/addon/search/search_backup.js`（`search.js` 旧备份）实测**全仓零引用**，已 `git rm`；守卫断言两者不存在且无新引用 |
+
+验证：新守卫 5/5；全量门禁 **178 模块 / 1326 用例 / 0 隔离 / 4 静态门禁 全绿**。
+
+
+
+# 第 15 层：本轮终态与遗留（收尾）
+
+## 一、终态指标
+
+| 指标 | 起点 | 终点 |
+|---|---|---|
+| `bare_except` | 172 | **0** |
+| `silent_except` | 518 | **0** |
+| `print_in_web` | 45 | **0** |
+| `os_system_count` | 76（实测） | **5**（均注释理由） |
+| 门禁用例 | 176 模块 / 1310 用例 | **178 模块 / 1326 用例 / 0 活跃隔离 / 4 静态门禁** |
+
+## 二、三条硬约束的最终证据
+
+| 约束 | 证据 |
+|---|---|
+| 适配 15 类系统 | `test_cross_platform_guard.py` 5/5（索引无 CRLF、1349+ 源文件带 `eol=lf`、`.gitattributes` 根规则、无 BOM、15 类安装脚本齐备且带 shebang）；`test_shell_syntax.py` 全库 `.sh` 过 `bash -n` |
+| SQLite 自愈升级 | `test_db_migration_selfheal.py` 16/16（含升级路径 heredoc 真跑）；本轮**未改任何表结构**，自愈路径未动 |
+| 中国地区代理 | `test_deploy_bootstrap.py` 11/11（`test_04` 代理单一真源 + 内嵌副本一致；`test_11` 测速表由列表派生） |
+
+## 三、遗留（本轮未做，已逐项登记）
+
+| 项 | 原因 |
+|---|---|
+| **C1 调用点迁移（180 处丢弃返回值）** | 用户拍板「调用点分次」；现失败已打 ERROR 日志不再静默，但仍保留 truthy 语义。集中在 `mysql/mariadb` 同步备份主线，无真机可测 |
+| A1 签名强制开关翻转为 1 | 需首个签名 Release + 真机验证 |
+| A2 首个签名 Release | 需推 tag / CI 实跑 |
+| B6 curl\|bash 信任根 | 需 A2 配套；改文档只能做一半 |
+| C4 `requirements.lock` 入库 | 需联网生成（已由 CI `lock` job 代劳，待维护者取产物提交） |
+| C6 `--coverage` / C7 前端构建 | 需 `coverage` / esbuild（本机无） |
+| D1/D2 审计 UI / 远端转发 | 后端已就绪，前端与「日志离开本机」属新功能 |
+| D3 授权/激活/计费；D4 RBAC；D5 插件签名；D6 多 worker | 产品决策 / 压测基线 |
+| E1 `.i18n.bak`；E2 zabbix sql.gz；E3 `.git` 体积 | 刻意保留 / 待用户确认 / 禁止改写历史 |
+
+
+
+
+
+
+
+
+
+
+

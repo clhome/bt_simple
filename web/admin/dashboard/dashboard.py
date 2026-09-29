@@ -15,6 +15,9 @@ import base64
 import json
 import os
 import sys
+import logging
+
+_log = logging.getLogger('yf.dashboard')
 
 from flask import Blueprint, render_template
 from flask import make_response
@@ -90,8 +93,9 @@ def admin_safe_path(path):
             if _register_login_failure is not None:
                 try:
                     _register_login_failure(client_ip)
-                except Exception:
-                    pass
+                except Exception as e:
+                    # 登录失败计数落库失败会削弱暴力破解防护，必须可见
+                    yf.writeFileLog('[dashboard] 记录登录失败次数失败: %s' % e)
             pass
         
 
@@ -160,8 +164,8 @@ def get_location_from_ip_api(ip):
                         parts.append(city)
                     loc = ' '.join(parts).strip()
                     return loc if loc else (country or '海外')
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[dashboard] 第三方 IP 归属地解析失败: %s', e)
     return None
 
 def get_location_from_pconline(ip):
@@ -196,8 +200,8 @@ def get_location_from_pconline(ip):
                 if not loc:
                     loc = addr
                 return loc
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[dashboard] pconline IP 归属地解析失败: %s', e)
     return None
 
 def get_ip_location_str(ip):
@@ -346,8 +350,8 @@ def get_recent_logins():
                 try:
                     t_struct = time.strptime(time_str[:19], '%Y-%m-%d %H:%M:%S')
                     log_timestamp = int(time.mktime(t_struct))
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.debug('[dashboard] 登录日志时间解析失败: %s -> %s', time_str, e)
             if not log_timestamp:
                 log_timestamp = int(time.time())
 
@@ -396,8 +400,8 @@ def get_recent_logins():
         try:
             t_struct = time.strptime(last_time[:19], '%Y-%m-%d %H:%M:%S')
             now_ts = int(time.mktime(t_struct))
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[dashboard] 最后登录时间解析失败: %s', e)
 
         details_key = 'login_details_active_session'
         details_def = '当前活跃会话'

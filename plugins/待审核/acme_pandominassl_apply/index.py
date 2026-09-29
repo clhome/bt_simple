@@ -520,7 +520,13 @@ def getDnsapiExportVar(val):
     for x in range(len(cmd_list)):
         v = cmd_list[x]
         vlist = v.split('|')
-        def_var += 'export '+vlist[0]+'="'+vlist[1]+'"\n'
+        if len(vlist) < 2:
+            continue
+        # 变量名必须合法；值改单引号包裹。原先 `"="+值` 遇值内含 `"`/`$( )`/反引号 时可注入。
+        name = vlist[0].strip()
+        if not re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', name):
+            continue
+        def_var += 'export ' + name + '=' + yf.shlexQuote(vlist[1]) + '\n'
     return def_var
 
 def getDnsapiKv(val):
@@ -606,7 +612,7 @@ def runHookDstDomain(row):
 
     if yf.isAppleSystem():
         user = getRunUser()
-        cmd += "source /Users/"+user+"/.zshrc\n"
+        cmd += "source " + yf.shlexQuote('/Users/' + user + '/.zshrc') + "\n"
 
     cmd_data = getDnsapiData(row['dnsapi_id'])
     # print(cmd_data)
@@ -614,24 +620,24 @@ def runHookDstDomain(row):
     cmd += export_val
 
     # acme.sh --register-account -m my@example.com
-    cmd_register = 'acme.sh --register-account -m '+ email + '\n'
+    cmd_register = 'acme.sh --register-account -m ' + yf.shlexQuote(email) + '\n'
     cmd += cmd_register
 
     
     # acme.sh --issue -d "example.com" -d "*.example.com" --dns dns_cf
-    cmd_apply = 'acme.sh --issue --dns '+str(cmd_data['type'])+' -d '+domain+' -d "*.'+domain+'"'
+    cmd_apply = 'acme.sh --issue --dns ' + yf.shlexQuote(str(cmd_data['type'])) + ' -d ' + yf.shlexQuote(domain) + ' -d ' + yf.shlexQuote('*.' + domain)
     if row['effective_date'] != '':
         effective_date = int(row['effective_date'])
         now_int = int(time.time())
         day = (now_int - effective_date)/86400
         if int(day) > 7:
-            cmd_apply = 'acme.sh --issue --dns '+str(cmd_data['type'])+' -d '+domain+' -d "*.'+domain+'" --force'
+            cmd_apply = 'acme.sh --issue --dns ' + yf.shlexQuote(str(cmd_data['type'])) + ' -d ' + yf.shlexQuote(domain) + ' -d ' + yf.shlexQuote('*.' + domain) + ' --force'
     cmd += cmd_apply
 
     run_log = runLog()
-    cmd += ' >> '+ run_log
+    cmd += ' >> ' + yf.shlexQuote(run_log)
     print(cmd)
-    os.system(cmd)
+    yf.execShell(cmd)
     hookWriteLog('结束申请【'+domain+'】SSL证书')
     isok, path = domainApplyPathJudge(domain)
     print(isok,path)

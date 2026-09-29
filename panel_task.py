@@ -26,6 +26,9 @@ sys.path.append(web_dir)
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.panel_task')
 
 # ---------------------------------------------------------------------------------
 # 事件驱动唤醒（第 0 层空转治理）
@@ -61,8 +64,8 @@ def writePanelTaskPidFile():
     try:
         with open(yf.getPanelTaskPidFile(), 'w') as f:
             f.write(str(os.getpid()))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[panel_task] 写任务守护 PID 文件失败: %s', _e)
 
 
 def removePanelTaskPidFile():
@@ -70,16 +73,16 @@ def removePanelTaskPidFile():
         pid_file = yf.getPanelTaskPidFile()
         if os.path.exists(pid_file):
             os.remove(pid_file)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[panel_task] 清理任务守护 PID 文件失败: %s', _e)
 
 g_log_file = yf.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
     try:
         with open(g_log_file, 'a'):
             pass
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[panel_task] 创建任务日志文件失败: %s', _e)
 
 # 任务最大运行时长（秒）：避免卡死任务永久堵死队列，超时则杀进程组并标记失败。
 # 取一个足够宽裕的上限（编译/大库导入等重活仍能跑完），只堵“永不返回”。
@@ -94,8 +97,8 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     if shell and isinstance(cmdstring, str):
         try:
             cmdstring = yf.sanitizeCmdScripts(cmdstring, cwd=cwd)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 清洗命令脚本 CRLF 失败: %s', _e)
 
     # 启动进程，捕获 stdout 并将 stderr 重定向到 stdout
     sub_kwargs = {
@@ -120,11 +123,12 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
                 os.killpg(os.getpgid(sub.pid), signal.SIGKILL)
             else:
                 sub.kill()
-        except Exception:
+        except Exception as _e:
+            _log.debug('[panel_task] 终止进程树失败: %s', _e)
             try:
                 sub.kill()
-            except Exception:
-                pass
+            except Exception as _e2:
+                _log.debug('[panel_task] 兜底 kill 也失败: %s', _e2)
 
     if timeout and timeout > 0:
         def _watchdog():
@@ -133,8 +137,8 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
             except subprocess.TimeoutExpired:
                 timed_out['v'] = True
                 _kill_tree()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 等待子进程异常: %s', _e)
 
         _wt = threading.Thread(target=_watchdog, name='PanelTaskTimeoutWatchdog')
         _wt.daemon = True
@@ -145,12 +149,13 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         try:
             with open(cur_task_pid_file, 'w', encoding='utf-8') as pf:
                 pf.write(f"{task_id}:{sub.pid}")
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 写当前任务 PID 文件失败: %s -> %s', cur_task_pid_file, _e)
 
     try:
         log_file_handle = open(g_log_file, 'w', encoding='utf-8')
-    except:
+    except Exception as _e:
+        _log.debug('[panel_task] 打开全局任务日志失败: %s', _e)
         log_file_handle = None
 
     task_log_handle = None
@@ -160,12 +165,12 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         if not os.path.exists(task_log_dir):
             try:
                 os.makedirs(task_log_dir, exist_ok=True)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 创建任务日志目录失败: %s', _e)
         try:
             task_log_handle = open(task_log_file, 'w', encoding='utf-8')
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 打开任务专属日志失败: %s -> %s', task_log_file, _e)
 
     last_flush_time = time.time()
     # 实时读取
@@ -187,49 +192,49 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
                         log_file_handle.write(time_str + line)
                     else:
                         log_file_handle.write(line)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[panel_task] 写全局任务日志失败: %s', _e)
             if task_log_handle:
                 try:
                     if line.strip():
                         task_log_handle.write(time_str + line)
                     else:
                         task_log_handle.write(line)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[panel_task] 写任务专属日志失败: %s', _e)
 
             now = time.time()
             if now - last_flush_time >= 0.5:
                 if log_file_handle:
                     try:
                         log_file_handle.flush()
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[panel_task] flush 全局日志失败: %s', _e)
                 if task_log_handle:
                     try:
                         task_log_handle.flush()
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[panel_task] flush 任务日志失败: %s', _e)
                 last_flush_time = now
 
     if log_file_handle:
         try:
             log_file_handle.flush()
             log_file_handle.close()
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 关闭全局任务日志失败: %s', _e)
     if task_log_handle:
         try:
             task_log_handle.close()
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 关闭任务专属日志失败: %s', _e)
 
     if task_id:
         try:
             if os.path.exists(cur_task_pid_file):
                 os.remove(cur_task_pid_file)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 清理当前任务 PID 文件失败: %s', _e)
 
     if timed_out['v']:
         # 超时被杀：向任务日志明确告知，上游据此置为失败而不是误判为成功
@@ -237,22 +242,22 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         writeLogs(msg, task_id=task_id)
         try:
             sub.wait(timeout=5)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 超时后等待子进程退出失败: %s', _e)
         for _pipe in (sub.stdout, sub.stdin):
             try:
                 if _pipe:
                     _pipe.close()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 关闭超时任务管道失败: %s', _e)
         return ('timeout', msg)
 
     for _pipe in (sub.stdout, sub.stdin):
         try:
             if _pipe:
                 _pipe.close()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 关闭任务管道失败: %s', _e)
     return (str(sub.returncode), '')
 
 
@@ -262,21 +267,21 @@ def writeLogs(data, task_id=None):
         fp = open(g_log_file, 'w+')
         fp.write(data)
         fp.close()
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[panel_task] 覆盖写全局任务日志失败: %s', _e)
     if task_id:
         task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
         task_log_dir = os.path.dirname(task_log_file)
         if not os.path.exists(task_log_dir):
             try:
                 os.makedirs(task_log_dir, exist_ok=True)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 创建任务日志目录失败: %s', _e)
         try:
             with open(task_log_file, 'a+', encoding='utf-8') as f:
                 f.write(data + "\n")
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 追加写任务日志失败: %s', _e)
 
 def _make_safe_redirect_handler():
     """构造一个对每次跳转都重新做 SSRF 校验的重定向处理器。
@@ -366,8 +371,8 @@ def downloadFile(url, filename, task_id=None):
         finally:
             try:
                 resp.close()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 关闭 HTTP 响应失败: %s', _e)
 
         if not yf.isAppleSystem():
             try:
@@ -376,7 +381,8 @@ def downloadFile(url, filename, task_id=None):
                 uid = pwd.getpwnam('www').pw_uid
                 gid = grp.getgrnam('www').gr_gid
                 os.chown(filename, uid, gid)
-            except:
+            except Exception as _e:
+                _log.debug('[panel_task] os.chown 失败，回退 execShell: %s', _e)
                 yf.execShell(['chown', 'www:www', filename], shell=False)
 
         writeLogs(filename + ' download success!', task_id)
@@ -517,8 +523,8 @@ def startPHPVersion(version):
             if os.path.exists(fpm):
                 try:
                     os.remove(fpm)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[panel_task] 清理 fpm 文件失败: %s', _e)
             return False
 
         if not os.path.exists(fpm):
@@ -541,8 +547,8 @@ def startPHPVersion(version):
             if os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[panel_task] 清理 PHP-FPM 临时文件失败: %s -> %s', temp_file, _e)
                     
         yf.execShell([fpm, 'start'], shell=False)
         if checkPHPVersion(version):

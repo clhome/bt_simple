@@ -17,6 +17,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.php_yum')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -152,13 +155,13 @@ def ensureRuntimeDirs(version):
         if not os.path.exists(d):
             try:
                 os.makedirs(d, exist_ok=True)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php-yum] ensureRuntimeDirs 异常已忽略: %s', _e)
     if not yf.isAppleSystem():
         try:
             yf.execShell(f"chown -R www:www /var/opt/remi/php{version}/run /var/opt/remi/php{version}/log /var/opt/remi/php{version}/session 2>/dev/null")
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-yum] ensureRuntimeDirs 异常已忽略: %s', _e)
 
 
 def cleanOrphanSocketAndPid(version):
@@ -180,10 +183,10 @@ def cleanOrphanSocketAndPid(version):
             if not is_listening:
                 try:
                     os.remove(sock_file)
-                except Exception:
-                    pass
-    except Exception:
-        pass
+                except Exception as _e:
+                    _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
+    except Exception as _e:
+        _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
 
     pid_files = [
         f"/var/opt/remi/php{version}/run/php-fpm/php-fpm.pid",
@@ -200,17 +203,17 @@ def cleanOrphanSocketAndPid(version):
                     except ProcessLookupError:
                         try:
                             os.remove(pid_file)
-                        except Exception:
-                            pass
-                    except PermissionError:
-                        pass
+                        except Exception as _e:
+                            _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
+                    except PermissionError as _e:
+                        _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
                 else:
                     try:
                         os.remove(pid_file)
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                    except Exception as _e:
+                        _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
+            except Exception as _e:
+                _log.debug('[php-yum] cleanOrphanSocketAndPid 异常已忽略: %s', _e)
 
 
 def upgradeSelfHealing(version=''):
@@ -309,8 +312,8 @@ def status(version):
     
     try:
         checkPluginUpgrade(version)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[php-yum] status 异常已忽略: %s', _e)
 
     service_name = f"php{version}-php-fpm"
     cmd_active = f"systemctl is-active {service_name}"
@@ -331,10 +334,10 @@ def status(version):
             except (ProcessLookupError, ValueError):
                 try:
                     os.remove(pid_file)
-                except Exception:
-                    pass
-            except Exception:
-                pass
+                except Exception as _e:
+                    _log.debug('[php-yum] status 异常已忽略: %s', _e)
+            except Exception as _e:
+                _log.debug('[php-yum] status 异常已忽略: %s', _e)
             
     return 'stop'
 
@@ -654,8 +657,8 @@ def phpOp(version, method):
         cleanOrphanSocketAndPid(version)
         try:
             yf.execShell(f"systemctl reset-failed {service_name}")
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-yum] phpOp 异常已忽略: %s', _e)
 
     cmd = f"systemctl {method} {service_name}"
     data = yf.execShell(cmd)
@@ -668,8 +671,8 @@ def phpOp(version, method):
         log_res = yf.execShell(f"journalctl -u {service_name} -n 15 --no-pager")
         if log_res[0]:
             err_msg += "\n[journalctl]\n" + log_res[0].strip()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[php-yum] phpOp 异常已忽略: %s', _e)
     
     return err_msg
 
@@ -1087,8 +1090,8 @@ def getSessionConf(version):
         try:
             save_path = m_path.group(1).strip()
             port = m_path.group(2).strip()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-yum] getSessionConf 异常已忽略: %s', _e)
 
     data = {"save_handler": save_handler, "save_path": save_path,
             "passwd": passwd, "port": port}
@@ -1113,7 +1116,8 @@ def setSessionConf(version):
             port = int(port)
             if port >= 65535 or port < 1:
                 return yf.returnJson(False, '请输入正确的端口号')
-        except:
+        except Exception as _e:
+            _log.debug('[php-yum] setSessionConf 异常已忽略: %s', _e)
             return yf.returnJson(False, '请输入正确的端口号')
         prep = r"[\~\`\/\=]"
         if re.search(prep, passwd):
@@ -1251,8 +1255,8 @@ def getDisableFunc(version):
                 else:
                     phpini = phpini.rstrip() + f'\ndisable_functions = {DEFAULT_DISABLE_FUNCTIONS}\n'
                 yf.writeFile(filename, phpini)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php-yum] getDisableFunc 异常已忽略: %s', _e)
     return yf.getJson(data)
 
 

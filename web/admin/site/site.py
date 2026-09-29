@@ -100,8 +100,8 @@ def list():
                 data = json.loads(data_content) if data_content else []
                 if len(data) > 0:
                     site['has_proxy'] = True
-            except Exception:
-                pass
+            except Exception as e:
+                yf.writeFileLog('[site] 解析反向代理数据失败: %s' % e)
 
     if is_ssl_sort:
         info['list'].sort(key=lambda x: x['ssl_days'], reverse=ssl_sort_desc)

@@ -15,6 +15,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.openresty')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -57,7 +60,7 @@ def getArgs():
         if isinstance(parsed, dict):
             return {k.strip(): str(v).strip() for k, v in parsed.items()}
     except Exception as e:
-        pass
+        _log.debug('[openresty] getArgs 异常已忽略: %s', e)
 
     # 2. 如果 JSON 序列化由于转义或引号丢失失败，使用智能正则拆分法
     content = full_str.strip('{').strip('}').strip()
@@ -187,11 +190,11 @@ def confSelfHeal():
                         os.remove(r_path)
                         need_remake = True
                     except Exception as e:
-                        pass
+                        _log.debug('[openresty] confSelfHeal 异常已忽略: %s', e)
             if need_remake:
                 yf.opLuaMakeAll()
     except Exception as e:
-        pass
+        _log.debug('[openresty] confSelfHeal 异常已忽略: %s', e)
 
 
 def directoryPermissionSelfHeal():
@@ -233,10 +236,10 @@ def directoryPermissionSelfHeal():
                     os.makedirs(wwwlogs_dir, exist_ok=True)
                 yf.execShell(f"chown -R {user}:{user_group} {wwwlogs_dir}")
                 yf.execShell(f"chmod -R 755 {wwwlogs_dir}")
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[openresty] directoryPermissionSelfHeal 异常已忽略: %s', _e)
     except Exception as e:
-        pass
+        _log.debug('[openresty] directoryPermissionSelfHeal 异常已忽略: %s', e)
 
 
 def getPortPid(port=80):
@@ -259,7 +262,7 @@ def getPortPid(port=80):
                 if pid_match_ns:
                     return int(pid_match_ns.group(1))
     except Exception as e:
-        pass
+        _log.debug('[openresty] getPortPid 异常已忽略: %s', e)
     return None
 
 
@@ -268,8 +271,8 @@ def getProcessName(pid):
         comm_file = f"/proc/{pid}/comm"
         if os.path.exists(comm_file):
             return yf.readFile(comm_file).strip()
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[openresty] getProcessName 异常已忽略: %s', _e)
     return "unknown"
 
 
@@ -279,8 +282,8 @@ def getSystemdErrorDetail():
         res = yf.execShell("journalctl -n 20 -u openresty --no-pager")
         if res[0] != '':
             detail += "\n[系统服务日志明细]:\n" + res[0]
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[openresty] getSystemdErrorDetail 异常已忽略: %s', _e)
 
     try:
         err_log_file = getServerDir() + '/nginx/logs/error.log'
@@ -290,8 +293,8 @@ def getSystemdErrorDetail():
                 lines = log_content.strip().split('\n')
                 last_lines = lines[-20:]
                 detail += "\n[OpenResty 错误日志明细 (error.log)]:\n" + "\n".join(last_lines)
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[openresty] getSystemdErrorDetail 异常已忽略: %s', _e)
 
     return detail
 
@@ -422,7 +425,7 @@ def confReplace():
             try:
                 os.remove(r_path)
             except Exception as e:
-                pass
+                _log.debug('[openresty] confReplace 异常已忽略: %s', e)
 
     # 深度解耦自愈：若 OP 高性能防火墙 (OpenStar) 未安装或已被物理删除，则在此自动清理残留挂载，以杜绝 dofile init.lua 失败导致 OpenResty 启动崩溃
     openstar_dir = yf.getServerDir() + '/openstar'
@@ -438,7 +441,7 @@ def confReplace():
                 try:
                     os.remove(r_path)
                 except Exception as e:
-                    pass
+                    _log.debug('[openresty] confReplace 异常已忽略: %s', e)
 
     yf.opLuaMakeAll()
 

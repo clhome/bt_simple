@@ -18,6 +18,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.task_manager')
 
 
 app_debug = False
@@ -112,8 +115,8 @@ class mainClass(object):
                 if os.path.islink(fname):
                     l = os.readlink(fname)
                     if l.find('socket:') != -1: connects += 1
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[task_manager] get_connects 异常已忽略: %s', _e)
         return connects
 
     # 获取进程io写
@@ -314,8 +317,8 @@ class mainClass(object):
                     else:
                         php_version = p_exe.split('/')[-3]
                     return 'PHP' + php_version + '进程'
-                except:
-                    pass
+                except Exception as _e:
+                    _log.debug('[task_manager] get_process_ps 异常已忽略: %s', _e)
             elif name.lower() == 'python' or name.lower() == 'python3':
                 p_exe_arr = p_exe.split('/')
                 if p_exe_arr[-1] in ['task.py']:
@@ -471,7 +474,8 @@ class mainClass(object):
             self.meter_head[meter_head_name] = not self.meter_head[meter_head_name]
             yf.writeFile(meter_head_file, json.dumps(self.meter_head))
             return True
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] set_meter_head 异常已忽略: %s', _e)
             return False
 
     def get_meter_head(self, get=None):
@@ -511,7 +515,8 @@ class mainClass(object):
                             'user'] or search in str(k['pid']):
                             ldata.append(i)
             return ldata
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] search_pro 异常已忽略: %s', _e)
             print(yf.getTracebackInfo())
             return data
 
@@ -602,7 +607,8 @@ class mainClass(object):
             for child in children:
                 pids.append(child.pid)
             return pids
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] __get_children 异常已忽略: %s', _e)
             return []
 
     # 外部接口，结束进程，pid30以上
@@ -625,7 +631,8 @@ class mainClass(object):
         if not self.task_pid:
             try:
                 self.task_pid = int(yf.execShell("ps aux | grep 'python3 task.py' |grep -v grep|head -n1|awk '{print $2}'")[0])
-            except:
+            except Exception as _e:
+                _log.debug('[task_manager] is_panel_process 异常已忽略: %s', _e)
                 self.task_pid = -1
         if pid == self.task_pid: return True
         return False
@@ -662,8 +669,8 @@ class mainClass(object):
                 yf.execShell("rm -f /tmp/mysql.sock")
             self.kill_process_lower(pid)
             if ppid: return self.kill_process_all(ppid)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[task_manager] kill_process_all 异常已忽略: %s', _e)
         return yf.returnData(True, '已结束此进程树!')
 
     
@@ -1035,8 +1042,8 @@ class mainClass(object):
                 p.kill()
                 yf.execShell("pkill -9 " + shlex.quote(pname))
                 r = yf.execShell("userdel " + shlex.quote(user))
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[task_manager] remove_user 异常已忽略: %s', _e)
         if r[1].find('userdel:') != -1: return yf.returnData(False, r[1]);
         return yf.returnData(True, '删除成功!')
 
@@ -1073,7 +1080,8 @@ class mainClass(object):
                     'home'] or search in i['group']:
                     ldata.append(i)
             return ldata
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] search_user 异常已忽略: %s', _e)
             yf.writeLog('任务管理', traceback.format_exc())
             return data
 
@@ -1108,7 +1116,8 @@ class mainClass(object):
             networkInfo['downPackets_s'] = int((networkIo[3] - self.old_net_info['downPackets']) / s)
             networkInfo['upPackets_s'] = int((networkIo[2] - self.old_net_info['upPackets']) / s)
             return networkInfo
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] get_network 异常已忽略: %s', _e)
             return None
 
 
@@ -1164,14 +1173,16 @@ class mainClass(object):
                         if search in str(j):
                             ldata.append(i)
             return ldata
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] search_network 异常已忽略: %s', _e)
             return data
 
     # 获取当前运行级别  get_service_list ——> 引用get_my_runlevel
     def get_my_runlevel(self):
         try:
             runlevel = yf.execShell('runlevel')[0].split()[1]
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] get_my_runlevel 异常已忽略: %s', _e)
             runlevel_dict = {"multi-user.target": '3', 'rescue.target': '1', 'poweroff.target': '0',
                              'graphical.target': '5', "reboot.target": '6'}
             r_tmp = yf.execShell('systemctl get-default')[0].strip()
@@ -1402,7 +1413,8 @@ class mainClass(object):
                 serviceInfo['runlevel_6'] = runlevels[6]
                 serviceInfo['ps'] = self.get_run_ps(sname)
                 serviceList.append(serviceInfo)
-            except:
+            except Exception as _e:
+                _log.debug('[task_manager] get_service_list 异常已忽略: %s', _e)
                 continue
 
         data['runlevel'] = self.get_my_runlevel()
@@ -1420,7 +1432,8 @@ class mainClass(object):
                 if search in i['name'] or search in i['ps']:
                     ldata.append(i)
             return ldata
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] search_service 异常已忽略: %s', _e)
             return data
 
     # 获取存放计划任务的路径
@@ -1522,7 +1535,8 @@ class mainClass(object):
                 if search in i['command'] or search in i['cycle'] or search in i['ps']:
                     ldata.append(i)
             return ldata
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] search_cron 异常已忽略: %s', _e)
             return data
 
      # 重启cron服务

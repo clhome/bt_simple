@@ -1,5 +1,8 @@
 import os
 import json
+import logging
+
+_log = logging.getLogger('yf.pg_docker')
 
 base_dir = '/docker_data'
 json_path = 'instances.json'
@@ -8,8 +11,8 @@ if os.path.exists(json_path):
     with open(json_path, 'r') as f:
         try:
             data = json.load(f)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] module 异常已忽略: %s', _e)
 else:
     # also try checking default base dir
     if os.path.exists(base_dir):

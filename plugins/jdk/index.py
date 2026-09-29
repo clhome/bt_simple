@@ -20,6 +20,9 @@ if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.jdk')
 
 class jdk_main:
     _panel_path = yf.getPanelDir()
@@ -57,8 +60,8 @@ class jdk_main:
                 content = yf.readFile(cache_file)
                 if content:
                     return json.loads(content)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[jdk] get_online_jdks 异常已忽略: %s', _e)
                 
         import urllib.request
         import re
@@ -80,7 +83,7 @@ class jdk_main:
                         })
                         continue
             except Exception as e:
-                pass
+                _log.debug('[jdk] get_online_jdks 异常已忽略: %s', e)
             updated_jdks.append(jdk)
             
         yf.writeFile(cache_file, json.dumps(updated_jdks))
@@ -192,8 +195,9 @@ class jdk_main:
                     if jdk['version'] == version:
                         url = jdk['url']
                         break
-        except Exception:
-            pass # 忽略其他网络错误，交由bash脚本处理
+        except Exception as _e:
+            # 忽略其他网络错误，交由bash脚本处理
+            _log.debug('[jdk] install_jdk 异常已忽略: %s', _e)
 
         dest_dir = self._java_dir + '/' + version
         java_bin = dest_dir + '/bin/java'
@@ -301,8 +305,8 @@ def getArgs():
         parsed = json.loads(args_str)
         if isinstance(parsed, dict):
             return parsed
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[jdk] getArgs 异常已忽略: %s', _e)
     
     # 逐个元素尝试解析 JSON
     for arg in scan_args:
@@ -315,7 +319,8 @@ def getArgs():
             parsed = json.loads(arg)
             if isinstance(parsed, dict):
                 return parsed
-        except:
+        except Exception as _e:
+            _log.debug('[jdk] getArgs 异常已忽略: %s', _e)
             continue
 
     # 兼容 key:value 格式
@@ -326,8 +331,8 @@ def getArgs():
                 if ":" in p:
                     k, v = p.split(":", 1)
                     tmp[k.strip().strip("'").strip('"')] = v.strip().strip("'").strip('"')
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[jdk] getArgs 异常已忽略: %s', _e)
     return tmp
 
 if __name__ == "__main__":

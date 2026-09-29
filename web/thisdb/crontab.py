@@ -12,6 +12,9 @@
 import os
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.thisdb.crontab')
 
 __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,min_start_en,min_start_h,min_start_m,min_end_en,min_end_h,min_end_m,last_run_time,add_time,update_time'
 
@@ -19,20 +22,20 @@ __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_t
 try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
 except Exception as _e:
-    pass
+    _log.debug('[thisdb.crontab] 添加 last_run_time 列失败（通常为已存在）: %s', _e)
 
 # 尝试增加 day_type 字段 (迁移逻辑)
 try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN day_type INTEGER DEFAULT 0")
 except Exception as _e:
-    pass
+    _log.debug('[thisdb.crontab] 添加 day_type 列失败（通常为已存在）: %s', _e)
 
 # 尝试增加 min_start/end 相关字段 (迁移逻辑)
 for col, ctype in [("min_start_en", "INTEGER DEFAULT 0"), ("min_start_h", "INTEGER DEFAULT 0"), ("min_start_m", "INTEGER DEFAULT 0"), ("min_end_en", "INTEGER DEFAULT 0"), ("min_end_h", "INTEGER DEFAULT 23"), ("min_end_m", "INTEGER DEFAULT 59")]:
     try:
         yf.M('crontab').execute(f"ALTER TABLE crontab ADD COLUMN {col} {ctype}")
     except Exception as _e:
-        pass
+        _log.debug('[thisdb.crontab] 添加列 %s 失败（通常为已存在）: %s', col, _e)
 
 def addCrontab(data):
     now_time = yf.formatDate()

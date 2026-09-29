@@ -17,6 +17,9 @@ import math
 import psutil
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.system.stats')
 
 class stats:
     cache = {}
@@ -88,7 +91,7 @@ class stats:
 
             self.cache[iokey] = {'info':diskio_group,'time':mtime}
         except Exception as e:
-            pass
+            _log.debug('[system.stats] 采集磁盘 IO 失败: %s', e)
 
         return diskInfo
 

@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.clean')
 from utils.crontab import crontab as YfCrontab
 
 
@@ -55,8 +58,8 @@ def getConfigData():
             saved = json.loads(yf.readFile(conf))
             if isinstance(saved, dict):
                 data.update(saved)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] getConfigData 异常已忽略: %s', _e)
     return data
 
 
@@ -141,8 +144,8 @@ echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END 清理完成★" >> $log_file
                     + "-" * 72
                 )
                 append_run_log(ready_log)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[clean] createBgTask 异常已忽略: %s', _e)
 
             return True, f"成功创建定时清理任务 [ID:{task_id}]"
         return False, "添加计划任务失败，未能返回任务 ID"
@@ -160,8 +163,8 @@ def removeBgTask():
             res = yf.M("crontab").field("id, name").where("id=?", (task_id,)).find()
             if res and res.get("id") == task_id:
                 YfCrontab.instance().delete(task_id)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[clean] removeBgTask 异常已忽略: %s', _e)
 
     # 同时清理同名残留任务
     try:
@@ -170,8 +173,8 @@ def removeBgTask():
         if old_tasks and isinstance(old_tasks, list):
             for t in old_tasks:
                 YfCrontab.instance().delete(t['id'])
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[clean] removeBgTask 异常已忽略: %s', _e)
 
     cfg["task_id"] = -1
     cfg["status"] = False
@@ -182,8 +185,8 @@ def removeBgTask():
         now_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         stop_log = f"★【{now_str}】 后台定时守护任务已停止 (Inactive)★\n" + "-" * 72
         append_run_log(stop_log)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[clean] removeBgTask 异常已忽略: %s', _e)
 
     return True
 

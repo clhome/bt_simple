@@ -17,6 +17,9 @@ import math
 import psutil
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.system')
 
 from threading import Thread
 from time import sleep
@@ -372,7 +375,7 @@ def getSystemDetails():
                 elif snic.family == getattr(socket, 'AF_INET6', -1) and ipv6 == "X":
                     ipv6 = snic.address
     except Exception as _e:
-        pass
+        _log.debug('[system] 遍历网卡地址失败: %s', _e)
     net_info['ipv4'] = ipv4
     net_info['ipv6'] = ipv6
     
@@ -387,7 +390,7 @@ def getSystemDetails():
         try:
             ip_data = json.loads(yf.readFile(ip_cache_file))
         except Exception as _e:
-            pass
+            _log.debug('[system] 读取公网 IP 缓存失败: %s', _e)
             
     if not ip_data:
         try:
@@ -396,7 +399,7 @@ def getSystemDetails():
                 ip_data = json.loads(ip_res)
                 yf.writeFile(ip_cache_file, json.dumps(ip_data))
         except Exception as _e:
-            pass
+            _log.debug('[system] 解析/写入公网 IP 缓存失败: %s', _e)
             
     net_info['isp'] = "未知"
     net_info['location'] = "未知"

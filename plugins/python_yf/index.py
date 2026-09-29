@@ -9,6 +9,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.python_yf')
 
 UV_BIN = os.path.expanduser("~/.local/bin/uv")
 
@@ -26,8 +29,8 @@ def getArgs():
         parsed = json.loads(full_args_str)
         if isinstance(parsed, dict):
             return parsed
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[python_yf] getArgs 异常已忽略: %s', _e)
 
     for arg in args:
         arg = arg.strip()
@@ -39,7 +42,8 @@ def getArgs():
             parsed = json.loads(arg)
             if isinstance(parsed, dict):
                 return parsed
-        except:
+        except Exception as _e:
+            _log.debug('[python_yf] getArgs 异常已忽略: %s', _e)
             continue
 
     if ":" in full_args_str:
@@ -49,8 +53,8 @@ def getArgs():
                 if ":" in p:
                     k, v = p.split(":", 1)
                     tmp[k.strip().strip("'").strip('"')] = v.strip().strip("'").strip('"')
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[python_yf] getArgs 异常已忽略: %s', _e)
     return tmp
 
 VENV_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'venvs.json')
@@ -59,8 +63,8 @@ def get_venvs():
     if os.path.exists(VENV_FILE):
         try:
             return json.loads(yf.readFile(VENV_FILE))
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[python_yf] get_venvs 异常已忽略: %s', _e)
     return {}
 
 def save_venvs(data):

@@ -22,6 +22,9 @@ import threading
 import re
 
 from io import BytesIO, StringIO
+import logging
+
+_log = logging.getLogger('yf.ssh_terminal')
 
 import core.yf as yf
 import paramiko
@@ -416,7 +419,7 @@ class ssh_terminal(object):
             if self.__ps:
                 self.__ps.close()
         except Exception as _e:
-            pass
+            _log.debug('[ssh_terminal] 关闭通道失败: %s', _e)
 
     def resize(self, sid, data):
         try:

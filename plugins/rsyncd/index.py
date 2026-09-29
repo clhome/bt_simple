@@ -415,9 +415,10 @@ def addRec():
             if file_chown != 'www':
                 return yf.returnJson(False, '建议手动执行命令: chown -R www:www '+ args_path)
         else:
-            os.system("mkdir -p " + args_path + " &")
-            os.system("chown -R  www:www " + args_path + " &")
-            os.system("chmod -R 755 " + args_path + " &")
+            # 变量路径不得进 shell：列表参数 + os.makedirs，避免 `;`/`$()` 注入
+            yf.makeDirs(args_path)
+            yf.safeExecShell(['chown', '-R', 'www:www', args_path])
+            yf.safeExecShell(['chmod', '-R', '755', args_path])
 
     delRecBy(args_name)
 
@@ -782,9 +783,10 @@ def lsyncdAdd():
             if file_chown != 'www':
                 return yf.returnJson(False, '建议手动执行命令: chown -R www:www '+ path)
         else:
-            os.system("mkdir -p " + path + " &")
-            os.system("chown -R  www:www " + path + " &")
-            os.system("chmod -R 755 " + path + " &")
+            # 变量路径不得进 shell：列表参数 + os.makedirs，避免 `;`/`$()` 注入
+            yf.makeDirs(path)
+            yf.safeExecShell(['chown', '-R', 'www:www', path])
+            yf.safeExecShell(['chmod', '-R', '755', path])
 
     conn_type = args['conn_type']
 

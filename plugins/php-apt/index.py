@@ -17,6 +17,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.php_apt')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -185,8 +188,8 @@ def status(version):
     version = formatVersion(version)
     try:
         checkPluginUpgrade(version)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[php-apt] status 异常已忽略: %s', _e)
 
     # 1. 优先采用 systemctl is-active
     cmd = "systemctl is-active php" + version + "-fpm"
@@ -209,8 +212,8 @@ def status(version):
                 pid = int(pid_str)
                 os.kill(pid, 0)
                 return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-apt] status 异常已忽略: %s', _e)
 
     # 3. 降级通过进程树特征匹配（精确匹配 Debian/Ubuntu 原生路径 /etc/php/{version}/ 及别名）
     chk = yf.execShell(f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v grep")
@@ -573,8 +576,8 @@ def phpOp(version, method):
                         os.kill(pid, 0)
                     except OSError:
                         os.remove(pid_file)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php-apt] phpOp 异常已忽略: %s', _e)
 
         # 4. 重置 systemd 失败状态
         yf.execShell(f'systemctl reset-failed {service_name} 2>/dev/null')
@@ -770,8 +773,8 @@ def checkPluginUpgrade(version=''):
                 mig_func(version)
         try:
             yf.writeFile(ver_file, CURRENT_PLUGIN_VERSION)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-apt] checkPluginUpgrade 异常已忽略: %s', _e)
         return yf.returnJson(True, '大版本迁移升级自愈成功完成。')
     finally:
         _PHP_APT_UPGRADE_CHECKING = False
@@ -1085,7 +1088,8 @@ def getFpmAddress(version):
         elif raw_listen.isdigit():
             fpm_address = ('127.0.0.1', int(raw_listen))
         return fpm_address
-    except:
+    except Exception as _e:
+        _log.debug('[php-apt] getFpmAddress 异常已忽略: %s', _e)
         return fpm_address
 
 
@@ -1142,8 +1146,8 @@ def getSessionConf(version):
         try:
             save_path = m_path.group(1).strip()
             port = m_path.group(2).strip()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[php-apt] getSessionConf 异常已忽略: %s', _e)
 
     data = {"save_handler": save_handler, "save_path": save_path,
             "passwd": passwd, "port": port}
@@ -1168,7 +1172,8 @@ def setSessionConf(version):
             port = int(port)
             if port >= 65535 or port < 1:
                 return yf.returnJson(False, '请输入正确的端口号')
-        except:
+        except Exception as _e:
+            _log.debug('[php-apt] setSessionConf 异常已忽略: %s', _e)
             return yf.returnJson(False, '请输入正确的端口号')
         prep = r"[\~\`\/\=]"
         if re.search(prep, passwd):
@@ -1306,8 +1311,8 @@ def getDisableFunc(version):
                 else:
                     phpini = phpini.rstrip() + f'\ndisable_functions = {DEFAULT_DISABLE_FUNCTIONS}\n'
                 yf.writeFile(filename, phpini)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[php-apt] getDisableFunc 异常已忽略: %s', _e)
     return yf.getJson(data)
 
 

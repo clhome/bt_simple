@@ -11,6 +11,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.linux_sys_opt')
 
 def getPluginName():
     return 'linux_sys_opt'
@@ -26,8 +29,8 @@ def get_mem_mb():
             m = re.search(r'MemTotal:\s+(\d+)\s+kB', mem)
             if m:
                 return int(m.group(1)) // 1024
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[linux_sys_opt] get_mem_mb 异常已忽略: %s', _e)
     return 2048
 
 

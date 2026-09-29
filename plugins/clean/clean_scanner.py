@@ -5,6 +5,9 @@ import sys
 import time
 import fnmatch
 from clean_security import normalize_path, format_size, is_critical_audit_log, is_safe_path
+import logging
+
+_log = logging.getLogger('yf.clean.scanner')
 
 # 核心严禁清理的文件扩展名黑名单（数据库核心数据、系统二进制、配置文件等）
 FORBIDDEN_EXTENSIONS = {
@@ -167,8 +170,8 @@ def scan_directory_files(base_path, cat_key='', recursive=True, max_depth=3, cur
                     'size': st.st_size,
                     'mtime': st.st_mtime,
                 })
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[clean] scan_directory_files 异常已忽略: %s', _e)
         return files
 
     if current_depth > max_depth:
@@ -209,8 +212,8 @@ def scan_directory_files(base_path, cat_key='', recursive=True, max_depth=3, cur
                         ))
                 except (PermissionError, FileNotFoundError):
                     continue
-    except (PermissionError, FileNotFoundError):
-        pass
+    except (PermissionError, FileNotFoundError) as _e:
+        _log.debug('[clean] scan_directory_files 异常已忽略: %s', _e)
 
     return files
 
@@ -246,8 +249,8 @@ def scan_all_categories(custom_paths=None):
                             php_log = os.path.join(entry.path, 'var', 'log')
                             if os.path.exists(php_log):
                                 search_paths.append(php_log)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[clean] scan_all_categories 异常已忽略: %s', _e)
 
         # 扫描每个搜索路径
         for sp in search_paths:

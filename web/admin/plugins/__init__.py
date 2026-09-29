@@ -12,6 +12,9 @@
 import os
 import json
 import time
+import logging
+
+_log = logging.getLogger('yf.plugin')
 
 from flask import Blueprint, render_template
 from flask import request
@@ -284,8 +287,8 @@ def setting():
         if os.path.exists(lang_file):
             try:
                 lang_dict = json.loads(yf.readFile(lang_file))
-            except Exception:
-                pass
+            except Exception as e:
+                yf.writeFileLog('[plugin] 语言包解析失败: %s -> %s' % (lang_file, e))
         _PLUGIN_LANG_CACHE[lang_cache_key] = lang_dict
 
     if lang_dict:
@@ -372,14 +375,12 @@ def run():
         if is_state_op:
             for k in [k for k in RUN_CACHE.keys()]:
                 if k[0] == name:
-                    try:
-                        del RUN_CACHE[k]
-                    except KeyError:
-                        pass
+                    RUN_CACHE.pop(k, None)
             try:
                 YfPlugin.instance().runByCache(name, func, version)
-            except Exception:
-                pass
+            except Exception as e:
+                # 缓存预热失败不影响本次执行，但需可诊断
+                _log.debug('[plugin] 预热插件状态缓存失败: %s -> %s', name, e)
 
         pg = YfPlugin.instance()
         data = pg.run(name, func, version, args, script)
@@ -395,8 +396,8 @@ def run():
             try:
                 op_ok = (r['status'] == True and r.get('data') == 'ok')
                 YfPlugin.instance().runByCache(name, func, version, op_result=op_ok)
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[plugin] 回写插件状态缓存失败: %s -> %s', name, e)
             # 插件启/停/重启/重载是最典型的「改状态」操作，单独记语义化审计
             yf.writeAudit('plugin.%s' % (func or 'unknown'), target=name,
                           result='ok' if r.get('status') else 'fail',
@@ -434,14 +435,11 @@ def callback():
         if is_state_op:
             for k in [k for k in RUN_CACHE.keys()]:
                 if k[0] == name:
-                    try:
-                        del RUN_CACHE[k]
-                    except KeyError:
-                        pass
+                    RUN_CACHE.pop(k, None)
             try:
                 YfPlugin.instance().runByCache(name, func, '')
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[plugin] 预热插件状态缓存失败: %s -> %s', name, e)
 
         pg = YfPlugin.instance()
         data = pg.callback(name, func, args=args, script=script)
@@ -450,8 +448,8 @@ def callback():
             try:
                 op_ok = bool(data[0])
                 YfPlugin.instance().runByCache(name, func, '', op_result=op_ok)
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[plugin] 回写插件状态缓存失败: %s -> %s', name, e)
 
         from flask import Response
         if data[0]:

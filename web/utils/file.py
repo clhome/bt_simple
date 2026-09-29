@@ -21,6 +21,9 @@ import base64
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.file')
 
 def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files):
     if not yf.fileNameCheck(name):
@@ -296,8 +299,8 @@ def setBatchData(path, stype, access, user, data):
                         try:
                             import subprocess
                             subprocess.run(['chattr', '-i', filename], timeout=3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[file] chattr -i 解锁失败: %s', _e)
                     if is_recycle:
                         if not mvRecycleBin(topath):
                             failed_files.append(filename)
@@ -531,21 +534,21 @@ def setFileAccept(filename):
                 try:
                     os.chown(os.path.join(root, d), uid, gid)
                     os.chmod(os.path.join(root, d), 0o755)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[file] 递归设置目录属主/权限失败: %s', _e)
             for f in files:
                 try:
                     os.chown(os.path.join(root, f), uid, gid)
                     os.chmod(os.path.join(root, f), 0o755)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[file] 递归设置文件属主/权限失败: %s', _e)
         try:
             os.chown(filename, uid, gid)
             os.chmod(filename, 0o755)
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except Exception as _e:
+            _log.debug('[file] 设置属主/权限失败: %s -> %s', filename, _e)
+    except Exception as _e:
+        _log.debug('[file] 遍历路径设置属主/权限失败: %s', _e)
 
 def createFile(file_path):
     try:
@@ -869,8 +872,8 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
         from core.resources import get_dir_list_limits
         _, adaptive_scan = get_dir_list_limits()
         max_limit = min(max_limit, adaptive_scan)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] 获取目录扫描上限失败，沿用默认值: %s', _e)
     order_split = order.split(' ')
     if len(order_split) < 2:
         flist = sortAllFileList(path, order_split[0],'',search, max_limit)
@@ -884,8 +887,8 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
         max_page, _ = get_dir_list_limits()
         if size > max_page:
             size = max_page
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] 获取自适应分页上限失败（sortAllFileList）: %s', _e)
     start = (page - 1) * size
     end = start + size
     if end > count:
@@ -911,8 +914,8 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
         _, a_scan = get_dir_list_limits()
         if count >= a_scan:
             data['truncated'] = True
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] 计算截断标记失败: %s', _e)
     return data
 
 def getDirList(path, page=1, size=10, order = '', search=None):
@@ -922,8 +925,8 @@ def getDirList(path, page=1, size=10, order = '', search=None):
         max_page, _ = get_dir_list_limits()
         if int(size) > max_page:
             size = max_page
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] 获取自适应分页上限失败（getDirList）: %s', _e)
     if page < 1:
         page = 1
 
@@ -1027,7 +1030,7 @@ def getDirSize(filePath, size=0, _max_walk_files=50000):
             try:
                 size += os.path.getsize(fp)
             except Exception as _e:
-                pass
+                _log.debug('[file] 统计文件大小失败: %s -> %s', fp, _e)
             walked += 1
     return size
 
@@ -1053,8 +1056,8 @@ def getDirSizeByBash(path):
             parts = out.strip().split()
             if parts and parts[0].isdigit():
                 return formatFileSize(int(parts[0]))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] du 统计目录大小失败（execShell 分支）: %s', _e)
     try:
         import subprocess as _sp
         r = _sp.run(['du', '-sb', path], capture_output=True, text=True, timeout=3)
@@ -1062,8 +1065,8 @@ def getDirSizeByBash(path):
             parts = r.stdout.strip().split()
             if parts and parts[0].isdigit():
                 return formatFileSize(int(parts[0]))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] du 统计目录大小失败（subprocess 分支）: %s', _e)
     try:
         size = getDirSize(path)
         return formatFileSize(size)
@@ -1153,8 +1156,8 @@ def getOccupyingProcess(path):
                             return "被进程 %s (PID: %s) 占用" % (proc.info.get('name') or proc.pid, proc.info.get('pid'))
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[file] 遍历进程占用失败，回退 lsof: %s', _e)
         # 回退 lsof，带 2s 超时防止大目录阻塞（仅对文件用 lsof 单文件，目录不再 +D 遍历）
         try:
             import subprocess
@@ -1165,8 +1168,8 @@ def getOccupyingProcess(path):
                     from core.resources import is_low as _is_low
                     if _is_low():
                         return "(目录被占用，请检查是否有进程正在使用该目录)"
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[file] 资源等级判定失败: %s', _e)
                 cmd = ['lsof', path]
                 out = subprocess.run(cmd, capture_output=True, text=True, timeout=2).stdout
             else:
@@ -1177,8 +1180,8 @@ def getOccupyingProcess(path):
                     parts = lines[1].split()
                     if len(parts) >= 2:
                         return "被进程 " + parts[0] + " (PID: " + parts[1] + ") 占用"
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[file] lsof 检测占用失败: %s', _e)
         # 最后回退 fuser
         try:
             out2, _ = yf.execShell("fuser -v '%s' 2>&1" % path.replace("'", "'\\''"))
@@ -1187,14 +1190,14 @@ def getOccupyingProcess(path):
                     parts = line.split()
                     if len(parts) >= 4 and parts[1].isdigit():
                         return "被进程 " + parts[3] + " (PID: " + parts[1] + ") 占用"
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[file] fuser 检测占用失败: %s', _e)
         import platform
         if platform.system() == 'Windows':
             return "(当前为Windows开发环境，未配置lsof命令，暂无法展示具体锁死进程)"
         return "(未检测到具体占用进程，可能是权限不足或隐藏系统进程占用)"
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] 检测文件占用整体失败: %s', _e)
     return "(请检查目录/文件权限或是否被占用)"
 
 def fileDelete(path):
@@ -1207,8 +1210,8 @@ def fileDelete(path):
     try:
         import subprocess as _sp
         _sp.run(['chattr', '-i', path], timeout=2, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] chattr -i 失败: %s', _e)
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
@@ -1248,8 +1251,8 @@ def dirDelete(path):
     try:
         import subprocess as _sp
         _sp.run(['chattr', '-R', '-i', path], timeout=3, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] chattr -R -i 失败: %s', _e)
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
@@ -1377,8 +1380,8 @@ def closeRecycleBin():
     try:
         import subprocess as _sp
         _sp.run(['chattr', '-R', '-i', rb_dir], timeout=3, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[file] chattr -R -i 回收站目录失败: %s', _e)
     rlist = os.listdir(rb_dir)
     i = 0
     l = len(rlist)
@@ -1414,8 +1417,8 @@ def closeLogs():
                     shutil.rmtree(p)
                 else:
                     os.remove(p)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[file] 删除文件失败: %s -> %s', p, _e)
     yf.opWeb('reload')
     yf.writeLog('文件管理', '网站日志已被清空!')
     tmp = getDirSizeByBash(log_file)

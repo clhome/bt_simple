@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.pureftp')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -236,11 +239,14 @@ def pftpAdd(username, password, path):
 
     if not os.path.exists(path):
         os.makedirs(path)
-        if yf.isAppleSystem():
-            # pass
-            os.system('chown ' + user + '.staff ' + path)
-        else:
-            os.system('chown www.www ' + path)
+        # 变量路径不得进 shell：用 shutil.chown，顺带消除 macOS/BSD 的 `.` 分隔写法
+        try:
+            if yf.isAppleSystem():
+                shutil.chown(path, user, 'staff')
+            else:
+                shutil.chown(path, 'www', 'www')
+        except Exception as _e:
+            yf.writeFileLog('[pureftp] chown 失败：%s -> %r' % (_e, path))
 
     cmd = getServerDir() + '/bin/pure-pw useradd ' + username + ' -u ' + user + ' -d ' + \
         path + '<<EOF \n' + password + '\n' + password + '\nEOF'
@@ -282,7 +288,8 @@ def getFtpPort():
         conf = yf.readFile(file)
         rep = r"\n#?\s*Bind\s+[0-9]+\.[0-9]+\.[0-9]+\.+[0-9]+,([0-9]+)"
         port = re.search(rep, conf).groups()[0]
-    except:
+    except Exception as _e:
+        _log.debug('[pureftp] getFtpPort 异常已忽略: %s', _e)
         port = '21'
     return port
 
@@ -328,12 +335,14 @@ def getFtpList():
         s.connect(('8.8.8.8', 80))
         internal_ip = s.getsockname()[0]
         s.close()
-    except:
+    except Exception as _e:
+        _log.debug('[pureftp] getFtpList 异常已忽略: %s', _e)
         internal_ip = '127.0.0.1'
         
     try:
         external_ip = yf.getHostAddr()
-    except:
+    except Exception as _e:
+        _log.debug('[pureftp] getFtpList 异常已忽略: %s', _e)
         external_ip = internal_ip
 
     info['ip'] = internal_ip

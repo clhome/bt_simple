@@ -15,6 +15,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.docker')
 
 try:
     import docker
@@ -74,7 +77,8 @@ def getArgs():
     if args_len == 1:
         try:
             tmp = json.loads(args[0])
-        except:
+        except Exception as _e:
+            _log.debug('[docker] getArgs 异常已忽略: %s', _e)
             t = args[0].strip('{').strip('}')
             if t.strip() == '':
                 tmp = []
@@ -101,7 +105,7 @@ def status():
         if c.ping():
             return 'start'
     except Exception as e:
-        pass
+        _log.debug('[docker] status 异常已忽略: %s', e)
     return 'stop'
 
 
@@ -177,7 +181,8 @@ def utc_to_local(utc_time_str, utc_format='%Y-%m-%dT%H:%M:%S'):
         local_format = "%Y-%m-%d %H:%M"
         time_str = local_dt.strftime(local_format)
         return int(time.mktime(time.strptime(time_str, local_format)))
-    except:
+    except Exception as _e:
+        _log.debug('[docker] utc_to_local 异常已忽略: %s', _e)
         return 0
 
 
@@ -219,8 +224,8 @@ def dockerRemoveCon():
                 'Data']['LowerDir'].split(':')
             for i in path_list:
                 yf.execShell('chattr -R -i %s' % i)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[docker] dockerRemoveCon 异常已忽略: %s', _e)
         conFind.remove(force=True)
         return yf.returnJson(True, '成功删除!')
     except docker.errors.APIError as ex:
@@ -322,8 +327,8 @@ def imageList():
                 parts = line.split('|')
                 if len(parts) >= 2:
                     disk_usage_map[parts[0]] = parts[1]
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[docker] imageList 异常已忽略: %s', _e)
     for image in ilist:
         tmp_attrs = image.attrs
         repo_tags = tmp_attrs.get('RepoTags', None)
@@ -496,7 +501,8 @@ def dockerRemoveImage():
     try:
         c.images.remove(repoTags)
         return yf.returnJson(True, '成功删除')
-    except:
+    except Exception as _e:
+        _log.debug('[docker] dockerRemoveImage 异常已忽略: %s', _e)
         try:
             c.images.remove(imageId)
             return yf.returnJson(True, '成功删除!')
@@ -530,8 +536,8 @@ def dockerImagePickList():
     if not os.path.exists(bkDir):
         try:
             os.makedirs(bkDir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[docker] dockerImagePickList 异常已忽略: %s', _e)
 
     # 严格限定支持的镜像归档扩展名
     allowed_exts = ('.tar', '.tar.gz', '.tgz')
@@ -595,8 +601,8 @@ def dockerImagePickSave():
     if not os.path.exists(bkDir):
         try:
             os.makedirs(bkDir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[docker] dockerImagePickSave 异常已忽略: %s', _e)
 
     file_name = bkDir + '/' + str(time.strftime('%Y%m%d_%H%M%S', time.localtime())) + '.tar.gz'
     quoted_file = shlex.quote(file_name)
@@ -610,8 +616,8 @@ def dockerImagePickSave():
             if os.path.exists(file_name):
                 try:
                     os.remove(file_name)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[docker] dockerImagePickSave 异常已忽略: %s', _e)
             err_msg = (err or '').strip() or (out or '').strip()
             if not err_msg:
                 err_msg = '导出镜像失败，请检查 Docker 服务状态及镜像是否存在'
@@ -622,8 +628,8 @@ def dockerImagePickSave():
         if os.path.exists(file_name) and os.path.getsize(file_name) == 0:
             try:
                 os.remove(file_name)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] dockerImagePickSave 异常已忽略: %s', _e)
         return yf.returnJson(False, '操作失败: ' + str(ex))
 
 
@@ -816,7 +822,8 @@ def __check_dst_port(ip, port, timeout=3):
         s.settimeout(timeout)
         s.connect((ip, port))
         s.close()
-    except:
+    except Exception as _e:
+        _log.debug('[docker] __check_dst_port 异常已忽略: %s', _e)
         ok = False
     return ok
 
@@ -995,7 +1002,8 @@ def set_accelerator():
             mirrors = json.loads(mirrors_str)
             if not isinstance(mirrors, list):
                 return yf.returnJson(False, '参数格式错误，期望 JSON 数组')
-    except:
+    except Exception as _e:
+        _log.debug('[docker] set_accelerator 异常已忽略: %s', _e)
         return yf.returnJson(False, '参数解析失败，非有效的 JSON 数组')
 
     daemon_file = get_daemon_json_path()
@@ -1003,8 +1011,8 @@ def set_accelerator():
     if not os.path.exists(daemon_dir):
         try:
             os.makedirs(daemon_dir)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[docker] set_accelerator 异常已忽略: %s', _e)
 
     data = {}
     if os.path.exists(daemon_file):
@@ -1012,8 +1020,8 @@ def set_accelerator():
             content = yf.readFile(daemon_file)
             if content:
                 data = json.loads(content)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[docker] set_accelerator 异常已忽略: %s', _e)
 
     if mirrors:
         data['registry-mirrors'] = mirrors
@@ -1110,8 +1118,8 @@ def checkDockerMigrateSpace():
         if out_du:
             try:
                 required_kb = int(out_du.strip().split()[0])
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] checkDockerMigrateSpace 异常已忽略: %s', _e)
 
         cmd_df = 'df -P -k %s' % shlex.quote(new_path)
         out_df, err_df = yf.execShell(cmd_df)
@@ -1128,8 +1136,8 @@ def checkDockerMigrateSpace():
                         return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
                     
                     return yf.returnJson(True, 'ok', {'required': req_size, 'available': avail_size})
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] checkDockerMigrateSpace 异常已忽略: %s', _e)
         
         return yf.returnJson(True, 'ok', {'required': '未知', 'available': '未知'})
     except Exception as e:
@@ -1165,8 +1173,8 @@ def migrateDockerDir():
         if out_du:
             try:
                 required_kb = int(out_du.strip().split()[0])
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] migrateDockerDir 异常已忽略: %s', _e)
 
         cmd_df = 'df -P -k %s' % shlex.quote(new_path)
         out_df, err_df = yf.execShell(cmd_df)
@@ -1181,8 +1189,8 @@ def migrateDockerDir():
                         req_size = yf.toSize(required_kb * 1024)
                         avail_size = yf.toSize(available_kb * 1024)
                         return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] migrateDockerDir 异常已忽略: %s', _e)
 
         # 停止docker
         yf.execShell('systemctl stop docker')
@@ -1214,8 +1222,8 @@ def migrateDockerDir():
                 content = yf.readFile(daemon_file)
                 if content:
                     data = json.loads(content)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[docker] migrateDockerDir 异常已忽略: %s', _e)
 
         data['data-root'] = new_path
         yf.writeFile(daemon_file, json.dumps(data, indent=4))

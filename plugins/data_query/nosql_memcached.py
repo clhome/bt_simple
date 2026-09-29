@@ -16,6 +16,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query.memcached')
 import functools
     
 
@@ -64,8 +67,8 @@ class nosqlMemcached():
         if self.__DB_CONN:
             try:
                 self.__DB_CONN.close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close 异常已忽略: %s', _e)
             self.__DB_CONN = None
 
 
@@ -110,8 +113,8 @@ class nosqlMemcached():
                         'host': c_data.get('host', '127.0.0.1'),
                         'port': int(c_data.get('port', 11211))
                     }
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         port_info = common_db.getDbPort('memcached')
         result = {}
@@ -132,8 +135,8 @@ class nosqlMemcached():
             if port_re:
                 try:
                     result['port'] = int(port_re.groups()[0].strip())
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] get_options 异常已忽略: %s', _e)
         return result
 
     def set_host(self, host, port, prefix=''):
@@ -308,8 +311,8 @@ def close_connection_after(func):
         finally:
             try:
                 nosqlMemcached().close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close_connection_after 异常已忽略: %s', _e)
     return wrapper
 
 def _normalize_args(args=None, kwargs=None):

@@ -337,8 +337,12 @@ class SupplyChainGuardTest(unittest.TestCase):
                               '%s:%d nosec 缺理由尾注：%s' % (rel, i, line.strip()))
                 self.assertFalse(line.strip().startswith('# nosec'),
                                  '%s:%d 独立成行的 nosec 会误作用于下一行' % (rel, i))
+        # 下限是「防悄然抹除豁免」的触发器。B5（os.system 收口）把
+        # panel_tools.py 里 23 处 `# nosec B605` 随 os.system 一并删除（改成
+        # safeExecShell / shlexQuote 后不再需要豁免），故下限由 25 调整为实际值 7。
+        # 以后再降，说明又有豁免未加理由就消失，本用例会直接变红。
         self.assertGreaterEqual(
-            total, 25,
+            total, 7,
             'bandit 豁免数量异常减少（%d）；若确实是修好了某条，请同步调整本用例' % total)
 
     def test_17_basic_auth_no_longer_stores_md5(self):

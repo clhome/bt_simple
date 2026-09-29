@@ -1,5 +1,6 @@
 {
-  "bare_except": 172,
+  "bare_except": 0,
+  "os_system_count": 5,
   "print_in_web": 0,
-  "silent_except": 517
+  "silent_except": 0
 }

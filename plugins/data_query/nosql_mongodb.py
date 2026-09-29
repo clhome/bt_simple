@@ -19,6 +19,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query.mongo')
 import functools
 
 def singleton(cls):
@@ -83,7 +86,8 @@ def getConfigData():
     config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
-    except:
+    except Exception as _e:
+        _log.debug('[data_query] getConfigData 异常已忽略: %s', _e)
         config = {
             "systemLog": {
                 "destination": "file",
@@ -169,8 +173,8 @@ class nosqlMongodb():
         if self.__DB_CONN:
             try:
                 self.__DB_CONN.close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close 异常已忽略: %s', _e)
             self.__DB_CONN = None
 
 
@@ -215,8 +219,8 @@ class nosqlMongodb():
         mg_root = ''
         try:
             mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] mgdb_conn 异常已忽略: %s', _e)
 
         try:
             if auth == 'disabled':
@@ -250,8 +254,8 @@ class nosqlMongodb():
                         'password': c_data.get('password', ''),
                         'auth_db': c_data.get('auth_db', 'admin')
                     }
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         port_info = common_db.getDbPort('mongodb')
         result = {}
@@ -268,8 +272,8 @@ class nosqlMongodb():
             if ip_re:
                 try:
                     result['port'] = int(ip_re.groups()[0].strip())
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] get_options 异常已忽略: %s', _e)
         return result
 
     def set_host(self, host, port, name, username, password, prefix=''):
@@ -439,8 +443,8 @@ def close_connection_after(func):
         finally:
             try:
                 nosqlMongodb().close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close_connection_after 异常已忽略: %s', _e)
     return wrapper
 
 def _normalize_args(args=None, kwargs=None):

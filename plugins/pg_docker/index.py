@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.pg_docker')
 
 def installPreInspection():
     check_docker = yf.getServerDir() + '/docker'
@@ -32,8 +35,8 @@ def get_mem_mb():
             m = re.search(r'MemTotal:\s+(\d+)\s+kB', mem)
             if m:
                 return int(m.group(1)) // 1024
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[pg_docker] get_mem_mb 异常已忽略: %s', _e)
     return 2048
 
 def load_instances():
@@ -41,8 +44,8 @@ def load_instances():
     if os.path.exists(conf_path):
         try:
             return json.loads(yf.readFile(conf_path))
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] load_instances 异常已忽略: %s', _e)
     return {}
 
 def save_instances(data):
@@ -67,7 +70,8 @@ def get_list():
                     
                     try:
                         cpu_val = int(round(float(cpu_raw)))
-                    except:
+                    except Exception as _e:
+                        _log.debug('[pg_docker] get_list 异常已忽略: %s', _e)
                         cpu_val = 0
                         
                     mem_val = 0
@@ -80,12 +84,12 @@ def get_list():
                             mem_val = int(round(float(mem_raw.replace('kiB','').replace('kB','')) / 1024))
                         else:
                             mem_val = 0
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[pg_docker] get_list 异常已忽略: %s', _e)
                         
                     stats_map[cname] = {"cpu": cpu_val, "mem": mem_val}
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[pg_docker] get_list 异常已忽略: %s', _e)
     
     # 兼容处理：扫描默认目录，把之前未记录的也加进来
     base_dir_default = "/docker_data"
@@ -125,8 +129,8 @@ def get_list():
                 pwm = re.search(r'POSTGRES_PASSWORD:\s*"?(.*?)"?\n', content)
                 if pwm:
                     dbpass = pwm.group(1)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[pg_docker] get_list 异常已忽略: %s', _e)
             
             # 检查运行状态
             status_cmd = f"cd {instance_path} && docker compose ps -q"
@@ -163,7 +167,8 @@ def get_list():
 def get_config(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] get_config 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
     
     inst_name = data.get('instance_name', '').strip()
@@ -181,7 +186,8 @@ def get_config(args):
 def toggle_status(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] toggle_status 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
     
     inst_name = data.get('instance_name', '').strip()
@@ -207,7 +213,8 @@ def toggle_status(args):
 def get_backups(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] get_backups 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -225,8 +232,8 @@ def get_backups(args):
     if os.path.exists(remarks_file):
         try:
             remarks_data = json.loads(yf.readFile(remarks_file))
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] get_backups 异常已忽略: %s', _e)
     
     def scan_dir(path, is_manual=False):
         lst = []
@@ -263,7 +270,8 @@ def get_backups(args):
 def toggle_auto_backup(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] toggle_auto_backup 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -293,7 +301,8 @@ def toggle_auto_backup(args):
 def create_backup(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] create_backup 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -321,7 +330,8 @@ def create_backup(args):
 def restore_backup(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] restore_backup 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -349,8 +359,8 @@ def restore_backup(args):
             script_content = script_content.replace(target_cmd, 'pg_restore -U ${DB_USER} -d ${DB_NAME} < "$RESTORE_FILE"')
             with open(script_path, 'w', encoding='utf-8', newline='\n') as f:
                 f.write(script_content)
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[pg_docker] restore_backup 异常已忽略: %s', _e)
         
     # Execute restore script in background or wait for it.
     output = yf.execShell(f"/bin/bash {script_path} {file_path}")
@@ -365,7 +375,8 @@ def restore_backup(args):
 def delete_backup(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] delete_backup 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -389,8 +400,8 @@ def delete_backup(args):
                 if filename in remarks_data:
                     del remarks_data[filename]
                     yf.writeFile(remarks_file, json.dumps(remarks_data))
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[pg_docker] delete_backup 异常已忽略: %s', _e)
                 
         write_log(inst_name, "delete_backup", f"删除了备份文件: {file_path}")
         return yf.returnJson(True, "备份删除成功！")
@@ -400,7 +411,8 @@ def delete_backup(args):
 def save_backup_remark(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] save_backup_remark 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -421,8 +433,8 @@ def save_backup_remark(args):
     if os.path.exists(remarks_file):
         try:
             remarks_data = json.loads(yf.readFile(remarks_file))
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] save_backup_remark 异常已忽略: %s', _e)
             
     remarks_data[filename] = remark
     yf.writeFile(remarks_file, json.dumps(remarks_data))
@@ -432,7 +444,8 @@ def save_backup_remark(args):
 def toggle_external_port(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] toggle_external_port 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -471,7 +484,8 @@ def toggle_external_port(args):
 def modify_config(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] modify_config 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
         
     inst_name = data.get('instance_name', '').strip()
@@ -549,7 +563,8 @@ def modify_config(args):
 def create_instance(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] create_instance 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
 
     inst_name = data.get('instance_name', '').strip()
@@ -589,7 +604,8 @@ def create_instance(args):
         user_mem = int(mem_limit) if mem_limit else int(sys_mem * 0.75)
         if user_mem > sys_mem * 0.75:
             user_mem = int(sys_mem * 0.75)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] create_instance 异常已忽略: %s', _e)
         user_mem = int(sys_mem * 0.75)
 
     if user_mem < 256:
@@ -829,7 +845,8 @@ echo "✅ 数据还原完成！"
 def uninstall_instance(args):
     try:
         data = json.loads(args)
-    except:
+    except Exception as _e:
+        _log.debug('[pg_docker] uninstall_instance 异常已忽略: %s', _e)
         return yf.returnJson(False, "参数解析失败")
     
     inst_name = data.get('instance_name', '').strip()
@@ -872,8 +889,8 @@ def write_log(inst_name, action, msg):
     try:
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"[{time_str}] [{inst_name}] [{action}] {msg}\n")
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[pg_docker] write_log 异常已忽略: %s', _e)
 
 def get_logs(args):
     log_file = os.path.join(getServerDir(), 'plugin.log')
@@ -892,7 +909,8 @@ def get_logs(args):
                     log_time = time.mktime(time.strptime(m.group(1), "%Y-%m-%d %H:%M:%S"))
                     if log_time > seven_days_ago:
                         new_lines.append(line)
-                except:
+                except Exception as _e:
+                    _log.debug('[pg_docker] get_logs 异常已忽略: %s', _e)
                     new_lines.append(line)
             else:
                 new_lines.append(line)
@@ -900,8 +918,8 @@ def get_logs(args):
         if len(new_lines) < len(lines):
             with open(log_file, 'w', encoding='utf-8') as f:
                 f.writelines(new_lines)
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[pg_docker] get_logs 异常已忽略: %s', _e)
         
     return yf.returnJson(True, "ok", "".join(new_lines))
 
@@ -932,8 +950,8 @@ def getTotalStatistics():
             for item in os.listdir(base_dir_default):
                 if item not in instances_data:
                     instances_data[item] = base_dir_default
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] getTotalStatistics 异常已忽略: %s', _e)
 
     count = 0
     for inst_name, base_dir in list(instances_data.items()):
@@ -944,24 +962,24 @@ def getTotalStatistics():
                 content = yf.readFile(compose_file)
                 if 'container_name: pg-' in content or 'container_name: "pg-' in content:
                     count += 1
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[pg_docker] getTotalStatistics 异常已忽略: %s', _e)
 
     version = "1.0"
     vfile = getServerDir() + '/version.pl'
     if os.path.exists(vfile):
         try:
             version = yf.readFile(vfile).strip()
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] getTotalStatistics 异常已忽略: %s', _e)
     else:
         try:
             info_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'info.json')
             if os.path.exists(info_path):
                 idata = json.loads(yf.readFile(info_path))
                 version = idata.get('versions', '1.0')
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] getTotalStatistics 异常已忽略: %s', _e)
 
     data = {
         "status": True,

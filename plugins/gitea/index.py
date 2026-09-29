@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.gitea')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -257,7 +260,8 @@ def getAccessUrl():
         s.connect(('8.8.8.8', 80))
         lan_ip = s.getsockname()[0]
         s.close()
-    except:
+    except Exception as _e:
+        _log.debug('[gitea] getAccessUrl 异常已忽略: %s', _e)
         lan_ip = '127.0.0.1'
 
     wan_ip = yf.getHostAddr()
@@ -830,7 +834,7 @@ def projectScriptRun():
         with open(commit_log, 'w') as err_log:
             subprocess.Popen(['sh', '-x', commit_sh], stdout=subprocess.PIPE, stderr=err_log, shell=False, bufsize=4096)
     except Exception as e:
-        pass
+        _log.debug('[gitea] projectScriptRun 异常已忽略: %s', e)
     subprocess.Popen(['chown', '-R', 'www:www', repo_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, bufsize=4096)
     return yf.returnJson(True, '脚本文件执行成功,观察日志!')
 
@@ -1138,8 +1142,8 @@ def getRsaPublic():
             try:
                 os.makedirs(ssh_dir)
                 yf.execShell("chmod 700 " + ssh_dir)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[gitea] getRsaPublic 异常已忽略: %s', _e)
         # 静默在后台自动一键生成免密密钥对
         cmd = 'ssh-keygen -t rsa -N "" -f ' + ssh_dir + '/id_rsa'
         yf.execShell(cmd)

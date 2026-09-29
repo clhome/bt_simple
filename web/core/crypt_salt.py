@@ -20,7 +20,7 @@ def _set_permission(filepath):
         if os.path.exists(filepath):
             os.chmod(filepath, 0o600)
     except Exception as _e:
-        pass
+        yf.writeFileLog('[crypt_salt] salt 文件加权限失败: %s' % _e)
 
 def _write_salt(filepath, salt_data):
     try:
@@ -58,7 +58,7 @@ def _read_salt(filepath):
             if 'salt' in data:
                 return data
     except Exception as _e:
-        pass
+        yf.writeFileLog('[crypt_salt] salt 文件解析失败: %s' % _e)
     return None
 
 def get_salt():

@@ -19,6 +19,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.mongodb')
 import core.db as db
 
 
@@ -44,7 +47,8 @@ def getConfigData():
     config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
-    except:
+    except Exception as _e:
+        _log.debug('[mongodb] getConfigData 异常已忽略: %s', _e)
         config = {
             "systemLog": {
                 "destination": "file",

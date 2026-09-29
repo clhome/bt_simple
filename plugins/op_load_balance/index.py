@@ -14,6 +14,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.op_load_balance')
 
 
 app_debug = False
@@ -304,7 +307,7 @@ def add_load_balance(args):
             if not re.match(r'^[0-9]+$', str(x['port'])):
                 return yf.returnJson(False, '节点端口不合法')
     except Exception as e:
-        pass
+        _log.debug('[op_load_balance] add_load_balance 异常已忽略: %s', e)
 
     cfg = getConf()
     cfg_len = len(cfg)

@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.redis')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -50,8 +53,8 @@ def detectAndFixConf():
     if not os.path.exists(server_dir):
         try:
             os.makedirs(server_dir)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] detectAndFixConf 异常已忽略: %s', _e)
 
     # 1. 尝试从运行中 redis-server 进程参数提取配置文件 (仅 Linux 环境有效)
     if yf.getOs() != 'win32' and not yf.isAppleSystem():
@@ -69,8 +72,8 @@ def detectAndFixConf():
                         if c and len(c) > 20:
                             yf.writeFile(path, c)
                             return path
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] detectAndFixConf 异常已忽略: %s', _e)
 
     # 2. 尝试从常见备用系统路径或模板拷贝自愈
     candidates = [
@@ -121,8 +124,8 @@ def detectAndFixVersion():
             if m:
                 detected_ver = m.group(1).strip()
                 break
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] detectAndFixVersion 异常已忽略: %s', _e)
 
     if not detected_ver:
         info_file = getPluginDir() + '/info.json'
@@ -135,16 +138,16 @@ def detectAndFixVersion():
                     detected_ver = vers[0]
                 elif isinstance(vers, str) and vers:
                     detected_ver = vers
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] detectAndFixVersion 异常已忽略: %s', _e)
 
     if detected_ver:
         server_dir = getServerDir()
         if not os.path.exists(server_dir):
             try:
                 os.makedirs(server_dir)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] detectAndFixVersion 异常已忽略: %s', _e)
         yf.writeFile(version_pl, detected_ver)
         return detected_ver
 
@@ -175,8 +178,8 @@ def getArgs():
                 parsed = json.loads(arg_str)
                 if isinstance(parsed, dict):
                     return parsed
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] getArgs 异常已忽略: %s', _e)
 
     # 2. 如果末尾未匹配到完整 JSON 字典，尝试从非版本参数中提取 k=v 或 k:v 键值对
     candidates = sys.argv[2:]
@@ -190,8 +193,8 @@ def getArgs():
             if isinstance(parsed, dict):
                 tmp.update(parsed)
                 continue
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getArgs 异常已忽略: %s', _e)
 
         if '=' in arg_str:
             parts = arg_str.split('=', 1)
@@ -270,8 +273,8 @@ def getRedisPid():
                 pid = int(pid_str)
                 if yf.checkPid(pid):
                     return pid
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getRedisPid 异常已忽略: %s', _e)
 
     # 2. 从系统进程树探测真实运行进程
     try:
@@ -292,8 +295,8 @@ def getRedisPid():
         for p in pids:
             if yf.checkPid(p):
                 return p
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] getRedisPid 异常已忽略: %s', _e)
 
     return None
 
@@ -313,8 +316,8 @@ def getLastLogError():
                 return ' | '.join(reversed(err_lines[-3:]))
             if lines:
                 return lines[-1]
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getLastLogError 异常已忽略: %s', _e)
     return ''
 
 
@@ -322,13 +325,13 @@ def status():
     # 大版本升级检测与单次自愈守卫拦截（微秒级放行）
     try:
         checkPluginUpgrade()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] status 异常已忽略: %s', _e)
 
     try:
         detectAndFixVersion()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] status 异常已忽略: %s', _e)
 
     real_pid = getRedisPid()
     pid_file = getPidFile()
@@ -342,8 +345,8 @@ def status():
                     curr_pid = yf.readFile(pid_file).strip()
                 if curr_pid != str(real_pid):
                     yf.writeFile(pid_file, str(real_pid))
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] status 异常已忽略: %s', _e)
         return 'start'
 
     # 双重保险：在 Systemd Linux 上结合 systemctl is-active 精准监控
@@ -354,8 +357,8 @@ def status():
             data = yf.execShell(cmd)
             if data[0].strip() == 'active':
                 return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] status 异常已忽略: %s', _e)
 
     return 'stop'
 
@@ -412,8 +415,8 @@ def initDreplace():
             if '{$SERVER_PATH}' in existing_conf or '{$ROOT_PATH}' in existing_conf:
                 fixed_conf = contentReplace(existing_conf)
                 yf.writeFile(dst_conf, fixed_conf)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] initDreplace 异常已忽略: %s', _e)
 
     # systemd 服务配置自动校准与刷新
     systemDir = yf.systemdCfgDir()
@@ -475,8 +478,8 @@ def start():
     # 启动前版本自愈与配置环境检查
     try:
         checkPluginUpgrade()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] start 异常已忽略: %s', _e)
 
     # 真实存活探针先行：若已在稳定运行，自动对齐 PID 并直接返回成功
     if status() == 'start':
@@ -513,8 +516,8 @@ def stop():
             pid_str = yf.readFile(pid_file).strip()
             if pid_str and pid_str.isdigit() and not yf.checkPid(int(pid_str)):
                 os.remove(pid_file)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] stop 异常已忽略: %s', _e)
     return res
 
 
@@ -536,8 +539,8 @@ def restart():
                     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
                     with open(log_file, 'a', encoding='utf-8', errors='ignore') as fp:
                         fp.write(f"[{timestamp}] * Redis 服务重启成功并处于活跃状态 (PID: {getRedisPid()})。\n")
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] restart 异常已忽略: %s', _e)
             return 'ok'
 
     log_err = getLastLogError()
@@ -603,8 +606,8 @@ def execRedisCommand(command='info'):
         if item['name'] == 'port' and item['value']:
             try:
                 port = int(item['value'])
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] execRedisCommand 异常已忽略: %s', _e)
         elif item['name'] == 'requirepass' and item['value']:
             requirepass = str(item['value']).strip()
 
@@ -698,10 +701,10 @@ def execRedisCommand(command='info'):
         finally:
             try:
                 s.close()
-            except Exception:
-                pass
-    except Exception:
-        pass
+            except Exception as _e:
+                _log.debug('[redis] execRedisCommand 异常已忽略: %s', _e)
+    except Exception as _e:
+        _log.debug('[redis] execRedisCommand 异常已忽略: %s', _e)
 
     # 3. 回退到命令行 redis-cli
     cmd = getRedisCmd() + command
@@ -742,8 +745,8 @@ def runInfo():
             restart()
             time.sleep(1)
             data, err = execRedisCommand('info')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] runInfo 异常已忽略: %s', _e)
 
     if 'NOAUTH' in data or 'NOAUTH' in err:
         return yf.returnJson(False, 'Redis 访问需要密码认证，请检查 requirepass 配置')
@@ -785,8 +788,8 @@ def runInfo():
                 for k in res:
                     if k in parsed:
                         result[k] = str(parsed[k])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] runInfo 异常已忽略: %s', _e)
 
     # 容灾 2：正则表达式直接匹配字段
     if not result or len(result) < 3:
@@ -852,8 +855,8 @@ def infoReplication():
                 for k in res:
                     if k in parsed_dict:
                         result[k] = str(parsed_dict[k])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] infoReplication 异常已忽略: %s', _e)
 
     if 'role' in result and result['role'] == 'master':
         connected_slaves = int(result['connected_slaves'])
@@ -915,8 +918,8 @@ def clusterInfo():
                 for k in res:
                     if k in parsed_dict:
                         result[k] = str(parsed_dict[k])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] clusterInfo 异常已忽略: %s', _e)
 
     return yf.getJson(result)
 
@@ -1004,8 +1007,8 @@ def runLog():
                         if target.endswith('.log') and os.path.exists(target):
                             detected_path = target
                             break
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] runLog 异常已忽略: %s', _e)
 
     # 2. 从 redis.conf 中解析 logfile
     if not detected_path:
@@ -1025,11 +1028,11 @@ def runLog():
                                 try:
                                     fixed_content = content.replace(raw_path, cleaned_path)
                                     yf.writeFile(conf, fixed_content)
-                                except Exception:
-                                    pass
+                                except Exception as _e:
+                                    _log.debug('[redis] runLog 异常已忽略: %s', _e)
                             detected_path = cleaned_path
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] runLog 异常已忽略: %s', _e)
 
     # 3. 检查系统常见备用路径
     if not detected_path or not os.path.exists(detected_path):
@@ -1051,15 +1054,15 @@ def runLog():
     if pdir and not os.path.exists(pdir):
         try:
             os.makedirs(pdir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] runLog 异常已忽略: %s', _e)
 
     if not os.path.exists(detected_path):
         try:
             with open(detected_path, 'w', encoding='utf-8') as fp:
                 fp.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] * Redis 服务日志初始化记录。\n")
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] runLog 异常已忽略: %s', _e)
 
     # 4. 内容保障与 journalctl 动态同步：若文件内容为空或太少，同步 systemd 日志
     current_size = os.path.getsize(detected_path) if os.path.exists(detected_path) else 0
@@ -1075,8 +1078,8 @@ def runLog():
                         yf.writeFile(detected_path, j_out + "\n")
                         journal_synced = True
                         break
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] runLog 异常已忽略: %s', _e)
 
         if not journal_synced and current_size == 0:
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -1113,8 +1116,8 @@ def getRunLog():
                     lines = [l.strip() for l in out.strip().split('\n') if l.strip()]
                     if len(lines) >= 2 and lines[1] in ['""', "''", ""]:
                         execRedisCommand(f'config set logfile "{log_file}"')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getRunLog 异常已忽略: %s', _e)
 
         content = ''
         if os.path.exists(log_file):
@@ -1122,8 +1125,8 @@ def getRunLog():
                 content = yf.getLastLine(log_file, 150)
                 if content:
                     content = content.strip()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] getRunLog 异常已忽略: %s', _e)
 
         if not content:
             # 尝试从 journalctl 同步
@@ -1136,8 +1139,8 @@ def getRunLog():
                             content = j_out
                             yf.writeFile(log_file, j_out + "\n")
                             break
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[redis] getRunLog 异常已忽略: %s', _e)
 
         if not content:
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -1154,8 +1157,8 @@ def getRunLog():
             )
             try:
                 yf.writeFile(log_file, content + "\n")
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[redis] getRunLog 异常已忽略: %s', _e)
 
         return yf.returnJson(True, 'OK', {
             'path': log_file,
@@ -1334,16 +1337,16 @@ def getInstalledPluginVersion():
             v = yf.readFile(vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getInstalledPluginVersion 异常已忽略: %s', _e)
     server_vfile = getServerDir() + '/plugin_version.pl'
     if os.path.exists(server_vfile):
         try:
             v = yf.readFile(server_vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[redis] getInstalledPluginVersion 异常已忽略: %s', _e)
     return '1.0'
 
 
@@ -1352,14 +1355,14 @@ def setInstalledPluginVersion(ver):
     vfile = getPluginVersionFile()
     try:
         yf.writeFile(vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] setInstalledPluginVersion 异常已忽略: %s', _e)
     try:
         server_vfile = getServerDir() + '/plugin_version.pl'
         if os.path.exists(getServerDir()):
             yf.writeFile(server_vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[redis] setInstalledPluginVersion 异常已忽略: %s', _e)
 
 
 def comparePluginVersion(v1, v2):

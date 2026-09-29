@@ -15,6 +15,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.fail2ban')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -65,8 +68,8 @@ def checkEnv():
         try:
             if not os.path.exists(d):
                 os.makedirs(d, mode=0o755, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
     # 2. 网站日志通配符保底文件 (防止 /www/wwwlogs/*.log 匹配不到导致 Fatal Error)
     try:
@@ -78,8 +81,8 @@ def checkEnv():
                 if not os.path.exists(placeholder):
                     with open(placeholder, 'w', encoding='utf-8') as fp:
                         fp.write('# yufeng fail2ban placeholder log\n')
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
     # 3. 补齐主日志文件与手动封禁 jail 的日志占位
     try:
@@ -87,14 +90,14 @@ def checkEnv():
         if not os.path.exists(log_file):
             with open(log_file, 'a', encoding='utf-8') as fp:
                 pass
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
     try:
         if not os.path.exists(MANUAL_LOG):
             yf.writeFile(MANUAL_LOG, '')
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
     # 4. 清理残留死套接字与无效 PID 文件
     #    仅在服务确认处于 inactive/failed 时才清理：
@@ -125,8 +128,8 @@ def checkEnv():
                     os.remove(sock_file)
                 if os.path.exists(pid_file):
                     os.remove(pid_file)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
     # 5. 确保 default.conf 包含 allowipv6
     try:
@@ -136,8 +139,8 @@ def checkEnv():
             if 'allowipv6' not in content:
                 content += "\nallowipv6 = auto\n"
                 yf.writeFile(def_conf, content)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] checkEnv 异常已忽略: %s', _e)
 
 def getSshLogConfig():
     """
@@ -230,8 +233,8 @@ def getArgs():
         parsed = json.loads(val)
         if isinstance(parsed, dict):
             return parsed
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] getArgs 异常已忽略: %s', _e)
 
     # Fallback for Windows CMD mangling where commas become arg separators
     for arg in args:
@@ -415,8 +418,8 @@ def get_dbfile_path(force=False):
                 db_path = match.group(1)
             elif '- ' in out:
                 db_path = out.split('- ')[-1].strip()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] get_dbfile_path 异常已忽略: %s', _e)
 
     _DBFILE_CACHE['path'] = db_path
     _DBFILE_CACHE['ts'] = now
@@ -543,8 +546,8 @@ def ensure_service_log(mode):
             mysql_dir = '/www/server/data'
             if os.path.exists(mysql_dir) and not any(f.endswith('.err') for f in os.listdir(mysql_dir)):
                 yf.writeFile(os.path.join(mysql_dir, 'mysql_error.err'), '')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] ensure_service_log 异常已忽略: %s', _e)
     elif mode == 'redis':
         try:
             redis_dir = '/var/log/redis'
@@ -552,8 +555,8 @@ def ensure_service_log(mode):
                 os.makedirs(redis_dir, mode=0o755, exist_ok=True)
             if not any(f.endswith('.log') for f in os.listdir(redis_dir)):
                 yf.writeFile(os.path.join(redis_dir, 'redis.log'), '')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] ensure_service_log 异常已忽略: %s', _e)
 
 
 # 各服务缺失时的 filter 兜底定义
@@ -650,8 +653,8 @@ def ensure_protect_start():
             val = (yf.readFile(path) or '').strip()
         if not val.isdigit():
             yf.writeFile(path, str(int(time.time())))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] ensure_protect_start 异常已忽略: %s', _e)
     return path
 
 
@@ -660,8 +663,8 @@ def get_protect_days():
         val = (yf.readFile(getProtectStartFile()) or '').strip()
         if val.isdigit():
             return max(0, int((time.time() - int(val)) / 86400))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] get_protect_days 异常已忽略: %s', _e)
     return 0
 
 
@@ -684,8 +687,8 @@ def ensure_db_retention():
             content, flags=re.MULTILINE)
         if new_content != content:
             yf.writeFile(conf_file, new_content)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] ensure_db_retention 异常已忽略: %s', _e)
 
 
 # ------------------------------------------------------------
@@ -731,8 +734,8 @@ def ip_location_enabled():
             conf = json.loads(raw)
             if isinstance(conf, dict) and 'ip_location' in conf:
                 return safe_bool(conf.get('ip_location'), True)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] ip_location_enabled 异常已忽略: %s', _e)
     return True
 
 
@@ -748,8 +751,8 @@ def load_ip_loc_cache():
             data = json.loads(raw)
             if isinstance(data, dict):
                 return data
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] load_ip_loc_cache 异常已忽略: %s', _e)
     return {}
 
 
@@ -760,8 +763,8 @@ def save_ip_loc_cache(cache):
             items = sorted(cache.items(), key=lambda kv: kv[1].get('ts', 0), reverse=True)
             cache = dict(items[:IP_LOC_CACHE_MAX])
         yf.writeFile(_ip_loc_cache_path(), json.dumps(cache))
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] save_ip_loc_cache 异常已忽略: %s', _e)
 
 
 def ensure_filter(mode):
@@ -780,8 +783,8 @@ def ensure_filter(mode):
                 "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" "
                 "(400|401|403|404|444|500|502|503)\nignoreregex = \n"
             )
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] ensure_filter 异常已忽略: %s', _e)
 
 
 # ------------------------------------------------------------
@@ -960,8 +963,8 @@ def remove_op_waf_filter():
         if os.path.exists(filter_file):
             os.remove(filter_file)
             return True
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] remove_op_waf_filter 异常已忽略: %s', _e)
     return False
 
 
@@ -1017,8 +1020,8 @@ def status():
     try:
         if 'pong' in (yf.execShell('fail2ban-client ping')[0] or ''):
             return 'start'
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] status 异常已忽略: %s', _e)
 
     # 2. systemd 状态：activating / reloading 同样视为运行中，
     #    避免服务正在启动时被误判为已停止
@@ -1026,8 +1029,8 @@ def status():
         st = (yf.execShell('systemctl is-active fail2ban')[0] or '').strip()
         if st in ('active', 'activating', 'reloading'):
             return 'start'
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] status 异常已忽略: %s', _e)
 
     # 3. 非 systemd 环境兜底：PID 文件 + 进程存活校验
     try:
@@ -1036,8 +1039,8 @@ def status():
             with open(pid_file, 'r') as fp:
                 os.kill(int(fp.read().strip()), 0)
             return 'start'
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] status 异常已忽略: %s', _e)
 
     return 'stop'
 
@@ -1104,10 +1107,10 @@ def initDreplace():
             yf.writeFile(file_bin, content)
             try:
                 os.chmod(file_bin, 0o755)
-            except Exception:
-                pass
-    except Exception:
-        pass
+            except Exception as _e:
+                _log.debug('[fail2ban] initDreplace 异常已忽略: %s', _e)
+    except Exception as _e:
+        _log.debug('[fail2ban] initDreplace 异常已忽略: %s', _e)
 
     # systemd
     systemDir = yf.systemdCfgDir()
@@ -1131,8 +1134,8 @@ def f2bOp(method):
         try:
             inst = get_fail2ban_inst()
             inst.sync_jail_local(inst.get_anti_info())
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] f2bOp 异常已忽略: %s', _e)
 
     current_os = yf.getOs()
     if current_os == 'darwin':
@@ -1164,8 +1167,8 @@ def f2bOp(method):
         # 启动成功后自动补齐手动黑名单，保证黑名单与真实封禁状态永不脱节
         try:
             apply_black_list()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] f2bOp 异常已忽略: %s', _e)
         return 'ok'
 
     if data[1] == '':
@@ -1257,8 +1260,8 @@ def initdUinstall():
     try:
         if os.path.exists(initd_bin):
             os.remove(initd_bin)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] initdUinstall 异常已忽略: %s', _e)
     yf.execShell('update-rc.d -f fail2ban remove >/dev/null 2>&1 || chkconfig --del fail2ban >/dev/null 2>&1')
     return 'ok'
 
@@ -1301,8 +1304,8 @@ def _sync_manual_jail(conf):
     try:
         if not os.path.exists(MANUAL_LOG):
             yf.writeFile(MANUAL_LOG, '')
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] _sync_manual_jail 异常已忽略: %s', _e)
 
     filter_file = f2bEtcDir() + '/filter.d/' + MANUAL_JAIL + '.conf'
     if not os.path.exists(filter_file):
@@ -1311,8 +1314,8 @@ def _sync_manual_jail(conf):
 
     try:
         get_fail2ban_inst().sync_jail_local(conf)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] _sync_manual_jail 异常已忽略: %s', _e)
 
 
 def setBlackIp():
@@ -1595,8 +1598,8 @@ def set_op_waf_link_open():
         try:
             yf.writeLog(getPluginName(),
                         '设置情报联动失败(open={}): {}'.format(want_open, detail))
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] set_op_waf_link_open 异常已忽略: %s', _e)
         return yf.returnJson(False, '情报联动设置失败，请检查御风OP防火墙运行状态')
 
     # spool 刚被对端创建 / 删除，强制刷新探测缓存后再同步 jail，
@@ -1604,8 +1607,8 @@ def set_op_waf_link_open():
     _OP_WAF_SPOOL_CACHE['ts'] = 0.0
     try:
         sync_op_waf_jail()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] set_op_waf_link_open 异常已忽略: %s', _e)
 
     return yf.returnJson(
         True,
@@ -1634,8 +1637,8 @@ def unban_op_waf_ip():
     try:
         f2b_client_ok('set', OP_WAF_JAIL, 'unbanip', ip)
         f2b_client_ok('unban', ip)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[fail2ban] unban_op_waf_ip 异常已忽略: %s', _e)
 
     return yf.returnJson(True, '解除封禁成功', {'linked': True})
 
@@ -1753,8 +1756,8 @@ class fail2ban_main:
                 m = re.search(r"^\s*Port\s+([0-9]+)", conf, re.MULTILINE)
                 if m:
                     return m.group(1)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] get_ssh_port 异常已忽略: %s', _e)
         return '22'
 
     def get_mysql_port(self):
@@ -1769,8 +1772,8 @@ class fail2ban_main:
                         m = re.search(r"^\s*port\s*=\s*([0-9]+)", conf, re.MULTILINE | re.IGNORECASE)
                         if m:
                             return m.group(1)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] get_mysql_port 异常已忽略: %s', _e)
         return '3306'
 
     def _site_default_act(self):
@@ -1881,8 +1884,8 @@ class fail2ban_main:
         try:
             conf_data['default_ssh_port'] = self.get_ssh_port()
             conf_data['default_mysql_port'] = self.get_mysql_port()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] _decorate_conf 异常已忽略: %s', _e)
         try:
             conf_data['op_waf'] = op_waf_link_state()
             conf_data['op_waf_link'] = self._op_waf_link_conf(conf_data)
@@ -2387,8 +2390,8 @@ class fail2ban_main:
                 c.execute("SELECT jail, count(*) FROM bans GROUP BY jail")
                 for r in c.fetchall():
                     jail_stats[r[0]] = r[1]
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[fail2ban] get_home_stats 异常已忽略: %s', _e)
             finally:
                 conn.close()
 
@@ -2429,16 +2432,16 @@ class fail2ban_main:
                             version = str(raw_ver[-1]) if raw_ver else '1.0'
                         else:
                             version = str(raw_ver)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[fail2ban] get_total_statistics 异常已忽略: %s', _e)
 
                 res = {
                     "count": count_str,
                     "ver": version
                 }
                 return yf.returnJson(True, "ok", res)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[fail2ban] get_total_statistics 异常已忽略: %s', _e)
 
         return yf.returnJson(False, "error")
 

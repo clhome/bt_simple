@@ -16,6 +16,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.mariadb')
 
 
 if yf.isAppleSystem():
@@ -179,8 +182,8 @@ def pSqliteDb(dbname='databases'):
             if sql_item:
                 try:
                     conn.execute(sql_item, ())
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[mariadb] pSqliteDb 异常已忽略: %s', _e)
 
     conn = yf.M(dbname).dbPos(getServerDir(), name)
     # 幂等自愈：为老版本数据库 databases 表自动补齐缺失的 rw 权限列
@@ -194,8 +197,8 @@ def pSqliteDb(dbname='databases'):
                     existing_cols.append(col_name)
         if existing_cols and 'rw' not in existing_cols:
             conn.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] pSqliteDb 异常已忽略: %s', _e)
 
     # 原生 sqlite3 终极兜底，确保在各种运行环境下均能 100% 幂等加列成功
     try:
@@ -209,8 +212,8 @@ def pSqliteDb(dbname='databases'):
                 s_cur.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
                 s_conn.commit()
             s_conn.close()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] pSqliteDb 异常已忽略: %s', _e)
     return conn
 
 
@@ -312,16 +315,16 @@ def getInstalledPluginVersion():
             v = yf.readFile(vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] getInstalledPluginVersion 异常已忽略: %s', _e)
     server_vfile = getServerDir() + '/plugin_version.pl'
     if os.path.exists(server_vfile):
         try:
             v = yf.readFile(server_vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] getInstalledPluginVersion 异常已忽略: %s', _e)
     return '1.0'
 
 
@@ -330,14 +333,14 @@ def setInstalledPluginVersion(ver):
     vfile = getPluginVersionFile()
     try:
         yf.writeFile(vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] setInstalledPluginVersion 异常已忽略: %s', _e)
     try:
         server_vfile = getServerDir() + '/plugin_version.pl'
         if os.path.exists(getServerDir()):
             yf.writeFile(server_vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] setInstalledPluginVersion 异常已忽略: %s', _e)
 
 
 def comparePluginVersion(v1, v2):
@@ -388,8 +391,8 @@ def getMariadbPid():
                 pid_int = int(p)
                 if yf.checkPid(pid_int):
                     return pid_int
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] getMariadbPid 异常已忽略: %s', _e)
     return None
 
 
@@ -411,8 +414,8 @@ def cleanOrphanSockets():
         if s and os.path.exists(s):
             try:
                 os.remove(s)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[mariadb] cleanOrphanSockets 异常已忽略: %s', _e)
 
 
 def upgradeSelfHealing(version=''):
@@ -560,8 +563,8 @@ def status(version=''):
     # 0. 升级守卫：仅在检测到版本升级时静默自愈一次，之后 0 开销放行
     try:
         checkPluginUpgrade(version)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] status 异常已忽略: %s', _e)
 
     # 1. 优先检查标准 PID 文件中的进程真实存活性
     pid_file = getPidFile()
@@ -572,8 +575,8 @@ def status(version=''):
                 pid_int = int(pid_str)
                 if yf.checkPid(pid_int):
                     return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] status 异常已忽略: %s', _e)
 
     # 2. 多模态探活：PID 文件失效或丢失时，探测系统真实运行中的 mariadb
     live_pid = getMariadbPid()
@@ -584,8 +587,8 @@ def status(version=''):
                 if not os.path.exists(p_dir):
                     os.makedirs(p_dir, exist_ok=True)
                 yf.writeFile(pid_file, str(live_pid))
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] status 异常已忽略: %s', _e)
         return 'start'
 
     # 3. Socket 响应探针
@@ -601,11 +604,11 @@ def status(version=''):
             if live_pid and pid_file:
                 try:
                     yf.writeFile(pid_file, str(live_pid))
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[mariadb] status 异常已忽略: %s', _e)
             return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] status 异常已忽略: %s', _e)
 
     # 4. systemctl 兜底状态确认
     if not yf.isAppleSystem():
@@ -616,11 +619,11 @@ def status(version=''):
                 if live_pid and pid_file:
                     try:
                         yf.writeFile(pid_file, str(live_pid))
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[mariadb] status 异常已忽略: %s', _e)
                 return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] status 异常已忽略: %s', _e)
 
     return 'stop'
 
@@ -1013,7 +1016,8 @@ def runInfo(version):
     try:
         result['File'] = tmp[0]["File"]
         result['Position'] = tmp[0]["Position"]
-    except:
+    except Exception as _e:
+        _log.debug('[mariadb] runInfo 异常已忽略: %s', _e)
         result['File'] = 'OFF'
         result['Position'] = 'OFF'
     return yf.getJson(result)
@@ -1352,8 +1356,8 @@ def importDbExternal():
         if ext != 'sql' and os.path.exists(import_sql):
             try:
                 os.remove(import_sql)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[mariadb] importDbExternal 异常已忽略: %s', _e)
         return yf.returnJson(False, 'SQL文件内容为空', {'log': err_log, 'exit_code': 1, 'has_error': True})
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
@@ -1406,8 +1410,8 @@ def importDbExternal():
     if ext != 'sql' and os.path.exists(import_sql):
         try:
             os.remove(import_sql)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mariadb] importDbExternal 异常已忽略: %s', _e)
 
     # 分析执行状态与错误
     stderr_clean = stderr_text.replace('[Warning] Using a password on the command line interface can be insecure.', '').strip()
@@ -1456,8 +1460,8 @@ def importDbExternal():
         if not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
         yf.writeFile(os.path.join(log_dir, file + '.log'), full_log)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mariadb] importDbExternal 异常已忽略: %s', _e)
 
     msg = '导入成功!' if is_success else '导入失败或存在异常!'
     return yf.returnJson(is_success, msg, {'log': full_log, 'exit_code': returncode, 'has_error': not is_success})
@@ -1577,7 +1581,7 @@ def importDbExternalProgressBar():
         stdout, stderr = p_mysql.communicate()
         p_pv.communicate()
     except Exception as e:
-        pass
+        _log.debug('[mariadb] importDbExternalProgressBar 异常已忽略: %s', e)
 
     return ""
 
@@ -2443,7 +2447,7 @@ def recognizeDbMode():
         data = re.findall(rep, con, re.M)
         mode = data[0]
     except Exception as e:
-        pass
+        _log.debug('[mariadb] recognizeDbMode 异常已忽略: %s', e)
     return mode
 
 
@@ -3461,7 +3465,7 @@ def initSlaveStatusSSH(version=''):
             db.query("start slave")
             db.query("start all slaves")
             if os.path.exists(SSH_PRIVATE_KEY):
-                os.system("rm -rf " + SSH_PRIVATE_KEY)
+                yf.removeDir(SSH_PRIVATE_KEY)
         except Exception as e:
             return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
 
@@ -3948,7 +3952,7 @@ def doFullSyncUser(version=''):
 
     bak_file = '/tmp/tmp.sql'
     if os.path.exists(bak_file):
-        os.system("rm -rf " + bak_file)
+        yf.removeDir(bak_file)
 
     writeDbSyncStatus({'code': 0, 'msg': '开始同步...', 'progress': 0})
 
@@ -3995,14 +3999,14 @@ def doFullSyncUser(version=''):
         pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
         sock = getSocketFile()
 
+        # pwd/sock/bak_file/sync_db 均为拼接进 shell 的变量，逐段 shlexQuote
         if is_exist_pv:
-            my_import_cmd = getServerDir() + '/bin/mariadb -S ' + sock + " -uroot -p'" + pwd + "' " + sync_db
-            my_import_cmd = "pv -t -p " + bak_file + '|' + my_import_cmd
+            my_import_cmd = getServerDir() + '/bin/mariadb -S ' + yf.shlexQuote(sock) + ' -uroot -p' + yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(sync_db)
+            my_import_cmd = "pv -t -p " + yf.shlexQuote(bak_file) + '|' + my_import_cmd
             print(my_import_cmd)
-            os.system(my_import_cmd)
+            yf.execShell(my_import_cmd)
         else:
-            my_import_cmd = getServerDir() + '/bin/mariadb -S ' + sock + " -uroot -p'" + pwd + \
-                "' " + sync_db + '<' + bak_file
+            my_import_cmd = getServerDir() + '/bin/mariadb -S ' + yf.shlexQuote(sock) + ' -uroot -p' + yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(sync_db) + ' < ' + yf.shlexQuote(bak_file)
             print(my_import_cmd)
             yf.execShell(my_import_cmd)
 
@@ -4023,7 +4027,7 @@ def doFullSyncUser(version=''):
     writeDbSyncStatus({'code': 6, 'msg': '从库重启完成...', 'progress': 100})
 
     if os.path.exists(bak_file):
-        os.system("rm -rf " + bak_file)
+        yf.removeDir(bak_file)
     return True
 
 
@@ -4155,8 +4159,8 @@ def doFullSyncSSH(version=''):
     db.query("start all slaves")
     writeDbSyncStatus({'code': 6, 'msg': '从库重启完成...', 'progress': 100})
 
-    os.system("rm -rf " + SSH_PRIVATE_KEY)
-    os.system("rm -rf /tmp/dump.sql")
+    yf.removeDir(SSH_PRIVATE_KEY)
+    yf.removeDir('/tmp/dump.sql')
     return True
 
 

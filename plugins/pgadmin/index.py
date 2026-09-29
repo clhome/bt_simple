@@ -14,6 +14,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.pgadmin')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -127,8 +130,8 @@ def getArgs():
             parsed = json.loads(raw)
             if isinstance(parsed, dict):
                 return parsed
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[pgadmin] getArgs 异常已忽略: %s', _e)
         # 回退到旧的 key:value 格式解析
         # split(':', 1) 保证值里的冒号不被截断（如口令含冒号），
         # 同时缺冒号时不再抛 IndexError
@@ -555,8 +558,8 @@ def readPgUserState(db_path=None):
         if conn is not None:
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[pgadmin] readPgUserState 异常已忽略: %s', _e)
     return state
 
 
@@ -843,8 +846,8 @@ def unlockPgAdminUsers(force=False):
     global _LAST_ACCOUNT
     try:
         os.makedirs(getSessionDir(), exist_ok=True)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[pgadmin] unlockPgAdminUsers 异常已忽略: %s', _e)
 
     cfg = getCfg()
     email = cfg.get('web_pg_username', '')
@@ -1299,8 +1302,8 @@ def ensureBasicAuth():
     try:
         # 口令文件只允许属主读写
         os.chmod(path, 0o600)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[pgadmin] ensureBasicAuth 异常已忽略: %s', _e)
     return True
 
 
@@ -1600,12 +1603,14 @@ def getPgAccessInfo():
             s.connect(('8.8.8.8', 80))
             internal_ip = s.getsockname()[0]
             s.close()
-        except:
+        except Exception as _e:
+            _log.debug('[pgadmin] getPgAccessInfo 异常已忽略: %s', _e)
             internal_ip = '127.0.0.1'
             
         try:
             external_ip = yf.getHostAddr()
-        except:
+        except Exception as _e:
+            _log.debug('[pgadmin] getPgAccessInfo 异常已忽略: %s', _e)
             external_ip = internal_ip
         
         data['internal_url'] = 'http://' + internal_ip + ':' + port + '/'

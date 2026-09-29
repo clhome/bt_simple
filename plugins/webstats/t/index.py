@@ -12,6 +12,9 @@ import time
 import string
 import json
 import hashlib
+import logging
+
+_log = logging.getLogger('yf.webstats.test')
 import shlex
 import datetime
 import subprocess
@@ -61,8 +64,8 @@ def httpPost(url, data, timeout=10):
             import ssl
             try:
                 ssl._create_default_https_context = ssl._create_unverified_context
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[webstats] httpPost 异常已忽略: %s', _e)
             data = urllib.parse.urlencode(data).encode('utf-8')
             req = urllib.request.Request(url, data)
             response = urllib.request.urlopen(req, timeout=timeout)
@@ -117,10 +120,13 @@ def test_start():
 
 
 if __name__ == "__main__":
+    import subprocess
     current_dir = os.path.dirname(os.path.abspath(__file__))
     plugin_dir = os.path.dirname(current_dir)
     web_dir = os.path.dirname(os.path.dirname(plugin_dir))
 
-    os.system('cd {} && sh install.sh uninstall 0.2.2 && sh install.sh install 0.2.2'.format(plugin_dir))
-    os.system('cd {} && python3 plugins/openresty/index.py stop && python3 plugins/openresty/index.py start'.format(web_dir))
+    subprocess.call(['sh', 'install.sh', 'uninstall', '0.2.2'], cwd=plugin_dir)
+    subprocess.call(['sh', 'install.sh', 'install', '0.2.2'], cwd=plugin_dir)
+    subprocess.call(['python3', 'plugins/openresty/index.py', 'stop'], cwd=web_dir)
+    subprocess.call(['python3', 'plugins/openresty/index.py', 'start'], cwd=web_dir)
     test_start()

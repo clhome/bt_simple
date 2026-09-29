@@ -7,6 +7,9 @@
 import os
 import json
 import functools
+import logging
+
+_log = logging.getLogger('yf.i18n')
 
 try:
     from core.resources import get_i18n_cache_size as _get_i18n_cache_size
@@ -110,8 +113,8 @@ def parse_accept_language(accept_header):
             if p.startswith("q="):
                 try:
                     q = float(p[2:])
-                except ValueError:
-                    pass
+                except ValueError as e:
+                    _log.debug('[i18n] Accept-Language 权重解析失败: %s -> %s', p, e)
         items.append((code, q))
         
     items.sort(key=lambda x: x[1], reverse=True)
@@ -140,8 +143,8 @@ def _get_file_lang():
                 _FILE_LANG_CACHE = file_lang
                 _FILE_LANG_CACHE_TIME = now
                 return file_lang
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[i18n] 语言配置读取失败，回退默认语言: %s', e)
     _FILE_LANG_CACHE = DEFAULT_LANG
     _FILE_LANG_CACHE_TIME = now
     return _FILE_LANG_CACHE
@@ -179,9 +182,9 @@ def get_current_lang():
         file_lang = _get_file_lang()
         g.lang = file_lang
         return file_lang
-    except (RuntimeError, ImportError):
+    except (RuntimeError, ImportError) as e:
         # 非请求上下文或 flask 未安装时安全忽略
-        pass
+        _log.debug('[i18n] 非请求上下文，跳过 g.lang 设置: %s', e)
 
     # 5. 非请求上下文，直接返回带缓存的全局配置语言
     return _get_file_lang()
@@ -197,8 +200,8 @@ def _load_menu_shard(menu, lang):
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[i18n] 菜单分片语言包解析失败: %s -> %s', filepath, e)
     return {}
 
 def _get_template_menu(menu, lang):
@@ -232,8 +235,8 @@ def get_cached_json(name, lang):
             fallback = get_cached_json(base, lang) if base != name else {}
             if isinstance(fallback, dict) and sub in fallback:
                 return fallback[sub] if not isinstance(fallback[sub], str) else {sub: fallback[sub]}
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[i18n] 回退语言包查找失败: %s', e)
         return {}
     filepath = os.path.join(_LANG_DIR, norm_lang, f"{name}.json")
     if not os.path.exists(filepath):
@@ -242,8 +245,8 @@ def get_cached_json(name, lang):
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[i18n] 语言包解析失败: %s -> %s', filepath, e)
     return {}
 
 def _is_web_request():
@@ -416,8 +419,8 @@ def warn_if_html_in_translations(logger=None):
             else:
                 import logging as _logging
                 _logging.warning(msg)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[i18n] 红线自检告警失败: %s', e)
     return errors
 
 def t(key, *args, lang=None):
@@ -444,8 +447,8 @@ def t(key, *args, lang=None):
         try:
             import logging
             logging.warning("[i18n] translation %s contains HTML, stripped", key)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[i18n] HTML 告警失败: %s', e)
         msg = strip_html(msg)
 
     if args:
@@ -453,8 +456,8 @@ def t(key, *args, lang=None):
         if '%s' in msg and msg.count('%s') == len(args):
             try:
                 return msg % escaped_args
-            except TypeError:
-                pass
+            except TypeError as e:
+                _log.debug('[i18n] 消息格式化失败，回退原文: %s', e)
                 
         import re
         has_zero = '{0}' in msg

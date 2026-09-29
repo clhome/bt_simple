@@ -53,7 +53,7 @@ def migrate_encrypted_data():
                         enstr = yf.enDoubleCrypt('yufeng_panel', decrypted)
                         yf.writeFile(info_file, enstr)
                 except Exception as _e:
-                    pass
+                    yf.writeFileLog('[crypt_migrate] 回写加密串失败: %s' % _e)
                     
     yf.writeFile(flag_file, '1')
     yf.writeLog('安全机制', '敏感数据安全加密迁移完成。')

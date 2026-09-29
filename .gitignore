@@ -209,3 +209,4 @@ plugins/goedge-happy
 
 # 命令崩溃转储（Windows/MSYS 下偶发，属本地产物）
 *.stackdump
+/.pi

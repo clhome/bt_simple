@@ -16,6 +16,9 @@
 
 import math
 import string
+import logging
+
+_log = logging.getLogger('yf.page')
 
 
 class Page():
@@ -57,8 +60,8 @@ class Page():
                 self.__COUNT_END = page_dict.get('COUNT_END', self.__COUNT_END)
                 self.__FO = page_dict.get('FO', self.__FO)
                 self.__LINE = page_dict.get('LINE', self.__LINE)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[page] 解析分页参数失败，沿用默认值: %s', _e)
 
     def getPageNum(self, num):
         return str(num) + self.__ARGS_TPL

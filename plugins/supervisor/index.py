@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.supervisor')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -62,8 +65,8 @@ def getArgs():
     if (first_arg.startswith('{') and first_arg.endswith('}')) or (first_arg.startswith('[') and first_arg.endswith(']')):
         try:
             return json.loads(first_arg)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[supervisor] getArgs 异常已忽略: %s', _e)
 
     # 向下兼容：解析普通键值对，仅分割第一个冒号，防止值里包含冒号时被截断
     if args_len == 1:
@@ -290,8 +293,8 @@ def getSupList():
                         d["priority"] = line.strip().split('=')[1]
                     if "numprocs=" in line.strip():
                         d["numprocs"] = line.strip().split('=')[1]
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[supervisor] getSupList 异常已忽略: %s', _e)
             array_list.append(d)
 
     data = {}
@@ -363,8 +366,8 @@ def getUserListData():
         try:
             with open(passwd_path, 'r') as fr:
                 users = fr.readlines()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[supervisor] getUserListData 异常已忽略: %s', _e)
 
     user_list = []
     special = ["bin", "daemon", "adm", "lp", "shutdown", "halt", "mail", "operator", "games",

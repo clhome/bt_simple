@@ -28,8 +28,11 @@ import subprocess
 import glob
 import base64
 import re
+import logging
 
 from random import Random
+
+_log = logging.getLogger('yf.core')
 
 def safeExecShell(cmd_list, cwd=None, timeout=30):
     """
@@ -100,7 +103,7 @@ def fixCrlf(file_path):
             else:
                 _CRLF_CLEAN_CACHE.add(file_path)
     except Exception as _e:
-        pass
+        _log.debug('[yf] 记录 CRLF 已清洗文件失败: %s', _e)
     return False
 
 def sanitizeCmdScripts(cmdstring, cwd=None):
@@ -137,7 +140,7 @@ def sanitizeCmdScripts(cmdstring, cwd=None):
                 if os.path.isfile(file_path):
                     fixCrlf(file_path)
     except Exception as _e:
-        pass
+        _log.debug('[yf] 分析命令内脚本失败: %s', _e)
     return cmdstring
 
 def execShell(cmdstring, cwd=None, timeout=None, shell=True):
@@ -245,8 +248,8 @@ def removeDir(path):
         try:
             os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
             func(file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[yf] 删除只读文件失败: %s -> %s', file_path, e)
 
     try:
         if os.path.exists(path):
@@ -255,8 +258,8 @@ def removeDir(path):
             else:
                 try:
                     os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.debug('[yf] 去除只读属性失败: %s -> %s', path, e)
                 os.remove(path)
         return True
     except Exception as _e:
@@ -405,8 +408,8 @@ def isChina():
             res1 = urllib.request.urlopen(req1, timeout=3)
             res_json1 = json.loads(res1.read().decode('utf-8'))
             is_cn = res_json1.get('country', '') == 'CN'
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[yf] 国内 IP 判定（接口1）失败: %s', e)
             
         # 2. 尝试 ipwhois.app 作为备用
         if is_cn is None:
@@ -415,8 +418,8 @@ def isChina():
                 res2 = urllib.request.urlopen(req2, timeout=3)
                 res_json2 = json.loads(res2.read().decode('utf-8'))
                 is_cn = res_json2.get('country_code', '') == 'CN'
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[yf] 国内 IP 判定（接口2）失败: %s', e)
                 
         # 3. 如果全部失败，默认当做国内服务器 (置为 True)
         if is_cn is None:
@@ -452,8 +455,8 @@ def getGithubProxyInfo(wait_if_testing=False):
             if time.time() - mtime < 600: # 10分钟缓存
                 if cached_data and 'name' in cached_data and 'url' in cached_data:
                     return cached_data
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[yf] 解析测速节点缓存失败: %s', e)
 
     if _IS_TESTING_GITHUB:
         if wait_if_testing:
@@ -465,8 +468,8 @@ def getGithubProxyInfo(wait_if_testing=False):
             if os.path.exists(cache_file):
                 try:
                     return getObjectByJson(readFile(cache_file))
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.debug('[yf] 读取缓存文件失败: %s -> %s', cache_file, e)
         else:
             if cached_data and 'name' in cached_data and 'url' in cached_data:
                 return cached_data
@@ -515,8 +518,8 @@ def getGithubProxyInfo(wait_if_testing=False):
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
             writeFile(cache_file, getJson(result))
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[yf] 写入缓存文件失败: %s -> %s', cache_file, e)
             
         _IS_TESTING_GITHUB = False
         
@@ -529,8 +532,8 @@ def getGithubProxyInfo(wait_if_testing=False):
         if os.path.exists(cache_file):
             try:
                 return getObjectByJson(readFile(cache_file))
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[yf] 读取缓存文件失败: %s -> %s', cache_file, e)
 
     if cached_data and 'name' in cached_data and 'url' in cached_data:
         return cached_data
@@ -896,7 +899,7 @@ def writeFile(filename, content, mode='w+'):
                     try:
                         os.fsync(fp.fileno())
                     except Exception as _e:
-                        pass
+                        writeFileLog('[yf.writeFile] fsync 失败: %s -> %s' % (filename, _e))
                 os.replace(temp_file, filename)
                 # 二次校验：非空内容落盘后文件必须 >0，否则视为 ENOSPC/截断失败
                 if content is not None and content != '':
@@ -905,14 +908,14 @@ def writeFile(filename, content, mode='w+'):
                             writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={len(str(content))}\n{getTracebackInfo()}")
                             return False
                     except Exception as _e:
-                        pass
+                        writeFileLog('[yf.writeFile] 校验替换结果失败: %s -> %s' % (filename, _e))
                 return True
             except Exception as write_err:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
                     except Exception as _e:
-                        pass
+                        writeFileLog('[yf.writeFile] 清理临时文件失败: %s -> %s' % (temp_file, _e))
                 # ENOSPC / 配额错误带文件名打日志，便于排障
                 try:
                     import errno as _errno
@@ -949,7 +952,7 @@ def backFile(file, act=None):
     try:
         shutil.copy2(file, file + file_type)
     except Exception as e:
-        pass
+        writeFileLog('[yf.backupFile] 备份配置失败: %s -> %s' % (file, e))
 
 def removeBackFile(file, act=None):
     """
@@ -969,7 +972,7 @@ def removeBackFile(file, act=None):
             else:
                 os.remove(target)
     except Exception as e:
-        pass
+        writeFileLog('[yf.removeBackFile] 删除备份文件失败: %s -> %s' % (target, e))
 
 
 def restoreFile(file, act=None):
@@ -985,7 +988,7 @@ def restoreFile(file, act=None):
     try:
         shutil.copy2(file + file_type, file)
     except Exception as e:
-        pass
+        writeFileLog('[yf.restoreFile] 还原配置失败: %s -> %s' % (file, e))
 
 def systemdCfgDir():
     # ubuntu
@@ -1180,7 +1183,7 @@ def getClientIp():
                     ipaddress.ip_address(candidate)
                     return candidate
                 except Exception as _e:
-                    pass
+                    _log.debug('[yf] X-Forwarded-For 非合法 IP，忽略: %s -> %s', candidate, _e)
 
             real_ip = request.headers.get('X-Real-IP', '').strip().replace('::ffff:', '')
             if real_ip:
@@ -1188,7 +1191,7 @@ def getClientIp():
                     ipaddress.ip_address(real_ip)
                     return real_ip
                 except Exception as _e:
-                    pass
+                    _log.debug('[yf] X-Real-IP 非合法 IP，忽略: %s -> %s', real_ip, _e)
 
         return remote_ip
     except Exception:
@@ -1238,8 +1241,8 @@ def getLocalIp():
             ipaddress = readFile(filename)
             if ipaddress and ipaddress != '127.0.0.1':
                 return ipaddress
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[yf] 解析 ipaddress 配置失败: %s', e)
         for flag in ['-4', '-6']:
             try:
                 # 向下兼容 Python 2.7 ~ 3.x，移除 f-string，改用字符串拼接
@@ -1254,8 +1257,8 @@ def getLocalIp():
                                 return result
             except Exception:
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[yf] 获取公网 IP 失败，回退 127.0.0.1: %s', e)
     return '127.0.0.1'
 
 def inArray(arrays, searchStr):
@@ -1470,8 +1473,8 @@ def getLanguage():
     try:
         from core.i18n import get_current_lang
         return get_current_lang()
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[yf] i18n 当前语言获取失败，回退文件读取: %s', e)
 
     global _LANG_CACHE
     panel_dir = getPanelDir()
@@ -1506,8 +1509,8 @@ def _getCachedStaticJson(name, lang):
     try:
         from core.i18n import get_cached_json
         return get_cached_json(name, lang)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[yf] i18n 静态 JSON 缓存获取失败，回退文件读取: %s', e)
     file = 'static/language/' + lang + '/' + name + '.json'
     if not os.path.exists(file):
         file = 'static/language/zh-CN/' + name + '.json'
@@ -1521,8 +1524,8 @@ def returnMsg(status, msg, args=()):
         from core.i18n import t as _t
         translated = _t(msg, *args)
         return {'status': status, 'msg': translated, 'data': args}
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[yf] i18n 翻译失败，回退本地词表: %s', e)
 
     # 回退原字典逻辑
     lang = getLanguage()
@@ -1700,7 +1703,7 @@ def isVhostHasReuseport():
                 if content and 'quic reuseport' in content:
                     return True
     except Exception as _e:
-        pass
+        _log.debug('[yf] 读取 nginx 配置判断 QUIC 失败: %s', _e)
     
     return False
 
@@ -1714,20 +1717,18 @@ def isDebugMode():
     return False
 
 def isNumber(s):
+    # 判定型接口：非数字是正常分支而非错误，故不记日志（避免高频噪音）；
+    # 先用 float，失败再试 unicode 数字（语义与原先完全一致）。
     try:
         float(s)
         return True
     except ValueError:
-        pass
-
-    try:
-        import unicodedata
-        unicodedata.numeric(s)
-        return True
-    except (TypeError, ValueError):
-        pass
-
-    return False
+        try:
+            import unicodedata
+            unicodedata.numeric(s)
+            return True
+        except (TypeError, ValueError):
+            return False
 
 # 检查端口是否占用
 def isOpenPort(port):
@@ -1771,8 +1772,9 @@ def userSafeError(exc, trace_id=None):
             tid = 'unknown'
     try:
         writeFileLog('[userSafeError][%s] %s\n%s' % (tid, exc, getTracebackInfo()))
-    except Exception:
-        pass
+    except Exception as e:
+        # 写日志本身失败，不能递归再写日志
+        _log.debug('[yf] 写 userSafeError 日志失败: %s', e)
     return '操作失败，请稍后重试或查看面板日志（追踪号 %s）' % tid
 
 
@@ -1994,7 +1996,7 @@ def deDoubleCrypt(key, strings):
                 result = f.decrypt(strings).decode('utf-8')
                 return result
             except InvalidToken:
-                pass
+                _log.debug('[yf] Fernet(盐) 解密失败，回退无盐 key')
 
         _key = md5(key).encode('utf-8')
         _key = base64.urlsafe_b64encode(_key)
@@ -2019,7 +2021,7 @@ def getAesKey():
                 _aes_key_cache = json.loads(f.read())
                 return _aes_key_cache
         except Exception as _e:
-            pass
+            _log.debug('[yf] 读取 AES key 缓存失败: %s', _e)
             
     key = getRandomString(16)
     vi = getRandomString(16)
@@ -2028,7 +2030,7 @@ def getAesKey():
         with open(aes_file, 'w') as f:
             f.write(json.dumps(_aes_key_cache))
     except Exception as _e:
-        pass
+        _log.debug('[yf] 写入 AES key 缓存失败: %s', _e)
     return _aes_key_cache
 
 def aesEncrypt(data, key=None, vi=None):
@@ -2426,8 +2428,8 @@ def panelCmd(method):
         if os.path.exists(_cmd):
             try:
                 _sp.Popen([_cmd, method], stdout=log_fp, stderr=_sp.STDOUT, start_new_session=True)
-            except Exception:
-                pass
+            except Exception as e:
+                writeFileLog('[yf] 启动 systemd 服务失败: %s -> %s' % (_cmd, e))
             return
 
 # ------------------------------    panel end    -----------------------------
@@ -2495,14 +2497,12 @@ def isVaildIp(ip):
         ipaddress.IPv4Address(ip)
         return True
     except ipaddress.AddressValueError:
-        pass
-
-    try:
-        ipaddress.IPv6Address(ip)
-        return True
-    except ipaddress.AddressValueError:
-        pass
-    return False
+        # 判定型接口：IPv4 不匹配则再试 IPv6，最后 False（语义与原先一致）
+        try:
+            ipaddress.IPv6Address(ip)
+            return True
+        except ipaddress.AddressValueError:
+            return False
 
 
 def getWebStatus():
@@ -2519,8 +2519,8 @@ def deleteFile(file):
     try:
         if os.path.exists(file) or os.path.islink(file):
             os.remove(file)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[yf] 删除文件失败: %s -> %s', file, e)
 
 def isInstalledWeb():
     path = getServerDir() + '/openresty/nginx/sbin/nginx'
@@ -2885,7 +2885,7 @@ def processExists(pname, exe=None, cmdline=None):
                             if cmdline in p.cmdline():
                                 return True
             except Exception as _e:
-                pass
+                _log.debug('[yf] 读取进程命令行失败: %s', _e)
         return False
     except Exception as _e:
         return True

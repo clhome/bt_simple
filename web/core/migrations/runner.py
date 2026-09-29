@@ -90,8 +90,8 @@ def _connect(db_path):
     for key, value in _pragmas():
         try:
             conn.execute('PRAGMA %s=%s;' % (key, value))
-        except Exception:
-            pass
+        except Exception as e:
+            log.debug('[migrations] 设置 PRAGMA %s 失败: %s', key, e)
     return conn
 
 
@@ -155,8 +155,8 @@ def _backup_db(db_path, tag, keep=5):
         for old in existing[:-keep] if keep > 0 else []:
             try:
                 os.remove(old)
-            except OSError:
-                pass
+            except OSError as e:
+                log.debug('[migrations] 清理旧备份失败: %s -> %s', old, e)
         return dst_path
     except Exception as exc:
         log.warning('[migrations] 备份失败（不阻断迁移）：%s', exc)
@@ -195,8 +195,8 @@ def _record_log(conn, level, message):
         conn.execute(
             'INSERT INTO schema_migration_log (at, level, message) VALUES (?,?,?)',
             (time.strftime('%Y-%m-%d %H:%M:%S'), level, message))
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug('[migrations] 写迁移日志失败: %s', e)
 
 
 # ---------------------------------------------------------------- 结构对齐
@@ -334,8 +334,8 @@ def _apply_steps(conn, report):
             try:
                 conn.execute('ROLLBACK TO yf_mig_%d' % version)
                 conn.execute('RELEASE yf_mig_%d' % version)
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug('[migrations] 回滚 SAVEPOINT 失败（将整体回滚）: %s', e)
             msg = '数据迁移失败 %d:%s -> %s（本次跳过，下次启动会自动重试）' % (
                 version, name, exc)
             report['errors'].append(msg)
@@ -439,8 +439,8 @@ def ensure_schema(db_path=None, force=False, backup_keep=5):
         except Exception:
             try:
                 conn.execute('ROLLBACK')
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug('[migrations] 回滚事务失败: %s', e)
             raise
 
         report['version'] = _current_version(conn)
@@ -454,8 +454,8 @@ def ensure_schema(db_path=None, force=False, backup_keep=5):
         if conn is not None:
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug('[migrations] 关闭连接失败: %s', e)
 
     # 失败标记文件：让 CLI / 界面能把问题浮出来，而不是静默半残
     try:
@@ -465,8 +465,8 @@ def ensure_schema(db_path=None, force=False, backup_keep=5):
                 fh.write('\n'.join(report['errors']) + '\n')
         elif os.path.exists(flag):
             os.remove(flag)
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug('[migrations] 清理迁移失败标记文件失败: %s', e)
 
     _mark_done(key)
     return report

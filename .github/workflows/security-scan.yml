@@ -125,3 +125,27 @@ jobs:
         with:
           name: sbom
           path: sbom.json
+
+  lock:
+    name: 生成带哈希的依赖锁文件（requirements.lock，H4.1）
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # 为何放在 CI：生成带哈希的锁需要联网跑 pip-compile，开发机长期离线（见 task.md H4.1）。
+      # 产物只作 artifact 供维护者审核后提交；**绝不作为唯一安装路径** ——
+      # 安装脚本仍以 requirements.txt 为准（大陆网络 / 离线场景必须可装）。
+      - run: pip install --no-cache-dir "pip-tools>=7.4.0"
+      - name: pip-compile --generate-hashes
+        run: |
+          set -e
+          pip-compile --generate-hashes --resolver=backtracking \
+            --output-file requirements.lock requirements.txt
+          ls -lh requirements.lock
+      - uses: actions/upload-artifact@v4
+        with:
+          name: requirements-lock
+          path: requirements.lock

@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.yufeng_systemd')
 
 __target_tag = 'YuFeng'
 
@@ -28,13 +31,13 @@ def getArgs():
             decoded = urllib.parse.unquote(base64.b64decode(val).decode('utf-8'))
             if decoded.startswith('{') and decoded.endswith('}'):
                 return json.loads(decoded)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[yufeng_systemd] getArgs 异常已忽略: %s', _e)
         try:
             if val.startswith('{') and val.endswith('}'):
                 return json.loads(val)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[yufeng_systemd] getArgs 异常已忽略: %s', _e)
         for i in range(args_len):
             t = args[i].split(':', 1)
             if len(t) == 2:
@@ -222,8 +225,8 @@ def delete_service():
     if os.path.exists(clear_file):
         try:
             os.remove(clear_file)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[yufeng_systemd] delete_service 异常已忽略: %s', _e)
             
     _run_cmd("systemctl daemon-reload")
     
@@ -245,8 +248,8 @@ def get_service_logs():
                 clear_time = f.read().strip()
                 if clear_time:
                     since_arg = f'--since "{clear_time}"'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[yufeng_systemd] get_service_logs 异常已忽略: %s', _e)
             
     cmd = f"journalctl -u {service_id} {since_arg} -n 100 --no-pager"
     res = _run_cmd(cmd)

@@ -17,6 +17,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.acme')
 from utils.crontab import crontab as YfCrontab
 
 
@@ -49,8 +52,8 @@ def getTaskDeltaConf():
 def getConfigData():
     try:
         return json.loads(yf.readFile(getTaskConf()))
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[acme] getConfigData 异常已忽略: %s', _e)
     return {
         "task_id": -1,
         "period": "day-n",

@@ -20,6 +20,9 @@ import multiprocessing
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.site')
 
 def chownR(path, user, group=None):
     if yf.isAppleSystem():
@@ -45,7 +48,7 @@ def chownR(path, user, group=None):
                 for f in files:
                     os.chown(os.path.join(root, f), uid, gid)
     except Exception as e:
-        pass
+        _log.debug('[site] 递归设置站点目录属主失败: %s', e)
     return True
 
 def chmodR(path, mode):
@@ -59,7 +62,7 @@ def chmodR(path, mode):
                 for f in files:
                     os.chmod(os.path.join(root, f), mode_val)
     except Exception as e:
-        pass
+        _log.debug('[site] 递归设置站点目录权限失败: %s', e)
     return True
 
 
@@ -387,8 +390,8 @@ class sites(object):
             if os.path.exists(favicon_src):
                 try:
                     shutil.copyfile(favicon_src, os.path.join(path, 'favicon.ico'))
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[site] 复制站点 favicon 失败: %s', _e)
             # chmodR 内部按八进制解析（int(str(mode), 8)），因此必须传字符串；
             # 传十进制字面量 755 会被 bandit 误判为 0o1363（B103），行为并未变。
             chmodR(path, '755')
@@ -458,11 +461,11 @@ class sites(object):
                     try:
                         os.remove(dst_link)
                     except Exception as _e:
-                        pass
+                        _log.debug('[site] 删除旧软链失败: %s -> %s', dst_link, _e)
                 try:
                     os.symlink(src_link, dst_link)
                 except Exception as _e:
-                    pass
+                    yf.writeFileLog('[site] 创建软链失败: %s -> %s' % (dst_link, _e))
 
 
         # nginx
@@ -647,8 +650,8 @@ class sites(object):
                 if os.path.exists(p):
                     try:
                         self.delUserInI(p)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        yf.writeFileLog('[site] 清理 user.ini 失败: %s -> %s' % (p, _e))
                     yf.removeDir(p)
 
         # ssl
@@ -973,7 +976,7 @@ class sites(object):
                     if os.path.isdir(file_path):
                         dirnames.append('/' + filename)
                 except Exception as _e:
-                    pass
+                    _log.debug('[site] 读取目录项失败: %s', _e)
 
         data['dirs'] = dirnames
         return data
@@ -1070,8 +1073,8 @@ class sites(object):
             os.makedirs(path, exist_ok=True)
             try:
                 os.chmod(path, 0o755)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[site] 设置目录权限失败: %s -> %s', path, _e)
             chownR(path, 'www', 'www')
             siteName = info['name']
             yf.writeLog('网站管理', '站点[' + siteName + '],根目录[' + path + ']不存在,已重新创建!')
@@ -1085,7 +1088,7 @@ class sites(object):
                 if os.path.isdir(filePath):
                     dirnames.append(filename)
             except Exception as _e:
-                pass
+                _log.debug('[site] 扫描目录失败: %s', _e)
 
         data = {}
         data['dirs'] = dirnames
@@ -1596,12 +1599,12 @@ class sites(object):
             try:
                 os.rename(conf_txt, conf_file)
             except Exception as _e:
-                pass
+                yf.writeFileLog('[site] 启用重定向配置失败: %s -> %s' % (conf_txt, _e))
         else:
             try:
                 os.rename(conf_file, conf_txt)
             except Exception as _e:
-                pass
+                yf.writeFileLog('[site] 停用重定向配置失败: %s -> %s' % (conf_file, _e))
 
         yf.restartWeb()
         return yf.returnData(True, "OK")
@@ -1727,7 +1730,7 @@ class sites(object):
                 try:
                     os.remove(target_conf)
                 except Exception as _e:
-                    pass
+                    _log.debug('[site] 删除目标配置失败: %s -> %s', target_conf, _e)
         except Exception as e:
             return yf.returnData(False, 'utils.py_msg_90d0f2', None, str(e))
         return yf.returnData(True, 'common.del_success')
@@ -1792,7 +1795,7 @@ class sites(object):
                 try:
                     yf.execShell(f"chown -R www:www {cache_dir}")
                 except Exception as _e:
-                    pass
+                    _log.debug('[site] 设置缓存目录属主失败: %s', _e)
                     
         # 2. 清理 nginx.conf 中所有旧的或错误的 yf_cache 定义（包括之前错误注入的）
         # 匹配所有形如 proxy_cache_path ... keys_zone=yf_cache:... ; 的行
@@ -1955,7 +1958,7 @@ location  {from} {\n\
                     if vhost_content and "Strict-Transport-Security" in vhost_content:
                         hsts_header = "\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;"
             except Exception as _e:
-                pass
+                _log.debug('[site] 读取 HSTS 配置失败: %s', _e)
         tpl = tpl.replace("{hsts}", hsts_header, 999)
 
 
@@ -2056,22 +2059,22 @@ location  {from} {\n\
             try:
                 os.rename(conf_txt, conf_file)
             except Exception as _e:
-                pass
+                yf.writeFileLog('[site] 启用反向代理配置失败: %s -> %s' % (conf_txt, _e))
         else:
             try:
                 os.rename(conf_file, conf_txt)
             except Exception as _e:
-                pass
+                yf.writeFileLog('[site] 停用反向代理配置失败: %s -> %s' % (conf_file, _e))
 
         rule_test = yf.checkWebConfig()
         if rule_test != True:
             # Revert the rename
             if status == '1':
                 try: os.rename(conf_file, conf_txt)
-                except Exception as _e: pass
+                except Exception as _e: yf.writeFileLog('[site] nginx 校验失败回退（停用）失败: %s' % _e)
             else:
                 try: os.rename(conf_txt, conf_file)
-                except Exception as _e: pass
+                except Exception as _e: yf.writeFileLog('[site] nginx 校验失败回退（启用）失败: %s' % _e)
             return yf.returnData(False, 'utils.py_msg_8dc310', None, rule_test)
 
         proxy_site_path = self.getProxyDataPath(site_name)
@@ -2102,7 +2105,7 @@ location  {from} {\n\
                     try:
                         os.rename(proxy_conf, proxy_txt)
                     except Exception as _e:
-                        pass
+                        yf.writeFileLog('[site] 关闭代理配置失败: %s -> %s' % (proxy_conf, _e))
             yf.restartWeb()
         return True
 
@@ -2115,7 +2118,7 @@ location  {from} {\n\
                 try:
                     os.rename(proxy_txt, proxy_conf)
                 except Exception as _e:
-                    pass
+                    yf.writeFileLog('[site] 恢复代理配置失败: %s -> %s' % (proxy_txt, _e))
 
         if len(self.close_proxy) > 0:
             yf.restartWeb()
@@ -2137,7 +2140,7 @@ location  {from} {\n\
                     try:
                         os.rename(redirect_conf, redirect_txt)
                     except Exception as _e:
-                        pass
+                        yf.writeFileLog('[site] 关闭重定向配置失败: %s -> %s' % (redirect_conf, _e))
             yf.restartWeb()
 
     def openRedirectByOpen(self, site_name):
@@ -2149,7 +2152,7 @@ location  {from} {\n\
                 try:
                     os.rename(redirect_txt, redirect_conf)
                 except Exception as _e:
-                    pass
+                    yf.writeFileLog('[site] 恢复重定向配置失败: %s -> %s' % (redirect_txt, _e))
 
         if len(self.close_redirect) > 0:
             yf.restartWeb()
@@ -2980,7 +2983,7 @@ export PATH
             try:
                 yf.execShell("curl -sS curl https://get.acme.sh | sh")
             except Exception as _e:
-                pass
+                yf.writeFileLog('[site] 安装 acme.sh 失败: %s' % _e)
         if not os.path.exists(acme_dir):
             return yf.returnData(False, 'site.py_msg_448940')
 
@@ -3019,7 +3022,7 @@ export PATH
                 try:
                     data = json.loads(data_content)
                 except Exception as _e:
-                    pass
+                    _log.debug('[site] 解析代理数据失败: %s', _e)
                 for proxy in data:
                     proxy_dir = "{}/{}".format(self.proxyPath, site_name)
                     proxy_dir_file = proxy_dir + '/' + proxy['id'] + '.conf'
@@ -3104,8 +3107,8 @@ export PATH
             elif os.path.isfile(path) or os.path.islink(path):
                 try:
                     os.remove(path)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[site] 删除文件失败: %s -> %s', path, _e)
             return yf.returnData(True, 'site.py_msg_1e0d6d')
         except Exception as ex:
             return yf.returnData(False, 'utils.py_msg_b82765', None, str(ex))

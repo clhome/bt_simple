@@ -17,6 +17,8 @@ import time
 import uuid
 import logging
 
+_log = logging.getLogger('yf.admin')
+
 from flask import g
 from datetime import timedelta
 
@@ -86,10 +88,12 @@ else:
         os.chmod(secret_file, 0o600)
         try:
             os.chown(secret_file, 0, 0)
-        except Exception:
-            pass
-    except Exception:
-        pass
+        except Exception as e:
+            # 非 root 运行时没有 chown 权限，属预期
+            _log.debug('secret_key 文件属主设置失败（通常为非 root 运行）: %s', e)
+    except Exception as e:
+        # 无法落盘保存 SECRET_KEY → 本次用临时 key，重启后所有会话失效，必须可见
+        _log.warning('SECRET_KEY 未能持久化到磁盘，本次使用临时 key: %s', e)
     app.config['SECRET_KEY'] = key
 
 # 显式启用 Jinja2 自动转义（防御模板注入 XSS，仅 html/xml 生效）
@@ -128,7 +132,7 @@ try:
     if basic_auth['open']:
         app.config['BASIC_AUTH_OPEN'] = True
 except Exception as e:
-    pass
+    _log.warning('读取 basic_auth 配置失败，已按「关闭」处理: %s', e)
 
 # 加载模块
 from .submodules import get_submodules
@@ -207,7 +211,7 @@ def requestCheck():
         g.csrf_token = ''
 
     # 豁免 acme 挑战与运维探针（探针不能被「安全入口/关站」重定向，否则监控永远看不到真状态）
-    if request.path.startswith('/.well-known/acme-challenge/') or request.path == '/healthz':
+    if request.path.startswith('/.well-known/acme-challenge/') or request.path == '/healthz' or request.path == '/metrics':
         return
 
     admin_close = getRequestCheckOption('admin_close', default='no')
@@ -309,6 +313,64 @@ def healthz():
     return resp
 
 
+@app.route('/metrics')
+def metrics():
+    """Prometheus 指标端点（**默认关闭**）。
+
+    设计取舍：
+      * **默认关闭**：`thisdb.getOption('metrics_open')` 默认为 'no'，未开启直接 404，
+        不暴露端点存在（比 403 更隐蔽）；开启只写一个 option：
+        `thisdb.setOption('metrics_open', 'yes')`；
+      * **不要求登录**：与 /healthz 同理，抓取方通常是独立监控进程；
+        正因为无鉴权，才必须默认关闭，由运维显式开启并自建网络隔离；
+      * **只出健康类基础指标**：不回版本号 / 数据库路径 / 主机名，避免变成指纹接口；
+      * 输出遵循 Prometheus exposition format 0.0.4。
+    """
+    try:
+        if thisdb.getOption('metrics_open', default='no') != 'yes':
+            abort(404)
+    except Exception as _e:
+        _log.debug('[metrics] 读取 metrics_open 开关失败，按关闭处理: %s', _e)
+        abort(404)
+
+    checks = {}
+    try:
+        import core.migrations as migrations
+        st = migrations.get_status()
+        checks['db_ok'] = bool(
+            st.get('exists')
+            and not st.get('errors')
+            and not st.get('missing_tables')
+            and not st.get('missing_columns'))
+    except Exception as _e:
+        _log.debug('[metrics] 面板库状态检查失败: %s', _e)
+        checks['db_ok'] = False
+
+    try:
+        import core.yf as yf
+        data_dir = yf.getPanelDataDir()
+        checks['data_writable'] = os.path.isdir(data_dir) and os.access(data_dir, os.W_OK)
+    except Exception as _e:
+        _log.debug('[metrics] data 目录可写检查失败: %s', _e)
+        checks['data_writable'] = False
+
+    lines = [
+        '# HELP yf_up 面板进程存活（恒为 1）',
+        '# TYPE yf_up gauge',
+        'yf_up 1',
+        '# HELP yf_db_ok 面板库结构与可读性检查是否通过',
+        '# TYPE yf_db_ok gauge',
+        'yf_db_ok %d' % (1 if checks.get('db_ok') else 0),
+        '# HELP yf_data_writable data 目录是否可写',
+        '# TYPE yf_data_writable gauge',
+        'yf_data_writable %d' % (1 if checks.get('data_writable') else 0),
+    ]
+    resp = Response('\n'.join(lines) + '\n', mimetype='text/plain')
+    resp.headers['Content-Type'] = 'text/plain; version=0.0.4; charset=utf-8'
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
 @app.errorhandler(404)
 def page_unauthorized(error):
     from flask import redirect
@@ -326,8 +388,9 @@ def internal_server_error(error):
     try:
         app.logger.error('Internal Server Error: %s %s -> %s',
                          request.method, request.path, error)
-    except Exception:
-        pass
+    except Exception as e:
+        # 记录失败不能再走 app.logger（可能正是它抛错），退回模块 logger 兜底
+        _log.debug('记录 500 详情失败: %s', e)
     html = (
         '<!DOCTYPE html><html><head><meta charset="utf-8">'
         '<title>500</title></head><body style="font-family:sans-serif;'
@@ -411,8 +474,8 @@ try:
     import engineio.async_drivers.threading as _eio_threading
     app.logger.info('SocketIO websocket support: %s',
                     getattr(_eio_threading, '_websocket_available', 'unknown'))
-except Exception:
-    pass
+except Exception as e:
+    _log.debug('SocketIO websocket 自检失败: %s', e)
 
 @socketio.on('webssh_websocketio')
 def webssh_websocketio(data):
@@ -463,8 +526,8 @@ app.logger.info('Starting %s v%s...', config.APP_NAME, config.APP_VERSION)
 app.logger.info('########################################################')
 try:
     app.logger.info('Resource profile: %s', resources.describe())
-except Exception:
-    pass
+except Exception as e:
+    _log.debug('资源画像采集失败: %s', e)
 
 # i18n 红线自检：译文含 HTML 时仅告警，绝不阻断启动（面板必须能起来）。
 # CI / 测试侧使用 core.i18n.assert_no_html_in_translations(raise_on_error=True) 阻断构建。
@@ -474,6 +537,6 @@ try:
     if _i18n_html_errors:
         app.logger.warning('i18n HTML red-line violations: %d (see above)',
                            len(_i18n_html_errors))
-except Exception:
-    pass
+except Exception as e:
+    _log.debug('i18n HTML 红线自检失败: %s', e)
 app.logger.debug("Python syspath: %s", sys.path)

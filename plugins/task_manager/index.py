@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.task_manager')
 import json
 
 app_debug = False
@@ -42,7 +45,8 @@ def getArgs():
         else:
             try:
                 tmp = json.loads(args[0])
-            except:
+            except Exception as _e:
+                _log.debug('[task_manager] getArgs 异常已忽略: %s', _e)
                 t_arr = t.split(':', 1)
                 if len(t_arr) == 2:
                     tmp[t_arr[0]] = t_arr[1]

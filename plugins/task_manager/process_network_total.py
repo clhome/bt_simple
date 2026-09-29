@@ -4,6 +4,19 @@ import sys
 import time
 import os
 import struct
+import subprocess
+
+# 本文件由 task_manager_index.py 以 `nohup python3 <abs path>` 拉起，
+# 必须自己把面板 web 目录加进 sys.path 才能 import core.yf。
+# 此前缺失 import → 下一行 `yf.getPanelDir()` 必然 NameError，进程当场退出。
+_panel_web_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'web')
+if os.path.isdir(_panel_web_dir):
+    sys.path.insert(0, _panel_web_dir)
+import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.task_manager')
 
 os.chdir(yf.getPanelDir())
 if 'class/' in sys.path: sys.path.insert(0,"class/")
@@ -12,7 +25,7 @@ try:
     import pcap
 except ImportError:
     if os.path.exists('/usr/bin/apt'):
-        os.system("apt install libpcap-dev -y")
+        subprocess.call(['apt', 'install', 'libpcap-dev', '-y'])
     elif os.path.exists('/usr/bin/dnf'):
         red_file = '/etc/redhat-release'
         if os.path.exists(red_file):
@@ -21,23 +34,23 @@ except ImportError:
             f.close()
             if red_body.find('CentOS Linux release 8.') != -1:
                 rpm_file = '/root/libpcap-1.9.1.rpm'
-                down_url = "wget -O {} https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/libpcap-devel-1.9.1-5.el8.x86_64.rpm --no-check-certificate -T 10".format(rpm_file)
+                down_url = 'https://repo.almalinux.org/almalinux/8/PowerTools/x86_64/os/Packages/libpcap-devel-1.9.1-5.el8.x86_64.rpm'
                 print(down_url)
-                os.system(down_url)
-                os.system("rpm -ivh {}".format(rpm_file))
+                subprocess.call(['wget', '-O', rpm_file, down_url, '--no-check-certificate', '-T', '10'])
+                subprocess.call(['rpm', '-ivh', rpm_file])
                 if os.path.exists(rpm_file): os.remove(rpm_file)
             else:
-                os.system("dnf install libpcap-devel -y")
+                subprocess.call(['dnf', 'install', 'libpcap-devel', '-y'])
         else:
-            os.system("dnf install libpcap-devel -y")
+            subprocess.call(['dnf', 'install', 'libpcap-devel', '-y'])
     elif os.path.exists('/usr/bin/yum'):
-        os.system("yum install libpcap-devel -y")
-        
+        subprocess.call(['yum', 'install', 'libpcap-devel', '-y'])
+
     # 尝试使用镜像源安装
-    pip_cmd = "pip3 install pypcap"
+    pip_cmd = ['pip3', 'install', 'pypcap']
     if os.path.exists('data/is_china.pl'):
-        pip_cmd = "pip3 install pypcap -i https://pypi.tuna.tsinghua.edu.cn/simple"
-    os.system(pip_cmd)
+        pip_cmd = ['pip3', 'install', 'pypcap', '-i', 'https://pypi.tuna.tsinghua.edu.cn/simple']
+    subprocess.call(pip_cmd)
     try:
         import pcap
     except ImportError:
@@ -68,7 +81,8 @@ class process_network_total:
                         self.rm_pid_file()
                         break
 
-        except:
+        except Exception as _e:
+            _log.debug('[task_manager] start 异常已忽略: %s', _e)
             self.rm_pid_file()
         
     def handle_packet(self, pcap_data):
@@ -206,8 +220,8 @@ class process_network_total:
                         
                         key = self.get_ip_pack(local_ip) + b':' + self.get_port_pack(local_port)
                         self.__net_process_list[key] = pid
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[task_manager] get_tcp_stat 异常已忽略: %s', _e)
         return self.__net_process_list
             
     
@@ -242,9 +256,11 @@ class process_network_total:
                         if fd_link.startswith('socket:['):
                             inode = fd_link[8:-1]
                             inode_list[inode] = pid
-                    except:
+                    except Exception as _e:
+                        _log.debug('[task_manager] get_process_inodes 异常已忽略: %s', _e)
                         continue
-            except:
+            except Exception as _e:
+                _log.debug('[task_manager] get_process_inodes 异常已忽略: %s', _e)
                 continue
         self.__inode_list = inode_list
         return inode_list

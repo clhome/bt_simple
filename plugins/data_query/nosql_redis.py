@@ -12,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query.redis')
 import functools
 
 try:
@@ -67,12 +70,12 @@ class nosqlRedis():
         if self.__DB_CONN:
             try:
                 self.__DB_CONN.close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close 异常已忽略: %s', _e)
             try:
                 self.__DB_CONN.connection_pool.disconnect()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close 异常已忽略: %s', _e)
             self.__DB_CONN = None
 
     def redis_conn(self, db_idx=0):
@@ -91,8 +94,8 @@ class nosqlRedis():
             if isinstance(self.__config, dict) and 'port' in self.__config:
                 try:
                     self.__DB_PORT = int(self.__config['port'])
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
             if isinstance(self.__config, dict) and 'bind' in self.__config:
                 raw_bind = self.__config['bind']
                 if not self.__sid or self.__sid == 0 or raw_bind in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_bind):
@@ -128,8 +131,8 @@ class nosqlRedis():
                         temp_conn.config_set('requirepass', conn_pass)
                         try:
                             temp_conn.config_rewrite()
-                        except:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
                         temp_conn.close()
                         # 热同步成功后立即以新密码重连
                         redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=conn_pass, db=db_idx, socket_timeout=5)
@@ -137,8 +140,8 @@ class nosqlRedis():
                         self.__DB_CONN.ping()
                         self.__DB_ERR = None
                         return self.__DB_CONN
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
 
                 # 尝试自愈策略 2：平滑重启本地 Redis 重新挂载权威 redis.conf
                 try:
@@ -151,8 +154,8 @@ class nosqlRedis():
                         self.__DB_CONN.ping()
                         self.__DB_ERR = None
                         return self.__DB_CONN
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
 
             self.__DB_ERR = err_str
             yf.writeLog('数据管理', f"连接 Redis 失败 [{self.__DB_HOST}:{self.__DB_PORT}]: {str(e)}")
@@ -183,8 +186,8 @@ class nosqlRedis():
                         'databases': 16,
                         'maxmemory': 0
                     }
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         port_info = common_db.getDbPort('redis')
         result = {}
@@ -228,13 +231,15 @@ class nosqlRedis():
                 if k == "maxmemory":
                     try:
                         v = int(raw_str.lower().strip("mb").strip("m").strip())
-                    except:
+                    except Exception as _e:
+                        _log.debug('[data_query] get_options 异常已忽略: %s', _e)
                         v = 0
                 elif k == "port":
                     if not port_info.get('is_custom'):
                         try:
                             v = int(raw_str.split()[0].strip())
-                        except:
+                        except Exception as _e:
+                            _log.debug('[data_query] get_options 异常已忽略: %s', _e)
                             v = 6379
                     else:
                         v = result['port']
@@ -325,7 +330,8 @@ class nosqlRedisCtr():
                 redis_instance = self.getInstanceBySid(sid).redis_conn(x)
                 data['keynum'] = redis_instance.dbsize()
                 result.append(data)
-            except:
+            except Exception as _e:
+                _log.debug('[data_query] getList 异常已忽略: %s', _e)
                 break
 
         return yf.returnData(True,'ok', result)
@@ -407,7 +413,8 @@ class nosqlRedisCtr():
 
             try:
                 item['len'] = redis_instance.strlen(key)
-            except:
+            except Exception as _e:
+                _log.debug('[data_query] getDbKeyList 异常已忽略: %s', _e)
                 item['len'] = len(item['val'])
             items.append(item)
 
@@ -505,8 +512,8 @@ def close_connection_after(func):
         finally:
             try:
                 nosqlRedis().close()
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] close_connection_after 异常已忽略: %s', _e)
     return wrapper
 
 def _normalize_args(args=None, kwargs=None):

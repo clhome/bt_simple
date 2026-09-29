@@ -461,7 +461,7 @@ def check_migrate_backup():
                 if os.path.isdir(os.path.join(old_data_dir, f)) and f not in ignore_dbs:
                     databases.append(f)
         except Exception as _e:
-            pass
+            yf.writeFileLog('[setting] 扫描旧 MySQL 数据目录失败: %s' % _e)
             
     return yf.getJson({'mysql': has_mysql, 'databases': databases})
 

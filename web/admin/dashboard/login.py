@@ -104,8 +104,9 @@ def _upgrade_password(info, password):
         name = info.get('name') or info.get('username')
         if name:
             thisdb.setUserPwdByName(name, password)
-    except Exception:
-        pass
+    except Exception as e:
+        # 升级失败会令遗留弱哈希继续留存，属真实安全问题，必须可见
+        yf.writeFileLog('[login] 弱哈希升级 bcrypt 失败: %s' % e)
 
 
 def _password_matches(info, password):
@@ -144,8 +145,8 @@ def _login_success(info, client_ip):
         session['session_id'] = sid
     try:
         thisdb.updateUserLoginTime(client_ip)
-    except Exception:
-        pass
+    except Exception as e:
+        yf.writeFileLog('[login] 更新最后登录时间失败: %s' % e)
 
 def login_temp_user(token):
     if len(token) != 32:

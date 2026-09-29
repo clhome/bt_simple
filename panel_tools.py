@@ -27,6 +27,9 @@ sys.path.append(web_dir)
 from utils.firewall import Firewall as YfFirewall
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.panel_tools')
 
 INIT_DIR = "/etc/rc.d/init.d"
 if not os.path.exists(INIT_DIR):
@@ -111,7 +114,8 @@ def yfcli(yf_input=0):
             yf_input = input("请输入命令编号：")
             if sys.version_info[0] == 3:
                 yf_input = int(yf_input)
-        except:
+        except Exception as e:
+            _log.debug('[panel_tools] 命令编号解析失败，按取消处理: %s', e)
             yf_input = 0
 
     nums = [
@@ -124,9 +128,9 @@ def yfcli(yf_input=0):
     if yf_input == "uninstall":
         uninstall_script = panel_dir + "/scripts/uninstall.sh"
         if os.path.exists(uninstall_script):
-            os.system("bash " + uninstall_script)  # nosec B605  # 脚本路径由面板目录拼出，非外部输入
+            yf.safeExecShell(['bash', uninstall_script])
         else:
-            os.system(INIT_CMD + " uninstall")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'uninstall'])
         return
 
     if yf_input == "migrate_restore":
@@ -140,17 +144,17 @@ def yfcli(yf_input=0):
         else:
             print(raw_tip)
             print("未知命令: " + str(yf_input))
-            os.system(INIT_CMD + " list")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'list'])
         exit()
 
     if yf_input == 1:
-        os.system(INIT_CMD + " restart")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        yf.safeExecShell([INIT_CMD, 'restart'])
     elif yf_input == 2:
-        os.system(INIT_CMD + " stop")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        yf.safeExecShell([INIT_CMD, 'stop'])
     elif yf_input == 3:
-        os.system(INIT_CMD + " start")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        yf.safeExecShell([INIT_CMD, 'start'])
     elif yf_input == 4:
-        os.system(INIT_CMD + " reload")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        yf.safeExecShell([INIT_CMD, 'reload'])
     elif yf_input == 5:
         in_ip = yf_input_cmd("请输入设置的面板IP：")
         in_ip = in_ip.strip()
@@ -168,8 +172,8 @@ def yfcli(yf_input=0):
             YfFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
             panel_port = panel_dir + '/data/port.pl'
             yf.writeFile(panel_port, in_port)
-            os.system(INIT_CMD + " restart_panel")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
-            os.system(INIT_CMD + " default")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'restart_panel'])
+            yf.safeExecShell([INIT_CMD, 'default'])
         else:
             yf.echoInfo("端口范围在0-65536之间")
         return
@@ -183,11 +187,12 @@ def yfcli(yf_input=0):
             yf.echoInfo("已清除任务锁定文件!")
         
         # 杀死所有任务进程
-        os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")
-        os.system(INIT_CMD + " restart_task")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        # 多级管道必须经 shell；命令全为字面量，无变量进入 shell
+        os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")  # 保留 os.system：常量管道，无外部输入
+        yf.safeExecShell([INIT_CMD, 'restart_task'])
         yf.echoInfo("后台任务已强制终止并重启!")
     elif yf_input == 10:
-        os.system(INIT_CMD + " default")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+        yf.safeExecShell([INIT_CMD, 'default'])
     elif yf_input == 11:
         import random
         try:
@@ -205,7 +210,7 @@ def yfcli(yf_input=0):
                 except Exception as e:
                     print("数据迁移失败: " + str(e))
         except Exception as e:
-            pass
+            _log.debug('[panel_tools] 存量加密数据迁移外层异常: %s', e)
 
         pwd_len = random.randint(8, 12)
         rand_pwd = yf.getRandomString(pwd_len)
@@ -214,7 +219,7 @@ def yfcli(yf_input=0):
         input_user = yf_input_cmd("请输入新的面板用户名(>=5位)：")
         set_panel_username(input_user.strip())
     elif yf_input == 13:
-        os.system('tail -100 ' + panel_dir + '/logs/panel_error.log')  # nosec B605  # 路径为面板自身日志目录
+        yf.safeExecShell(['tail', '-100', panel_dir + '/logs/panel_error.log'])
     elif yf_input == 14:
         admin_close = thisdb.getOption('admin_close')
         if admin_close == 'no':
@@ -234,13 +239,13 @@ def yfcli(yf_input=0):
         if basic_auth['open']:
             basic_auth['open'] = False
             thisdb.setOption('basic_auth', json.dumps(basic_auth))
-            os.system(INIT_CMD + " restart")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'restart'])
             yf.echoInfo("关闭basic_auth成功")
     elif yf_input == 21:
         panel_domain = thisdb.getOption('panel_domain', default='')
         if panel_domain != '':
             thisdb.setOption('panel_domain', '')
-            os.system(INIT_CMD + " unbind_domain")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'unbind_domain'])
             yf.echoInfo("解除域名绑定成功")
         else:
             yf.echoInfo("面板未绑定域名!")
@@ -249,13 +254,13 @@ def yfcli(yf_input=0):
         if panel_ssl['open']:
             panel_ssl['open'] = False
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl))
-            os.system(INIT_CMD + " unbind_ssl")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'unbind_ssl'])
             yf.echoInfo("解除面板SSL绑定成功")
     elif yf_input == 23:
         listen_ipv6 = panel_dir + '/data/ipv6.pl'
         if not os.path.exists(listen_ipv6):
             yf.writeFile(listen_ipv6, 'True')
-            os.system(INIT_CMD + " restart")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'restart'])
             yf.echoInfo("开启IPv6支持了")
         else:
             yf.echoInfo("已开启IPv6支持!")
@@ -265,7 +270,7 @@ def yfcli(yf_input=0):
             yf.echoInfo("已关闭IPv6支持!")
         else:
             os.remove(listen_ipv6)
-            os.system(INIT_CMD + " restart")  # nosec B605  # INIT_CMD 为常量，子命令为字面量
+            yf.safeExecShell([INIT_CMD, 'restart'])
             yf.echoInfo("关闭IPv6支持了")
     elif yf_input == 25:
         open_ssh_port()
@@ -284,13 +289,13 @@ def yfcli(yf_input=0):
         find_cmd =  yf.execShell(cmd)
         if find_cmd[0].strip() != '':
             run_cmd = True
-            os.system('ufw status')
+            yf.safeExecShell(['ufw', 'status'])
 
         cmd = 'which firewall-cmd'
         find_cmd =  yf.execShell(cmd)
         if find_cmd[0].strip() != '':
             run_cmd = True
-            os.system('firewall-cmd --list-all')
+            yf.safeExecShell(['firewall-cmd', '--list-all'])
         if not run_cmd:
             yf.echoInfo("未检测到防火墙!")
     elif yf_input == 28:
@@ -317,10 +322,12 @@ def yfcli(yf_input=0):
             yf.writeFile(php_conf, cont)
             yf.echoInfo("执行PHP52隐藏成功!")
     elif yf_input == 200:
-        os.system("bash <(curl -sSL https://linuxmirrors.cn/main.sh)")
+        # 进程替换必须经 shell；URL 为常量，无变量进入 shell
+        os.system("bash <(curl -sSL https://linuxmirrors.cn/main.sh)")  # 保留 os.system：进程替换需 shell，URL 常量
         # os.system(INIT_CMD + " mirror")
     elif yf_input == 201:
-        os.system('curl -Lso- bench.sh | bash')
+        # 管道必须经 shell；命令全为字面量
+        os.system('curl -Lso- bench.sh | bash')  # 保留 os.system：管道需 shell，命令全字面量
     elif yf_input == 202:
         package = yf.getPanelDir()+'/plugins'
 
@@ -455,7 +462,8 @@ def getLocalIp():
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except:
+    except Exception as e:
+        _log.debug('[panel_tools] 探测本机 IP 失败: %s', e)
         return '127.0.0.1'
 
 
@@ -515,7 +523,8 @@ def main():
         try:
             if len(sys.argv) > 2:
                 clinum = int(sys.argv[2]) if sys.argv[2][:6] else sys.argv[2]
-        except:
+        except Exception as e:
+            _log.debug('[panel_tools] 命令行参数解析失败: %s', e)
             clinum = sys.argv[2]
         yfcli(clinum)
     else:
@@ -602,8 +611,8 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                 return
 
             print("  正在停止 MySQL 服务...")
-            os.system("systemctl stop mysql 2>/dev/null")
-            os.system("systemctl stop mysqld 2>/dev/null")
+            yf.safeExecShell(['systemctl', 'stop', 'mysql'])
+            yf.safeExecShell(['systemctl', 'stop', 'mysqld'])
             
             new_data_dir = new_mysql_dir + "/data"
             if os.path.exists(new_data_dir):
@@ -612,27 +621,28 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                     os.rename(new_data_dir, backup_new_data)
                     print("  已备份新数据目录为: " + backup_new_data)
                 else:
-                    os.system("rm -rf " + new_data_dir)  # nosec B605  # 路径来自面板块探测结果
+                    yf.removeDir(new_data_dir)
             
             print("  正在复制旧宝塔 MySQL 数据库文件...")
-            os.system("cp -rf " + old_data_dir + " " + new_data_dir)  # nosec B605  # 源/目标均为面板块探测目录
+            yf.safeExecShell(['cp', '-rf', old_data_dir, new_data_dir])
             
-            os.system("chown -R mysql:mysql " + new_data_dir)  # nosec B605  # 路径来自面板块探测结果
-            os.system("chmod -R 700 " + new_data_dir)  # nosec B605  # 路径来自面板块探测结果
+            yf.safeExecShell(['chown', '-R', 'mysql:mysql', new_data_dir])
+            yf.safeExecShell(['chmod', '-R', '700', new_data_dir])
             
             print("  正在启动 MySQL 服务并升级检查...")
-            os.system("systemctl start mysql 2>/dev/null")
-            os.system("systemctl start mysqld 2>/dev/null")
+            yf.safeExecShell(['systemctl', 'start', 'mysql'])
+            yf.safeExecShell(['systemctl', 'start', 'mysqld'])
             time.sleep(2)
             
             print("  正在修复 MySQL root 密码与面板同步...")
-            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")  # nosec B605  # 路径与脚本均为面板固定内容
+            # `cd && source bin/activate` 必须经 shell；路径与脚本均为面板常量
+            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")  # 保留 os.system：source 激活需 shell，路径常量
             
             pwd = ""
             try:
                 pwd = yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[panel_tools] 读取 MySQL root 密码失败: %s', e)
             
             if type(pwd) is not str:
                 pwd = ""
@@ -677,7 +687,8 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                     print("    - 清理未选择的数据库失败，无法连接MySQL。")
 
             print("  正在从 MySQL 同步数据库列表到面板...")
-            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")  # nosec B605  # 路径与脚本均为面板固定内容
+            # `cd && source bin/activate` 必须经 shell；路径与脚本均为面板常量
+            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")  # 保留 os.system：source 激活需 shell，路径常量
                 
             print("  ✅ MySQL 数据无缝迁移成功！")
             mysql_restored = True
@@ -745,7 +756,8 @@ def find_bt_site_db():
         choice_str = yf_input_cmd("请选择编号：")
         try:
             choice = int(choice_str.strip())
-        except:
+        except Exception as e:
+            _log.debug('[panel_tools] 选择编号解析失败: %s', e)
             choice = -1
 
     try:
@@ -760,7 +772,7 @@ def find_bt_site_db():
         elif 1 <= choice <= len(paths):
             return paths[choice - 1]
     except Exception as e:
-        pass
+        _log.debug('[panel_tools] 选择数据库路径失败: %s', e)
     print("无效选择。")
     return None
 

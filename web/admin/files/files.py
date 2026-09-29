@@ -12,6 +12,9 @@
 import os
 import time
 import json
+import logging
+
+_log = logging.getLogger('yf.files')
 
 from flask import Blueprint, render_template
 from flask import request
@@ -50,8 +53,8 @@ def check_exists_files():
             selected_info = session.get('selected', {})
             filesx = json.loads(selected_info.get('data', '[]'))
             src_dir = selected_info.get('path', '')
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[files] 读取会话中的已选文件失败: %s', e)
     elif filename.startswith('['):
         try:
             filesx = json.loads(filename)
@@ -89,8 +92,8 @@ def check_exists_files():
                     tmp['new_mtime'] = new_mtime
 
                 data.append(tmp)
-            except Exception:
-                pass
+            except Exception as e:
+                _log.debug('[files] 文件状态读取失败: %s', e)
     return yf.returnData(True, 'ok', data)
 
 
@@ -255,11 +258,12 @@ def upload_file():
     try:
         os.chown(filename, p_stat.st_uid, p_stat.st_gid)
     except Exception as _e:
-        pass
+        # 非 root 运行时无 chown 权限，属预期
+        _log.debug('[files] 上传文件 chown 失败: %s', _e)
     try:
         os.chmod(filename, p_stat.st_mode)
     except Exception as _e:
-        pass
+        _log.debug('[files] 上传文件 chmod 失败: %s', _e)
 
     msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))
     yf.writeLog('文件管理', msg)

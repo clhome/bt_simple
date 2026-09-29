@@ -27,6 +27,9 @@ import ipaddress
 import socket
 import sys
 from urllib.parse import urlparse
+import logging
+
+_log = logging.getLogger('yf.urlguard')
 
 # 明确的内网/元数据域名黑名单
 _BLOCKED_HOSTNAMES = (
@@ -44,8 +47,8 @@ def _msg(key, default, *args):
         val = _t(key, *args)
         if val and val != key:
             return val
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[urlguard] 读取环境变量失败: %s', _e)
     out = default
     for i, a in enumerate(args, 1):
         out = out.replace('{%d}' % i, str(a))

@@ -106,5 +106,5 @@ def match_plugin_version(plugin_name, bt_version):
         if supported_versions:
             return supported_versions[-1] # 返回最新版本
     except Exception as e:
-        pass
+        yf.writeFileLog('[bt_migration] 匹配插件版本失败: %s' % e)
     return None

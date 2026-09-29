@@ -8,6 +8,9 @@ import re
 import json
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query.mysql')
 
 def safe_sql_identifier(val):
     """
@@ -104,8 +107,8 @@ class PluginORM(object):
         if self.conn and self.db_name:
             try:
                 self.conn.select_db(self.db_name)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] setDbName 异常已忽略: %s', _e)
 
     def setSocket(self, sock):
         self.socket = str(sock) if sock else ''
@@ -187,8 +190,8 @@ class PluginORM(object):
                         m = re.search(r'(?:^|\n)\s*socket\s*=\s*([^\s\r\n]+)', ct)
                         if m and m.group(1).strip() not in candidate_sockets:
                             candidate_sockets.append(m.group(1).strip())
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] connect 异常已忽略: %s', _e)
 
             for c_sock in candidate_sockets:
                 if c_sock and os.path.exists(c_sock):
@@ -225,13 +228,13 @@ class PluginORM(object):
         try:
             if self.cur:
                 self.cur.close()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] close 异常已忽略: %s', _e)
         try:
             if self.conn:
                 self.conn.close()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] close 异常已忽略: %s', _e)
         self.cur = None
         self.conn = None
 
@@ -325,8 +328,8 @@ class nosqlMySQL():
                     data = json.loads(yf.readFile(p))
                     if isinstance(data, dict):
                         instances_data.update(data)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _load_mysql_docker_instances 异常已忽略: %s', _e)
 
         for inst_name, base_dir in instances_data.items():
             if 'mysql' not in inst_name.lower() and 'mariadb' not in inst_name.lower():
@@ -340,8 +343,8 @@ class nosqlMySQL():
                     pm = re.search(r'ports:\s*\n\s*-\s*"(?:(127\.0\.0\.1):)?(\d+):3306"', content)
                     if pm:
                         port = pm.group(2)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _load_mysql_docker_instances 异常已忽略: %s', _e)
             instances.append({
                 'name': inst_name,
                 'path': inst_path,
@@ -364,8 +367,8 @@ class nosqlMySQL():
                 for r in rows:
                     if isinstance(r, dict) and r.get('name'):
                         dbs.add(r['name'])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] _get_fallback_databases 异常已忽略: %s', _e)
 
         # 2. 尝试从各个 sid 的本地 sqlite 数据库读取
         candidates = ['mysql', 'mariadb', 'mysql-apt', 'mysql-yum', 'mysql-community']
@@ -387,8 +390,8 @@ class nosqlMySQL():
                             for r in rows:
                                 if isinstance(r, dict) and r.get('name'):
                                     dbs.add(r['name'])
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] _get_fallback_databases 异常已忽略: %s', _e)
 
         # 3. 尝试扫描物理数据目录
         possible_datav_dirs = [
@@ -407,8 +410,8 @@ class nosqlMySQL():
                         sub_p = os.path.join(pdir, item)
                         if os.path.isdir(sub_p):
                             dbs.add(item)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _get_fallback_databases 异常已忽略: %s', _e)
 
         # 4. 如果仍无数据库，加入默认库便于用户在未直连时选择与测试连接
         if not dbs:
@@ -519,12 +522,12 @@ class nosqlMySQL():
                             if str(self.__sid).startswith('conn_'):
                                 try:
                                     c_id = int(str(self.__sid)[5:])
-                                except Exception:
-                                    pass
+                                except Exception as _e:
+                                    _log.debug('[data_query] conn 异常已忽略: %s', _e)
                             common_db.updateLocalConnectionPassword('mysql', cand_pwd, cid=c_id)
                             return db_try
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] conn 异常已忽略: %s', _e)
 
         # 3. 智能自愈：如果是本机环境且报错网络拒绝连接，自动探测可用 UNIX Socket 免网络穿透直连
         if is_local:
@@ -549,8 +552,8 @@ class nosqlMySQL():
                             self.__DB_SOCKET = csock
                             self.__DB_ERR = ''
                             return db_sock
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] conn 异常已忽略: %s', _e)
 
         return False
 
@@ -589,8 +592,8 @@ class nosqlMySQL():
                     result['auth_db'] = c_data.get('auth_db', '')
                     result['socket'] = ''
                     return result
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         # 识别 Docker 容器实例
         if sid and str(sid).startswith('docker_'):
@@ -609,8 +612,8 @@ class nosqlMySQL():
             mysql_pass = self.sqliteDb(target_sid, 'config').where('id=?', (1,)).getField('mysql_root')
             if mysql_pass:
                 result['password'] = mysql_pass
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         # 2. 尝试从 serverDir/mysql.db 中读取
         if not result['password']:
@@ -618,8 +621,8 @@ class nosqlMySQL():
                 mysql_pass = yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
                 if mysql_pass:
                     result['password'] = mysql_pass
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         # 3. 尝试从 panel 目录下 mysql_root.pl 读取
         if not result['password']:
@@ -633,8 +636,8 @@ class nosqlMySQL():
                         if p_val:
                             result['password'] = p_val
                             break
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         # 尝试从 cnf 读取端口与 socket
         for cnf_try in [
@@ -651,8 +654,8 @@ class nosqlMySQL():
                         if port_re:
                             try:
                                 result['port'] = int(port_re.groups()[0].strip())
-                            except Exception:
-                                pass
+                            except Exception as _e:
+                                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
                     socket_rep = r'socket\s*=\s*(.*)'
                     socket_re = re.search(socket_rep, mydb_content)
                     if socket_re:
@@ -794,13 +797,15 @@ class nosqlMySQLCtr():
             if 'p' in args:
                 try:
                     p = int(args['p'])
-                except:
+                except Exception as _e:
+                    _log.debug('[data_query] getDataList 异常已忽略: %s', _e)
                     p = 1
 
             if 'size' in args:
                 try:
                     size = int(args['size'])
-                except:
+                except Exception as _e:
+                    _log.debug('[data_query] getDataList 异常已忽略: %s', _e)
                     size = 10
 
             start_index = (p - 1) * size
@@ -1234,8 +1239,8 @@ class nosqlMySQLCtr():
                         safe_pid = int(x['processlist_id'])
                         cmd = 'kill %d' % safe_pid
                         my_instance.execute(cmd)
-                    except:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[data_query] killAllLock 异常已忽略: %s', _e)
             return yf.returnData(True, '执行成功!')
         except Exception as e:
             return yf.returnData(False, '杀死全部阻塞会话失败: ' + str(e))

@@ -17,6 +17,9 @@ import psutil
 import json
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.system.update')
 
 def versionDiff(now, new):
     '''
@@ -40,7 +43,7 @@ def versionDiff(now, new):
         if Version(new) > Version(now):
             return 'new'
     except Exception as _e:
-        pass
+        _log.debug('[update] 版本号比较失败: %s', _e)
     return 'none'
 
 def getServerInfo():
@@ -57,8 +60,8 @@ def getServerInfo():
         result = req.read().decode('utf-8')
         version = json.loads(result)
         return version
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[update] 解析版本信息失败: %s', _e)
 
     # 步骤2: 直连 API 失败（中国境内常见），改用代理轮询获取 releases 信息
     # 注意：GitHub 代理站不支持代理 api.github.com（会返回 403），
@@ -66,8 +69,8 @@ def getServerInfo():
     # 再通过代理获取 raw.githubusercontent.com 上的 release body。
     try:
         return _getServerInfoViaProxy()
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[update] 代理获取版本信息失败: %s', _e)
 
     return None
 

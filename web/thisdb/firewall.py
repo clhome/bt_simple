@@ -10,16 +10,19 @@
 # ---------------------------------------------------------------------------------
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.thisdb.firewall')
 
 try:
     yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())
 except Exception as _e:
-    pass
+    _log.debug('[thisdb.firewall] 添加 status 列失败（通常为已存在）: %s', _e)
 
 try:
     yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN type TEXT DEFAULT "port"', ())
 except Exception as _e:
-    pass
+    _log.debug('[thisdb.firewall] 添加 type 列失败（通常为已存在）: %s', _e)
 
 __FIELD = 'id,port,protocol,status,type,ps,add_time,update_time'
 

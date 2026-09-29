@@ -15,6 +15,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.mongodb')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -63,7 +66,8 @@ def getConfigData():
     config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
-    except:
+    except Exception as _e:
+        _log.debug('[mongodb] getConfigData 异常已忽略: %s', _e)
         config = {
             "systemLog": {
                 "destination": "file",
@@ -97,7 +101,8 @@ def setConfig(config_data):
     cfg = getConf()
     try:
         yf.writeFile(cfg, yaml.safe_dump(config_data))
-    except:
+    except Exception as _e:
+        _log.debug('[mongodb] setConfig 异常已忽略: %s', _e)
         return False
     return True
 
@@ -174,8 +179,8 @@ def status():
             pid = int(yf.readFile(pid_file).strip())
             if os.path.exists("/proc/" + str(pid)):
                 return 'start'
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[mongodb] status 异常已忽略: %s', _e)
 
     data = yf.execShell("pgrep -x mongod")
     if data[0].strip() != '':
@@ -565,7 +570,7 @@ def runReplInfo():
                 members_list.append(t)
         result['members'] = members_list
     except Exception as e:
-        pass
+        _log.debug('[mongodb] runReplInfo 异常已忽略: %s', e)
         
     return yf.returnJson(True, 'OK', result)
 
@@ -695,7 +700,7 @@ def delDb():
         try:
             db.command('dropUser',username)
         except Exception as e:
-            pass
+            _log.debug('[mongodb] delDb 异常已忽略: %s', e)
 
         # 删除SQLITE
         sqlite_db.where("id=?", (sid,)).delete()

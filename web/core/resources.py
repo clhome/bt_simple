@@ -10,6 +10,9 @@
 # ---------------------------------------------------------------------------------
 
 import os
+import logging
+
+_log = logging.getLogger('yf.resources')
 
 # 连续自适应参数缓存（进程级，机器规格在运行期不变）
 _ADAPTIVE_CACHE = None
@@ -50,8 +53,8 @@ def _detect():
                     effective = int(quota / period)
                     if effective >= 1:
                         cpu = min(cpu, effective)
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[resources] CPU 核数探测失败: %s', e)
 
     mem_mb = 0.0
     try:
@@ -103,8 +106,8 @@ def _load_override():
             if isinstance(data, dict):
                 _PROFILE_OVERRIDE_FILE = data
                 return data
-    except Exception:
-        pass
+    except Exception as e:
+        _log.debug('[resources] 资源画像覆盖文件解析失败: %s', e)
     _PROFILE_OVERRIDE_FILE = {}
     return _PROFILE_OVERRIDE_FILE
 
@@ -220,8 +223,8 @@ def get_cache_backend():
             if isinstance(redis_info, dict) and redis_info.get('open'):
                 return {'CACHE_TYPE': 'RedisCache',
                         'CACHE_REDIS_URL': 'redis://127.0.0.1:6379/1'}
-        except Exception:
-            pass
+        except Exception as e:
+            _log.debug('[resources] Redis 可用性探测失败，回退文件缓存: %s', e)
     try:
         import core.yf as yf
         cache_dir = yf.getPanelTmp() + '/flask_cache'

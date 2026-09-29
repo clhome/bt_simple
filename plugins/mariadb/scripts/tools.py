@@ -53,8 +53,9 @@ echo "The root password set ${pwd}  successuful"'''
     server = yf.getServerDir() + '/mariadb'
     root_mysql = root_mysql.replace('${server}', server)
     yf.writeFile('mysql_root.sh', root_mysql)
-    os.system("/bin/bash mysql_root.sh " + password)
-    os.system("rm -f mysql_root.sh")
+    yf.safeExecShell(['/bin/bash', 'mysql_root.sh', password])
+    if os.path.exists('mysql_root.sh'):
+        os.remove('mysql_root.sh')
 
     pos = yf.getServerDir() + '/mariadb'
     result = sql.table('config').dbPos(pos, 'mysql').where(

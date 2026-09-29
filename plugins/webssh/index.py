@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.webssh')
 
 
 class App():
@@ -49,16 +52,16 @@ class App():
         # 优先尝试 JSON 解析
         try:
             return json.loads(args[0])
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[webssh] getArgs 异常已忽略: %s', _e)
 
         for arg in args:
             try:
                 t = arg.split(':', 1)
                 if len(t) == 2:
                     tmp[t[0]] = t[1]
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[webssh] getArgs 异常已忽略: %s', _e)
         return tmp
 
     def checkArgs(self, data, ck=[]):

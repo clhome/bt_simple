@@ -25,6 +25,10 @@
     * 迁移失败不会把面板卡死，只会留下标记文件与日志，可重试。
 """
 
+import logging
+
+log = logging.getLogger('yf.migrations')
+
 from .runner import (          # noqa: F401
     ensure_schema,
     format_report,
@@ -79,6 +83,6 @@ def get_status(db_path=None):
         if conn is not None:
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug('[migrations] 关闭状态查询连接失败: %s', e)
     return status

@@ -23,6 +23,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.postgresql')
 
 
 if yf.isAppleSystem():
@@ -65,16 +68,16 @@ def getArgs():
     full_args_str = " ".join(args).strip()
     try:
         return json.loads(full_args_str)
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[postgresql] getArgs 异常已忽略: %s', _e)
 
     try:
         clean_str = full_args_str
         if (clean_str.startswith("'") and clean_str.endswith("'")) or (clean_str.startswith('"') and clean_str.endswith('"')):
             clean_str = clean_str[1:-1]
         return json.loads(clean_str)
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[postgresql] getArgs 异常已忽略: %s', _e)
 
     import re
     # 匹配 "key":"value" 或 'key':'value' 或 key:value
@@ -95,8 +98,8 @@ def getArgs():
             for i in range(len(args)):
                 t = args[i].split(':')
                 tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
-    except:
-        pass
+    except Exception as _e:
+        _log.debug('[postgresql] getArgs 异常已忽略: %s', _e)
 
     return tmp
 
@@ -334,8 +337,8 @@ def status(version=''):
                         pid = lines[0].strip()
                         if pid.isdigit() and os.path.isdir("/proc/" + pid):
                             return 'start'
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[postgresql] status 异常已忽略: %s', _e)
         return 'stop'
     else:
         data = yf.execShell(
@@ -896,8 +899,8 @@ def setDbBackup():
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[postgresql] setDbBackup 异常已忽略: %s', _e)
         return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 def rootPwd():
@@ -1229,8 +1232,8 @@ def pgBack():
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
-            except:
-                pass
+            except Exception as _e:
+                _log.debug('[postgresql] pgBack 异常已忽略: %s', _e)
         return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 
@@ -1322,7 +1325,7 @@ def getDbAccess():
                     'privileges': str(row[3])
                 })
     except Exception as e:
-        pass
+        _log.debug('[postgresql] getDbAccess 异常已忽略: %s', e)
 
     res_data = {
         'accept': accept,
@@ -1849,8 +1852,8 @@ def doFullSync(version=''):
     if os.path.exists(SSH_PRIVATE_KEY):
         try:
             os.chmod(SSH_PRIVATE_KEY, 0o600)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[postgresql] doFullSync 异常已忽略: %s', _e)
 
     ip = data["ip"]
     master_port = data['port']
@@ -1930,23 +1933,23 @@ interact
     if os.path.exists(cmd_tmp):
         try:
             os.chmod(cmd_tmp, 0o600)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[postgresql] doFullSync 异常已忽略: %s', _e)
 
-    os.system("expect " + cmd_tmp)
+    yf.safeExecShell(['expect', cmd_tmp])
 
     writeDbSyncStatus({'code': 6, 'msg': '从库重启完成...', 'progress': 100})
 
     if os.path.exists(SSH_PRIVATE_KEY):
         try:
             os.remove(SSH_PRIVATE_KEY)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[postgresql] doFullSync 异常已忽略: %s', _e)
     if os.path.exists(cmd_tmp):
         try:
             os.remove(cmd_tmp)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[postgresql] doFullSync 异常已忽略: %s', _e)
     return True
 
 

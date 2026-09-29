@@ -22,6 +22,9 @@ import threading
 import re
 
 from io import BytesIO, StringIO
+import logging
+
+_log = logging.getLogger('yf.ssh')
 
 import core.yf as yf
 import paramiko
@@ -163,7 +166,7 @@ class ssh_local(object):
                         try:
                             ssh.close()
                         except Exception as _e:
-                            pass
+                            _log.debug('[ssh] 关闭失效连接失败: %s', _e)
                     ssh = None
 
             if not connected or not ssh:
@@ -192,7 +195,7 @@ class ssh_local(object):
             if self.__ssh:
                 self.__ssh.close()
         except Exception as _e:
-            pass
+            _log.debug('[ssh] 关闭连接失败: %s', _e)
 
     def resize(self, data):
         try:

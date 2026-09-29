@@ -16,6 +16,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.ollama')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -394,12 +397,14 @@ class App:
                 s.connect(('8.8.8.8', 80))
                 internal_ip = s.getsockname()[0]
                 s.close()
-            except:
+            except Exception as _e:
+                _log.debug('[ollama] get_ollama_access_info 异常已忽略: %s', _e)
                 internal_ip = '127.0.0.1'
                 
             try:
                 external_ip = yf.getHostAddr()
-            except:
+            except Exception as _e:
+                _log.debug('[ollama] get_ollama_access_info 异常已忽略: %s', _e)
                 external_ip = internal_ip
 
             return yf.returnJson(True, 'ok', {

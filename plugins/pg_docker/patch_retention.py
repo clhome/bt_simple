@@ -1,5 +1,8 @@
 import os
 import json
+import logging
+
+_log = logging.getLogger('yf.pg_docker')
 
 base_dir = '/docker_data'
 json_path = 'f:/git/gitea20250909/bt_simple/plugins/pg_docker/instances.json'
@@ -8,8 +11,8 @@ if os.path.exists(json_path):
     with open(json_path, 'r') as f:
         try:
             data = json.load(f)
-        except:
-            pass
+        except Exception as _e:
+            _log.debug('[pg_docker] module 异常已忽略: %s', _e)
 else:
     if os.path.exists(base_dir):
         for item in os.listdir(base_dir):
@@ -34,10 +37,12 @@ for inst_name, d in data.items():
                 db_name = line.split('=')[1].strip('"')
             elif line.startswith('DAILY_RETENTION='):
                 try: daily_retention = int(line.split('=')[1])
-                except: pass
+                except Exception as _e:
+                    _log.debug('[pg_docker] module 异常已忽略: %s', _e)
             elif line.startswith('WEEKLY_RETENTION='):
                 try: weekly_retention = int(line.split('=')[1])
-                except: pass
+                except Exception as _e:
+                    _log.debug('[pg_docker] module 异常已忽略: %s', _e)
                 
         inst_dir = os.path.join(d, inst_name)
         new_c = f"""#!/bin/bash

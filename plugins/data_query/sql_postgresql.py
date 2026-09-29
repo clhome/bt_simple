@@ -13,6 +13,9 @@ if os.path.exists(web_dir):
         sys.path.append(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.data_query.pg')
 
 try:
     import common_db
@@ -100,8 +103,8 @@ class PgConnectionWrapper:
         try:
             if self.conn:
                 self.conn.close()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] close 异常已忽略: %s', _e)
 
 
 @singleton
@@ -135,8 +138,8 @@ class nosqlPostgreSQL:
                     data = json.loads(yf.readFile(p))
                     if isinstance(data, dict):
                         instances_data.update(data)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _load_pg_docker_instances 异常已忽略: %s', _e)
 
         for inst_name, base_dir in instances_data.items():
             inst_path = os.path.join(base_dir, inst_name)
@@ -160,8 +163,8 @@ class nosqlPostgreSQL:
                     pwm = re.search(r'POSTGRES_PASSWORD:\s*"?(.*?)"?\n', content)
                     if pwm:
                         dbpass = pwm.group(1).strip()
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] _load_pg_docker_instances 异常已忽略: %s', _e)
             instances.append({
                 'name': inst_name,
                 'path': inst_path,
@@ -215,8 +218,8 @@ class nosqlPostgreSQL:
                         d_name = c_notes.replace('__auto_docker_pg_', '').replace('__', '') if '__auto_docker_pg_' in c_notes else c_name.replace('local_', '')
                         result['docker_instance'] = d_name
                     return result
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         # 识别 pg_docker 容器实例
         if sid and str(sid).startswith('docker_'):
@@ -247,8 +250,8 @@ class nosqlPostgreSQL:
                 pg_pass = conn.where('id=?', (1,)).getField('pg_root')
                 if pg_pass:
                     result['password'] = pg_pass
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
             # 尝试读取配置文件端口（未自定义时）
             if not port_info.get('is_custom'):
@@ -260,8 +263,8 @@ class nosqlPostgreSQL:
                         if m:
                             try:
                                 result['port'] = int(m.group(1).strip())
-                            except Exception:
-                                pass
+                            except Exception as _e:
+                                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
         else:
             # 物理 pgsql 目录不存在时，智能回退到数据库已保存的有效 Docker 容器或本地连接配置
             try:
@@ -269,8 +272,8 @@ class nosqlPostgreSQL:
                 if conn_res.get('status') and conn_res.get('data') and len(conn_res['data']) > 0:
                     first_saved = conn_res['data'][0]
                     return self.get_options(f"conn_{first_saved['id']}")
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] get_options 异常已忽略: %s', _e)
 
         return result
 
@@ -338,8 +341,8 @@ class nosqlPostgreSQL:
                             if (c_ip, 5432) not in host_candidates:
                                 host_candidates.append((c_ip, 5432))
                             break
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[data_query] conn 异常已忽略: %s', _e)
 
             # 宿主机局域网 IP 容灾
             try:
@@ -347,8 +350,8 @@ class nosqlPostgreSQL:
                 if local_ip and local_ip not in ('127.0.0.1', primary_host):
                     if (local_ip, port) not in host_candidates:
                         host_candidates.append((local_ip, port))
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] conn 异常已忽略: %s', _e)
 
         last_exception = None
         for cur_host, cur_port in host_candidates:
@@ -455,8 +458,8 @@ class nosqlPostgreSQLCtr:
             try:
                 import importlib
                 globals()['psycopg2'] = importlib.import_module('psycopg2')
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] getDbList 异常已忽略: %s', _e)
 
         if psycopg2 is None:
             return yf.returnData(False, '未安装 psycopg2 驱动，请先安装: pip install psycopg2-binary', {'driver_missing': True})
@@ -788,8 +791,8 @@ def check_driver(args=None, **kwargs):
             import importlib
             importlib.invalidate_caches()
             globals()['psycopg2'] = importlib.import_module('psycopg2')
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[data_query] check_driver 异常已忽略: %s', _e)
     return yf.returnData(True, 'ok', {'installed': psycopg2 is not None})
 
 def install_pg_driver(args=None, **kwargs):
@@ -819,8 +822,8 @@ def install_pg_driver(args=None, **kwargs):
                 chk = subprocess.run([sys.executable, "-m", "pip", "install", "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 if "break-system-packages" in (chk.stdout or "") or "break-system-packages" in (chk.stderr or ""):
                     cmd.append("--break-system-packages")
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[data_query] install_pg_driver 异常已忽略: %s', _e)
 
             p = subprocess.Popen(
                 cmd,

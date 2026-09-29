@@ -10,6 +10,9 @@
 # ---------------------------------------------------------------------------------
 
 import os
+import logging
+
+_log = logging.getLogger('yf.system')
 
 from flask import Blueprint, render_template
 from flask import request
@@ -230,7 +233,8 @@ def get_panel_resources():
                 cpu_percent += child.cpu_percent(interval=0)
                 mem_mb += child.memory_info().rss / 1024 / 1024
             except Exception as _e:
-                pass
+                # 子进程可能在遍历途中退出，属预期（高频路径，仅 debug）
+                _log.debug('[system] 子进程资源采集失败: %s', _e)
                 
         data = {
             'cpu': round(cpu_percent, 2),
@@ -280,7 +284,7 @@ def speed_test():
         try:
             os.remove(log_path)
         except Exception as _e:
-            pass
+            _log.debug('[system] 清理测速日志失败: %s -> %s', log_path, _e)
             
     # Windows 环境模拟
     if os.name == 'nt':
@@ -334,7 +338,7 @@ def speed_test():
         try:
             os.chmod(sh_path, 0o755)
         except Exception as _e:
-            pass
+            _log.debug('[system] 测速脚本加执行位失败: %s', _e)
             
         sub_env = os.environ.copy()
         try:
@@ -343,7 +347,7 @@ def speed_test():
             total_mb = int(mem_info.total / 1024 / 1024)
             sub_env['TOTAL_MEM_MB'] = str(total_mb)
         except Exception as _e:
-            pass
+            _log.debug('[system] 采集总内存失败: %s', _e)
             
         _speed_test_process = subprocess.Popen(
             ["bash", sh_path],

@@ -34,6 +34,9 @@ import struct
 import socket
 import errno
 import types
+import logging
+
+_log = logging.getLogger('yf.fcgi')
 
 
 __all__ = ['FCGIApp']
@@ -100,7 +103,7 @@ if __debug__:
             f.write('%sfcgi: %s\n' % (time.ctime()[4:-4], msg))
             f.close()
         except Exception as _e:
-            pass
+            _log.debug('[fcgi] 写调试日志失败: %s', _e)
 
 
 def decode_pair(s, pos=0):

@@ -14,6 +14,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.sphinx')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -67,7 +70,7 @@ def getArgs():
                 import json
                 return json.loads(val)
             except Exception as e:
-                pass
+                _log.debug('[sphinx] getArgs 异常已忽略: %s', e)
 
     for i in range(len(args)):
         t = args[i].split(':', 1)
@@ -415,9 +418,11 @@ def updateAll():
         if not pattern.match(idx_name):
             print("安全拦截: 非法的索引名称 ->", idx_name)
             continue
-        cmd_index = cmd + ' ' + idx_name + ' --rotate'
+        # cmd 由 sphinxConfParse 用服务端路径拼出（无引号/空格），idx_name 已由上方正则白名单校验；
+        # 改用列表参数后完全不经过 shell，隔离命令注入。
+        cmd_index = cmd.split() + [idx_name, '--rotate']
         print(cmd_index)
-        os.system(cmd_index)
+        yf.safeExecShell(cmd_index)
     return ''
 
 #增量更新
@@ -440,13 +445,14 @@ def updateDelta():
             if not pattern.match(delta_name):
                 print("安全拦截: 非法的增量索引名称 ->", delta_name)
                 continue
-            cmd_index = cmd + ' ' + delta_name + ' --rotate'
+            # cmd 同上：服务器生成；delta_name 已白名单校验，列表参数零 shell 拼接
+            cmd_index = cmd.split() + [delta_name, '--rotate']
             print(cmd_index)
-            os.system(cmd_index)
+            yf.safeExecShell(cmd_index)
 
-            cmd_index_merge = cmd + ' --merge ' + idx_name + ' ' + delta_name + ' --rotate'
+            cmd_index_merge = cmd.split() + ['--merge', idx_name, delta_name, '--rotate']
             print(cmd_index_merge)
-            os.system(cmd_index_merge)
+            yf.safeExecShell(cmd_index_merge)
         else:
             print(idx_name,'no delta')
 

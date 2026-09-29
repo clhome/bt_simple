@@ -49,9 +49,9 @@ def _close_all_connections():
             try:
                 c.close()
             except Exception as _e:
-                pass
+                yf.writeFileLog('[db] 关闭连接失败: %s' % _e)
     except Exception as _e:
-        pass
+        yf.writeFileLog('[db] 遍历连接表失败: %s' % _e)
 
 atexit.register(_close_all_connections)
 
@@ -61,6 +61,26 @@ def getPanelDir():
 def getTracebackInfo():
     import traceback
     return traceback.format_exc()
+
+class SqlError(Exception):
+    """面板 SQLite 层统一异常（C1「兼容层」方案）。
+
+    旧 API（execute/query/...）**继续返回 `"error: ..."` 字符串**：调用面太大
+    （29 个文件 / 125 处），一次性改语义不可审查。
+    新代码请用 `*Strict` —— 失败即抛 SqlError，不再依赖调用方记得检查字符串前缀。
+    """
+
+    def __init__(self, message, sql='', params=None):
+        super().__init__(message)
+        self.sql = sql
+        self.params = params
+
+    def __str__(self):
+        base = super().__str__()
+        if self.sql:
+            base += ' | sql=%s' % (str(self.sql)[:300],)
+        return base
+
 
 class Sql():
     #------------------------------
@@ -91,8 +111,8 @@ class Sql():
         for k, v in pragmas:
             try:
                 conn.execute("PRAGMA %s=%s;" % (k, v))
-            except Exception:
-                pass
+            except Exception as e:
+                yf.writeFileLog('[db] 设置 PRAGMA %s 失败: %s' % (k, e))
 
     def _getTimeout(self):
         try:
@@ -121,7 +141,7 @@ class Sql():
                         try:
                             conn.close()
                         except Exception as _e:
-                            pass
+                            yf.writeFileLog('[db] 重连前关闭旧连接失败: %s' % _e)
                         conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=self._getTimeout())
                         conn.text_factory = lambda x: x.decode('utf-8', 'ignore')
                         self._applyPragmas(conn)
@@ -290,14 +310,14 @@ class Sql():
             try:
                 self.__close()
             except Exception as _e:
-                pass
+                yf.writeFileLog('[db] busy 后关闭连接失败: %s' % _e)
             return []
         except Exception as ex:
             yf.writeFileLog(f"[db.select] {self.__DB_TABLE} {ex}\n{yf.getTracebackInfo()}")
             try:
                 self.__close()
             except Exception as _e:
-                pass
+                yf.writeFileLog('[db] 异常后关闭连接失败: %s' % _e)
             return []
 
     def inquiry(self, input_field=''):
@@ -514,6 +534,30 @@ class Sql():
         except Exception as ex:
             return "error: " + str(ex)
 
+    # ------------------------------------------------------------------
+    # C1 兼容层：Strict 系列 —— 失败即抛 SqlError（新代码一律用这些）
+    # ------------------------------------------------------------------
+    def _raise_if_error(self, result, sql='', params=None):
+        if isinstance(result, str) and result.startswith('error: '):
+            raise SqlError(result, sql=sql, params=params)
+        return result
+
+    def executeStrict(self, sql, param=()):
+        """同 execute，但失败抛 SqlError（返回值恒为真实 rowcount）。"""
+        return self._raise_if_error(self.execute(sql, param), sql, param)
+
+    def queryStrict(self, sql, param=()):
+        """同 query，但失败抛 SqlError。"""
+        return self._raise_if_error(self.query(sql, param), sql, param)
+
+    def findStrict(self):
+        """同 find，但查询失败抛 SqlError（而不是静默返回 None）。"""
+        result = self.limit("1").select()
+        self._raise_if_error(result)
+        if len(result) == 1:
+            return result[0]
+        return None
+
     def create(self, name):
         # 创建数据表
         self.__getConn()
@@ -545,4 +589,4 @@ class Sql():
         try:
             self.__DB_CONN = None
         except Exception as _e:
-            pass
+            yf.writeFileLog('[db] 复位连接字段失败: %s' % _e)

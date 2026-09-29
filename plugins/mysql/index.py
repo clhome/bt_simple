@@ -18,6 +18,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.mysql')
 
 
 if yf.isAppleSystem():
@@ -68,7 +71,7 @@ def getArgs():
             try:
                 return json.loads(val)
             except Exception as e:
-                pass
+                _log.debug('[mysql] getArgs 异常已忽略: %s', e)
         t = val.strip('{').strip('}')
         if t.strip() == '':
             tmp = {}
@@ -223,8 +226,8 @@ def pSqliteDb(dbname='databases'):
             if sql_item:
                 try:
                     conn.execute(sql_item, ())
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[mysql] pSqliteDb 异常已忽略: %s', _e)
 
     conn = yf.M(dbname).dbPos(getServerDir(), name)
     # 幂等自愈：为 databases 表自动补齐缺失的 rw 字段，确保老版本数据库无损升级兼容
@@ -237,8 +240,8 @@ def pSqliteDb(dbname='databases'):
                 existing_cols.append(col_name)
         if existing_cols and 'rw' not in existing_cols:
             conn.execute("ALTER TABLE `databases` ADD COLUMN `rw` TEXT DEFAULT 'all'")
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] pSqliteDb 异常已忽略: %s', _e)
     return conn
 
 
@@ -385,8 +388,8 @@ def getMysqldPid():
                 pid_int = int(p)
                 if yf.checkPid(pid_int):
                     return pid_int
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] getMysqldPid 异常已忽略: %s', _e)
     return None
 
 
@@ -407,8 +410,8 @@ def cleanOrphanSockets():
         if s and os.path.exists(s):
             try:
                 os.remove(s)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[mysql] cleanOrphanSockets 异常已忽略: %s', _e)
 
 
 def process_status():
@@ -423,8 +426,8 @@ def status(version=''):
     # 0. 升级守卫：仅在检测到版本升级时静默自愈一次，之后 0 开销放行
     try:
         checkPluginUpgrade(version)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] status 异常已忽略: %s', _e)
 
     # 1. 优先检查标准 PID 文件中的进程真实存活性
     pid_file = getPidFile()
@@ -435,8 +438,8 @@ def status(version=''):
                 pid_int = int(pid_str)
                 if yf.checkPid(pid_int):
                     return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] status 异常已忽略: %s', _e)
 
     # 2. 多模态探活：PID 文件失效或丢失时，探测系统真实运行中的 mysqld
     live_pid = getMysqldPid()
@@ -448,8 +451,8 @@ def status(version=''):
                 if not os.path.exists(p_dir):
                     os.makedirs(p_dir, exist_ok=True)
                 yf.writeFile(pid_file, str(live_pid))
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] status 异常已忽略: %s', _e)
         return 'start'
 
     # 3. Socket 响应探针（验证套接字是否能正常建立连接）
@@ -466,11 +469,11 @@ def status(version=''):
             if live_pid and pid_file:
                 try:
                     yf.writeFile(pid_file, str(live_pid))
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[mysql] status 异常已忽略: %s', _e)
             return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] status 异常已忽略: %s', _e)
 
     # 4. systemctl 探针
     if yf.isSupportSystemctl():
@@ -478,8 +481,8 @@ def status(version=''):
             sys_res = yf.execShell('systemctl is-active mysql')
             if sys_res and sys_res[0].strip() == 'active':
                 return 'start'
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] status 异常已忽略: %s', _e)
 
     return 'stop'
 
@@ -671,8 +674,8 @@ def getMdb8Ver():
                         mdb8_versions.append(v)
             if mdb8_versions:
                 return mdb8_versions
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] getMdb8Ver 异常已忽略: %s', _e)
     return ['8.0','8.1','8.2','8.3','8.4','9.0','9.1', '9.2', '9.3', '9.4', '9.7', '9.8', '9.9', '10.0']
 
 
@@ -706,8 +709,8 @@ def isMysqlDataInited(datadir):
             sub_p = os.path.join(datadir, item)
             if os.path.isdir(sub_p):
                 return True
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] isMysqlDataInited 异常已忽略: %s', _e)
     return False
 
 
@@ -1031,8 +1034,8 @@ def restart(version=''):
             import signal
             os.kill(live_pid, signal.SIGTERM)
             time.sleep(2)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] restart 异常已忽略: %s', _e)
 
     # 3. 清理残留的孤儿套接字文件
     cleanOrphanSockets()
@@ -1221,7 +1224,8 @@ def runInfo(version):
     try:
         result['File'] = tmp[0]["File"]
         result['Position'] = tmp[0]["Position"]
-    except:
+    except Exception as _e:
+        _log.debug('[mysql] runInfo 异常已忽略: %s', _e)
         result['File'] = 'OFF'
         result['Position'] = 'OFF'
     return yf.getJson(result)
@@ -1421,7 +1425,7 @@ def setDbBackup():
                     full_paths.sort(key=lambda x: os.path.getmtime(x), reverse=True)
                     bk_file = full_paths[0]
     except Exception as e:
-        pass
+        _log.debug('[mysql] setDbBackup 异常已忽略: %s', e)
 
     return yf.returnJson(True, 'ok', {'file': bk_file, 'name': args['name']})
 
@@ -1456,10 +1460,10 @@ def packageDbBackups():
                 if now_ts - os.path.getmtime(f_path) > 86400 * 3:
                     try:
                         os.remove(f_path)
-                    except Exception:
-                        pass
-    except Exception:
-        pass
+                    except Exception as _e:
+                        _log.debug('[mysql] packageDbBackups 异常已忽略: %s', _e)
+    except Exception as _e:
+        _log.debug('[mysql] packageDbBackups 异常已忽略: %s', _e)
 
     zip_filename = 'mysql_batch_backup_' + time.strftime('%Y%m%d_%H%M%S') + '.zip'
     zip_full_path = os.path.join(bk_dir, zip_filename)
@@ -1629,8 +1633,8 @@ def importDbExternal():
         if ext != 'sql' and os.path.exists(import_sql):
             try:
                 os.remove(import_sql)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[mysql] importDbExternal 异常已忽略: %s', _e)
         return yf.returnJson(False, 'SQL文件内容为空', {'log': err_log, 'exit_code': 1, 'has_error': True})
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
@@ -1683,8 +1687,8 @@ def importDbExternal():
     if ext != 'sql' and os.path.exists(import_sql):
         try:
             os.remove(import_sql)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] importDbExternal 异常已忽略: %s', _e)
 
     # 分析执行状态与错误
     stderr_clean = stderr_text.replace('[Warning] Using a password on the command line interface can be insecure.', '').strip()
@@ -1733,8 +1737,8 @@ def importDbExternal():
         if not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
         yf.writeFile(os.path.join(log_dir, file + '.log'), full_log)
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] importDbExternal 异常已忽略: %s', _e)
 
     msg = '导入成功!' if is_success else '导入失败或存在异常!'
     return yf.returnJson(is_success, msg, {'log': full_log, 'exit_code': returncode, 'has_error': not is_success})
@@ -1827,11 +1831,12 @@ def importDbExternalProgressBar():
     sock = getSocketFile()
 
     my_cnf = getConf()
-    mysql_cmd = getServerDir() + '/bin/mysql --defaults-file=' + my_cnf + \
-        ' -uroot -p"' + pwd + '" -f ' + name
-    mysql_cmd_progress_bar = "pv -t -p " + import_sql + '|'+ mysql_cmd
+    # my_cnf / import_sql / name 均为外部或半可信输入，逐段 shlexQuote 后再进 shell
+    mysql_cmd = getServerDir() + '/bin/mysql --defaults-file=' + yf.shlexQuote(my_cnf) + \
+        ' -uroot -p' + yf.shlexQuote(pwd) + ' -f ' + yf.shlexQuote(name)
+    mysql_cmd_progress_bar = "pv -t -p " + yf.shlexQuote(import_sql) + '|' + mysql_cmd
     print(mysql_cmd_progress_bar)
-    rdata = os.system(mysql_cmd_progress_bar)
+    rdata = yf.execShell(mysql_cmd_progress_bar)
     return ""
 
 
@@ -1910,11 +1915,12 @@ def importDbBackupProgressBar():
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
 
-    mysql_cmd = getServerDir() + '/bin/mysql -S ' + sock + ' -uroot -p"' + pwd + \
-        '" ' + name
-    mysql_cmd_progress_bar = "pv -t -p " + file_path_sql + '|'+ mysql_cmd
+    # sock / pwd / file_path_sql / name 同上：先 shlexQuote 再拼进 shell
+    mysql_cmd = getServerDir() + '/bin/mysql -S ' + yf.shlexQuote(sock) + ' -uroot -p' + \
+        yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(name)
+    mysql_cmd_progress_bar = "pv -t -p " + yf.shlexQuote(file_path_sql) + '|' + mysql_cmd
     print(mysql_cmd_progress_bar)
-    rdata = os.system(mysql_cmd_progress_bar)
+    rdata = yf.execShell(mysql_cmd_progress_bar)
     return ''
 
 
@@ -2436,15 +2442,15 @@ def delDb():
                     # 3. 删除本地用户
                     try:
                         cursor.execute("DROP USER '" + username + "'@'localhost'")
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[mysql] delDb 异常已忽略: %s', _e)
 
                     # 4. 删除对应 Host 的用户
                     for us in users:
                         try:
                             cursor.execute("DROP USER '" + username + "'@'" + us["Host"] + "'")
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[mysql] delDb 异常已忽略: %s', _e)
                     
                     # 5. 刷新权限
                     cursor.execute("FLUSH PRIVILEGES")
@@ -2457,8 +2463,8 @@ def delDb():
                 if conn:
                     try:
                         conn.close()
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[mysql] delDb 异常已忽略: %s', _e)
 
         # 第一次尝试删除数据库（设置 30 秒的超时）
         ok, err = doDeleteDb(read_timeout_val=30)
@@ -2969,7 +2975,7 @@ def recognizeDbMode():
         data = re.findall(rep, con, re.M)
         mode = data[0]
     except Exception as e:
-        pass
+        _log.debug('[mysql] recognizeDbMode 异常已忽略: %s', e)
     return mode
 
 
@@ -4003,7 +4009,7 @@ def initSlaveStatusSSH(version=''):
             db.query(cmd)
             ssh.close()
             if os.path.exists(SSH_PRIVATE_KEY):
-                os.system("rm -rf " + SSH_PRIVATE_KEY)
+                yf.removeDir(SSH_PRIVATE_KEY)
         except Exception as e:
             return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
     db.query('start '+slave_name)
@@ -4140,8 +4146,9 @@ def syncDatabaseRepairLog(version=''):
         return yf.returnJson(True, 'ok', cmd)
 
     if op == 'do':
-        os.system(' echo "开始执行" > '+ tmp_log)
-        os.system(cmd +' >> '+ tmp_log +' &')
+        yf.writeFile(tmp_log, '开始执行\n')
+        # cmd 内的 db/sign 已过 safe_check_args 白名单；tmp_log 仍逐段引用
+        yf.execShell(cmd + ' >> ' + yf.shlexQuote(tmp_log) + ' &')
         return yf.returnJson(True, 'ok')
 
     return yf.returnJson(False, '无效请求!')
@@ -4521,7 +4528,7 @@ def doFullSyncUser(version=''):
 
     bak_file = '/tmp/tmp.sql'
     if os.path.exists(bak_file):
-        os.system("rm -rf " + bak_file)
+        yf.removeDir(bak_file)
 
     writeDbSyncStatus({'code': 0, 'msg': '开始同步...', 'progress': 0})
     dmp_option = ''
@@ -4605,13 +4612,14 @@ def doFullSyncUser(version=''):
         pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
         sock = getSocketFile()
 
+        # pwd/sock/bak_file/sync_db_import 均为拼接进 shell 的变量，逐段 shlexQuote
         if is_exist_pv:
-            my_import_cmd = getServerDir() + '/bin/mysql -S ' + sock + " -uroot -p'" + pwd + "' " + sync_db_import
-            my_import_cmd = "pv -t -p " + bak_file + '|' + my_import_cmd
+            my_import_cmd = getServerDir() + '/bin/mysql -S ' + yf.shlexQuote(sock) + ' -uroot -p' + yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(sync_db_import)
+            my_import_cmd = "pv -t -p " + yf.shlexQuote(bak_file) + '|' + my_import_cmd
             print(my_import_cmd)
-            os.system(my_import_cmd)
+            yf.execShell(my_import_cmd)
         else:
-            my_import_cmd = getServerDir() + '/bin/mysql -S ' + sock + " -uroot -p'" + pwd + "' " + sync_db_import + ' < ' + bak_file
+            my_import_cmd = getServerDir() + '/bin/mysql -S ' + yf.shlexQuote(sock) + ' -uroot -p' + yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(sync_db_import) + ' < ' + yf.shlexQuote(bak_file)
             print(my_import_cmd)
             yf.execShell(my_import_cmd)
 
@@ -4640,7 +4648,7 @@ def doFullSyncUser(version=''):
     writeDbSyncStatus({'code': 6, 'msg': '总耗时:'+str(int(cos))+'秒,从库重启完成...', 'progress': 100})
 
     if os.path.exists(bak_file):
-        os.system("rm -rf " + bak_file)
+        yf.removeDir(bak_file)
 
     return True
 
@@ -4783,8 +4791,8 @@ def doFullSyncSSH(version=''):
     
     writeDbSyncStatus({'code': 6, 'msg': '从库重启完成...', 'progress': 100})
 
-    os.system("rm -rf " + SSH_PRIVATE_KEY)
-    os.system("rm -rf /tmp/dump.sql")
+    yf.removeDir(SSH_PRIVATE_KEY)
+    yf.removeDir('/tmp/dump.sql')
     return True
 
 
@@ -4957,8 +4965,8 @@ def getInstalledPluginVersion():
             v = yf.readFile(vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] getInstalledPluginVersion 异常已忽略: %s', _e)
     # 兼容服务端运行目录可能存放的标记
     server_vfile = getServerDir() + '/plugin_version.pl'
     if os.path.exists(server_vfile):
@@ -4966,8 +4974,8 @@ def getInstalledPluginVersion():
             v = yf.readFile(server_vfile).strip()
             if v:
                 return v
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[mysql] getInstalledPluginVersion 异常已忽略: %s', _e)
     return '1.0'
 
 
@@ -4976,14 +4984,14 @@ def setInstalledPluginVersion(ver):
     vfile = getPluginVersionFile()
     try:
         yf.writeFile(vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] setInstalledPluginVersion 异常已忽略: %s', _e)
     try:
         server_vfile = getServerDir() + '/plugin_version.pl'
         if os.path.exists(getServerDir()):
             yf.writeFile(server_vfile, str(ver).strip())
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[mysql] setInstalledPluginVersion 异常已忽略: %s', _e)
 
 
 def comparePluginVersion(v1, v2):

@@ -11,6 +11,41 @@ import pymysql.cursors
 
 log = logging.getLogger('yf.orm')
 
+
+class ORMError(Exception):
+    """ORM 层统一异常（C1「兼容层」方案）。
+
+    为什么需要它：
+      旧实现里 `execute()/query()` 失败时**直接返回异常对象**（truthy），
+      调用方 `if orm.execute(...)` 恒为真 ⇒ 大量静默失败；而 `find()` 还会在
+      异常对象上做 `len()` 直接抛 TypeError。
+
+    兼容性（关键）：
+      本类**继承 Exception**，因此既有的 `isinstance(res, Exception)` 判断继续成立，
+      不会破坏 8 个文件 / 470 处调用点。
+
+    两套 API：
+      * 旧 API `execute/query/find`：失败时返回 ORMError（形状不变，但**打 ERROR 日志**，
+        不再静默）；
+      * 新 API `executeStrict/queryStrict/findStrict`：失败时**抛出** ORMError；
+        新代码一律用 Strict，旧调用点逐步迁移。
+    """
+
+    def __init__(self, message, sql='', params=None, orig=None):
+        super().__init__(message)
+        self.sql = sql
+        self.params = params
+        self.orig = orig
+
+    def __str__(self):
+        base = super().__str__()
+        if self.sql:
+            base += ' | sql=%s' % (str(self.sql)[:300],)
+        if self.orig is not None:
+            base += ' | orig=%s' % (self.orig,)
+        return base
+
+
 class SimpleMySQLPool:
     def __init__(self, max_connections=5):
         self.max_connections = max_connections
@@ -28,11 +63,11 @@ class SimpleMySQLPool:
                 try:
                     conn.close()
                 except Exception as _e:
-                    pass
+                    log.debug('[orm] 关闭失效连接失败: %s', _e)
                 with self.lock:
                     self.created_count -= 1
         except queue.Empty:
-            pass
+            log.debug('[orm] 连接池为空，将新建连接')
 
         with self.lock:
             if self.created_count < self.max_connections:
@@ -50,7 +85,7 @@ class SimpleMySQLPool:
                 try:
                     conn.close()
                 except Exception as _e:
-                    pass
+                    log.debug('[orm] 关闭失效连接失败: %s', _e)
                 with self.lock:
                     self.created_count -= 1
                 conn = create_fn()
@@ -67,7 +102,7 @@ class SimpleMySQLPool:
             try:
                 conn.close()
             except Exception as _e:
-                pass
+                log.debug('[orm] 连接池已满，关闭多余连接失败: %s', _e)
             with self.lock:
                 self.created_count -= 1
 
@@ -184,7 +219,10 @@ class ORM:
 
     def execute(self, sql, params=None):
         # 执行SQL语句返回受影响行
+        # 失败语义（兼容层）：连接失败→错误文本；SQL 错→ORMError。两者均打 ERROR 日志。
+        # 需「失败即抛」请用 executeStrict()。
         if not self.__Conn():
+            log.error('[orm] execute 连接失败: %s | sql=%s', self.__DB_ERR, str(sql)[:300])
             return self.__DB_ERR
         try:
             if params:
@@ -194,7 +232,25 @@ class ORM:
             self.__DB_CONN.commit()
             return result
         except Exception as ex:
-            return ex
+            err = ORMError('execute 执行失败: %s' % ex, sql=sql, params=params, orig=ex)
+            log.error('[orm] %s', err)
+            return err
+        finally:
+            self.__Close()
+
+    def executeStrict(self, sql, params=None):
+        """执行 SQL，失败（连接失败 / SQL 错）一律抛 ORMError。"""
+        if not self.__Conn():
+            raise ORMError('execute 连接失败: %s' % self.__DB_ERR, sql=sql, params=params)
+        try:
+            if params:
+                result = self.__DB_CUR.execute(sql, params)
+            else:
+                result = self.__DB_CUR.execute(sql)
+            self.__DB_CONN.commit()
+            return result
+        except Exception as ex:
+            raise ORMError('execute 执行失败: %s' % ex, sql=sql, params=params, orig=ex)
         finally:
             self.__Close()
 
@@ -207,14 +263,26 @@ class ORM:
 
     def find(self, sql, params=None):
         d = self.query(sql, params)
+        # 旧实现直接 len(异常对象) → TypeError；这里显式返回错误对象（仍 isinstance Exception）
+        if isinstance(d, Exception):
+            return d
         if d is not None:
             if len(d) > 0:
                 return d[0]
         return None
 
+    def findStrict(self, sql, params=None):
+        """取一行；失败抛 ORMError，无数据返回 None。"""
+        d = self.queryStrict(sql, params)
+        if len(d) > 0:
+            return d[0]
+        return None
+
     def query(self, sql, params=None):
         # 执行SQL语句返回数据集
+        # 失败语义同 execute（兼容层）：均打 ERROR 日志，不再静默。
         if not self.__Conn():
+            log.error('[orm] query 连接失败: %s | sql=%s', self.__DB_ERR, str(sql)[:300])
             return self.__DB_ERR
         try:
             if params:
@@ -227,7 +295,24 @@ class ORM:
             # data = map(list, result)
             return result
         except Exception as ex:
-            return ex
+            err = ORMError('query 执行失败: %s' % ex, sql=sql, params=params, orig=ex)
+            log.error('[orm] %s', err)
+            return err
+        finally:
+            self.__Close()
+
+    def queryStrict(self, sql, params=None):
+        """查询数据集，失败（连接失败 / SQL 错）一律抛 ORMError。"""
+        if not self.__Conn():
+            raise ORMError('query 连接失败: %s' % self.__DB_ERR, sql=sql, params=params)
+        try:
+            if params:
+                self.__DB_CUR.execute(sql, params)
+            else:
+                self.__DB_CUR.execute(sql)
+            return self.__DB_CUR.fetchall()
+        except Exception as ex:
+            raise ORMError('query 执行失败: %s' % ex, sql=sql, params=params, orig=ex)
         finally:
             self.__Close()
 
@@ -237,7 +322,7 @@ class ORM:
             if self.__DB_CUR:
                 self.__DB_CUR.close()
         except Exception as _e:
-            pass
+            log.debug('[orm] 关闭游标失败: %s', _e)
         
         try:
             if hasattr(self, '_ORM__DB_POOL') and self.__DB_POOL and self.__DB_CONN:
@@ -245,7 +330,7 @@ class ORM:
             elif self.__DB_CONN:
                 self.__DB_CONN.close()
         except Exception as _e:
-            pass
+            log.debug('[orm] 关闭数据库连接失败: %s', _e)
             
         self.__DB_CUR = None
         self.__DB_CONN = None

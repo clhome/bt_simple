@@ -41,8 +41,8 @@ def cleanup_legacy_plugins():
         proc_res = yf.execShell("pgrep -f 'system_safe/system_safe.py'")
         if proc_res and proc_res[0].strip():
             check_proc = True
-    except Exception:
-        pass
+    except Exception as e:
+        yf.writeFileLog('[cleanup] 进程检测失败: %s' % e)
 
     # 如果没有任何残留特征，直接退出（0开销）
     if not (has_dir or has_service_file or check_proc):
@@ -64,7 +64,7 @@ def cleanup_legacy_plugins():
                             if p and os.path.exists(p):
                                 yf.execShell(f'chattr -R -i -a "{p}" 2>/dev/null')
         except Exception as e:
-            pass
+            yf.writeFileLog('[cleanup] 解锁被加固路径失败: %s' % e)
 
     # 针对可能被加固的系统敏感核心目录进行兜底解锁
     default_locked_paths = [
@@ -99,8 +99,8 @@ def cleanup_legacy_plugins():
         if os.path.exists(sf):
             try:
                 os.remove(sf)
-            except Exception:
-                pass
+            except Exception as e:
+                yf.writeFileLog('[cleanup] 删除服务注册文件失败: %s' % e)
     yf.execShell("systemctl daemon-reload 2>/dev/null")
     yf.execShell("systemctl reset-failed system_safe 2>/dev/null")
 

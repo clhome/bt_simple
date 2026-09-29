@@ -16,6 +16,9 @@ if plugin_dir not in sys.path:
     sys.path.append(plugin_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.clean')
 
 import clean_security
 import clean_scanner
@@ -55,8 +58,8 @@ def getArgs():
         data = json.loads(raw)
         if isinstance(data, dict):
             return data
-    except Exception:
-        pass
+    except Exception as _e:
+        _log.debug('[clean] getArgs 异常已忽略: %s', _e)
 
     # 降级容错解析 key:val
     tmp = {}
@@ -247,8 +250,8 @@ def get_service_detail():
                     + "-" * 72
                 )
                 append_run_log(ready_log)
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[clean] get_service_detail 异常已忽略: %s', _e)
 
         log_size = "0 B"
         if os.path.exists(log_file):

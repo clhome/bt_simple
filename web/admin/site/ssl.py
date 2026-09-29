@@ -136,7 +136,7 @@ def renew_ssl():
         YfSites.instance().closeProxyAll(site_name)
         YfSites.instance().closeRedirectAll(site_name)
     except Exception as _e:
-        pass
+        yf.writeFileLog('[ssl] 续签前关闭反代/重定向失败: %s' % _e)
     
     is_success = False
     try:
@@ -177,7 +177,7 @@ def renew_ssl():
             YfSites.instance().openProxyByOpen(site_name)
             YfSites.instance().openRedirectByOpen(site_name)
         except Exception as _e:
-            pass
+            yf.writeFileLog('[ssl] 续签后恢复反代/重定向失败: %s' % _e)
             
     if not is_success:
         return yf.returnData(False, 'site.py_msg_2b7ff5')
