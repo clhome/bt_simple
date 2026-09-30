@@ -27,9 +27,11 @@
     os_system_count       `os.system(...)` —— 字符串拼接进 shell，命令注入风险
 
     为什么 os_system_count 不是 0：
-        剩下 5 处是「必须经 shell 才能完成」的（多级管道 / 进程替换 / `cd && source activate && python`），
-        且已确认**无变量进入 shell**。它们如实计入基线（=5）而不是用豁免标记抹掉，
-        这样数字真实反映存量，日后任何新增 os.system 都会直接变红。
+        剩下 3 处是「必须经 shell 才能完成」的**纯字面量**调用（多级管道杀进程 / 进程替换 curl /
+        管道 bench.sh），已确认**无变量进入 shell**（bandit 亦判为 LOW）。它们如实计入基线
+        （=3）而不是用豁免标记抹掉，这样数字真实反映存量，日后任何新增 os.system 都会直接变红。
+        原先还有 2 处 `cd && source bin/activate && python ...`（拼接了面板目录常量），
+        已改为 `yf.safeExecShell([...], cwd=...)` + 直接调 venv 解释器，基线 5 → 3。
 
 print 的两类**豁免**（必须是真·CLI 输出，不是偷懒）：
     1. 位于 `if __name__ == '__main__':` 块内（直接跑脚本的入口，输出就该走 stdout）；

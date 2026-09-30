@@ -40,6 +40,20 @@ if yf.isAppleSystem():
 INIT_CMD = INIT_DIR + "/yf"
 
 
+def _panel_python(panel_dir=None):
+    """返回面板 venv 内的 Python 解释器（探测不到时回退到当前解释器）。
+
+    等价于原来的 `cd <面板目录> && source bin/activate && python ...`，
+    但改成参数列表直接调用，避免把目录拼进 shell（bandit B605）。
+    """
+    panel_dir = panel_dir or yf.getPanelDir()
+    for name in ('python', 'python3'):
+        candidate = os.path.join(panel_dir, 'bin', name)
+        if os.path.exists(candidate):
+            return candidate
+    return sys.executable or 'python3'
+
+
 def yf_input_cmd(msg):
     if sys.version_info[0] == 2:
         in_val = raw_input(msg)
@@ -53,12 +67,11 @@ def getRemainLen(cmd, max_length=100):
     cmd_u8_len = len(cmd.encode('utf-8'))
     return max_length-int((cmd_u8_len - cmd_len)/2+cmd_len)
 
-# bandit B605 豁免说明（本文件是 root 权限的交互式运维 CLI，不是 HTTP 入口）：
-#   1) 命令串只由本文件常量（INIT_CMD）、面板自身目录与面板探测到的路径拼接；
-#   2) 唯一的交互输入 yf_input 只用作分支选择，不进入命令串（IP/端口走 writeFile 落盘）；
-#   3) 保留 shell 而非 shell=False，是因为 INIT_CMD 子命令、`source bin/activate`
-#      等语义依赖 shell 解析。
-# 故逐行用「nosec B605」指令显式记录豁免；新增调用点必须同样给出理由。
+# os.system 说明（本文件是 root 权限的交互式运维 CLI，不是 HTTP 入口）：
+#   仅保留 3 处「纯字面量、无任何变量进入 shell」的调用（多级管道杀进程 /
+#   进程替换 curl / 管道 bench.sh），bandit 对字面量参数判为 LOW，不触发 HIGH 阻断；
+#   凡需拼接路径或变量的一律走 yf.safeExecShell([...], cwd=...)（参数列表 + shell=False）。
+#   新增 os.system 前必须确认「无变量进入 shell」，并同步更新本说明。
 def yfcli(yf_input=0):
     panel_dir = yf.getPanelDir()
 
@@ -635,8 +648,11 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
             time.sleep(2)
             
             print("  正在修复 MySQL root 密码与面板同步...")
-            # `cd && source bin/activate` 必须经 shell；路径与脚本均为面板常量
-            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")  # 保留 os.system：source 激活需 shell，路径常量
+            # 直接调用面板 venv 解释器（等价 source bin/activate），参数列表不经 shell
+            panel_dir = yf.getPanelDir()
+            yf.safeExecShell([_panel_python(panel_dir),
+                              os.path.join(panel_dir, 'plugins', 'mysql', 'index.py'),
+                              'fix_db_access'], cwd=panel_dir, timeout=120)
             
             pwd = ""
             try:
@@ -687,8 +703,10 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                     print("    - 清理未选择的数据库失败，无法连接MySQL。")
 
             print("  正在从 MySQL 同步数据库列表到面板...")
-            # `cd && source bin/activate` 必须经 shell；路径与脚本均为面板常量
-            os.system("cd " + yf.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")  # 保留 os.system：source 激活需 shell，路径常量
+            # 直接调用面板 venv 解释器（等价 source bin/activate），参数列表不经 shell
+            yf.safeExecShell([_panel_python(panel_dir),
+                              os.path.join(panel_dir, 'plugins', 'mysql', 'index.py'),
+                              'sync_get_databases'], cwd=panel_dir, timeout=120)
                 
             print("  ✅ MySQL 数据无缝迁移成功！")
             mysql_restored = True

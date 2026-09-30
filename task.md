@@ -865,6 +865,10 @@ CI 在 Python 3.11 解析，只看得见 `>=3.9` 分支 → 门禁真实有效�
      若要彻底清零，需要改成 `yf.safeExecShell([...], cwd=...)` + 直接调 venv 解释器，
      但这会引入「venv 内 python 路径探测」的新不确定性，故本轮保留。
    它们不是命令注入面，但仍是供应链面（下载即执行），已登记（见 B6 同类问题）。
+
+   > **更新（2026-09-30，见 §19）**：上面那「2 处拼接服务端常量路径」已改用
+   > `yf.safeExecShell([...], cwd=...)` + 直接调用面板 venv 解释器（`_panel_python()`），
+   > 不再经 shell；`os_system_count` 基线 **5 → 3**。bandit `-lll` 的 HIGH 告警随之清零。
 3. **服务端路径类（如 `bak_file`/`SSH_PRIVATE_KEY`）本次未做白名单校验**，只做了引用。
    若将来这些值变成外部输入，需再评估。
 
@@ -1678,6 +1682,52 @@ web/core/yf/
 | 2 | `§18.2` 称公开符号 243，实测 `dir()` 非下划线为 216 | **已修正**为 216 并写明口径（函数 189 / 类 1 / 模块 26；包内 `def` 函数名 204） |
 | 3 | `§18.1` 称新增 `test/ssh_run.sh`，但该文件本地不存在 | **已改措辞**：说明它按收尾约束已删除（`test/` 被 `.gitignore` 覆盖），通道可用性由 md5 往返一致性佐证 |
 | 4 | `/tmp` 尚存 `yf_restart.log` | **非本轮产物**：那是 `/etc/init.d/yf restart`（面板自身重启脚本）写的日志，属面板正常行为；本轮创建的探针/凭据文件（含 `/tmp/.yf_probe_pw`）确已清除 |
+
+---
+
+# 第 19 层「CI bandit HIGH 阻断修复（B605）」（2026-09-30）
+
+## 19.1 问题
+
+GitHub Actions `security-scan.yml` 的 bandit 步骤（`-lll`，仅阻断 HIGH）变红：
+
+| 位置 | 告警 |
+|---|---|
+| `panel_tools.py:639` | `B605 start_process_with_a_shell`，Severity High / Confidence High |
+| `panel_tools.py:691` | 同上 |
+
+根因不是「新增」违规，而是 **bandit 的置信度判据**：
+`os.system(字面量)` 只判 **LOW**（`-lll` 过滤掉，所以 `:204/:339/:343` 三处一直没红）；
+而 `os.system("cd " + yf.getPanelDir() + " && ...")` 是**拼接串**，bandit 判 **HIGH**，直接阻断。
+
+这两处正是 §四 里「保留的 2 处拼接服务端常量路径」——原以为靠注释说明即可，
+但它们**从未带 `# nosec B605` 指令**（`rg nosec panel_tools.py` 只有一段说明性注释），
+bandit 自然照报。
+
+## 19.2 修法（真修，不是加豁免）
+
+按 §四 自己给出的方向落地：`yf.safeExecShell([...], cwd=...)` + 直接调 venv 解释器。
+
+- 新增 `panel_tools.py::_panel_python(panel_dir=None)`：优先 `<面板目录>/bin/python`、
+  `bin/python3`（等价 `source bin/activate` 后的 `python`），探测不到才回退
+  `sys.executable or 'python3'`。
+- 两处调用点改为：
+  `yf.safeExecShell([_panel_python(panel_dir), <绝对 entry>, 'fix_db_access'|'sync_get_databases'], cwd=panel_dir, timeout=120)`。
+  `shell=False` 参数列表，天然免疫注入与分词；`cwd` 保持与原 `cd` 一致。
+- 同步更新文件头注释（原「逐行 nosec」措辞已与实情不符）。
+
+## 19.3 交付与验证
+
+| 项 | 结果 |
+|---|---|
+| bandit（`-lll`，即 CI 同款口径） | **HIGH = 0**（原 2）；Medium/Low 不变（125/48） |
+| 代码质量棘轮 | `os_system_count` **5 → 3**（只余 3 处纯字面量），基线已 `--update` 收紧 |
+| bandit 豁免数 | 仍为 7，`test_supply_chain_guards::test_16` 下限不受影响 |
+| `py_compile panel_tools.py` | OK |
+| 全量门禁 | **183 模块 / 1402 用例 / 0 隔离 / 4 静态门禁 全绿** |
+
+未做的事（有意）：不给这两处加 `# nosec B605` 豁免——能真修就不该走豁免，
+且棘轮与 bandit 两个门禁会继续兜住未来任何「拼接进 shell」的回归。
 
 
 
