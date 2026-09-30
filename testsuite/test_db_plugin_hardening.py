@@ -315,5 +315,86 @@ class TestSetDbBackupHardening(unittest.TestCase):
         self.assertFalse(data['status'])
 
 
+class TestSyncCmdAccountGuard(unittest.TestCase):
+    """主从同步：`getMasterRepSlaveUserCmd` 对「不存在的同步账户」必须有守卫。
+
+    真机事故（2026-09-29）：在空库上以不存在的 username 调主库的
+    `get_master_rep_slave_user_cmd`，stdout 输出未捕获的 `IndexError: list index out of
+    range`（`clist[0]` 直接下标）。从库侧 `doFullSyncSSH` 拿到这个输出后
+    `json.loads(result)` 直接失败，整条同步链路报错难查。
+
+    mariadb 侧的两个同名函数一直有 `if len(clist) == 0` 守卫，mysql 侧缺失 —— 单侧漂移。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mysql = _import_plugin('plugins.mysql.index')
+        cls.mariadb = _import_plugin('plugins.mariadb.index')
+
+    @staticmethod
+    def _empty_user_chain():
+        """模拟 pSqliteDb(...).field().where().limit().order().select() -> []"""
+        class _Chain:
+            def field(self, *a, **k):
+                return self
+
+            def where(self, *a, **k):
+                return self
+
+            def limit(self, *a, **k):
+                return self
+
+            def order(self, *a, **k):
+                return self
+
+            def select(self):
+                return []
+
+        return _Chain()
+
+    def _assert_guarded(self, mod, func_name, version):
+        import json as _json
+        with patch.object(mod, 'getArgs', return_value={'username': 'no_such_account', 'db': ''}), \
+             patch.object(mod, 'pSqliteDb', return_value=self._empty_user_chain()):
+            raw = getattr(mod, func_name)(version)
+        data = _json.loads(raw)
+        self.assertFalse(data.get('status'),
+                         '%s 对不存在的同步账户应返回失败 JSON，实际: %r' % (func_name, raw[:120]))
+        # 注：returnJson 会把中文转义为 \uXXXX，必须断言解析后的 msg，
+        # 不能直接对 raw 做 assertIn（本用例首次运行时就因这个假失败过）
+        self.assertIn('错误同步账户', str(data.get('msg', '')),
+                      '%s 未给出明确错误提示' % func_name)
+
+    def test_19_mysql_rejects_unknown_sync_account(self):
+        self._assert_guarded(self.mysql, 'getMasterRepSlaveUserCmd', '5.7')
+
+    def test_20_mariadb_rejects_unknown_sync_account(self):
+        for fn in ('getMasterRepSlaveUserCmd', 'getMasterRepSlaveUserCmdSsh'):
+            if hasattr(self.mariadb, fn):
+                self._assert_guarded(self.mariadb, fn, '10.6')
+
+    def test_21_no_unguarded_clist_index_in_sync_cmd(self):
+        """静态兵：`clist[0]` 之前必须出现过 `len(clist) == 0` 守卫（防再漂移）。
+
+        必须用**去注释**后的源码：注释里解释成因时写了 `clist[0]`，
+        直接对带注释源码做 find 会误判（本用例首次运行时就被这个绊倒过）。
+        """
+        for path, fns in ((MYSQL_SRC, ['getMasterRepSlaveUserCmd']),
+                          (MARIADB_SRC, ['getMasterRepSlaveUserCmd', 'getMasterRepSlaveUserCmdSsh'])):
+            for fn in fns:
+                try:
+                    src = ast.unparse(ast.parse(_func_source(path, fn)))
+                except AssertionError:
+                    continue
+                first_index = src.find('clist[0]')
+                if first_index == -1:
+                    continue
+                guard = src.find('len(clist) == 0')
+                self.assertNotEqual(-1, guard,
+                                    '%s::%s 缺 `len(clist) == 0` 守卫' % (os.path.basename(path), fn))
+                self.assertLess(guard, first_index,
+                                '%s::%s 守卫必须在 clist[0] 之前' % (os.path.basename(path), fn))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

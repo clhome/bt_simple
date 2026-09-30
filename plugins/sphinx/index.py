@@ -118,8 +118,15 @@ def contentReplace(content):
 
 
 def status():
+    # 过滤掉面板自己的进程：面板以 `python <面板目录>/plugins/sphinx/index.py status`
+    # 调用本函数，该 cmdline 里含 "sphinx"，不排除就会被当成「sphinx 正在运行」。
+    # 2026-09-29 真机实测：sphinx 未安装时 status() 仍返回 start（同族的 varnish /
+    # postgresql 靠 `grep -v python` 避开了这个问题，此处对齐）。
+    # 另：历史写死的 `mdserver-web` 已失效（面板目录改名 yufeng_panel，真机 cmdline
+    # 含该串的进程数 = 0），改用运行时面板目录。
     data = yf.execShell(
-        "ps -ef|grep sphinx |grep -v grep | grep -v mdserver-web | awk '{print $2}'")
+        "ps -ef|grep sphinx |grep -v grep | grep -v python | grep -v "
+        + yf.shlexQuote(yf.getPanelDir()) + " | awk '{print $2}'")
     # print(data)
     if data[0] == '':
         return 'stop'

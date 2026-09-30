@@ -16,6 +16,7 @@ import sys
 import tempfile
 import sqlite3
 import unittest
+from unittest.mock import patch
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 web_dir = os.path.join(PROJECT_ROOT, 'web')
@@ -141,8 +142,14 @@ class TestUpgradeAndMariadbSelfHealing(unittest.TestCase):
         self.assertIn('rw', columns, "MariaDB 老表 databases 未能自动补齐 rw 字段")
 
     def test_04_mariadb_pid_auto_healing(self):
-        """测试 MariaDB status() 探针能够多模态感知存活进程并自动自愈写回 PID 文件"""
+        """MariaDB status() 能多模态感知存活进程，并在「pid 文件目录归当前用户」时校准写回 PID。
+
+        写回已改走 yf.syncPidFile（面板 root vs mariadbd 非 root，直写会把属主改成 root
+        导致服务下次起不来，mysql 侧已真机复现 P0）。把 geteuid 对齐到临时目录属主，
+        使该断言在 Windows 开发机上也成立；场景 2 验证「属主不匹配绝不写」。
+        """
         pid_file = os.path.join(self.test_dir, 'mariadb.pid')
+        owner_uid = os.stat(self.test_dir).st_uid
         orig_get_pid_file = mariadb_idx.getPidFile
         mariadb_idx.getPidFile = lambda: pid_file
 
@@ -154,10 +161,19 @@ class TestUpgradeAndMariadbSelfHealing(unittest.TestCase):
             if os.path.exists(pid_file):
                 os.remove(pid_file)
 
-            st = mariadb_idx.status('10.6')
+            with patch.object(os, 'geteuid', create=True, return_value=owner_uid):
+                st = mariadb_idx.status('10.6')
             self.assertEqual(st, 'start', "探测到存活进程时状态应判定为 start")
             self.assertTrue(os.path.exists(pid_file), "应当自动自愈写回 PID 文件")
             self.assertEqual(yf.readFile(pid_file).strip(), str(current_pid))
+
+            # 场景 2（真机 P0 形态）: 目录属主不是当前用户 -> 状态仍须正确，但绝不写盘
+            os.remove(pid_file)
+            with patch.object(os, 'geteuid', create=True, return_value=owner_uid + 4242):
+                st2 = mariadb_idx.status('10.6')
+            self.assertEqual(st2, 'start', '属主不匹配时状态判定仍须正确')
+            self.assertFalse(os.path.exists(pid_file),
+                             '属主不匹配时绝不允许写 pid 文件（这正是真机 P0 的成因）')
         finally:
             mariadb_idx.getPidFile = orig_get_pid_file
             mariadb_idx.getMariadbPid = orig_get_mariadb_pid

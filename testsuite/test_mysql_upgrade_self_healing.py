@@ -34,11 +34,20 @@ class TestMySQLUpgradeSelfHealing(unittest.TestCase):
             shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_01_status_pid_self_healing(self):
-        """测试 1: 验证 status() 在 PID 文件丢失或失效时，能通过真实进程探测自动自愈写回 PID"""
+        """测试 1: status() 在 PID 文件丢失或失效时，必须靠真实进程探测判定 start，
+        并在「pid 文件目录归当前用户」时把真实 PID 校准写回。
+
+        写回已改走 yf.syncPidFile：它只在目录/文件属主都是当前用户时才写 —— 面板以
+        root 运行而 mysqld 以 mysql 运行，直写会把属主改成 root，导致 mysqld 下次启动
+        无法创建 pid 文件而失败（2026-09-29 真机 P0）。本用例把 geteuid 对齐到临时目录
+        属主，因此在 Windows 开发机上也能验证写回路径；场景 D 则验证「属主不匹配绝不写」。
+        """
         test_pid_file = os.path.join(self.test_dir, 'mysql.pid')
         fake_live_pid = 99881
+        owner_uid = os.stat(self.test_dir).st_uid
 
-        with patch.object(mysql_index, 'getPidFile', return_value=test_pid_file), \
+        with patch.object(os, 'geteuid', create=True, return_value=owner_uid), \
+             patch.object(mysql_index, 'getPidFile', return_value=test_pid_file), \
              patch.object(mysql_index, 'getMysqldPid', return_value=fake_live_pid), \
              patch.object(yf, 'checkPid', side_effect=lambda pid: pid == fake_live_pid):
 
@@ -58,6 +67,14 @@ class TestMySQLUpgradeSelfHealing(unittest.TestCase):
             st3 = mysql_index.status('5.7')
             self.assertEqual(st3, 'start')
             self.assertEqual(yf.readFile(test_pid_file).strip(), str(fake_live_pid), "死 PID 必须被自动校准替换为真实存活 PID")
+
+            # 场景 D（真机 P0 形态）: 目录属主不是当前用户 -> 状态判定仍须正确，但绝不写盘
+            os.remove(test_pid_file)
+            with patch.object(os, 'geteuid', create=True, return_value=owner_uid + 4242):
+                st4 = mysql_index.status('5.7')
+            self.assertEqual(st4, 'start', '属主不匹配时状态判定仍须正确（只是不走快速探针）')
+            self.assertFalse(os.path.exists(test_pid_file),
+                             '属主不匹配时绝不允许写 pid 文件（这正是真机 P0 的成因）')
 
     def test_02_status_stops_when_no_process(self):
         """测试 2: 当无 PID 且无任何 mysqld 进程存活时，准确返回 stop"""

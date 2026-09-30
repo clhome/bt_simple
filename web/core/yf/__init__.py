@@ -1056,6 +1056,54 @@ def checkPid(pid):
         return False
 
 
+def syncPidFile(pid_file, pid):
+    """
+    把存活 PID 安全写回守护进程的 pid 文件（供面板的「状态自愈」使用）。
+
+    为什么不直接用 writeFile：pid 文件往往属于**另一个用户**运行的守护进程
+    （例：MySQL 由 systemd 以 User=mysql 启动，datadir 为 750 mysql:mysql，
+    pid 文件由 mysqld 自己创建维护）。面板以 root 运行，直接写会替换 inode 并把
+    属主改成 root，于是 mysqld 下次启动**无法创建自己的 pid 文件**而启动失败
+    （真机实测 P0：Can't create/write to file '.../mysql.pid' (Errcode: 13 -
+    Permission denied)，服务被留在 failed）。
+
+    安全规则（任一不满足即放弃写入；只放弃「快速探针」优化，不影响状态判定正确性）：
+      1. 目录不存在 -> 不写（状态检查不该顺手造目录）；
+      2. 目录属主不是当前用户 -> 不写（里面可能是别人的守护进程文件）；
+      3. 文件已存在且属主不是当前用户 -> 不写（绝不改属主）。
+    :param pid_file: pid 文件路径
+    :param pid: 存活 PID
+    :return: True 表示已写入或已是目标值；False 表示按规则跳过
+    """
+    try:
+        if not pid_file or not pid:
+            return False
+        geteuid = getattr(os, 'geteuid', None)
+        if geteuid is None:
+            # Windows 开发机没有 uid 概念，交由调用方自身逻辑处理
+            return False
+        euid = geteuid()
+        p_dir = os.path.dirname(pid_file) or '.'
+        if not os.path.isdir(p_dir):
+            return False
+        if os.stat(p_dir).st_uid != euid:
+            return False
+        if os.path.exists(pid_file) and os.stat(pid_file).st_uid != euid:
+            return False
+        if os.path.exists(pid_file):
+            try:
+                if readFile(pid_file).strip() == str(pid):
+                    # 已是目标值：不重复写盘（status 会被高频轮询）
+                    return True
+            except Exception as _e:
+                _log.debug('[yf] syncPidFile 读取现有 pid 失败，继续写入: %s', _e)
+        writeFile(pid_file, str(pid))
+        return True
+    except Exception as _e:
+        _log.debug('[yf] syncPidFile 跳过（安全规则或异常）: %s', _e)
+        return False
+
+
 from . import fileio
 from .fileio import backFile, getCommonFile, getFileMd5, getFileStatsDesc, getPathSize, readFileEnd, removeBackFile, restoreFile, sortAllFileList, sortFileList
 from . import github

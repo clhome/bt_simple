@@ -341,8 +341,12 @@ def status(version=''):
                 _log.debug('[postgresql] status 异常已忽略: %s', _e)
         return 'stop'
     else:
+        # 历史写死的 `mdserver-web` 已失效（面板目录改名 yufeng_panel，真机实测
+        # cmdline 含该串的进程数 = 0），改为运行时面板目录；真正起过滤作用的
+        # 是 `grep -v python`（面板以 python 调用本插件）。
         data = yf.execShell(
-            "ps -ef|grep postgres |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
+            "ps -ef|grep postgres |grep -v grep | grep -v python | grep -v "
+            + yf.shlexQuote(yf.getPanelDir()) + " | awk '{print $2}'")
         if data[0] == '':
             return 'stop'
         return 'start'

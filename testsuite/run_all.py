@@ -103,6 +103,12 @@ TESTSUITE_DELETE_BUDGET = 100000
 def child_env(scope):
     """构造子进程环境变量；无沙箱守卫时原样返回（等价空操作）。"""
     env = os.environ.copy()
+    # 强制子进程按 UTF-8 输出：用例普遍用 UTF-8 解码子进程 stdout，而 Windows 控制台
+    # 默认 cp936 时子进程会输出 GBK → 解成 \ufffd 导致断言假红（2026-09-30 审计
+    # 环境复现：test_db_migration_selfheal / test_edition_layering 各 1 项）。
+    # 在这里统一钉死，使门禁不依赖调用者是否带 PYTHONUTF8=1。
+    env['PYTHONUTF8'] = '1'
+    env['PYTHONIOENCODING'] = 'utf-8'
     # 告诉性能类用例「现在跑在并行门禁里」：CPU 被 N 个模块抢占，
     # 耗时断言该按并行预算放宽（数量级兜底），避免微基准在并发下假红。
     env['YF_GATE_PARALLEL'] = '1'

@@ -630,14 +630,11 @@ def status(version=''):
     # 2. 多模态探活：PID 文件失效或丢失时，探测系统真实运行中的 mariadb
     live_pid = getMariadbPid()
     if live_pid is not None:
-        try:
-            if pid_file:
-                p_dir = os.path.dirname(pid_file)
-                if not os.path.exists(p_dir):
-                    os.makedirs(p_dir, exist_ok=True)
-                yf.writeFile(pid_file, str(live_pid))
-        except Exception as _e:
-            _log.debug('[mariadb] status 异常已忽略: %s', _e)
+        # 自动自愈：将真实存活的 PID 写回 pid_file，保证后续快速探针直接命中。
+        # 必须走 yf.syncPidFile：面板以 root 运行而 mariadbd 以 mysql 用户运行，
+        # 直接写会把 pid 文件属主改成 root，导致服务下次启动无法创建 pid 文件
+        # 而启动失败（mysql 插件已真机复现该 P0：Errcode 13 - Permission denied）。
+        yf.syncPidFile(pid_file, live_pid)
         return 'start'
 
     # 3. Socket 响应探针
@@ -649,12 +646,8 @@ def status(version=''):
             s.settimeout(1)
             s.connect(sock_path)
             s.close()
-            live_pid = getMariadbPid()
-            if live_pid and pid_file:
-                try:
-                    yf.writeFile(pid_file, str(live_pid))
-                except Exception as _e:
-                    _log.debug('[mariadb] status 异常已忽略: %s', _e)
+            # 能握手说明 mariadbd 绝对存活（写回同样必须走安全助手，见上方说明）
+            yf.syncPidFile(pid_file, getMariadbPid())
             return 'start'
         except Exception as _e:
             _log.debug('[mariadb] status 异常已忽略: %s', _e)
@@ -664,12 +657,7 @@ def status(version=''):
         try:
             sc_res = yf.execShell('systemctl is-active mariadb')
             if sc_res and sc_res[0].strip() == 'active':
-                live_pid = getMariadbPid()
-                if live_pid and pid_file:
-                    try:
-                        yf.writeFile(pid_file, str(live_pid))
-                    except Exception as _e:
-                        _log.debug('[mariadb] status 异常已忽略: %s', _e)
+                yf.syncPidFile(pid_file, getMariadbPid())
                 return 'start'
         except Exception as _e:
             _log.debug('[mariadb] status 异常已忽略: %s', _e)
@@ -913,7 +901,13 @@ def start(version=''):
     if st == 'start':
         return 'ok'
     cleanOrphanSockets()
-    return appCMD(version, 'start')
+    res = appCMD(version, 'start')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    # 8 秒仍未就绪：如实返回失败，绝不把 'ok' 回给上层造成「已启动」误判
+    return 'error: mariadb 启动后未就绪（%s）' % res
 
 
 def stop(version=''):
@@ -924,7 +918,13 @@ def restart(version=''):
     stop(version)
     time.sleep(1)
     cleanOrphanSockets()
-    return appCMD(version, 'start')
+    res = appCMD(version, 'start')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    # 8 秒仍未就绪：如实返回失败（上层据此兜底拉起 / 报错，而非误以为重启成功）
+    return 'error: mariadb 重启后未就绪（%s）' % res
 
 
 def reload(version=''):
@@ -2140,12 +2140,24 @@ def delDb():
                     db_version = yf.readFile(version_pl).strip()
 
             yf.writeFileLog('删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mariadb...')
-            restart(db_version)
+            rst = restart(db_version)
+            if rst != 'ok':
+                # 重启未就绪：兜底再拉起一次，避免把「数据库服务已停」留给现场
+                _log.warning('[mariadb] delDb 重启未就绪，兜底拉起: %s', rst)
+                yf.writeFileLog('mariadb 重启未就绪，兜底拉起: ' + str(rst))
+                start(db_version)
             time.sleep(3)
 
             ok2, err2 = doDeleteDb(read_timeout_val=60)
             if not ok2:
-                raise Exception("重启后尝试删除数据库依然失败: " + str(err2))
+                # 兜底：无论删除成败，都必须把数据库服务拉回可用状态
+                svc = status(db_version)
+                if svc != 'start':
+                    _log.warning('[mariadb] delDb 重试失败且服务未运行(%s)，兜底拉起', svc)
+                    start(db_version)
+                    svc = status(db_version)
+                raise Exception("重启后尝试删除数据库依然失败: " + str(err2)
+                                + "（mariadb 当前状态: " + str(svc) + "）")
 
         # 删除SQLITE
         psdb.where("id=?", (sid,)).delete()

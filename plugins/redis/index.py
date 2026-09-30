@@ -337,16 +337,10 @@ def status():
     pid_file = getPidFile()
 
     if real_pid and yf.checkPid(real_pid):
-        # 真实进程存活时，自动自愈写回/校准 PID 文件，杜绝假死误判
-        if pid_file:
-            try:
-                curr_pid = ''
-                if os.path.exists(pid_file):
-                    curr_pid = yf.readFile(pid_file).strip()
-                if curr_pid != str(real_pid):
-                    yf.writeFile(pid_file, str(real_pid))
-            except Exception as _e:
-                _log.debug('[redis] status 异常已忽略: %s', _e)
+        # 真实进程存活时，自动自愈写回/校准 PID 文件，杜绝假死误判。
+        # 走 yf.syncPidFile：面板以 root 运行，绝不能把守护进程的 pid 文件属主改成
+        # root（否则守护进程下次启动无法创建自己的 pid 文件，mysql 已真机复现该 P0）。
+        yf.syncPidFile(pid_file, real_pid)
         return 'start'
 
     # 双重保险：在 Systemd Linux 上结合 systemctl is-active 精准监控

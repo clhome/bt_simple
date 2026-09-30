@@ -1417,6 +1417,269 @@ web/core/yf/
 * `plugins/*/scripts/{tools,test}.py` 依赖不存在的 `class/core` 且全库零引用（死脚本），本轮只登记未处理。
 
 
+---
+
+## 第 18 层：真机验证与 P0 修复（goal `mumdpftx-pja0w7`）
+
+真机：`root@172.17.60.248`，Debian 12（kernel 6.1.0-47）+ MySQL 5.7.44 + PHP-FPM，面板跑 gunicorn。
+
+### 18.1 调试通道与安全基线（task-1）
+
+- 新增 `test/ssh_run.sh`（plink/pscp 包装，密码只从 `YF_SSH_PASS` 取，不落盘）——按收尾约束**已于本轮结束时删除**（`test/` 本身被 `.gitignore` 覆盖）；通道可用性由下一条的 md5 往返一致性直接佐证。
+- plink 免交互执行 ✅、pscp 上传/下载往返 md5 一致 ✅；20 个改动文件与服务器 **md5 逐一一致** ✅。
+- 备份目录 `/root/yf_debug_backup_20260929_155436`（记录于 `/root/.yf_debug_last_backup`）。
+- 重启方式与影响面：`/etc/init.d/yf restart`（→ `cd web && gunicorn -c setting.py app:app`，pid `logs/panel.pid`，UI 中断 2~5s）；MySQL = `systemctl restart mysql`。
+
+### 18.2 清理被包遮蔽的旧 `web/core/yf.py`（task-2）
+
+- 服务器曾**同时存在** `web/core/yf/` 与 `web/core/yf.py`（后者被包遮蔽）。已删 `web/core/yf.py`（103729 字节，备份 `<备份目录>/web_core_yf.py.pre_split`）+ 陈旧 `yf.cpython-311.pyc` + 包内 `__pycache__`。
+- 验证：`import core.yf` → `/www/server/yufeng_panel/web/core/yf/__init__.py`，公开符号 **216**（口径：`dir()` 非下划线；其中函数 189 / 类 1 / 模块 26；包内 `def` 定义过的函数名 204）；重启后 pid 2048846、监听 `0.0.0.0:60374`、`HTTP / → 200`、无 ImportError。
+
+### 18.3 task-3 验证结论：`delDb` 重启-重试分支有 **P0 缺陷**
+
+**触发方式**（真实锁等待，不改代码造超时）：造专属探针库 `yfdel_probe` + `LOCK TABLES ... SELECT SLEEP(240)` 持住 MDL → `DROP DATABASE` 真实阻塞 → 走面板 CLI 真实代码路径 `del_db`。
+
+**修复前实测**（16:48:37 → 16:49:15，elapsed 38s，rc=0）：
+
+```
+{"status": false, "msg": "删除失败!重启后尝试删除数据库依然失败:
+  (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 111] Connection refused)\")"}
+```
+
+- 38s ≥ 30s → **超时分支确实触发**（`read_timeout=30` 生效）；`journalctl` 显示 16:49:11 `Stopped/Started mysql.service` → **重启确实执行**。
+- **但 MySQL 起不来，服务被留在 `failed`**（MainPID=0），库删不掉，需人工介入约 3 分钟。
+- `error.log` 根因：`Can't create/write to file '/www/server/mysql/data/mysql.pid' (Errcode: 13 - Permission denied)`；`Can't start server: can't create PID file`。
+
+**根因链**：面板以 **root** 运行，`mysql::status()` 的「PID 自愈」把存活 PID **写进 mysqld 的 datadir**（`pid-file = /www/server/mysql/data/mysql.pid`，目录 `750 mysql:mysql`）；写盘是原子替换 → 属主变成 `root:root`；而 mysqld 由 systemd 以 `User=mysql` 启动 → **无法创建自己的 pid 文件** → 启动失败。
+
+**连带缺陷**：① `restart()`/`start()` 只看轮询结果、服务 failed 也返回 `'ok'`（上层误判）；② `delDb` 重试失败直接抛错，**不把服务拉回可用状态**。
+
+证据固化于服务器 `/root/yf_task3_evidence.txt`（51 行）。
+
+### 18.4 修复内容（本地）
+
+| 文件 | 改动 |
+|---|---|
+| `web/core/yf/__init__.py` | 新增 **`syncPidFile(pid_file, pid)`**：只在「目录属主 = 当前用户」且「文件不存在或属主 = 当前用户」时才写；目录缺失不写（不在状态检查里造目录）；内容已是目标值不重写；无 `os.geteuid` 的平台直接跳过 |
+| `plugins/mysql/index.py` | 2 处 pid 自愈写回 → `yf.syncPidFile`；`start()`/`restart()` 未就绪时返回 `error:` 串；`delDb` 检查 `restart()` 返回值并兜底 `start()`，重试失败时先把服务拉回可用状态并把状态写进报错 |
+| `plugins/mariadb/index.py` | 同上（3 处写回；`start()`/`restart()` 原来**连就绪轮询都没有**，补上 8 秒轮询 + 如实报错；`delDb` 同样兜底） |
+| `plugins/redis/index.py` | pid 自愈写回 → `yf.syncPidFile` |
+| `plugins/php/index.py` | pid 自愈写回 → `yf.syncPidFile` |
+
+新增守卫 `testsuite/test_pid_file_ownership_guard.py`（**15 项**）：助手行为 8 项（含「属主不匹配绝不写」）+ 家族收口 3 项 + 服务失败如实上报 4 项（`delDb` 兜底用 **AST 结构断言**，字符串存在性检查会被 `if False:` 蒙混）。
+
+同步修正 3 个断言了**旧危险行为**的既有用例（`test_mysql/redis_upgrade_self_healing`、`test_upgrade_and_mariadb_self_healing`）：把 `geteuid` 对齐到临时目录属主，使写回断言在任意平台成立，并**新增「属主不匹配则绝不写盘」场景**。
+
+**变异自证 4/4**（工具 `test/mutate_pid_guard.py`，字节快照 + `finally` 还原）：去掉属主判据 / `restart` 退回 `return res` / 丢弃 `restart` 返回值 / 重试失败不兜底 —— 四处改坏都被守卫抓红。**第一次跑时 D 项未被抓**（假绿），据此把该断言改成 AST 结构检查。
+
+### 18.5 真机复验证据（修复后）
+
+**A. 属主受控对照实验**：
+
+| 场景 | 结果 |
+|---|---|
+| `yf.syncPidFile('/www/server/mysql/data/mysql.pid', pid)`（datadir 属主 uid 1002，euid 0） | **False**（拒绝写入） |
+| 删掉 pid 文件后再调 `index.py status` | 返回 `start`（判定仍正确），**pid 文件未被创建**（旧代码会以 root 重建 = P0） |
+| 负对照：同一助手写 root 自有目录 `/root/yf_pid_probe/daemon.pid` | **True**，内容 `12345` → 拒绝写入源于属主规则，非功能失效 |
+
+**B. 原故障场景完整复跑**（17:32:30 → 17:33:08，elapsed 38s）：
+
+```
+{"status": true, "msg": "删除成功!"}
+```
+
+| 项 | 修复前 | 修复后 |
+|---|---|---|
+| 超时分支 | elapsed 38s | elapsed 38s |
+| CLI 输出 | `status:false ... Connection refused` | **`status:true 删除成功!`** |
+| MySQL 终态 | **failed / MainPID=0** | **active/running**（2080855 → 2104380，证明重启发生） |
+| 探针库 / 用户 | 残留 | 0 / 0 |
+| 面板记录 | 残留 | 已删（回到 3 行） |
+| `error.log` PID 权限错误 | 有 | **0** |
+| 业务库 | — | `test1` / `cc2` / `dianbiao` 完好 |
+
+### 18.6 验证
+
+* 本地全量门禁：**182 模块 / 1389 用例 / 0 隔离 / 4 静态门禁 全绿**（约 51s）。
+* 部署：5 个文件 pscp 上服务器后 **md5 逐一双向一致**；备份 `/root/yf_p0_fix_backup_20260929_172412`（回滚命令已记录）。
+* 服务器无遗留探针对象（库/用户/面板记录均已清）。
+
+### 18.7 task-4：`getFpmAddress` 的 TCP 分支（真机实测通过）
+
+真机 php 装了 80/81/83（均监听 unix socket），仅 1 个站点且未绑定 83 → 选 83 做实验。
+
+| 步骤 | 实测 |
+|---|---|
+| 基线 | `listen = /tmp/php-cgi-83.sock`；`getFpmAddress('83')` → `'/tmp/php-cgi-83.sock'` |
+| 改 `www.conf` 为 `listen = 127.0.0.1:9083` + `systemctl restart php83` | `ss -lntp` → `php-fpm` 监听 `127.0.0.1:9083`（pid 2106400） |
+| 断言 | `getFpmAddress('83')` → **`('127.0.0.1', 9083)`**（元组）；`bind=True` 同 |
+| **fcgi 真实连通** | `requestFcgiPHP(('127.0.0.1',9083), '/index.php', document_root='/tmp/fcgi_probe')` → 响应 `FCGI_PROBE_OK` |
+| 回滚 | 恢复 `www.conf` + 重启 → `getFpmAddress('83')` 回到 sock 路径、sock 恢复、服务 active、fcgi 仍连通 |
+
+结论：TCP 分支（元组）在真实 php-fpm 配置下**返回值正确且可真实建立 FCGI 连接**（`FCGIApp` 对 tuple 走 `socket.create_connection`）。备份 `/root/yf_task4_backup/www.conf.orig`。
+
+### 18.8 task-5：进程匹配 `mdserver-web` 的失效范围（真机结论表）
+
+**事实基线**：`/www/server/mdserver-web` 是软链 → `/www/server/yufeng_panel`；面板实际以 `/www/server/yufeng_panel/bin/python3 ...` 启动；**cmdline 含 `mdserver-web` 的进程数 = 0**（含 `yufeng_panel` = 2）。面板启动插件的真实形式（`web/utils/plugin.py:1609`）为 `[sys.executable, 绝对插件路径, func]`，即：
+
+```
+/www/server/yufeng_panel/bin/python /www/server/yufeng_panel/plugins/sphinx/index.py status
+```
+
+**逐处结论**：
+
+| 位置 | 匹配式 | 真机命中 | 后果 |
+|---|---|---|---|
+| `plugins/sphinx/index.py:122` | `ps -ef\|grep sphinx \|grep -v grep \|grep -v mdserver-web` | **插件自己命中**（同一瞬间 `ps` 只匹配到 `plugins/sphinx/index.py status` 自身） | **功能缺陷**：`status()` 返回 **`start`**，而 sphinx **根本未安装** |
+| `plugins/postgresql/index.py:345` | `...\|grep -v python\|grep -v mdserver-web` | `grep -v python` 把插件自己滤掉 → 判定正确；`mdserver-web` 过滤 **0** 个进程 | 当前无故障（未安装时提前返回 stop），但**冗余守卫完全失效**；若插件 CLI 将来非 python 启动，即退化为同类假阳性 |
+| `plugins/varnish/index.py:84` | 同 postgresql | 同上；真机实测 `status()` → **`stop`**（正确） | 同上 |
+| `plugins/task_manager/task_manager_index.py:352` | `cmdline.find('mdserver-web/plugins')` | 面板真实 cmdline 用 **绝对路径** → `False`（连软链相对形式也 `False`） | **分类不准**：面板插件进程不被标为「面板插件进程」 |
+| `plugins/task_manager/task_manager_index.py:385` | `cmdline.find('mdserver-web') and find('gunicorn -c setting.py app:app')` | 真实 cmdline 含 `yufeng_panel` → **`False`** | **分类不准**：面板本体不被标为「御风面板」 |
+
+**对照实验（同一台机、同样未安装）**：
+
+| 插件 | 是否有 `grep -v python` | 实测 status | 期望 |
+|---|---|---|---|
+| sphinx | ❌ 无 | **start** | stop ❌ |
+| varnish | ✅ 有 | **stop** | stop ✅ |
+
+→ 二者代码仅差一个 `grep -v python`，直接坐实：**`mdserver-web` 守卫已失效，真正起作用的是 `grep -v python`**。
+
+**运行时目录判据实测**（修复方向）：对插件进程 cmdline，`find(yf.getPanelDir() + '/plugins/')` = **True**；对面板 gunicorn，`find(yf.getPanelDir())` = **True**；而 `mdserver-web` 两个判据均为 **False**。
+
+### 18.9 task-6：主从同步真实链路 —— 单机可验部分已验，双机链路标记「阻塞」
+
+**链路方向（读码结论，`plugins/mysql/index.py::doFullSyncSSH`）**：`doFullSyncSSH` 跑在**从库**，它：读从库 `slave_id_rsa` 表拿主库 IP/端口/私钥 → paramiko SSH 登录**主库** root → 在主库执行 `dump_mysql_data` 产出 `/tmp/dump.sql.gz` → SFTP 拉回 → 再在主库执行 `get_master_rep_slave_user_cmd` 取 `CHANGE MASTER TO` SQL → 本地 `stop slave` + 把 `MASTER_HOST/SOURCE_HOST` 重写为真实主库 IP + 执行 → 解压导入 dump。**两端都必须装面板**（从库要跑本插件代码；主库要被 SSH 执行插件命令）。
+
+**已在本机（主库角色）验证**：
+
+| 项 | 实测结果 |
+|---|---|
+| 主库前置条件 | `log_bin=1`、`server_id=1789553551`、`binlog_format=MIXED`、`gtid_mode=OFF`、`read_only=0`；`SHOW MASTER STATUS` → `mysql-bin.000010 : 1382` |
+| 本机从库角色 | `SHOW SLAVE STATUS` 为空 = 未配置从库 ✓ |
+| 主从三张配置表 | `master_replication_user` / `slave_sync_user` / `slave_id_rsa` **均 0 行** = 从未配对过 |
+| **主库侧 dump（从库会 SSH 执行的那一步）** | `dump_mysql_data '{"db":"test1"}'` → **`ok`**，产出 `/tmp/dump.sql.gz` **4181757 字节**，`gzip -dc` 含 1 个 `CREATE TABLE`，头部 `-- MySQL dump 10.13 Distrib 5.7.44`；**随后已删除**（不留数据副本） |
+| 从库会执行的两条命令（原样复刻） | ① `cd <面板目录> && source bin/activate && python3 <面板目录>/plugins/mysql/index.py dump_mysql_data '{"db":…}'`；② 同形式 `get_master_rep_slave_user_cmd '{"username":…,"db":""}'`；③ SFTP `get("/tmp/dump.sql.gz", "/tmp/dump.sql.gz")` |
+
+**顺带发现并修复的缺陷（单侧漂移，已归 task-7）**：主库侧 `get_master_rep_slave_user_cmd` 在「username 非空但查无该同步账户」时 `clist` 为空列表 → `clist[0]` 抛**未捕获 IndexError**（真机 stdout 输出 traceback），从库侧 `json.loads(result)` 随之失败、整条链路报错难查。mariadb 侧两个同名函数一直有 `if len(clist) == 0` 守卫，mysql 侧缺失。
+
+**阻塞项：双机真实复制链路**
+
+阻塞原因（客观）：链路两端都需装面板，而本机网段内**未发现第二台面板机**（探测到的 60374 端口均为回环 `127.0.0.0/8` 与 docker 网桥 `172.18/19/20.0.1`）；**用同一台机自配主从会产生复制回环 + 数据重复导入**，属破坏性操作，按约束不做。
+
+所需环境清单（第二台面板机）：
+
+| 项 | 要求 |
+|---|---|
+| 系统 | Debian 12 / Ubuntu 22.04+，能访问主库 22 端口 |
+| 面板 | 与本机**同版本**面板（含 `plugins/mysql`）；venv 内需有 **paramiko**（从库侧 `doFullSyncSSH` 依赖） |
+| MySQL | 从库版本 ≥ 主库（5.7.44）；`server_id` 与主库不同；若要级联则 `log_slave_updates=1` |
+| SSH | 从库 root 持有主库私钥；主库 `authorized_keys` 含该公钥；主库 sshd 允许 root 登录 |
+| 网络 | 从库 → 主库：`22`（SSH）+ 主库 MySQL 端口（复制连接） |
+
+验收步骤与每步预期证据：
+
+1. **主库加同步账户**：主库面板 → MySQL 插件 → 添加同步账户（CLI `add_master_rep_slave_user`）
+   → 证据：主库 `master_replication_user` 出现 1 行；`SELECT user,host FROM mysql.user WHERE user='<账户>'` 有记录。
+2. **从库登记主库 SSH**：从库面板 → 添加从库 SSH 信息（CLI `add_slave_ssh`，主库 IP/端口/私钥）
+   → 证据：从库 `slave_id_rsa` 出现 1 行；从库能 `ssh -i <key> root@<主库>` 免密登录。
+3. **触发全量同步**：从库执行 `do_full_sync` / `full_sync`（先 `full_sync_cmd` 预览）
+   → 证据：从库 `/tmp/dump.sql.gz` 存在；`db_sync_status` 进度走到 100；从库 `SHOW SLAVE STATUS` 的 `Slave_IO_Running=Yes` 且 `Slave_SQL_Running=Yes`。
+4. **数据一致性**：主库 `SHOW MASTER STATUS` 的 File/Position 与从库 `SHOW SLAVE STATUS` 的 `Master_Log_File`/`Read_Master_Log_Pos` 对齐；任选 1 个业务库对两侧 `mysqldump` 做校验和对比一致。
+5. **增量验证**：主库建表/插行 → 从库 1~2 秒内可见，`Seconds_Behind_Master` 回落 0。
+
+> 另：`doFullSyncSSH` 会把私钥写到 `/tmp/mysql_sync_id_rsa.txt`（`chmod 600`）且 `paramiko.util.log_to_file('paramiko.log')` 会在当前工作目录落一个 `paramiko.log`；双机验证时注意清理，且不要让它进仓库。
+
+### 18.10 task-7：修复项三段证据汇总
+
+| # | 缺陷 | 本地改动 | 服务器复验 | 本地门禁 |
+|---|---|---|---|---|
+| 1 | **P0**：面板 `status()` 把 pid 写进 mysqld datadir → 属主变 root → mysqld 下次启动失败（`delDb` 重启分支把 MySQL 留在 failed） | `web/core/yf/__init__.py` 新增 `syncPidFile`（+48 行）；`mysql`/`mariadb`/`redis`/`php` 共 7 处写回改走它；`mysql`/`mariadb` 的 `start()`/`restart()` 未就绪时如实返回 `error:`；`delDb` 检查 `restart()` 返回值 + 重试失败时先把服务拉回并把状态写进报错（`mysql` +52/−? 、`mariadb` +60） | 见 §18.5：`syncPidFile` → False（拒绝）；删掉 pid 后 `status` 仍 `start` 且**不再以 root 重建**；负对照 → True；原故障场景复跑 → `status:true 删除成功!` + MySQL **active/running** + error.log PID 错误 **0** | 全绿 |
+| 2 | **P1**：`sphinx::status` 假阳性（未安装也报 start）；`mdserver-web` 路径判据全库失效（`sphinx`/`postgresql`/`varnish` + `task_manager` 四处） | `sphinx` 补 `grep -v python` + 运行时面板目录；`postgresql`/`varnish` 换运行时面板目录；`task_manager` 新增 `_panel_dir_marks`/`_is_panel_process`/`_is_panel_plugin_process` 三个助手并替掉 4 处失效判据（+44 行） | 见 §18.8 末：`sphinx → stop`（修复前 start）、`varnish`/`postgresql` 仍 stop；生成的命令串含 `grep -v python` + `grep -v /www/server/yufeng_panel`；`get_process_ps` 端到端：gunicorn → **御风面板**、现场拉起的插件进程 → **面板插件进程**、varnishd → 均 False；面板 HTTP 200 | 全绿 |
+| 3 | **P2**：`mysql::getMasterRepSlaveUserCmd` 缺空结果守卫 → 未捕获 `IndexError`（mariadb 侧两个同名函数都有守卫 = 单侧漂移） | `plugins/mysql/index.py` 补 `if len(clist) == 0` 守卫（与 mariadb 对齐）+ `plugins/mysql/lang/*.json` 六语言补 `错误同步账户!` 键 | 真机对照：修复前（备份旧文件）`IndexError: list index out of range` → 修复后 `{"status": false, "msg": "错误同步账户!"}`；空用户名仍返回 `请添加同步账户!`；面板 HTTP 200 | 全绿 |
+
+**新增/修正的守卫用例（共 31 个 test 方法）**：
+
+* `testsuite/test_pid_file_ownership_guard.py`（**15**，新）：`syncPidFile` 行为 8 + 家族收口 3 + 服务失败如实上报 4（`delDb` 兜底用 AST 结构断言）
+* `testsuite/test_process_match_panel_dir.py`（**10**，新）：失效判据清零 + 三插件命令串（去注释源码断言）+ `sphinx` 行为 + `task_manager` 分类（用真机真实 cmdline 样本）
+* `testsuite/test_db_plugin_hardening.py`（**+3**）：同步账户守卫的行为 + 静态兵
+* 同步修正 3 个断言了**旧危险行为**的既有用例（`test_mysql/redis_upgrade_self_healing`、`test_upgrade_and_mariadb_self_healing`）：`geteuid` 对齐临时目录属主，使写回断言在任意平台成立，并新增「属主不匹配则绝不写盘」场景
+
+**变异自证**：P0 批 **4/4**（`test/mutate_pid_guard.py`）、进程匹配批 **4/4**（`test/mutate_process_match.py`）、同步守卫批 2/2（内联）。自证过程中**三次抓到自己的假绿断言**，已逐个修正：
+
+1. `delDb` 兜底只用字符串存在性检查 → 改成 AST 结构断言（把判断改成 `if False:` 也能过）
+2. 进程匹配用例直接对**带注释源码**断言 `grep -v python`，而注释里恰好有这串字 → 改用 `ast.unparse` 去注释后再断言
+3. 同步守卫的静态兵被注释里的 `clist[0]` 绊倒（守卫被判在 `clist[0]` 之后）→ 同样去注释
+4. 另修一处**测试自身错误**：`assertIn('错误同步账户', raw)` —— `returnJson` 会把中文转义为 `\uXXXX`，必须断言解析后的 `msg`
+
+**终态**：本地全量门禁 **183 模块 / 1402 用例 / 0 隔离 / 4 静态门禁 全绿**（目标基线为 181/1374；本轮新增 2 个用例模块与 28 个 test 方法，是**超集**而非降强）。棘轮未动：`bare_except 0 / silent_except 0 / print_in_web 0 / os_system_count 5`。
+
+**部署与回滚**（服务器，均已 md5 双向校验）：`/root/yf_p0_fix_backup_20260929_172412`（5 文件）、`/root/yf_task5_fix_backup_20260929_174359`（4 文件）、`/root/yf_task6_fix_backup_20260930_074452`（1 代码 + 6 语言包）。
+
+### 18.11 C 类可执行清单（需 CI / 产品决策 / 外部环境）
+
+> 完整版（含与本文一致的表格 + 细节说明）在 `参考/20260928优化.md` §10.3；本节为同内容的可执行摘要。每项格式：**改动点** → **验收步骤** → **所需外部条件**。
+
+**① 需 CI / 联网 / 发布流程**
+
+| # | 项 | 改动点 | 验收步骤 | 所需外部条件 |
+|---|---|---|---|---|
+| A1 | 翻转 `YF_REQUIRE_SIGNATURE=1` | `scripts/install.sh`/`update.sh` 默认值与验签入口 | ① 未签名 tarball 必须**拒绝**；② 签名 tarball 必须通过；③ 无残留硬编码 | A2 + 干净 Linux 机 |
+| A2 | 首个签名 Release | 推 tag → CI 出签名 tarball + 公钥分发 | ① `git tag && push --tags`；② CI 绿；③ `yf_release_verify.py` 验签通过 | CI 可联网 + 签名私钥 |
+| B6 | 安装脚本信任根（`curl \| bash`） | `install.sh` 文档 + 校验步骤 | ① 先下 tarball → 验签 → 再执行；② 文档给出 sha256 与验签命令 | A2 |
+| C4 | `requirements.lock` 入库 | CI `lock` job 已就绪 | ① 取 artifact；② 提交入库；③ 「锁不得取代 `requirements.txt`」守卫仍绿 | CI |
+| C6 | `run_all.py --coverage` | 加 `--coverage` | ① `pip install coverage`；② 出报告；③ 先只出基线不设门禁 | 联网装包 |
+| C7 | 最小前端构建（esbuild） | `web/static` 构建管线 + 依赖锁 | ① 引入 esbuild；② 产物与现网 diff 空；③ CI 加构建步骤 | 联网装包 |
+| E1 | `.i18n.bak`（33 文件） | 依赖 A2 的 tarball 形态自然剔除 | ① 确认 tarball 内无 `.i18n.bak`；② **禁止手工删除** | A2 |
+| E2 | `zabbix` 8.4MB `*.sql.gz` | 待确认是否属交付内容 | ① 属交付 → 保留登记；② 不属 → 移出仓库（**需用户确认**） | 产品决策 |
+| E3 | `.git` 约 98MB | **禁止改写历史** | — | 既有决策 |
+
+**② 需产品决策**
+
+| # | 项 | 改动点 | 验收步骤 | 所需外部条件 |
+|---|---|---|---|---|
+| D1 | 审计流水 UI（**性价比最高**） | 前端页 + 6 语言 i18n（后端已就绪） | ① 筛选可用；② 「校验哈希链」显示 `verify_chain()`；③ 6 语言键齐全；④ i18n 门禁绿 | UI 形态确认 |
+| D2 | 审计远端转发 | 转发出口 + 失败重试 | ① 条目到达 syslog；② 断网不阻塞主流程 | 合规口径 |
+| D3 | 授权/激活/计费 | `edition.py` + `web/pro/` 已分层 | ① 社区版仍整目录剔除 `web/pro/`；② 失败降级不炸面板 | 商业模型 |
+| D4 | RBAC 多用户 | 权限模型 + 中间件 | ① 角色→权限矩阵可配；② 越权 403 且进审计 | 权限模型 |
+| D5 | 插件签名与权限声明 | 插件清单 + 签名校验 | ① 未签名插件拒绝加载（可开关）；② 声明与运行时校验一致 | 权限清单 |
+| D6 | 多 worker | 外置进程态（Redis/FileSystemCache） | ① 起 2+ worker；② 会话/限流仍生效（已走 DB）；③ 压测对比 | 外置缓存 + 压测环境 |
+
+**③ 本地可做但需排期**
+
+| # | 项 | 改动点 | 验收步骤 | 所需外部条件 |
+|---|---|---|---|---|
+| C1 | ORM 调用点迁移 **180 处** | 逐文件改 `*Strict` + 显式 `try/except`（顺序：`yf.py`→`gitea`→`sphinx`→`postgresql`→`data_query`→`mariadb`→`mysql`） | ① 每文件单独可回退；② 门禁全绿；③ 真机同步/备份回归 | 真机回归 |
+| C5 | 巨型文件拆分（剩余） | `web/utils/site.py` 3199 行、两插件 5288/4398 行 | ① 同款 codemod（三重自检）；② 插件 CLI 入口签名不变；③ 门禁全绿 | 一次一个文件 |
+| C5b | 抽 mysql/mariadb 共享核心 | 抽公共模块（136 同名 / 95 漂移） | ① 漂移归零；② 双插件门禁全绿；③ 真机跑删库/备份/同步 | 真机回归 |
+
+**④ 需第二台真机（本轮已阻塞）**
+
+| # | 项 | 改动点 | 验收步骤 | 所需外部条件 |
+|---|---|---|---|---|
+| R1 | 主从同步真实链路 | 无（验证项） | 见 §18.9 五步 | 第二台面板机（同版本面板 + paramiko + MySQL ≥5.7.44 + 独立 `server_id`） |
+
+**⑤ 本轮新增「不做」记录**
+
+| 项 | 决定 |
+|---|---|
+| `plugins/webssh/index.py` 的 `'mdserver-web'` | **不动**：那是 `deDoubleCrypt/enDoubleCrypt` 的**加解密盐值**，改它会破坏既有密文兼容 |
+| `test/tmp_i18n/`、`test/tmp_plugin_i18n_audit/` 等上轮快照目录 | 在 `.gitignore` 覆盖的 `test/` 区，不参与交付；非本轮产物，不删 |
+| 用同一台机自配 MySQL 主从 | **不做**：会产生复制回环 + 数据重复导入，属破坏性操作 |
+| `plugins/*/scripts/{tools,test}.py` | 依赖不存在的 `class/core` 且全库零引用（死脚本），只登记不删 |
+
+### 18.12 审计复核后的补正（2026-09-30）
+
+独立审计以只读方式复核后，给出 `<approved/>` 并附 4 处瑕疵；已逐条处理：
+
+| # | 审计意见 | 处理 |
+|---|---|---|
+| 1 | 本机默认控制台编码下 `test_db_migration_selfheal.py` / `test_edition_layering.py` 各 1 项失败（子进程中文 stdout 被按 UTF-8 解码产生 mojibake） | **已根治**：根因是**子进程**按控制台 cp936 输出、而用例按 UTF-8 解码。两处用例改为给子进程带 `PYTHONUTF8=1`/`PYTHONIOENCODING=utf-8`；并在 `testsuite/run_all.py::child_env()` 统一钉死（原先只是继承 `os.environ`）→ **不带 `PYTHONUTF8` 跑全量门禁也全绿**（183/1402/0/4） |
+| 2 | `§18.2` 称公开符号 243，实测 `dir()` 非下划线为 216 | **已修正**为 216 并写明口径（函数 189 / 类 1 / 模块 26；包内 `def` 函数名 204） |
+| 3 | `§18.1` 称新增 `test/ssh_run.sh`，但该文件本地不存在 | **已改措辞**：说明它按收尾约束已删除（`test/` 被 `.gitignore` 覆盖），通道可用性由 md5 往返一致性佐证 |
+| 4 | `/tmp` 尚存 `yf_restart.log` | **非本轮产物**：那是 `/etc/init.d/yf restart`（面板自身重启脚本）写的日志，属面板正常行为；本轮创建的探针/凭据文件（含 `/tmp/.yf_probe_pw`）确已清除 |
+
+
 
 
 

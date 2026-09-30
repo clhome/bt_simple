@@ -140,7 +140,10 @@ class BuildEditionIntegrationTest(unittest.TestCase):
             proc = subprocess.run(
                 [sys.executable, os.path.join(ROOT, 'scripts', 'tools', 'build_edition.py'),
                  '--edition', 'community', '--out', out, '--verify'],
-                cwd=ROOT, capture_output=True)
+                cwd=ROOT, capture_output=True,
+                # 子进程必须强制 UTF-8 输出：本用例按 UTF-8 解码 stdout，而 Windows
+                # 控制台默认 cp936 时子进程输出 GBK → 解成 \ufffd 导致断言假失败。
+                env=dict(os.environ, PYTHONUTF8='1', PYTHONIOENCODING='utf-8'))
             text = proc.stdout.decode('utf-8', 'replace') + proc.stderr.decode('utf-8', 'replace')
             self.assertEqual(proc.returncode, 0, '社区版构建失败：\n%s' % text)
             self.assertIn('[OK] 产物自检通过', text)

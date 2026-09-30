@@ -201,11 +201,9 @@ def status(version):
 
     # 2. 真实主进程存活
     if live_pid and live_pid.isdigit():
-        try:
-            if not os.path.exists(pid_file) or yf.readFile(pid_file).strip() != live_pid:
-                yf.writeFile(pid_file, live_pid)
-        except Exception as _e:
-            _log.debug('[php] status 异常已忽略: %s', _e)
+        # 走 yf.syncPidFile：面板以 root 运行，绝不能把守护进程的 pid 文件属主改成
+        # root（否则守护进程下次启动无法创建自己的 pid 文件，mysql 已真机复现该 P0）
+        yf.syncPidFile(pid_file, live_pid)
         return 'start'
 
     # 3. PID 文件信号探活降级

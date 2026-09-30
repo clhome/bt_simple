@@ -366,7 +366,11 @@ class MigrationSelfHealTest(unittest.TestCase):
         db = os.path.join(sandbox, 'data', 'panel.db')
         self.assertNotIn('min_end_m', _columns(db, 'crontab'), '沙箱基线不应含该列')
 
-        env = dict(os.environ, YF_PANEL_DIR=sandbox, YF_DB_MODE='apply')
+        # 子进程必须强制 UTF-8 输出：本用例按 UTF-8 解码 stdout，而 Windows 控制台
+        # 默认 cp936 时子进程会输出 GBK → 被解成 \ufffd 导致断言假失败。
+        # （run_all.py 会给子进程带 PYTHONUTF8，但直接跑本文件时没有。）
+        env = dict(os.environ, YF_PANEL_DIR=sandbox, YF_DB_MODE='apply',
+                   PYTHONUTF8='1', PYTHONIOENCODING='utf-8')
         proc = subprocess.run([sys.executable, '-c', script], cwd=sandbox,
                               env=env, capture_output=True)
         out = proc.stdout.decode('utf-8', 'replace')

@@ -323,6 +323,7 @@
   "重置成功!": "Zurücksetzen erfolgreich!",
   "锁表次数": "Anzahl der Sperrvorgänge",
   "错误,内存分配过高!": "Fehler, Speicherbelegung ist zu hoch!",
+  "错误同步账户!": "Fehler bei der Synchronisierung des Kontos!",
   "错误日志": "Fehlerprotokoll",
   "随机密码": "Zufälliges Passwort",
   "随机读缓冲区大小": "Größe des Puffers für zufällige Lesezugriffe",

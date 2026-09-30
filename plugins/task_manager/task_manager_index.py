@@ -40,6 +40,41 @@ def getServerDir():
     return yf.getServerDir() + '/' + getPluginName()
 
 
+def _panel_dir_marks():
+    """面板自身进程 cmdline 的目录标记（运行时目录 + 历史软链名）。
+
+    面板目录已从 `mdserver-web` 改名为 `yufeng_panel`，历史写死的 `mdserver-web`
+    在真机上匹配不到任何进程（实测 cmdline 含该串的进程数 = 0），因此必须用
+    `yf.getPanelDir()` 这个权威路径；`mdserver-web` 仅作兼容保留，供仍以软链路径
+    启动的旧部署使用。
+    """
+    marks = []
+    try:
+        d = yf.getPanelDir()
+        if d:
+            marks.append(d)
+    except Exception as _e:
+        _log.debug('[task_manager] getPanelDir 失败: %s', _e)
+    marks.append('mdserver-web')
+    return marks
+
+
+def _is_panel_process(cmdline, panel_marks):
+    """cmdline 是否属于面板本体（gunicorn 主进程/工作进程）"""
+    return cmdline.find('gunicorn -c setting.py app:app') != -1 and \
+        any(cmdline.find(m) != -1 for m in panel_marks)
+
+
+def _is_panel_plugin_process(cmdline, panel_marks):
+    """cmdline 是否属于面板拉起的插件进程。
+
+    面板的调用形式（`web/utils/plugin.py`）是
+    `[sys.executable, <面板目录>/plugins/<插件>/index.py, func]`，即 cmdline 里
+    出现的是**面板目录下的 plugins 绝对路径**。
+    """
+    return any(cmdline.find(m + '/plugins/') != -1 for m in panel_marks)
+
+
 class mainClass(object):
 
     pids = None
@@ -171,6 +206,7 @@ class mainClass(object):
 
     # 进程备注，name,pid,启动命令
     def get_process_ps(self, name, pid, p_exe=None, p=None):
+        panel_marks = _panel_dir_marks()
         processPs = {
             'irqbalance': '系统进程-优化系统性能服务',
             'containerd': 'docker管理服务',
@@ -349,18 +385,18 @@ class mainClass(object):
                         return 'SSL证书签发'
                     elif cmdline.find('psync') != -1:
                         return '面板一键迁移'
-                    elif cmdline.find('mdserver-web/plugins') != -1:
+                    elif _is_panel_plugin_process(cmdline, panel_marks):
                         return '面板插件进程'
                     elif cmdline.find('/www/server/cron/') != -1:
                         return '面板计划任务'
                     elif cmdline.find('task.py') != -1:
                         return '御风面板-后台任务'
-                    elif cmdline.find('mdserver-web') != -1 and cmdline.find('gunicorn -c setting.py app:app') != -1:
+                    elif _is_panel_process(cmdline, panel_marks):
                         return '御风面板'
             elif name.lower() == 'gunicorn':
                 if p:
                     cmdline = ' '.join(p.cmdline()).strip()
-                    if cmdline.find('mdserver-web') != -1 and cmdline.find('gunicorn -c setting.py app:app') != -1:
+                    if _is_panel_process(cmdline, panel_marks):
                         return '御风面板'
 
             elif name == 'nginx':
@@ -382,7 +418,7 @@ class mainClass(object):
                     return '御风面板-后台任务'
                 if cmdline.find('/www/server/cron/') != -1:
                     return '面板计划任务'
-                elif cmdline.find('mdserver-web/plugins') != -1:
+                if _is_panel_plugin_process(cmdline, panel_marks):
                     return '面板插件进程'
             
 

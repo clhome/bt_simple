@@ -323,6 +323,7 @@
   "重置成功!": "Reset successful!",
   "锁表次数": "Number of times the clock was locked",
   "错误,内存分配过高!": "Error, memory allocation is too high!",
+  "错误同步账户!": "Account Synchronization Error!",
   "错误日志": "error log",
   "随机密码": "random password",
   "随机读缓冲区大小": "Random Read Buffer Size",

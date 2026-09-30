@@ -323,6 +323,7 @@
   "重置成功!": "Reimpostazione riuscita!",
   "锁表次数": "Numero di blocchi dell'orologio",
   "错误,内存分配过高!": "Errore, l'allocazione della memoria è troppo alta!",
+  "错误同步账户!": "Errore nella sincronizzazione dell'account!",
   "错误日志": "Registro degli errori",
   "随机密码": "Password casuale",
   "随机读缓冲区大小": "Dimensione del buffer di lettura casuale",

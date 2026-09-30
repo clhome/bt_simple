@@ -37,11 +37,19 @@ class TestRedisUpgradeSelfHealing(unittest.TestCase):
             shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_01_status_pid_self_healing(self):
-        """测试 1: 验证 status() 在 PID 丢失或失效时，能通过真实进程探活并自愈写回 PID 文件"""
+        """测试 1: status() 在 PID 丢失或失效时，靠真实进程探活判定 start，并校准写回 PID 文件。
+
+        写回已改走 yf.syncPidFile（只在目录/文件属主都是当前用户时才写）：面板以 root
+        运行而守护进程可能以其他用户运行，直写会把属主改成 root，导致守护进程下次启动
+        无法创建自己的 pid 文件（2026-09-29 真机 P0）。这里把 geteuid 对齐到临时目录属主，
+        因此 Windows 开发机上也能验证写回路径。
+        """
         test_pid_file = os.path.join(self.test_server_dir, 'redis.pid')
         fake_live_pid = 77665
+        owner_uid = os.stat(self.test_server_dir).st_uid
 
-        with patch.object(redis_index, 'getPidFile', return_value=test_pid_file), \
+        with patch.object(os, 'geteuid', create=True, return_value=owner_uid), \
+             patch.object(redis_index, 'getPidFile', return_value=test_pid_file), \
              patch.object(redis_index, 'getRedisPid', return_value=fake_live_pid), \
              patch.object(redis_index, 'checkPluginUpgrade', return_value=None), \
              patch.object(yf, 'checkPid', side_effect=lambda pid: pid == fake_live_pid):
@@ -58,6 +66,14 @@ class TestRedisUpgradeSelfHealing(unittest.TestCase):
             st2 = redis_index.status()
             self.assertEqual(st2, 'start')
             self.assertEqual(yf.readFile(test_pid_file).strip(), str(fake_live_pid), "死 PID 必须被自动自愈替换为真实 PID")
+
+            # 场景 C（真机 P0 形态）: 目录属主不是当前用户 -> 状态判定仍须正确，但绝不写盘
+            os.remove(test_pid_file)
+            with patch.object(os, 'geteuid', create=True, return_value=owner_uid + 4242):
+                st3 = redis_index.status()
+            self.assertEqual(st3, 'start', '属主不匹配时状态判定仍须正确（只是不走快速探针）')
+            self.assertFalse(os.path.exists(test_pid_file),
+                             '属主不匹配时绝不允许写 pid 文件（这正是真机 P0 的成因）')
 
     def test_02_status_stops_when_no_process(self):
         """测试 2: 当无存活进程且 systemd 状态非 active 时，准确判定为 stop"""

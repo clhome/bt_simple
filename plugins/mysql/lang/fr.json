@@ -323,6 +323,7 @@
   "重置成功!": "La réinitialisation a réussi !",
   "锁表次数": "Nombre de verrouillages de l'horloge",
   "错误,内存分配过高!": "Erreur, l'allocation de mémoire est trop élevée !",
+  "错误同步账户!": "Erreur de synchronisation du compte !",
   "错误日志": "journal des erreurs",
   "随机密码": "mot de passe aléatoire",
   "随机读缓冲区大小": "Taille de la mémoire tampon de lecture aléatoire",
