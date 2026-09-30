@@ -36,6 +36,14 @@ $('#panelLogs .refresh').on('click', function () {
 $('#panelLogs .clear').on('click', function () {
   delLogs(1);
 });
+function auditEsc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 function getAuditLogsFiles() {
   var loadT = layer.msg(lan && lan.logs && t('logs.retrieving_the_log_audit') || "", {
     icon: 16,
@@ -43,16 +51,18 @@ function getAuditLogsFiles() {
     shade: 0.3
   });
   $.post('/logs/get_audit_logs_files', {}, function (rdata) {
-    var data = rdata.data;
     layer.close(loadT);
+    var data = (rdata && rdata.data) || [];
+    if (!data.length) {
+      $('#logAudit .logAuditTab').html('');
+      $('#logAudit .logAuditContent').html('');
+      return;
+    }
     var option = '';
     for (var i = 0; i < data.length; i++) {
       var tip = data[i]['name'] + ' - ' + data[i]['title'] + '(' + toSize(data[i]['size']) + ')';
-      if (i == 0) {
-        option += '<div class="logAuditItem active" title="' + tip + '" data-file="' + data[i]['name'] + '">' + tip + '</div>';
-      } else {
-        option += '<div class="logAuditItem" title="' + tip + '" data-file="' + data[i]['name'] + '">' + tip + '</div>';
-      }
+      var tipEsc = auditEsc(tip);
+      option += '<div class="logAuditItem' + (i == 0 ? ' active' : '') + '" title="' + tipEsc + '" data-file="' + auditEsc(data[i]['name']) + '">' + tipEsc + '</div>';
     }
     $("#logAudit .logAuditTab").html(option);
     getAuditFile(data[0]['name']);
@@ -61,7 +71,13 @@ function getAuditLogsFiles() {
       $(this).addClass('active');
       getAuditFile($(this).data('file'));
     });
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg((lan && lan.logs && t('logs.the_log_file_does')) || "", {
+      icon: 2,
+      time: 3000
+    });
+  });
 }
 function getAuditFile(log_name) {
   var loadT = layer.msg(lan && lan.logs && t('logs.retrieving_log_audit_data') || "", {
@@ -75,8 +91,15 @@ function getAuditFile(log_name) {
     layer.close(loadT);
     // console.log(data);
     try {
-      if (typeof data == 'object') {
+      if (typeof data == 'object' && data !== null) {
+        if (data.status === false) {
+          layer.msg(data.msg || '', { icon: 2, time: 5000, shade: [0.3, '#000'] });
+          return;
+        }
         var plist = data.data;
+        if (!plist || typeof plist.length == 'undefined') {
+          plist = [];
+        }
         var pre_html = '<div id="logAuditTable" style="position: relative;display: block;">' +
           '<div class="tootls_group tootls_top">' +
           '<div class="pull-left">' +
@@ -109,16 +132,6 @@ function getAuditFile(log_name) {
         //         <tbody></tbody>\
         //     </table>';
         $('#logAudit .logAuditContent').html(pre_html);
-        if (plist.length > 0) {
-          var tmp = plist[0];
-          var thead = '';
-          tbody += '<tr>';
-          for (var i in tmp) {
-            tbody += '<th>' + i + '</th>';
-          }
-          tbody += '</tr>';
-          $('#logAudit .logAuditContent thead').html(tbody);
-        }
         var tbody = '';
         for (var i = 0; i < plist.length; i++) {
           tbody += '<tr>';
@@ -131,20 +144,25 @@ function getAuditFile(log_name) {
         $('#logAudit .refresh').on('click', function () {
           getAuditFile(log_name);
         });
-      }
-      if (typeof data == 'string') {
+      } else if (typeof data == 'string') {
         var cc = '<div id="logAuditPre">\
             		<pre style="height: 100%; background-color: rgb(51, 51, 51); color: rgb(255, 255, 255); overflow-x: hidden; overflow-wrap: break-word; white-space: pre-wrap;"><code>' + data + '</code></pre>\
             	</div>';
         $('#logAudit .logAuditContent').html(cc);
       }
     } catch (e) {
-      layer.msg(str(e), {
+      layer.msg(String(e), {
         icon: 2,
         time: 10000,
         shade: [0.3, '#000']
       });
     }
+  }).fail(function () {
+    layer.close(loadT);
+    layer.msg((lan && lan.logs && t('logs.the_log_file_does')) || "", {
+      icon: 2,
+      time: 3000
+    });
   });
 }
 function getLogs(page, search) {

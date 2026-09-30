@@ -69,23 +69,36 @@ def addLog(type, log, uid = 1, ip = '') -> bool:
 
 
 def getLogsList(page = 1,size = 10,search = ''):
-    sql_where = ''
-    if search != '' :
-        sql_where = " type like '%" + search + "%' or log like '%" + search + "%' "
+    # 入参容错：非法页号/行数回退默认值，避免上层 int() 抛 ValueError 直接 500；
+    # 行数上限 200，防止 size 无上限地拉全表（性能/内存）。
+    try:
+        page = max(1, int(page))
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        size = max(1, min(200, int(size)))
+    except (TypeError, ValueError):
+        size = 10
 
+    search = (search or '').strip()
     field = 'id,type,log,uid,ip,add_time'
-    dbM = dbC = yf.M('logs').field(field)
 
-    if sql_where != '':
-        count = yf.M('logs').field(field).where(sql_where).count()
+    if search:
+        # 参数化查询：原实现把 search 直接拼进 SQL（注入）
+        where = 'type like ? or log like ?'
+        params = ('%' + search + '%', '%' + search + '%')
+        count = yf.M('logs').where(where, params).count()
+        logs_list = (yf.M('logs').field(field)
+                     .where(where, params)
+                     .limit('%d,%d' % ((page - 1) * size, size))
+                     .order('id desc').select())
     else:
-        count = yf.M('logs').field(field).count()
-
-    start = (int(page) - 1) * (int(size))
-    limit = str(start) + ',' +str(size)
-    logs_list = yf.M('logs').field(field).limit(limit).order('id desc').select()
+        count = yf.M('logs').count()
+        logs_list = (yf.M('logs').field(field)
+                     .limit('%d,%d' % ((page - 1) * size, size))
+                     .order('id desc').select())
 
     data = {}
-    data['list'] = logs_list
+    data['list'] = logs_list if isinstance(logs_list, list) else []
     data['count'] = count
     return data

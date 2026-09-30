@@ -36,7 +36,8 @@ def get_log_list():
     size = request.form.get('limit', '10').strip()
     search = request.form.get('search', '').strip()
 
-    info = thisdb.getLogsList(page=int(p),size=int(size), search=search)
+    # 入参容错交给 thisdb.getLogsList（含页大小上限），避免 int() 抛错变 500
+    info = thisdb.getLogsList(page=p, size=size, search=search)
 
     # 操作日志落库时保存的是中文原文（历史记录亦然），在输出层统一
     # 按当前语言渲染「操作类型」与「详情」，切语言无需重写数据库。
@@ -121,7 +122,11 @@ def get_audit_logs_files():
 @panel_login_required
 def get_audit_file():
     name = request.form.get('log_name', '').strip()
-    return adult_log.getAuditLogsName(name)
+    try:
+        return adult_log.getAuditLogsName(name)
+    except Exception as e:
+        # 审计读取失败不给前端 500：完整堆栈进日志，前端只拿安全提示。
+        return yf.returnData(False, yf.userSafeError(e))
 
 
 
