@@ -18,6 +18,35 @@ function getDate(a) {
 }
 
 /**
+ * 站点列表里的站点名/备注/路径都来自数据库（用户可控），以前直接拼进 HTML：
+ * 备注存 <img src=x onerror=...> 就是存储型 XSS。
+ */
+function yfText(v) {
+  if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+    return YfI18n.escapeHtml(v == null ? '' : String(v));
+  }
+  return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：HTML 转义挡不住注入
+ * （浏览器会先把实体还原成引号再交给 JS 解析），必须按 JS 字符串转义；
+ * 且引号一律走实体（否则 " 会直接终止 HTML 属性值 -> 属性注入）。
+ * 顺序要求：先转义反斜杠与 &，再转义引号，否则新引入的 \ 会被二次转义。
+ */
+function yfJsStr(v) {
+  return String(v == null ? '' : v)
+    .replace(/\\/g, '\\\\')
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
+/**
  * 取回网站数据列表
  * @param {Number} page   当前页
  * @param {String} search 搜索条件
@@ -54,6 +83,10 @@ function getWeb(page, type_id, search) {
     var list = data.data;
     window.site_list_cache = list;
     for (var i = 0; i < list.length; i++) {
+      // 站点名既进 HTML 文本也进行内 onclick 的 JS 字符串：两种场景分别转义
+      var jsName = yfJsStr(list[i].name);
+      var txtName = yfText(list[i].name);
+      var jsPath = yfJsStr(list[i].path);
       // 当前站点状态
       var trClass = '';
       var stopTitle = (lan && lan.site && t('site.stop_this_site')) || '停用这个站点';
@@ -63,9 +96,9 @@ function getWeb(page, type_id, search) {
 
       var status = '';
       if (list[i].status == '正在运行' || list[i].status == '1' || list[i].status == (lan && lan.site && t('site.running')) || list[i].status == '运行中') {
-        status = "<a href='javascript:;' title='" + stopTitle + "' onclick=\"webStop(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>" + runningText + "</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
+        status = "<a href='javascript:;' title='" + stopTitle + "' onclick=\"webStop(" + list[i].id + ",'" + jsName + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>" + runningText + "</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
       } else {
-        status = "<a href='javascript:;' title='" + startTitle + "' onclick=\"webStart(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:red'>" + stoppedText + "</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
+        status = "<a href='javascript:;' title='" + startTitle + "' onclick=\"webStart(" + list[i].id + ",'" + jsName + "')\" class='btn-defsult'><span style='color:red'>" + stoppedText + "</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
         trClass = ' class="danger-row"';
       }
 
@@ -74,23 +107,20 @@ function getWeb(page, type_id, search) {
       var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + ")\">" + backupText + "</a>";
 
       // 是否设置有效期
-      var web_end_time = (list[i].edate == "0000-00-00") ? ((lan && lan.site && t('site.permanent')) || '永久') : list[i].edate;
+      var web_end_time = (list[i].edate == "0000-00-00") ? ((lan && lan.site && t('site.permanent')) || '永久') : yfText(list[i].edate);
 
       // 表格主体
-      var shortwebname = list[i].name;
-      var fullpath = list[i].path;
-      if (list[i].name.length > 30) {
-        shortwebname = list[i].name.substring(0, 30) + "...";
-      }
-      if (fullpath.length > 100) {
-        fullpath = fullpath.substring(0, 100) + "...";
-      }
-      var idname = list[i].name.replace(/\./g, '_');
+      var shortwebname = list[i].name.length > 30 ? (list[i].name.substring(0, 30) + "...") : list[i].name;
+      shortwebname = yfText(shortwebname);
+      var fullpathRaw = String(list[i].path == null ? '' : list[i].path);
+      var fullpath = fullpathRaw.length > 100 ? (fullpathRaw.substring(0, 100) + "...") : fullpathRaw;
+      fullpath = yfText(fullpath);
+      var idname = String(list[i].name).replace(/[^\w\-]/g, '_');
 
       // PHP版本
       var staticText = (lan && lan.site && t('site.static')) || '静态';
       var php_show_text = list[i].php_version == '00' ? staticText : (list[i].php_version.length == 2 ? list[i].php_version.substring(0, 1) + '.' + list[i].php_version.substring(1) : list[i].php_version);
-      var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + list[i].name + "', '" + list[i].php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
+      var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + jsName + "', '" + yfJsStr(list[i].php_version) + "')\" style='color:#20a53a'>" + yfText(php_show_text) + "</a>";
 
       // SSL证书
       var notDeployedText = (lan && lan.site && t('site.ssl_bbb')) || '未部署';
@@ -100,27 +130,27 @@ function getWeb(page, type_id, search) {
 
       var ssl_text = '';
       if (list[i].ssl_days == -1) {
-        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#bbb'>" + notDeployedText + "</a>";
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + jsName + "','" + yfJsStr(list[i].edate) + "','" + yfJsStr(list[i].add_time) + "', 'ssl')\" style='color:#bbb'>" + notDeployedText + "</a>";
       } else if (list[i].ssl_days < 10) {
-        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:red'>" + remainingTextRed + list[i].ssl_days + dayText + "</a>";
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + jsName + "','" + yfJsStr(list[i].edate) + "','" + yfJsStr(list[i].add_time) + "', 'ssl')\" style='color:red'>" + remainingTextRed + list[i].ssl_days + dayText + "</a>";
       } else {
-        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#20a53a'>" + remainingTextGreen + list[i].ssl_days + dayText + "</a>";
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + jsName + "','" + yfJsStr(list[i].edate) + "','" + yfJsStr(list[i].add_time) + "', 'ssl')\" style='color:#20a53a'>" + remainingTextGreen + list[i].ssl_days + dayText + "</a>";
       }
 
       var daily_traffic = toSize(list[i].daily_traffic);
-      var add_time_str = list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0, 10) : list[i].add_time;
+      var add_time_str = yfText(list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0, 10) : list[i].add_time);
       var openDirTitle = (lan && lan.site && t('site.open_dir')) || '打开目录';
       var settingText = (lan && lan.site && t('site.config_settings')) || '设置';
       var deleteTitle = (lan && lan.site && t('site.delete_site_title')) || '删除站点';
       var deleteText = (lan && lan.site && t('site.msg_1')) || '删除';
-      var psText = list[i].ps || '';
+      var psText = yfText(list[i].ps || '');
 
       body = "<tr" + trClass + ">" +
-        "<td><input type='checkbox' name='id' title='" + list[i].name + "' onclick='checkSelect();' value='" + list[i].id + "'></td>" +
-        "<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='" + list[i].name + "'>" + shortwebname + "</a></td>" +
+        "<td><input type='checkbox' name='id' title='" + txtName + "' onclick='checkSelect();' value='" + list[i].id + "'></td>" +
+        "<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + jsName + "','" + yfJsStr(list[i].edate) + "','" + yfJsStr(list[i].add_time) + "')\" title='" + txtName + "'>" + shortwebname + "</a></td>" +
         "<td>" + status + "</td>" +
         "<td>" + backup + "</td>" +
-        "<td><a class='btlink' style='display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;' title='" + openDirTitle + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + fullpath + "</a></td>" +
+        "<td><a class='btlink' style='display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;' title='" + yfText(openDirTitle + String(list[i].path == null ? '' : list[i].path)) + "' href=\"javascript:openPath('" + jsPath + "');\">" + fullpath + "</a></td>" +
         "<td>" + add_time_str + "</td>" +
         "<td>" + daily_traffic + "</td>" +
         "<td>" + php_text + "</td>" +
@@ -128,8 +158,8 @@ function getWeb(page, type_id, search) {
         "<td><a class='btlink setTimes' id='site_" + list[i].id + "' data-ids='" + list[i].id + "'>" + web_end_time + "</a></td>" +
         "<td><a class='btlinkbed' href='javascript:;' data-id='" + list[i].id + "'>" + psText + "</a></td>" +
         "<td style='text-align:right; color:#bbb'>" +
-          "<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'config')\">" + settingText + "</a>" +
-          " | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + list[i].id + "','" + list[i].name + "')\" title='" + deleteTitle + "'>" + deleteText + "</a>" +
+          "<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + jsName + "','" + yfJsStr(list[i].edate) + "','" + yfJsStr(list[i].add_time) + "', 'config')\">" + settingText + "</a>" +
+          " | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + list[i].id + "','" + jsName + "')\" title='" + deleteTitle + "'>" + deleteText + "</a>" +
         "</td>" +
       "</tr>";
       $("#webBody").append(body);

@@ -30,12 +30,19 @@ def index():
 @blueprint.route('/list', endpoint='list', methods=['POST'])
 @panel_login_required
 def list():
-    page = request.args.get('p', '1').strip()
-    limit = request.args.get('limit', '10').strip()
+    def _int_arg(name, default):
+        try:
+            return int(request.args.get(name, default))
+        except (TypeError, ValueError):
+            return int(default)
+
+    page = max(_int_arg('p', 1), 1)
+    # 上限 1000：导出功能就是按 limit=1000 拉全量，再大只会白拉数据
+    limit = min(max(_int_arg('limit', 10), 1), 1000)
     search = request.args.get('search', '').strip()
     orderby = request.args.get('orderby', 'last_run_time').strip()
     order = request.args.get('order', 'desc').strip()
-    return YfCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
+    return YfCrontab.instance().getCrontabList(page=page,size=limit, search=search, orderby=orderby, order=order)
 
 # 计划任务日志
 @blueprint.route('/logs', endpoint='logs', methods=['POST'])
@@ -80,6 +87,8 @@ def get_data_list():
 def get_crond_find():
     cron_id = request.form.get('id', '')
     data = YfCrontab.instance().getCrondFind(cron_id)
+    if data is None:
+        return yf.returnData(False, 'common.param_error')
     return data
 
 # 修改计划任务
@@ -102,6 +111,12 @@ def modify_crond():
     request_data['url_address'] = request.form.get('url_address', '')
     request_data['attr'] = request.form.get('attr', '')
     request_data['day_type'] = request.form.get('day_type', '0')
+    for _k, _d in (('min_start_en', '0'), ('min_start_h', '0'), ('min_start_m', '0'),
+                   ('min_end_en', '0'), ('min_end_h', '23'), ('min_end_m', '59')):
+        request_data[_k] = request.form.get(_k, _d)
+    # 导入（导出文件里没有 week 字段）时周任务只剩 where1：补回 week，否则周字段为空
+    if request_data['type'] == 'week' and request_data['week'] == '':
+        request_data['week'] = request_data['where1']
     cron_id = request.form.get('id', '')
     data = YfCrontab.instance().modifyCrond(cron_id,request_data)
     return data
@@ -132,6 +147,12 @@ def add():
     request_data['url_address'] = request.form.get('url_address', '')
     request_data['attr'] = request.form.get('attr', '')
     request_data['day_type'] = request.form.get('day_type', '0')
+    for _k, _d in (('min_start_en', '0'), ('min_start_h', '0'), ('min_start_m', '0'),
+                   ('min_end_en', '0'), ('min_end_h', '23'), ('min_end_m', '59')):
+        request_data[_k] = request.form.get(_k, _d)
+    # 导入（导出文件里没有 week 字段）时周任务只剩 where1：补回 week，否则周字段为空
+    if request_data['type'] == 'week' and request_data['week'] == '':
+        request_data['week'] = request_data['where1']
 
     info = thisdb.getCronByName(request_data['name'])
     if info is not None:

@@ -24,6 +24,48 @@ import logging
 
 _log = logging.getLogger('yf.site')
 
+#: 站点名/模板名/证书名会被拼进 vhost、rewrite、pass、proxy、redirect、ssl 的文件路径，
+#: 因此必须先过白名单：拒绝空、超长、`..`、路径分隔符、控制字符与空白。
+#: （不限制非 ASCII：面板支持 IDN 站点，中文目录/文件名在 Linux 上是合法的。）
+_SITE_NAME_BAD_RE = re.compile(r'[/\\\x00-\x1f\x7f]')
+
+#: 域名（与 addDomain 的历史正则保持一致，另允许泛域名前缀）
+_DOMAIN_RE = re.compile(r"^([\w\-\*]{1,100}\.){1,4}([\w\-]{1,24}|[\w\-]{1,24}\.[\w\-]{1,24})$")
+
+#: 邮箱：用于拼接 acme 命令串，只允许安全字符
+_EMAIL_RE = re.compile(r'^[A-Za-z0-9_.+@\-]*$')
+
+
+def safeSiteName(name):
+    """站点名/模板名/证书名的统一白名单校验，不合法返回 ''。
+
+    真实踩坑：`get_host_conf`、`set_rewrite_tpl`、`remove_cert` 等入口都把用户给的
+    名字直接拼进路径，`../../` 可读写/删除配置目录之外的任意文件。
+    """
+    name = str(name or '').strip()
+    if not name or len(name) > 100 or '..' in name:
+        return ''
+    if _SITE_NAME_BAD_RE.search(name):
+        return ''
+    if any(ch.isspace() for ch in name):
+        return ''
+    return name
+
+
+def isSafePathInside(base, target):
+    """target 的 realpath 是否严格位于 base（realpath）之内（防穿越与软链绕过）。"""
+    if not target or not isinstance(target, str):
+        return False
+    try:
+        real_base = os.path.realpath(base).rstrip('/\\')
+        real_target = os.path.realpath(target).rstrip('/\\')
+        if not real_base or not real_target or real_base == '/':
+            return False
+        return real_target == real_base or real_target.startswith(real_base + os.sep)
+    except Exception as _e:
+        return False
+
+
 def chownR(path, user, group=None):
     if yf.isAppleSystem():
         return True
@@ -163,10 +205,18 @@ class sites(object):
         return npath.replace('//', '/')
 
     def getHostConf(self, siteName):
-        return self.vhostPath + '/' + siteName + '.conf'
+        # 站点名要拼进路径：不合法就直接返回空串（下游 os.path.exists/readFile 均为假，
+        # 不会落到 writeFile，避免用 ../../ 逃出 vhost 目录读写任意 *.conf）
+        name = safeSiteName(siteName)
+        if not name:
+            return ''
+        return self.vhostPath + '/' + name + '.conf'
 
     def saveHostConf(self, path, data, encoding):
         import utils.file as file
+        # path 由前端回传：只能改本站点 vhost 目录内的文件
+        if not isSafePathInside(self.vhostPath, path):
+            return yf.returnData(False, 'site.py_msg_af1106')
         yf.backFile(path)
         rdata = file.saveBody(path, data, encoding)
 
@@ -180,7 +230,10 @@ class sites(object):
         return rdata
 
     def getRewriteConf(self, site_name):
-        return self.rewritePath + '/' + site_name + '.conf'
+        name = safeSiteName(site_name)
+        if not name:
+            return ''
+        return self.rewritePath + '/' + name + '.conf'
 
     def getRedirectDataPath(self, site_name):
         return "{}/{}/data.json".format(self.redirectPath, site_name)
@@ -195,7 +248,11 @@ class sites(object):
         return "{}/{}".format(self.proxyPath, site_name)
 
     def getDirBindRewrite(self, site_name, dir_name):
-        return self.rewritePath + '/' + site_name + '_' + dir_name + '.conf'
+        name = safeSiteName(site_name)
+        dir_name = safeSiteName(dir_name)
+        if not name or not dir_name:
+            return ''
+        return self.rewritePath + '/' + name + '_' + dir_name + '.conf'
 
     def getIndexConf(self):
         return yf.getServerDir() + '/openresty/nginx/conf/nginx.conf'
@@ -404,11 +461,29 @@ class sites(object):
         if site_root_dir == path.rstrip('/'):
             return yf.returnData(False, 'site.py_msg_a01391')
 
-        site_info = json.loads(site_info)
+        try:
+            site_info = json.loads(site_info)
+        except Exception:
+            return yf.returnData(False, 'site.py_msg_799c9d')
+        if not isinstance(site_info, dict) or not str(site_info.get('domain') or '').strip():
+            return yf.returnData(False, 'site.py_msg_799c9d')
 
-        self.siteName = self.toPunycode(site_info['domain'].strip().split(':')[0]).strip()
-        self.sitePath = self.toPunycodePath(self.getPath(path.replace(' ', '')))
-        self.sitePort = port.strip().replace(' ', '')
+        # 站点名/目录/端口都会进入文件名与 nginx 配置，必须先校验：
+        # 不校验时 `../../x` 能把 vhost 配置写到任意路径；非法端口会生成
+        # nginx -t 不过的配置，而以前 add() 不校验配置却直接报成功。
+        domain = str(site_info.get('domain')).strip().split(':')[0]
+        self.siteName = safeSiteName(self.toPunycode(domain).strip())
+        if not self.siteName:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
+
+        raw_path = str(path or '').replace(' ', '')
+        if not raw_path or raw_path.rstrip('/') in ('', '/') or '..' in raw_path:
+            return yf.returnData(False, 'site.py_msg_7c7b97')
+        self.sitePath = self.toPunycodePath(self.getPath(raw_path))
+
+        self.sitePort = str(port or '').strip().replace(' ', '')
+        if not self.sitePort.isdigit() or not yf.checkPort(self.sitePort):
+            return yf.returnData(False, 'site.py_msg_68e754')
         self.phpVersion = version
 
         if thisdb.isSitesExist(self.siteName):
@@ -418,8 +493,21 @@ class sites(object):
         if site_id < 1:
             return yf.returnData(False, 'common.add_failed') 
 
+        path_existed = os.path.exists(self.sitePath)
         self.createRootDir(self.sitePath)
         self.nginxAddConf()
+
+        # 生成的配置必须能过 nginx -t：否则一旦 openresty 重启就是全站故障，
+        # 而旧代码只报「添加成功」并把这个坑留给下次 reload。
+        isError = yf.checkWebConfig()
+        if isError != True:
+            yf.deleteFile(self.getHostConf(self.siteName))
+            yf.deleteFile(self.getRewriteConf(self.siteName))
+            thisdb.deleteDomainBySiteId(site_id)
+            thisdb.deleteSitesById(site_id)
+            if not path_existed:
+                yf.removeDir(self.sitePath)
+            return yf.returnData(False, 'site.py_msg_error_output', None, str(isError).replace("\n", '<br>'))
 
         # 如果目录原来有.user.ini,先强制删除
         user_ini = self.sitePath + '/.user.ini'
@@ -433,7 +521,7 @@ class sites(object):
         # 主域名配置
         thisdb.addDomain(site_id, self.siteName, self.sitePort)
         # 添加更多域名
-        for domain in site_info['domainlist']:
+        for domain in site_info.get('domainlist') or []:
             self.addDomain(site_id, self.siteName, domain)
 
         yf.restartWeb()
@@ -681,6 +769,11 @@ class sites(object):
             if os.path.exists(site_error):
                 yf.removeDir(site_error)
 
+            # 子目录绑定的伪静态文件也要一并清掉，否则删站后在 rewrite 目录留下孤儿配置
+            bind_rewrite = self.getDirBindRewrite(webname, x['path'])
+            if bind_rewrite and os.path.exists(bind_rewrite):
+                yf.deleteFile(bind_rewrite)
+
         thisdb.deleteBindingBySiteId(site_id)
         yf.restartWeb()
 
@@ -730,6 +823,9 @@ class sites(object):
         return yf.returnData(True, 'site.py_msg_40c79f')
 
     def setSsl(self, site_name, key, csr):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         path = self.sslDir + '/' + site_name
         if not os.path.exists(path):
             yf.makeDirs(path)
@@ -888,12 +984,18 @@ class sites(object):
 
     # 获取模版名内容
     def getRewriteTpl(self, name):
+        name = safeSiteName(name)
+        if not name:
+            return yf.returnData(False, 'site.template_not_exists')
         path = self.getNgxRewriteDir() +'/'+ name + ".conf"
         if not os.path.exists(path):
             return yf.returnData(False, 'site.template_not_exists')
         return yf.returnData(True, 'OK', path)
 
     def setRewrite(self,path,data,encoding):
+        # 只能写本站点的伪静态文件：path 由前端回传，不校验就能写任意文件（root 权限）
+        if not isSafePathInside(self.rewritePath, path):
+            return yf.returnData(False, 'site.py_msg_af1106')
         if not os.path.exists(path):
             yf.writeFile(path, '')
 
@@ -902,11 +1004,17 @@ class sites(object):
         isError = yf.checkWebConfig()
         if(type(isError) == str):
             yf.restoreFile(path)
+            yf.removeBackFile(path)
             return yf.returnJson(False, 'site.py_msg_error_output', None, isError.replace("\n", '<br>'))
+        # 保存成功必须清理 _bak，否则每次保存都会在 rewrite 目录里堆一个副本
+        yf.removeBackFile(path)
         yf.restartWeb()
         return yf.returnData(True, 'common.set_success')
 
     def setRewriteTpl(self,name,data):
+        name = safeSiteName(name)
+        if not name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         path = self.getNgxRewriteDir() +'/'+ name + ".conf"
         if os.path.exists(path):
             return yf.returnData(False, 'site.template_exists')
@@ -1052,6 +1160,10 @@ class sites(object):
         return yf.returnData(True, 'site.py_msg_bf9941')
 
     def setDirUserIni(self, site_path, run_path):
+        # .user.ini / open_basedir 只能写站点根目录（在 www 目录内），
+        # 否则前端回传的 path 可以写到任意位置（root 权限）
+        if not isSafePathInside(yf.getWwwDir(), site_path):
+            return yf.returnData(False, 'site.py_msg_af1106')
         filename = site_path + '/.user.ini'
         if os.path.exists(filename):
             self.delUserInI(site_path)
@@ -1096,19 +1208,23 @@ class sites(object):
         return yf.returnJson(True, 'OK', data)
 
     def addDirBind(self, site_id, domain, dir_name):
-        domain_split = domain.split(':')
+        domain_split = str(domain or '').split(':')
         domain = domain_split[0]
         port = '80'
         if len(domain_split) > 1:
             port = domain_split[1]
-        if dir_name == '':
-            yf.returnData(False, 'file.dir_empty')
+        # 历史上这里少了 return：空目录名会继续往下走，把整个站点根目录绑成子目录
+        dir_name = safeSiteName(dir_name)
+        if not dir_name:
+            return yf.returnData(False, 'file.dir_empty')
 
         reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
         if not re.match(reg, domain):
             return yf.returnData(False, 'site.py_msg_8e31f6')
 
         info = thisdb.getSitesById(site_id)
+        if not info:
+            return yf.returnData(False, 'site.py_msg_005e3b')
         webdir = info['path'] + '/' + dir_name
 
         if thisdb.getBindingCountByDomain(domain):
@@ -1402,6 +1518,10 @@ class sites(object):
 
     def getSitePhpVersion(self, siteName):
         conf = yf.readFile(self.getHostConf(siteName))
+        # getHostConf 对非法站点名返回 ''，readFile 得到 False：以前直接 re.search(bool)
+        # 会抛 TypeError（真机实测 /site/get_site_php_version 穿趈名 500）
+        if not conf:
+            return {'phpversion': '00'}
         rep = r"enable-php-(.*)\.conf"
         find_php_cnf = re.search(rep, conf)
 
@@ -1523,6 +1643,8 @@ class sites(object):
 
         filename = self.getHostConf(siteName)
         conf = yf.readFile(filename)
+        if not conf:
+            return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
         if(conf.find('limit_conn perserver') != -1):
             # 替换总并发
             rep = r"limit_conn\s+perserver\s+([0-9]+);"
@@ -1552,6 +1674,8 @@ class sites(object):
 
         filename = self.getHostConf(siteName)
         conf = yf.readFile(filename)
+        if not conf:
+            return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
         # 清理总并发
         rep = r"\s+limit_conn\s+perserver\s+([0-9]+);"
         conf = re.sub(rep, '', conf)
@@ -1571,6 +1695,9 @@ class sites(object):
 
     # 获取重定向配置
     def getRedirect(self, site_name):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         redirect_file = self.getRedirectDataPath(site_name)
         if not os.path.exists(redirect_file):
             yf.makeDirs(self.getRedirectPath(site_name))
@@ -1589,6 +1716,7 @@ class sites(object):
         return yf.returnData(True, "ok", {"result": data, "count": len(data)})
 
     def setRedirectStatus(self, site_name, redirect_id, status):
+        site_name = safeSiteName(site_name)
         if status == '' or site_name == '' or redirect_id == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -1632,6 +1760,7 @@ class sites(object):
 
     # get redirect status
     def setRedirect(self, site_name, site_from, to, type, r_type, keep_path):
+        site_name = safeSiteName(site_name)
         if site_name == '' or site_from == '' or to == '' or type == '' or r_type == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -1646,6 +1775,9 @@ class sites(object):
         # check if domain exists in site
         if _type_code == 1:
             domain_list = yf.M('domain').where("name=?", (site_name,)).field('id,pid,name,port,add_time').select()
+            # 站点不存在时 domain_list 为空：旧代码直接取 [0] 会 IndexError -> 500
+            if not domain_list:
+                return yf.returnData(False, 'site.py_msg_66c149')
             site_domain_lists = yf.M('domain').where("pid=?", (domain_list[0]['pid'],)).field('name').select()
             found = False
             for item in site_domain_lists:
@@ -1696,6 +1828,7 @@ class sites(object):
         return yf.returnData(True, 'common.set_success')
 
     def getRedirectConf(self, site_name, redirect_id):
+        site_name = safeSiteName(site_name)
         if redirect_id == '' or site_name == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -1708,6 +1841,7 @@ class sites(object):
 
         # 删除指定重定向
     def delRedirect(self,siteName, rid):
+        siteName = safeSiteName(siteName)
         if rid == '' or siteName == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -1733,10 +1867,15 @@ class sites(object):
                     _log.debug('[site] 删除目标配置失败: %s -> %s', target_conf, _e)
         except Exception as e:
             return yf.returnData(False, 'utils.py_msg_90d0f2', None, str(e))
+        # 删掉规则必须 reload，否则 nginx 还拿着旧配置继续做 301（表面看像没删掉）
+        yf.restartWeb()
         return yf.returnData(True, 'common.del_success')
 
     # 读取 网站 反向代理列表
     def getProxyList(self, site_name):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         data_path = self.getProxyDataPath(site_name)
 
         if not os.path.exists(data_path):
@@ -1814,6 +1953,8 @@ class sites(object):
     # 设置 网站 反向代理列表
     def setProxy(self, site_name, site_from, to, host, name, open_proxy, open_cors, open_http3,open_cache, cache_time, proxy_id):
         from urllib.parse import urlparse
+        site_name = safeSiteName(site_name)
+        proxy_id = safeSiteName(proxy_id)
         if  site_name == "" or site_from == "" or to == "" or host == "" or name == "":
             return yf.returnData(False, 'site.py_msg_d2a11d')
 
@@ -2049,6 +2190,8 @@ location  {from} {\n\
         return yf.returnData(True, "ok", {"hash": proxy_id})
 
     def setProxyStatus(self, site_name, proxy_id, status):
+        site_name = safeSiteName(site_name)
+        proxy_id = safeSiteName(proxy_id)
         if status == '' or site_name == '' or proxy_id == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -2160,6 +2303,7 @@ location  {from} {\n\
         return True
 
     def saveRedirectConf(self, site_name, redirect_id, config):
+        site_name = safeSiteName(site_name)
         if redirect_id == '' or site_name == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -2179,6 +2323,8 @@ location  {from} {\n\
 
 
     def getProxyConf(self, site_name, proxy_id):
+        site_name = safeSiteName(site_name)
+        proxy_id = safeSiteName(proxy_id)
         if proxy_id == '' or site_name == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -2194,6 +2340,8 @@ location  {from} {\n\
 
     def saveProxyConf(self, site_name, proxy_id, config):
         
+        site_name = safeSiteName(site_name)
+        proxy_id = safeSiteName(proxy_id)
         if proxy_id == '' or site_name == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -2212,6 +2360,8 @@ location  {from} {\n\
         return yf.returnData(True, "ok")
 
     def delProxy(self, site_name, proxy_id):
+        site_name = safeSiteName(site_name)
+        proxy_id = safeSiteName(proxy_id)
         if proxy_id == '' or site_name == '':
             return yf.returnData(False, 'site.py_msg_5a2b21')
 
@@ -2229,9 +2379,16 @@ location  {from} {\n\
             # data is empty,should stop
             if len(data) == 0:
                 self.operateProxyConf(site_name, 'stop')
-            # remove conf file
-            cmd = "rm -rf {}/{}.conf*".format(self.getProxyPath(site_name), proxy_id)
-            yf.execShell(cmd)
+            # remove conf file（不再拼 shell：proxy_id 来自请求，
+            # `123; touch /tmp/x` 这类值能在 root 下执行任意命令）
+            proxy_dir = self.getProxyPath(site_name)
+            for suffix in ('.conf', '.conf.txt', '.conf_bak'):
+                target = proxy_dir + '/' + proxy_id + suffix
+                if os.path.exists(target):
+                    try:
+                        os.remove(target)
+                    except Exception as _e:
+                        yf.writeFileLog('[site] 删除代理配置失败: %s -> %s' % (target, _e))
         except Exception as _e:
             return yf.returnData(False, 'site.py_msg_4adab3')
 
@@ -2250,6 +2407,9 @@ location  {from} {\n\
     def getSsl(self, site_name, ssl_type):
         file = self.getHostConf(site_name)
         content = yf.readFile(file)
+        # 站点不存在/名字非法时 readFile 返回 False，继续 find 会 500
+        if not content:
+            return yf.returnData(False, 'utils.py_msg_802376', None, site_name)
 
         key_text = 'ssl_certificate'
         status = True
@@ -2261,6 +2421,8 @@ location  {from} {\n\
         to_https = self.isToHttps(site_name)
 
         site_info = thisdb.getSitesByName(site_name)
+        if not site_info:
+            return yf.returnData(False, 'utils.py_msg_802376', None, site_name)
         domains = thisdb.getDomainBySiteId(site_info['id'])
 
         path = self.sslDir + '/' + site_name
@@ -2342,14 +2504,37 @@ location  {from} {\n\
 
 
     def setPhpVersion(self, siteName, version):
+        siteName = safeSiteName(siteName)
+        version = str(version or '').strip()
+        if not siteName:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
+        # 版本号必须真实存在：旧代码任意字符串都会写进 vhost（enable-php-zz.conf
+        # 不存在 -> nginx -t 不过），而接口还报“切换成功”。
+        if not re.match(r'^[0-9]{2,3}$', version):
+            return yf.returnData(False, 'site.py_msg_b8a2ef')
+        if not os.path.exists(self.setupPath + '/php/conf/enable-php-' + version + '.conf'):
+            return yf.returnData(False, 'site.py_msg_b8a2ef')
+
         # nginx
         file = self.getHostConf(siteName)
         conf = yf.readFile(file)
-        if conf:
-            rep = r"enable-php-(.*)\.conf"
-            tmp = re.search(rep, conf).group()
-            conf = conf.replace(tmp, 'enable-php-' + version + '.conf')
-            yf.writeFile(file, conf)
+        if not conf:
+            return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
+        rep = r"enable-php-(.*)\.conf"
+        find_php = re.search(rep, conf)
+        if not find_php:
+            return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
+
+        old_conf = conf
+        conf = conf.replace(find_php.group(), 'enable-php-' + version + '.conf')
+        yf.writeFile(file, conf)
+
+        # 切换后必须过 nginx -t，否则回滚
+        isError = yf.checkWebConfig()
+        if isError != True:
+            yf.writeFile(file, old_conf)
+            yf.checkWebConfig()
+            return yf.returnData(False, 'site.py_msg_error_output', None, str(isError).replace("\n", '<br>'))
 
         msg = yf.getInfo('成功切换网站[{1}]的PHP版本为PHP-{2}', (siteName, version))
         yf.writeLog("网站管理", msg)
@@ -2536,6 +2721,9 @@ location  {from} {\n\
         return True
 
     def closeSslConf(self, site_name):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         file = self.getHostConf(site_name)
         conf = yf.readFile(file)
 
@@ -2588,6 +2776,9 @@ location  {from} {\n\
         return yf.returnData(True, 'site.py_msg_a28e94')
 
     def deleteSsl(self,site_name,ssl_type):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         path = self.sslDir + '/' + site_name
         csr_path = path + '/fullchain.pem'
 
@@ -2967,14 +3158,38 @@ export PATH
         yf.restartWeb()
         return yf.returnData(True, 'site.py_msg_ee600b', result)
 
+    def _sslApplyArgs(self, site_name, domains, email, dns_alias=''):
+        """SSL 申请入口的输入校验（site_name/domains/email/dns_alias 都会拼进 acme 命令串）。
+
+        返回 (site_name, domains, email, dns_alias)；不合法时首项为 None。
+        """
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return None, domains, email, dns_alias
+        if not _EMAIL_RE.match(str(email or '').strip()):
+            return None, domains, email, dns_alias
+        dns_alias = str(dns_alias or '').strip()
+        if dns_alias and not _DOMAIN_RE.match(dns_alias):
+            return None, domains, email, dns_alias
+        for d in domains or []:
+            if not isinstance(d, str) or not (_DOMAIN_RE.match(d) or yf.checkIp(d)):
+                return None, domains, email, dns_alias
+        return site_name, domains, email, dns_alias
+
     def createAcme(self, site_name, domains, force, renew, apply_type, apply_ca, dnspai, email, wildcard_domain, dns_alias):
-        domains = json.loads(domains)
-        if len(domains) < 1:
+        try:
+            domains = json.loads(domains)
+        except Exception:
             return yf.returnData(False, 'site.py_msg_9e0c0d')
-        if email.strip() != '':
+        if not isinstance(domains, list) or len(domains) < 1:
+            return yf.returnData(False, 'site.py_msg_9e0c0d')
+        site_name, domains, email, dns_alias = self._sslApplyArgs(site_name, domains, email, dns_alias)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
+        if str(email).strip() != '':
             thisdb.setOption('ssl_email', email)
 
-        if email.strip() == '':
+        if str(email).strip() == '':
             email = yf.getRandomString(10)+"."+yf.getRandomString(3) + '@gmail.com'
 
         # 检测acme是否安装
@@ -3002,10 +3217,16 @@ export PATH
         return yf.returnData(False, 'site.py_msg_3b1e7a')
 
     def createLet(self, site_name, domains, force, renew, apply_type, dnspai, email, wildcard_domain):
-        domains = json.loads(domains)
-        if len(domains) < 1:
+        try:
+            domains = json.loads(domains)
+        except Exception:
             return yf.returnData(False, 'site.py_msg_9e0c0d')
-        if email.strip() != '':
+        if not isinstance(domains, list) or len(domains) < 1:
+            return yf.returnData(False, 'site.py_msg_9e0c0d')
+        site_name, domains, email, _ = self._sslApplyArgs(site_name, domains, email)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
+        if str(email).strip() != '':
             thisdb.setOption('ssl_email', email)
 
 
@@ -3082,6 +3303,9 @@ export PATH
         return yf.returnData(data['status'], data['msg'], result)
 
     def setCertToSite(self, site_name, cert_name):
+        site_name = safeSiteName(site_name)
+        if not site_name:
+            return yf.returnData(False, 'site.py_msg_dbd9b9')
         try:
             path = self.sslDir + '/' + site_name.strip()
             if not os.path.exists(path):
@@ -3098,8 +3322,14 @@ export PATH
             return yf.returnData(False, 'utils.py_msg_6ab613', None, str(ex))
 
     def removeCert(self, cert_name):
+        # cert_name 直接拼进路径后又走 rmtree：不校验就能删掉任意目录
+        cert_name = safeSiteName(cert_name)
+        if not cert_name:
+            return yf.returnData(False, 'site.py_msg_6a6606')
         try:
             path = self.sslDir + '/' + cert_name
+            if not isSafePathInside(self.sslDir, path):
+                return yf.returnData(False, 'site.py_msg_6a6606')
             if not os.path.exists(path):
                 return yf.returnData(False, 'site.py_msg_6a6606')
             if os.path.isdir(path):
@@ -3114,6 +3344,21 @@ export PATH
             return yf.returnData(False, 'utils.py_msg_b82765', None, str(ex))
 
     def getBackup(self,site_id,page=1,size=10):
+        try:
+            page = int(page)
+        except Exception:
+            page = 1
+        try:
+            size = int(size)
+        except Exception:
+            size = 10
+        if page < 1:
+            page = 1
+        if size < 1:
+            size = 10
+        if size > 200:
+            size = 200
+
         site_info = thisdb.getSitesById(site_id)
         info = thisdb.getBackupPage(site_id, page, size)
         
@@ -3125,19 +3370,24 @@ export PATH
 
     def toBackup(self, site_id):
         site_info = thisdb.getSitesById(site_id)
+        if not site_info:
+            return yf.returnData(False, 'site.py_msg_005e3b')
+
+        site_path = site_info.get('path') or ''
+        if not os.path.isdir(site_path):
+            return yf.returnData(False, 'site.py_msg_7c7b97')
 
         filename = site_info['name'] + '_' + time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.zip'
         backup_path = yf.getBackupDir() + '/site'
         zip_name = backup_path + '/' + filename
         if not (os.path.exists(backup_path)):
             os.makedirs(backup_path)
-        exec_log = yf.getPanelDir() + '/logs/panel_exec.log'
-        cmd = "cd '" + site_info['path'] + "' && zip '" + zip_name + "' -r ./* > " + exec_log + " 2>&1"
-        yf.execShell(cmd)
+        # 不再拼 shell（站点路径可控，单引号也拦不住）；顺带补上此前缺失的超时
+        yf.safeExecShell(['zip', '-r', '-q', zip_name, '.'], cwd=site_path, timeout=1800)
 
-        fsize = 0
-        if os.path.exists(zip_name):
-            fsize = os.path.getsize(zip_name)
+        if not os.path.exists(zip_name):
+            return yf.returnData(False, 'utils.py_msg_90d0f2', None, site_info['name'])
+        fsize = os.path.getsize(zip_name)
 
         thisdb.addBackup(site_id,filename,zip_name,fsize)
 
@@ -3147,7 +3397,10 @@ export PATH
 
     def delBackup(self,backup_id):
         info = thisdb.getBackupById(backup_id)
-        if os.path.exists(info['filename']):
+        # 不存在的备份 id 以前会 AttributeError -> 500
+        if not info:
+            return yf.returnData(False, 'site.py_msg_0c62e8')
+        if info['filename'] and os.path.exists(info['filename']):
             os.remove(info['filename'])
         msg = yf.getInfo('删除网站[{1}]的备份[{2}]成功!', (info['name'], info['filename']))
         yf.writeLog('网站管理', msg)

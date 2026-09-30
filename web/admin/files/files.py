@@ -168,6 +168,10 @@ def get_file_last_body():
     path = request.form.get('path', '')
     line = request.form.get('line', '100')
 
+    ok, reason = file.safePath(path)
+    if not ok:
+        return yf.returnData(False, reason)
+
     if not os.path.exists(path):
         return yf.returnData(False, 'files.py_msg_d9523e', (path,))
 
@@ -344,6 +348,9 @@ def delete_dir():
 @panel_login_required
 def download():
     filename = request.args.get('filename', '')
+    ok, reason = file.safePath(filename)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(filename):
         return ''
     is_attachment = True

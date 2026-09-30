@@ -137,6 +137,9 @@ def unzip(sfile, dfile, stype, path):
     ok, reason = safePath(dfile, write=True)
     if not ok:
         return yf.returnData(False, reason)
+    ok, reason = safePath(sfile)
+    if not ok:
+        return yf.returnData(False, reason)
 
     if not os.path.exists(sfile):
         return yf.returnData(False, 'file.py_msg_e0fb06')
@@ -166,6 +169,9 @@ def uncompress(sfile, dfile, path):
         return yf.returnData(False, 'file.py_msg_960516')
 
     ok, reason = safePath(dfile, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
+    ok, reason = safePath(sfile)
     if not ok:
         return yf.returnData(False, reason)
 
@@ -394,6 +400,13 @@ def zip(sfile, dfile, stype, path):
     ok, reason = safePath(path, write=True)
     if not ok:
         return yf.returnData(False, reason)
+    # 被压缩对象同样要过安全校验：否则可用 /etc/shadow 当 sfile 把任意文件压进可下载的归档
+    for sf in sfile.split(','):
+        if not sf:
+            continue
+        ok, reason = safePath(sf)
+        if not ok:
+            return yf.returnData(False, reason)
     tmps = yf.getPanelDir() + '/logs/panel_exec.log'
     q_path = yf.shlexQuote(path)
     q_dfile = yf.shlexQuote(dfile)
@@ -568,7 +581,7 @@ def createFile(file_path):
         yf.writeLog('文件管理', msg)
         return yf.returnData(True, 'file.py_msg_673293')
     except Exception as e:
-        return yf.returnData(True, 'utils.py_msg_f22f69', None, str(e))
+        return yf.returnData(False, 'utils.py_msg_f22f69', None, str(e))
 
 def createDir(path):
     try:
@@ -1332,16 +1345,45 @@ def getRecycleBin():
 
     return yf.returnJson(True, 'OK', data)
 
-def delRecycleBin(path):
-    rb_dir = yf.getRecycleBinDir()
-    rb_file = rb_dir + '/' + path
-    if os.path.isdir(rb_file):
-        import shutil
-        shutil.rmtree(rb_file)
-    else:
-        os.remove(rb_file)
+def _recycleBinEntry(name):
+    """校验回收站条目名：只能是回收站目录内的单个条目。
 
-    tfile = path.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
+    返回 (rb_dir, entry_path)；非法条目返回 (None, None)。
+    目的是堵住 `path=../../..` 直接删/移任意文件（回收站目录是唯一允许操作的根）。
+    """
+    if not name or not isinstance(name, str) or '\x00' in name:
+        return None, None
+    import posixpath
+    entry = name.replace('\\', '/').strip()
+    # 用 posixpath 判定 basename：ntpath 会把 `C:xxx` 当成驱动器前缀而误判
+    if entry in ('', '.', '..') or entry != posixpath.basename(entry):
+        return None, None
+    rb_dir = os.path.realpath(yf.getRecycleBinDir())
+    entry_path = os.path.join(rb_dir, entry)
+    # 条目名不含分隔符，父目录解析后必须仍在回收站内（回收站自身是软链时也能正确比对）
+    if os.path.realpath(os.path.dirname(entry_path)) != rb_dir:
+        return None, None
+    return rb_dir, entry_path
+
+
+def delRecycleBin(path):
+    rb_dir, rb_file = _recycleBinEntry(path)
+    if not rb_file:
+        return yf.returnJson(False, 'FILE_DANGER')
+    if not os.path.lexists(rb_file):
+        return yf.returnJson(False, 'file.py_msg_e0fb06')
+
+    entry = os.path.basename(rb_file)
+    try:
+        # 软链条目不能走 rmtree（shutil.rmtree 会拒绝并抛 OSError）
+        if os.path.isdir(rb_file) and not os.path.islink(rb_file):
+            shutil.rmtree(rb_file)
+        else:
+            os.remove(rb_file)
+    except Exception as e:
+        return yf.returnJson(False, 'py_msg_ead17e', None, str(e))
+
+    tfile = entry.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
     msg = yf.getInfo('已彻底从回收站删除[{1}]!', (tfile,))
     yf.writeLog('文件管理', msg)
     return yf.returnJson(True, msg)
@@ -1361,11 +1403,25 @@ def mvRecycleBin(path):
 
 # 回收站文件恢复
 def reRecycleBin(path):
-    rb_dir = yf.getRecycleBinDir()
-    dst_file = path.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
+    rb_dir, rb_file = _recycleBinEntry(path)
+    if not rb_file:
+        return yf.returnData(False, 'FILE_DANGER')
+
+    entry = os.path.basename(rb_file)
+    # 必须是 mvRecycleBin 生成的条目（`<原路径>_t_<时间戳>`）：否则 dst 会退化成
+    # 相对路径并按面板 cwd 解析，等于把回收站当任意文件搬运通道
+    if '_t_' not in entry:
+        return yf.returnData(False, 'FILE_DANGER')
+    dst_file = entry.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
+    if not os.path.isabs(dst_file):
+        # 相对路径会被当成面板 cwd 的相对路径解析（实测能把回收站里的文件搬到面板 web 目录）
+        return yf.returnData(False, 'file.py_msg_6d3445')
+    ok, reason = safePath(dst_file, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
+
     try:
-        import shutil
-        shutil.move(rb_dir + '/' + path, dst_file)
+        shutil.move(rb_file, dst_file)
         msg = yf.getInfo('移动文件[{1}]到回收站成功!', (dst_file,))
         yf.writeLog('文件管理', msg)
         return yf.returnData(True, 'file.py_msg_f85ba7')

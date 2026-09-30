@@ -4,12 +4,55 @@ function isDiskWidth(){
     $("#comlist").css({"max-width":"500px","height":"34px","overflow":"auto","display":"inline-block"});
 }
 
+/**
+ * 文件名/目录名/软链目标都来自用户可控的磁盘目录，可含 <>&"' 任意字符，
+ * 直接拼进 HTML 文本或属性就是存储型 XSS。文本上下文用本函数。
+ */
+function yfFilesText(v) {
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：引号必须走实体（否则会终止 HTML 属性），
+ * 反斜杠与 & 先转义；浏览器 HTML 解码后 JS 拿到的仍是原始名字。
+ */
+function yfFilesJsStr(v) {
+    return String(v == null ? '' : v)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
+/**
+ * 回收站条目：rname 只出现在行内 onclick（走 JS 转义），name/dname 只做展示（走 HTML 转义）
+ */
+function yfFilesRecycleItem(it) {
+    return {
+        rname: yfFilesJsStr(it.rname),
+        name: yfFilesText(it.name),
+        dname: yfFilesText(it.dname),
+        size: it.size,
+        time: it.time
+    };
+}
+
 
 //打开回收站
 function recycleBin(type){
     $.post('/files/get_recycle_bin','',function(data){
         // console.log(rdata);
         var rdata = data['data'];
+        // 条目名派生自被删除文件的文件名（用户可控）：统一转义后再拼 HTML/onclick
+        rdata.dirs = (rdata.dirs || []).map(yfFilesRecycleItem);
+        rdata.files = (rdata.files || []).map(yfFilesRecycleItem);
         var body = ''
         switch(type){
             case 1:
@@ -467,7 +510,14 @@ function getFiles(Path) {
     var loadT = layer.load();
     $.post('/files/get_dir', post, function(rdata) {
         layer.close(loadT);
-        
+
+        // 路径与条目名都来自用户可控目录：模板拼接统一用转义后的值，
+        // 地址栏/标签页/cookie/后续请求仍用原始值（rawPath / rawName）避免影响正常路径
+        var rawPath = rdata.path;
+        if (typeof rdata.path === 'string') {
+            rdata.path = yfFilesJsStr(rdata.path);
+        }
+
         window.currentFiles = [];
         window.currentFilesMap = {};
         if (rdata.dir) {
@@ -520,9 +570,9 @@ function getFiles(Path) {
 
         for (var i = 0; i < rdata.dir.length; i++) {
             var fmp = rdata.dir[i].split(";");
-            var cnametext =fmp[0] + fmp[5];
+            var rawName = fmp[0];
+            var cnametext = rawName + fmp[5];
 
-            fmp[0] = fmp[0].replace(/'/, "\\'");
             if(cnametext.length>100){
                 cnametext = cnametext.substring(0,100) + '...';
             }
@@ -532,6 +582,11 @@ function getFiles(Path) {
                     cnametext = cnametext.substring(0,60) + '...';
                 }
             }
+
+            // 截断按原始名长度算，转义放在进模板前
+            cnametext = yfFilesText(cnametext);
+            fmp[5] = yfFilesText(fmp[5]);
+            fmp[0] = yfFilesJsStr(rawName);
 
             var timetext ='--';
             if(getCookie('rank') == 'a'){
@@ -576,8 +631,8 @@ function getFiles(Path) {
             var fmp = rdata.files[i].split(";");
             var bodyZip = '';
             var download = '';
-            var cnametext =fmp[0] + fmp[5];
-            fmp[0] = fmp[0].replace(/'/,"\\'");
+            var rawName = fmp[0];
+            var cnametext = rawName + fmp[5];
 
             if(isChineseChar(cnametext)){
                 if(cnametext.length>60){
@@ -588,6 +643,11 @@ function getFiles(Path) {
                     cnametext = cnametext.substring(0,100) + '...';
                 }
             }
+
+            // 截断按原始名长度算，转义放在进模板前
+            cnametext = yfFilesText(cnametext);
+            fmp[5] = yfFilesText(fmp[5]);
+            fmp[0] = yfFilesJsStr(rawName);
 
             var displayCompress = 1;
             if(isCompressFile(fmp[0])){
@@ -699,7 +759,7 @@ function getFiles(Path) {
             $("#tipTools").css({"box-sizing": "border-box", "width": "100%", "left": "0", "right": "0"});
         }
         calcPathWidth();
-        $("#DirPathPlace input").val(rdata.path);
+        $("#DirPathPlace input").val(rawPath);
         var newLabel = (window.lan && lan.files && lan.files.new) || t('files.new', '新建');
         var createFolderLabel = (window.lan && lan.files && lan.files.create_new_folder) || t('files.create_new_folder', '新建目录');
         var createFileLabel = (window.lan && lan.files && lan.files.create_new_blank_file) || t('files.create_new_blank_file', '新建空白文件');
@@ -711,14 +771,14 @@ function getFiles(Path) {
                 ' + newLabel + '<span class="caret"></span>\
             </button>\
             <ul class="dropdown-menu">\
-                <li><a href="javascript:createDir(0,\'' + Path + '\');"><span class="glyphicon glyphicon-folder-open"></span> ' + createFolderLabel + '</a></li>\
-                <li><a href="javascript:createFile(0,\'' + Path + '\');"><span class="glyphicon glyphicon-file"></span> ' + createFileLabel + '</a></li>\
+                <li><a href="javascript:createDir(0,\'' + yfFilesJsStr(Path) + '\');"><span class="glyphicon glyphicon-folder-open"></span> ' + createFolderLabel + '</a></li>\
+                <li><a href="javascript:createFile(0,\'' + yfFilesJsStr(Path) + '\');"><span class="glyphicon glyphicon-file"></span> ' + createFileLabel + '</a></li>\
             </ul>\
         </div>';
-        if (rdata.path != '/') {
+        if (rawPath != '/') {
             BarTools += ' <button onclick="javascript:backDir();" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left" title="' + backLabel + '"></button>';
         }
-        setCookie('open_dir_path',rdata.path);
+        setCookie('open_dir_path',rawPath);
         BarTools += ' <button onclick="javascript:yfRefreshBtn(this, function(){ getFiles(\'' + rdata.path + '\'); });" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="' + refreshLabel + '"></button>\
             <button onclick="webShell(\'' + rdata.path + '\')" title="终端" type="button" class="btn btn-default btn-sm"><em class="ico-cmd"></em></button>';
 
@@ -803,8 +863,8 @@ function getFiles(Path) {
             setCookie('file_row',$(this).val());
             getFiles(p);
         });
-        pathPlaceBtn(rdata.path);
-        if(typeof(updateActiveTabPath) == "function") updateActiveTabPath(rdata.path);
+        pathPlaceBtn(rawPath);
+        if(typeof(updateActiveTabPath) == "function") updateActiveTabPath(rawPath);
         if(typeof(renderFileTabs) == "function") renderFileTabs();
         calcPathWidth();
         setTimeout(calcPathWidth, 50);
@@ -2148,7 +2208,7 @@ function pathPlaceBtn(path){
             for(var i = 0; i < parts.length; i++){
                 if (!parts[i]) continue;
                 currentPath += '/' + parts[i];
-                html += '<li><a title="' + currentPath + '" data-path="' + currentPath + '">' + parts[i] + '</a></li>';
+                html += '<li><a title="' + yfFilesText(currentPath) + '" data-path="' + yfFilesText(currentPath) + '">' + yfFilesText(parts[i]) + '</a></li>';
             }
         }
     }
@@ -2662,7 +2722,7 @@ function renderFileTabs() {
         var isActive = tabs[i].active ? 'active' : '';
         html += '<div class="file-tab ' + isActive + '" data-index="' + i + '" onclick="switchFileTab(' + i + ')">\
                     <span class="tab-icon glyphicon glyphicon-folder-open"></span>\
-                    <span class="tab-name" title="' + tabs[i].path + '">' + tabs[i].name + '</span>\
+                    <span class="tab-name" title="' + yfFilesText(tabs[i].path) + '">' + yfFilesText(tabs[i].name) + '</span>\
                     <span class="close-tab glyphicon glyphicon-remove" onclick="removeFileTab(event, ' + i + ')"></span>\
                 </div>';
     }

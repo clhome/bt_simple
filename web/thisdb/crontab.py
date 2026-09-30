@@ -18,6 +18,12 @@ _log = logging.getLogger('yf.thisdb.crontab')
 
 __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,min_start_en,min_start_h,min_start_m,min_end_en,min_end_h,min_end_m,last_run_time,add_time,update_time'
 
+# ORDER BY 是直接拼进 SQL 的（无法参数化），只能白名单：
+# 不校验就等于把排序列开给任意 SQLite 表达式。
+__order_fields = ('id', 'name', 'type', 'where1', 'where_hour', 'where_minute', 'echo',
+                  'status', 'save', 'backup_to', 'stype', 'sname', 'last_run_time',
+                  'add_time', 'update_time', 'day_type')
+
 # 尝试增加 last_run_time 字段 (迁移逻辑)
 try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
@@ -70,15 +76,25 @@ def getCrontabList(
     orderby = 'last_run_time',
     order = 'desc'
 ):
-    start = (int(page) - 1) * size
+    try:
+        page = max(int(page), 1)
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        size = int(size)
+    except (TypeError, ValueError):
+        size = 10
+    size = min(max(size, 1), 1000)
+
+    start = (page - 1) * size
     limit = str(start) + ',' + str(size)
 
-    if orderby == '':
+    if orderby not in __order_fields:
         orderby = 'last_run_time'
-    if order == '':
+    if str(order).lower() not in ('asc', 'desc'):
         order = 'desc'
 
-    order_str = orderby + ' ' + order
+    order_str = orderby + ' ' + str(order).lower()
 
     m = yf.M('crontab')
     if search != '':

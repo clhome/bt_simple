@@ -260,7 +260,11 @@ def getPageObject(args, result='1,2,3,4,5,8'):
     info['uri'] = {}
     info['return_js'] = ''
     if 'tojs' in args:
-        info['return_js'] = args['tojs']
+        # tojs 会被 utils/page.py 原样拼进 onclick='<tojs>(n)' 的 HTML 属性，
+        # 带引号/尖括号即可闭合属性注入标签（反射型 XSS），只接受 JS 标识符
+        tojs = str(args['tojs'] or '').strip()
+        if re.match(r'^[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*$', tojs):
+            info['return_js'] = tojs
 
     if 'args_tpl' in args:
         info['args_tpl'] = args['args_tpl']

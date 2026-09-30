@@ -74,11 +74,17 @@ def plugin_list():
     if not yf.isNumber(plugins_type):
         plugins_type = 1
 
-    if not yf.isNumber(page):
-        page = 0
+    # yf.isNumber 认 float（'1.5'）与 'nan'/'inf'，直接 int() 会 500；
+    # 负数页码在 getList 里变成切片负索引，会莫名返回最后一页 —— 一律归一到 >=1 的整数。
+    try:
+        page = int(str(page).strip())
+    except (TypeError, ValueError):
+        page = 1
+    if page < 1:
+        page = 1
 
     pg = YfPlugin.instance()
-    return pg.getList(plugins_type, search, int(page), 10, show_third_party)
+    return pg.getList(plugins_type, search, page, 10, show_third_party)
 
 # 插件设置是否在首页展示
 @blueprint.route('/set_index', endpoint='set_index', methods=['POST'])
@@ -157,6 +163,9 @@ def menu():
 @blueprint.route('/file', endpoint='file', methods=['GET'])
 @panel_login_required
 def file():
+    from flask import Response
+    from flask import make_response
+
     name = request.args.get('name', '').strip()
     if not name or '/' in name or '\\' in name or '..' in name:
         return Response('Forbidden', status=403)
@@ -185,9 +194,11 @@ def file():
         if not os.path.exists(file):
             return ''
 
+    # 软链一律不跟（插件包已禁软链，这里是纵深防御：readFile/open 会跟随软链读包外文件）
+    if os.path.islink(file):
+        return Response('Forbidden', status=403)
+
     suffix = yf.getPathSuffix(file)
-    from flask import Response
-    from flask import make_response
 
     headers = {
         'Cache-Control': 'public, max-age=2592000'
@@ -245,7 +256,11 @@ def input_zip():
 @blueprint.route('/clear_cache', endpoint='clear_cache', methods=['POST'])
 @panel_login_required
 def clear_cache():
-    YfPlugin.instance().clearCache()
+    # purge_source 只允许面板内用户明确选择(「清理安装缓存」);插件列表的「刷新」
+    # 走默认值 False,不碰 /www/server/source —— 否则点一次刷新就要把 554MB 的
+    # mysql/php/openresty 安装包全部重下。
+    purge = request.form.get('purge_source', '0') == '1'
+    YfPlugin.instance().clearCache(purge_source=purge)
     return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 

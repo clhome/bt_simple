@@ -13,9 +13,11 @@ import sys
 import re
 import json
 import shlex
+import shutil
 import inspect
 import threading
 import multiprocessing
+import zipfile
 
 import core.yf as yf
 import thisdb
@@ -27,13 +29,34 @@ _log = logging.getLogger('yf.plugin')
 # ---------------------------------------------------------------------------------
 # 插件名 / 路径安全校验（防御命令注入与目录穿越）
 #   - 插件名严格白名单：字母、数字、下划线、短横线；
+#   - 版本号白名单：数字/字母开头，其后为数字、字母、点、下划线、短横线（上限 32 字符）；
 #   - 传入的临时目录必须真实位于面板 temp 目录内（realpath 比较，杜绝 ../ 逃逸与软链绕过）。
 # ---------------------------------------------------------------------------------
 _PLUGIN_NAME_RE = re.compile(r'^[a-zA-Z0-9_\-]+$')
+_PLUGIN_VERSION_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9._\-]{0,31}$')
+# 首页展示清单条目（`插件名-版本`，版本可为空：历史数据里存在 `python_yf-`）
+_PLUGIN_INDEX_ITEM_RE = re.compile(r'^[a-zA-Z0-9_\-]+-[a-zA-Z0-9._\-]*$')
 
 def _valid_plugin_name(name):
     name = str(name or '').strip()
     return bool(name) and bool(_PLUGIN_NAME_RE.match(name))
+
+def _valid_plugin_version(version):
+    version = str(version or '').strip()
+    return bool(version) and bool(_PLUGIN_VERSION_RE.match(version))
+
+def _has_symlink(path):
+    """目录树内是否存在符号链接。
+
+    第三方插件包禁止软链：unzip 会原样还原包内软链，而 inputZipApi 的 copytree
+    是「跟随软链」复制，等于把包外文件（/etc/shadow 等）复制成插件目录里的普通
+    文件并可通过 /plugins/file 下载。
+    """
+    for root, dirs, files in os.walk(path):
+        for item in list(dirs) + list(files):
+            if os.path.islink(os.path.join(root, item)):
+                return True
+    return False
 
 def _valid_script_name(name):
     name = str(name or '').strip()
@@ -252,8 +275,12 @@ class plugin(object):
             # 对安装列表进行排序，确保 swap 放置在首位最先安装
             pn_list = sorted(pn_list, key=lambda x: 0 if x.get('name') == 'swap' else 1)
             for pn in pn_list:
-                name = pn['name']
-                version = pn['version']
+                name = str(pn.get('name', '')).strip()
+                version = str(pn.get('version', '')).strip()
+                # 安全：推荐安装列表来自客户端 JSON，逐项白名单校验后再拼路径/任务命令
+                if not _valid_plugin_name(name) or not _valid_plugin_version(version):
+                    yf.writeFileLog('[plugin] 跳过非法推荐安装项: name=%r version=%r' % (name, version))
+                    continue
                 info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
                 pluginInfo = json.loads(yf.readFile(info_file))
                 self.hookInstall(pluginInfo)
@@ -279,6 +306,12 @@ class plugin(object):
             return yf.getPluginDir() + '/' + tag + '/' + path
 
     def addIndex(self, name, version):
+        # 安全：display_index 是持久化的首页软件清单，非法名/版本会被永久写入并挤占 12 个展示位
+        name = str(name or '').strip()
+        version = str(version or '').strip()
+        if not _valid_plugin_name(name) or (version and not _valid_plugin_version(version)):
+            return yf.returnData(False, 'ARGS_ERR')
+
         vname = name + '-' + version
         indexList = thisdb.getOptionByJson('display_index',default=[])
 
@@ -293,6 +326,11 @@ class plugin(object):
         return yf.returnData(True, 'common.add_success')
 
     def removeIndex(self, name, version):
+        name = str(name or '').strip()
+        version = str(version or '').strip()
+        if not _valid_plugin_name(name) or (version and not _valid_plugin_version(version)):
+            return yf.returnData(False, 'ARGS_ERR')
+
         vname = name + '-' + version
         indexList = thisdb.getOptionByJson('display_index', default=[])
         if not vname in indexList:
@@ -311,6 +349,9 @@ class plugin(object):
         old_list = thisdb.getOptionByJson('display_index', default=[])
         new_list = []
         for item in sort_list:
+            # 只收「插件名-版本」形态的条目，挡住把任意垃圾串永久写进首页清单
+            if not _PLUGIN_INDEX_ITEM_RE.match(item):
+                continue
             if item not in new_list:
                 new_list.append(item)
         for item in old_list:
@@ -383,11 +424,19 @@ class plugin(object):
     def install(self, name, version,
         upgrade = None
     ):
-        if name.strip() == '':
+        # 安全：name/version 会拼成插件目录路径与子进程命令（install.sh 以 root 执行），
+        # 必须与 /plugins/run 同级做白名单校验，否则 name='../../../../tmp/x' 可执行面板外的任意脚本。
+        name = str(name or '').strip()
+        version = str(version or '').strip()
+        if name == '':
             return yf.returnData(False, 'plugin.py_msg_5e6038', ())
 
-        if version.strip() == '':
+        if version == '':
             return yf.returnData(False, 'plugin.py_msg_988b58', ())
+
+        if not _valid_plugin_name(name) or not _valid_plugin_version(version):
+            yf.writeFileLog('[plugin] 拒绝安装非法插件参数: name=%r version=%r' % (name, version))
+            return yf.returnData(False, 'ARGS_ERR', ())
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:
@@ -416,8 +465,15 @@ class plugin(object):
 
     # 卸载插件
     def uninstall(self, name, version, force=False, backup=False):
-        if name.strip() == '':
+        # 安全：同 install，name/version 进路径与 shell（uninstall.sh 以 root 执行）。
+        name = str(name or '').strip()
+        version = str(version or '').strip()
+        if name == '':
             return yf.returnData(False, 'plugin.py_msg_5e6038', ())
+
+        if not _valid_plugin_name(name) or (version and not _valid_plugin_version(version)):
+            yf.writeFileLog('[plugin] 拒绝卸载非法插件参数: name=%r version=%r' % (name, version))
+            return yf.returnData(False, 'ARGS_ERR', ())
 
         # 解析真实安装目录以支持备份功能
         real_install_path = None
@@ -499,7 +555,7 @@ class plugin(object):
             self.__plugin_list_static_cache = None
             return yf.returnData(True, 'plugin.py_msg_c956b1')
 
-        if version.strip() == '':
+        if version == '':
             return yf.returnData(False, 'plugin.py_msg_988b58', ())
 
         info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
@@ -513,11 +569,17 @@ class plugin(object):
             yf.shlexQuote(info_data['shell']),
             yf.shlexQuote(version)
         )
-        self.hookUninstall(info_data)
         # 卸载脚本可能很慢（清理数据/停服务），但仍需有上界，避免永久占死 gunicorn 线程
-        data = yf.execShell(exec_bash, timeout=1800)
+        rc, out, err = yf.execShellRc(exec_bash, timeout=1800)
+        yf.debugLog(exec_bash, (out, err))
+        # 失败必须如实上报：原先无论脚本退出码如何都回「卸载执行成功!」，
+        # 且钩子/首页图标已被摘除 → 用户以为卸干净了，实际软件还在。
+        if rc != 0:
+            yf.writeFileLog('[plugin] 卸载脚本失败 name=%s rc=%s err=%s' % (name, rc, (err or out or '').strip()[:500]))
+            return yf.returnData(False, 'ERROR')
+
+        self.hookUninstall(info_data)
         self.removeIndex(name, version)
-        yf.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
         return yf.returnData(True, 'plugin.py_msg_dcd822')
 
@@ -800,14 +862,18 @@ class plugin(object):
         self.__plugin_list_static_cache = static_list
         return self.__plugin_list_static_cache
 
-    def clearCache(self):
+    def clearCache(self, purge_source=True):
         self.__plugin_list_static_cache = None
-        
-        # 清除下载的安装包缓存
-        source_dir = yf.getServerDir() + '/source'
-        if os.path.exists(source_dir):
-            yf.removeDir(source_dir + '/*')
-            
+
+        # 清除下载的安装包缓存 /www/server/source(实测 554MB,含 mysql/php/openresty 等
+        # 安装包)。只为「刷新插件列表」而整目录清空,意味着点一次按钮就要重新下载几百 MB。
+        # 真正的清理入口是设置页的「清理缓存」,它传 purge_source=True。
+        if purge_source:
+            source_dir = yf.getServerDir() + '/source'
+            if os.path.exists(source_dir):
+                for _name in os.listdir(source_dir):
+                    yf.removeDir(os.path.join(source_dir, _name))
+
         return True
 
     def refreshDynamicStatus(self, plist):
@@ -1404,6 +1470,13 @@ class plugin(object):
         yf.safeExecShell(['unzip', '-o', '-q', tmp_file, '-d', tmp_path])
         os.remove(tmp_file)
 
+        # 安全：包内软链会被 unzip 原样还原，后续 inputZipApi 的 copytree 会「跟随软链」把包外
+        # 文件（如 /etc/shadow）复制成插件目录里的普通文件并可经 /plugins/file 下载 —— 直接拒收。
+        if _has_symlink(tmp_path):
+            yf.writeFileLog('[plugin] 拒绝含软链的插件包: %s' % getattr(request_zip, 'filename', ''))
+            yf.removeDir(tmp_path)
+            return yf.returnData(False, 'ERROR')
+
         p_info = tmp_path + '/info.json'
         if not os.path.exists(p_info):
             d_path = None
@@ -1461,6 +1534,11 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_2ca3e3')
 
         plugin_path = os.path.abspath(yf.getPluginDir() + '/' + plugin_name)
+        # 安全：copytree 默认跟随软链，会把手伸到插件包外（纵深防御，与 updateZip 同一道门）
+        if _has_symlink(tmp_path):
+            yf.writeFileLog('[plugin] 拒绝含软链的插件目录: %s' % tmp_path)
+            return yf.returnData(False, 'ERROR')
+
         try:
             if not os.path.exists(plugin_path):
                 yf.makeDirs(plugin_path)

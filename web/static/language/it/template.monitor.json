@@ -169,6 +169,9 @@
     "py_msg_3bd322": "Attendere il completamento di tutte le attività di installazione prima di fare clic su “Esegui”",
     "py_msg_563ff5": "Registrazione di SvuotaMonitoraggio completata con successo!",
     "py_msg_8042ad": "anormale!",
-    "py_msg_d56c7a": "Non è stata trovata la pubblicazione \"Descrizione\""
+    "py_msg_d56c7a": "Non è stata trovata la pubblicazione \"Descrizione\"",
+    "py_msg_7f876a": "Versione non valida!",
+    "py_msg_339e87": "Copia non riuscita, ripristinato lo snapshot pre-aggiornamento!",
+    "py_msg_fac254": "Copia non riuscita e nessun backup da ripristinare!"
   }
 }

@@ -50,10 +50,12 @@ function getLogs(id, task_name) {
       if (rdata.msg == '') {
         rdata.msg = lan && lan.crontab && t('crontab.no_data_available') || "";
       }
-      $("#crontab_log").html(rdata.msg);
-      //滚动到最低
-      var ob = document.getElementById('crontab_log');
-      if (ob) ob.scrollTop = ob.scrollHeight;
+      var logsBox = document.getElementById('crontab_log');
+      if (logsBox) {
+        // 日志内容是任务脚本输出（用户可控），必须当纯文本渲染
+        logsBox.textContent = rdata.msg;
+        logsBox.scrollTop = logsBox.scrollHeight;
+      }
       reqCount++;
     }, 'json');
   }
@@ -94,6 +96,18 @@ function getLogs(id, task_name) {
     }
   });
 }
+// 列表/弹窗里的值全部来自用户输入（任务名、备份对象名），必须转义后再拼 HTML。
+// 不用 public.js 的 escapeHTML：它会把 = ( ` 也换成全角/实体，会篡改任务名与脚本内容。
+function cronEsc(v) {
+  return (v == null ? '' : String(v)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+}
+// javascript: 链接里的字符串参数：先做 JS 转义，再做 HTML 转义
+// （属性值里的实体在执行前会被浏览器解码，顺序反了就白做）
+function cronEscJs(v) {
+  var s = v == null ? '' : String(v);
+  s = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n');
+  return cronEsc(s);
+}
 function getBackupName(hook_data, name) {
   for (var i = 0; i < hook_data.length; i++) {
     if (hook_data[i]['name'] == name) {
@@ -130,17 +144,17 @@ function getCronData(page) {
             cron_backupto = getBackupName(rdata['backup_hook'], rdata.data[i]['backup_to']);
           }
         }
-        cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + rdata.data[i].name + "' name='id' value='" + rdata.data[i].id + "'></td>\
-					<td>" + rdata.data[i].name + "</td>\
+        cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + cronEsc(rdata.data[i].name) + "' name='id' value='" + rdata.data[i].id + "'></td>\
+					<td>" + cronEsc(rdata.data[i].name) + "</td>\
 					<td>" + status + "</td>\
-					<td>" + rdata.data[i].type + "</td>\
-					<td>" + rdata.data[i].cycle + "</td>\
-					<td>" + cron_save + "</td>\
-					<td>" + cron_backupto + "</td>\
+					<td>" + cronEsc(rdata.data[i].type) + "</td>\
+					<td>" + cronEsc(rdata.data[i].cycle) + "</td>\
+					<td>" + cronEsc(cron_save) + "</td>\
+					<td>" + cronEsc(cron_backupto) + "</td>\
 					<td>" + getDayTypeText(rdata.data[i].day_type) + "</td>\
-					<td>" + rdata.data[i].last_run_time + "</td>\
+					<td>" + cronEsc(rdata.data[i].last_run_time) + "</td>\
 					<td>\
-						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:editTaskInfo(\'' + rdata.data[i].id + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:getLogs(\'' + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:planDel(\'' + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
+						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:editTaskInfo(\'' + rdata.data[i].id + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:getLogs(\'' + rdata.data[i].id + ", '" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:planDel(\'' + rdata.data[i].id + " ,'" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
       }
     }
     $('#cronbody').html(cbody);
@@ -202,9 +216,11 @@ function startTask(id, task_name, is_log_open) {
       } else {
         $.post('/crontab/logs', 'id=' + id, function (rdata) {
           if (!rdata.status) return;
-          $("#crontab_log").html(rdata.msg);
           var ob = document.getElementById('crontab_log');
-          if (ob) ob.scrollTop = ob.scrollHeight;
+          if (ob) {
+            ob.textContent = rdata.msg;
+            ob.scrollTop = ob.scrollHeight;
+          }
         }, 'json');
       }
     } else {
@@ -704,6 +720,13 @@ function editTaskInfo(id) {
     id: id
   }, function (rdata) {
     layer.closeAll();
+    if (rdata && rdata.status === false) {
+      layer.msg(rdata.msg, {
+        icon: 2,
+        time: 2000
+      });
+      return;
+    }
     // console.log('get_crond_find:', rdata);
     var sTypeName = '',
       sTypeDom = '',
@@ -819,7 +842,7 @@ function editTaskInfo(id) {
     '<b val="' + obj.from.type + '">' + sTypeName + '</b><span class="caret"></span></button>' +
     '<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + '</ul></div></div>' +
     '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.task_name || '任务名称') + '</span>' +
-    '<div class="planname pull-left"><input type="text" name="name" class="bt-input-text sname_create" value="' + obj.from.name + '"></div></div>' +
+    '<div class="planname pull-left"><input type="text" name="name" class="bt-input-text sname_create" value="' + cronEsc(obj.from.name) + '"></div></div>' +
     '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.exec_cycle || '执行周期') + '</span>' +
     '<div class="dropdown  pull-left mr20"><button class="btn btn-default dropdown-toggle cycle_btn" type="button" data-toggle="dropdown" style="width:94px">' +
     '<b val="' + obj.from.stype + '">' + cycleName + '</b><span class="caret"></span></button>' +
@@ -865,16 +888,16 @@ function editTaskInfo(id) {
     '<div class="plan_hms pull-left mr20 bt-input-text"><span><input type="number" name="save" class="save_create" value="' + obj.from.save + '" maxlength="4" max="100" min="1"></span><span class="name">' + (lan && lan.crontab && lan.crontab.portion || '份') + '</span></div></div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toShell" ? 'block;' : 'none') + '">' +
     '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.script_content || '脚本内容') + '</span>' +
-    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text sbody_create" name="sbody">' + obj.from.sbody + '</textarea></div></div>' +
+    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text sbody_create" name="sbody">' + cronEsc(obj.from.sbody) + '</textarea></div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "path" || obj.from.stype == "site" ? 'block;' : 'none') + '">' +
     '<span class="typename exclude_dir c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.exclude_dir || '排除目录') + '</span>' +
-    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text attr_create" name="exclude_dir" placeholder="' + exclude_dirs_placeholder + '">' + obj.from.attr + '</textarea></div></div>' +
+    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text attr_create" name="exclude_dir" placeholder="' + exclude_dirs_placeholder + '">' + cronEsc(obj.from.attr) + '</textarea></div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "rememory" ? 'block;' : 'none') + '">' +
     '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.public && lan.public.msg || '提示') + '</span>' +
     '<div style="line-height:34px">' + (lan && lan.crontab && lan.crontab.release_mem_tips || '释放PHP、MYSQL、PURE-FTPD、OpenResty的内存占用,建议在每天半夜执行!') + '</div></div>' +
     '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toUrl" ? 'block;' : 'none') + '">' +
     '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.url_address || 'URL地址') + '</span>' +
-    '<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="url_address" placeholder="' + t('crontab.url_address', 'URL地址') + '" value="' + obj.from.url_address + '"></div></div>' +
+    '<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="url_address" placeholder="' + t('crontab.url_address', 'URL地址') + '" value="' + cronEsc(obj.from.url_address) + '"></div></div>' +
     '<div class="clearfix plan ptb10"><div class="bt-submit plan-submits" style="margin-left: 141px;">' + (lan && lan.public && lan.public.save_edit || '保存编辑') + '</div></div></div>',
         success: function () {
           $('.changePathDir').on('click', function () {

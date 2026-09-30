@@ -47,7 +47,10 @@ def get_log_list():
 
     data = {}
     data['data'] = info['list']
-    data['page'] = yf.getPage({'count':info['count'],'tojs':'getLogs','p':p,'row':size})
+    # 分页必须用 getLogsList 规范化后的整数：yf.getPage 内部是裸 int()，
+    # 直接把表单原文喂进去（如 p=abc）会抛 ValueError -> HTTP 500。
+    data['page'] = yf.getPage({'count': info['count'], 'tojs': 'getLogs',
+                               'p': info['page'], 'row': info['size']})
     return data
 
 # 日志清空 —— 改为「**归档**」而非物理删除
@@ -62,8 +65,10 @@ def del_panel_logs():
     try:
         path, count = thisdb.archiveLogs()
     except Exception as e:
+        # 归档失败必须如实报错：此时**没有清空任何日志**，
+        # 复用成功文案会让用户以为清空完成了。
         yf.writeLog('面板设置', '面板操作日志归档失败: %s' % e)
-        return yf.returnData(False, 'logs.py_msg_8d2a5b')
+        return yf.returnData(False, 'public.ERROR')
     yf.writeLog('面板设置', '面板操作日志已归档(%d 条)并清空!' % count)
     return yf.returnData(True, 'logs.py_msg_8d2a5b', {'archive': path, 'count': count})
 

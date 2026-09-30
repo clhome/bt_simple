@@ -9,6 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
+import ipaddress
 import os
 import re
 import threading
@@ -23,6 +24,90 @@ import thisdb
 import logging
 
 _log = logging.getLogger('yf.firewall')
+
+#: 端口/端口段里单端口的合法区间。0 与 >65535 都会被防火墙命令拒绝，
+#: 旧实现的正则 `^\d{1,5}(:\d{1,5})?$` 却全部放行 —— 库里写了规则、系统里没有。
+FIREWALL_PORT_MIN = 1
+FIREWALL_PORT_MAX = 65535
+
+#: 面板认可的规则类型与协议（与 templates/*/firewall.html 的下拉框一一对应）。
+#: 旧实现不校验这两项：`type=bogus_type` / `protocol=tcp;id` 会先写库再回
+#: 「添加成功」，而 addAcceptPortCmd 里没有任何分支命中 —— 系统侧毫无变化，
+#: 且这行库记录在界面上还不显示（列表按 type 过滤），只是把该端口永久占住。
+FIREWALL_TYPES = ('port', 'address_allow', 'address_deny')
+FIREWALL_PROTOCOLS = ('tcp', 'udp', 'tcp/udp')
+
+#: firewalld 把「目标状态已满足」也写进 stderr（ALREADY_ENABLED 等），
+#: 这类输出不是失败，不能据此判定命令失败。
+FIREWALL_BENIGN_ERR = ('ALREADY_ENABLED', 'ZONE_ALREADY_SET')
+
+
+def safeInt(value, default):
+    """容忍任意输入的 int 转换（路由参数直接来自表单，`p=abc` 曾把接口打成 500）。"""
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def parsePortSpec(port):
+    """解析端口 / 端口段；合法返回 (start, end)，否则 None。
+
+    除格式外还必须卡住取值区间与「起 <= 止」：实测旧实现下 `port=0` 会真的下发
+    `0/tcp`，`port=100:99` 被 firewalld「修正」成 `99-100/tcp`（用户拿到一条自己
+    没写过的规则），而 `65536`/`99999`/`70000:80000` 则是写库 + 报成功 + 系统无效果。
+    """
+    if not isinstance(port, str):
+        port = str(port if port is not None else '')
+    # 用 [0-9] 而不是 \d：Python 的 \d 会匹配全角数字（'１２３'），
+    # 而 sshd/firewalld 都只认 ASCII 端口
+    m = re.match(r'^([0-9]{1,5})(?::([0-9]{1,5}))?$', port.strip())
+    if not m:
+        return None
+    start = int(m.group(1))
+    end = int(m.group(2)) if m.group(2) else start
+    if not (FIREWALL_PORT_MIN <= start <= FIREWALL_PORT_MAX):
+        return None
+    if not (FIREWALL_PORT_MIN <= end <= FIREWALL_PORT_MAX):
+        return None
+    if end < start:
+        return None
+    return (start, end)
+
+
+def parseAddressSpec(addr):
+    """解析放行/屏蔽用的 IP 或 IP 段；合法返回规范化文本，否则 None。
+
+    旧实现只判空：`not an ip`、`999.999.999.999`、`<img src=x onerror=..>` 都会写进
+    库里并回「添加成功」，而 firewall-cmd 直接报错 —— 黑白名单页显示的规则在系统里
+    并不存在（假成功），且这些原始文本会被前端拼进 innerHTML（存储型 XSS）。
+    """
+    if not isinstance(addr, str):
+        return None
+    addr = addr.strip()
+    if not addr or len(addr) > 64:
+        return None
+    try:
+        if '/' in addr:
+            net = ipaddress.ip_network(addr, strict=False)
+            # 单地址网段按裸地址存（firewalld 的 --list-sources 也只回裸地址，
+            # 否则 sync_server 会把同一个 IP 再存一条带 /32 的重复规则）
+            if net.num_addresses == 1:
+                return str(net.network_address)
+            return str(net)
+        return str(ipaddress.ip_address(addr))
+    except ValueError:
+        return None
+
+
+def parseProtocolSpec(protocol):
+    """协议白名单校验；非法返回 None（避免落到「没有任何分支命中却报成功」）。"""
+    if not isinstance(protocol, str):
+        return None
+    protocol = protocol.strip().lower()
+    if protocol not in FIREWALL_PROTOCOLS:
+        return None
+    return protocol
 
 class Firewall(object):
 
@@ -214,41 +299,81 @@ class Firewall(object):
                         if thisdb.getFirewallCountByPort(ip, stype='address_deny') == 0:
                             thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_deny')
 
-    def getPortProcessInfo(self, port):
-        import psutil
+    #: 单页上限：`limit` 直接来自表单，旧实现不设上限（`limit=-1` 在 SQLite 里
+    #: 等于不限制，`limit=100000` 会把整表捞出来再逐行扫进程）。
+    MAX_LIST_SIZE = 200
+
+    def _listenPidMap(self):
+        """一次系统扫描得到 {监听端口: pid}。
+
+        旧实现每行都调用 getPortProcessInfo -> psutil.net_connections(kind='inet')，
+        而 net_connections 本身就是**全量**遍历（实测 10 行 ≈ 320ms，IP 页 ≈ 2ms）。
+        """
+        ports = {}
+        try:
+            import psutil
+        except ImportError as _e:
+            _log.warning('[firewall] 缺少 psutil，跳过端口进程信息: %s', _e)
+            return ports
         try:
             for conn in psutil.net_connections(kind='inet'):
-                if conn.laddr.port == int(port) and conn.status == psutil.CONN_LISTEN:
-                    if conn.pid:
-                        try:
-                            p = psutil.Process(conn.pid)
-                            cmdline = p.cmdline()
-                            cmdline_str = ' '.join(cmdline) if cmdline else p.name()
-                            return {
-                                'name': p.name(),
-                                'pid': p.pid,
-                                'cmdline': cmdline_str
-                            }
-                        except (psutil.NoSuchProcess, psutil.AccessDenied) as _e:
-                            _log.debug('[firewall] 读取进程信息失败（进程已退出或无权限）: %s', _e)
+                if conn.status == psutil.CONN_LISTEN and conn.pid:
+                    ports.setdefault(conn.laddr.port, conn.pid)
         except Exception as _e:
-            _log.debug('[firewall] 遍历进程列表失败: %s', _e)
-        return None
+            _log.debug('[firewall] 遍历监听端口失败: %s', _e)
+        return ports
+
+    def _processInfoByPid(self, pid):
+        """按 pid 取进程展示信息；取不到返回 None。"""
+        if not pid:
+            return None
+        try:
+            import psutil
+            p = psutil.Process(pid)
+            cmdline = p.cmdline()
+            return {
+                'name': p.name(),
+                'pid': pid,
+                'cmdline': ' '.join(cmdline) if cmdline else p.name(),
+            }
+        except Exception as _e:
+            _log.debug('[firewall] 读取进程信息失败（进程已退出或无权限）: %s', _e)
+            return None
+
+    def getPortProcessInfo(self, port):
+        """取单个端口的监听进程（保留原入口，内部改用整表扫描 + 索引）。"""
+        try:
+            port = int(str(port).strip())
+        except (TypeError, ValueError):
+            return None
+        return self._processInfoByPid(self._listenPidMap().get(port))
 
     def getList(self, page=1, size=10, search_port='', search_ps='', stype='port', sort_dir=''):
-        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype, sort_dir=sort_dir)
-        
+        p = safeInt(page, 1)
+        if p < 1:
+            p = 1
+        size = safeInt(size, 10)
+        if size < 1:
+            size = 10
+        elif size > self.MAX_LIST_SIZE:
+            size = self.MAX_LIST_SIZE
+
+        info = thisdb.getFirewallList(page=p, size=size, search_port=search_port, search_ps=search_ps, stype=stype, sort_dir=sort_dir)
+
+        listen_map = None
         for i in range(len(info['list'])):
             if info['list'][i].get('type', 'port') == 'port' or stype == 'port':
                 port_val = str(info['list'][i]['port'])
                 if port_val.isdigit():
-                    info['list'][i]['port_status'] = self.getPortProcessInfo(port_val)
+                    if listen_map is None:
+                        listen_map = self._listenPidMap()
+                    info['list'][i]['port_status'] = self._processInfoByPid(listen_map.get(int(port_val)))
                 else:
                     info['list'][i]['port_status'] = None
 
         rdata = {}
         rdata['data'] = info['list']
-        rdata['page'] = yf.getPage({'count':info['count'],'tojs':'showAccept','p':page,'row':size})
+        rdata['page'] = yf.getPage({'count':info['count'],'tojs':'showAccept','p':p,'row':size})
         return rdata
 
     def reload(self):
@@ -400,19 +525,42 @@ class Firewall(object):
         if yf.isAppleSystem():
             return yf.returnData(True, 'firewall.py_msg_10c024')
 
+        status = str(status).strip()
+        if status not in ('0', '1'):
+            # 旧实现把任意字符串拼进 /etc/sysctl.conf：`status=1\n<任意行>` 会在
+            # sysctl.conf 里插一行（sysctl -p 直接生效），`status=abc` 则写坏配置、
+            # sysctl -p 报错被忽略 —— 响应照样「设置成功」，而内核值没变。
+            return yf.returnData(False, 'firewall.py_msg_7a86ee')
+
         filename = '/etc/sysctl.conf'
         conf = yf.readFile(filename)
-        if conf.find('net.ipv4.icmp_echo') != -1:
-            rep = r"net\.ipv4\.icmp_echo.*"
-            conf = re.sub(rep, 'net.ipv4.icmp_echo_ignore_all=' + status, conf)
+        line = 'net.ipv4.icmp_echo_ignore_all=' + status
+        rep = r"^\s*net\.ipv4\.icmp_echo_ignore_all\s*=.*$"
+        if re.search(rep, conf, re.M):
+            # 只动 ignore_all 这一行：旧模式 `net\.ipv4\.icmp_echo.*` 无 re.M，
+            # 会把 ignore_broadcasts 等整行一并替换成 ignore_all（静默改配置）
+            conf = re.sub(rep, line, conf, flags=re.M)
         else:
-            conf += "\nnet.ipv4.icmp_echo_ignore_all=" + status
+            conf = conf.rstrip('\n') + '\n' + line + '\n'
 
-        yf.writeFile(filename, conf)
+        if not yf.writeFile(filename, conf):
+            return yf.returnData(False, 'firewall.py_msg_7a86ee')
         yf.execShell('sysctl -p')
+
+        # 回读内核实际值：旧的「写文件 + execShell 不校验结果」在 sysctl -p 失败时
+        # 依旧回「设置成功」，界面开关与实际状态相反（禁 ping 假阳性）
+        current = yf.readFile('/proc/sys/net/ipv4/icmp_echo_ignore_all').strip()
+        if current != status:
+            yf.writeFileLog('[firewall] setPing 未生效: 期望=%s 实际=%s' % (status, current))
+            return yf.returnData(False, 'firewall.py_msg_7a86ee')
         return yf.returnData(True, 'common.set_success')
 
     def setSshPort(self, port):
+        port = str(port if port is not None else '').strip()
+        # 旧实现直接 `int(port)`：`abc`/空串/`100:200` 都会抛 ValueError 把接口打成 500
+        span = parsePortSpec(port)
+        if not port.isascii() or span is None or span[0] != span[1]:
+            return yf.returnData(False, 'firewall.py_msg_3e6103')
         if int(port) < 22 or int(port) > 65535:
             return yf.returnData(False, 'firewall.py_msg_3e6103')
 
@@ -435,81 +583,125 @@ class Firewall(object):
         return yf.returnData(True, 'common.edit_success')
 
     def setFw(self, status):
-        if self.__isIptables:
-            self.setFwIptables(status)
-            return yf.returnData(True, 'common.set_success')
+        # 面板语义：status=1 关闭防火墙，其它（含 0）开启（前端 firewall(0/1) 就这么传）
+        want_running = str(status) != '1'
 
-        if status == '1':
-            if self.__isUfw:
-                yf.execShell('/usr/sbin/ufw disable')
-            elif self.__isFirewalld:
-                yf.execShell('systemctl stop firewalld.service')
-                yf.execShell('systemctl disable firewalld.service')
-            else:
-                pass
-        else:
-            if self.__isUfw:
+        if self.__isIptables:
+            # 旧实现调用 self.setFwIptables(status)，而该方法在移植时并不存在 ——
+            # 这条分支只会抛 AttributeError 把接口打成 500（本机为 firewalld，无法实测）
+            yf.execShell('systemctl %s iptables.service' % ('start' if want_running else 'stop'))
+        elif self.__isUfw:
+            if want_running:
                 yf.execShell("echo 'y'| ufw enable")
-            elif self.__isFirewalld:
+            else:
+                yf.execShell('/usr/sbin/ufw disable')
+        elif self.__isFirewalld:
+            if want_running:
                 yf.execShell('systemctl start firewalld.service')
                 yf.execShell('systemctl enable firewalld.service')
             else:
-                pass
-        return yf.returnData(True, 'common.set_success')
+                yf.execShell('systemctl stop firewalld.service')
+                yf.execShell('systemctl disable firewalld.service')
+        else:
+            # 未识别到防火墙后端（开发机等）：维持原行为，只回成功、不做系统改动
+            return yf.returnData(True, 'common.set_success')
+
+        # 回读实际状态：systemctl 失败（服务被 mask / 依赖未满足）时旧实现照样回
+        # 「设置成功」，界面开关会显示成已切换、实际没变
+        for _ in range(3):
+            if self.getFwStatus() == want_running:
+                return yf.returnData(True, 'common.set_success')
+            time.sleep(0.3)
+        yf.writeFileLog('[firewall] setFw 未生效: want_running=%s status=%s' % (want_running, status))
+        return yf.returnData(False, 'SET_ERROR')
+
+    def _coversPanelPort(self, port):
+        """port（含端口段）是否覆盖面板自身端口。
+
+        面板端口一旦从防火墙里消失，外部就再也打不开面板（本机 127.0.0.1 仍然通，
+        极易误判为没事），只能登机器救回来 —— 本模块最严重的事故模式。
+        删规则与界面上的「关闭」开关两条路径都必须拒绝。
+        """
+        span = parsePortSpec(port)
+        if span is None:
+            return False
+        try:
+            panel_port = int(yf.getPanelPort())
+        except Exception as _e:
+            _log.warning('[firewall] 读取面板端口失败: %s', _e)
+            return False
+        return span[0] <= panel_port <= span[1]
 
     def addAcceptPortCmd(self, port, protocol ='tcp', stype='port'):
+        """下发放行命令；返回 (ok, err)。
+
+        旧实现无条件 `return True`：命令报错（firewalld/iptables 拒绝该值）时调用方
+        照旧写库并回「添加成功」—— 界面有规则、系统没生效。
+        """
         port = yf.shlexQuote(port)
+        errs = []
+
+        def _run(cmd):
+            _out, _err = yf.execShell(cmd)
+            _err = (_err or '').strip()
+            if _err:
+                errs.append(_err)
+
         if self.__isUfw:
             if stype == 'port':
                 if protocol == 'tcp':
-                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/tcp'))
+                    _run('ufw allow ' + yf.shlexQuote(port + '/tcp'))
                 if protocol == 'udp':
-                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/udp'))
+                    _run('ufw allow ' + yf.shlexQuote(port + '/udp'))
                 if protocol == 'tcp/udp':
-                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/tcp'))
-                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/udp'))
+                    _run('ufw allow ' + yf.shlexQuote(port + '/tcp'))
+                    _run('ufw allow ' + yf.shlexQuote(port + '/udp'))
             elif stype == 'address_allow':
-                yf.execShell('ufw insert 1 allow from ' + yf.shlexQuote(port))
+                _run('ufw insert 1 allow from ' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('ufw insert 1 deny from ' + yf.shlexQuote(port))
+                _run('ufw insert 1 deny from ' + yf.shlexQuote(port))
         elif self.__isFirewalld:
             if stype == 'port':
                 port = port.replace(':', '-')
                 if protocol == 'tcp':
                     cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
-                    yf.execShell(cmd)
+                    _run(cmd)
                 if protocol == 'udp':
                     cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
-                    yf.execShell(cmd)
+                    _run(cmd)
                 if protocol == 'tcp/udp':
                     cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
-                    yf.execShell(cmd)
+                    _run(cmd)
                     cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
-                    yf.execShell(cmd)
+                    _run(cmd)
             elif stype == 'address_allow':
-                yf.execShell('firewall-cmd --permanent --zone=trusted --add-source=' + yf.shlexQuote(port))
+                _run('firewall-cmd --permanent --zone=trusted --add-source=' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('firewall-cmd --permanent --zone=drop --add-source=' + yf.shlexQuote(port))
+                _run('firewall-cmd --permanent --zone=drop --add-source=' + yf.shlexQuote(port))
         elif self.__isIptables:
             if stype == 'port':
                 if protocol == 'tcp':
                     cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
-                    yf.execShell(cmd)
+                    _run(cmd)
                 if protocol == 'udp':
                     cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
-                    yf.execShell(cmd)
+                    _run(cmd)
                 if protocol == 'tcp/udp':
                     cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
-                    yf.execShell(cmd)
+                    _run(cmd)
                     cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
-                    yf.execShell(cmd)
+                    _run(cmd)
             elif stype == 'address_allow':
-                yf.execShell('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j ACCEPT')
+                _run('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j ACCEPT')
             elif stype == 'address_deny':
-                yf.execShell('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j DROP')
+                _run('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j DROP')
         else:
             pass
-        return True
+
+        for err in errs:
+            if not any(b in err for b in FIREWALL_BENIGN_ERR):
+                return (False, err)
+        return (True, '')
 
     # 添加放行端口
     def addAcceptPort(self, port, ps, stype,
@@ -519,19 +711,34 @@ class Firewall(object):
             self.setFw(0)
             return yf.returnData(False, 'firewall.py_msg_fcf41c')
 
+        if stype not in FIREWALL_TYPES:
+            return yf.returnData(False, 'ARGS_ERR')
+
+        protocol = parseProtocolSpec(protocol)
+        if protocol is None:
+            return yf.returnData(False, 'ARGS_ERR')
+
         if stype == 'port':
-            rep = r"^\d{1,5}(:\d{1,5})?$"
-            if not re.search(rep, port):
+            if parsePortSpec(port) is None:
                 return yf.returnData(False, 'firewall.py_msg_8951b2')
+            port = port.strip()
         else:
-            if port.strip() == "":
+            addr = parseAddressSpec(port)
+            if addr is None:
                 return yf.returnData(False, 'firewall.py_msg_417204')
+            port = addr
 
         if thisdb.getFirewallCountByPort(port, stype=stype) > 0:
             return yf.returnData(False, 'firewall.py_msg_142c3f')
 
+        # 先真正下发、成功才写库：否则库里会留下一条系统里并不存在的规则
+        ok, err = self.addAcceptPortCmd(port, protocol=protocol, stype=stype)
+        if not ok:
+            yf.writeFileLog('[firewall] 放行命令失败 port=%s type=%s protocol=%s: %s'
+                            % (port, stype, protocol, err))
+            return yf.returnData(False, 'ADD_ERROR')
+
         thisdb.addFirewall(port, ps=ps, protocol=protocol, stype=stype)
-        self.addAcceptPortCmd(port, protocol=protocol, stype=stype)
         self.reload()
         
         msg = yf.getInfo('添加防火墙规则[{1}][{2}]成功', (port, stype,))
@@ -558,19 +765,18 @@ class Firewall(object):
     def delAcceptPort(self, firewall_id, port,
         protocol='tcp'
     ):
-        panel_port = yf.getPanelPort()
+        # 以库里的记录为准（请求里的 port 只做兼容保留）：id 不存在时旧实现照样回
+        # 「删除成功」，假删除；而且系统侧删的是调用方随手传进来的端口，可能误删
+        info = yf.M('firewall').where("id=?", (firewall_id,)).field('port,protocol,type').find()
+        if not info:
+            return yf.returnData(False, 'DEL_ERROR')
 
-        if port.find(':') > 0:
-            pass
-        elif port.find('-') > 0:
-            pass
-        else:
-            if(port.isdigit() and int(port) == int(panel_port)):
-                return yf.returnData(False, 'firewall.py_msg_bf69d6')
+        port = info['port']
+        protocol = info.get('protocol') or protocol
+        stype = info.get('type') or 'port'
 
-        info = yf.M('firewall').where("id=?", (firewall_id,)).field('type').find()
-        stype = 'port'
-        if info: stype = info['type']
+        if self._coversPanelPort(port):
+            return yf.returnData(False, 'firewall.py_msg_bf69d6')
 
         try:
             self.delAcceptPortCmd(port, protocol, stype=stype)
@@ -795,14 +1001,26 @@ class Firewall(object):
         if not self.getFwStatus():
             return yf.returnData(False, 'firewall.py_msg_7e10e3')
 
-        info = yf.M('firewall').where("id=?", (id,)).field('type').find()
-        stype = 'port'
-        if info: stype = info['type']
+        # 端口/协议/类型一律以库里的记录为准（请求参数只做兼容保留）：旧实现直接用请求
+        # 参数，`id=999999&port=9131&status=1` 就能给系统加一条界面上看不见、也删不掉的
+        # 规则；更要命的是同一个入口把面板自己的端口关掉 —— 直接把面板从网络里摘掉。
+        info = yf.M('firewall').where("id=?", (id,)).field('port,protocol,type').find()
+        if not info:
+            return yf.returnData(False, 'ARGS_ERR')
+
+        port = info['port']
+        protocol = info.get('protocol') or protocol
+        stype = info.get('type') or 'port'
 
         if status == '1':
-            self.addAcceptPortCmd(port, protocol, stype=stype)
+            ok, err = self.addAcceptPortCmd(port, protocol, stype=stype)
+            if not ok:
+                yf.writeFileLog('[firewall] 启用规则失败 id=%s port=%s: %s' % (id, port, err))
+                return yf.returnData(False, 'ADD_ERROR')
             msg = '启用成功'
         else:
+            if self._coversPanelPort(port):
+                return yf.returnData(False, 'firewall.py_msg_bf69d6')
             self.delAcceptPortCmdInSystem(port, protocol, stype=stype)
             msg = '禁用成功'
 

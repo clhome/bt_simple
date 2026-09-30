@@ -3257,7 +3257,10 @@
     "py_msg_3bd322": "Bitte warten Sie, bis alle Installationsaufgaben abgeschlossen sind",
     "py_msg_563ff5": "Überwachungsaufzeichnungen erfolgreich geleert!",
     "py_msg_8042ad": "Fehler!",
-    "py_msg_d56c7a": "Versionshinweise nicht gefunden"
+    "py_msg_d56c7a": "Versionshinweise nicht gefunden",
+    "py_msg_7f876a": "Ungültige Version!",
+    "py_msg_339e87": "Kopieren fehlgeschlagen, auf den Stand vor dem Update zurückgesetzt!",
+    "py_msg_fac254": "Kopieren fehlgeschlagen, kein Backup zum Zurücksetzen!"
   },
   "logs": {
     "panel_logs": "Panel-Protokolle",

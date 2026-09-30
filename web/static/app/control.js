@@ -12,6 +12,11 @@ $(window).on('resize', function () {
   }, 100);
 });
 
+// 请求失败统一提示：后端 500 / 网络中断时必须有反馈（否则图表静默留空、遮罩永久卡死）
+function monitorFailMsg() {
+  return (window.lan && lan.public && lan.public.CONNECT_ERR) || t('public.CONNECT_ERR', '连接服务器失败!');
+}
+
 // 图表放大功能
 function enlargeChart(chartId, title) {
   if (!window.chartInstances[chartId]) {
@@ -404,7 +409,9 @@ function compute(b, e) {
 
     // 渲染底部时间滑块
     renderGlobalTimeline(xData);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 2. 平均负载 (1/5/15分钟)
@@ -550,7 +557,9 @@ function getload(b, e) {
     myChartAverage.setOption(option);
     window.chartInstances['getload_average_view'] = myChartAverage;
     bindInsideZoomSync(myChartAverage);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 3. 磁盘 I/O
@@ -680,7 +689,9 @@ function disk(b, e) {
     myChartDisk.setOption(option);
     window.chartInstances['diskview'] = myChartDisk;
     bindInsideZoomSync(myChartDisk);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 4. 网络 I/O
@@ -810,7 +821,9 @@ function network(b, e) {
     myChartNetwork.setOption(option);
     window.chartInstances['network'] = myChartNetwork;
     bindInsideZoomSync(myChartNetwork);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 统一鼠标悬停控制：移动中不显示 Tooltip（零开销），停顿至少 200ms 时 4 个图表同步显示该时刻详情
@@ -928,6 +941,7 @@ function getStatus() {
   });
   $.post('/system/set_control', 'type=-1', function (rdata) {
     layer.close(loadT);
+    rdata = rdata || {};
     if (rdata.status) {
       $("#openJK").html("<input class='btswitch btswitch-ios' id='ctswitch' type='checkbox' checked><label class='btswitch-btn' for='ctswitch' onclick='setControl(\"openjk\", true)'></label>");
     } else {
@@ -939,7 +953,10 @@ function getStatus() {
       $("#statAll").html("<input class='btswitch btswitch-ios' id='stat_witch' type='checkbox'><label class='btswitch-btn' for='stat_witch' onclick='setControl(\"stat\",false)'></label>");
     }
     $("#save_day").val(rdata.day);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 设置监控状态
@@ -977,7 +994,10 @@ function setControl(act, value) {
     }, {
       icon: rdata.status ? 1 : 2
     });
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+  });
 }
 
 // 清理记录
@@ -997,6 +1017,9 @@ function closeControl() {
       }, {
         icon: rdata.status ? 1 : 2
       });
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(monitorFailMsg(), {icon: 2, time: 3000});
+    });
   });
 }

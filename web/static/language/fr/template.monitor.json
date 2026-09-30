@@ -169,6 +169,9 @@
     "py_msg_3bd322": "Veuillez attendre que toutes les tâches de l'Installer soient terminées avant de cliquer sur « Exécuter ».",
     "py_msg_563ff5": "Enregistrement ViderSurveillance réussi !",
     "py_msg_8042ad": "Anomalie !",
-    "py_msg_d56c7a": "Description de l'émission introuvable"
+    "py_msg_d56c7a": "Description de l'émission introuvable",
+    "py_msg_7f876a": "Version invalide !",
+    "py_msg_339e87": "Copie échouée, retour à l'instantané avant mise à jour !",
+    "py_msg_fac254": "Copie échouée et aucune sauvegarde disponible !"
   }
 }

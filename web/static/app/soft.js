@@ -1,3 +1,38 @@
+// ---------------------------------------------------------------------------------
+// A07 soft：软件列表 / 第三方插件包弹窗的转义工具
+//
+// 为什么需要：插件 info.json（**包括用户上传的第三方插件包**）里的 title / ps /
+// author / home / path / icon / versions 会被直接拼进列表与弹窗的 HTML，以及行内
+// onclick 里的 '...' 字符串（HTML + JS 双上下文）。上传一份
+// title='<img src=x onerror=alert(1)>' 的包，列表渲染即可在面板里执行脚本；
+// home 写 'javascript:alert(1)' 还能变成可点击的伪协议链接。
+//   yfSoftText  → HTML 文本/属性上下文
+//   yfSoftJsStr → 行内 onclick 的 '...' 字符串参数
+//   yfSoftUrl   → 只放行 http(s) 链接，其余返回空串
+// ---------------------------------------------------------------------------------
+function yfSoftText(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function yfSoftJsStr(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/</g, '\\x3c')
+    .replace(/>/g, '\\x3e')
+    .replace(/\r?\n/g, '\\n');
+}
+function yfSoftUrl(v) {
+  var s = String(v === undefined || v === null ? '' : v).trim();
+  if (!/^https?:\/\//i.test(s)) return '';
+  return yfSoftText(s);
+}
+
 //重置插件弹出框宽度
 function resetPluginWinWidth(width) {
   $("div[id^='layui-layer'][class*='layui-layer-page']").width(width);
@@ -110,13 +145,20 @@ function clearPluginCache() {
       time: 0,
       shade: [0.3, '#000']
     });
-    $.post('/plugins/clear_cache', {}, function (rdata) {
+    $.post('/plugins/clear_cache', {
+      purge_source: '1'
+    }, function (rdata) {
       layer.close(loadT);
       layer.msg(rdata.msg, {
         icon: rdata.status ? 1 : 2
       });
       $('#third_party_setting_box').hide();
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(t('public.operation_error', '操作失败'), {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -224,7 +266,7 @@ function getSList(isdisplay) {
         display_title = raw_title + ' ' + plugin.setup_version;
       }
 
-      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + display_title + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
+      var handle = '<a class="btlink" onclick="addVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(version_info) + '\',\'' + yfSoftJsStr(plugin.tip) + '\',this,\'' + yfSoftJsStr(display_title) + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
       if (plugin.setup == true) {
         var mupdate = '';
         var latest_version = '';
@@ -257,24 +299,24 @@ function getSList(isdisplay) {
               }
             }
             if (needUpdate) {
-              mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\');">' + t('public.update', '更新') + '</a> | ';
+              mupdate = '<a class="btlink" onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(latest_version) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' + t('public.update', '更新') + '</a> | ';
             }
           }
         }
-        var settingsLink = '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\')">' + t('public.set', '设置') + '</a>';
-        var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
+        var settingsLink = '<a class="btlink" onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')">' + t('public.set', '设置') + '</a>';
+        var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
         handle = mupdate + settingsLink + ' | ' + uninstallLink;
-        titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
-        softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
+        titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
+        softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {
           indexshow = '<div class="index-item">\
-                        <input class="btswitch btswitch-ios" id="index_' + plugin.name + plugin.versions + '" type="checkbox" ' + checked + '>\
-                        <label class="btswitch-btn" for="index_' + plugin.name + plugin.versions + '" onclick="toIndexDisplay(\'' + plugin.name + '\',\'' + plugin.versions + '\',\'' + plugin.coexist + '\')"></label>\
+                        <input class="btswitch btswitch-ios" id="index_' + yfSoftText(plugin.name) + yfSoftText(plugin.versions) + '" type="checkbox" ' + checked + '>\
+                        <label class="btswitch-btn" for="index_' + yfSoftText(plugin.name) + yfSoftText(plugin.versions) + '" onclick="toIndexDisplay(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.versions) + '\',\'' + yfSoftJsStr(plugin.coexist) + '\')"></label>\
                     </div>';
         } else {
           indexshow = '<div class="index-item">\
-                        <input class="btswitch btswitch-ios" id="index_' + plugin.name + '" type="checkbox" ' + checked + '>\
-                        <label class="btswitch-btn" for="index_' + plugin.name + '" onclick="toIndexDisplay(\'' + plugin.name + '\',\'' + plugin.setup_version + '\')"></label>\
+                        <input class="btswitch btswitch-ios" id="index_' + yfSoftText(plugin.name) + '" type="checkbox" ' + checked + '>\
+                        <label class="btswitch-btn" for="index_' + yfSoftText(plugin.name) + '" onclick="toIndexDisplay(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')"></label>\
                     </div>';
         }
         var pluginStatusVal = plugin.status;
@@ -305,16 +347,16 @@ function getSList(isdisplay) {
         handle = '<a style="color:#C0C0C0;" href="javascript:task();">' + t('public.waiting', '等待中...') + '</a>';
       }
 
-      var plugin_title = display_title;
+      var plugin_title = yfSoftText(display_title);
       if (plugin.display_level == 1) {
         plugin_title += t('soft.size_third_party', ' (第三方插件)');
       }
-      icon_link = "/plugins/file?name=" + plugin.name + "&f=ico.png";
+      icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=ico.png";
       if (plugin.icon != '') {
-        icon_link = "/plugins/file?name=" + plugin.name + "&f=" + plugin.icon;
+        icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=" + encodeURIComponent(plugin.icon);
       }
-      var homeLink = plugin.home ? ('<a class="btlink" href="' + plugin.home + '" target="_blank">' + t('soft.official_site', '官网') + '</a>') : '-';
-      sBody += '<tr data-name="' + plugin.name + '">' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + raw_ps + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td class="plugin-status-col" data-plugin="' + plugin.name + '">' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      var homeLink = yfSoftUrl(plugin.home) ? ('<a class="btlink" href="' + yfSoftUrl(plugin.home) + '" target="_blank">' + t('soft.official_site', '官网') + '</a>') : '-';
+      sBody += '<tr data-name="' + yfSoftText(plugin.name) + '">' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + yfSoftText(raw_ps) + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + yfSoftText(plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td class="plugin-status-col" data-plugin="' + yfSoftText(plugin.name) + '">' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);
@@ -404,13 +446,13 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     var veropt = ver.split("|");
     var selectVersion = '';
     for (var i = veropt.length - 1; i >= 0; i--) {
-      selectVersion += '<option>' + name + ' ' + veropt[i] + '</option>';
+      selectVersion += '<option>' + yfSoftText(name + ' ' + veropt[i]) + '</option>';
     }
     option = "<select id='selectVersion' class='bt-input-text' style='margin-left:30px'>" + selectVersion + "</select>";
   } else {
-    option = '<span id="selectVersion" val="' + name + ' ' + ver + '">【' + titlename + '】 ' + ver + '</span>';
+    option = '<span id="selectVersion" val="' + yfSoftText(name + ' ' + ver) + '">【' + yfSoftText(titlename) + '】 ' + yfSoftText(ver) + '</span>';
   }
-  var customHtmlPath = "/plugins/file?name=" + name + "&f=install.html";
+  var customHtmlPath = "/plugins/file?name=" + encodeURIComponent(name) + "&f=install.html";
   $.get(customHtmlPath, function (customHtml) {
     if (typeof customHtml !== 'string' || customHtml.indexOf('404 Not Found') > -1 || customHtml.indexOf('{"status":false') > -1 || customHtml.trim() === '') {
       customHtml = '';
@@ -418,7 +460,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     var layerArea = customHtml ? '540px' : '380px';
     layer.open({
       type: 1,
-      title: (lan && lan.soft && t('soft.installation') || "") + titlename,
+      title: (lan && lan.soft && t('soft.installation') || "") + yfSoftText(titlename),
       area: layerArea,
       closeBtn: 1,
       shadeClose: true,
@@ -465,7 +507,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   }).fail(function () {
     layer.open({
       type: 1,
-      title: (lan && lan.soft && t('soft.installation_1') || "") + titlename,
+      title: (lan && lan.soft && t('soft.installation_1') || "") + yfSoftText(titlename),
       area: '380px',
       closeBtn: 1,
       shadeClose: true,
@@ -506,7 +548,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + t('soft.uninstall_warning1') + name + t('soft.uninstall_warning2') + "</div><div class='line' style='margin-bottom: 0px;'><span style='display: block; margin-bottom: 10px;'>" + t('soft.uninstall_warning3') + " <b>" + name + "</b> " + t('soft.uninstall_warning4') + "</span><input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 200px;' placeholder='" + t('soft.please_input') + "' /></div></div>";
+  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + t('soft.uninstall_warning1') + yfSoftText(name) + t('soft.uninstall_warning2') + "</div><div class='line' style='margin-bottom: 0px;'><span style='display: block; margin-bottom: 10px;'>" + t('soft.uninstall_warning3') + " <b>" + yfSoftText(name) + "</b> " + t('soft.uninstall_warning4') + "</span><input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 200px;' placeholder='" + t('soft.please_input') + "' /></div></div>";
   layer.open({
     type: 1,
     title: lan && lan.soft && t('soft.confirm_forced_deletion_high') || "",
@@ -590,7 +632,7 @@ function uninstallPreInspection(name, title, ver, callback) {
 function runUninstallVersion(name, title, version) {
   var pureTitle = title.replace("-" + version, "");
   var pluginTitle = pureTitle + "-" + version;
-  var confirmTip = t('soft.uninstall_confirm_prefix', '您真的要卸载【') + pluginTitle + t('soft.uninstall_confirm_suffix', '】吗？');
+  var confirmTip = t('soft.uninstall_confirm_prefix', '您真的要卸载【') + yfSoftText(pluginTitle) + t('soft.uninstall_confirm_suffix', '】吗？');
   var backupTip = t('soft.uninstall_backup_tip', '卸载前将数据打包备份到 /www/backup (.tar.gz)');
   var contentHtml = "<div class='bt-form pd20 c6'>" +
     "<div class='line' style='margin-bottom: 15px;'>" +
@@ -745,11 +787,11 @@ function indexListHtml(callback) {
         fontStyle = ' style="font-size: 11px;"';
       }
 
-      con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + data_id + '">\
+      con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + yfSoftText(data_id) + '">\
                 <span class="spanmove"></span>\
-                <div class="soft-card-box neu-btn-card" onclick="softMain(\'' + plugin.name + '\',\'' + raw_title + '\',\'' + plugin.setup_version + '\')">\
-                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:36px;"></div>\
-                <div class="sname"' + fontStyle + ' title="' + raw_title + '">' + name + state + '</div>\
+                <div class="soft-card-box neu-btn-card" onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(raw_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')">\
+                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + encodeURIComponent(plugin.name) + '&f=ico.png" style="max-width:36px;"></div>\
+                <div class="sname"' + fontStyle + ' title="' + yfSoftText(raw_title) + '">' + yfSoftText(name) + state + '</div>\
                 </div>\
             </div>';
 
@@ -909,16 +951,16 @@ function importPlugin(file) {
         content: '<style>.install_three_plugin{padding:25px;padding-bottom:70px}.install_three_plugin .box{border:1px solid #ccc;padding:15px;line-height:22px;border-radius:2px}.install_three_plugin .box .title{font-size:16px;font-weight:600;margin-bottom:10px}.install_three_plugin .box p{margin-bottom:5px}.install_three_plugin .box p b{color:#666}.install_three_plugin .help-info-text{margin-top:15px;color:red}.install_three_plugin .bt-form-submit-btn{position:absolute;bottom:20px;text-align:center;width:100%;left:0}</style>' +
                     '<div class="install_three_plugin">' +
                     '<div class="box">' +
-                    '<div class="title">' + data.title + '</div>' +
-                    '<p><b>' + (lan && lan.soft && lan.soft.version || '版本：') + '</b>' + data.versions + '</p>' +
-                    '<p><b>' + (lan && lan.soft && lan.soft.desc || '描述：') + '</b>' + data.ps + '</p>' +
+                    '<div class="title">' + yfSoftText(data.title) + '</div>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.version || '版本：') + '</b>' + yfSoftText(data.versions) + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.desc || '描述：') + '</b>' + yfSoftText(data.ps) + '</p>' +
                     '<p><b>' + (lan && lan.soft && lan.soft.size || '大小：') + '</b>' + toSize(data.size) + '</p>' +
-                    '<p><b>' + (lan && lan.soft && lan.soft.author || '作者：') + '</b>' + data.author + '</p>' +
-                    '<p><b>' + (lan && lan.soft && lan.soft.source || '来源：') + '</b><a class="btlink" href="' + data.home + '" target="_blank">' + data.home + '</a></p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.author || '作者：') + '</b>' + yfSoftText(data.author) + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.source || '来源：') + '</b>' + (yfSoftUrl(data.home) ? ('<a class="btlink" href="' + yfSoftUrl(data.home) + '" target="_blank">' + yfSoftUrl(data.home) + '</a>') : '-') + '</p>' +
                     '</div>' +
                     '<ul class="help-info-text c7"><li>' + (lan && lan.soft && lan.soft.third_warn1 || '第三方插件未经官方安全认证，请自行核实插件安全性；') + '</li><li>' + (lan && lan.soft && lan.soft.third_warn2 || '使用第三方插件可能会影响面板稳定性；') + '</li></ul>' +
                     '<div class="bt-form-submit-btn"><button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">' + (lan && lan.public && lan.public.cancel || '取消') + '</button>' +
-                    '<button type="button" class="btn btn-success btn-sm" onclick="local_install_plugin(\'' + data.name + '\',\'' + data.tmp_path + '\')">' + (lan && lan.soft && lan.soft.confirm_install || '确定安装') + '</button></div>' +
+                    '<button type="button" class="btn btn-success btn-sm" onclick="importPluginInstall(\'' + yfSoftJsStr(data.name) + '\',\'' + yfSoftJsStr(data.tmp_path) + '\')">' + (lan && lan.soft && lan.soft.confirm_install || '确定安装') + '</button></div>' +
                     '</div>'
       });
     },

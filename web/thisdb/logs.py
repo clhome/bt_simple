@@ -10,6 +10,7 @@
 # ---------------------------------------------------------------------------------
 
 import json
+import os
 
 
 import core.yf as yf
@@ -35,14 +36,29 @@ def archiveLogs():
         rows = []
 
     archive_dir = yf.getPanelDataDir() + '/log_archive'
-    yf.makeDirs(archive_dir)
+    if not yf.makeDirs(archive_dir):
+        raise Exception('归档目录不可用: %s' % archive_dir)
     stamp = yf.formatDate().replace('-', '').replace(':', '').replace(' ', '_')
-    path = archive_dir + '/panel_logs_%s.json' % stamp
-    yf.writeFile(path, yf.getJson({
+    base = archive_dir + '/panel_logs_%s' % stamp
+    path = base + '.json'
+    # 时间戳只精确到秒：同一秒内重复归档必须另起文件名，
+    # 否则后一次（此时表已空）会覆盖前一次，旧归档凭空消失。
+    seq = 1
+    while os.path.exists(path):
+        path = '%s_%d.json' % (base, seq)
+        seq += 1
+
+    content = yf.getJson({
         'archived_at': yf.formatDate(),
         'count': len(rows),
         'rows': rows,
-    }))
+    })
+    # writeFile 失败时**返回 False 而不抛异常**，忽略返回值会导致
+    # 「归档没落盘、日志照样被清空」的不可逆丢失（实测复现过）。
+    if not yf.writeFile(path, content):
+        raise Exception('归档文件写入失败: %s' % path)
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        raise Exception('归档文件为空: %s' % path)
 
     clearLog()
     return path, len(rows)
@@ -101,4 +117,8 @@ def getLogsList(page = 1,size = 10,search = ''):
     data = {}
     data['list'] = logs_list if isinstance(logs_list, list) else []
     data['count'] = count
+    # 回传规范化后的分页参数：调用方（分页组件）必须与 SQL 用同一套值，
+    # 否则非法入参会在分页组件里被二次 int() 解析并抛错。
+    data['page'] = page
+    data['size'] = size
     return data

@@ -59,21 +59,25 @@ class stats:
             
             for disk_name in diskio_group.keys():
                 diskInfo[disk_name] = {}
-                # print('disk_name',disk_name)
-                # print(diskio_group[disk_name].write_time , diskio_cache[disk_name].write_time)
-                # print(diskio_group[disk_name].write_count , diskio_cache[disk_name].write_count)
+                # 新出现的磁盘（热插拔 / loop 设备）没有基线：本次速率按 0 算。
+                # 旧实现直接取 diskio_cache[disk_name] 会 KeyError，被外层 except
+                # 吞掉后整份采样退化成“ALL 全 0 + 部分磁盘”的假数据，且缓存不再更新，
+                # 后续每次采样都是同一份残缺结果。
+                prev = diskio_cache.get(disk_name)
+                if prev is None:
+                    prev = diskio_group[disk_name]
 
-                diskInfo[disk_name]['read_count']   = int((diskio_group[disk_name].read_count - diskio_cache[disk_name].read_count) / stime)
-                diskInfo[disk_name]['write_count']  = int((diskio_group[disk_name].write_count - diskio_cache[disk_name].write_count) / stime)
-                diskInfo[disk_name]['read_bytes']   = int((diskio_group[disk_name].read_bytes - diskio_cache[disk_name].read_bytes) / stime)
-                diskInfo[disk_name]['write_bytes']  = int((diskio_group[disk_name].write_bytes - diskio_cache[disk_name].write_bytes) / stime)
-                diskInfo[disk_name]['read_time']    = int((diskio_group[disk_name].read_time - diskio_cache[disk_name].read_time) / stime)
-                diskInfo[disk_name]['write_time']   = int((diskio_group[disk_name].write_time - diskio_cache[disk_name].write_time) / stime)
+                diskInfo[disk_name]['read_count']   = int((diskio_group[disk_name].read_count - prev.read_count) / stime)
+                diskInfo[disk_name]['write_count']  = int((diskio_group[disk_name].write_count - prev.write_count) / stime)
+                diskInfo[disk_name]['read_bytes']   = int((diskio_group[disk_name].read_bytes - prev.read_bytes) / stime)
+                diskInfo[disk_name]['write_bytes']  = int((diskio_group[disk_name].write_bytes - prev.write_bytes) / stime)
+                diskInfo[disk_name]['read_time']    = int((diskio_group[disk_name].read_time - prev.read_time) / stime)
+                diskInfo[disk_name]['write_time']   = int((diskio_group[disk_name].write_time - prev.write_time) / stime)
 
-                if 'read_merged_count' in diskio_group[disk_name] and 'read_merged_count' in diskio_cache[disk_name]:
-                    diskInfo[disk_name]['read_merged_count'] = int((diskio_group[disk_name].read_merged_count - diskio_cache[disk_name].read_merged_count) / stime)
-                if 'write_merged_count' in diskio_group[disk_name] and 'write_merged_count' in diskio_cache[disk_name]:
-                    diskInfo[disk_name]['write_merged_count'] = int((diskio_group[disk_name].write_merged_count - diskio_cache[disk_name].write_merged_count) / stime)
+                if 'read_merged_count' in diskio_group[disk_name] and 'read_merged_count' in prev:
+                    diskInfo[disk_name]['read_merged_count'] = int((diskio_group[disk_name].read_merged_count - prev.read_merged_count) / stime)
+                if 'write_merged_count' in diskio_group[disk_name] and 'write_merged_count' in prev:
+                    diskInfo[disk_name]['write_merged_count'] = int((diskio_group[disk_name].write_merged_count - prev.write_merged_count) / stime)
                 
                 diskInfo['ALL']['read_count'] += diskInfo[disk_name]['read_count']
                 diskInfo['ALL']['write_count'] += diskInfo[disk_name]['write_count']

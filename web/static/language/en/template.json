@@ -3257,7 +3257,10 @@
     "py_msg_3bd322": "Please wait for all Installuntil the task is complete, then Execute",
     "py_msg_563ff5": "ClearMonitoringrecordsuccessful!",
     "py_msg_8042ad": "abnormal!",
-    "py_msg_d56c7a": "Release notes not found"
+    "py_msg_d56c7a": "Release notes not found",
+    "py_msg_7f876a": "Invalid version!",
+    "py_msg_339e87": "Copy failed, rolled back to pre-update snapshot!",
+    "py_msg_fac254": "Copy failed and no backup to roll back!"
   },
   "logs": {
     "panel_logs": "Panel Logs",

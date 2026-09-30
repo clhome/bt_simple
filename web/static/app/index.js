@@ -87,8 +87,24 @@ function rocket(sum, m) {
 //释放内存
 function reMemory() {
     setTimeout(function() {
-        $(".mem-release").find('.mask').css({ 'color': '#20a53a', 'font-size': '14px' }).html('<span style="display:none">1</span>' + lan.index.memre_ok_0 + ' <img src="/static/img/ings.gif">');
+        var $mask = $(".mem-release").find('.mask');
+        // 记住加载前的真实百分比：失败时必须还原，否则「正在释放」会永久卡住
+        var maskHtml = $mask.html();
+        // 失败态统一出口：HTTP 失败（500/路由缺失返回 HTML → jQuery 解析失败）
+        // 与业务失败（status:false，不带 memTotal/memRealUsed）都必须走这里，
+        // 否则遮罩卡死、百分比算出 NaN。文案复用已有键，不新增语言包键。
+        var restoreMask = function () {
+            $mask.html(maskHtml).removeAttr('style');
+            $(".mem-release").removeClass("mem-action");
+            $(".mem-release").find(".mem-re-min").show();
+            layer.msg(t('index.fail', '失败'), { icon: 2, time: 3000 });
+        };
+        $mask.css({ 'color': '#20a53a', 'font-size': '14px' }).html('<span style="display:none">1</span>' + lan.index.memre_ok_0 + ' <img src="/static/img/ings.gif">');
         $.post('/system/rememory', '', function(rdata) {
+            if (!rdata || rdata.status === false || rdata.memTotal === undefined) {
+                restoreMask();
+                return;
+            }
             var percent = getPercent(rdata.memRealUsed, rdata.memTotal);
             // rememory 接口返回 MB，转回字节后按统一格式（1.2G / 7.8G）展示
             var memText = formatMemPair(rdata.memRealUsed * 1024 * 1024, rdata.memTotal * 1024 * 1024);
@@ -110,7 +126,7 @@ function reMemory() {
                 $(".mem-release").find('.mask').removeAttr("style").html("<span>" + percent + "</span>%");
                 $(".mem-release").find(".mem-re-min").show();
             }, 2000)
-        },'json');
+        },'json').fail(restoreMask);
     }, 2000);
 }
 

@@ -87,9 +87,13 @@ def getDiskInfo():
             '/dev/shm', '/zroot', '/run/lock', '/run', '/run/shm', '/run/user']
     for tmp in temp1:
         n += 1
-        inodes = tempInodes1[n - 1].split()
         disk = tmp.split()
-        if len(disk) < 5:
+        # 两条 df 是分两次 shell 取得的：行数不齐（期间发生挂载/卸载）或列数不足时
+        # 按下标取会抛 IndexError 变 500；对不齐的行直接跳过，宁缺勿错。
+        if n - 1 >= len(tempInodes1):
+            continue
+        inodes = tempInodes1[n - 1].split()
+        if len(disk) < 6 or len(inodes) < 5:
             continue
         if disk[1].find('M') != -1:
             continue
@@ -386,20 +390,34 @@ def getSystemDetails():
     
     ip_data = None
     ip_cache_file = '/tmp/panel_ip_info.json' if sys.platform != 'win32' else os.path.join(yf.getRunDir(), 'tmp', 'panel_ip_info.json')
-    if os.path.exists(ip_cache_file) and time.time() - os.path.getmtime(ip_cache_file) < 86400:
-        try:
-            ip_data = json.loads(yf.readFile(ip_cache_file))
-        except Exception as _e:
-            _log.debug('[system] 读取公网 IP 缓存失败: %s', _e)
+    if os.path.exists(ip_cache_file):
+        ip_cache_age = time.time() - os.path.getmtime(ip_cache_file)
+        ip_cache_raw = yf.readFile(ip_cache_file) or ''
+        if ip_cache_age < 86400 and ip_cache_raw.strip():
+            try:
+                ip_data = json.loads(ip_cache_raw)
+            except Exception as _e:
+                _log.debug('[system] 读取公网 IP 缓存失败: %s', _e)
+        elif ip_cache_age < 300:
+            # 负缓存：取不到公网 IP 时落一个空缓存文件，5 分钟内不再发起
+            # 阻塞式 curl（worker 只有 1 个、8 个线程，每次请求白占一个线程最多 3 秒）
+            ip_data = {}
             
-    if not ip_data:
+    if ip_data is None:
+        ip_data = {}
+        ip_res = ''
         try:
             ip_res = yf.execShell('curl -fsSL -m 3 http://ipinfo.io/json')[0]
             if ip_res:
                 ip_data = json.loads(ip_res)
-                yf.writeFile(ip_cache_file, json.dumps(ip_data))
         except Exception as _e:
-            _log.debug('[system] 解析/写入公网 IP 缓存失败: %s', _e)
+            _log.debug('[system] 解析公网 IP 响应失败: %s', _e)
+            ip_res = ''
+        try:
+            # 成功写真实内容，失败写空文件做负缓存
+            yf.writeFile(ip_cache_file, json.dumps(ip_data) if ip_res else '')
+        except Exception as _e:
+            _log.debug('[system] 写入公网 IP 缓存失败: %s', _e)
             
     net_info['isp'] = "未知"
     net_info['location'] = "未知"

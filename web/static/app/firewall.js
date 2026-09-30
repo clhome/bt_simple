@@ -1,6 +1,34 @@
 var currentType = 'port';
 var currentSortDir = ''; // '', 'asc', 'desc'
 
+/**
+ * 端口/IP/协议/备注都来自数据库（用户可控），以前直接拼进 innerHTML：
+ * 备注里存 <img src=x onerror=...> 就是存储型 XSS（/firewall/get_list 原样返回）。
+ */
+function yfFwText(v) {
+  if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+    return YfI18n.escapeHtml(v == null ? '' : String(v));
+  }
+  return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：HTML 转义挡不住注入
+ * （浏览器会先把实体还原成引号再交给 JS 解析），必须按 JS 字符串转义；
+ * 引号一律走实体，否则会直接终止 HTML 属性值，变成属性注入。
+ */
+function yfFwJsStr(v) {
+  return String(v == null ? '' : v)
+    .replace(/\\/g, '\\\\')
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
 function togglePortSort() {
   if (currentSortDir === '') {
     currentSortDir = 'asc';
@@ -159,7 +187,9 @@ function mstsc(port) {
   layer.confirm(lan && lan.firewall && t('firewall.changing_the_remote_port') || "", {
     title: lan && lan.firewall && t('firewall.remote_port') || ""
   }, function (index) {
-    var data = "port=" + port;
+    var data = "port=" + encodeURIComponent(port);
+    // 后端 500（例如旧实现的 set_ssh_port 收到非数字）时没有 .fail 会把这个
+    // 全屏遮罩永久卡住（shadeClose:false，点都点不掉）
     var loadT = layer.load({
       shade: true,
       shadeClose: false
@@ -170,7 +200,12 @@ function mstsc(port) {
       });
       layer.close(loadT);
       getSshInfo();
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -450,24 +485,28 @@ function showAccept(page) {
     layer.close(loadT);
     var body = '';
     for (var i = 0; i < data.data.length; i++) {
+      // 行内 onclick 的参数先按 JS 字符串转义（port/ps 都可能含引号）
+      var row = data.data[i];
+      var port_js = yfFwJsStr(row.port);
+      var protocol_js = yfFwJsStr(row.protocol);
       var status = "<div class='ssh-item' style='margin-left:0'>\
 					<input class='btswitch btswitch-ios' id='firewall_switch_" + data.data[i].id + "' type='checkbox' " + (data.data[i].status == 1 ? 'checked' : '') + ">\
-					<label class='btswitch-btn' for='firewall_switch_" + data.data[i].id + "' onclick=\"setFirewallStatus(" + data.data[i].id + ",'" + data.data[i].port + "','" + data.data[i].protocol + "'," + (data.data[i].status == 1 ? 0 : 1) + ")\"></label>\
+					<label class='btswitch-btn' for='firewall_switch_" + data.data[i].id + "' onclick=\"setFirewallStatus(" + row.id + ",'" + port_js + "','" + protocol_js + "'," + (row.status == 1 ? 0 : 1) + ")\"></label>\
 				</div>";
-      var protocol_td = currentType == 'port' ? "<td>" + data.data[i].protocol + "</td>" : "";
-      var port_display = data.data[i].port;
+      var protocol_td = currentType == 'port' ? "<td>" + yfFwText(row.protocol) + "</td>" : "";
+      var port_display = yfFwText(row.port);
       if (currentType == 'port') {
-        port_display = data.data[i].port.indexOf('.') == -1 ? data.data[i].port : (lan && lan.firewall && t('firewall.block_ip') || "") + data.data[i].port + ']';
+        port_display = row.port.indexOf('.') == -1 ? yfFwText(row.port) : (lan && lan.firewall && t('firewall.block_ip') || "") + yfFwText(row.port) + ']';
       } else {
-        var type_text = data.data[i].type == 'address_allow' ? '<span style="color:#20a53a;">' + (lan && lan.firewall && lan.firewall.allow_ip || '放行IP') + '</span>' : '<span style="color:red;">' + (lan && lan.firewall && lan.firewall.ban_ip || '禁止IP') + '</span>';
-        port_display = type_text + ':[' + data.data[i].port + ']';
+        var type_text = row.type == 'address_allow' ? '<span style="color:#20a53a;">' + (lan && lan.firewall && lan.firewall.allow_ip || '放行IP') + '</span>' : '<span style="color:red;">' + (lan && lan.firewall && lan.firewall.ban_ip || '禁止IP') + '</span>';
+        port_display = type_text + ':[' + yfFwText(row.port) + ']';
       }
       var port_status_td = "";
       if (currentType == 'port') {
         if (data.data[i].port_status) {
-          var ps = data.data[i].port_status;
-          var ps_json = encodeURIComponent(JSON.stringify(ps));
-          port_status_td = "<td><a href='javascript:;' class='btlink' onclick=\"showPortProcessInfo('" + ps_json + "', '" + data.data[i].port + "')\">" + ps.name + "</a></td>";
+          var pinfo = row.port_status;
+          var ps_json = encodeURIComponent(JSON.stringify(pinfo));
+          port_status_td = "<td><a href='javascript:;' class='btlink' onclick=\"showPortProcessInfo('" + yfFwJsStr(ps_json) + "', '" + port_js + "')\">" + yfFwText(pinfo.name) + "</a></td>";
         } else {
           port_status_td = "<td></td>";
         }
@@ -478,9 +517,9 @@ function showAccept(page) {
 				<td>" + port_display + "</td>\
 				" + port_status_td + "\
 				<td>" + status + "</td>\
-				<td>" + data.data[i].ps + "</td>\
-				<td>" + data.data[i].add_time + "</td>\
-				<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "','" + data.data[i].protocol + '\')">' + (lan && lan.public && t('public.delete') || '删除') + '</a></td>\t\t\t</tr>';
+				<td>" + yfFwText(row.ps) + "</td>\
+				<td>" + yfFwText(row.add_time) + "</td>\
+				<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + row.id + ",'" + port_js + "','" + protocol_js + '\')">' + (lan && lan.public && t('public.delete') || '删除') + '</a></td>\t\t\t</tr>';
     }
     if (data.data.length == 0) {
       var colspan = currentType == 'port' ? 8 : 6;
@@ -488,7 +527,12 @@ function showAccept(page) {
     }
     $("#firewall_body").html(body);
     $("#firewall_page").html(data.page);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+      icon: 2
+    });
+  });
 }
 
 //添加放行
@@ -496,7 +540,9 @@ function addAcceptPort() {
   var type = $("#firewalldType").val();
   var ps = $("#Ps").val();
   var protocol = $('select[name="protocol"]').val();
-  var action = "add_drop_address";
+  // 后端只有 /firewall/add_accept_port：旧的 add_drop_address 路由并不存在，
+  // 打过去会 404 -> 成功回调不执行 -> loading 遮罩永不关闭
+  var action = "add_accept_port";
   var port = "";
   if (type == 'port') {
     var startPort = $("#AcceptPortStart").val();
@@ -524,7 +570,6 @@ function addAcceptPort() {
     } else {
       port = startPort + ":" + endPort;
     }
-    action = "add_accept_port";
   }
   if (ps.length < 1) {
     layer.msg(lan && lan.firewall && t('firewall.remarks_notes_cannot_be') || "", {
@@ -538,7 +583,7 @@ function addAcceptPort() {
     time: 0,
     shade: [0.3, '#000']
   });
-  $.post('/firewall/' + action, 'port=' + port + "&ps=" + ps + '&type=' + type + '&protocol=' + protocol, function (rdata) {
+  $.post('/firewall/add_accept_port', 'port=' + encodeURIComponent(port) + "&ps=" + encodeURIComponent(ps) + '&type=' + type + '&protocol=' + protocol, function (rdata) {
     layer.close(loadT);
     if (rdata.status == true || rdata.status == 'true') {
       layer.msg(rdata.msg, {
@@ -554,7 +599,12 @@ function addAcceptPort() {
         icon: 2
       });
     }
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+      icon: 2
+    });
+  });
 }
 function addIpFirewall() {
   var stype = $("#ipFirewallAction").val();
@@ -578,7 +628,7 @@ function addIpFirewall() {
       time: 0,
       shade: [0.3, '#000']
     });
-    $.post('/firewall/add_accept_port', 'port=' + ip + "&ps=" + ps + '&type=' + stype + '&protocol=tcp/udp', function (rdata) {
+    $.post('/firewall/add_accept_port', 'port=' + encodeURIComponent(ip) + "&ps=" + encodeURIComponent(ps) + '&type=' + stype + '&protocol=tcp/udp', function (rdata) {
       layer.close(loadT);
       if (rdata.status) {
         layer.msg(rdata.msg, {
@@ -592,7 +642,12 @@ function addIpFirewall() {
           icon: 2
         });
       }
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   };
   if (stype == 'address_allow') {
     layer.confirm('<span style="color:red;font-weight:bold;">警告：放行该IP将允许其访问服务器所有端口，存在安全风险！</span><br>仅建议用于临时测试，用完请及时关闭。确定继续吗？', {
@@ -624,14 +679,8 @@ function addIpFirewall() {
 
 //删除放行
 function delAcceptPort(id, port, protocol) {
-  var action = "del_drop_address";
-  if (currentType == 'port') {
-    if (port.indexOf('.') == -1) {
-      action = "del_accept_port";
-    }
-  } else {
-    action = "del_accept_port";
-  }
+  // 后端只有 /firewall/del_accept_port：旧的 del_drop_address 分支会打到不存在的
+  // 路由（404 -> 成功回调不执行 -> 这里的 loading 遮罩永远不关）
   layer.confirm(t('confirm_del', [port]), {
     title: lan && lan.firewall && t('firewall.delete_firewall_rules') || "",
     closeBtn: 2
@@ -641,13 +690,18 @@ function delAcceptPort(id, port, protocol) {
       time: 0,
       shade: [0.3, '#000']
     });
-    $.post("/firewall/" + action, "id=" + id + "&port=" + port + '&protocol=' + protocol + '&stype=' + currentType, function (ret) {
+    $.post("/firewall/del_accept_port", "id=" + id + "&port=" + encodeURIComponent(port) + '&protocol=' + encodeURIComponent(protocol) + '&stype=' + currentType, function (ret) {
       layer.close(loadT);
       layer.msg(ret.msg, {
         icon: ret.status ? 1 : 2
       });
       showAccept(1);
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 function setFirewallStatus(id, port, protocol, status) {
@@ -656,13 +710,18 @@ function setFirewallStatus(id, port, protocol, status) {
     time: 0,
     shade: [0.3, '#000']
   });
-  $.post('/firewall/set_firewall_status', 'id=' + id + "&port=" + port + "&protocol=" + protocol + "&status=" + status + "&stype=" + currentType, function (rdata) {
+  $.post('/firewall/set_firewall_status', 'id=' + id + "&port=" + encodeURIComponent(port) + "&protocol=" + encodeURIComponent(protocol) + "&status=" + status + "&stype=" + currentType, function (rdata) {
     layer.close(loadT);
     layer.msg(rdata.msg, {
       icon: rdata.status ? 1 : 2
     });
     showAccept(1);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+      icon: 2
+    });
+  });
 }
 function syncServer() {
   var loadT = layer.msg(lan && lan.firewall && t('firewall.synchronizing_server_firewall_rules') || "", {
@@ -691,16 +750,17 @@ function syncServer() {
 }
 function showPortProcessInfo(ps_json, port) {
   var ps = JSON.parse(decodeURIComponent(ps_json));
+  // 进程名/命令行来自系统（用户可控的进程名同样能带 < > 引号）
   var con = '<div style="padding: 20px;">' +
         '<table class="table table-bordered table-hover" style="table-layout: fixed; word-wrap: break-word;">' +
         '<tbody>' +
-        '<tr><td width="100" style="background-color: #f9f9f9; font-weight: bold;">进程名</td><td>' + ps.name + '</td></tr>' +
-        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">进程pid</td><td>' + ps.pid + '</td></tr>' +
-        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">启动命令</td><td>' + ps.cmdline + '</td></tr>' +
+        '<tr><td width="100" style="background-color: #f9f9f9; font-weight: bold;">进程名</td><td>' + yfFwText(ps.name) + '</td></tr>' +
+        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">进程pid</td><td>' + yfFwText(ps.pid) + '</td></tr>' +
+        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">启动命令</td><td>' + yfFwText(ps.cmdline) + '</td></tr>' +
         '</tbody></table></div>';
   layer.open({
     type: 1,
-    title: port + (lan && lan.firewall && t('firewall.details_on_processes_using') || ""),
+    title: yfFwText(port) + (lan && lan.firewall && t('firewall.details_on_processes_using') || ""),
     area: ['500px', '300px'],
     closeBtn: 1,
     shadeClose: false,

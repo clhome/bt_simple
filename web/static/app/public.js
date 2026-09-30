@@ -2118,13 +2118,21 @@ function messageBox() {
 }
 
 //取执行日志
+// 任务名/日志文本转义助手（任务名可由下载文件名带入，未转义会造成存储型 XSS）
+function yfTaskEsc(v) {
+  if (window.YfI18n && typeof YfI18n.escapeHtml === 'function') {
+    return YfI18n.escapeHtml(v);
+  }
+  if (v == null) return '';
+  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 function execLog() {
   if (speed) {
     clearInterval(speed);
     speed = null;
   }
   $.post('/task/get_exec_log', {}, function (logs) {
-    var lbody = '<textarea readonly="" style="margin: 0px; width: 100%; box-sizing: border-box; height: 100%; min-height: 460px; background-color: #2b2d30; color: #a9b7c6; padding: 10px; border-radius: 4px; border: 1px solid #3c3f41; font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.5; resize: none; outline: none;" id="exec_log">' + logs + '</textarea>';
+    var lbody = '<textarea readonly="" style="margin: 0px; width: 100%; box-sizing: border-box; height: 100%; min-height: 460px; background-color: #2b2d30; color: #a9b7c6; padding: 10px; border-radius: 4px; border: 1px solid #3c3f41; font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.5; resize: none; outline: none;" id="exec_log">' + yfTaskEsc(logs) + '</textarea>';
     $(".taskcon").html(lbody);
     var ob = document.getElementById('exec_log');
     if (ob) {
@@ -2144,21 +2152,20 @@ function showTaskLog(id, name) {
     id: id
   }, function (rdata) {
     layer.close(loadT);
-    var logContent = '';
-    if (rdata.status) {
-      logContent = rdata.msg;
-    } else {
-      logContent = rdata.msg;
-    }
+    var logContent = yfTaskEsc(rdata && rdata.msg != null ? rdata.msg : '');
     layer.open({
       type: 1,
-      title: name + t('public.execution_log', '执行日志'),
+      title: yfTaskEsc(name) + t('public.execution_log', '执行日志'),
       area: ['670px', '500px'],
       shadeClose: false,
       closeBtn: 1,
       content: '<div class="pd15"><textarea readonly style="margin: 0px;width: 100%;height: 400px;background-color: #333;color:#fff; padding:5px; border:none">' + logContent + '</textarea></div>'
     });
-  }, 'json');
+  }, 'json').fail(function () {
+    // 请求失败必须关闭 loading 遮罩，否则遮罩永久卡死（原实现缺 .fail()）
+    layer.close(loadT);
+    layer.msg(t('public.load_fail', '加载失败'), { icon: 2 });
+  });
 }
 
 /**
@@ -2212,12 +2219,12 @@ function remind(a) {
       e += '<tr>\
 				<td><input type="checkbox"></td>\
 				<td>\
-					<div class="titlename c3"><a href="javascript:;" class="btlink" onclick="showTaskLog(' + g.data[d].id + ', \'' + g.data[d].name + '\')">' + g.data[d].name + '</a>\
+					<div class="titlename c3"><a href="javascript:;" class="btlink task-log-link" data-task-id="' + g.data[d].id + '" data-task-name="' + yfTaskEsc(g.data[d].name) + '">' + yfTaskEsc(g.data[d].name) + '</a>\
 						<span class="rs-status">【' + status_text + '】</span>\
 						<span class="rs-time">' + cos_text + '</span>\
 					</div>\
 				</td>\
-				<td class="text-right c3">' + g.data[d].add_time + '</td>\
+				<td class="text-right c3">' + yfTaskEsc(g.data[d].add_time) + '</td>\
 			</tr>';
     }
     var con = '<div class="divtable"><table class="table table-hover">\
@@ -2241,6 +2248,9 @@ function remind(a) {
     $(".taskcon").html(con);
     $(".msg_count").text(g.count);
     $("#taskPage").html(g.page);
+    $(".taskcon").off('click', '.task-log-link').on('click', '.task-log-link', function () {
+      showTaskLog($(this).data('task-id'), $(this).data('task-name'));
+    });
     $("#Rs-checkAll").on('click', function () {
       if ($(this).prop("checked")) {
         $("#remind").find("input").prop("checked", true);
@@ -2282,18 +2292,18 @@ function getReloads() {
             c = "";
             var f = (h.msg || "").split("\n");
             for (var e = 0; e < f.length; e++) {
-              c += f[e] + "<br>";
+              c += yfTaskEsc(f[e]) + "<br>";
             }
             if (h.task[g].name.indexOf(t('public.scan', '扫描')) != -1) {
               b += "<li>\
-								<span class='titlename'>" + h.task[g].name + "</span>\
+								<span class='titlename'>" + yfTaskEsc(h.task[g].name) + "</span>\
 								<span class='state'>" + t('public.scanning', '正在扫描') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 								<span class='opencmd'></span>\
 								<div class='cmd'>" + c + "</div>\
 							</li>";
             } else {
               b += "<li>\
-								<span class='titlename'>" + h.task[g].name + "</span>\
+								<span class='titlename'>" + yfTaskEsc(h.task[g].name) + "</span>\
 								<span class='state'>" + t('public.installing_2', '正在安装') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 								<div class='cmd'>" + c + "</div>\
 							</li>";
@@ -2301,13 +2311,13 @@ function getReloads() {
           } else {
             b += "<li>\
 								<div class='line-progress' style='width:" + h.msg.pre + "%'></div>\
-								<span class='titlename'>" + h.task[g].name + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span>\
+								<span class='titlename'>" + yfTaskEsc(h.task[g].name) + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span>\
 								<span class='com-progress'>" + h.msg.pre + "%</span>\
 								<span class='state'>" + t('public.downloading', '下载中') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 							</li>";
           }
         } else {
-          d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>" + t('public.waiting', '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.del', '删除') + "</a></span></li>";
+          d += "<li><span class='titlename'>" + yfTaskEsc(h.task[g].name) + "</span><span class='state'>" + t('public.waiting', '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.del', '删除') + "</a></span></li>";
         }
       }
       $("#task").text(h.count);

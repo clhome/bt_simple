@@ -185,6 +185,51 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     return (success, error)
 
 
+def execShellRc(cmdstring, cwd=None, timeout=None, shell=True):
+    """与 execShell 同样的执行语义，但额外返回子进程退出码：(rc, stdout, stderr)。
+
+    为什么需要：execShell 的 (out, err) 契约无法区分「脚本失败」与「脚本无输出」，
+    调用方只能无条件报成功（插件卸载曾因此假成功）；需要判成败的场景用本函数，
+    rc 取不到时统一回 -1（err 带原因）。
+    """
+    if shell:
+        if isinstance(cmdstring, str):
+            cmdstring = sanitizeCmdScripts(cmdstring, cwd=cwd)
+        cmdstring_list = cmdstring
+    else:
+        cmdstring_list = cmdstring if isinstance(cmdstring, (list, tuple)) else shlex.split(cmdstring)
+    try:
+        sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,
+                               shell=shell, bufsize=4096, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)  # nosec B602
+        try:
+            data = sub.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            sub.kill()
+            sub.communicate()
+            return (-1, '', 'Timeout：%s' % cmdstring)
+        rc = sub.returncode
+    except Exception as e:
+        return (-1, '', str(e))
+
+    out = data[0]
+    err = data[1]
+    for idx, raw in enumerate((out, err)):
+        if isinstance(raw, bytes):
+            try:
+                raw = raw.decode('utf-8')
+            except Exception:
+                try:
+                    raw = raw.decode('gbk')
+                except Exception:
+                    raw = raw.decode('utf-8', 'replace')
+            if idx == 0:
+                out = raw
+            else:
+                err = raw
+    return (rc, out, err)
+
+
 #: 路径里绝不应该出现的「垃圾片段」——mock 对象字面量与未展开的格式化占位符
 # 实测现场：源码树里凭空出现了 `web/MagicMock/mock()/<id>/` 与 `web/{}/redis/data/redis.log`，
 # 根因是测试 mock 未配置 / 格式化串缺参时，**生产代码不校验路径就 makedirs**，

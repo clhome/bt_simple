@@ -246,6 +246,8 @@ def get_recent_logins():
         limit = int(request.values.get('limit', 2))
     except Exception:
         limit = 2
+    # 负数 limit 在 SQLite 里等价于「不限制」，会一次拉出全表；下界必须一起夹住
+    if limit < 1: limit = 2
     if limit > 50: limit = 50
 
     try:

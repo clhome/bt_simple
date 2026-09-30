@@ -19,6 +19,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 from utils.system import monitor
+from utils.system.monitor import MONITOR_DAY_MAX
 
 import core.yf as yf
 import utils.system as sys
@@ -133,14 +134,34 @@ def restart():
     yf.restartPanel()
     return yf.returnData(True, 'system.py_msg_7dc7d8')
 
-# 重启面板
+# 重启服务器
 @blueprint.route('/restart_server', endpoint='restart_server', methods=['POST'])
 @panel_login_required
 def restart_server():
     if yf.isAppleSystem():
         return yf.returnData(False, 'system.py_msg_529504')
+    # 判定必须在返回之前：sys.restartServer 是异步的（线程内再判一次），
+    # 只在线程里判，会让「有任务在跑、实际不会重启」也回报“正在重启服务器”。
+    if not yf.isRestart():
+        return yf.returnData(False, 'system.py_msg_0322b3')
     sys.restartServer()
     return yf.returnData(True, 'system.py_msg_b52eca')
+
+# 监控数据保存天数上限 3650 天由 monitor 模块单源定义（utils/system/monitor.py）。
+def _parseMonitorDay(value):
+    """把「保存天数」入参解析成 1..MONITOR_DAY_MAX 的整数，非法返回 None。
+
+    旧实现直接 ``int(day)``：非数字（API 调用、手填）抛 ValueError → HTTP 500，
+    超大值被原样写库 → 清理阈值溢出、存储无限增长。
+    """
+    try:
+        day = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    if day < 1 or day > MONITOR_DAY_MAX:
+        return None
+    return day
+
 
 # 设置
 @blueprint.route('/set_control', endpoint='set_control', methods=['POST'])
@@ -149,28 +170,26 @@ def set_control():
     stype = request.form.get('type', '')
     day = request.form.get('day', '')
 
-    
-
     if stype == '0':
-        _day = int(day)
-        if _day < 1:
+        _day = _parseMonitorDay(day)
+        if _day is None:
             return yf.returnData(False, 'system.py_msg_ddb6e3')
-        thisdb.setOption('monitor_day', day, type='monitor')
+        thisdb.setOption('monitor_day', str(_day), type='monitor')
         thisdb.setOption('monitor_status', 'close', type='monitor')
         return yf.returnData(True, 'system.py_msg_68486f')
     elif stype == '1':
-        _day = int(day)
-        if _day < 1:
+        _day = _parseMonitorDay(day)
+        if _day is None:
             return yf.returnData(False, 'system.py_msg_ddb6e3')
 
-        thisdb.setOption('monitor_day', day, type='monitor')
+        thisdb.setOption('monitor_day', str(_day), type='monitor')
         thisdb.setOption('monitor_status', 'open', type='monitor')
         return yf.returnData(True, 'system.py_msg_029959')
     elif stype == 'save_day':
-        _day = int(day)
-        if _day < 1:
+        _day = _parseMonitorDay(day)
+        if _day is None:
             return yf.returnData(False, 'system.py_msg_ddb6e3')
-        thisdb.setOption('monitor_day', day, type='monitor')
+        thisdb.setOption('monitor_day', str(_day), type='monitor')
         return yf.returnData(True, 'system.py_msg_dc0177')
     elif stype == '2':
         thisdb.setOption('monitor_only_netio', 'close', type='monitor')
@@ -202,6 +221,33 @@ def set_control():
 
     return yf.returnData(False, 'system.py_msg_8042ad')
     
+# 释放内存（首页内存圈的 reMemory()）
+#
+# 契约由前端决定，不能自创 envelope：`web/static/app/index.js::reMemory()` 直接读
+# **顶层** `rdata.memRealUsed` / `rdata.memTotal`（单位 MB，见该函数里
+# `formatMemPair(rdata.memRealUsed * 1024 * 1024, ...)`），所以和设备信息类接口
+# （`/system/system_total`、`/system/network`）一样走 `yf.getJson(data)` 平铺输出。
+# 内存口径与首页其余位置完全一致：都取 `sys.getMemInfo()`，只是换算成 MB。
+@blueprint.route('/rememory', endpoint='rememory', methods=['POST'])
+@panel_login_required
+def rememory():
+    script = os.path.join(yf.getPanelDir(), 'scripts', 'rememory.sh')
+    if not os.path.exists(script):
+        yf.writeFileLog('[system] 释放内存失败：脚本不存在 %s' % script)
+        return yf.returnData(False, 'system.exception')
+    # 列表传参 + 显式超时：脚本路径取自面板安装目录
+    rc, _out, err = yf.execShellRc(['bash', script], shell=False, timeout=180)
+    if rc != 0:
+        yf.writeFileLog('[system] 释放内存失败 rc=%s err=%s' % (rc, str(err)[:200]))
+        return yf.returnData(False, 'system.exception')
+    mem = sys.getMemInfo()
+    data = {
+        'memTotal': round(mem['memTotal'] / 1048576, 2),
+        'memRealUsed': round(mem['memRealUsed'] / 1048576, 2),
+    }
+    return yf.getJson(data)
+
+
 # 获取版本发布说明
 @blueprint.route('/get_release_info', endpoint='get_release_info', methods=['GET'])
 @panel_login_required

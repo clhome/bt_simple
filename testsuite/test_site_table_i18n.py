@@ -68,11 +68,20 @@ class TestSiteTableI18n(unittest.TestCase):
         e_idx = self.site_js_content.find('// 使用事件委托统一绑定有效期点击事件', s_idx)
         loop_code = self.site_js_content[s_idx:e_idx]
 
+        # 循环体依赖的转义助手（yfText/yfJsStr）直接从 site.js 抽取，避免测试里另写一份
+        h_start = self.site_js_content.find('function yfText(v) {')
+        h_end = self.site_js_content.find('/**\n * 取回网站数据列表', h_start)
+        self.assertNotEqual(h_start, -1, 'site.js 缺少 yfText 转义助手')
+        self.assertNotEqual(h_end, -1, 'site.js 缺少 getWeb 前的助手区块')
+        helpers_code = self.site_js_content[h_start:h_end]
+
         zh_path_js = self.template_zh_path.replace('\\', '/')
         en_path_js = self.template_en_path.replace('\\', '/')
 
         node_script = f'''
         const fs = require('fs');
+
+        {helpers_code}
 
         function t(key) {{
             const parts = key.split('.');

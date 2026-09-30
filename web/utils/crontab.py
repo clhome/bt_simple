@@ -47,6 +47,34 @@ def _validate_to_url(url):
         return False, _t('crontab.url_err_validate_failed', str(e))
 
 
+# 周期字段最终会被拼进 /var/spool/cron/crontabs/root 的同一行：
+# 只要混入换行/分号就能给 root 追加任意计划任务（或让整份 crontab 语法出错）。
+# 因此这里只接受纯数字，其余一律拒绝。
+_CRON_INT_RE = re.compile(r'^\d{1,4}$')
+_CRON_LINE_FIELD_RE = re.compile(r'^(?:\*(?:/\d{1,4})?|\d{1,4}(?:-\d{1,4})?(?:/\d{1,4})?|\d{1,4}(?:,\d{1,4})*)$')
+_PLUGIN_DIR_NAME_RE = re.compile(r'^[A-Za-z0-9_\-]+$')
+CRON_CYCLE_TYPES = ('day', 'day-n', 'hour', 'hour-n', 'minute-n', 'week', 'month')
+CRON_TASK_STYPES = ('toShell', 'toFile', 'toUrl', 'rememory', 'logs', 'site', 'path', 'database')
+
+
+def _cron_int(value, lo, hi):
+    """周期字段必须是非负纯数字且落在 [lo, hi]；'-1'、'abc'、'1\n* * * * *' 一律不合法。"""
+    val = str(value if value is not None else '').strip()
+    if not _CRON_INT_RE.match(val):
+        return False
+    return lo <= int(val) <= hi
+
+
+def _valid_cron_line(line):
+    """写入系统 crontab 前的最后一道闸：必须是单行、且前 5 段都是合法 cron 字段。"""
+    if not line or '\n' in line or '\r' in line:
+        return False
+    parts = line.split()
+    if len(parts) < 6:
+        return False
+    return all(_CRON_LINE_FIELD_RE.match(p) for p in parts[:5])
+
+
 class crontab(object):
         # lock
     _instance_lock = threading.Lock()
@@ -68,6 +96,8 @@ class crontab(object):
             return yf.returnData(is_check_pass, msg)
 
         info = thisdb.getCrond(cron_id)
+        if info is None:
+            return yf.returnData(False, 'common.param_error')
 
         dbdata = {}
         dbdata['name'] = data['name']
@@ -96,7 +126,8 @@ class crontab(object):
             return yf.returnData(False, 'crontab.py_msg_9b5111')
 
         thisdb.setCrontabData(cron_id, dbdata)
-        self.syncToCrond(cron_id)
+        if not self.syncToCrond(cron_id) and str(info.get('status', 1)) != '0':
+            return yf.returnData(False, 'crontab.py_msg_9b5111')
         msg = _t('crontab.modify_success', data['name'])
         yf.writeLog('计划任务', msg)
         return yf.returnData(True, msg)
@@ -145,6 +176,8 @@ class crontab(object):
 
     def setCronStatus(self,cron_id):
         data = thisdb.getCrond(cron_id)
+        if data is None:
+            return yf.returnData(False, 'common.param_error')
 
         status = 1
         status_msg = '开启'
@@ -156,7 +189,10 @@ class crontab(object):
         else:
             data['status'] = 1
             thisdb.setCrontabData(cron_id, data)
-            self.syncToCrond(cron_id)
+            if not self.syncToCrond(cron_id):
+                # 写盘失败时不能留下「库里已启用、系统里没有」的假状态
+                thisdb.setCrontabStatus(cron_id, 0)
+                return yf.returnData(False, 'crontab.py_msg_9b5111')
 
         msg = '修改计划任务[' + data['name'] + ']状态为[' + str(status_msg) + ']'
         yf.writeLog('计划任务', msg)
@@ -165,6 +201,8 @@ class crontab(object):
 
     def cronLog(self, cron_id):
         data = thisdb.getCrond(cron_id)
+        if data is None:
+            return yf.returnData(False, 'common.param_error')
         log_file = yf.getServerDir() + '/cron/' + data['echo'] + '.log'
         if not os.path.exists(log_file):
             return yf.returnData(True, '')
@@ -228,6 +266,8 @@ class crontab(object):
 
     def startTask(self, cron_id):
         data = thisdb.getCrond(cron_id)
+        if data is None:
+            return yf.returnData(False, 'common.param_error')
         cmd_file = yf.getServerDir() + '/cron/' + data['echo']
         if not os.path.exists(cmd_file):
              self.syncToCrond(cron_id)
@@ -308,13 +348,18 @@ class crontab(object):
             # 3. 如果插入成功，通过 syncToCrond 完成脚本生成和系统同步
             if tid > 0:
                 if not yf.isAppleSystem():
-                    self.syncToCrond(tid)
+                    if not self.syncToCrond(tid):
+                        # 写盘失败不能留下“库里有、系统里没有”的幽灵任务
+                        thisdb.deleteCronById(tid)
+                        return yf.returnData(False, 'crontab.py_msg_9b5111')
             return tid
         except Exception as e:
             return yf.returnData(False, 'utils.py_msg_788ddb', None, str(e))
 
     def delete(self, tid):
         data = thisdb.getCrond(tid)
+        if data is None:
+            return yf.returnData(False, 'common.param_error')
         if not self.removeForCrond(data['echo']):
             return yf.returnData(False, 'crontab.py_msg_9b5111')
 
@@ -326,6 +371,13 @@ class crontab(object):
         cron_file = cron_path + '/' + data['echo'] + '.log'
         if os.path.exists(cron_file):
             os.remove(cron_file)
+        # 立即执行留下的 PID 文件随任务一起清理，避免长期残留在面板 tmp 目录
+        try:
+            pid_file = self._cron_pid_file(tid)
+            if os.path.exists(pid_file):
+                os.remove(pid_file)
+        except Exception as _e:
+            _log.debug('[crontab] 清理任务 PID 文件失败: %s', _e)
 
         thisdb.deleteCronById(tid)
         msg = _t('crontab.delete_success', data['name'])
@@ -336,6 +388,8 @@ class crontab(object):
     def delLogs(self,cron_id):
         try:
             data = thisdb.getCrond(cron_id)
+            if data is None:
+                return yf.returnData(False, 'common.param_error')
             log_file = yf.getServerDir() + '/cron/' + data['echo'] + '.log'
             if os.path.exists(log_file):
                 os.remove(log_file)
@@ -540,6 +594,14 @@ class crontab(object):
 
     # 参数校验
     def cronCheck(self, params):
+        stype = str(params.get('stype', '') or '')
+        if stype not in CRON_TASK_STYPES and not stype.startswith('database_'):
+            return False, 'crontab.the_form_is_invalid'
+        if stype.startswith('database_') and not _PLUGIN_DIR_NAME_RE.match(stype[len('database_'):]):
+            return False, 'crontab.the_form_is_invalid'
+        if str(params.get('type', '') or '') not in CRON_CYCLE_TYPES:
+            # 未知周期会生成空的时间字段，把整份 root crontab 写成语法错误
+            return False, 'crontab.the_form_is_invalid'
         if params['stype'] == 'site' or params['stype'] == 'database' or params['stype'].find('database_') > -1 or params['stype'] == 'logs' or params['stype'] == 'path':
             if params['save'] == '':
                 return False, 'crontab.py_msg_135668'
@@ -588,6 +650,40 @@ class crontab(object):
                 return False, 'crontab.py_msg_d5d1dc'
             if params['minute'] == '':
                 return False, 'crontab.py_msg_21159d'
+
+        # 周期字段最终会拼进 /var/spool/cron/crontabs/root 的一行，
+        # 只接受纯数字且在合法取值范围内（挡住换行注入与越界值）。
+        if params['type'] in ('day', 'day-n', 'week', 'month'):
+            if not _cron_int(params.get('hour'), 0, 23):
+                return False, 'crontab.the_hour_is_invalid'
+        if params['type'] != 'minute-n':
+            if not _cron_int(params.get('minute'), 0, 59):
+                return False, 'crontab.the_minute_is_invalid'
+        if params['type'] == 'day-n' and not _cron_int(params.get('where1'), 1, 31):
+            return False, 'crontab.the_form_is_invalid'
+        if params['type'] == 'hour-n' and not _cron_int(params.get('where1'), 1, 23):
+            return False, 'crontab.the_form_is_invalid'
+        if params['type'] == 'minute-n' and not _cron_int(params.get('where1'), 1, 59):
+            return False, 'crontab.the_form_is_invalid'
+        if params['type'] == 'minute-n':
+            for _k, _lo, _hi in (('min_start_en', 0, 1), ('min_start_h', 0, 23), ('min_start_m', 0, 59),
+                                 ('min_end_en', 0, 1), ('min_end_h', 0, 23), ('min_end_m', 0, 59)):
+                if str(params.get(_k, '') or '').strip() != '' and not _cron_int(params.get(_k), _lo, _hi):
+                    return False, 'crontab.the_form_is_invalid'
+        if params['type'] == 'month' and not _cron_int(params.get('where1'), 1, 31):
+            return False, 'crontab.the_form_is_invalid'
+        if params['type'] == 'week':
+            week_val = params.get('week')
+            if str(week_val or '').strip() == '':
+                week_val = params.get('where1')
+            if not _cron_int(week_val, 0, 6):
+                return False, 'crontab.the_form_is_invalid'
+        # save 会被拼进生成的 root 脚本，backup_to 会当插件目录名拼进脚本路径
+        if str(params.get('save', '') or '').strip() != '' and not _cron_int(params.get('save'), 0, 9999):
+            return False, 'crontab.the_form_is_invalid'
+        backup_to = str(params.get('backup_to', '') or 'localhost').strip() or 'localhost'
+        if backup_to != 'localhost' and not _PLUGIN_DIR_NAME_RE.match(backup_to):
+            return False, 'crontab.the_form_is_invalid'
         return True, 'OK'
 
 
@@ -722,18 +818,24 @@ fi
             if stype == 'path' and param['echo'] == '':
                 param['echo'] == "1"
 
+            # sname/save/echo 会被拼进生成的 root 脚本（cron/立即执行都以 root 跑），
+            # 必须 shlex 转义，否则站点名/目录名里的 `;`、`#` 就是命令注入。
+            sid = yf.shlexQuote(param['echo'])
+            sname = yf.shlexQuote(param['sname'])
+            ssave = yf.shlexQuote(param['save'])
+
             wheres = {
-                'path': head + "python3 " + script_dir + "/backup.py path " + param['sname'] + " " + str(param['save']) + " " + str(param['echo']), 
-                'site':   head + "python3 " + script_dir + "/backup.py site " + param['sname'] + " " + str(param['save']) + " " + str(param['echo']),
-                'database': head + "python3 " + script_dir + "/backup.py database " + param['sname'] + " " + str(param['save']),
-                'logs':   head + "python3 " + script_dir + "/logs_backup.py " + param['sname'] + log + " " + str(param['save']),
+                'path': head + "python3 " + script_dir + "/backup.py path " + sname + " " + ssave + " " + sid, 
+                'site':   head + "python3 " + script_dir + "/backup.py site " + sname + " " + ssave + " " + sid,
+                'database': head + "python3 " + script_dir + "/backup.py database " + sname + " " + ssave,
+                'logs':   head + "python3 " + script_dir + "/logs_backup.py " + yf.shlexQuote(str(param['sname']) + log) + " " + ssave,
                 'rememory': head + "/bin/bash " + script_dir + '/rememory.sh'
             }
             if param['backup_to'] != 'localhost':
                 cfile = yf.getPluginDir() + "/" + param['backup_to'] + "/index.py"
-                wheres['path'] = head + "python3 " + cfile + " path " + param['sname'] + " " + str(param['save']) + " " + str(param['echo'])
-                wheres['site'] = head + "python3 " + cfile + " site " + param['sname'] + " " + str(param['save']) + " " + str(param['echo'])
-                wheres['database'] = head + "python3 " + cfile + " " + source_stype + " " + param['sname'] + " " + str(param['save'])
+                wheres['path'] = head + "python3 " + cfile + " path " + sname + " " + ssave + " " + sid
+                wheres['site'] = head + "python3 " + cfile + " site " + sname + " " + ssave + " " + sid
+                wheres['database'] = head + "python3 " + cfile + " " + source_stype + " " + sname + " " + ssave
             try:
                 shell = wheres[stype]
             except Exception as _e:
@@ -855,18 +957,25 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
     # 重载配置
     def crondReload(self):
         if yf.isAppleSystem():
-            if os.path.exists('/etc/crontab'):
-                pass
-        else:
+            return True
+        # 只「重载」不「重启」：systemd 对同一 unit 的 start 有速率限制
+        # （默认 5 次/10 秒），批量添加/导入任务时 restart 会把 cron 打成
+        # start-limit-hit 而彻底停服，且面板每一条都还报成功。
+        # Debian 的 /etc/init.d/cron reload 是安全的 no-op（cron 自动重读 spool）。
+        try:
             if os.path.exists('/etc/init.d/crond'):
                 yf.execShell('/etc/init.d/crond reload')
             elif os.path.exists('/etc/init.d/cron'):
-                yf.execShell('service cron restart')
+                yf.execShell('/etc/init.d/cron reload')
             else:
-                yf.execShell("systemctl reload crond")
+                yf.execShell('systemctl reload crond')
+        except Exception as _e:
+            yf.writeFileLog('[crontab] 重载 cron 失败（任务仍会由 cron 自动重读）: %s' % _e)
 
     def syncToCrond(self, cron_id):
         info = thisdb.getCrond(cron_id)
+        if info is None:
+            return False
         if 'status' in info:
             if info['status'] == 0:
                 return False
@@ -880,7 +989,15 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         cron_path = yf.getServerDir() + '/cron'
         cron_name = self.getShell(info)
         cmd += ' ' + cron_path + '/' + cron_name + ' >> ' + cron_path + '/' + cron_name + '.log 2>&1'
-        self.writeShell(cmd)
+        if not _valid_cron_line(cmd):
+            # 历史遗留的非法周期（如 type 被写成未知值）绝不能写进系统 crontab：
+            # 一行语法错误会让整份 root crontab 被 cron 忽略。
+            yf.writeFileLog('[crontab] 拒绝写入非法 crontab 行（任务 %s）: %s' % (cron_id, cmd.split(' ')[0:6]))
+            return False
+        ret = self.writeShell(cmd)
+        if isinstance(ret, dict) and ret.get('status') is False:
+            yf.writeFileLog('[crontab] 写入 crontab 失败（任务 %s）' % cron_id)
+            return False
         self.crondReload()
         return True
 

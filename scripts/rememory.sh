@@ -7,8 +7,12 @@ export PATH
 
 endDate=`date +"%Y-%m-%d %H:%M:%S"`
 sysName=`uname`
-curPath=`pwd`
-rootPath=$(dirname "$curPath")
+
+# 用脚本自身位置解析目录，不能依赖调用方 cwd：面板以 cwd=<面板目录> 调用时
+# curPath=<面板目录>，而 crontab/手工执行时 cwd 是 /root 等，两者算出的 rootPath
+# 不一致，$rootPath/openresty、$rootPath/php/... 的回落分支会指向错误目录。
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+rootPath=$(dirname "$(dirname "$SCRIPT_DIR")")
 
 log="释放内存!"
 echo "★[$endDate] $log"

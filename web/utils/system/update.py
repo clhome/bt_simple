@@ -21,6 +21,27 @@ import logging
 
 _log = logging.getLogger('yf.system.update')
 
+#: 合法升级版本号的形状（GitHub tag）：字母数字与 . _ -，最长 64，必须以数字开头。
+_UPDATE_VERSION_RE = re.compile(r'^v?[0-9][0-9A-Za-z._-]{0,63}$')
+
+
+def isAllowedUpdateVersion(version, remote_tag):
+    """升级目标版本是否放行：形状合法，且就是本次检测到的那个 tag。
+
+    为什么必须收紧：``version`` 会被拼进下载 URL（``yf.githubDownload`` 再把它拼进
+    wget 的 shell 命令）以及 ``temp/bt_simple-<version>`` 目录名。未校验时任意值
+    = root 权限命令注入（``"; touch /x; echo "``）或路径穿越（``..`` 让安装阶段的
+    拷贝/删除打到面板目录之外）。面板的升级入口只会传本次检测到的 tag，
+    其它取值没有合法用途。
+    """
+    version = str(version).strip()
+    if not _UPDATE_VERSION_RE.match(version):
+        return False
+    if not remote_tag:
+        return False
+    return version.lstrip('v') == str(remote_tag).strip().lstrip('v')
+
+
 def versionDiff(now, new):
     '''
         test 测试
@@ -177,9 +198,8 @@ def rollback_panel(backup_file=None):
     if not os.path.exists(backup_file):
         return False, f"备份文件不存在: {backup_file}"
         
-    # 解压快照覆盖回面板目录
-    cmd = f"tar -xzf {backup_file} -C {panel_dir}"
-    yf.execShell(cmd)
+    # 解压快照覆盖回面板目录（列表传参：快照路径不参与 shell 解析）
+    yf.safeExecShell(['tar', '-xzf', backup_file, '-C', panel_dir], timeout=300)
     
     yf.restartPanel()
     return True, f"已成功回滚至快照: {os.path.basename(backup_file)}"
@@ -259,6 +279,9 @@ def updateServer(stype, version='', step='all'):
             if version == '':
                 return yf.returnData(False, 'system.py_msg_988b58')
 
+            if not isAllowedUpdateVersion(version, new_ver):
+                return yf.returnData(False, 'system.py_msg_7f876a')
+
             toPath = yf.getPanelDir() + '/temp'
             panel_dir = yf.getPanelDir()
 
@@ -336,9 +359,19 @@ def updateServer(stype, version='', step='all'):
                     else:
                         return yf.returnData(False, 'system.py_msg_ac67c4')
 
-                # 执行代码覆盖
-                yf.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
-                
+                # 执行代码覆盖：走 shutil 不经 shell（src_path 的目录名来自解压包，
+                # 拼 shell 会被目录名里的元字符注入），且失败必须如实报错并回滚——
+                # 否则面板停在「半新半旧」状态却回报“安装更新成功”。
+                import shutil
+                try:
+                    shutil.copytree(src_path, panel_dir, dirs_exist_ok=True, symlinks=True)
+                except Exception as copy_ex:
+                    yf.writeFileLog('panel upgrade copy failed: %s -> %s' % (src_path, copy_ex))
+                    if backup_status:
+                        rollback_panel()
+                        return yf.returnData(False, 'system.py_msg_339e87')
+                    return yf.returnData(False, 'system.py_msg_fac254')
+
                 # 清理临时文件
                 yf.removeDir(src_path)
                 yf.removeDir(toPath + '/yf.zip')

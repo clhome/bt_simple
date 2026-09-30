@@ -38,6 +38,20 @@ def list():
     search = request.form.get('search', '').strip()
     order = request.form.get('order', '').strip()
 
+    # 分页/分类参数直接来自表单：非法值以前会在 int() 上抛异常 -> 500
+    try:
+        page_num = int(p)
+        limit_num = int(limit)
+        type_id_num = int(type_id)
+    except (TypeError, ValueError):
+        return yf.returnData(False, 'site.py_msg_dbd9b9')
+    if page_num < 1:
+        page_num = 1
+    if limit_num < 1:
+        limit_num = 10
+    if limit_num > 200:
+        limit_num = 200
+
     is_ssl_sort = False
     ssl_sort_desc = False
     if order == 'ssl_days asc':
@@ -49,9 +63,9 @@ def list():
         order = ''
 
     if is_ssl_sort:
-        info = thisdb.getSitesList(page=1,size=100000,type_id=int(type_id), search=search,order=order)
+        info = thisdb.getSitesList(page=1,size=100000,type_id=type_id_num, search=search,order=order)
     else:
-        info = thisdb.getSitesList(page=int(p),size=int(limit),type_id=int(type_id), search=search,order=order)
+        info = thisdb.getSitesList(page=page_num,size=limit_num,type_id=type_id_num, search=search,order=order)
 
     # 优化：批量预读 vhost 配置，消除 N+1 磁盘 I/O 和数据库查询
     import re
@@ -107,13 +121,13 @@ def list():
         info['list'].sort(key=lambda x: x['ssl_days'], reverse=ssl_sort_desc)
         # 确保已停止（status='0'）的网站在最后
         info['list'].sort(key=lambda x: str(x.get('status', '0')) == '0')
-        start = (int(p) - 1) * int(limit)
-        end = start + int(limit)
+        start = (page_num - 1) * limit_num
+        end = start + limit_num
         info['list'] = info['list'][start:end]
 
     data = {}
     data['data'] = info['list']
-    data['page'] = yf.getPage({'count':info['count'],'tojs':'getWeb','p':p, 'row':limit})
+    data['page'] = yf.getPage({'count':info['count'],'tojs':'getWeb','p':page_num, 'row':limit_num})
     return data
 
 # 添加站点
@@ -609,8 +623,14 @@ def import_all():
         site_data = s.get('site')
         if not site_data:
             continue
-        site_name = site_data.get('name')
+        # 导入数据来自上传的 JSON：站点名/目录会被拼进文件路径，必须校验
+        site_name = YfSites.safeSiteName(site_data.get('name'))
         if not site_name:
+            skip_count += 1
+            continue
+        site_path_import = str(site_data.get('path') or '')
+        if not site_path_import or site_path_import.rstrip('/') in ('', '/') or '..' in site_path_import:
+            skip_count += 1
             continue
             
         # 检查覆盖标志

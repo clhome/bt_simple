@@ -25,7 +25,8 @@ class TestSoftTitleAutoFit(unittest.TestCase):
         self.assertIn("var name = raw_title;", js_code, "未找到首页纯净标题赋值")
         
         # 验证 data-id 与 softMain 依然传递 setup_version 保持正常功能
-        self.assertIn("data-id=\"' + data_id + '\"", js_code, "data-id 必须保留")
+        # （A07：data-id/title 取值经 yfSoftText 转义后再进 HTML 属性）
+        self.assertIn("data-id=\"' + yfSoftText(data_id) + '\"", js_code, "data-id 必须保留")
         self.assertIn("plugin.setup_version", js_code, "softMain 参数中必须保留版本号")
         print("  [OK] 软件名称去除版本号、data-id 与交互参数保持完整")
 
@@ -56,7 +57,7 @@ class TestSoftTitleAutoFit(unittest.TestCase):
         self.assertIn("function autoFitSoftName()", js_code, "未找到 autoFitSoftName 函数")
         self.assertIn("scrollWidth > el.clientWidth", js_code, "未找到 DOM 尺寸溢出动态判定")
         self.assertIn("resize.softName", js_code, "未找到 resize 响应式监听")
-        self.assertIn("title=\"' + raw_title + '\"", js_code, "卡片名称必须包含完整标题 title 提示")
+        self.assertIn("title=\"' + yfSoftText(raw_title) + '\"", js_code, "卡片名称必须包含完整标题 title 提示")
         print("  [OK] 动态测量 autoFitSoftName 与 resize 适配逻辑校验通过")
 
     def test_04_js_syntax_and_line_ending(self):

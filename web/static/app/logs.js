@@ -36,7 +36,7 @@ $('#panelLogs .refresh').on('click', function () {
 $('#panelLogs .clear').on('click', function () {
   delLogs(1);
 });
-function auditEsc(v) {
+function logsEsc(v) {
   return String(v == null ? '' : v)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -61,8 +61,8 @@ function getAuditLogsFiles() {
     var option = '';
     for (var i = 0; i < data.length; i++) {
       var tip = data[i]['name'] + ' - ' + data[i]['title'] + '(' + toSize(data[i]['size']) + ')';
-      var tipEsc = auditEsc(tip);
-      option += '<div class="logAuditItem' + (i == 0 ? ' active' : '') + '" title="' + tipEsc + '" data-file="' + auditEsc(data[i]['name']) + '">' + tipEsc + '</div>';
+      var tipEsc = logsEsc(tip);
+      option += '<div class="logAuditItem' + (i == 0 ? ' active' : '') + '" title="' + tipEsc + '" data-file="' + logsEsc(data[i]['name']) + '">' + tipEsc + '</div>';
     }
     $("#logAudit .logAuditTab").html(option);
     getAuditFile(data[0]['name']);
@@ -170,18 +170,25 @@ function getLogs(page, search) {
   var loadT = layer.load();
   $.post('/logs/get_log_list', 'limit=10&p=' + page + "&search=" + search, function (data) {
     layer.close(loadT);
+    var rows = (data && data.data) || [];
     var body = '';
-    for (var i = 0; i < data.data.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
       body += "<tr>\
-						<td><em class='dlt-num'>" + data.data[i].id + "</em></td>\
-						<td>" + data.data[i].type + "</td>\
-						<td>" + data.data[i].log + "</td>\
-						<td>" + data.data[i].add_time + "</td>\
+						<td><em class='dlt-num'>" + logsEsc(rows[i].id) + "</em></td>\
+						<td>" + logsEsc(rows[i].type) + "</td>\
+						<td>" + logsEsc(rows[i].log) + "</td>\
+						<td>" + logsEsc(rows[i].add_time) + "</td>\
 					</tr>";
     }
     $("#operationLog tbody").html(body);
-    $("#panelLogs .page").html(data.page);
-  }, 'json');
+    $("#panelLogs .page").html((data && data.page) || '');
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    layer.msg((lan && lan.public && t('public.load_fail')) || "", {
+      icon: 2,
+      time: 3000
+    });
+  });
 }
 function delLogs() {
   layer.confirm(lan && lan.logs && t('logs.the_panel_logs_are') || "", {
@@ -196,7 +203,15 @@ function delLogs() {
       layer.msg(rdata.msg, {
         icon: rdata.status ? 1 : 2
       });
-      getLogs(1);
-    }, 'json');
+      if (rdata.status) {
+        getLogs(1);
+      }
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg((lan && lan.public && t('public.ERROR')) || "", {
+        icon: 2,
+        time: 3000
+      });
+    });
   });
 }

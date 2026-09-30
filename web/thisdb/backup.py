@@ -31,7 +31,22 @@ def getBackupById(bp_id):
     return yf.M('backup').field(__FIELD).where("id=?", (bp_id,)).find()
 
 def getBackupPage(site_id,page = 1,size = 10):
-    start = (int(page) - 1) * int(size)
+    # page/size 直接来自前端表单，历史上传空串会 int('') 抛异常 -> 500
+    try:
+        page = int(page)
+    except Exception:
+        page = 1
+    try:
+        size = int(size)
+    except Exception:
+        size = 10
+    if page < 1:
+        page = 1
+    if size < 1:
+        size = 10
+    if size > 200:
+        size = 200
+    start = (page - 1) * size
     limit = str(start) + ',' + str(size)
     bk_list = yf.M('backup').where('pid=?', (site_id,)).field(__FIELD).limit(limit).order('id desc').select()
     count = yf.M('backup').where('pid=?', (site_id,)).count()

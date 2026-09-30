@@ -25,6 +25,13 @@ import core.db as db
 
 
 
+# 监控数据保存天数上限（3650 天）。
+# 为什么必须有上限：monitor.run() 每 15 秒往 system.db 写一行，
+# 天数被写成天文数字（API 直传、旧版本残留）时历史清理用的 deltime 会溢出，
+# 库和图表接口都会无限增长。
+MONITOR_DAY_MAX = 3650
+
+
 # 监控系统数据入库
 class monitor:
 
@@ -48,8 +55,23 @@ class monitor:
         return monitor._instance
 
     def clearDbFile(self):
-        os.remove(self._dbfile)
+        """清空监控历史数据。
+
+        为什么不再 ``os.remove`` + ``initDBFile``（旧实现）：
+        ``core.db`` 的连接是**按文件路径按线程缓存**的，面板 web 进程与 panel_task
+        采样进程各持一份；把 system.db 删掉后这些连接仍指向已被 unlink 的 inode，
+        采样数据会继续写进“幽灵文件”（隔离实验：删除后新文件里 0 行），
+        监控页从此永久空白、33MB 历史也仍被占用；文件不存在时 ``os.remove``
+        还会抛 FileNotFoundError 让「清空记录」接口返回 500。
+        就地 DELETE 所有表既清空历史，又不破坏既有连接与 schema。
+        """
         self.initDBFile()
+        sql = db.Sql().dbPos(yf.getPanelDataDir(), 'system')
+        for table in ('cpuio', 'network', 'diskio', 'load_average'):
+            ret = sql.table(table).delete()
+            if isinstance(ret, str) and ret.startswith('error: '):
+                yf.writeFileLog('clear monitor history error: ' + ret)
+                return False
         return True
 
     def initDBFile(self):
@@ -79,7 +101,15 @@ class monitor:
         monitor_day = yf.M('option').field('name').where('name=?',('monitor_day',)).getField('value')
         if not monitor_day:
             return 30
-        return int(monitor_day)
+        # option 可能被历史版本写成非数字/越界值：采样线程不能因此崩掉，
+        # 也不能按天文数字保留数据（清理阈值会溢出），一律退回默认 30 天。
+        try:
+            day = int(monitor_day)
+        except (TypeError, ValueError):
+            return 30
+        if day < 1 or day > MONITOR_DAY_MAX:
+            return 30
+        return day
 
     def isOnlyNetIoStats(self):
         monitor_only_netio = yf.M('option').field('name').where('name=?',('monitor_only_netio',)).getField('value')

@@ -351,7 +351,14 @@ def getAuditLogsName(log_name):
             # sar 输出可能很长，限制行数；shlex.quote 防命令注入
             cmd = "LC_ALL=C LANGUAGE=C sar -f {} | tail -n 500".format(
                 shlex.quote(log_file))
-            return html.escape(yf.execShell(cmd, timeout=30)[0] or '')
+            # 原来只回 stdout：sar 未安装 / sa 文件不存在时 stdout 为空串，
+            # 前端当成「读取成功但没内容」—— 假成功。这里用退出码判成败。
+            rc, out, err = yf.execShellRc(cmd, timeout=30)
+            if rc != 0 or not (out or '').strip():
+                yf.writeFileLog('[adult_log] sar 读取失败 rc=%s: %s'
+                                % (rc, (err or '').strip()[:200]))
+                return yf.returnData(False, 'logs.py_msg_c90f98')
+            return html.escape(out)
 
     if not os.path.exists(log_file):
         return yf.returnData(False, 'logs.py_msg_c90f98')
