@@ -6,6 +6,7 @@
 import sys
 import os
 import re
+import shlex
 import time
 
 if sys.platform != 'darwin':
@@ -43,15 +44,16 @@ class backupTools:
         filename = backup_path + "/web_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.tar.gz'
 
-        cmd = "cd " + os.path.dirname(path) + " && tar zcvf '" + \
-            filename + "' " + exclude_dir_cmd + " '" + os.path.basename(path) + "' > /dev/null"
+        cmd = "cd " + shlex.quote(os.path.dirname(path)) + " && tar zcvf " + \
+            shlex.quote(filename) + exclude_dir_cmd + " " + \
+            shlex.quote(os.path.basename(path)) + " > /dev/null"
 
-        # print(cmd)
-        yf.execShell(cmd)
+        # 备份对象与排除目录都可能来自面板入参（站点名/目录名/排除目录），
+        # 一律 shlex 转义后用 bash -c 执行，并检查退出码。
+        rc, _out, _err = yf.execShellRc(['bash', '-c', cmd], shell=False, timeout=3600)
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-        # print(filename)
-        if not os.path.exists(filename):
+        if rc != 0 or not os.path.exists(filename):
             log = "网站[" + name + "]备份失败!"
             print("★[" + endDate + "] " + log)
             print("----------------------------------------------------------------------------")
@@ -100,14 +102,18 @@ class backupTools:
      # 数据库密码处理
     def mypass(self, act, root):
         conf_file = self.getConf('mysql')
-        yf.execShell("sed -i '/user=root/d' {}".format(conf_file))
-        yf.execShell("sed -i '/password=/d' {}".format(conf_file))
+        # 参数化执行，避免把 conf_file 拼进 shell
+        yf.execShellRc(['sed', '-i', '/user=root/d', conf_file], shell=False)
+        yf.execShellRc(['sed', '-i', '/password=/d', conf_file], shell=False)
         if act:
             mycnf = yf.readFile(conf_file)
             src_dump = "[mysqldump]\n"
-            sub_dump = src_dump + "user=root\npassword=\"{}\"\n".format(root)
             if not mycnf:
                 return False
+            # 口令里的 \\ " 与换行会破坏 my.cnf 结构（甚至注入新配置项）
+            safe_root = str(root).replace('\\', '\\\\').replace(
+                '"', '\\"').replace('\n', '').replace('\r', '')
+            sub_dump = src_dump + 'user=root\npassword="%s"\n' % safe_root
             mycnf = mycnf.replace(src_dump, sub_dump)
             if len(mycnf) > 100:
                 yf.writeFile(conf_file, mycnf)
@@ -159,17 +165,8 @@ class backupTools:
             "id=?", (1,)).getField('mysql_root')
 
         my_cnf = self.getConf('mysql')
-        self.mypass(True, mysql_root)
-
-        # yf.execShell(db_path + "/bin/mysqldump --opt --default-character-set=utf8 " +
-        #              name + " | gzip > " + filename)
-
-        # yf.execShell(db_path + "/bin/mysqldump  --single-transaction --quick --default-character-set=utf8 " +
-        #              name + " | gzip > " + filename)
 
         # 开启一致性事务 会lock表
-        # cmd = db_path + "/bin/mysqldump --defaults-file=" + my_cnf + "  --force --opt --default-character-set=utf8 " + \
-        #     name + " | gzip > " + filename
         option = ''
         mode = self.recognizeDbMode('mysql')
         if mode == 'gtid':
@@ -177,20 +174,26 @@ class backupTools:
 
         # skip-opt 不会lock表
         # --skip-opt --create-options
-        cmd = db_path + "/bin/mysqldump --defaults-file=" + my_cnf +" " + option +" --single-transaction -q --default-character-set=utf8mb4 " + \
-            name + " | gzip > " + filename
-        # print(cmd)
-        yf.execShell(cmd)
+        cmd = db_path + "/bin/mysqldump --defaults-file=" + shlex.quote(my_cnf) + " " + option + \
+            " --single-transaction -q --default-character-set=utf8mb4 " + shlex.quote(name) + \
+            " | gzip > " + shlex.quote(filename)
+        # 库名/路径都来自面板数据，一律转义；`| gzip >` 失败时也会留下文件，
+        # 所以必须同时看退出码（只看 os.path.exists 会把失败的备份当成功）。
+        self.mypass(True, mysql_root)
+        try:
+            rc, _out, _err = yf.execShellRc(['bash', '-c', cmd], shell=False, timeout=3600)
+            ok = (rc == 0 and os.path.exists(filename))
+        finally:
+            # 无论成败都必须把 my.cnf 里临时写入的 root 口令清掉
+            self.mypass(False, mysql_root)
 
-        if not os.path.exists(filename):
+        if not ok:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
             log = "数据库[" + name + "]备份失败!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
             return
-
-        self.mypass(False, mysql_root)
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         outTime = time.time() - startTime
@@ -253,7 +256,11 @@ class backupTools:
 
         cmd = ""
         for v in exclude_dirs:
-            cmd += " --exclude='"+v+"'"
+            v = (v or '').strip()
+            if not v:
+                continue
+            # 排除目录来自 crontab.attr（面板可填），必须转义后再进 tar 命令行
+            cmd += " --exclude=" + shlex.quote(v)
         return cmd
 
     def backupPath(self, path, count, echo=None):
@@ -274,10 +281,15 @@ class backupTools:
         p_size = yf.getPathSize(path)
         stime = time.time()
 
-        cmd = "cd " + os.path.dirname(path) + " && tar zcvf '" + dfile + "' " + exclude_dir_cmd + " '" + dirname + "' 2>{err_log} 1> /dev/null".format(
-            err_log='/tmp/backup_err.log')
-        # print(cmd)
-        yf.execShell(cmd)
+        cmd = "cd " + shlex.quote(os.path.dirname(path)) + " && tar zcvf " + \
+            shlex.quote(dfile) + exclude_dir_cmd + " " + shlex.quote(dirname) + \
+            " 2>/tmp/backup_err.log 1> /dev/null"
+        rc, _out, _err = yf.execShellRc(['bash', '-c', cmd], shell=False, timeout=3600)
+
+        if rc != 0 or not os.path.exists(dfile):
+            yf.echoInfo('目录备份失败：' + path)
+            yf.echoEnd('备份')
+            return
 
         tar_size = os.path.getsize(dfile)
 
