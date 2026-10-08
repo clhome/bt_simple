@@ -18,6 +18,10 @@
 import ast
 import os
 import re
+import shutil
+import sys
+import tempfile
+import types
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -364,6 +368,187 @@ class ConfigJsDupLiteralTest(unittest.TestCase):
             self.assertEqual(text[ln - 1].count(lit), 1,
                              'line %d 的 %r 应恰好出现一次(去重不能连内容一起删)'
                              % (ln, lit))
+
+
+def _load_safepath():
+    """从 utils/file.py 抽取 safePath 纯函数（避免导入 flask/thisdb）。"""
+    src = _read(os.path.join(ROOT, 'web', 'utils', 'file.py'))
+    tree = ast.parse(src)
+    want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_PANEL_SENSITIVE_REL'}
+    want_func = {'safePath', '_posix_norm'}
+    keep = []
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+                getattr(t, 'id', '') in want_assign for t in node.targets):
+            keep.append(node)
+        elif isinstance(node, ast.FunctionDef) and node.name in want_func:
+            keep.append(node)
+    ns = {'os': os}
+
+    class _FakeYf(object):
+        @staticmethod
+        def getPanelDir():
+            return '/www/server/yufeng_panel'
+
+    ns['yf'] = _FakeYf()
+    exec(compile(ast.Module(body=keep, type_ignores=[]), 'a12_dir_safepath', 'exec'), ns)
+    return ns['safePath']
+
+
+class DirOptionHardeningTest(unittest.TestCase):
+    """7: `/setting/set_backup_dir` / `set_www_dir` 必须校验入参、如实报错并留审计。
+
+    历史行为:两个路由无任何校验且无条件返回成功 —— 真机实测可把 `backup_path`
+    设成不存在的路径,使备份写入点(`yf.getBackupDir()`)与列表读取点不同源,
+    面板「数据库备份」列表恒空;`site_path` 亦可被设成任意目录。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls._saved = {}
+        safe = _load_safepath()
+        for name in ('utils', 'utils.file'):
+            cls._saved[name] = sys.modules.get(name)
+        pkg = types.ModuleType('utils')
+        pkg.__path__ = []
+        mod = types.ModuleType('utils.file')
+        mod.safePath = safe
+        pkg.file = mod
+        sys.modules['utils'] = pkg
+        sys.modules['utils.file'] = mod
+
+        src = _read(os.path.join(SETTING_DIR, 'setting.py'))
+        tree = ast.parse(src)
+        node = next(n for n in tree.body
+                    if isinstance(n, ast.FunctionDef) and n.name == '_check_dir_option')
+        ns = {'os': os}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), 'a12_dir_option', 'exec'), ns)
+        cls._check = staticmethod(ns['_check_dir_option'])
+
+    @classmethod
+    def tearDownClass(cls):
+        for name, old in cls._saved.items():
+            if old is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = old
+
+    def _run_route(self, fn, check_result, option_value=''):
+        """在桩环境里真跑路由函数，返回 (结果, 副作用记录)。
+
+        用**行为断言**而非「源码里出现某个字符串」，这样注释、`if False:` 之类的
+        蒙混写法都会被抓出来。
+        """
+        effects = {'setOption': [], 'writeLog': [], 'clear': 0}
+        key = 'backup_path' if fn == 'set_backup_dir' else 'sites_path'
+
+        class _Request(object):
+            form = {key: '/stub/path'}
+
+        class _Yf(object):
+            @staticmethod
+            def returnData(status, msg, *args, **kwargs):
+                return {'status': status, 'msg': msg}
+
+            @staticmethod
+            def writeLog(*args, **kwargs):
+                effects['writeLog'].append(args)
+
+        class _Db(object):
+            @staticmethod
+            def getOption(name, default=''):
+                return option_value
+
+            @staticmethod
+            def setOption(name, value):
+                effects['setOption'].append((name, value))
+
+        class _Cfg(object):
+            @staticmethod
+            def clearGlobalVarCache():
+                effects['clear'] += 1
+
+        ns = {'os': os, 'request': _Request(), 'thisdb': _Db(),
+              'yf': _Yf(), 'utils_config': _Cfg,
+              '_check_dir_option': lambda v, kind='backup': check_result}
+        tree = ast.parse(_read(os.path.join(SETTING_DIR, 'setting.py')))
+        node = next(n for n in ast.walk(tree)
+                    if isinstance(n, ast.FunctionDef) and n.name == fn)
+        node.decorator_list = []
+        exec(compile(ast.Module(body=[node], type_ignores=[]), 'a12_route', 'exec'), ns)
+        return ns[fn](), effects
+
+    def test_01_bad_path_fails_honestly_without_side_effect(self):
+        for fn in ('set_backup_dir', 'set_www_dir'):
+            res, eff = self._run_route(fn, ('', 'DIR_EMPTY'))
+            self.assertEqual(res, {'status': False, 'msg': 'DIR_EMPTY'},
+                             '%s 校验失败必须返回 status=False' % fn)
+            self.assertEqual(eff['setOption'], [], '%s 校验失败不得写库' % fn)
+
+    def test_01b_good_path_writes_option_and_audit(self):
+        for fn in ('set_backup_dir', 'set_www_dir'):
+            res, eff = self._run_route(fn, ('/stub/path', ''), option_value='/old')
+            self.assertEqual(res['status'], True, '%s 合法路径应成功' % fn)
+            self.assertEqual(len(eff['setOption']), 1, '%s 应写一次 option' % fn)
+            self.assertTrue(eff['writeLog'], '%s 修改必须留审计流水' % fn)
+            self.assertEqual(eff['clear'], 1, '%s 应失效全局缓存' % fn)
+
+    def test_01c_same_path_is_noop(self):
+        for fn in ('set_backup_dir', 'set_www_dir'):
+            res, eff = self._run_route(fn, ('/stub/path', ''), option_value='/stub/path')
+            self.assertEqual(res['status'], True)
+            self.assertEqual(eff['setOption'], [], '路径未变不应写库')
+            self.assertEqual(eff['writeLog'], [], '路径未变不应产生审计流水')
+
+    def test_02_rejects_empty_relative_and_sensitive(self):
+        for bad in ('', '   ', 'relative/path', '../etc', '/', '/etc', '/www', '/root',
+                    'web/yf_a12dir_relprobe'):
+            path, err = self._check(bad, kind='backup')
+            self.assertEqual(path, '', '非法入参 %r 必须被拒' % bad)
+            self.assertTrue(err, '非法入参 %r 必须给出错误键' % bad)
+
+    def test_03_rejects_file_and_accepts_dir(self):
+        base = tempfile.mkdtemp(prefix='yf_a12dir_')
+        try:
+            a_file = os.path.join(base, 'afile')
+            with open(a_file, 'w') as fh:
+                fh.write('x')
+            path, err = self._check(a_file, kind='backup')
+            self.assertEqual(path, '')
+            self.assertEqual(err, 'py_msg_2ccda7')
+            path2, err2 = self._check(base, kind='backup')
+            self.assertEqual(err2, '')
+            self.assertEqual(path2, os.path.normpath(base))
+            # 父目录不存在的深路径 → 拒（不得凭空造目录树，真机实测 /nonexistent/x/y）
+            deep = os.path.join(base, 'no_such_parent', 'child')
+            path3, err3 = self._check(deep, kind='backup')
+            self.assertEqual(path3, '')
+            self.assertEqual(err3, 'py_msg_2ccda7')
+            self.assertFalse(os.path.exists(os.path.join(base, 'no_such_parent')))
+        finally:
+            shutil.rmtree(base, ignore_errors=True)
+
+    def test_04_creates_missing_dir(self):
+        base = tempfile.mkdtemp(prefix='yf_a12dir_')
+        try:
+            target = os.path.join(base, 'new_backup')
+            self.assertFalse(os.path.exists(target))
+            path, err = self._check(target, kind='backup')
+            self.assertEqual(err, '')
+            self.assertTrue(os.path.isdir(target),
+                            '不存在的目录应被创建（否则备份写入点会静默失败）')
+        finally:
+            shutil.rmtree(base, ignore_errors=True)
+
+    def test_05_site_kind_uses_path_error_key(self):
+        path, err = self._check('/etc', kind='site')
+        self.assertEqual(path, '')
+        self.assertEqual(err, 'PATH_ERROR')
+        _path2, err2 = self._check('', kind='site')
+        self.assertEqual(err2, 'DIR_EMPTY')
+        # 相对路径用「参数错误」而不是「关键目录」文案（语义准确）
+        _path3, err3 = self._check('relative/x', kind='site')
+        self.assertEqual(err3, 'py_msg_e05503')
 
 
 if __name__ == '__main__':

@@ -61,6 +61,45 @@ def _parse_page_args(page, limit, default_page=1, default_limit=10, max_limit=10
     return p, size
 
 
+# 「默认备份目录 / 默认建站目录」入参校验。
+# 历史上这两个路由无任何校验且无条件返回成功：真机实测可把 backup_path 设成
+# 不存在的路径，而备份写入点走 yf.getBackupDir()、列表/删除读取点走另一处目录，
+# 两者不同源 → 面板「数据库备份」列表恒空；site_path 同样可被设成任意目录。
+# 返回 (path, err_key)：path 为空串表示校验失败，err_key 为已有 i18n 键。
+def _check_dir_option(value, kind='backup'):
+    path = (value or '').strip()
+    if not path:
+        return '', 'DIR_EMPTY'
+    # 面板只跑 Linux，这里按 POSIX 绝对路径判定；`os.path.isabs` 兼顾本机
+    # （Windows）跑守卫用例的场景（`os.path.isabs('/etc')` 在 Windows 上为 False）。
+    if not path.startswith('/') and not os.path.isabs(path):
+        return '', 'py_msg_e05503'
+    try:
+        from utils.file import safePath
+        ok, _reason = safePath(path, write=True)
+    except Exception:
+        ok = False
+    if not ok:
+        return '', ('PATH_ERROR' if kind == 'site' else 'py_msg_e05503')
+    path = os.path.normpath(path)
+    if os.path.exists(path):
+        if not os.path.isdir(path):
+            return '', 'py_msg_2ccda7'
+    else:
+        # 只允许在**已存在的父目录**下新建子目录：否则一个手滑的入参就能在
+        # 根下凭空造出一整条目录树（真机实测 `/nonexistent/x/y` 被 makedirs 建出来）。
+        parent = os.path.dirname(path)
+        if not parent or not os.path.isdir(parent):
+            return '', 'py_msg_2ccda7'
+        try:
+            os.makedirs(path, exist_ok=True)
+        except Exception:
+            return '', 'py_msg_2ccda7'
+    if not os.access(path, os.W_OK):
+        return '', 'py_msg_e05503'
+    return path, ''
+
+
 @blueprint.route('/index', endpoint='index')
 @panel_login_required
 def index():
@@ -93,22 +132,28 @@ def set_ip():
 @blueprint.route('/set_backup_dir', endpoint='set_backup_dir', methods=['POST'])
 @panel_login_required
 def set_backup_dir():
-    backup_path = request.form.get('backup_path', '')
+    backup_path, err = _check_dir_option(request.form.get('backup_path', ''), kind='backup')
+    if err:
+        return yf.returnData(False, err)
     src_backup_path = thisdb.getOption('backup_path')
     if backup_path != src_backup_path:
         thisdb.setOption('backup_path', backup_path)
         utils_config.clearGlobalVarCache()
+        yf.writeLog('面板设置', '默认备份目录修改为: {1}', (backup_path,))
     return yf.returnData(True, 'setting.py_msg_b179f2')
 
 # 默认站点目录
 @blueprint.route('/set_www_dir', endpoint='set_www_dir', methods=['POST'])
 @panel_login_required
 def set_www_dir():
-    sites_path = request.form.get('sites_path', '')
+    sites_path, err = _check_dir_option(request.form.get('sites_path', ''), kind='site')
+    if err:
+        return yf.returnData(False, err)
     src_sites_path = thisdb.getOption('site_path')
     if sites_path != src_sites_path:
         thisdb.setOption('site_path', sites_path)
         utils_config.clearGlobalVarCache()
+        yf.writeLog('面板设置', '默认建站目录修改为: {1}', (sites_path,))
     return yf.returnData(True, 'setting.py_msg_d75d39')
 
 
