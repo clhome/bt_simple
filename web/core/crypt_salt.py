@@ -32,6 +32,9 @@ def _write_salt(filepath, salt_data):
         _set_permission(filepath)
         return True
     except Exception as _e:
+        # 不能静默返回 False：三处盐文件全写失败时面板照旧启动，但盐缺失会让
+        # 已加密的密码/令牌永久解不开，用户只会在「改完密码登录不上」时才发现。
+        yf.writeFileLog('[crypt_salt] 写盐文件失败 %s: %s' % (filepath, _e))
         return False
 
 def init_salt():
@@ -72,15 +75,22 @@ def get_salt():
     if not valid_data:
         return None
         
-    # 同步恢复缺失的副本
+    # 同步恢复缺失的副本（写失败必须如实说明，不能假称「已恢复」）
     if not data_main:
-        _write_salt(SALT_MAIN, valid_data)
-        yf.writeLog('安全机制', '加密主 Salt 文件丢失，已自动从备份恢复。')
+        if _write_salt(SALT_MAIN, valid_data):
+            yf.writeLog('安全机制', '加密主 Salt 文件丢失，已自动从备份恢复。')
+        else:
+            yf.writeLog('安全机制', '加密主 Salt 文件丢失且回写失败（%s），本次仍使用备份中的 Salt。'
+                       % SALT_MAIN)
     if not data_bak1:
-        _write_salt(SALT_BAK1, valid_data)
-        yf.writeLog('安全机制', '加密备1 Salt 文件丢失，已自动恢复。')
+        if _write_salt(SALT_BAK1, valid_data):
+            yf.writeLog('安全机制', '加密备1 Salt 文件丢失，已自动恢复。')
+        else:
+            yf.writeLog('安全机制', '加密备1 Salt 文件丢失且回写失败（%s）。' % SALT_BAK1)
     if not data_bak2:
-        _write_salt(SALT_BAK2, valid_data)
-        yf.writeLog('安全机制', '加密备2 Salt 文件丢失，已自动恢复。')
+        if _write_salt(SALT_BAK2, valid_data):
+            yf.writeLog('安全机制', '加密备2 Salt 文件丢失，已自动恢复。')
+        else:
+            yf.writeLog('安全机制', '加密备2 Salt 文件丢失且回写失败（%s）。' % SALT_BAK2)
         
     return valid_data['salt']

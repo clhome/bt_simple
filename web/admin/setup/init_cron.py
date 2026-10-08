@@ -12,8 +12,6 @@
 import os
 import core.yf as yf
 from utils.crontab import crontab
-from croniter import croniter
-from datetime import datetime
 import thisdb
 
 def cron_todb(data):
@@ -95,7 +93,16 @@ def init_auto_update():
 
     if not enabled:
         if res:
-            yf.M('crontab').where('id=?', (res['id'],)).delete()
+            # 关闭时必须把**系统 crontab 行与执行脚本**一起摘掉。
+            # 旧实现只删库记录，实测会留下幽灵任务：DB 里查不到、界面显示已关闭，
+            # 而 /var/spool/cron/crontabs/root 与 /www/server/cron/<echo> 都还在，
+            # 于是「已关闭」的 root 自动更新任务仍会按月执行 —— 与本节注释的承诺相反。
+            ret = crontab.instance().delete(res['id'])
+            if isinstance(ret, dict) and ret.get('status') is False:
+                # 系统 crontab 文件缺失等异常路径下，至少把库记录清干净
+                yf.M('crontab').where('id=?', (res['id'],)).delete()
+                yf.writeFileLog('[setup] 移除面板自动更新任务时未能清理系统 crontab: %s'
+                                % ret.get('msg'))
             yf.writeLog('面板设置', '已移除面板自动更新计划任务!')
         return False
 

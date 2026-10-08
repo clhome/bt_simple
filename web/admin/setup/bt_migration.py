@@ -5,6 +5,46 @@ import json
 import core.yf as yf
 import utils.plugin as pl
 
+
+def _as_version_str(value):
+    """把 json 里的版本字段规整成字符串；非字符串一律视为「无」。
+
+    为什么必需：`bt_migrated_software.json` 是部署脚本拼出来的（也可能被人工改过/
+    半截写入）。字段类型一旦不是字符串（dict/list/数字），`match_plugin_version`
+    里的 `bt_version.strip()` 会抛 AttributeError，被外层 except 吞成
+    「处理宝塔软件迁移异常」，于是这份 json 每次开机都失败、永远不会收尾。
+    """
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (int, float)):
+        return str(value)
+    return ''
+
+
+def _as_version_list(value):
+    """php 字段必须是版本数组。
+
+    字符串要当成「单个版本」而不是可迭代对象：旧实现直接 `for php_ver in php_list`，
+    当 json 写成 `"php": "74"` 时会按**字符**拆成 '7' 与 '4'，匹配出
+    `php 7.0` 与「支持的最后一个版本 8.4」两个完全错误的安装任务（实测）。
+    """
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, (list, tuple)):
+        if value:
+            yf.writeFileLog('[bt_migration] php 字段类型非法（%s），已跳过 PHP 重建'
+                            % type(value).__name__)
+        return []
+    out = []
+    for item in value:
+        ver = _as_version_str(item)
+        if ver:
+            out.append(ver)
+        else:
+            yf.writeFileLog('[bt_migration] php 版本项非法：%r，已跳过' % (item,))
+    return out
+
+
 def check_and_migrate_bt_software():
     panel_dir = yf.getPanelDir()
     json_path = panel_dir + '/data/bt_migrated_software.json'
@@ -14,13 +54,17 @@ def check_and_migrate_bt_software():
     try:
         content = yf.readFile(json_path)
         data = json.loads(content)
+        if not isinstance(data, dict):
+            yf.writeFileLog('[bt_migration] 迁移记录不是 JSON 对象（%s），已忽略'
+                            % type(data).__name__)
+            return False
         plugin_mgr = pl.plugin.instance()
         
         yf.writeLog("面板迁移", "检测到宝塔面板迁移的软件记录，开始自动编排并重建环境...")
 
         # 逐个软件检查并添加任务
         # 1. MySQL
-        mysql_ver = data.get('mysql')
+        mysql_ver = _as_version_str(data.get('mysql'))
         if mysql_ver:
             best_ver = match_plugin_version('mysql', mysql_ver)
             if best_ver:
@@ -28,7 +72,7 @@ def check_and_migrate_bt_software():
                 yf.writeLog("面板迁移", "自动将宝塔 MySQL %s (适配为 %s 极速版) 重建任务加入队列" % (mysql_ver, best_ver))
                 
         # 2. Redis
-        redis_ver = data.get('redis')
+        redis_ver = _as_version_str(data.get('redis'))
         if redis_ver:
             best_ver = match_plugin_version('redis', redis_ver)
             if best_ver:
@@ -36,7 +80,7 @@ def check_and_migrate_bt_software():
                 yf.writeLog("面板迁移", "自动将宝塔 Redis %s (适配为 %s) 重建任务加入队列" % (redis_ver, best_ver))
 
         # 3. PostgreSQL
-        postgres_ver = data.get('postgresql')
+        postgres_ver = _as_version_str(data.get('postgresql'))
         if postgres_ver:
             best_ver = match_plugin_version('postgresql', postgres_ver)
             if best_ver:
@@ -44,7 +88,7 @@ def check_and_migrate_bt_software():
                 yf.writeLog("面板迁移", "自动将宝塔 PostgreSQL %s (适配为 %s) 重建任务加入队列" % (postgres_ver, best_ver))
 
         # 4. OpenResty (Nginx)
-        openresty_ver = data.get('openresty')
+        openresty_ver = _as_version_str(data.get('openresty'))
         if openresty_ver:
             best_ver = match_plugin_version('openresty', openresty_ver)
             if best_ver:
@@ -52,8 +96,7 @@ def check_and_migrate_bt_software():
                 yf.writeLog("面板迁移", "自动将宝塔 Nginx/OpenResty %s (适配为 OpenResty %s) 重建任务加入队列" % (openresty_ver, best_ver))
 
         # 5. PHP
-        php_list = data.get('php', [])
-        for php_ver in php_list:
+        for php_ver in _as_version_list(data.get('php', [])):
             best_ver = match_plugin_version('php', php_ver)
             if best_ver:
                 plugin_mgr.install('php', best_ver)

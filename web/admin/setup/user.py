@@ -9,9 +9,6 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-from flask import request
-
-
 import core.yf as yf
 import thisdb
 
