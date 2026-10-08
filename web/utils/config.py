@@ -81,6 +81,39 @@ def getAssetVersion(rel_path):
     _asset_version_cache[rel_path] = (token, now)
     return token
 
+def _filter_menu_items(items):
+    """只保留可渲染的菜单条目(dict + 非空 str id + 可选字段类型正确)。
+
+    为什么需要:menu.json 由 `/setting/save_menu_config` 写入,layout.html 会用
+    `t('menu.' + item.id, item.name)` 拼 key。一条缺 `id` / 非 str id 的条目
+    会让**面板每一页**渲染 500(与 A11 的 hook_menu 同机制)。写入侧已加校验,
+    这里再做一层读时过滤,保证历史上的坏记录不会把面板锁死。
+    """
+    if not isinstance(items, list):
+        return []
+    clean = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        mid = item.get('id')
+        if not isinstance(mid, str) or not mid.strip():
+            continue
+        name = item.get('name')
+        if not isinstance(name, str):
+            continue
+        klass = item.get('class')
+        if klass is not None and not isinstance(klass, str):
+            continue
+        url = item.get('url')
+        if url is not None and not isinstance(url, str):
+            continue
+        show = item.get('show')
+        if show is not None and not isinstance(show, bool):
+            continue
+        clean.append(item)
+    return clean
+
+
 def get_menu_config():
     global _menu_cache
     if _menu_cache is not None:
@@ -105,7 +138,7 @@ def get_menu_config():
     else:
         try:
             content = yf.readFile(menu_file)
-            _menu_cache = json.loads(content)
+            _menu_cache = _filter_menu_items(json.loads(content))
         except Exception as e:
             _menu_cache = []
     

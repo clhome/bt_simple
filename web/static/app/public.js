@@ -3951,7 +3951,7 @@ function pluginSetInitD(_name, _version, status, _suffix_name = '') {
   if (_suffix_name != '') {
     default_name = default_name + '_' + _suffix_name;
   }
-  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.current_status_1') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.loaded') || "" : lan && lan.public && t('public.not_loaded') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
+  var serviceCon = ('<p class="status">' + (lan && lan.public && t('public.current_status_1') || '当前状态:') + '<span>') + (status ? lan && lan.public && t('public.loaded') || "" : lan && lan.public && t('public.not_loaded') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
             <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\'' + _name + '\',\'' + _version + '\',\'' + default_name + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.uninstall') || "" : lan && lan.public && t('public.loading_3') || "") + '</button>\
         </div>';
   $(".soft-man-con").html(serviceCon);

@@ -24,6 +24,7 @@ import core.yf as yf
 import utils.config as utils_config
 
 from .setting import blueprint
+from .setting import _parse_page_args
 import thisdb
 
 # 设置API
@@ -49,7 +50,8 @@ def get_app_list():
     page = request.form.get('page', '1').strip()
     tojs = request.form.get('tojs', 'getAppList').strip()
 
-    info = thisdb.getAppList(page=int(page),size=int(limit))
+    page, limit = _parse_page_args(page, limit, default_limit=5)
+    info = thisdb.getAppList(page=page, size=limit)
     data = {}
     data['data'] = info['list']
     data['page'] = yf.getPage({'count':info['count'],'tojs':tojs,'p':page,'row':limit})
@@ -76,6 +78,9 @@ def add_app():
 @panel_login_required
 def toggle_app_status():
     aid = request.form.get('id', '').strip()
+    # 不存在的 id 必须先判库:旧实现直接 `info['status']` 会抛 TypeError → 500。
+    if not thisdb.getAppById(aid):
+        return yf.returnData(False, 'setting.py_msg_a16d8d')
     rid = thisdb.toggleAppStatus(aid)
     if rid > 0:
         return yf.returnData(True, 'setting.py_msg_ad1353')

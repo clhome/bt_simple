@@ -48,8 +48,16 @@ def sync_date():
 def set_timezone():
     # 设置时区列表
     timezone = request.form.get('timezone', '').strip()
-    cmd = 'timedatectl set-timezone "'+timezone+'"'
-    yf.execShell(cmd)
+    # 旧实现把参数原样拼进 shell(`timedatectl set-timezone "+tz+"`),
+    # 且不看退出码 —— 非法值/空值都回「设置成功」而系统没变(假成功)。
+    import pytz
+    if timezone not in pytz.all_timezones:
+        return yf.returnData(False, 'ARGS_ERR')
+
+    rc, out, err = yf.execShellRc(['timedatectl', 'set-timezone', timezone], shell=False)
+    if rc != 0:
+        yf.writeFileLog('[setting] set_timezone 失败: %s' % (err or out))
+        return yf.returnData(False, 'SET_ERROR')
     return yf.returnData(True, 'common.set_success')
         
 

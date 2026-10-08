@@ -25,6 +25,8 @@ import utils.config as utils_config
 import thisdb
 
 from .setting import blueprint
+from .setting import _parse_page_args
+import thisdb
 
 
 @blueprint.route('/get_temp_login', endpoint='get_temp_login', methods=['POST'])
@@ -34,11 +36,12 @@ def get_temp_login():
     p = request.form.get('page', '1').strip()
     tojs = request.form.get('tojs', '').strip()
 
-    info = thisdb.getTempLoginPage(int(p), int(limit))
+    page, size = _parse_page_args(p, limit, default_limit=5)
+    info = thisdb.getTempLoginPage(page, size)
 
     data = {}
     data['data'] = info['list']
-    data['page'] = yf.getPage({'count':info['count'],'tojs':'setTempAccessReq','p':p,'row':limit})
+    data['page'] = yf.getPage({'count':info['count'],'tojs':'setTempAccessReq','p':page,'row':size})
     return data
 
 @blueprint.route('/set_temp_login', endpoint='set_temp_login', methods=['POST'])

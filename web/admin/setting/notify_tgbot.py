@@ -31,9 +31,16 @@ import thisdb
 @panel_login_required
 def get_notify_tgbot():
     notify_tgbot = thisdb.getOptionByJson('notify_tgbot', default={'open':False}, type='notify')
+    if not isinstance(notify_tgbot, dict):
+        notify_tgbot = {'open': False}
     if 'cfg' in notify_tgbot:
         decrypt_data = yf.deDoubleCrypt('tgbot', notify_tgbot['cfg'])
-        notify_tgbot['tgbot'] =  json.loads(decrypt_data)
+        try:
+            notify_tgbot['tgbot'] = json.loads(decrypt_data)
+        except Exception:
+            # 历史脏数据(非 JSON)不得把接口打成 500。
+            yf.writeFileLog('[setting] notify_tgbot.cfg 不是合法 JSON,已按空配置处理')
+            notify_tgbot['tgbot'] = []
     else:
         notify_tgbot['tgbot'] = []
     return yf.returnData(True,'ok',notify_tgbot)
@@ -44,6 +51,14 @@ def get_notify_tgbot():
 @panel_login_required
 def set_notify_tgbot():
     data = request.form.get('data', '').strip()
+
+    # 写入侧校验:非 JSON 一旦落库,读取侧 json.loads 会失败(全站 500)。
+    try:
+        parsed = json.loads(data)
+    except Exception:
+        return yf.returnData(False, 'ARGS_ERR')
+    if not isinstance(parsed, dict):
+        return yf.returnData(False, 'ARGS_ERR')
 
     crypt_data = yf.enDoubleCrypt('tgbot', data)
     
@@ -60,7 +75,13 @@ def set_notify_tgbot():
 def set_notify_tgbot_test():
     tag_data = request.form.get('data', '').strip()
 
-    tmp = json.loads(tag_data)
+    try:
+        tmp = json.loads(tag_data)
+    except Exception:
+        return yf.returnData(False, 'ARGS_ERR')
+    if not isinstance(tmp, dict) or 'app_token' not in tmp or 'chat_id' not in tmp:
+        return yf.returnData(False, 'ARGS_ERR')
+
     test_pass = yf.tgbotNotifyTest(tmp['app_token'], tmp['chat_id'])
     if test_pass == True:
         return yf.returnData(True, 'setting.py_msg_45001d')
@@ -74,6 +95,8 @@ def set_notify_tgbot_enable():
     data = request.form.get('data', '').strip()
 
     notify_tgbot = thisdb.getOptionByJson('notify_tgbot', default={'open':False}, type='notify')
+    if not isinstance(notify_tgbot, dict):
+        notify_tgbot = {'open': False}
 
     if notify_tgbot['open']:
         op_action = '关闭'

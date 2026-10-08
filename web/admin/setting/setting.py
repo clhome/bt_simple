@@ -12,6 +12,8 @@
 import re
 import json
 import os
+import shutil
+import sys
 import time
 
 from flask import Blueprint, render_template
@@ -31,6 +33,34 @@ import utils.config as utils_config
 
 # 默认页面
 blueprint = Blueprint('setting', __name__, url_prefix='/setting', template_folder='../../templates')
+
+# 分页/行数入参的统一容错解析。
+# 裸 `int(request.form.get('page'))` 会被任意非数字入参打成 500(真机实测
+# `/setting/get_app_list?page=abc`、`/setting/get_temp_login?limit=abc`),
+# 且 SQLite 下负 LIMIT 等于不限量(会把整表拉出来)。
+def _parse_page_args(page, limit, default_page=1, default_limit=10, max_limit=100):
+    def _to_int(val, fallback):
+        try:
+            if val is None or isinstance(val, bool):
+                return fallback
+            text = str(val).strip()
+            if not text or not re.match(r'^[+-]?\d+$', text):
+                return fallback
+            return int(text)
+        except Exception:
+            return fallback
+
+    p = _to_int(page, default_page)
+    size = _to_int(limit, default_limit)
+    if p < 1:
+        p = default_page
+    if size < 1:
+        size = 1
+    elif size > max_limit:
+        size = max_limit
+    return p, size
+
+
 @blueprint.route('/index', endpoint='index')
 @panel_login_required
 def index():
@@ -397,7 +427,17 @@ def unlock_login():
 @blueprint.route('/set_port', endpoint='set_port', methods=['POST'])
 @panel_login_required
 def set_port():
-    port = request.form.get('port', '')
+    port = (request.form.get('port', '') or '').strip()
+
+    # 端口白名单:旧实现把请求值直接写进 `data/port.pl` —— 真机实测 `port=abc`
+    # 回「端口保存成功!」但 gunicorn 从此不再监听,面板整体从网络里消失;
+    # `70000` 同样写盘;`60376; touch /tmp/x` 会把整串命令写进配置文件。
+    from utils.firewall import parsePortSpec
+    span = parsePortSpec(port)
+    if span is None or span[0] != span[1]:
+        return yf.returnData(False, 'setting.py_msg_9716ed')
+    port = str(span[0])
+
     if port != yf.getHostPort():
         from utils.firewall import Firewall as YfFirewall
 
@@ -427,13 +467,22 @@ def save_menu_config():
         menus = json.loads(menu_data)
         if not isinstance(menus, list):
             return yf.returnData(False, 'setting.py_msg_e6c1aa')
-            
+
+        # 写入侧校验:坏条目一旦落盘,layout.html 的 `t('menu.' + item.id)`
+        # 会让面板每一页 500(与 A11 hook_menu 同机制)。
+        try:
+            valid = utils_config._filter_menu_items(menus)
+        except AttributeError:
+            valid = []
+        if len(valid) != len(menus) or not valid:
+            return yf.returnData(False, 'setting.py_msg_e6c1aa')
+
         panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         menu_file = panel_dir + '/data/menu.json'
-        yf.writeFile(menu_file, json.dumps(menus))
+        yf.writeFile(menu_file, json.dumps(valid))
         
         # 更新内存缓存
-        utils_config._menu_cache = menus
+        utils_config._menu_cache = valid
         utils_config.clearGlobalVarCache()
         
         return yf.returnData(True, 'setting.py_msg_a087ab')
@@ -479,9 +528,7 @@ def migrate_restore():
                 if not re.match(r'^[a-zA-Z0-9_\-]+(,[a-zA-Z0-9_\-]+)*$', dbs):
                     return yf.returnData(False, 'setting.py_msg_invalid_dbs')
                 args.append('--dbs=' + dbs)
-            
-        import sys
-        import os
+
         panel_dir = yf.getPanelDir()
         log_file = "/tmp/migrate_restore.log"
         yf.writeFile(log_file, "正在初始化迁移任务...\n")
@@ -531,11 +578,12 @@ def migrate_sites():
         db_path = request.form.get('db_path', '').strip()
         if not db_path:
             return yf.returnData(False, 'setting.py_msg_ceaa07')
+        # 函数内不能再 `import os`:那会把 `os` 变成局部名,使上面这行的 `os.path`
+        # 抛 UnboundLocalError(真机实测接口恒回
+        # 「cannot access local variable 'os' where it is not associated with a value」)。
         if not os.path.exists(db_path) or not db_path.endswith('.db'):
             return yf.returnData(False, 'setting.py_msg_invalid_db_path')
-            
-        import sys
-        import os
+
         panel_dir = yf.getPanelDir()
         log_file = "/tmp/migrate_sites.log"
         yf.writeFile(log_file, "正在初始化站点导入任务...\n")
@@ -611,37 +659,62 @@ def get_bt_backups():
     data.sort(key=lambda x: x['name'])
     return yf.getJson({'status': True, 'data': data})
 
+# 宝塔备份目录的路径安全校验。返回合法绝对路径,非法回 ''。
+# 旧实现只判 `startswith('/www/server/')`,于是 `/www/server/../../../etc`
+# 直接通过 —— 真机实测 `compress_bt_backup` 在 **`/etc.zip`** 生成 43MB 的 /etc 整包,
+# `delete_bt_backup` 能真删站外目录。这里再加一层 realpath 必须严格位于
+# /www/server/ 之内(拦 `..` 与软链外逃)。
+def _safe_bt_backup_path(path):
+    path = (path or '').strip()
+    if not path or not path.startswith('/www/server/'):
+        return ''
+    try:
+        real = os.path.realpath(path)
+    except Exception:
+        return ''
+    # 注意:不能忽视 `os.sep` 的平台差异 —— 用 normpath 拼出前缀列表更稳。
+    base = os.path.realpath('/www/server')
+    prefix = base.rstrip('/\\') + os.sep
+    if not real.startswith(prefix):
+        return ''
+    return real
+
+
 # 压缩宝塔备份目录
 @blueprint.route('/compress_bt_backup', endpoint='compress_bt_backup', methods=['POST'])
 @panel_login_required
 def compress_bt_backup():
-    path = request.form.get('path', '')
-    if not path or not path.startswith('/www/server/'):
+    path = _safe_bt_backup_path(request.form.get('path', ''))
+    if not path:
         return yf.returnData(False, 'setting.py_msg_e05503')
-    
-    import os
+
     if not os.path.exists(path) or not os.path.isdir(path):
         return yf.returnData(False, 'setting.py_msg_2ccda7')
-        
+
     parent_dir = os.path.dirname(path)
     base_name = os.path.basename(path)
-    cmd = "cd {} && zip -r {}.zip {}".format(parent_dir, base_name, base_name)
-    yf.execShell(cmd)
-    
+    out_zip = os.path.join(parent_dir, base_name + '.zip')
+    # 不能拼 shell:base_name 来自目录名,历史实现把它原样拼进 `zip -r {}.zip {}`。
+    rc, out, err = yf.execShellRc(
+        ['zip', '-r', out_zip, base_name], cwd=parent_dir, shell=False, timeout=1800)
+    if rc != 0:
+        yf.writeFileLog('[setting] 压缩宝塔备份失败: %s' % (err or out))
+        return yf.returnData(False, 'admin.py_msg_ead17e')
+
     return yf.returnData(True, 'setting.py_msg_55a0e5')
+
 
 # 删除宝塔备份
 @blueprint.route('/delete_bt_backup', endpoint='delete_bt_backup', methods=['POST'])
 @panel_login_required
 def delete_bt_backup():
-    path = request.form.get('path', '')
-    if not path or not path.startswith('/www/server/'):
+    path = _safe_bt_backup_path(request.form.get('path', ''))
+    if not path:
         return yf.returnData(False, 'setting.py_msg_e05503')
-    
-    import os, shutil
+
     if not os.path.exists(path):
         return yf.returnData(False, 'setting.py_msg_ed9f63')
-        
+
     try:
         if os.path.isdir(path):
             shutil.rmtree(path)

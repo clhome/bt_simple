@@ -31,10 +31,17 @@ import thisdb
 @panel_login_required
 def get_notify_email():
     notify_email = thisdb.getOptionByJson('notify_email', default={'open':False}, type='notify')
+    if not isinstance(notify_email, dict):
+        notify_email = {'open': False}
 
     if 'cfg' in notify_email:
         decrypt_data = yf.deDoubleCrypt('email', notify_email['cfg'])
-        notify_email['email'] =  json.loads(decrypt_data)
+        try:
+            notify_email['email'] = json.loads(decrypt_data)
+        except Exception:
+            # 历史脏数据(非 JSON)不得把接口打成 500 —— 退回空表单。
+            yf.writeFileLog('[setting] notify_email.cfg 不是合法 JSON,已按空配置处理')
+            notify_email['email'] = {'smtp_host':'','smtp_port':'','smtp_ssl':'','to_mail_addr':'','username':'','password':''}
     else:
         notify_email['email'] = {'smtp_host':'','smtp_port':'','smtp_ssl':'','to_mail_addr':'','username':'','password':''}
     
@@ -47,6 +54,15 @@ def get_notify_email():
 def set_notify_email():
     tag = request.form.get('tag', '').strip()
     data = request.form.get('data', '').strip()
+
+    # 写入侧校验:非 JSON 对象一旦落库,读取侧 json.loads 会失败
+    # —— 而 get_notify_email 每次面板重启都会被调用(全站 500,只能改库救回)。
+    try:
+        parsed = json.loads(data)
+    except Exception:
+        return yf.returnData(False, 'ARGS_ERR')
+    if not isinstance(parsed, dict):
+        return yf.returnData(False, 'ARGS_ERR')
 
     crypt_data = yf.enDoubleCrypt(tag, data)
     
@@ -64,7 +80,15 @@ def set_notify_email_test():
     tag = request.form.get('tag', '').strip()
     tag_data = request.form.get('data', '').strip()
 
-    data = json.loads(tag_data)
+    # 入参不是合法 JSON 对象时,bare json.loads 会抛 ValueError 把接口打成 500
+    try:
+        data = json.loads(tag_data)
+    except Exception:
+        return yf.returnData(False, 'ARGS_ERR')
+    if not isinstance(data, dict):
+        return yf.returnData(False, 'ARGS_ERR')
+
+    data.setdefault('mail_test', '')
     test_pass = yf.emailNotifyTest(data)
     if test_pass == True:
         return yf.returnData(True, 'setting.py_msg_45001d')
@@ -78,6 +102,8 @@ def set_notify_email_enable():
     data = request.form.get('data', '').strip()
 
     notify_email = thisdb.getOptionByJson('notify_email', default={'open':False}, type='notify')
+    if not isinstance(notify_email, dict):
+        notify_email = {'open': False}
 
     if notify_email['open']:
         op_action = '关闭'
