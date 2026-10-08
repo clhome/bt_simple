@@ -100,6 +100,49 @@ class DuplicatedLiteralTest(unittest.TestCase):
         # 回退分支必须可达(t() 结果直接参与 ||,而不是被括号吞掉)
         self.assertIn("(lan && lan.public && t('public.current_status_1') || '当前状态:')", line[0])
 
+    def test_03_no_swallowed_rhs_in_concat(self):
+        """拼接表达式里不得出现「RHS 被括号错嵌套吞进字面量」的石锤。
+
+        石锤字符序列(合法 JS 绝不会出现):`|| '\')">`
+        即 `||` 之后紧跟的 `'...'` 字面量里塞进了代码片段 `\')">`。
+
+        损坏形态(2026-10-08 发现,A12 漏网;上一类 `_PAT` 抓不到):
+            tbody += '<a ...>' + id
+                      + (((((lan && t('config.x') || '\')">x') || '\')">x')
+                          + '</a>' || '\')">x') || '\')">x') + '</a>');
+        括号层数合法(解析通过、`node --check` 也过),但实际渲染出
+        `<a ...>x</a></a>` —— 多出一个闭合标签,回退分支也永不可达。
+        本仓库 2026-10-08 实测:`web/static/app/config.js` 3 处
+        (1505 `getTempAccessLogs` / 1507 `removeTempAccess` / 1947 `deleteApp`)。
+        修复方式:只留内层一份,写成 `+ '\')">' + (t('config.x') || '回退')`。
+        """
+        needle = "|| '\\')\">"
+        bad = []
+        for base in ('web/static', 'plugins', 'web/templates'):
+            root = os.path.join(ROOT, base)
+            for dp, dn, fn in os.walk(root):
+                dn[:] = [d for d in dn if d != '__pycache__']
+                for f in fn:
+                    if not f.endswith(('.js', '.html')):
+                        continue
+                    p = os.path.join(dp, f)
+                    for i, line in enumerate(open(p, encoding='utf-8', errors='replace'), 1):
+                        if needle in line:
+                            bad.append('%s:%d' % (os.path.relpath(p, ROOT).replace(os.sep, '/'), i))
+        self.assertEqual(bad, [],
+                         '发现 RHS 被吞进字面量的错嵌套(渲染多余闭合标签):\n  %s'
+                         % '\n  '.join(bad))
+
+    def test_04_config_js_fallback_branches_reachable(self):
+        """具体回归点:1505/1507/1947 三处的回退分支必须可达(单层括号)。"""
+        text = open(os.path.join(ROOT, 'web', 'static', 'app', 'config.js'),
+                    encoding='utf-8').read()
+        for key, fallback in (('config.operation_log', '操作日志'),
+                              ('config.delete', '删除'),
+                              ('config.float', '删除')):
+            needle = "(lan && lan.config && t('%s') || '%s')" % (key, fallback)
+            self.assertIn(needle, text, '回退分支被括号吞掉了:%s' % needle)
+
 
 if __name__ == '__main__':
     unittest.main()

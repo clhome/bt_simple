@@ -1502,9 +1502,9 @@ function setTempAccessReq(page) {
       tbody += '<td>' + getLocalTime(rdata.data[i]['expire']) + '</td>';
       tbody += '<td>';
       if (rdata.data[i]['state'] == '1') {
-        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + (((((lan && lan.config && t('config.operation_log') || '\')">操作日志') || '\')">操作日志') + '</a>' || '\')">操作日志') || '\')">操作日志') + '</a>');
+        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + '\')">' + (lan && lan.config && t('config.operation_log') || '操作日志') + '</a>';
       } else {
-        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + (((((lan && lan.config && t('config.delete') || '\')">删除') || '\')">删除') + '</a>' || '\')">删除') || '\')">删除') + '</a>');
+        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + '\')">' + (lan && lan.config && t('config.delete') || '删除') + '</a>';
       }
       tbody += '</td>';
       tbody += '</tr>';
@@ -1944,7 +1944,7 @@ tbody += '<td><a style="color:red;" onclick="toggleAppstatus(' + row['id'] + ');
       }
       tbody += '<td>' + row['add_time'] + '</td>';
       tbody += '<td>';
-      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + (((((lan && lan.config && t('config.float') || '\')" style="float:right;">删除') || '\')" style="float:right;">删除') + '</a>' || '\')" style="float:right;">删除') || '\')" style="float:right;">删除') + '</a>');
+      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + '\')" style="float:right;">' + (lan && lan.config && t('config.float') || '删除') + '</a>';
       tbody += '</td>';
       tbody += '</tr>';
     }
