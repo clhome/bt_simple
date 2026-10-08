@@ -195,12 +195,19 @@ def get_dir():
     row = request.form.get('row', '10')
     order = request.form.get('order', '')
 
-    if search_all == 'yes' and search != '':
-        dir_list = file.getAllDirList(path, int(page), int(row), order, search)
-    else:
-        dir_list = file.getDirList(path, int(page), int(row), order, search)
+    # 分页参数来自表单:非法值以前在 int() 上抛 ValueError -> 500(`p=abc` 实测)
+    try:
+        page_num = max(1, int(page))
+        row_num = max(1, int(row))
+    except (TypeError, ValueError):
+        page_num, row_num = 1, 10
 
-    dir_list['page'] = yf.getPage({'p':page, 'row': row, 'tojs':'getFiles', 'count': dir_list['count']}, '1,2,3,4,5,6,7,8')
+    if search_all == 'yes' and search != '':
+        dir_list = file.getAllDirList(path, page_num, row_num, order, search)
+    else:
+        dir_list = file.getDirList(path, page_num, row_num, order, search)
+
+    dir_list['page'] = yf.getPage({'p':page_num, 'row': row_num, 'tojs':'getFiles', 'count': dir_list['count']}, '1,2,3,4,5,6,7,8')
     return dir_list
 
 # 解压ZIP

@@ -20,6 +20,7 @@ from flask import Blueprint, render_template
 from flask import request
 
 from utils.plugin import plugin as YfPlugin
+from utils.plugin import _valid_plugin_name  # 插件名白名单（与 /plugins/run 同一把尺子）
 from admin.user_login_check import panel_login_required
 
 
@@ -33,7 +34,9 @@ blueprint = Blueprint('plugins', __name__, url_prefix='/plugins', template_folde
 @panel_login_required
 def index():
     name = thisdb.getOption('template', default='default')
-    return render_template('%s/plugins.html' % name)
+    # 插件管理页与软件商店是同一个页面（soft.html）；历史上这里指向不存在的
+    # `%s/plugins.html`，导致 GET /plugins/index 永远 500。
+    return render_template('%s/soft.html' % name)
 
 # 初始化检查,首页提示选择安装
 @blueprint.route('/init', endpoint='init', methods=['POST'])
@@ -151,9 +154,14 @@ def menu():
     hook_menu = thisdb.getOptionByJson('hook_menu',type='hook',default=[])
     content = ''
     for menu_data in hook_menu:
-        if tag == menu_data['name'] and 'path' in menu_data:
-            t = pg.menuGetAbsPath(tag, menu_data['path'])
-            content = yf.readFile(t)
+        # hook_menu 里可能有历史/第三方写入的坏条目（缺 name、非字典），
+        # 一律跳过而不是 500
+        if not isinstance(menu_data, dict) or menu_data.get('name') != tag:
+            continue
+        t = pg.menuGetAbsPath(tag, menu_data.get('path', ''))
+        if not t or not os.path.isfile(t):
+            continue
+        content = yf.readFile(t) or ''
     #------------------------------------------------------------
     data['hook_tag'] = tag
     data['plugin_content'] = content
@@ -261,6 +269,9 @@ def clear_cache():
     # mysql/php/openresty 安装包全部重下。
     purge = request.form.get('purge_source', '0') == '1'
     YfPlugin.instance().clearCache(purge_source=purge)
+    # 插件设置页的 HTML/语言包缓存也要跟着失效，否则升级插件后仍然展示旧页面
+    _PLUGIN_HTML_CACHE.clear()
+    _PLUGIN_LANG_CACHE.clear()
     return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 
@@ -271,8 +282,10 @@ _PLUGIN_LANG_CACHE = {}
 @blueprint.route('/setting', endpoint='setting', methods=['GET'])
 @panel_login_required
 def setting():
-    name = request.args.get('name', '')
-    if not name:
+    name = request.args.get('name', '').strip()
+    # 安全：name 会被拼成文件路径（`../` 可读到别的插件的 index.html），也会被拼进
+    # 内联 <script> 的 JS 字符串字面量；只允许插件名白名单。
+    if not name or not _valid_plugin_name(name):
         return ''
 
     plugin_dir = yf.getPluginDir() + '/' + name
@@ -307,10 +320,13 @@ def setting():
         _PLUGIN_LANG_CACHE[lang_cache_key] = lang_dict
 
     if lang_dict:
+        # json.dumps 不会转义 '<'：插件语言包（随第三方包分发）里的 `</script>` 能提前闭合
+        # <script> 标签，打开插件设置页即执行任意脚本。按 JS/JSON 合法转义成 \u003c。
+        lang_json = json.dumps(lang_dict, ensure_ascii=False).replace('<', '\\u003c')
         inline_script = (
             f"\n<script>"
             f"window._pluginDicts=window._pluginDicts||{{}};"
-            f"window._pluginDicts['{name}']={json.dumps(lang_dict, ensure_ascii=False)};"
+            f"window._pluginDicts['{name}']={lang_json};"
             f"try{{localStorage.setItem('yf_plang_{name}_{lang}',JSON.stringify(window._pluginDicts['{name}']));}}catch(e){{}}"
             f"</script>"
         )
@@ -325,6 +341,8 @@ def setting():
 RUN_CACHE = {}
 RUN_CACHE_TTL = 3600      # 条目最长存活（秒）
 RUN_CACHE_MAX = 512       # 条目上限
+# /plugins/run_batch 单次请求允许执行的插件调用数上限（每项 = 一个子进程）
+_PLUGIN_BATCH_MAX = 50
 
 
 def _run_cache_get(key, ttl):
@@ -402,10 +420,12 @@ def run():
         stdout_res = data[0].strip() if data and len(data) > 0 and data[0] else ''
         stderr_res = data[1].strip() if data and len(data) > 1 and data[1] else ''
 
+        # 成败以 stderr 为准：plugin.run() 已在插件「非零退出但没写 stderr」时补上失败原因，
+        # 旧写法只看 stderr 空就当成功 → 崩溃的插件被报成 OK（真机实测假成功）。
         if stderr_res == '' or stdout_res == 'ok':
             r = {'status': True, 'msg': 'OK', 'data': stdout_res if stdout_res else 'ok'}
         else:
-            r = {'status': False, 'msg': stderr_res, 'data': stdout_res}
+            r = {'status': False, 'msg': stderr_res or stdout_res or 'ERROR', 'data': stdout_res}
 
         if is_state_op:
             try:
@@ -490,6 +510,12 @@ def run_batch():
     except Exception as _e:
         req_list = []
 
+    # 类型不约束时，list={...} / [1,2] / "abc" 会在 item.get() 上抛 AttributeError → 500
+    if not isinstance(req_list, list):
+        req_list = []
+    # 每一项都是一个独立子进程，必须有上限，否则一次请求能拉起任意多个进程
+    req_list = [item for item in req_list if isinstance(item, dict)][:_PLUGIN_BATCH_MAX]
+
     pg = YfPlugin.instance()
     import time
     now = time.time()
@@ -550,9 +576,9 @@ def run_batch():
                     r = yf.returnData(False, str(exc))
                 else:
                     if data[1] == '':
-                        r = yf.returnData(True, "OK", data[0].strip())
+                        r = yf.returnData(True, "OK", (data[0] or '').strip())
                     else:
-                        r = yf.returnData(False, data[1].strip())
+                        r = yf.returnData(False, (data[1] or data[0] or 'ERROR').strip())
 
                 if func == 'get_total_statistics' and not exc:
                     _run_cache_set(cache_key, r)

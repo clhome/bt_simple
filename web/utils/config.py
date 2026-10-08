@@ -17,6 +17,28 @@ import thisdb
 
 _menu_cache = None
 
+
+def filterHookItems(items):
+    """只保留可渲染的 hook 条目（dict + 非空 name）。
+
+    为什么需要：hook_menu / hook_global_static 来自插件 info.json（含第三方包），
+    layout.html 会用 `t('plugins.' + menu['name'] + '.title')` 拼 key。一条缺 name
+    的历史/第三方坏记录会让**面板每一页**渲染 500（真机实测：注入后 / 、/soft、
+    /logs、/site 全 500，只能手改库才恢复）。写入侧已做净化，这里再做一层读时
+    过滤，保证已有的坏记录不会把面板锁死。
+    """
+    if not isinstance(items, list):
+        return []
+    clean = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        name = item.get('name')
+        if not isinstance(name, str) or not name.strip():
+            continue
+        clean.append(item)
+    return clean
+
 # 静态资源指纹缓存: {rel_path: (token, cache_time)}
 _asset_version_cache = {}
 _ASSET_VERSION_TTL = 30  # 秒
@@ -177,8 +199,8 @@ def getGlobalVar():
     data['basic_auth'] = thisdb.getOptionByJson('basic_auth', default={'open':False})
     data['two_step_verification'] = thisdb.getOptionByJson('two_step_verification', default={'open':False})
 
-    data['hook_menu'] = thisdb.getOptionByJson('hook_menu',type='hook',default=[])
-    data['hook_global_static'] = thisdb.getOptionByJson('hook_global_static',type='hook',default=[])
+    data['hook_menu'] = filterHookItems(thisdb.getOptionByJson('hook_menu',type='hook',default=[]))
+    data['hook_global_static'] = filterHookItems(thisdb.getOptionByJson('hook_global_static',type='hook',default=[]))
     data['hook_database'] = thisdb.getOptionByJson('hook_database',type='hook',default=[])
 
     data['menu_list'] = get_menu_config()

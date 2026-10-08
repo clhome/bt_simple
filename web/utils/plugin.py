@@ -62,6 +62,43 @@ def _valid_script_name(name):
     name = str(name or '').strip()
     return bool(name) and bool(re.match(r'^[a-zA-Z0-9_]+$', name))
 
+#: hook 条目里会被 layout.html / /plugins/menu 当作文件路径使用的字段
+_HOOK_PATH_KEYS = ('path', 'css_path', 'js_path')
+
+
+def _sanitize_hook_item(info):
+    """净化第三方插件 info.json 的 hook 条目，返回 (是否可用, 净化后的条目)。
+
+    为什么必须净化：这些条目会被写进 option(hook_menu/hook_global_static) 并原样喂给
+    layout.html 与 /plugins/menu。
+      - 条目缺 `name` 时，layout.html 的 `t('plugins.' + menu['name'] + '.title')`
+        会抛 UndefinedError → **面板每一页都 500**（真机实测：一条坏条目即全站打不开）；
+      - `path` 写绝对路径或 `../` 时，/plugins/menu 变成任意文件读，内容还会被 |safe 直出。
+    因此只接受「name 合法 + title 非空 + 路径为插件目录内相对路径」的条目。
+    """
+    if not isinstance(info, dict):
+        return False, None
+
+    name = str(info.get('name') or '').strip()
+    title = str(info.get('title') or '').strip()
+    if not _valid_plugin_name(name) or not title:
+        return False, None
+
+    cleaned = dict(info)
+    cleaned['name'] = name
+    cleaned['title'] = title
+    for key in _HOOK_PATH_KEYS:
+        if key not in cleaned:
+            continue
+        val = str(cleaned.get(key) or '').strip()
+        parts = val.replace('\\', '/').split('/')
+        if not val or val.startswith('/') or '..' in parts:
+            cleaned.pop(key, None)
+        else:
+            cleaned[key] = val
+    return True, cleaned
+
+
 def _path_inside(base, target):
     """target 的 realpath 是否严格位于 base 的 realpath 之内（含相等由调用方決定）。"""
     try:
@@ -251,11 +288,16 @@ class plugin(object):
             if not os.path.exists(pn_server):
 
                 tmp = yf.readFile(pn_json)
-                tmp = json.loads(tmp)
+                try:
+                    tmp = json.loads(tmp)
+                except Exception as _e:
+                    # 推荐列表依赖插件自带 info.json；缺失/损坏时跳过而不是 500
+                    yf.writeFileLog('[plugin] 推荐安装读取 %s 失败: %s' % (pn_json, _e))
+                    continue
 
-                info['title'] = tmp['title']
-                info['name'] = tmp['name']
-                info['versions'] = tmp['versions']
+                info['title'] = tmp.get('title', pn)
+                info['name'] = tmp.get('name', pn)
+                info['versions'] = tmp.get('versions', '')
                 info['default_ver'] = plugin_names[pn]
                 pn_list.append(info)
             else:
@@ -272,8 +314,12 @@ class plugin(object):
         try:
             self.setNotRecommend()
             pn_list = json.loads(plugin_list)
+            if not isinstance(pn_list, list):
+                pn_list = []
+            pn_list = [x for x in pn_list if isinstance(x, dict)]
             # 对安装列表进行排序，确保 swap 放置在首位最先安装
             pn_list = sorted(pn_list, key=lambda x: 0 if x.get('name') == 'swap' else 1)
+            queued = 0
             for pn in pn_list:
                 name = str(pn.get('name', '')).strip()
                 version = str(pn.get('version', '')).strip()
@@ -292,18 +338,40 @@ class plugin(object):
                 )
                 title = '安装[' + name + '-' + version + ']'
                 thisdb.addTask(name=title,cmd=cmd)
-            os.mkdir(yf.getServerDir() + '/php')
+                queued += 1
+            # /www/server/php 常因历史安装残留而存在：用幂等的 makeDirs，
+            # 否则报 FileExistsError 时任务已入队但 triggerTask 永远不会执行（假安装）
+            yf.makeDirs(yf.getServerDir() + '/php')
+            if queued == 0:
+                # 一个任务都没入队（空列表/全部非法）却回「添加成功」属于假成功
+                return yf.returnData(False, 'ARGS_ERR')
             # 任务执行相关
             yf.triggerTask()
             return yf.returnData(True, 'common.add_success')
         except Exception as e:
-            return yf.returnData(False, yf.getTracebackInfo())
+            # 不把 traceback（带面板绝对路径）回给前端，只写日志
+            yf.writeFileLog('[plugin] 推荐安装失败: %s\n%s' % (e, yf.getTracebackInfo()))
+            return yf.returnData(False, 'ERROR')
 
     def menuGetAbsPath(self, tag, path):
-        if path[0:1] == '/':
-            return path
-        else:
-            return yf.getPluginDir() + '/' + tag + '/' + path
+        """插件菜单页文件（hook.menu.path）→ 绝对路径。
+
+        安全：`path` 来自第三方插件 info.json。历史实现把绝对路径原样返回，
+        于是 `path=/etc/passwd` 的插件包能让 GET /plugins/menu 读出任意文件
+        （真机实测回显 root:x:0:0）。这里强制限定在 `plugins/<tag>/` 之内，
+        越界/绝对路径一律不再被跟随。
+        """
+        tag = str(tag or '').strip()
+        path = str(path or '').strip()
+        if not _valid_plugin_name(tag) or not path:
+            return None
+        base = os.path.join(self.__plugin_dir, tag)
+        if path[0:1] in ('/', '\\'):
+            return None
+        target = os.path.join(base, path)
+        if not _path_inside(base, target):
+            return None
+        return target
 
     def addIndex(self, name, version):
         # 安全：display_index 是持久化的首页软件清单，非法名/版本会被永久写入并挤占 12 个展示位
@@ -363,10 +431,20 @@ class plugin(object):
 
     def hookInstallOption(self, hook_name, info):
         hn_name = 'hook_'+hook_name
+        ok, info = _sanitize_hook_item(info)
+        if not ok:
+            yf.writeFileLog('[plugin] 丢弃非法 %s 钩子条目: %r' % (hn_name, info))
+            return False
+
         src_data = thisdb.getOptionByJson(hn_name,type='hook',default=[])
+        if not isinstance(src_data, list):
+            src_data = []
         isNeedAdd = True
-        for x in range(len(src_data)):
-            if src_data[x]['title'] == info['title'] and src_data[x]['name'] == info['name']:
+        for item in src_data:
+            # 历史库里可能残留缺字段的条目，取值必须是容错的
+            if not isinstance(item, dict):
+                continue
+            if item.get('title') == info['title'] and item.get('name') == info['name']:
                 isNeedAdd = False
 
         if isNeedAdd:
@@ -379,7 +457,7 @@ class plugin(object):
         hn_name = 'hook_'+hook_name
         src_data = thisdb.getOptionByJson(hn_name,type='hook',default=[])
         for idx in range(len(src_data)):
-            if src_data[idx]['name'] == info['name']:
+            if isinstance(src_data[idx], dict) and src_data[idx].get('name') == info.get('name'):
                 src_data.remove(src_data[idx])
                 break
         thisdb.setOption(hn_name, json.dumps(src_data), type='hook')
@@ -713,10 +791,13 @@ class plugin(object):
         path = ''
         coexist = False
 
-        if info["checks"].startswith('/'):
-            checks = info["checks"]
-        else:
-            checks = yf.getFatherDir() + '/' + info['checks']
+        # 第三方插件包的 info.json 由上传者提供，可能缺 checks；
+        # 直接用 info['checks'] 抛 KeyError 会让 /plugins/list 永久 500（整个软件页打不开）。
+        checks_src = str(info.get('checks') or '')
+        if checks_src.startswith('/'):
+            checks = checks_src
+        elif checks_src:
+            checks = yf.getFatherDir() + '/' + checks_src
 
         if 'path' in info:
             path = info['path']
@@ -742,7 +823,7 @@ class plugin(object):
             "install_checks": checks,
             "uninsatll_checks": checks,
             "coexist": coexist,
-            "versions": info['versions'],
+            "versions": info.get('versions', ''),
             # "updates": info['updates'],
             "task": True,
             "display": False,
@@ -762,19 +843,20 @@ class plugin(object):
         if 'sort' in info:
             pInfo['sort'] = info['sort']
 
+        versions = pInfo['versions']
+
         if checks.find('VERSION') > -1:
-            pInfo['install_checks'] = checks.replace('VERSION', info['versions'])
+            pInfo['install_checks'] = checks.replace('VERSION', str(versions))
 
         if path.find('VERSION') > -1:
-            pInfo['path'] = path.replace('VERSION', info['versions'])
+            pInfo['path'] = path.replace('VERSION', str(versions))
 
-        pInfo['task'] = self.checkSetupTask(pInfo['name'], info['versions'], coexist)
+        pInfo['task'] = self.checkSetupTask(pInfo['name'], versions, coexist)
         pInfo['display'] = self.checkDisplayIndex(info['name'], pInfo['versions'], coexist)
         pInfo['setup'] = os.path.exists(pInfo['install_checks'])
 
-
         if coexist and pInfo['setup']:
-            pInfo['setup_version'] = info['versions']
+            pInfo['setup_version'] = versions
         elif pInfo['setup']:
             if os.path.isdir(pInfo['install_checks']):
                 pInfo['setup_version'] = self.getVersion(pInfo['install_checks'])
@@ -1699,17 +1781,29 @@ class plugin(object):
                 op_timeout = 300
             else:
                 op_timeout = 600
-            data = yf.safeExecShell(cmd_list, cwd=yf.getPanelDir(), timeout=op_timeout)
-
+            # 带退出码执行（shell=False，参数不经 shell）：插件崩溃但没有写 stderr 时，
+            # 旧写法（safeExecShell 只看 stderr）会把「脚本失败」报成成功（假成功）。
+            rc, out_raw, err_raw = yf.execShellRc(cmd_list, cwd=yf.getPanelDir(),
+                                                  timeout=op_timeout, shell=False)
+            data = (out_raw, err_raw)
             if yf.isDebugMode():
                 yf.writeFileLog('run cmd_list: ' + str(cmd_list))
                 yf.writeFileLog(str(data))
             out = data[0].strip() if data and len(data) > 0 and data[0] else ''
             err = data[1].strip() if data and len(data) > 1 and data[1] else ''
 
+            if rc != 0:
+                # 退出码非 0 = 失败。插件可能只往 stdout 写原因（真机实测
+                # print('start failed') + sys.exit(1)），旧实现只看 stderr 空就报成功。
+                # 这里补上失败原因，并撤掉会被上层当成成功的 'ok'。
+                if not err:
+                    err = out or ('plugin %s:%s exited with code %s' % (name, func, rc))
+                if out == 'ok':
+                    out = ''
+
             if is_state_func:
                 try:
-                    op_ok = (out == 'ok' or err == '')
+                    op_ok = bool(rc == 0 and (out == 'ok' or err == ''))
                     self.runByCache(name, func, version, op_result=op_ok)
                 except Exception as _e:
                     _log.debug('[plugin] 回写插件状态缓存失败: %s -> %s', name, _e)

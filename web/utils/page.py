@@ -78,9 +78,17 @@ class Page():
 
         self.ROW = pageInfo['row']
         self.__C_PAGE = self.__GetCpage(pageInfo['p'])
+        self.__COUNT_PAGE = self.__GetCountPage()
+        # 当前页夹到有效范围：越界页码会让 __GetPages 的循环量放大到 O(p)
+        # （真机实测 /plugins/list?p=99999 → 5MB 分页 HTML；p 再大就会把 worker 打爆），
+        # 并会把不存在的页码显示成「当前页」。负页码同样收敛到第 1 页。
+        max_page = self.__COUNT_PAGE if self.__COUNT_PAGE > 0 else 1
+        if self.__C_PAGE > max_page:
+            self.__C_PAGE = max_page
+        if self.__C_PAGE < 1:
+            self.__C_PAGE = 1
         self.__START_NUM = self.__StartRow()
         self.__END_NUM = self.__EndRow()
-        self.__COUNT_PAGE = self.__GetCountPage()
         self.__URI = self.__SetUri(pageInfo['uri'])
         self.SHIFT = self.__START_NUM - 1
 

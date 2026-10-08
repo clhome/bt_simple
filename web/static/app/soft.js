@@ -95,7 +95,7 @@ function softMain(name, title, version) {
     time: 0,
     shade: [0.3, '#000']
   });
-  $.get('/plugins/setting?name=' + name, function (rdata) {
+  $.get('/plugins/setting?name=' + encodeURIComponent(name), function (rdata) {
     layer.close(loadT);
     var currentLang = (window.YfI18n && typeof window.YfI18n.getLanguage === 'function' ? window.YfI18n.getLanguage() : null) || (window.YfI18n && window.YfI18n.currentLang) || 'zh-CN';
     var isZh = currentLang === 'zh-CN' || currentLang === 'zh-TW';
@@ -129,6 +129,13 @@ function softMain(name, title, version) {
 
     //version to
     $(".plugin_version").attr('version', version).hide();
+  }).fail(function () {
+    // 500/网络异常时 loadT 遮罩必须关掉，否则整个面板被蒙层卡死
+    layer.close(loadT);
+    layer.msg(t('public.load_fail', '加载失败'), {
+      icon: 2,
+      time: 3000
+    });
   });
 }
 function toggleThirdParty(isChecked) {
@@ -382,14 +389,23 @@ function getSList(isdisplay) {
       }
     }
     if (window.softTimer) clearTimeout(window.softTimer);
-    if (window.document.location.pathname.indexOf('/soft') === 0) {
+    if (window.document.location.pathname.indexOf('/soft') === 0 || window.document.location.pathname.indexOf('/plugins') === 0) {
       var delay = has_active_task ? 8000 : 30000; // 有任务8秒，无任务30秒
       if (document.visibilityState !== 'visible') delay = 60000; // 后台标签页进一步降频
       window.softTimer = setTimeout(function () {
         getSList(true); // 传入 true，避免弹出 loading 遮罩
       }, delay);
     }
-  }, 'json');
+  }, 'json').fail(function () {
+    // 只在「有遮罩」的主动刷新里提示；轮询失败静默，但遮罩一定要关
+    if (loadT) {
+      layer.close(loadT);
+      layer.msg(t('public.load_fail', '加载失败'), {
+        icon: 2,
+        time: 3000
+      });
+    }
+  });
 }
 function installPreInspection(name, ver, callback) {
   var loading = layer.msg(lan && lan.soft && t('soft.checking_the_installation_environment') || "", {
@@ -416,7 +432,12 @@ function installPreInspection(name, ver, callback) {
         icon: rdata.status ? 1 : 2
       });
     }
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loading);
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 function runInstall(data) {
   var loadT = layer.msg(lan && lan.soft && t('soft.adding_to_the_installer') || "", {
@@ -431,7 +452,12 @@ function runInstall(data) {
     });
     getSList();
     getTaskCount();
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.closeAll();
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   var option = '';
@@ -584,7 +610,12 @@ function forceUninstallPlugin(name, version) {
         layer.msg(forceRdata.msg, {
           icon: forceRdata.status ? 1 : 2
         });
-      }, 'json');
+      }, 'json').fail(function () {
+        layer.close(forceLoad);
+        layer.msg(t('public.ERROR', '操作失败'), {
+          icon: 2
+        });
+      });
     }
   });
 }
@@ -627,7 +658,12 @@ function uninstallPreInspection(name, title, ver, callback) {
         forceUninstallPlugin(name, ver);
       });
     }
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loading);
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 function runUninstallVersion(name, title, version) {
   var pureTitle = title.replace("-" + version, "");
@@ -680,7 +716,12 @@ function runUninstallVersion(name, title, version) {
             forceUninstallPlugin(name, version);
           });
         }
-      }, 'json');
+      }, 'json').fail(function () {
+        layer.close(loadT);
+        layer.msg(t('public.ERROR', '操作失败'), {
+          icon: 2
+        });
+      });
     }
   });
 }
@@ -712,7 +753,12 @@ function toIndexDisplay(name, version, coexist) {
         icon: 2
       });
     }
-  }, 'json');
+  }, 'json').fail(function () {
+    // 失败要如实反馈，否则开关停在假状态（服务端实际没改）
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 var SOFT_CACHE_KEY = 'index_soft_cache_html_v3';
 
@@ -991,7 +1037,12 @@ function importPluginInstall(plugin_name, tmp_path) {
         icon: rdata.status ? 1 : 2
       });
     }, 1000);
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.closeAll();
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 function softUpdate(name, ver, current_ver) {
   layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
@@ -1015,7 +1066,12 @@ function refreshPluginList() {
       icon: 1,
       time: 1000
     });
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.close(loading);
+    layer.msg(t('public.ERROR', '操作失败'), {
+      icon: 2
+    });
+  });
 }
 $(function () {
   // 点击外部隐藏设置下拉框

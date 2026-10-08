@@ -246,17 +246,19 @@ def getPageObject(args, result='1,2,3,4,5,8'):
     page = page.Page()
     info = {}
 
-    info['count'] = 0
-    if 'count' in args:
-        info['count'] = int(args['count'])
+    # 分页参数最终都要 int():旧实现直接 int() 表单原值,任何页面传入 `p=abc`/`row=abc`
+    # 都会抛 ValueError -> 500(`/files/get_dir` 的 p=abc 实测过一次)。这里统一容错并夹住
+    # 下界(row=0 会在 __GetCountPage 里除零),避免每个调用方各自兜底;页码越界仍由
+    # page.Page 夹到 [1, 总页数]。
+    def _int_arg(value, default):
+        try:
+            return int(str(value).strip())
+        except (TypeError, ValueError):
+            return default
 
-    info['row'] = 10
-    if 'row' in args:
-        info['row'] = int(args['row'])
-
-    info['p'] = 1
-    if 'p' in args:
-        info['p'] = int(args['p'])
+    info['count'] = max(0, _int_arg(args.get('count', 0), 0))
+    info['row'] = max(1, _int_arg(args.get('row', 10), 10))
+    info['p'] = _int_arg(args.get('p', 1), 1)
     info['uri'] = {}
     info['return_js'] = ''
     if 'tojs' in args:
