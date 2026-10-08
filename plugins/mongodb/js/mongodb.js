@@ -1,11 +1,41 @@
 var api = YfPlugin.createApi('mongodb');
 var pt = YfI18n.createPluginTranslator('mongodb');
 
+/**
+ * HTML 文本上下文转义。
+ * 库名/用户名/备注/密码/IP 全部来自服务端且可由用户写入（备注、库名、副本节点），
+ * 历史实现直接拼 innerHTML → 存 `<img src=x onerror=...>` 即存储型 XSS
+ * （与 A09/A11/A12/B03 同族）。
+ */
+function yfMgText(v) {
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：HTML 转义挡不住注入
+ * （浏览器会先把实体还原成引号再交给 JS 解析），必须按 JS 字符串转义；
+ * 引号一律走实体，否则会直接终止 HTML 属性值，变成属性注入。
+ */
+function yfMgJsStr(v) {
+    return String(v == null ? '' : v)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
 
 
 
 
-async 
+
 
 
 function mongoDocStatus() {
@@ -22,13 +52,13 @@ function mongoDocStatus() {
 		var t = '';
 		for(var i=0; i<rdata.dbs.length;i++){
 			t += '<tr>';
-			t += '<th>'+rdata.dbs[i]["db"]+'</th>';
-			t += '<th>'+toSize(rdata.dbs[i]["totalSize"])+'</th>';
-			t += '<th>'+toSize(rdata.dbs[i]["storageSize"])+'</th>';
-			t += '<th>'+toSize(rdata.dbs[i]["dataSize"])+'</th>';
-			t += '<th>'+toSize(rdata.dbs[i]["indexSize"])+'</th>';
-			t += '<th>'+rdata.dbs[i]["indexes"]+'</th>';
-			t += '<th>'+rdata.dbs[i]["objects"]+'</th>';
+			t += '<th>'+yfMgText(rdata.dbs[i]["db"])+'</th>';
+			t += '<th>'+yfMgText(toSize(rdata.dbs[i]["totalSize"]))+'</th>';
+			t += '<th>'+yfMgText(toSize(rdata.dbs[i]["storageSize"]))+'</th>';
+			t += '<th>'+yfMgText(toSize(rdata.dbs[i]["dataSize"]))+'</th>';
+			t += '<th>'+yfMgText(toSize(rdata.dbs[i]["indexSize"]))+'</th>';
+			t += '<th>'+yfMgText(rdata.dbs[i]["indexes"])+'</th>';
+			t += '<th>'+yfMgText(rdata.dbs[i]["objects"])+'</th>';
 			t += '</tr>';
 		}
 		// console.log(t);
@@ -41,7 +71,11 @@ function mongoDocStatus() {
 		// console.log(rdata.dbs);
 
         $(".soft-man-con").html(con);
-    },'json');
+    },'json').fail(function(xhr){
+        // 缺 .fail() 时 HTTP 500 会让 loading 遮罩永久卡死
+        layer.close(loadT);
+        layer.msg(pt('操作异常!') + ' (' + xhr.status + ')', {icon:0,time:2000,shade: [0.3, '#000']});
+    });
 }
 
 function mongoReplStatus() {
@@ -60,17 +94,17 @@ function mongoReplStatus() {
 		if (rdata.status == '无'){
 			tbody += '<tr><td colspan="3" style="text-align:center;">' + pt('无数据') + '</td></tr>';
 		} else{
-			tbody += '<tr><th>' + pt('状态') + '</th><td>' + rdata.status + '</td><td>' + pt('主/从') + '</td></tr>\
-					<tr><th>' + pt('同步文档') + '</th><td>' + rdata.setName + '</td><td>' + pt('文档名') + '</td></tr>\
-					<tr><th>hosts</th><td><span class="overflow_hide" style="width:300px;word-wrap: break-word;white-space:pre-wrap;" title="'+rdata.hosts+'">' + rdata.hosts + '</span></td><td>' + pt('服务器所有节点') + '</td></tr>\
-					<tr><th>primary</th><td>' + rdata.primary + '</td><td>' + pt('主节点') + '</td></tr>\
-					<tr><th>me</th><td>' + rdata.me + '</td><td>' + pt('本机') + '</td></tr>';
+			tbody += '<tr><th>' + pt('状态') + '</th><td>' + yfMgText(rdata.status) + '</td><td>' + pt('主/从') + '</td></tr>\
+					<tr><th>' + pt('同步文档') + '</th><td>' + yfMgText(rdata.setName) + '</td><td>' + pt('文档名') + '</td></tr>\
+					<tr><th>hosts</th><td><span class="overflow_hide" style="width:300px;word-wrap: break-word;white-space:pre-wrap;" title="'+yfMgText(rdata.hosts)+'">' + yfMgText(rdata.hosts) + '</span></td><td>' + pt('服务器所有节点') + '</td></tr>\
+					<tr><th>primary</th><td>' + yfMgText(rdata.primary) + '</td><td>' + pt('主节点') + '</td></tr>\
+					<tr><th>me</th><td>' + yfMgText(rdata.me) + '</td><td>' + pt('本机') + '</td></tr>';
 		}
 
 		var tbody_members = '';
 		var member_list = rdata['members'];
 		for (var i = 0; i < member_list.length; i++) {
-			tbody_members += '<tr><th>'+member_list[i]['name']+'</th><td>' + member_list[i]['stateStr'] + '</td><td>'+member_list[i]['uptime']+'</td></tr>';
+			tbody_members += '<tr><th>'+yfMgText(member_list[i]['name'])+'</th><td>' + yfMgText(member_list[i]['stateStr']) + '</td><td>'+yfMgText(member_list[i]['uptime'])+'</td></tr>';
 		}
 
 		// console.log(rdata);
@@ -102,7 +136,10 @@ function mongoReplStatus() {
 			</div>';
 
         $(".soft-man-con").html(con);
-    },'json');
+    },'json').fail(function(xhr){
+        layer.close(loadT);
+        layer.msg(pt('操作异常!') + ' (' + xhr.status + ')', {icon:0,time:2000,shade: [0.3, '#000']});
+    });
 }
 
 //设置副本名称
@@ -205,20 +242,20 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
                     <div class='line'>\
 	                    <span class='tname'>" + pt('节点服务:') + "</span>\
 	                    <div class='info-r'>\
-	                        <input class='bt-input-text mr5' type='text' name='node' style='width:330px' value='"+host+"'/>\
+	                        <input class='bt-input-text mr5' type='text' name='node' style='width:330px' value='"+yfMgText(host)+"'/>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>priority:</span>\
 	                    <div class='info-r'>\
-	                        <input class='bt-input-text mr5' type='number' name='priority' style='width:220px' value='"+priority+"'/>\
+	                        <input class='bt-input-text mr5' type='number' name='priority' style='width:220px' value='"+yfMgText(priority)+"'/>\
 	                        <span class='c9'>" + pt('值越大，优先权越高') + "</span>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>votes:</span>\
 	                    <div class='info-r'>\
-	                        <input class='bt-input-text mr5' type='number' name='votes' style='width:220px' value='"+votes+"'/>\
+	                        <input class='bt-input-text mr5' type='number' name='votes' style='width:220px' value='"+yfMgText(votes)+"'/>\
 	                        <span class='c9'>" + pt('一般是0或者1') + "</span>\
 	                    </div>\
                     </div>\
@@ -268,7 +305,7 @@ function mongoReplCfgDelNode(host){
 function mongoReplCfgInit(){
 	api.postSilent('get_repl_config', '', '', function(data){
 		var rdata = JSON.parse(data.data);
-		$('#repl_name').html(msgTpl(pt('同步副本：{1}'), [rdata.data['name']]));
+		$('#repl_name').html(msgTpl(pt('同步副本：{1}'), [yfMgText(rdata.data['name'])]));
 
 		var node = '';
 		for (var i = 0; i < rdata.data['nodes'].length; i++) {
@@ -279,9 +316,9 @@ function mongoReplCfgInit(){
 				arbiterOnly = pt('是');
 			}
 
-			var op = '<a href="javascript:;" class="btlink" onclick="mongoReplCfgDelNode(\''+t['host']+'\');" title="删除">' + pt('删除') + '</a>';
-			op += ' | <a href="javascript:;" class="btlink" onclick="mongoReplCfgNodes(\''+i+'\',\''+t['host']+'\',\''+t['priority']+'\',\''+t['votes']+'\',\''+t['arbiterOnly']+'\');" title="编辑">' + pt('编辑') + '</a>';
-			node += '<tr><td>'+t['host']+'</td><td>'+t['priority']+'</td><td>'+t['votes']+'</td><td>'+arbiterOnly+'</td><td>'+op+'</td></tr>';
+			var op = '<a href="javascript:;" class="btlink" onclick="mongoReplCfgDelNode(\''+yfMgJsStr(t['host'])+'\');" title="删除">' + pt('删除') + '</a>';
+			op += ' | <a href="javascript:;" class="btlink" onclick="mongoReplCfgNodes(\''+yfMgJsStr(i)+'\',\''+yfMgJsStr(t['host'])+'\',\''+yfMgJsStr(t['priority'])+'\',\''+yfMgJsStr(t['votes'])+'\',\''+yfMgJsStr(t['arbiterOnly'])+'\');" title="编辑">' + pt('编辑') + '</a>';
+			node += '<tr><td>'+yfMgText(t['host'])+'</td><td>'+yfMgText(t['priority'])+'</td><td>'+yfMgText(t['votes'])+'</td><td>'+yfMgText(arbiterOnly)+'</td><td>'+op+'</td></tr>';
 		}
 		$('#repl_node tbody').html(node);
 	});
@@ -368,11 +405,11 @@ function mongoSetConfig() {
         }
 
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + rdata['net']['bindIp'] + "' />，<font>" + pt('监听IP请勿随意修改') + "</font></p>" +
-            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + rdata['net']['port'] + "' />，<font>" + pt('监听端口,一般无需修改') + "</font></p>" +
-            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + rdata['storage']['dbPath'] + "' />，<font>" + pt('数据存储位置') + "</font></p>" +
-            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + rdata['systemLog']['path'] + "' />，<font>" + pt('日志文件位置') + "</font></p>" +
-            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + rdata['processManagement']['pidFilePath'] + "' />，<font>" + pt('PID保存路径') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + yfMgText(rdata['net']['bindIp']) + "' />，<font>" + pt('监听IP请勿随意修改') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + yfMgText(rdata['net']['port']) + "' />，<font>" + pt('监听端口,一般无需修改') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + yfMgText(rdata['storage']['dbPath']) + "' />，<font>" + pt('数据存储位置') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + yfMgText(rdata['systemLog']['path']) + "' />，<font>" + pt('日志文件位置') + "</font></p>" +
+            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + yfMgText(rdata['processManagement']['pidFilePath']) + "' />，<font>" + pt('PID保存路径') + "</font></p>" +
             "<p class='line'><span class='span_tit' style='float:left;'>" + pt('安全认证：') + "</span>"+body_auth+"</p>" +
             "<div class='mtb15' style='padding-top: 10px;text-align: center;'>\
             	<button class='btn btn-success btn-sm mr5' onclick='mongoSetConfig();'>" + pt('刷新') + "</button>\
@@ -426,25 +463,25 @@ function dbList(page, search){
         var list = '';
         for(i in rdata.data){
             list += '<tr>';
-            list +='<td><input value="'+rdata.data[i]['id']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
-            list += '<td>' + rdata.data[i]['name'] +'</td>';
-            list += '<td>' + rdata.data[i]['username'] +'</td>';
+            list +='<td><input value="'+yfMgText(rdata.data[i]['id'])+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
+            list += '<td>' + yfMgText(rdata.data[i]['name']) +'</td>';
+            list += '<td>' + yfMgText(rdata.data[i]['username']) +'</td>';
             list += '<td>' + 
-                        '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
+                        '<span class="password" data-pw="'+yfMgText(rdata.data[i]['password'])+'">***</span>' +
                         '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>'+
-                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
+                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+yfMgJsStr(rdata.data[i]['password'])+'\')"></span>'+
                     '</td>';
         
 
-            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
+            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+yfMgJsStr(rdata.data[i]['id'])+'\',\''+yfMgJsStr(rdata.data[i]['name'])+'\',this)" style="display: inline-block;">'+yfMgText(rdata.data[i]['ps'])+'</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+yfMgJsStr(rdata.data[i]['name'])+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
-            list += '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MongoDB优化修复工具">' + pt('工具') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['name']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
+            list += '<a href="javascript:;" class="btlink" onclick="repTools(\''+yfMgJsStr(rdata.data[i]['name'])+'\')" title="MongoDB优化修复工具">' + pt('工具') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+yfMgJsStr(rdata.data[i]['username'])+'\',\''+yfMgJsStr(rdata.data[i]['name'])+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+yfMgJsStr(rdata.data[i]['id'])+',\''+ yfMgJsStr(rdata.data[i]['username']) +'\',\'' + yfMgJsStr(rdata.data[i]['password']) + '\')">' + pt('改密') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+yfMgJsStr(rdata.data[i]['id'])+'\',\''+yfMgJsStr(rdata.data[i]['name'])+'\')" title="删除数据库">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
@@ -453,7 +490,7 @@ function dbList(page, search){
         // <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('ROOT权限') + '</button>\
         var con = '<div class="safe bgw">\
             <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加数据库') + '</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置Mongodb管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('root密码') + '</button>\
+            <button onclick="setRootPwd(0,\''+yfMgJsStr(rdata.info['root_pwd'])+'\')" title="设置Mongodb管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('root密码') + '</button>\
             <span style="float:right">              \
                 <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
@@ -664,9 +701,9 @@ function setDbPs(id, name, obj) {
 }
 
 function delDb(id, name){
-    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除【{1}】吗？'),[name]),function(){
-        var data='id='+id+'&name='+name;
-        api.post('del_db', '', data, function(data){
+    safeMessage(pt('删除') + ' ['+yfMgText(name)+']',msgTpl(pt('您真的要删除【{1}】吗？'),[yfMgText(name)]),function(){
+        // 传对象（而不是拼 `k=v&k2=v2` 字符串）：值里含 &/= 时字符串解析会错位
+        api.post('del_db', '', {id:id, name:name}, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -676,9 +713,8 @@ function delDb(id, name){
 }
 
 function delDbTable( name, table_name){
-    safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除[{1}]吗？'),[table_name]),function(){
-        var data='name='+name+'&table_name='+table_name;
-        api.post('del_db_table', '', data, function(data){
+    safeMessage(pt('删除') + ' ['+yfMgText(name)+']',msgTpl(pt('您真的要删除[{1}]吗？'),[yfMgText(table_name)]),function(){
+        api.post('del_db_table', '', {name:name, table_name:table_name}, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 repTools(name);
@@ -727,15 +763,15 @@ function setDbPass(id, username, password){
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
                         <span class='tname'>" + pt('用户名') + "</span>\
-                        <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
+                        <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+yfMgText(username)+"' /></div>\
                     </div>\
                     <div class='line'>\
                     <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r'>\
-                        <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
+                        <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+yfMgText(password)+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
-                    <input type='hidden' name='id' value='"+id+"'>\
+                    <input type='hidden' name='id' value='"+yfMgText(id)+"'>\
                 </form>",
         yes:function(index){
             // var data = $("#mod_pwd").serialize();
@@ -762,7 +798,7 @@ function repTools(db_name, res){
 
         layer.open({
             type: 1,
-            title: msgTpl(pt('MongoDB工具箱【{1}】'), [db_name]),
+            title: msgTpl(pt('MongoDB工具箱【{1}】'), [yfMgText(db_name)]),
             area: ['780px', '480px'],
             closeBtn: 1,
             shadeClose: false,
@@ -800,7 +836,7 @@ function repTools(db_name, res){
 		        var tbody = '';
 		        for (var i = 0; i < rdata.collection_list.length; i++) {
 		            tbody += '<tr>\
-		                    <td><span style="width:220px;"> ' + rdata.collection_list[i].collection_name + '</span></td>\
+		                    <td><span style="width:220px;"> ' + yfMgText(rdata.collection_list[i].collection_name) + '</span></td>\
 		                    <td><span style="width:220px;"> ' + rdata.collection_list[i].count + '</span></td>\
 		                    <td>' + toSize(rdata.collection_list[i].size) + '</td>\
 		                    <td><span style="width:90px;"> ' + toSize(rdata.collection_list[i].avg_obj_size) + '</span></td>\
@@ -819,9 +855,8 @@ function repTools(db_name, res){
 		        	var name = db_name;
 		        	var table_name = rdata.collection_list[index].collection_name;
 
-		        	safeMessage(pt('删除') + ' ['+name+']',msgTpl(pt('您真的要删除[{1}]吗？'),[table_name]),function(){
-				        var data='name='+name+'&table_name='+table_name;
-				        api.post('del_db_table', '', data, function(data){
+		        	safeMessage(pt('删除') + ' ['+yfMgText(name)+']',msgTpl(pt('您真的要删除[{1}]吗？'),[yfMgText(table_name)]),function(){
+				        api.post('del_db_table', '', {name:name, table_name:table_name}, function(data){
 				            var rdata = JSON.parse(data.data);
 				            showMsg(rdata.msg,function(){
 				            	layer.close(layer_index);
@@ -842,8 +877,7 @@ function syncToDatabase(type){
     $('input[type="checkbox"].check:checked').each(function () {
         if (!isNaN($(this).val())) data.push($(this).val());
     });
-    var postData = 'type='+type+'&ids='+JSON.stringify(data); 
-    api.post('sync_to_databases', '',postData, function(data){
+    api.post('sync_to_databases', '', {type:type, ids:JSON.stringify(data)}, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         showMsg(rdata.msg,function(){
@@ -853,7 +887,7 @@ function syncToDatabase(type){
 }
 
 function setDbAccess(username,name){
-    api.post('get_db_access','','username='+username, function(data){
+    api.post('get_db_access','',{username:username}, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
@@ -989,13 +1023,13 @@ function setBackupReq(db_name, obj){
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
             tbody += '<tr>\
-                    <td><span> ' + rdata.data[i]['name'] + '</span></td>\
-                    <td><span> ' + rdata.data[i]['size'] + '</span></td>\
-                    <td><span> ' + rdata.data[i]['time'] + '</span></td>\
+                    <td><span> ' + yfMgText(rdata.data[i]['name']) + '</span></td>\
+                    <td><span> ' + yfMgText(rdata.data[i]['size']) + '</span></td>\
+                    <td><span> ' + yfMgText(rdata.data[i]['time']) + '</span></td>\
                     <td style="text-align: right;">\
-                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
-                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">' + pt('下载') + '</a> | \
-                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('删除') + '</a>\
+                        <a class="btlink" onclick="importBackup(\'' + yfMgJsStr(rdata.data[i]['name']) + '\',\'' +yfMgJsStr(db_name)+ '\')">' + pt('导入') + '</a> | \
+                        <a class="btlink" onclick="downloadBackup(\'' + yfMgJsStr(rdata.data[i]['file']) + '\')">' + pt('下载') + '</a> | \
+                        <a class="btlink" onclick="delBackup(\'' + yfMgJsStr(rdata.data[i]['name']) + '\',\'' +yfMgJsStr(db_name)+ '\')">' + pt('删除') + '</a>\
                     </td>\
                 </tr> ';
         }
@@ -1032,11 +1066,11 @@ function setLocalImport(db_name){
         var up_db = layer.open({
             type:1,
             closeBtn: 1,
-            title:pt("上传导入文件[")+upload_dir+']',
+            title:pt("上传导入文件[")+yfMgText(upload_dir)+']',
             area: ['500px','300px'],
             shadeClose:false,
             content:'<div class="fileUploadDiv">\
-                    <input type="hidden" id="input-val" value="'+upload_dir+'" />\
+                    <input type="hidden" id="input-val" value="'+yfMgText(upload_dir)+'" />\
                     <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
                     <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
                     <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
@@ -1078,12 +1112,12 @@ function setLocalImport(db_name){
             var tbody = '';
             for (var i = 0; i < file_list.length; i++) {
                 tbody += '<tr>\
-                        <td><span> ' + file_list[i]['name'] + '</span></td>\
-                        <td><span> ' + file_list[i]['size'] + '</span></td>\
-                        <td><span> ' + file_list[i]['time'] + '</span></td>\
+                        <td><span> ' + yfMgText(file_list[i]['name']) + '</span></td>\
+                        <td><span> ' + yfMgText(file_list[i]['size']) + '</span></td>\
+                        <td><span> ' + yfMgText(file_list[i]['time']) + '</span></td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
-                            <a class="btlink del" index="'+i+'">' + pt('删除') + '</a>\
+                            <a class="btlink" onclick="importDbExternal(\'' + yfMgJsStr(file_list[i]['name']) + '\',\'' +yfMgJsStr(db_name)+ '\')">' + pt('导入') + '</a> | \
+                            <a class="btlink del" index="'+yfMgText(i)+'">' + pt('删除') + '</a>\
                         </td>\
                     </tr>';
             }

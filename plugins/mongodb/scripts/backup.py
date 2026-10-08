@@ -6,24 +6,28 @@
 import sys
 import os
 import re
+import subprocess
 import time
-import yaml
 
-if sys.platform != 'darwin':
-    os.chdir(yf.getPanelDir())
-
-
-web_dir = os.getcwd() + "/web"
+# 用 __file__ 反推面板根（cwd 无关），把 <panel>/web 加入 sys.path 后再 import core.yf。
+# 历史实现把 `os.chdir(yf.getPanelDir())` 写在 `import core.yf as yf` 之前，
+# Linux 下必然 NameError，备份脚本一启动就崩 → 面板的「数据库备份」按钮完全不可用
+# （与 B02 mariadb 同族）。
+web_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))) + "/web"
 if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
 
+import yaml
 import core.yf as yf
 import logging
 
 _log = logging.getLogger('yf.mongodb')
-import core.db as db
 
+
+# 库名白名单：`\Z` 挡尾随换行（`$` 也匹配结尾换行之前）
+_SAFE_NAME_RE = re.compile(r'^[a-zA-Z0-9_\-]+\Z')
 
 
 def getPluginName():
@@ -42,53 +46,68 @@ def getConf():
     path = getServerDir() + "/mongodb.conf"
     return path
 
+def _defaultConfigData():
+    return {
+        "systemLog": {
+            "destination": "file",
+            "logAppend": True,
+            "path": getServerDir() + "/logs/mongodb.log"
+        },
+        "storage": {
+            "dbPath": getServerDir() + "/data",
+            "directoryPerDB": True,
+            "journal": {
+                "enabled": True
+            }
+        },
+        "processManagement": {
+            "fork": True,
+            "pidFilePath": getServerDir() + "/mongodb.pid"
+        },
+        "net": {
+            "port": 27017,
+            "bindIp": "0.0.0.0"
+        },
+        "security": {
+            "authorization": "enabled",
+            "javascriptEnabled": False
+        }
+    }
+
 def getConfigData():
+    """读取 mongodb.conf，**永远返回 dict**（空文件/标量 yaml 也不能返回 None）。"""
     cfg = getConf()
     config_data = yf.readFile(cfg)
-    try:
-        config = yaml.safe_load(config_data)
-    except Exception as _e:
-        _log.debug('[mongodb] getConfigData 异常已忽略: %s', _e)
-        config = {
-            "systemLog": {
-                "destination": "file",
-                "logAppend": True,
-                "path": yf.getServerDir()+"/mongodb/log/mongodb.log"
-            },
-            "storage": {
-                "dbPath": yf.getServerDir()+"/mongodb/data",
-                "directoryPerDB": True,
-                "journal": {
-                    "enabled": True
-                }
-            },
-            "processManagement": {
-                "fork": True,
-                "pidFilePath": yf.getServerDir()+"/mongodb/log/mongodb.pid"
-            },
-            "net": {
-                "port": 27017,
-                "bindIp": "0.0.0.0"
-            },
-            "security": {
-                "authorization": "enabled",
-                "javascriptEnabled": False
-            }
-        }
+    config = None
+    if config_data:
+        try:
+            config = yaml.safe_load(config_data)
+        except Exception as _e:
+            _log.debug('[mongodb] getConfigData 解析失败: %s', _e)
+            config = None
+    if not isinstance(config, dict):
+        config = _defaultConfigData()
     return config
 
 
 def getConfIp():
-    data = getConfigData()
-    return data['net']['bindIp']
+    net = getConfigData().get('net') or {}
+    ip = net.get('bindIp')
+    if not isinstance(ip, str) or not ip.strip():
+        return '127.0.0.1'
+    return ip
 
 def getConfPort():
-    data = getConfigData()
-    return data['net']['port']
+    net = getConfigData().get('net') or {}
+    try:
+        return int(str(net.get('port', 27017)).strip())
+    except Exception:
+        return 27017
 
 def getConfAuth():
-    data = getConfigData()
-    return data['security']['authorization']
+    sec = getConfigData().get('security') or {}
+    auth = sec.get('authorization')
+    return auth if auth in ('enabled', 'disabled') else 'disabled'
 
 def pSqliteDb(dbname='users'):
     file = getServerDir() + '/mongodb.db'
@@ -135,8 +154,13 @@ def mongdbClient():
 
 class backupTools:
 
-    def getDbBackupList(self,dbname=''):
-        bkDir = yf.getFatherDir() + '/backup/database'
+    def getDbBackupList(self, dbname=''):
+        # 必须与写入侧同源（backupDatabase 用 yf.getBackupDir()）：
+        # 历史实现读 yf.getFatherDir()+'/backup/database'，用户改过备份目录后
+        # 「保留最新 N 份」的清理逻辑永远找不到文件（与 B01/B02 同族）。
+        bkDir = yf.getBackupDir() + '/database'
+        if not os.path.exists(bkDir):
+            return []
         blist = os.listdir(bkDir)
         r = []
 
@@ -149,31 +173,32 @@ class backupTools:
         return r
 
     def backupDatabase(self, name, count):
-        import re
-        import subprocess
         import tarfile
         import shutil
 
         # 安全过滤
-        if not re.match(r'^[a-zA-Z0-9_\-]+$', name) or not re.match(r'^\d+$', str(count)):
+        if not _SAFE_NAME_RE.match(str(name)) or not re.match(r'^\d+\Z', str(count)):
             print("★安全拦截：非法数据库名或备份份数！")
             return
 
         db_path = yf.getServerDir() + '/mongodb'
         db_name = 'mongodb'
+        # 保留调用方传进来的库名：下面 name 会被「查库结果」覆盖，
+        # 历史实现用 str(name) 拼「不存在」日志，库不存在时只会打印 None。
+        req_name = str(name)
         name = yf.M('databases').dbPos(db_path, db_name).where('name=?', (name,)).getField('name')
 
         startTime = time.time()
         if not name:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "数据库[" + str(name) + "]不存在!"
+            log = "数据库[" + req_name + "]不存在!"
             print("★[" + endDate + "] " + log)
             print("----------------------------------------------------------------------------")
             return
 
         backup_path = yf.getBackupDir() + '/database'
         if not os.path.exists(backup_path):
-            os.makedirs(backup_path)
+            yf.makeDirs(backup_path)
 
         time_now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
         backup_name = "mongodb_" + name + "_" + time_now + ".tar.gz"
@@ -189,15 +214,30 @@ class backupTools:
             cmd.extend(['--authenticationDatabase', 'admin', '-u', 'root', '-p', mg_root])
         cmd.extend(['--port', str(port), '-d', name, '-o', backup_path])
 
+        # 必须看退出码：历史实现只 p.communicate() 不看 rc，导出失败时只要目录里
+        # 恰好残留了同名目录（上次失败留下）就会被打包成「备份成功」。
+        rc = 1
         try:
-            # 安全参数列表调用
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.communicate()
+            _out, _err = p.communicate()
+            rc = p.returncode
         except Exception as e:
             print("★导出备份数据发生异常: " + str(e))
-            return
 
         target_dir = os.path.join(backup_path, name)
+        if rc != 0:
+            # 导出失败：清掉 mongodump 可能留下的半成品目录，如实报失败
+            if os.path.exists(target_dir):
+                try:
+                    shutil.rmtree(target_dir)
+                except Exception as _e:
+                    _log.debug('[mongodb] 清理失败产物失败: %s', _e)
+            endDate = time.strftime('%Y/%m/%d %X', time.localtime())
+            log = "数据库[" + name + "]备份失败!"
+            print("★[" + endDate + "] " + log)
+            print("----------------------------------------------------------------------------")
+            return
+
         if os.path.exists(target_dir):
             try:
                 # 安全地使用 Python 原生 tarfile 进行打包，完全绕开 shell 拼接！
@@ -210,7 +250,8 @@ class backupTools:
                     shutil.rmtree(target_dir)
                 return
 
-        if not os.path.exists(filename):
+        # 空/超小产物一律当失败（gzip 空包约 20 字节）
+        if not os.path.exists(filename) or os.path.getsize(filename) < 32:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
             log = "数据库[" + name + "]备份失败!"
             print("★[" + endDate + "] " + log)
@@ -223,7 +264,7 @@ class backupTools:
         log = "数据库MongoDB[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
         yf.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
-        print("|---保留最新的[" + count + "]份备份")
+        print("|---保留最新的[" + str(count) + "]份备份")
         print("|---文件名:" + filename)
 
         backups = self.getDbBackupList(name)

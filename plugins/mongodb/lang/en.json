@@ -218,5 +218,21 @@
     "缺少必要参数:": "Missing required parameter:",
     "同步副本：{1}": "Sync replica: {1}",
     "MongoDB工具箱【{1}】": "MongoDB Toolbox [{1}]",
-    "仲裁员:": "Arbiter:"
+    "仲裁员:": "Arbiter:",
+    "端口不合法!": "Invalid port!",
+    "备份文件不存在!": "Backup file not found!",
+    "备份文件名不合法!": "Invalid backup filename!",
+    "备份目录不合法!": "Invalid backup directory!",
+    "数据库不存在!": "Database does not exist!",
+    "数据库备份失败:": "Database backup failed:",
+    "权限类型不合法!": "Invalid permission type!",
+    "删除失败:": "Delete failed:",
+    "参数不合法:": "Invalid parameter:",
+    "操作失败:": "Operation failed:",
+    "设置失败:": "Setup failed:",
+    "集合名称不合法!": "Invalid collection name!",
+    "节点不存在!": "Node does not exist!",
+    "节点格式不合法!": "Invalid node format!",
+    "副本名称不合法!": "Invalid replica set name!",
+    "操作异常!": "Operation abnormality!"
 }

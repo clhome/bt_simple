@@ -218,5 +218,21 @@
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
     "同步副本：{1}": "Replik synchronisieren: {1}",
     "MongoDB工具箱【{1}】": "MongoDB-Toolbox [{1}]",
-    "仲裁员:": "Arbiter:"
+    "仲裁员:": "Arbiter:",
+    "端口不合法!": "Ungültiger Port!",
+    "备份文件不存在!": "Sicherungsdatei nicht gefunden!",
+    "备份文件名不合法!": "Ungültiger Sicherungsdateiname!",
+    "备份目录不合法!": "Ungültiges Sicherungsverzeichnis!",
+    "数据库不存在!": "Datenbank existiert nicht!",
+    "数据库备份失败:": "Datenbanksicherung fehlgeschlagen:",
+    "权限类型不合法!": "Ungültiger Berechtigungstyp!",
+    "删除失败:": "Löschen fehlgeschlagen:",
+    "参数不合法:": "Ungültiger Parameter:",
+    "操作失败:": "Vorgang fehlgeschlagen:",
+    "设置失败:": "Einrichtung fehlgeschlagen:",
+    "集合名称不合法!": "Ungültiger Sammlungsname!",
+    "节点不存在!": "Knoten existiert nicht!",
+    "节点格式不合法!": "Ungültiges Knotenformat!",
+    "副本名称不合法!": "Ungültiger Replikatname!",
+    "操作异常!": "Ungewöhnlicher Betrieb!"
 }

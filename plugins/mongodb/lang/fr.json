@@ -218,5 +218,21 @@
     "缺少必要参数:": "Paramètre requis manquant :",
     "同步副本：{1}": "Synchroniser le réplica : {1}",
     "MongoDB工具箱【{1}】": "Boîte à outils MongoDB [{1}]",
-    "仲裁员:": "Arbitre :"
+    "仲裁员:": "Arbitre :",
+    "端口不合法!": "Port invalide !",
+    "备份文件不存在!": "Fichier de sauvegarde introuvable !",
+    "备份文件名不合法!": "Nom de sauvegarde invalide !",
+    "备份目录不合法!": "Répertoire de sauvegarde invalide !",
+    "数据库不存在!": "La base de données n'existe pas !",
+    "数据库备份失败:": "Échec de la sauvegarde de la base de données :",
+    "权限类型不合法!": "Type de permission invalide !",
+    "删除失败:": "Échec de la suppression :",
+    "参数不合法:": "Paramètre invalide :",
+    "操作失败:": "L'opération a échoué :",
+    "设置失败:": "Échec de la configuration :",
+    "集合名称不合法!": "Nom de collection invalide !",
+    "节点不存在!": "Le nœud n'existe pas !",
+    "节点格式不合法!": "Format de nœud invalide !",
+    "副本名称不合法!": "Nom de réplica invalide !",
+    "操作异常!": "Fonctionnement anormal !"
 }

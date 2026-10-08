@@ -52,7 +52,7 @@ def getConfigData():
 
 def createBgTask():
     removeBgTask()
-    createBgTaskByName(getPluginName())
+    return createBgTaskByName(getPluginName())
 
 
 def createBgTaskByName(name):
@@ -99,6 +99,10 @@ script_path=%s
         args["task_id"] = task_id
         args["name"] = name
         yf.writeFile(getTaskConf(), json.dumps(args))
+        return True
+    # 写入失败必须如实回 False：上层据此报「添加检查任务失败」
+    # （历史实现直接掉出函数返回 None，而调用方无条件报成功）。
+    return False
 
 
 def removeBgTask():

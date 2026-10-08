@@ -218,5 +218,21 @@
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "同步副本：{1}": "Sincronizza replica: {1}",
     "MongoDB工具箱【{1}】": "Toolbox MongoDB [{1}]",
-    "仲裁员:": "Arbitro:"
+    "仲裁员:": "Arbitro:",
+    "端口不合法!": "Porta non valida!",
+    "备份文件不存在!": "File di backup non trovato!",
+    "备份文件名不合法!": "Nome file di backup non valido!",
+    "备份目录不合法!": "Directory di backup non valida!",
+    "数据库不存在!": "Database non esiste!",
+    "数据库备份失败:": "Backup del database non riuscito:",
+    "权限类型不合法!": "Tipo di permesso non valido!",
+    "删除失败:": "Eliminazione non riuscita:",
+    "参数不合法:": "Parametro non valido:",
+    "操作失败:": "Operazione non riuscita:",
+    "设置失败:": "Configurazione non riuscita:",
+    "集合名称不合法!": "Nome della collezione non valido!",
+    "节点不存在!": "Il nodo non esiste!",
+    "节点格式不合法!": "Formato del nodo non valido!",
+    "副本名称不合法!": "Nome del replica non valido!",
+    "操作异常!": "Errore di funzionamento!"
 }
