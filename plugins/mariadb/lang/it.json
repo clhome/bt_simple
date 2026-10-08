@@ -381,5 +381,19 @@
   "不支持的目标存储引擎类型!": "Tipo di motore di archiviazione di destinazione non supportato!",
   "数据表引擎已成功转换为:": "Motore della tabella convertito correttamente in:",
   "复制用户密码为空!": "La password dell'utente di replica è vuota!",
-  "{1}日志": "Log {1}"
+  "{1}日志": "Log {1}",
+  "分页参数不合法!": "Paginazione non valida!",
+  "端口不合法!": "Porta non valida!",
+  "配置文件中未找到端口配置!": "Porta non trovata nella config!",
+  "修改端口后服务未就绪:": "Servizio non pronto dopo il cambio porta:",
+  "备份文件名不合法!": "Nome file di backup non valido!",
+  "备份目录不合法!": "Directory di backup non valida!",
+  "备份文件不存在!": "File di backup non trovato!",
+  "删除失败:": "Eliminazione non riuscita:",
+  "访问地址不合法!": "Indirizzo di accesso non valido!",
+  "数据库编码不合法!": "Codifica database non valida!",
+  "获取数据库用户失败!": "Recupero utente DB non riuscito!",
+  "权限类型不合法!": "Tipo di permesso non valido!",
+  "数据库不存在!": "Database non esiste!",
+  "切换失败!": "Cambio non riuscito!"
 }

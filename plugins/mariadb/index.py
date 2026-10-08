@@ -704,8 +704,18 @@ def binLogList():
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    # 分页参数容错：历史缺校验，page=abc 直接 ValueError traceback 到前端
+    try:
+        page = int(str(args['page']).strip())
+        page_size = int(str(args['page_size']).strip())
+    except (TypeError, ValueError):
+        return yf.returnJson(False, '分页参数不合法!')
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 10
+    elif page_size > 100:
+        page_size = 100
 
     data_dir = getDataDir()
     log_bin_name = getLogBinName()
@@ -1014,13 +1024,23 @@ def setMyPort():
     if not data[0]:
         return data[1]
 
-    port = args['port']
+    # 端口先白名单校验再写盘：历史缺校验，`abc` 会被写进 my.cnf 使 mariadb 起不来，
+    # 接口仍回「编辑成功!」（假成功）。
+    port = str(args['port']).strip()
+    if not re.match(r"^[0-9]+$", port) or not (1 <= int(port) <= 65535):
+        return yf.returnJson(False, '端口不合法!')
     file = getConf()
     content = yf.readFile(file)
+    if not content:
+        return yf.returnJson(False, '配置文件中未找到端口配置!')
     rep = r"port\s*=\s*([0-9]+)\s*\n"
+    if not re.search(rep, content):
+        return yf.returnJson(False, '配置文件中未找到端口配置!')
     content = re.sub(rep, 'port = ' + port + '\n', content)
     yf.writeFile(file, content)
-    restart()
+    res = restart()
+    if res != 'ok':
+        return yf.returnJson(False, '修改端口后服务未就绪: ' + str(res))
     return yf.returnJson(True, '编辑成功!')
 
 # python3 plugins/mariadb/index.py run_info  {}
@@ -1558,7 +1578,7 @@ def importDbExternalProgressBar():
     if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
         return yf.returnJson(False, '文件名不合法!')
 
-    import_dir = yf.getFatherDir() + '/backup/import/'
+    import_dir = yf.getBackupDir() + '/import/'
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
@@ -1637,13 +1657,31 @@ def deleteDbBackup():
     if not data[0]:
         return data[1]
 
-    path = args['path']
-    full_file = ""
-    bkDir = getBackupDir()
-    full_file = bkDir + '/' + args['filename']
-    if path != "":
-        full_file = path + "/" + args['filename']
-    os.remove(full_file)
+    filename = str(args['filename'])
+    # 文件名 + 目录双白名单：历史实现直接 os.remove(path + '/' + filename)，
+    # 任意 path（含 ../ 与绝对路径）都能删掉备份目录以外的文件。
+    if not _DB_BACKUP_FILE_RE.match(filename):
+        return yf.returnJson(False, '备份文件名不合法!')
+
+    path = str(args['path']).strip()
+    allowed = [os.path.realpath(getBackupDir()), os.path.realpath(yf.getBackupDir() + '/import')]
+    if path == '':
+        base = getBackupDir()
+    else:
+        real = os.path.realpath(path)
+        if real not in allowed:
+            return yf.returnJson(False, '备份目录不合法!')
+        base = real
+
+    full_file = os.path.join(base, filename)
+    if os.path.realpath(os.path.dirname(full_file)) != os.path.realpath(base):
+        return yf.returnJson(False, '备份文件名不合法!')
+    if not os.path.exists(full_file):
+        return yf.returnJson(False, '备份文件不存在!')
+    try:
+        os.remove(full_file)
+    except Exception as ex:
+        return yf.returnJson(False, '删除失败: ' + str(ex))
     return yf.returnJson(True, 'ok')
 
 
@@ -1913,25 +1951,44 @@ def setUserPwd(version=''):
         return data[1]
 
     newpassword = args['password']
-    username = args['name']
-    uid = args['id']
+    username = str(args['name']).strip()
+    uid = str(args['id']).strip()
+    name = username
+
+    # username/host 是 SQL 标识符（无法参数化），只放行白名单字符；uid 只进 SQLite 参数。
+    if not _DB_USER_IDENT_RE.match(username):
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, '用户名不合法',)))
+    if not re.match(r"^[0-9]+$", uid):
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, '参数不合法',)))
+    # 密码会拼进 SQL 字符串字面量，必须转义反斜杠与单引号（历史缺转义 → 注入）
+    safe_pwd = str(newpassword).replace('\\', '\\\\').replace("'", "\\'")
+
     try:
         pdb = pMysqlDb()
         psdb = pSqliteDb('databases')
         data = psdb.field('id,name,accept').where('id=?', (uid,)).find()
+        # 历史缺陷：id 不存在时 data 为 None → data['accept'] KeyError，
+        # except 分支再引用未赋值的 name → NameError traceback 直达前端。
+        if not data:
+            return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, '记录不存在',)))
+        if data.get('name'):
+            name = data['name']
 
         cmd = "SET PASSWORD FOR '" + username + \
-            "'@'localhost' = '" + newpassword + "'"
+            "'@'localhost' = '" + safe_pwd + "'"
         r = pdb.execute(cmd)
         # print(cmd, r)
 
-        accept = data['accept']
+        accept = data.get('accept') or ''
         alist = accept.split(',')
         for x in alist:
-            if x.strip() == '':
+            x = x.strip()
+            if x == '':
+                continue
+            if not _DB_USER_IDENT_RE.match(x):
                 continue
             cmd = "SET PASSWORD FOR '" + username + \
-                "'@'" + x + "' = '" + newpassword + "'"
+                "'@'" + x + "' = '" + safe_pwd + "'"
             r = pdb.execute(cmd)
             # print(cmd, r)
 
@@ -1955,10 +2012,14 @@ def setDbPs():
     name = args['name']
     try:
         psdb = pSqliteDb('databases')
+        # 不存在的 id 必须如实报错（历史缺陷：回「成功」且 setField 实际未命中）
+        if not psdb.where("id=?", (sid,)).count():
+            return yf.returnJson(False, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
         psdb.where("id=?", (sid,)).setField('ps', ps)
         return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注成功!', (name,)))
     except Exception as e:
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
+        # 历史缺陷：失败分支回 True（假成功）
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
 
 
 def addDb():
@@ -1984,10 +2045,14 @@ def addDb():
     if not re.match(reg, args['name']):
         return yf.returnJson(False, '数据库名称不能带有特殊符号!')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
-    if dbuser in checks or len(dbuser) < 1:
+    # dbuser/address 会被拼进 `drop user 'u'@'h'`（标识符无法参数化）→ 白名单化
+    if dbuser in checks or len(dbuser) < 1 or not _DB_USER_IDENT_RE.match(dbuser):
         return yf.returnJson(False, '数据库用户名不合法!')
     if dbname in checks or len(dbname) < 1:
         return yf.returnJson(False, '数据库名称不合法!')
+    for _a in address.split(','):
+        if _a and not _DB_USER_IDENT_RE.match(_a):
+            return yf.returnJson(False, '访问地址不合法!')
 
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
@@ -1998,6 +2063,9 @@ def addDb():
         'gbk':    'gbk_chinese_ci',
         'big5':   'big5_chinese_ci'
     }
+    # codeing 会被拼进 CREATE DATABASE；历史缺校验，非法值直接 KeyError traceback
+    if codeing not in wheres:
+        return yf.returnJson(False, '数据库编码不合法!')
     codeStr = wheres[codeing]
 
     pdb = pMysqlDb()
@@ -2028,6 +2096,9 @@ def addDb():
 # 面板自建的用户名 / mysql.user.Host 允许的字符集：DROP USER 里的用户名是标识符，
 # 无法用参数占位，只能白名单化后再拼字面量，避免 `'; DROP ...` 这类注入。
 _DB_USER_IDENT_RE = re.compile(r'^[A-Za-z0-9_.:%-]+$')
+
+# 备份文件名白名单：文件名会拼进 os.path.join 后被删除，禁止路径分隔符与 `..`。
+_DB_BACKUP_FILE_RE = re.compile(r'^[A-Za-z0-9_.-]+$')
 
 
 def _dropUserTargets(username, hosts):
@@ -2171,15 +2242,20 @@ def getDbAccess():
     data = checkArgs(args, ['username'])
     if not data[0]:
         return data[1]
-    username = args['username']
+    username = str(args['username'])
+    # username 直接拼进 SQL 字面量（历史缺陷：`x' OR '1'='1` 能列出全部 Host）
+    if not _DB_USER_IDENT_RE.match(username):
+        return yf.returnJson(False, '数据库用户名不合法!')
     pdb = pMysqlDb('mysql')
 
-    users = pdb.query("select Host from user where User='" +
-                      username + "' AND Host!='localhost'")
+    users = pdb.query("select Host from user where User=%s AND Host!='localhost'", (username,))
 
     isError = isSqlError(users)
     if isError != None:
         return isError
+
+    if not isinstance(users, (list, tuple)):
+        return yf.returnJson(False, '获取数据库用户失败!')
 
     if len(users) < 1:
         return yf.returnJson(True, "127.0.0.1")
@@ -2377,38 +2453,50 @@ def setDbRw(version=''):
     if not data[0]:
         return data[1]
 
-    username = args['username']
-    uid = args['id']
+    username = str(args['username'])
+    uid = str(args['id'])
     rw = args['rw']
+    if rw not in ('rw', 'r', 'all'):
+        return yf.returnJson(False, '权限类型不合法!')
+    if not _DB_USER_IDENT_RE.match(username):
+        return yf.returnJson(False, '数据库用户名不合法!')
 
     pdb = pMysqlDb('mysql')
     psdb = pSqliteDb('databases')
     dbname = psdb.where("id=?", (uid,)).getField('name')
-    users = pdb.query(
-        "select Host from user where User='" + username + "'")
+    if not dbname or not re.match(r"^[\w\.-]+$", str(dbname)):
+        return yf.returnJson(False, '数据库不存在!')
+    dbname = str(dbname)
 
+    users = pdb.query("select Host from user where User=%s", (username,))
+    if not isinstance(users, (list, tuple)):
+        return yf.returnJson(False, '获取数据库用户失败!')
+
+    failed = False
     # show grants for demo@"127.0.0.1";
     for x in users:
+        host = str(x["Host"] if isinstance(x, dict) else x[0])
+        if not _DB_USER_IDENT_RE.match(host):
+            failed = True
+            continue
         # REVOKE ALL PRIVILEGES ON `imail`.* FROM 'imail'@'127.0.0.1';
-
-        sql = "REVOKE ALL PRIVILEGES ON `" + dbname + \
-            "`.* FROM '" + username + "'@'" + x["Host"] + "';"
-        r = pdb.query(sql)
-        # print(sql, r)
+        pdb.execute("REVOKE ALL PRIVILEGES ON `%s`.* FROM '%s'@'%s'" % (dbname, username, host))
 
         if rw == 'rw':
-            sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON " + dbname + ".* TO " + \
-                username + "@'" + x["Host"] + "'"
+            sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON `%s`.* TO '%s'@'%s'" % (dbname, username, host)
         elif rw == 'r':
-            sql = "GRANT SELECT ON " + dbname + ".* TO " + \
-                username + "@'" + x["Host"] + "'"
+            sql = "GRANT SELECT ON `%s`.* TO '%s'@'%s'" % (dbname, username, host)
         else:
-            sql = "GRANT all privileges ON " + dbname + ".* TO " + \
-                username + "@'" + x["Host"] + "'"
-        pdb.execute(sql)
+            sql = "GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s'" % (dbname, username, host)
+        res = pdb.execute(sql)
+        # 历史缺陷：无论 SQL 成败都回「切换成功!」（假成功）
+        if isinstance(res, Exception) or isinstance(res, str):
+            failed = True
     pdb.execute("flush privileges")
     r = psdb.where("id=?", (uid,)).setField('rw', rw)
     # print(r)
+    if failed:
+        return yf.returnJson(False, "切换失败!")
     return yf.returnJson(True, "切换成功!")
 
 
@@ -2977,15 +3065,18 @@ def addMasterRepSlaveUser(version=''):
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
 
+    # 密码会拼进 SQL 字符串字面量，必须转义反斜杠与单引号（历史缺转义 → 注入）
+    safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
+
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
 
     if psdb.where("username=?", (username,)).count() > 0:
         return yf.returnJson(False, '用户已存在!')
 
-    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + safe_pwd + "';"
     pdb.execute(sql_create)
-    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + safe_pwd + "';"
     pdb.execute(sql_alter)
 
     sql = "GRANT REPLICATION SLAVE ON *.* TO '" + username + "'@'%';"
@@ -3133,17 +3224,24 @@ def delMasterRepSlaveUser(version=''):
     if not data[0]:
         return data[1]
 
-    name = args['username']
+    name = str(args['username'])
+    # 用户名会拼进 `drop user 'u'@'h'`（标识符无法参数化）→ 白名单化
+    if not _DB_USER_IDENT_RE.match(name):
+        return yf.returnJson(False, '用户名不合法!')
 
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
     pdb.execute("drop user '" + name + "'@'%'")
     pdb.execute("drop user '" + name + "'@'localhost'")
 
-    users = pdb.query("select Host from user where User='" +
-                      name + "' AND Host!='localhost'")
+    users = pdb.query("select Host from user where User=%s AND Host!='localhost'", (name,))
+    if not isinstance(users, (list, tuple)):
+        users = []
     for us in users:
-        pdb.execute("drop user '" + name + "'@'" + us["Host"] + "'")
+        host = str(us["Host"] if isinstance(us, dict) else us[0])
+        if not _DB_USER_IDENT_RE.match(host):
+            continue
+        pdb.execute("drop user '" + name + "'@'" + host + "'")
 
     psdb.where("username=?", (args['username'],)).delete()
 
@@ -3161,13 +3259,16 @@ def updateMasterRepSlaveUser(version=''):
     if not re.match(r"^[\w\.-]+$", username):
         return yf.returnJson(False, '用户名不合法!')
 
+    # 密码会拼进 SQL 字符串字面量，必须转义反斜杠与单引号（历史缺转义 → 注入）
+    safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
+
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
     pdb.execute("drop user '" + username + "'@'%'")
 
-    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + safe_pwd + "';"
     pdb.execute(sql_create)
-    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + safe_pwd + "';"
     pdb.execute(sql_alter)
 
     pdb.execute("GRANT REPLICATION SLAVE ON *.* TO '" + username + "'@'%';")
@@ -3677,6 +3778,7 @@ def dumpMysqlData(version=''):
     if not data[0]:
         return data[1]
 
+    db_arg = str(args['db']).strip()
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     mysql_dir = getServerDir()
     myconf = mysql_dir + "/etc/my.cnf"
@@ -3686,19 +3788,46 @@ def dumpMysqlData(version=''):
     if mode == 'gtid':
         option = ' --set-gtid-purged=off '
 
-    if args['db'].lower() == 'all':
-        dlist = findBinlogDoDb()
-        cmd = mysql_dir + "/bin/mysqldump --defaults-file=" + myconf + " " + option + " -uroot -p" + \
-            pwd + " --databases " + \
-            ' '.join(dlist) + " | gzip > /tmp/dump.sql.gz"
+    dump_file = '/tmp/dump.sql.gz'
+    raw_file = '/tmp/dump.sql'
+    if db_arg.lower() == 'all':
+        # binlog-do-db 列表来自 my.cnf，仍逐个白名单化后再进命令
+        dbs = [d.strip() for d in findBinlogDoDb() if re.match(r"^[\w\.-]+$", d.strip())]
+        if not dbs:
+            return 'fail'
     else:
-        cmd = mysql_dir + "/bin/mysqldump --defaults-file=" + myconf + " " + option + " -uroot -p" + \
-            pwd + " --databases " + args['db'] + " | gzip > /tmp/dump.sql.gz"
+        # 库名会被拼进命令；历史缺陷：`test1; touch /tmp/x` 以 root 在 shell 里执行
+        if not re.match(r"^[\w\.-]+$", db_arg):
+            return 'fail'
+        dbs = [db_arg]
 
-    ret = yf.execShell(cmd)
-    if ret[0] == '':
-        return 'ok'
-    return 'fail'
+    dump_bin = mysql_dir + '/bin/mariadb-dump'
+    if not os.path.exists(dump_bin):
+        dump_bin = mysql_dir + '/bin/mysqldump'
+
+    # 不再用 `dump | gzip` 管道：dump 非零退出时 gzip 仍返回 0，失败也会报 ok。
+    # 改成 argv 列表 + 显式判退出码 + 单独压缩（不再经过 shell）。
+    cmd = [dump_bin, '--defaults-file=' + myconf, '-uroot', '-p' + str(pwd), '--force']
+    if option.strip():
+        cmd.append(option.strip())
+    cmd.append('--databases')
+    cmd.extend(dbs)
+
+    for f in (raw_file, dump_file):
+        yf.deleteFile(f)
+    try:
+        with open(raw_file, 'wb') as _fo:
+            _p = subprocess.Popen(cmd, stdout=_fo, stderr=subprocess.PIPE)
+            _p.communicate(timeout=600)
+            rc = _p.returncode
+    except Exception:
+        return 'fail'
+    if rc != 0:
+        return 'fail'
+    rc2, _out, _err = yf.execShellRc(['gzip', '-f', raw_file], shell=False)
+    if rc2 != 0 or not os.path.exists(dump_file) or os.path.getsize(dump_file) < 32:
+        return 'fail'
+    return 'ok'
 
 ############### --- 重要 数据补足同步 ---- ###########
 

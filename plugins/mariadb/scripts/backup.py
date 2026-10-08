@@ -6,19 +6,14 @@
 import sys
 import os
 import re
+import subprocess
 import time
 
-if sys.platform != 'darwin':
-    os.chdir(yf.getPanelDir())
-
-
-# chdir = os.getcwd()
-# sys.path.append(chdir + '/class/core')
-
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
-
-web_dir = os.getcwd() + "/web"
+# 用 __file__ 反推面板根（cwd 无关），把 <panel>/web 加入 sys.path 后再 import core.yf。
+# 历史实现把 `os.chdir(yf.getPanelDir())` 写在 `import core.yf as yf` 之前，
+# Linux 下必然 NameError，备份脚本一启动就崩 → 数据库备份功能完全不可用。
+web_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))) + "/web"
 if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
@@ -44,7 +39,7 @@ class backupTools:
                 "----------------------------------------------------------------------------")
             return
 
-        backup_path = yf.getFatherDir() + '/backup/database/mariadb'
+        backup_path = yf.getBackupDir() + '/database/mariadb'
         if not os.path.exists(backup_path):
             yf.makeDirs(backup_path)
 
@@ -72,7 +67,7 @@ class backupTools:
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
 
         mysql_root = yf.M('config').dbPos(db_path, db_name).where(
-            "id=?", (1,)).getField('mysql_root')
+            "id=?", (1,)).getField('mysql_root') or ''
 
         my_conf_path = db_path + '/etc/my.cnf'
         content = yf.readFile(my_conf_path)
@@ -89,22 +84,45 @@ class backupTools:
         # yf.execShell(db_path + "/bin/mysqldump --defaults-file=" + my_conf_path + " --skip-lock-tables --default-character-set=utf8 " +
         #              name + " | gzip > " + filename)
 
-        cmd = db_path + "/bin/mariadb-dump --defaults-file=" + my_conf_path + "  --single-transaction --quick --default-character-set=utf8 " + \
-            name + " | gzip > " + filename
-        yf.execShell(cmd)
+        # 不再用 `mariadb-dump | gzip > file`：dump 非零退出（如二进制缺失）时 gzip 仍返回 0，
+        # 只判 os.path.exists(filename) 会把 0 字节产物当「备份成功」（假成功）。
+        # 改成 argv 列表 + 显式判退出码 + 产物大小（与 index.py::dumpMysqlData 同口径）。
+        dump_bin = db_path + '/bin/mariadb-dump'
+        if not os.path.exists(dump_bin):
+            dump_bin = db_path + '/bin/mysqldump'
+        raw_file = filename[:-3] if filename.endswith('.gz') else filename + '.raw'
+        rc = 1
+        try:
+            with open(raw_file, 'wb') as _fo:
+                _p = subprocess.Popen([dump_bin, '--defaults-file=' + my_conf_path,
+                                       '--single-transaction', '--quick',
+                                       '--default-character-set=utf8', name],
+                                      stdout=_fo, stderr=subprocess.PIPE)
+                _p.communicate(timeout=3600)
+                rc = _p.returncode
+        except Exception:
+            rc = 1
+        if rc == 0:
+            rc2, _o, _e = yf.execShellRc(['gzip', '-f', raw_file], shell=False)
+            if rc2 != 0:
+                rc = 1
+        elif os.path.exists(raw_file):
+            yf.deleteFile(raw_file)
 
-        if not os.path.exists(filename):
+        # 无论成败都把 my.cnf 里的临时 root 密码还原（历史实现只在成功路径还原，
+        # 失败 return 会把明文 root 密码留在 my.cnf 里）。
+        mycnf = yf.readFile(db_path + '/etc/my.cnf')
+        mycnf = mycnf.replace(subStr, sea)
+        if len(mycnf) > 100:
+            yf.writeFile(db_path + '/etc/my.cnf', mycnf)
+
+        if rc != 0 or not os.path.exists(filename) or os.path.getsize(filename) < 32:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
             log = "数据库[" + name + "]备份失败!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")
             return
-
-        mycnf = yf.readFile(db_path + '/etc/my.cnf')
-        mycnf = mycnf.replace(subStr, sea)
-        if len(mycnf) > 100:
-            yf.writeFile(db_path + '/etc/my.cnf', mycnf)
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         outTime = time.time() - startTime

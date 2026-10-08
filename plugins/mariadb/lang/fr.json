@@ -381,5 +381,19 @@
   "不支持的目标存储引擎类型!": "Type de moteur de stockage cible non pris en charge !",
   "数据表引擎已成功转换为:": "Moteur de table converti avec succès en :",
   "复制用户密码为空!": "Le mot de passe de l'utilisateur de réplication est vide !",
-  "{1}日志": "Journal {1}"
+  "{1}日志": "Journal {1}",
+  "分页参数不合法!": "Pagination invalide !",
+  "端口不合法!": "Port invalide !",
+  "配置文件中未找到端口配置!": "Port introuvable dans la config !",
+  "修改端口后服务未就绪:": "Service non prêt après changement de port :",
+  "备份文件名不合法!": "Nom de sauvegarde invalide !",
+  "备份目录不合法!": "Répertoire de sauvegarde invalide !",
+  "备份文件不存在!": "Fichier de sauvegarde introuvable !",
+  "删除失败:": "Échec de la suppression :",
+  "访问地址不合法!": "Adresse d'accès invalide !",
+  "数据库编码不合法!": "Encodage de base invalide !",
+  "获取数据库用户失败!": "Échec de récupération de l'utilisateur !",
+  "权限类型不合法!": "Type de permission invalide !",
+  "数据库不存在!": "La base de données n'existe pas !",
+  "切换失败!": "Échec du basculement !"
 }

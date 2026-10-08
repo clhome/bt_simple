@@ -381,5 +381,19 @@
   "不支持的目标存储引擎类型!": "Nicht unterstützter Ziel-Speicher-Engine-Typ!",
   "数据表引擎已成功转换为:": "Tabellen-Engine erfolgreich konvertiert zu:",
   "复制用户密码为空!": "Das Passwort des Replikationsbenutzers ist leer!",
-  "{1}日志": "{1}-Protokoll"
+  "{1}日志": "{1}-Protokoll",
+  "分页参数不合法!": "Ungültige Seitenangabe!",
+  "端口不合法!": "Ungültiger Port!",
+  "配置文件中未找到端口配置!": "Port in Konfiguration nicht gefunden!",
+  "修改端口后服务未就绪:": "Dienst nach Portänderung nicht bereit:",
+  "备份文件名不合法!": "Ungültiger Sicherungsdateiname!",
+  "备份目录不合法!": "Ungültiges Sicherungsverzeichnis!",
+  "备份文件不存在!": "Sicherungsdatei nicht gefunden!",
+  "删除失败:": "Löschen fehlgeschlagen:",
+  "访问地址不合法!": "Ungültige Zugriffsadresse!",
+  "数据库编码不合法!": "Ungültige Datenbankkodierung!",
+  "获取数据库用户失败!": "DB-Benutzer laden fehlgeschlagen!",
+  "权限类型不合法!": "Ungültiger Berechtigungstyp!",
+  "数据库不存在!": "Datenbank existiert nicht!",
+  "切换失败!": "Wechsel fehlgeschlagen!"
 }

@@ -381,5 +381,19 @@
   "不支持的目标存储引擎类型!": "Unsupported target storage engine type!",
   "数据表引擎已成功转换为:": "Table engine successfully converted to:",
   "复制用户密码为空!": "Replication user password is empty!",
-  "{1}日志": "{1} Log"
+  "{1}日志": "{1} Log",
+  "分页参数不合法!": "Invalid pagination!",
+  "端口不合法!": "Invalid port!",
+  "配置文件中未找到端口配置!": "Port not found in config!",
+  "修改端口后服务未就绪:": "Service not ready after port change:",
+  "备份文件名不合法!": "Invalid backup filename!",
+  "备份目录不合法!": "Invalid backup directory!",
+  "备份文件不存在!": "Backup file not found!",
+  "删除失败:": "Delete failed:",
+  "访问地址不合法!": "Invalid access address!",
+  "数据库编码不合法!": "Invalid database encoding!",
+  "获取数据库用户失败!": "Failed to get DB user!",
+  "权限类型不合法!": "Invalid permission type!",
+  "数据库不存在!": "Database does not exist!",
+  "切换失败!": "Switch failed!"
 }
