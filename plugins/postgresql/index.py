@@ -104,28 +104,32 @@ def getArgs():
     return tmp
 
 
+# 名称/口令/文件名/访问段的字符白名单。
+# 用 `\Z` 而不是 `$`：Python 的 `$` 也匹配「结尾换行之前」，于是 `"1.2.3.4/32\n"`
+# 这类带尾随换行的输入会被放行，进而把换行写进 pg_hba.conf（配置注入），
+# 或带进拼给 shell/SQL 的值里。`\Z` 只认真正的串尾。
 def checkSafeName(name):
     if not name:
         return False
-    return bool(re.match(r"^[\w\.-]+$", str(name)))
+    return bool(re.match(r"^[\w\.-]+\Z", str(name)))
 
 
 def checkSafePassword(password):
     if not password:
         return False
-    return bool(re.match(r"^[\w\.\-@#\$%\^&\*\+=!\?]+$", str(password)))
+    return bool(re.match(r"^[\w\.\-@#\$%\^&\*\+=!\?]+\Z", str(password)))
 
 
 def checkSafeFilename(filename):
     if not filename:
         return False
-    return bool(re.match(r"^[\w\.-]+\.gz$", str(filename)))
+    return bool(re.match(r"^[\w\.-]+\.gz\Z", str(filename)))
 
 
 def checkSafeAccess(access):
     if not access:
         return False
-    return bool(re.match(r"^[\w\.\-/:]+$", str(access)))
+    return bool(re.match(r"^[\w\.\-/:]+\Z", str(access)))
 
 
 def getBackupDir():
@@ -140,6 +144,56 @@ def checkArgs(data, ck=[]):
         if not ck[i] in data:
             return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
+
+
+# postgresql.conf 允许写入的键（与 pgDbStatus 暴露的 9 项一致）。
+# 历史缺陷：`pgSetDbStatus` 遍历**全部**入参调 sedConf，任意键、任意值（含换行）
+# 都能落进配置文件。
+_PG_CONF_KEYS = (
+    'shared_buffers', 'work_mem', 'effective_cache_size', 'temp_buffers',
+    'max_connections', 'max_prepared_transactions', 'max_stack_depth',
+    'bgwriter_lru_maxpages', 'max_worker_processes',
+)
+
+# 配置值白名单：纯数字 + 可选单位（MB/GB/KB/kB/s），挡掉换行与 shell/SQL 特殊字符。
+_PG_CONF_VALUE_RE = re.compile(r'^[0-9]+[A-Za-z]{0,2}\Z')
+
+
+def _safeConfValue(val):
+    """配置文件值白名单校验；不合法回 None（绝不把原样字符串写进 conf）。"""
+    s = str(val).strip()
+    if not s or len(s) > 16:
+        return None
+    if not _PG_CONF_VALUE_RE.match(s):
+        return None
+    return s
+
+
+def _parsePageArgs(args, def_page=1, def_size=10, max_size=100):
+    """分页参数容错：历史缺陷是裸 `int(args['page'])`，page=abc 直接 ValueError
+    traceback（面板 500）。非数字/空/None 回退默认值，负值夹到 1，上限 100。"""
+    def _toInt(v, default):
+        try:
+            if v is None or str(v).strip() == '':
+                return default
+            return int(str(v).strip())
+        except Exception:
+            return default
+
+    page = _toInt(args.get('page'), def_page)
+    size = _toInt(args.get('page_size'), def_size)
+    if page < 1:
+        page = 1
+    if size < 1:
+        size = def_size
+    if size > max_size:
+        size = max_size
+    return page, size
+
+
+def _isPortValue(val):
+    """端口字符串必须是纯数字（配置里读到的端口会被拼进 shell 命令）。"""
+    return bool(re.match(r"^[0-9]+\Z", str(val or '').strip()))
 
 
 def getConf():
@@ -168,21 +222,41 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
+    # 任意文件读取修复：`file` 直接来自请求参数，历史实现无校验地 readFile →
+    # 可读 /etc/shadow 等任意文件。只放行本插件的两个配置文件（realpath 严格限定）。
+    target = os.path.realpath(str(args['file']))
+    allowed = set([os.path.realpath(getConf()), os.path.realpath(pgHbaConf())])
+    if target not in allowed:
+        return yf.returnJson(False, '配置文件路径不合法!')
+
     content = yf.readFile(args['file'])
+    if content is False:
+        return yf.returnJson(False, '读取postgresql配置失败!')
     return yf.returnJson(True, 'ok', content)
 
 
 def getDbPort():
+    """只返回**纯数字**端口；配置缺失/畸形回空串。
+
+    历史缺陷：`re.search(...).groups()` 未命中时 `tmp` 为 None → AttributeError；
+    且返回原样文本（可被塞进 shell 命令）。
+    """
     file = getConf()
+    if not os.path.exists(file):
+        return ""
     content = yf.readFile(file)
-    rep = r'port\s*=\s*(\d*)?'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if type(content) == bool or not content:
+        return ""
+    tmp = re.search(r'^\s*port\s*=\s*([0-9]+)', content, re.M)
+    if not tmp:
+        return ""
+    return tmp.group(1).strip()
 
 
 def getSocketFile():
-    # sock_name = '.s.PGSQL.' + getDbPort()
-    sock_name = ""
+    # 历史缺陷：sock_name 被写死成 ''，于是本函数恒返回 '/tmp/'（该目录必然存在），
+    # pgDb() 便拿 '/tmp/' 当 unix socket 目录去连 → 永远连不上，所有库操作静默失效。
+    sock_name = '.s.PGSQL.' + (getDbPort() or '5432')
     sock_tmp = '/tmp/' + sock_name
     if os.path.exists(sock_tmp):
         return sock_tmp
@@ -353,11 +427,24 @@ def status(version=''):
 
 
 def pgCmd(cmd):
-    return "su - postgres -c \"" + cmd + "\""
+    # cmd 会被塞进 `su - postgres -c "<cmd>"` 的**双引号内**执行：必须转义
+    # `\ " $ ` 这四个字符，否则 cmd 里来自配置/参数的值可以闭合引号，
+    # 在**面板（root）**身份下执行任意命令。
+    safe = str(cmd).replace('\\', '\\\\').replace('"', '\\"')
+    safe = safe.replace('$', '\\$').replace('`', '\\`')
+    return 'su - postgres -c "' + safe + '"'
 
 
 def execShellPg(cmd):
     return yf.execShell(pgCmd(cmd))
+
+
+def execShellPgRc(cmd):
+    """与 execShellPg 同语义，但额外返回退出码：(rc, stdout, stderr)。
+
+    备份/导入需要区分「命令真跑成功」与「命令没跑却回成功」（假成功）。
+    """
+    return yf.execShellRc(pgCmd(cmd))
 
 
 def pGetDbUser():
@@ -408,10 +495,11 @@ def initPgPwd():
 
 def pgOp(version, method):
     # import commands
-    init_file = initDreplace()
-    cmd = init_file + ' ' + method
-    # print(cmd)
     try:
+        # initDreplace() 必须在 try 内：服务未安装时它会在 `os.mkdir` 上抛
+        # FileNotFoundError，放在 try 外会把 traceback 直接喷到 stderr。
+        init_file = initDreplace()
+        cmd = init_file + ' ' + method
         isInited = initPgData()
         initConfig(version)
         if not isInited:
@@ -451,15 +539,41 @@ def appCMD(version, action):
 
 
 def start(version=''):
-    return appCMD(version, 'start')
+    # 1. 已在运行就直接返回，避免重复拉起
+    if status(version) == 'start':
+        return 'ok'
+
+    # 2. 启动并轮询就绪（与 mysql/mariadb 侧同一口径）
+    res = appCMD(version, 'start')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    # 3. 8 秒仍未就绪：如实返回失败，绝不把 'ok' 回给上层造成「已启动」误判
+    return 'error: postgresql 启动后未就绪（%s）' % res
 
 
 def stop(version=''):
-    return appCMD(version, 'stop')
+    res = appCMD(version, 'stop')
+    for _ in range(5):
+        if status(version) == 'stop':
+            break
+        time.sleep(1)
+    return res
 
 
 def restart(version=''):
-    return appCMD(version, 'restart')
+    # 1. 先停（顺带把「已停」的状态收敛掉）
+    stop(version)
+
+    # 2. 重新拉起并轮询就绪
+    res = appCMD(version, 'restart')
+    for _ in range(8):
+        if status(version) == 'start':
+            return 'ok'
+        time.sleep(1)
+    # 3. 8 秒仍未就绪：如实返回失败（上层据此兜底拉起 / 报错）
+    return 'error: postgresql 重启后未就绪（%s）' % res
 
 
 def reload(version=''):
@@ -511,16 +625,20 @@ def getMyDbPos():
 
 
 def getPgPort():
+    """读取监听端口，只认**行首**的 `port = <数字>`。
+
+    历史缺陷：`re.search(r'port\\s*=\\s*(.*)')` 会把 `port = 5432; touch /tmp/x`
+    整串（含命令分隔符）读出来，而该值会被拼进 pg_dump/psql 的 shell 命令。
+    """
     file = getConf()
     if not os.path.exists(file):
         return ""
     content = yf.readFile(file)
     if type(content) == bool or not content:
         return ""
-    rep = r'port\s*=\s*(.*)'
-    tmp = re.search(rep, content)
+    tmp = re.search(r'^\s*port\s*=\s*([0-9]+)', content, re.M)
     if tmp:
-        return tmp.groups()[0].strip()
+        return tmp.group(1).strip()
     return ""
 
 
@@ -530,13 +648,25 @@ def setPgPort():
     if not data[0]:
         return data[1]
 
-    port = args['port']
+    # 端口先白名单校验再落盘：历史缺陷是任意串（abc / 70000 / `5432; touch /tmp/x`）
+    # 被写进 postgresql.conf 并重启 → PG 因配置非法起不来，接口却仍回「编辑成功!」。
+    port = str(args['port']).strip()
+    if not _isPortValue(port) or not (1 <= int(port) <= 65535):
+        return yf.returnJson(False, '端口不合法!')
+
     file = getConf()
     content = yf.readFile(file)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '配置文件中未找到端口配置!')
     rep = r"port\s*=\s*([0-9]+)\s*\n"
+    if not re.search(rep, content):
+        return yf.returnJson(False, '配置文件中未找到端口配置!')
     content = re.sub(rep, 'port = ' + port + '\n', content)
-    yf.writeFile(file, content)
-    restart()
+    if not yf.writeFile(file, content):
+        return yf.returnJson(False, '配置文件写入失败!')
+    res = restart()
+    if res != 'ok':
+        return yf.returnJson(False, '修改端口后服务未就绪: ' + str(res))
     return yf.returnJson(True, '编辑成功!')
 
 
@@ -558,7 +688,7 @@ def runInfo():
     result['uptime'] = dt
 
     result['progress_num'] = yf.execShell(
-        "ps -ef |grep postgres |wc -l")[0].strip()
+        "ps -ef |grep postgres |grep -v grep |grep -v python |wc -l")[0].strip()
     result['pid'] = yf.execShell(
         '''cat {}/postmaster.pid |sed -n 1p '''.format(data_dir))[0].strip()
     res = db.query(
@@ -616,6 +746,14 @@ def getUnit(args):
     return unit
 
 
+def _confValue(line):
+    """取 `key = value` 的 value；畸形行（无 `=`）回空串，绝不抛异常。"""
+    parts = line.split('=', 1)
+    if len(parts) < 2:
+        return ''
+    return parts[1]
+
+
 def pgDbStatus():
 
     data_directory = getServerDir() + "/data"
@@ -626,12 +764,19 @@ def pgDbStatus():
     if not os.path.exists(pg_conf):
         return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
 
-    with open(pg_conf) as f:
-        for i in f:
+    # 历史缺陷：`open(pg_conf)` 直接裸读且用 `i.split("=")[1]` 取值，
+    # 配置里有非 UTF-8 字节或任一行缺 `=` 都会抛异常（面板 500）。
+    content = yf.readFile(pg_conf)
+    if content is False or not content:
+        return yf.returnJson(False, '读取postgresql配置失败!')
+
+    # 逐行解析（缺 `=` 的畸形行由 _confValue 兜底为空串）；整体兜底避免解析异常冒成 500。
+    try:
+        for i in content.splitlines():
             if i.strip().startswith("shared_buffers"):
-                shared_buffers = i.split("=")[1]
+                shared_buffers = _confValue(i)
             elif i.strip().startswith("#shared_buffers"):
-                shared_buffers = i.split("=")[1]
+                shared_buffers = _confValue(i)
 
             shared_buffers_num = re.match(
                 r'\d+', shared_buffers.strip()).group() if re.match(r'\d+', shared_buffers.strip()) else ""
@@ -639,9 +784,9 @@ def pgDbStatus():
                                       "PG通过shared_buffers和内核和磁盘打交道，通常设置为实际内存的10％."]
 
             if i.strip().startswith("work_mem"):
-                work_mem = i.split("=")[1]
+                work_mem = _confValue(i)
             elif i.strip().startswith("#work_mem"):
-                work_mem = i.split("=")[1]
+                work_mem = _confValue(i)
 
             work_mem_num = re.match(
                 r'\d+', work_mem.strip()).group() if re.match(r'\d+', work_mem.strip()) else ""
@@ -649,9 +794,9 @@ def pgDbStatus():
                                 "增加work_mem有助于提高排序的速度。通常设置为实际RAM的2% -4%."]
 
             if i.strip().startswith("effective_cache_size"):
-                effective_cache_size = i.split("=")[1]
+                effective_cache_size = _confValue(i)
             elif i.strip().startswith("#effective_cache_size"):
-                effective_cache_size = i.split("=")[1]
+                effective_cache_size = _confValue(i)
 
             effective_cache_size_num = re.match(r'\d+', effective_cache_size.strip(
             )).group() if re.match(r'\d+', effective_cache_size.strip()) else ""
@@ -660,9 +805,9 @@ def pgDbStatus():
                                             eff_unit, "PG优化器估算的操作系统可用物理内存缓存大小（建议设置为系统总内存的50%~75%）。"]
 
             if i.strip().startswith("temp_buffers "):
-                temp_buffers = i.split("=")[1]
+                temp_buffers = _confValue(i)
             elif i.strip().startswith("#temp_buffers "):
-                temp_buffers = i.split("=")[1]
+                temp_buffers = _confValue(i)
 
             temp_buffers_num = re.match(
                 r'\d+', temp_buffers.strip()).group() if re.match(r'\d+', temp_buffers.strip()) else ""
@@ -670,9 +815,9 @@ def pgDbStatus():
                                     "设置每个数据库会话使用的临时缓冲区的最大数目，默认是8MB"]
 
             if i.strip().startswith("max_connections"):
-                max_connections = i.split("=")[1]
+                max_connections = _confValue(i)
             elif i.strip().startswith("#max_connections"):
-                max_connections = i.split("=")[1]
+                max_connections = _confValue(i)
 
             max_connections_num = re.match(
                 r'\d+', max_connections.strip()).group() if re.match(r'\d+', max_connections.strip()) else ""
@@ -680,9 +825,9 @@ def pgDbStatus():
                                        getUnit(max_connections), "最大连接数"]
 
             if i.strip().startswith("max_prepared_transactions"):
-                max_prepared_transactions = i.split("=")[1]
+                max_prepared_transactions = _confValue(i)
             elif i.strip().startswith("#max_prepared_transactions"):
-                max_prepared_transactions = i.split("=")[1]
+                max_prepared_transactions = _confValue(i)
 
             max_prepared_transactions_num = re.match(r'\d+', max_prepared_transactions.strip(
             )).group() if re.match(r'\d+', max_prepared_transactions.strip()) else ""
@@ -690,9 +835,9 @@ def pgDbStatus():
                 max_prepared_transactions), "设置可以同时处于 prepared 状态的事务的最大数目"]
 
             if i.strip().startswith("max_stack_depth "):
-                max_stack_depth = i.split("=")[1]
+                max_stack_depth = _confValue(i)
             elif i.strip().startswith("#max_stack_depth "):
-                max_stack_depth = i.split("=")[1]
+                max_stack_depth = _confValue(i)
 
             max_stack_depth_num = re.match(
                 r'\d+', max_stack_depth.strip()).group() if re.match(r'\d+', max_stack_depth.strip()) else ""
@@ -700,9 +845,9 @@ def pgDbStatus():
                                        "MB", "指定服务器的执行堆栈的最大安全深度，默认是2MB"]
 
             if i.strip().startswith("bgwriter_lru_maxpages "):
-                bgwriter_lru_maxpages = i.split("=")[1]
+                bgwriter_lru_maxpages = _confValue(i)
             elif i.strip().startswith("#bgwriter_lru_maxpages "):
-                bgwriter_lru_maxpages = i.split("=")[1]
+                bgwriter_lru_maxpages = _confValue(i)
 
             bgwriter_lru_maxpages_num = re.match(r'\d+', bgwriter_lru_maxpages.strip(
             )).group() if re.match(r'\d+', bgwriter_lru_maxpages.strip()) else ""
@@ -710,9 +855,9 @@ def pgDbStatus():
                 bgwriter_lru_maxpages_num, "", "一个周期最多写多少脏页"]
 
             if i.strip().startswith("max_worker_processes "):
-                max_worker_processes = i.split("=")[1]
+                max_worker_processes = _confValue(i)
             elif i.strip().startswith("#max_worker_processes "):
-                max_worker_processes = i.split("=")[1]
+                max_worker_processes = _confValue(i)
 
             max_worker_processes_num = re.match(r'\d+', max_worker_processes.strip(
             )).group() if re.match(r'\d+', max_worker_processes.strip()) else ""
@@ -728,6 +873,9 @@ def pgDbStatus():
             # ) if re.match(r"\'.*?\'", listen_addresses.strip()) else ""
             # data['listen_addresses'] = [listen_addresses.replace(
             #     "'", '').replace("127.0.0.1", 'localhost'), "", "pgsql监听地址"]
+    except Exception as _e:
+        _log.debug('[postgresql] pgDbStatus 解析异常已忽略: %s', _e)
+        return yf.returnJson(False, '读取postgresql配置失败!')
 
     # 返回数据到前端
     data['status'] = True
@@ -735,16 +883,24 @@ def pgDbStatus():
 
 
 def sedConf(name, val):
-    path = getServerDir() + "/data/postgresql.conf"
+    path = getConf()
+    if not os.path.exists(path):
+        return False
+    # 只允许写白名单键 + 白名单值：历史缺陷是任意值原样 `{} = {}` 拼接，
+    # 值里带 `\n` 就能往 postgresql.conf 里注入任意配置行。
+    if name not in _PG_CONF_KEYS:
+        return False
+    safe_val = _safeConfValue(val)
+    if safe_val is None:
+        return False
     content = ''
     with open(path) as f:
         for i in f:
             if i.strip().startswith(name):
-                i = "{} = {} \n".format(name, val)
+                i = "{} = {} \n".format(name, safe_val)
             content += i
 
-    yf.writeFile(path, content)
-    return True
+    return bool(yf.writeFile(path, content))
 
 
 def pgSetDbStatus():
@@ -752,41 +908,54 @@ def pgSetDbStatus():
     保存pgsql性能调整信息
     '''
     args = getArgs()
-    data = checkArgs(args, ['shared_buffers', 'work_mem', 'effective_cache_size',
-                            'temp_buffers', 'max_connections', 'max_prepared_transactions',
-                            'max_stack_depth', 'bgwriter_lru_maxpages', 'max_worker_processes'])
+    data = checkArgs(args, list(_PG_CONF_KEYS))
     if not data[0]:
         return data[1]
 
-    for k, v in args.items():
-        sedConf(k, v)
+    # 只遍历白名单键（历史缺陷：遍历全部入参 → 任意键都能落进配置文件）
+    for k in _PG_CONF_KEYS:
+        if k not in args:
+            continue
+        if not sedConf(k, args[k]):
+            return yf.returnJson(False, '配置文件写入失败!')
 
-    restart()
+    res = restart()
+    if res != 'ok':
+        return yf.returnJson(False, '服务重启后未就绪: ' + str(res))
     return yf.returnJson(True, '设置成功!')
 
 
 def setUserPwd(version=''):
     args = getArgs()
-    data = checkArgs(args, ['password', 'name'])
+    # id 必需：历史缺陷是 `args['id']` 在 checkArgs 之外直接取 → 缺参时 KeyError traceback
+    data = checkArgs(args, ['password', 'name', 'id'])
     if not data[0]:
         return data[1]
 
     newpwd = args['password']
-    username = args['name']
-    uid = args['id']
+    username = str(args['name']).strip()
+    uid = str(args['id']).strip()
 
     if not checkSafeName(username):
         return yf.returnJson(False, '用户名不合法，不能包含特殊字符！')
     if not checkSafePassword(newpwd):
         return yf.returnJson(False, '密码格式不合法！')
 
+    # 口令进单引号字符串字面量：转义反斜杠与单引号（checkSafePassword 已挡引号，此处兜底）
+    safe_pwd = str(newpwd).replace('\\', '\\\\').replace("'", "\\'")
+
+    name = username
     try:
         pdb = pgDb()
         psdb = pSqliteDb('databases')
-        name = psdb.where('id=?', (uid,)).getField('name')
+        row = psdb.where('id=?', (uid,)).field('name').find()
+        # 历史缺陷：id 不存在时 getField 回 None，成功消息里就带一个 None
+        if not row or not row.get('name'):
+            return yf.returnJson(False, '数据库不存在!')
+        name = row['name']
 
-        r = pdb.execute(
-            "alter user {} with password '{}'".format(username, newpwd))
+        pdb.execute(
+            "alter user {} with password '{}'".format(username, safe_pwd))
 
         psdb.where("id=?", (uid,)).setField('password', newpwd)
         return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
@@ -856,6 +1025,61 @@ def getDbBackupListFunc(dbname='', is_sync=False):
     return r
 
 
+def _gzContentSize(path):
+    """解压一次取未压缩字节数；无法解压（损坏/空流）返回 0，异常返回 -1。
+
+    为什么要看未压缩内容：`pg_dump | gzip > f` 的退出码取的是尾端 gzip 的，
+    pg_dump 失败时会留下一个**合法的空 gz**（20~62 字节，`gzip -t` 也能过）→ 假成功。
+    """
+    try:
+        _rc, out, _err = yf.execShellRc('gunzip -c ' + yf.shlexQuote(path) + ' | wc -c')
+        return int(str(out).strip())
+    except Exception:
+        return -1
+
+
+def _pgDumpToFile(dbname, file_path):
+    """以 postgres 身份 `pg_dump | gzip` 导出到 file_path；返回 (ok, reason)。
+
+    历史缺陷：① port/dbname/file_path 直接拼进 shell（值来自配置文件与请求参数）；
+    ② 管道退出码取的是尾端 gzip 的，pg_dump 失败也会留下一个合法的空 gz
+    （size>0）→ 假成功。
+    """
+    port = getPgPort()
+    if not _isPortValue(port):
+        return False, '配置文件中未找到端口配置!'
+
+    # 确保 postgres 用户拥有对备份目录的写权限
+    if not yf.isAppleSystem() and os.name != 'nt':
+        yf.execShell("chown -R postgres:postgres " + yf.shlexQuote(os.path.dirname(file_path)))
+
+    if os.name == 'nt':
+        cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+        yf.execShell(cmd)
+    else:
+        cmd = (yf.shlexQuote(getServerDir() + '/bin/pg_dump') + ' -p ' + yf.shlexQuote(port)
+               + ' ' + yf.shlexQuote(dbname) + ' | gzip > ' + yf.shlexQuote(file_path))
+        execShellPg(cmd)
+
+        # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
+        if os.path.exists(file_path):
+            yf.execShell("chown root:root " + yf.shlexQuote(file_path))
+
+    # 产物校验：gzip 完整性 + 非空内容（空输入 gzip 出来约 20~62 字节，
+    # 正是 pg_dump 失败时的形态；成功的 pg_dump 至少会输出 dump 头注释）
+    ok = os.path.exists(file_path) and os.path.getsize(file_path) > 32
+    if ok:
+        ok = _gzContentSize(file_path) > 0
+    if not ok:
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception as _e:
+                _log.debug('[postgresql] _pgDumpToFile 清理失败产物异常已忽略: %s', _e)
+        return False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。'
+    return True, ''
+
+
 def setDbBackup():
     args = getArgs()
     data = checkArgs(args, ['name'])
@@ -876,36 +1100,12 @@ def setDbBackup():
     else:
         ver_str = '183'
     filename = "postgre" + ver_str + "_" + dbname + "_" + cur_time + ".gz"
-    backup_dir = getBackupDir()
-    file_path = backup_dir + '/' + filename
+    file_path = getBackupDir() + '/' + filename
 
-    # 确保 postgres 用户拥有对备份目录的写权限
-    if not yf.isAppleSystem() and os.name != 'nt':
-        yf.execShell("chown -R postgres:postgres " + backup_dir)
-
-    port = getDbPort()
-
-    if os.name == 'nt':
-        cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        yf.execShell(cmd)
-    else:
-        # 使用 pgCmd 通过 postgres 用户调用 pg_dump 备份并 gzip
-        cmd = getServerDir() + '/bin/pg_dump -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        execShellPg(cmd)
-
-        # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
-        if os.path.exists(file_path):
-            yf.execShell("chown root:root " + file_path)
-
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return yf.returnJson(True, '备份成功!')
-    else:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception as _e:
-                _log.debug('[postgresql] setDbBackup 异常已忽略: %s', _e)
-        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+    ok, reason = _pgDumpToFile(dbname, file_path)
+    if not ok:
+        return yf.returnJson(False, reason)
+    return yf.returnJson(True, '备份成功!')
 
 def rootPwd():
     return pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
@@ -956,15 +1156,10 @@ def getDbBackupList():
 
 def getDbList():
     args = getArgs()
-    page = 1
-    page_size = 10
     search = ''
     data = {}
-    if 'page' in args:
-        page = int(args['page'])
-
-    if 'page_size' in args:
-        page_size = int(args['page_size'])
+    # 分页容错：历史缺陷是裸 `int(args['page'])` → page=abc 直接 ValueError traceback（面板 500）
+    page, page_size = _parsePageArgs(args)
 
     if 'search' in args:
         search = args['search']
@@ -1119,7 +1314,7 @@ def delDb():
         return data[1]
 
     did = args['id']
-    name = args['name']
+    name = str(args['name'])
 
     if not checkSafeName(name):
         return yf.returnJson(False, '数据库名称不合法！')
@@ -1128,24 +1323,26 @@ def delDb():
     psdb = pSqliteDb('databases')
 
     username = psdb.where('id=?', (did,)).getField('username')
-    # print(username, len(username))
-    if len(username) > 0:
+    # 历史缺陷：id 不存在时 getField 回 None → `len(None)` TypeError traceback
+    if username is None:
+        return yf.returnJson(False, '数据库不存在!')
+    if len(str(username)) > 0:
         if not checkSafeName(username):
             return yf.returnJson(False, '用户名不合法！')
-        r = pdb.execute("drop user " + str(username))
-        # print(r)
+        pdb.execute("drop user " + str(username))
 
     sql = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname='" + \
         name + "' AND pid<>pg_backend_pid();"
 
-    r = pdb.execute(sql)
-    # print(r)
-    r = pdb.execute("drop database " + name)
-    # print(r)
+    pdb.execute(sql)
+    pdb.execute("drop database " + name)
 
     pg_hba = pgHbaConf()
     old_config = yf.readFile(pg_hba)
-    new_config = re.sub(r'host\s*{}.*'.format(name), '', old_config).strip()
+    if type(old_config) == bool or not old_config:
+        old_config = ''
+    # re.escape：库名里的 `.` 等正则元字符不能当通配符用（历史缺陷：a.b 会误删 aXb 的 hba 行）
+    new_config = re.sub(r'host\s*' + re.escape(name) + r'.*', '', old_config).strip()
     yf.writeFile(pg_hba, new_config)
 
     psdb.where("id=?", (did,)).delete()
@@ -1158,22 +1355,28 @@ def setDbRw(version=''):
     if not data[0]:
         return data[1]
 
-    username = args['username']
-    uid = args['id']
+    username = str(args['username'])
+    uid = str(args['id'])
     rw = args['rw']
 
     if not checkSafeName(username):
         return yf.returnJson(False, '用户名不合法！')
+    # rw 白名单：历史缺陷是任意 rw 都落到 `GRANT all`（非 rw/r 一律全权限）
+    if rw not in ('rw', 'r', 'all'):
+        return yf.returnJson(False, '权限类型不合法!')
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
     dbname = psdb.where("id=?", (uid,)).getField('name')
 
-    if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+    if not dbname or not checkSafeName(dbname):
+        return yf.returnJson(False, '数据库不存在!')
+    dbname = str(dbname)
 
-    sql = "REVOKE ALL ON database " + dbname + " FROM " + username
-    pdb.query(sql)
+    # 按 execute 结果判成败：历史缺陷是 SQL 全失败仍回「切换成功!」（假成功）
+    r = pdb.execute("REVOKE ALL ON database " + dbname + " FROM " + username)
+    if isinstance(r, Exception):
+        return yf.returnJson(False, '切换失败!')
 
     if rw == 'rw':
         sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON database " + dbname + " TO " + username
@@ -1183,6 +1386,8 @@ def setDbRw(version=''):
         sql = "GRANT all ON database " + dbname + " TO " + username
 
     r = pdb.execute(sql)
+    if isinstance(r, Exception):
+        return yf.returnJson(False, '切换失败!')
     psdb.where("id=?", (uid,)).setField('rw', rw)
     return yf.returnJson(True, '切换成功!')
 
@@ -1208,37 +1413,12 @@ def pgBack():
     else:
         ver_str = '183'
     filename = "postgre" + ver_str + "_" + dbname + "_" + cur_time + ".gz"
-    backup_dir = getBackupDir()
-    file_path = backup_dir + '/' + filename
+    file_path = getBackupDir() + '/' + filename
 
-    # 确保 postgres 用户拥有对备份目录的写权限
-    if not yf.isAppleSystem() and os.name != 'nt':
-        yf.execShell("chown -R postgres:postgres " + backup_dir)
-
-    port = getPgPort()
-
-    if os.name == 'nt':
-        cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        yf.execShell(cmd)
-    else:
-        # 使用更正确的绝对路径获取二进制程序
-        pg_dump_bin = getServerDir() + '/bin/pg_dump'
-        cmd = pg_dump_bin + ' -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        execShellPg(cmd)
-
-        # 还原 file_path 的所有权以保持安全性与普通权限
-        if os.path.exists(file_path):
-            yf.execShell("chown root:root " + file_path)
-
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return yf.returnJson(True, '备份成功!')
-    else:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception as _e:
-                _log.debug('[postgresql] pgBack 异常已忽略: %s', _e)
-        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+    ok, reason = _pgDumpToFile(dbname, file_path)
+    if not ok:
+        return yf.returnJson(False, reason)
+    return yf.returnJson(True, '备份成功!')
 
 
 def pgBackList():
@@ -1435,25 +1615,39 @@ def importDbBackup():
     if not checkSafeFilename(file):
         return yf.returnJson(False, '备份文件名不合法！')
 
+    # 端口来自配置文件，必须纯数字后才能拼进 shell 命令
+    port = getPgPort()
+    if not _isPortValue(port):
+        return yf.returnJson(False, '配置文件中未找到端口配置!')
+
     bk_path_upload = getBackupDir()
-    file_path = os.path.join(bk_path_upload, file)
+    file_path = os.path.realpath(os.path.join(bk_path_upload, file))
+    # realpath 限定：备份目录内的普通文件才允许（挡软链外逃）
+    if os.path.dirname(file_path) != os.path.realpath(bk_path_upload):
+        return yf.returnJson(False, '备份文件名不合法！')
     if not os.path.exists(file_path):
         return yf.returnJson(False, '备份文件不存在!')
 
+    # 先验归档可解压且非空：历史缺陷是 `gunzip -c | psql` 管道退出码取 psql 的，
+    # 损坏/空的 .gz 也一律回「导入成功!」（假成功）。
+    if _gzContentSize(file_path) <= 0:
+        return yf.returnJson(False, '导入失败!')
+
     # 让 postgres 有权限读取备份文件
     if not yf.isAppleSystem() and os.name != 'nt':
-        yf.execShell("chown postgres:postgres " + file_path)
+        yf.execShell("chown postgres:postgres " + yf.shlexQuote(file_path))
 
-    port = getPgPort()
-    
     if os.name == 'nt':
         cmd = 'gunzip -c ' + file_path + ' | "' + getServerDir() + '/bin/psql" -p ' + port + ' -d ' + name
-        yf.execShell(cmd)
+        rc, _o, _e = yf.execShellRc(cmd)
     else:
         psql_bin = getServerDir() + '/bin/psql'
-        cmd = 'gunzip -c ' + file_path + ' | ' + psql_bin + ' -p ' + port + ' -d ' + name
-        execShellPg(cmd)
+        cmd = ('gunzip -c ' + yf.shlexQuote(file_path) + ' | ' + yf.shlexQuote(psql_bin)
+               + ' -p ' + yf.shlexQuote(port) + ' -d ' + yf.shlexQuote(name))
+        rc, _o, _e = execShellPgRc(cmd)
 
+    if rc != 0:
+        return yf.returnJson(False, '导入失败!')
     return yf.returnJson(True, '导入成功!')
 
 
@@ -1468,7 +1662,18 @@ def deleteDbBackup():
         return yf.returnJson(False, '备份文件名不合法！')
 
     bk_path_upload = getBackupDir()
-    os.remove(bk_path_upload + '/' + filename)
+    file_path = os.path.realpath(os.path.join(bk_path_upload, filename))
+    # realpath 限定：只删备份目录内的文件（挡软链外逃）
+    if os.path.dirname(file_path) != os.path.realpath(bk_path_upload):
+        return yf.returnJson(False, '备份文件名不合法！')
+    # 历史缺陷：文件不存在时 os.remove 直接 FileNotFoundError traceback
+    if not os.path.exists(file_path):
+        return yf.returnJson(False, '备份文件不存在!')
+    try:
+        os.remove(file_path)
+    except Exception as _e:
+        _log.debug('[postgresql] deleteDbBackup 异常已忽略: %s', _e)
+        return yf.returnJson(False, '删除失败!')
     return yf.returnJson(True, 'ok')
 
 
@@ -1503,7 +1708,12 @@ def getMasterStatus(version=''):
 
 def setMasterStatus(version=''):
     pg_conf = getServerDir() + "/data/postgresql.conf"
+    if not os.path.exists(pg_conf):
+        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
     data = yf.readFile(pg_conf)
+    # 历史缺陷：readFile 失败回 False，False.find 直接 AttributeError traceback
+    if type(data) == bool or not data:
+        return yf.returnJson(False, '读取postgresql配置失败!')
 
     if data.find('#archive_mode') > -1:
         data = data.replace('#archive_mode', 'archive_mode')
@@ -1518,14 +1728,21 @@ def setMasterStatus(version=''):
         data = data.replace('max_wal_senders', '#max_wal_senders')
         data = data.replace('wal_sender_timeout', '#wal_sender_timeout')
 
-    yf.writeFile(pg_conf, data)
-    restart(version)
+    if not yf.writeFile(pg_conf, data):
+        return yf.returnJson(False, '配置文件写入失败!')
+    res = restart(version)
+    if res != 'ok':
+        return yf.returnJson(False, '服务重启后未就绪: ' + str(res))
     return yf.returnJson(True, '设置成功')
 
 
 def setSlaveStatus(version):
     pg_conf = getServerDir() + "/data/postgresql.conf"
+    if not os.path.exists(pg_conf):
+        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
     data = yf.readFile(pg_conf)
+    if type(data) == bool or not data:
+        return yf.returnJson(False, '读取postgresql配置失败!')
     if data.find('#hot_standby') > -1:
         data = data.replace('#hot_standby', 'hot_standby')
         data = data.replace('#primary_conninfo', 'primary_conninfo')
@@ -1547,9 +1764,12 @@ def setSlaveStatus(version):
         data = data.replace('#recovery_target_timeline',
                             'recovery_target_timeline')
 
-    yf.writeFile(pg_conf, data)
+    if not yf.writeFile(pg_conf, data):
+        return yf.returnJson(False, '配置文件写入失败!')
 
-    restart(version)
+    res = restart(version)
+    if res != 'ok':
+        return yf.returnJson(False, '服务重启后未就绪: ' + str(res))
     return yf.returnJson(True, '设置成功')
 
 
@@ -1557,8 +1777,9 @@ def getSlaveList(version=''):
 
     db = pgDb()
 
-    res = db.execute('select * from pg_stat_replication')
-    print(res)
+    # 历史缺陷：这里有一句调试 `print(res)`，把非 JSON 文本写进 stdout，
+    # 面板按 JSON 解析插件输出时会失败（整个「从库列表」不可用）。
+    db.execute('select * from pg_stat_replication')
     # dlist = db.query('show slave status')
     # ret = []
     # for x in range(0, len(dlist)):
@@ -1597,8 +1818,8 @@ def getSlaveSSHList(version=''):
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    # 分页容错：历史缺陷是裸 int() → page=abc 直接 ValueError traceback
+    page, page_size = _parsePageArgs(args, def_size=5)
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     limit = str((page - 1) * page_size) + ',' + str(page_size)
@@ -1612,7 +1833,8 @@ def getSlaveSSHList(version=''):
     _page['count'] = count
     _page['p'] = page
     _page['row'] = page_size
-    _page['tojs'] = args['tojs']
+    # 历史缺陷：`args['tojs']` 缺参时 KeyError traceback
+    _page['tojs'] = args.get('tojs', 'getSlaveSSHPage')
     data['page'] = yf.getPage(_page)
     data['data'] = clist
 
@@ -1696,8 +1918,8 @@ def getMasterRepSlaveList(version=''):
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    # 分页容错：历史缺陷是裸 int() → page=abc 直接 ValueError traceback
+    page, page_size = _parsePageArgs(args)
     data = {}
 
     conn = pSqliteDb('master_replication_user')

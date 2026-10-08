@@ -38,7 +38,9 @@ pg_stop()
 
 pg_status()
 {
-    isStart=$(ps aux | grep 'postgres'| grep -v grep | grep -v 'postgresql status' | awk '{print $2}')
+    # 必须 `grep -v python`：面板以 python 调本插件（cmdline 含 postgres），
+    # 少了这一层会把插件自己的进程当成 postgres 实例 → 未安装也报「already running」。
+    isStart=$(ps aux | grep 'postgres'| grep -v grep | grep -v 'postgresql status' | grep -v python | awk '{print $2}')
     if [ "$isStart" != '' ];then
         echo -e "\033[32mPostgreSQL (pid $isStart) already running\033[0m"
     else

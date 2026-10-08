@@ -1,5 +1,36 @@
 var api = YfPlugin.createApi('postgresql');
 var pt = YfI18n.createPluginTranslator('postgresql');
+
+/**
+ * 面板库里的值（库名/用户名/备注/密码/IP）以前直接拼进 innerHTML 或行内 onclick：
+ * 备注里存 <img src=x onerror=...> 就是存储型 XSS，库名/用户名里带单引号就能闭合
+ * 行内 onclick 的属性值。与 web/static/app/firewall.js 的 yfFwText/yfFwJsStr 同一口径。
+ */
+function yfPgText(v) {
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：HTML 转义挡不住注入
+ * （浏览器会先把实体还原成引号再交给 JS 解析），必须按 JS 字符串转义；
+ * 引号一律走实体，否则会直接终止 HTML 属性值，变成属性注入。
+ */
+function yfPgJsStr(v) {
+    return String(v == null ? '' : v)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -300,7 +331,7 @@ function setDbAccess(name){
                     }
                     
                     if (pdata.username) {
-                        $('#priv_owner_desc').html(pt('将把数据库特权赋予创建用户：') + '<strong style="color: #5cb85c;">' + pdata.username + '</strong>');
+                        $('#priv_owner_desc').html(pt('将把数据库特权赋予创建用户：') + '<strong style="color: #5cb85c;">' + yfPgText(pdata.username) + '</strong>');
                     }
                     
                     var privs = pdata.privileges;
@@ -727,21 +758,21 @@ function dbList(page, search){
         var list = '';
         for(i in rdata.data){
             list += '<tr>';
-            list +='<td><input value="'+rdata.data[i]['id']+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
-            list += '<td>' + rdata.data[i]['name'] +'</td>';
-            list += '<td>' + rdata.data[i]['username'] +'</td>';
+            list +='<td><input value="'+yfPgText(rdata.data[i]['id'])+'" class="check" onclick="checkSelect();" type="checkbox"></td>';
+            list += '<td>' + yfPgText(rdata.data[i]['name']) +'</td>';
+            list += '<td>' + yfPgText(rdata.data[i]['username']) +'</td>';
             list += '<td>' + 
-                        '<span class="password" data-pw="'+rdata.data[i]['password']+'">***</span>' +
+                        '<span class="password" data-pw="'+yfPgText(rdata.data[i]['password'])+'">***</span>' +
                         '<span onclick="showHidePass(this)" class="glyphicon glyphicon-eye-open cursor pw-ico" style="margin-left:10px"></span>'+
-                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
+                        '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+yfPgJsStr(rdata.data[i]['password'])+'\')"></span>'+
                     '</td>';
         
 
-            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
-            list += '<td>' + rdata.data[i]['addtime'] +'</td>';
+            list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+yfPgJsStr(rdata.data[i]['id'])+'\',\''+yfPgJsStr(rdata.data[i]['name'])+'\',this)" style="display: inline-block;">'+yfPgText(rdata.data[i]['ps'])+'</span></td>';
+            list += '<td>' + yfPgText(rdata.data[i]['addtime']) +'</td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('备份'):pt('备份/导入')) +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+yfPgJsStr(rdata.data[i]['name'])+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('备份'):pt('备份/导入')) +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';
@@ -757,14 +788,14 @@ function dbList(page, search){
                     rw_val = pt("只读");
                     rw_change = 'all';
                 }
-                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="设置读写">'+rw_val+'</a> | ';
+                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+yfPgJsStr(rdata.data[i]['id'])+'\',\''+yfPgJsStr(rdata.data[i]['name'])+'\',\''+rw_change+'\')" title="设置读写">'+rw_val+'</a> | ';
             }
 
 
-            list += '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['name']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
+            list += '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+yfPgJsStr(rdata.data[i]['name'])+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
                         rw +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+yfPgJsStr(rdata.data[i]['id'])+',\''+ yfPgJsStr(rdata.data[i]['username']) +'\',\'' + yfPgJsStr(rdata.data[i]['password']) + '\')">' + pt('改密') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+yfPgJsStr(rdata.data[i]['id'])+'\',\''+yfPgJsStr(rdata.data[i]['name'])+'\')" title="删除数据库">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
@@ -1009,11 +1040,11 @@ function getMasterRepSlaveList(){
         for (i in user_list) {
             // console.log(i);
             var name = user_list[i]['username'];
-            list += '<tr><td>'+name+'</td>\
-                <td>'+user_list[i]['password']+'</td>\
+            list += '<tr><td>'+yfPgText(name)+'</td>\
+                <td>'+yfPgText(user_list[i]['password'])+'</td>\
                 <td>\
-                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">' + pt('删除') + '</a> | \
-                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">' + pt('从库同步命令') + '</a> \
+                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+yfPgJsStr(name)+'\');">' + pt('删除') + '</a> | \
+                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+yfPgJsStr(name)+'\');">' + pt('从库同步命令') + '</a> \
                 </td>\
             </tr>';
         }
@@ -1136,8 +1167,8 @@ function addSlaveSSH(ip=''){
             shadeClose: true,
             btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
-                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>" + pt('端口') + "</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+yfPgText(ip)+"'></div></div>\
+                <div class='line'><span class='tname'>" + pt('端口') + "</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+yfPgText(port)+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
@@ -1145,7 +1176,8 @@ function addSlaveSSH(ip=''){
                 <input type='hidden' name='ps' value='' />\
               </form>",
             success:function(){
-                $('textarea[name="id_rsa"]').html(id_rsa);
+                // 私钥来自面板库（用户可控），必须走 .val() 赋值；.html() 会把它当 HTML 解析
+                $('textarea[name="id_rsa"]').val(id_rsa);
             },
             yes:function(index){
                 var ip = $('input[name="ip"]').val();
@@ -1206,12 +1238,12 @@ function getSlaveSSHPage(page=1){
                 db_user = ssh_list[i]['db_user'];
             }
 
-            list += '<tr><td>'+ip+'</td>\
-                <td>'+port+'</td>\
-                <td>'+id_rsa+'</td>\
+            list += '<tr><td>'+yfPgText(ip)+'</td>\
+                <td>'+yfPgText(port)+'</td>\
+                <td>'+yfPgText(id_rsa)+'</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">' + pt('修改') + '</a> | \
-                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">' + pt('删除') + '</a>\
+                    <a class="btlink" onclick="addSlaveSSH(\''+yfPgJsStr(ip)+'\');">' + pt('修改') + '</a> | \
+                    <a class="btlink" onclick="delSlaveSSH(\''+yfPgJsStr(ip)+'\');">' + pt('删除') + '</a>\
                 </td>\
             </tr>';
         }
@@ -1321,12 +1353,12 @@ function masterOrSlaveConf(version=''){
                 }
 
                 list += '<tr>';
-                list += '<td>' + rdata.data[i]['Master_Host'] +'</td>';
-                list += '<td>' + rdata.data[i]['Master_Port'] +'</td>';
-                list += '<td>' + rdata.data[i]['Master_User'] +'</td>';
-                list += '<td>' + rdata.data[i]['Master_Log_File'] +'</td>';
-                list += '<td>' + rdata.data[i]['Slave_IO_Running'] +'</td>';
-                list += '<td>' + rdata.data[i]['Slave_SQL_Running'] +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Master_Host']) +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Master_Port']) +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Master_User']) +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Master_Log_File']) +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Slave_IO_Running']) +'</td>';
+                list += '<td>' + yfPgText(rdata.data[i]['Slave_SQL_Running']) +'</td>';
                 list += '<td>' + status +'</td>';
                 list += '<td style="text-align:right">' + 
                     '<a href="javascript:;" class="btlink" onclick="deleteSlave()" title="删除">' + pt('删除') + '</a>' +

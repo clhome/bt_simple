@@ -182,5 +182,15 @@
     "随机密码": "random password",
     "您真的要删除【{1}】吗？": "Are you sure you want to delete 【{1}】?",
     "成功删除[{1}]个数据库!": "Successfully deleted [{1}] database(s)!",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "端口不合法!": "Invalid port!",
+    "配置文件中未找到端口配置!": "Port not found in config!",
+    "修改端口后服务未就绪:": "Service not ready after port change:",
+    "权限类型不合法!": "Invalid permission type!",
+    "导入失败!": "Import failed!",
+    "删除失败!": "Delete failed!",
+    "切换失败!": "Switch failed!",
+    "配置文件路径不合法!": "Invalid config file path!",
+    "配置文件写入失败!": "Failed to write config!",
+    "服务重启后未就绪:": "Service not ready after restart:"
 }

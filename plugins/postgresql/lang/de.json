@@ -182,5 +182,15 @@
     "随机密码": "Zufälliges Passwort",
     "您真的要删除【{1}】吗？": "Möchten Sie 【{1}】 wirklich löschen?",
     "成功删除[{1}]个数据库!": "[{1}] Datenbank(en) erfolgreich gelöscht!",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "端口不合法!": "Ungültiger Port!",
+    "配置文件中未找到端口配置!": "Port in Konfiguration nicht gefunden!",
+    "修改端口后服务未就绪:": "Dienst nach Portänderung nicht bereit:",
+    "权限类型不合法!": "Ungültiger Berechtigungstyp!",
+    "导入失败!": "Import fehlgeschlagen!",
+    "删除失败!": "Das Löschen ist fehlgeschlagen!",
+    "切换失败!": "Wechsel fehlgeschlagen!",
+    "配置文件路径不合法!": "Ungültiger Konfigurationspfad!",
+    "配置文件写入失败!": "Konfiguration schreiben fehlgeschlagen!",
+    "服务重启后未就绪:": "Dienst nach Neustart nicht bereit:"
 }

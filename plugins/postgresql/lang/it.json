@@ -182,5 +182,15 @@
     "随机密码": "Password casuale",
     "您真的要删除【{1}】吗？": "Vuoi davvero eliminare 【{1}】?",
     "成功删除[{1}]个数据库!": "[{1}] database eliminati con successo!",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "端口不合法!": "Porta non valida!",
+    "配置文件中未找到端口配置!": "Porta non trovata nella config!",
+    "修改端口后服务未就绪:": "Servizio non pronto dopo il cambio porta:",
+    "权限类型不合法!": "Tipo di permesso non valido!",
+    "导入失败!": "Importazione non riuscita!",
+    "删除失败!": "Eliminazione non riuscita!",
+    "切换失败!": "Cambio non riuscito!",
+    "配置文件路径不合法!": "Percorso config non valido!",
+    "配置文件写入失败!": "Scrittura config non riuscita!",
+    "服务重启后未就绪:": "Servizio non pronto dopo il riavvio:"
 }
