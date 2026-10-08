@@ -9,7 +9,7 @@ function homePage(){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
-        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">' + pt('主页') + '</button>';
+        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + yfMsgEscape(rdata.data) + '\')">' + pt('主页') + '</button>';
         $(".soft-man-con").html(con);
     });
 }
@@ -24,32 +24,36 @@ function safeConf() {
             return;
         }
 
+        // cfg.json 里的值（面板上就能改）一律先做实体转义再拼进 innerHTML/
+        // 属性值：旧实现直接拼，用户名写成 `" ><img src=x onerror=alert(1)>`
+        // 就能在打开「安全设置」时执行（存储型 XSS）；单引号还能闭合
+        // 主页按钮 onclick 里的 window.open('...')
         var cfg = rdata.data;
         var con = '<div class="ver line">\
                     <span class="tname">' + pt('访问端口') + '</span>\
-                    <input style="width:180px" class="bt-input-text phpmyadmindk mr20" name="port" id="pmport" value="' + cfg['port'] + '" placeholder="pgadmin访问端口" maxlength="5" type="number">\
+                    <input style="width:180px" class="bt-input-text phpmyadmindk mr20" name="port" id="pmport" value="' + yfMsgEscape(cfg['port']) + '" placeholder="pgadmin访问端口" maxlength="5" type="number">\
                     <button class="btn btn-success btn-sm" onclick="setPgPort()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('基础认证用户名') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + cfg['username'] + '" placeholder="' + pt('基础认证用户名') + '" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + yfMsgEscape(cfg['username']) + '" placeholder="' + pt('基础认证用户名') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('基础认证密码') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + cfg['password'] + '" placeholder="' + pt('基础认证密码') + '" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + yfMsgEscape(cfg['password']) + '" placeholder="' + pt('基础认证密码') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgPassword()">' + pt('保存') + '</button>\
                 </div>\
                 <hr/>\
                 <div class="ver line" style="font-weight: bold; margin-bottom: 10px;">' + pt('pgAdmin系统登录信息') + '</div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('PG登录邮箱') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_username" id="pg_web_user" value="' + cfg['web_pg_username'] + '" placeholder="PG登录邮箱" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_username" id="pg_web_user" value="' + yfMsgEscape(cfg['web_pg_username']) + '" placeholder="PG登录邮箱" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setWebPgUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('PG登录密码') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_password" id="pg_web_pwd" value="' + cfg['web_pg_password'] + '" placeholder="PG登录密码" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_password" id="pg_web_pwd" value="' + yfMsgEscape(cfg['web_pg_password']) + '" placeholder="PG登录密码" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setWebPgPassword()">' + pt('保存') + '</button>\
                 </div>';
         $(".soft-man-con").html(con);

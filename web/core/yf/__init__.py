@@ -65,23 +65,28 @@ from random import Random
 _log = logging.getLogger('yf.core')
 
 
-def safeExecShell(cmd_list, cwd=None, timeout=30):
+def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
     """
     安全的命令执行（规避命令注入）
     :param cmd_list: 命令列表，如 ['ls', '-l', '/']
     :param cwd: 工作目录
     :param timeout: 超时时间
+    :param stdin_data: 需要从标准输入喂给子进程的数据（str 或 bytes）。
+        **口令等敏感数据必须走这里，绝不能塞进 cmd_list** —— argv 对同机任意用户可见
+        （`ps -eo args` / `/proc/<pid>/cmdline`），stdin 不会落进命令行。
     :return: (stdout, stderr) 都是 string 类型
     """
     try:
         if not isinstance(cmd_list, list):
             raise Exception("safeExecShell require a list of command arguments")
-        
+
+        payload = stdin_data.encode('utf-8') if isinstance(stdin_data, str) else stdin_data
+
         # 不使用 shell=True，直接调用
         sub = subprocess.Popen(cmd_list, cwd=cwd, stdin=subprocess.PIPE,
                                shell=False, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
-            data = sub.communicate(timeout=timeout)
+            data = sub.communicate(input=payload, timeout=timeout)
         except subprocess.TimeoutExpired:
             sub.kill()
             data = sub.communicate()

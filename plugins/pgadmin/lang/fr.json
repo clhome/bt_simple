@@ -56,5 +56,7 @@
     "无法判定": "Indéterminé",
     "登录自检通过": "Autotest de connexion réussi",
     "登录自检未通过": "Autotest de connexion échoué",
-    "登录自检未通过，点「修复登录」自动重建账号。": "Échec de l'autotest de connexion. Cliquez sur « Réparer la connexion » pour recréer le compte automatiquement."
+    "登录自检未通过，点「修复登录」自动重建账号。": "Échec de l'autotest de connexion. Cliquez sur « Réparer la connexion » pour recréer le compte automatiquement.",
+    "端口已被占用:": "Port déjà utilisé :",
+    "基础认证用户名不能包含换行或冒号!": "Le nom d'utilisateur de l'authentification de base ne doit pas contenir de saut de ligne ni de deux-points !"
 }

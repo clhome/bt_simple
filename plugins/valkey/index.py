@@ -5,7 +5,6 @@ import io
 import os
 import time
 import re
-import shlex
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -13,6 +12,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.valkey')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -58,15 +60,58 @@ def getInitDTpl():
 
 
 def getArgs():
-    args = sys.argv[3:]
+    """解析调用参数。
+
+    真实调用形态（web/utils/plugin.py::run）：
+        <面板 python> plugins/valkey/index.py <func> [version] <args-json>
+    args 是前端 JSON.stringify 出来的对象串（如 {"port":"6389"}）。
+    旧实现从 argv[3:] 起读、且只认 `k:v` 单值对，于是：
+      - 不带 version 调用时（argv[2] 就是参数）参数被整体跳过；
+      - JSON 对象串被按第一个冒号整段切碎（键名变成 "port"、值变成 "6389","bind":"…"），
+        键名永远匹配不上 -> 提交配置静默失效却仍回「设置成功」（假成功）。
+    与 redis 插件同口径：从 argv[2:] 起扫，支持 JSON 字典 / k=v / k:v。
+    """
+    import json
     tmp = {}
-    for arg in args:
-        arg = arg.strip().strip('{').strip('}')
-        if not arg:
+    if len(sys.argv) <= 2:
+        return tmp
+
+    # 1. 先找完整的 JSON 字典（/plugins/run 与 /plugins/callback 的传参形态）
+    for arg in reversed(sys.argv[2:]):
+        arg_str = str(arg).strip()
+        if (arg_str.startswith('{') and arg_str.endswith('}')) or (arg_str.startswith('[') and arg_str.endswith(']')):
+            try:
+                parsed = json.loads(arg_str)
+                if isinstance(parsed, dict):
+                    return parsed
+            except Exception as _e:
+                _log.debug('[valkey] getArgs 解析 JSON 参数失败: %s', _e)
+
+    # 2. 退化为 k=v / k:v 键值对解析（跳过被当成位置参数的 version 数字）
+    candidates = sys.argv[2:]
+    if len(candidates) > 1 and re.match(r'^[0-9.]+$', candidates[0]):
+        candidates = candidates[1:]
+
+    for arg in candidates:
+        arg_str = str(arg).strip()
+        try:
+            parsed = json.loads(arg_str)
+            if isinstance(parsed, dict):
+                tmp.update(parsed)
+                continue
+        except Exception as _e:
+            _log.debug('[valkey] getArgs 解析 JSON 参数失败: %s', _e)
+
+        if '=' in arg_str:
+            parts = arg_str.split('=', 1)
+            tmp[parts[0].strip().strip('"').strip("'")] = parts[1].strip().strip('"').strip("'")
             continue
-        if ':' in arg:
-            t = arg.split(':', 1)
-            tmp[t[0].strip()] = t[1].strip()
+
+        clean_str = arg_str.strip('{').strip('}')
+        if ':' in clean_str:
+            parts = clean_str.split(':', 1)
+            tmp[parts[0].strip().strip('"').strip("'")] = parts[1].strip().strip('"').strip("'")
+
     return tmp
 
 def checkArgs(data, ck=[]):
@@ -91,7 +136,21 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = yf.readFile(args['file'])
+    # 安全增强：路径前缀校验，杜绝任意文件读取与目录穿越
+    target_file = os.path.abspath(args['file'])
+    allowed_dir = os.path.abspath(getPluginDir() + '/tpl')
+    if not target_file.startswith(allowed_dir + os.sep) and not target_file.startswith(allowed_dir + '/'):
+        if target_file != allowed_dir:
+            return yf.returnJson(False, '越界访问被拒绝！')
+
+    # 必须是可读普通文件：传目录（或读失败）时 readFile 返回 False，旧写法会在
+    # contentReplace(False) 上抛 AttributeError（真机 traceback）。
+    if not os.path.isfile(target_file):
+        return yf.returnJson(False, '模板文件不存在')
+
+    content = yf.readFile(target_file)
+    if content is False:
+        return yf.returnJson(False, '模板文件不存在')
     content = contentReplace(content)
     return yf.returnJson(True, 'ok', content)
 
@@ -107,10 +166,33 @@ def getPidFile():
     return ""
 
 def status():
+    """运行状态判定。
+
+    旧实现只看 conf 里 pidfile 指向的文件**是否存在**：进程被杀/崩溃后残留的陈旧
+    pid 文件会让面板一直显示「运行中」（假阳性），读接口随后全部对着一个死进程
+    发命令。这里要求 pid 真实存活，不满足再退一步问 systemd；与 redis 插件同口径
+    （差别：valkey 不写回 pid 文件，避免 root 面板改动守护进程 pid 文件属主）。
+    """
     pid_file = getPidFile()
-    if pid_file == "" or not os.path.exists(pid_file):
-        return 'stop'
-    return 'start'
+    if pid_file and os.path.exists(pid_file):
+        try:
+            raw = yf.readFile(pid_file)
+            pid_str = raw.strip() if raw else ''
+            if pid_str.isdigit() and yf.checkPid(int(pid_str)):
+                return 'start'
+        except Exception as _e:
+            _log.debug('[valkey] status 读取 pid 文件失败: %s', _e)
+
+    current_os = yf.getOs()
+    if current_os != 'darwin' and not current_os.startswith('freebsd'):
+        try:
+            data = yf.execShell('systemctl is-active ' + getPluginName())
+            if data[0].strip() == 'active':
+                return 'start'
+        except Exception as _e:
+            _log.debug('[valkey] status 探测 systemd 状态失败: %s', _e)
+
+    return 'stop'
 
 def contentReplace(content):
     service_path = yf.getServerDir()
@@ -192,7 +274,18 @@ def wkOp(method):
 
 
 def start():
-    return wkOp('start')
+    res = wkOp('start')
+
+    # 闭环校验：systemctl 返回成功 ≠ 进程真的活着（配置写坏时进程会立刻退出）。
+    # 不做就绪轮询就 return ok 就是假成功，面板显示「已启动」而服务其实没起来。
+    for _ in range(5):
+        time.sleep(1)
+        if status() == 'start':
+            return 'ok'
+
+    if res != 'ok' and str(res).strip() != '':
+        return '启动失败: ' + str(res)
+    return '启动失败，进程未能存活，请查看运行日志'
 
 
 def stop():
@@ -200,11 +293,20 @@ def stop():
 
 
 def restart():
-    status = wkOp('restart')
+    res = wkOp('restart')
 
-    log_file = runLog()
-    yf.execShell("echo '' > " + log_file)
-    return status
+    # 同 start()：不轮询就回 ok 会让「保存配置→重启」假成功，而 submitRedisConf 的
+    # 回滚判据正是本函数返回值（返回非 ok 才回滚），所以必须真的确认已就绪。
+    for _ in range(5):
+        time.sleep(1)
+        if status() == 'start':
+            log_file = runLog()
+            yf.execShell("echo '' > " + log_file)
+            return 'ok'
+
+    if res != 'ok' and str(res).strip() != '':
+        return '重启失败: ' + str(res)
+    return '重启失败，服务未能重新拉起'
 
 
 def reload():
@@ -212,51 +314,63 @@ def reload():
 
 
 def getPort():
-    conf = getServerDir() + '/valkey.conf'
-    content = yf.readFile(conf)
-    if not content:
-        return '6379'
-
-    rep = r"^(port)\s*([.0-9A-Za-z_& ~]+)"
-    tmp = re.search(rep, content, re.M)
-    if tmp:
-        return tmp.groups()[1]
-
+    conf_list = getRedisConfInfo()
+    for item in conf_list:
+        if item['name'] == 'port' and item['value']:
+            return str(item['value']).strip()
     return '6379'
 
 
 def getRedisCmd():
+    """构造 valkey-cli 的**参数列表**（绝不拼成 shell 字符串）。
+
+    为什么必须是列表：调用点一旦把字符串交给 yf.execShell，参数就由 shell 解释，
+    而 port/requirepass 都来自 valkey.conf（submit_redis_conf 可写）——真机夹具
+    实测：conf 里写 `port 6389 & touch yftest_b06_rce`，执行时 `& touch …`
+    会以 root 身份跑起来（命令注入）。列表化后参数不再经 shell，密码也无需转义。
+    """
     requirepass = ""
-    conf = getConf()
-    content = yf.readFile(conf)
-    if not content:
-        content = ""
-    rep = r"^(requirepass)\s*([.0-9A-Za-z_& ~]+)"
-    tmp = re.search(rep, content, re.M)
-    if tmp:
-        requirepass = tmp.groups()[1]
+    port = "6379"
+    conf_list = getRedisConfInfo()
+    for item in conf_list:
+        if item['name'] == 'requirepass' and item['value']:
+            requirepass = str(item['value']).strip()
+        elif item['name'] == 'port' and item['value']:
+            port = str(item['value']).strip()
 
-    default_ip = '127.0.0.1'
-    port = getPort()
-    # findDebian = yf.execShell('cat /etc/issue |grep Debian')
-    # if findDebian[0] != '':
-    #     default_ip = yf.getLocalIp()
-    cmd = getServerDir() + "/bin/valkey-cli -h " + default_ip + ' -p ' + port + " "
+    valkey_cli = getServerDir() + "/bin/valkey-cli"
+    if not os.path.exists(valkey_cli):
+        for b in ['/usr/bin/valkey-cli', '/usr/local/bin/valkey-cli']:
+            if os.path.exists(b):
+                valkey_cli = b
+                break
+        else:
+            valkey_cli = "valkey-cli"
 
+    argv = [valkey_cli, '-h', '127.0.0.1', '-p', port]
     if requirepass != "":
-        cmd = getServerDir() + '/bin/valkey-cli -h ' + default_ip + ' -p ' + port + ' -a ' + shlex.quote(requirepass) + ' '
+        argv += ['-a', requirepass, '--no-auth-warning']
+    return argv
 
-    return cmd
+
+def valkeyCli(*args):
+    """以 shell=False 执行 valkey-cli，返回 (stdout, stderr)。
+
+    所有读接口的唯一执行入口：命令内容永远不经过 shell（见 getRedisCmd 的说明），
+    并统一带 5s 超时，避免服务挂死时把面板请求线程一并拖住。
+    """
+    rc, out, err = yf.execShellRc(getRedisCmd() + list(args), shell=False, timeout=5)
+    if rc != 0 and not err:
+        err = 'valkey-cli 执行失败(rc=%s)' % rc
+    return (out or '', err or '')
+
 
 def runInfo():
     s = status()
     if s == 'stop':
         return yf.returnJson(False, '未启动')
 
-    
-    cmd = getRedisCmd()
-    cmd = cmd + 'info'
-    data = yf.execShell(cmd)[0]
+    data, err = valkeyCli('info')
     res = [
         'tcp_port',
         'uptime_in_days',  # 已运行天数
@@ -277,11 +391,19 @@ def runInfo():
     for d in data:
         if len(d) < 3:
             continue
-        t = d.strip().split(':')
+        t = d.strip().split(':', 1)
         if not t[0] in res:
             continue
         result[t[0]] = t[1]
+
+    if not result:
+        # 空结果必须如实报错：旧实现直接回 {}，前端拿到的是一张全是 undefined 的表，
+        # 运维会以为「服务正常只是没数据」，实际可能是 cli/密码/端口出了问题。
+        detail = (err.strip() or data.strip() or '无返回内容')
+        return yf.returnJson(False, '未能读取到有效的 Valkey 状态数据: ' + detail)
+
     return yf.getJson(result)
+
 
 def infoReplication():
     # 复制信息
@@ -289,12 +411,7 @@ def infoReplication():
     if s == 'stop':
         return yf.returnJson(False, '未启动')
 
-    cmd = getRedisCmd()
-    cmd = cmd + 'info replication'
-
-    # print(cmd)
-    data = yf.execShell(cmd)[0]
-    # print(data)
+    data, _ = valkeyCli('info', 'replication')
     res = [
         #slave
         'role',#角色
@@ -324,13 +441,18 @@ def infoReplication():
     for d in data:
         if len(d) < 3:
             continue
-        t = d.strip().split(':')
+        t = d.strip().split(':', 1)
         if not t[0] in res:
             continue
         result[t[0]] = t[1]
 
     if 'role' in result and result['role'] == 'master':
-        connected_slaves = int(result['connected_slaves'])
+        # connected_slaves 缺失/非数字时不能直接 int()：INFO 被截断或换实现时
+        # 实测 KeyError → 接口 500 / 子进程 traceback。缺失即按 0 个从库处理。
+        try:
+            connected_slaves = int(result.get('connected_slaves', 0) or 0)
+        except (TypeError, ValueError):
+            connected_slaves = 0
         slave_l = [] 
         for x in range(connected_slaves):
             slave_l.append('slave'+str(x))
@@ -338,8 +460,10 @@ def infoReplication():
         for d in data:
             if len(d) < 3:
                 continue
-            t = d.strip().split(':')
-            if not t[0] in slave_l:
+            # 只按第一个冒号切分：从库行是 `slave0:ip=..,port=..`，IPv6 场景值里
+            # 还会再出现冒号，旧的 split(':') 会把值截断。
+            t = d.strip().split(':', 1)
+            if t[0] not in slave_l or len(t) < 2:
                 continue
             result[t[0]] = t[1]
 
@@ -353,12 +477,7 @@ def clusterInfo():
     if s == 'stop':
         return yf.returnJson(False, '未启动')
 
-    cmd = getRedisCmd()
-    cmd = cmd + 'cluster info'
-
-    # print(cmd)
-    data = yf.execShell(cmd)[0]
-    # print(data)
+    data, _ = valkeyCli('cluster', 'info')
 
     res = [
         'cluster_state',#状态
@@ -380,7 +499,7 @@ def clusterInfo():
     for d in data:
         if len(d) < 3:
             continue
-        t = d.strip().split(':')
+        t = d.strip().split(':', 1)
         if not t[0] in res:
             continue
         result[t[0]] = t[1]
@@ -392,14 +511,11 @@ def clusterNodes():
     if s == 'stop':
         return yf.returnJson(False, '未启动')
 
-    cmd = getRedisCmd()
-    cmd = cmd + 'cluster nodes'
+    data, _ = valkeyCli('cluster', 'nodes')
 
-    # print(cmd)
-    data = yf.execShell(cmd)[0]
-    # print(data)
-
-    data = data.strip().split("\n")
+    # 空应答必须回空列表：旧的 strip().split('\n') 会产出 ['']，前端把这条假数据
+    # 渲染成一行空行，而不是「无数据/未设置集群」。
+    data = [line for line in data.strip().split("\n") if line.strip()]
     return yf.getJson(data)
 
 def initdStatus():
@@ -412,12 +528,14 @@ def initdStatus():
         if os.path.exists(initd_bin):
             return 'ok'
 
-    shell_cmd = 'systemctl status ' + \
-        getPluginName() + ' | grep loaded | grep "enabled;"'
+    # 旧写法 `systemctl status … | grep loaded | grep "enabled;"` 依赖人类可读输出：
+    # 状态行在非英文 locale 下会被翻译（"已加载"），进而把「已启用」误判成 fail；
+    # 改成机器可读的 is-enabled 判定（redis 插件同口径，输出永不本地化）。
+    shell_cmd = 'systemctl is-enabled ' + getPluginName()
     data = yf.execShell(shell_cmd)
-    if data[0] == '':
-        return 'fail'
-    return 'ok'
+    if data[0].strip() == 'enabled':
+        return 'ok'
+    return 'fail'
 
 
 def initdInstall():
@@ -472,24 +590,47 @@ def getRedisConfInfo():
         {'name': 'slaveof', 'type': 2, 'ps': '同步主库地址','must_show':0},
         {'name': 'masterauth', 'type': 2, 'ps': '同步主库密码', 'must_show':0}
     ]
-    content = yf.readFile(conf)
+    content = yf.readFile(conf) if os.path.exists(conf) else ''
     if not content:
-        content = ""
+        content = ''
 
     result = []
     for g in gets:
-        rep = r"^(" + g['name'] + r')\s*([.0-9A-Za-z_& ~]+)'
-        tmp = re.search(rep, content, re.M)
-        if not tmp:
-            if g['must_show'] == 0:
-                continue
-
-            g['value'] = ''
+        # 1. 优先匹配双引号值: name "value"（完整保留引号内的 #、空格等特殊字符，
+        #    与新 submitRedisConf 写回时的引号包裹口径对应）
+        m_double = re.search(r'^\s*' + g['name'] + r'\s+"([^"]*)"', content, re.M)
+        if m_double:
+            val = m_double.group(1).strip()
+            if g['name'] == 'maxmemory':
+                val = val.lower().rstrip("mb").rstrip("m").strip()
+            g['value'] = val
             result.append(g)
             continue
-        g['value'] = tmp.groups()[1]
-        if g['name'] == 'maxmemory':
-            g['value'] = g['value'].strip("mb")
+
+        # 2. 匹配单引号值: name 'value'
+        m_single = re.search(r"^\s*" + g['name'] + r"\s+'([^']*)'", content, re.M)
+        if m_single:
+            val = m_single.group(1).strip()
+            if g['name'] == 'maxmemory':
+                val = val.lower().rstrip("mb").rstrip("m").strip()
+            g['value'] = val
+            result.append(g)
+            continue
+
+        # 3. 匹配未带引号的值（读到行尾或 # 注释为止）
+        m_plain = re.search(r'^\s*' + g['name'] + r'\s+([^\r\n#]+)', content, re.M)
+        if m_plain:
+            val = m_plain.group(1).strip()
+            if g['name'] == 'maxmemory':
+                val = val.lower().rstrip("mb").rstrip("m").strip()
+            g['value'] = val
+            result.append(g)
+            continue
+
+        # 4. 未配置项处理
+        if g['must_show'] == 0:
+            continue
+        g['value'] = ''
         result.append(g)
 
     return result
@@ -502,30 +643,87 @@ def getRedisConf():
 
 def submitRedisConf():
     gets = ['bind', 'port', 'timeout', 'maxclients',
-            'databases', 'requirepass', 'maxmemory','slaveof','masterauth']
+            'databases', 'requirepass', 'maxmemory', 'slaveof', 'masterauth']
     args = getArgs()
     conf = getConf()
-    content = yf.readFile(conf)
+    content = yf.readFile(conf) if os.path.exists(conf) else ''
     if not content:
-        content = ""
+        content = ''
+    # 落盘前的原配置快照：写坏/重启失败时整份回滚，绝不许「设置成功」假成功
+    original_content = content
+
+    # 强正则白名单校验，杜绝任意指令与换行符注入（RCE）
     for g in gets:
         if g in args:
-            rep = g + r'\s*([.0-9A-Za-z_& ~]+)'
-            val = g + ' ' + args[g]
+            val_str = str(args[g]).strip()
+
+            # 1. 纯数字项（port 另加 1..65535 范围：越界端口写下去服务必然起不来）
+            if g in ['port', 'timeout', 'maxclients', 'databases', 'maxmemory']:
+                if not re.match(r'^\d+$', val_str) or (g == 'port' and not (1 <= int(val_str) <= 65535)):
+                    return yf.returnJson(False, '参数 [' + g + '] 格式不合法！')
+
+            # 2. 绑定 IP 与主从同步（支持 IPv4/IPv6、半角空格分隔、逗号）
+            #    这里刻意不用 \s：\s 含 \n/\r/\f/\v，而 Redis/Valkey 配置解析器会把
+            #    这些字符当换行/分隔符 —— 等于把任意指令注入 valkey.conf。真机夹具实测
+            #    bind="127.0.0.1\nport 1" 通过旧校验，`port 1` 被写进了配置文件。
+            elif g in ['bind', 'slaveof']:
+                if val_str != '' and not re.match(r'^[0-9a-zA-Z_.,:\- ]+$', val_str):
+                    return yf.returnJson(False, '参数 [' + g + '] 格式不合法！')
+
+            # 3. 密码/凭据（允许常用安全符号，杜绝换行注入）
+            elif g in ['requirepass', 'masterauth']:
+                if val_str != '' and not re.match(r'^[a-zA-Z0-9_.~!@#$%^&*()_+=\[\]{};:,./<>-]+$', val_str):
+                    return yf.returnJson(False, '密码参数 [' + g + '] 含有非法字符！')
+
+    for g in gets:
+        if g in args:
+            val_str = str(args[g]).strip()
 
             if g == 'maxmemory':
-                val = g + ' ' + args[g] + "mb"
+                target_val = val_str + 'mb' if (val_str and val_str != '0') else '0'
+            else:
+                target_val = val_str
 
-            if g == 'requirepass' and args[g] == '':
-                content = re.sub('requirepass', '#requirepass', content)
-            if g == 'requirepass' and args[g] != '':
-                content = re.sub('#requirepass', 'requirepass', content)
-                content = re.sub(rep, val, content)
+            if g in ['requirepass', 'masterauth']:
+                # 含 # / 空格的密码必须引号包裹，否则服务会把 # 之后当注释截断
+                write_val = f'"{val_str}"' if ('#' in val_str or ' ' in val_str) else val_str
+                if val_str == '':
+                    if re.search(r'^[ \t]*' + g + r'[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*' + g + r'[ \t]+.*', '#' + g + ' ""', content, flags=re.M)
+                else:
+                    if re.search(r'^[ \t]*#?[ \t]*' + g + r'[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*#?[ \t]*' + g + r'[ \t]+.*', g + ' ' + write_val, content, flags=re.M)
+                    else:
+                        content += '\n' + g + ' ' + write_val
+            elif g == 'slaveof':
+                if val_str == '':
+                    if re.search(r'^[ \t]*(slaveof|replicaof)[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*(slaveof|replicaof)[ \t]+.*', '', content, flags=re.M)
+                else:
+                    if re.search(r'^[ \t]*#?[ \t]*(slaveof|replicaof)[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*#?[ \t]*(slaveof|replicaof)[ \t]+.*', 'replicaof ' + val_str, content, flags=re.M)
+                    else:
+                        content += '\nreplicaof ' + val_str
+            else:
+                # 行首缩进只用 [ \t]：旧实现是无锚点正则，会把配置里**其他行**（含注释）
+                # 的同名片段一并改写，于是「原值重提一次」也改动文件（真机夹具实测：
+                # 密码清空两次得到 #requirepass -> ##requirepass，字节每次都在漂）。
+                rep = r'^[ \t]*' + g + r'[ \t]+.*'
+                if re.search(rep, content, flags=re.M):
+                    content = re.sub(rep, g + ' ' + target_val, content, flags=re.M)
+                else:
+                    content += '\n' + g + ' ' + target_val
 
-            if g != 'requirepass':
-                content = re.sub(rep, val, content)
-    yf.writeFile(conf, content)
-    reload()
+    # 落盘 + 闭环校验：写坏要能回滚，失败绝不许假成功。
+    # 旧实现不看 writeFile 结果、也不看 reload 结果，永远回「设置成功」。
+    if not yf.writeFile(conf, content):
+        return yf.returnJson(False, '配置文件写入失败！')
+    if status() == 'start':
+        res = restart()
+        if res != 'ok':
+            yf.writeFile(conf, original_content)
+            restart()
+            return yf.returnJson(False, 'Valkey 重启失败，配置已回滚！')
     return yf.returnJson(True, '设置成功')
 
 if __name__ == "__main__":

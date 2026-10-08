@@ -56,5 +56,7 @@
     "无法判定": "Unknown",
     "登录自检通过": "Login self-check passed",
     "登录自检未通过": "Login self-check failed",
-    "登录自检未通过，点「修复登录」自动重建账号。": "Login self-check failed. Click \"Repair login\" to rebuild the account automatically."
+    "登录自检未通过，点「修复登录」自动重建账号。": "Login self-check failed. Click \"Repair login\" to rebuild the account automatically.",
+    "端口已被占用:": "Port already in use:",
+    "基础认证用户名不能包含换行或冒号!": "The basic authentication username must not contain newline or colon!"
 }

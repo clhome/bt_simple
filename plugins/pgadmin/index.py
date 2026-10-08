@@ -3,6 +3,7 @@
 import sys
 import io
 import os
+import socket
 import time
 import re
 import json
@@ -39,6 +40,10 @@ def getServerDir():
 LOCAL_TPL_VERSION = 5
 # vhost 模板版本，必须与 conf/pgadmin.conf 里的 PGADMIN_VHOST_TPL_VERSION 一致
 VHOST_TPL_VERSION = 3
+
+# 本插件向防火墙放行的端口规则所属的服务名（ps 字段）。
+# openPort / delPort 必须认这一条，否则会误删别的组件开的同名端口规则。
+FIREWALL_RULE_PS = 'pgAdmin默认端口'
 
 
 def getDataDir():
@@ -162,7 +167,11 @@ def getPort():
     file = getConf()
     content = yf.readFile(file)
     rep = r'listen\s*(.*);'
-    tmp = re.search(rep, content)
+    tmp = re.search(rep, content) if content else None
+    if not tmp:
+        # 旧实现在这里直接 tmp.groups()：vhost 缺失/被改坏时抛 AttributeError，
+        # 报错信息对排查毫无帮助
+        raise Exception('未找到 listen 配置: ' + file)
     return tmp.groups()[0].strip()
 
 
@@ -189,10 +198,28 @@ def contentReplace(content):
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$APP_PATH}', service_path+'/'+getPluginName()+'/data')
 
-    port = cfg["port"]
-    rep = r'listen\s*(.*);'
-    content = re.sub(rep, "listen " + port + ';', content)
+    # cfg.json 缺失/被改坏时 getCfg() 返回 {}，旧实现 cfg["port"] 直接 KeyError，
+    # 把 restart/reload 整条链路打成 500；没有 port 就保留模板里的 listen 值
+    port = str(cfg.get('port') or '').strip()
+    if port:
+        rep = r'listen\s*(.*);'
+        content = re.sub(rep, "listen " + port + ';', content)
     return content
+
+
+def _chmodOwnerOnly(path):
+    """把含凭据的状态文件收敛为 0600（仅属主可读写，且已是时不动 mtime）。
+
+    cfg.json 里有基础认证口令与 pgAdmin 登录口令，account_state.json 是账号状态，
+    两者都只由面板自身（以 root 运行）读写，不需要对其它本地用户开放。
+    """
+    try:
+        if os.path.exists(path) and (os.stat(path).st_mode & 0o077) != 0:
+            os.chmod(path, 0o600)
+        return True
+    except Exception as _e:
+        _log.debug('[pgadmin] 收敛文件权限失败 %s: %s', path, _e)
+        return False
 
 
 def initCfg():
@@ -208,6 +235,7 @@ def initCfg():
         data['web_pg_username'] = ''
         data['web_pg_password'] = ''
         yf.writeFile(cfg, json.dumps(data))
+    _chmodOwnerOnly(cfg)
 
 
 def getCfg():
@@ -224,7 +252,10 @@ def setCfg(key, val):
     cfg = getServerDir() + "/cfg.json"
     data = getCfg()
     data[key] = val
-    return yf.writeFile(cfg, json.dumps(data))
+    ok = yf.writeFile(cfg, json.dumps(data))
+    # 这里存着基础认证口令与 pgAdmin 登录口令，落盘即收敛为 0600
+    _chmodOwnerOnly(cfg)
+    return ok
 
 
 def returnCfg():
@@ -235,35 +266,46 @@ def __release_port(port):
     from collections import namedtuple
     try:
         from utils.firewall import Firewall as YfFirewall
-        YfFirewall.instance().addAcceptPort(port, 'pgAdmin默认端口', 'port')
+        YfFirewall.instance().addAcceptPort(port, FIREWALL_RULE_PS, 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)
 
 
 def __delete_port(port):
-    from collections import namedtuple
+    """释放本插件自己开的那一条放行规则。
+
+    旧实现调的是 `delAcceptPort(port, 'tcp')`，而该函数签名是
+    `delAcceptPort(firewall_id, port, protocol)` —— 把**端口**当成 firewall 表的
+    **id** 传进去了，查不到记录直接返回 DEL_ERROR，端口从来没有真正释放过：
+    真机实测 stop() 之后 panel.db 的 'pgAdmin默认端口/5051' 与 firewalld 的
+    5051/tcp 全都还在（"释放的是否恰好是自己开的那个端口"= 一条都没删）。
+    按 ps + port 先定位本插件自己的那条记录，再按 id 删，绝不误删别人的同名端口。
+    """
     try:
         from utils.firewall import Firewall as YfFirewall
-        YfFirewall.instance().delAcceptPort(port, 'tcp')
+        row = yf.M('firewall').where("port=? and ps=?", (str(port), FIREWALL_RULE_PS)).field('id').find()
+        if not row:
+            return port
+        YfFirewall.instance().delAcceptPort(row['id'], port)
         return port
     except Exception as e:
         return "Release failed {}".format(e)
 
 
 def openPort():
-    conf = getCfg()
-    port = conf['port']
-    for i in [port]:
-        __release_port(i)
+    port = str(getCfg().get('port') or '').strip()
+    if not port:
+        return False
+    __release_port(port)
     return True
 
 
 def delPort():
-    conf = getCfg()
-    port = conf['port']
-    for i in [port]:
-        __delete_port(i)
+    port = str(getCfg().get('port') or '').strip()
+    if not port:
+        return False
+    __delete_port(port)
     return True
 
 
@@ -323,7 +365,7 @@ def getPgAdminPython():
 PROVISION_TEMPLATE = '''# -*- coding: utf-8 -*-
 """pgAdmin 内部账号同步脚本（由 plugins/pgadmin/index.py 生成，请勿手工修改）。
 
-用法: <venv>/bin/python pg_user_sync.py <email> <password> [match_email] [force]
+用法: <venv>/bin/python pg_user_sync.py <email> [match_email] [force]   # 口令从 stdin 读入
 输出: PGA_DB:<实际使用的配置库路径> / PGA_OK / PGA_ERR:<原因> / PGA_EXC:<堆栈>
 退出码: 0=成功 2=官方 API 失败 3=写入后查不到 4=账号状态异常 5=异常
 """
@@ -332,8 +374,24 @@ import sys
 
 PGADMIN_DIR = {pgadmin_dir!r}
 EMAIL = sys.argv[1]
-PASSWORD = sys.argv[2]
-MATCH = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else EMAIL
+MATCH = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else EMAIL
+
+
+def read_password():
+    """口令从 stdin 读入，绝不放进 argv。
+
+    argv 对同机任意用户可见（ps -eo args / /proc/<pid>/cmdline）：
+    旧实现把口令当 sys.argv[2]，真机 `ps -eo args` 能直接看到明文口令。
+    """
+    data = sys.stdin.read() if sys.stdin else ''
+    if data.endswith('\\n'):
+        data = data[:-1]
+    if data.endswith('\\r'):
+        data = data[:-1]
+    return data
+
+
+PASSWORD = read_password()
 
 
 def out(tag, msg=''):
@@ -501,9 +559,10 @@ def syncPgAdminPassword(email, password, match_email=None, force=True):
     if not script_path:
         return False, '无法写入账号同步脚本'
 
+    # 口令走 stdin（不进 argv）：argv 对同机任意用户可见
     out, err = yf.safeExecShell(
-        [py_bin, script_path, email, password, match_email or '', '1' if force else '0'],
-        cwd=pgadmin_dir, timeout=180)
+        [py_bin, script_path, email, match_email or '', '1' if force else '0'],
+        cwd=pgadmin_dir, timeout=180, stdin_data=password)
     ok, reason, db_used = parseProvisionResult(out, err)
 
     if ok and db_used:
@@ -592,7 +651,7 @@ def isAccountHealthy(user):
 VERIFY_TEMPLATE = '''# -*- coding: utf-8 -*-
 """pgAdmin 口令校验（由 plugins/pgadmin/index.py 生成，请勿手工修改）。
 
-用法: <pgadmin venv>/bin/python pg_password_check.py <email> <password>
+用法: <pgadmin venv>/bin/python pg_password_check.py <email>   # 口令从 stdin 读入
 输出: PGA_VERIFY_OK / PGA_VERIFY_BAD / PGA_VERIFY_UNKNOWN:<原因> / PGA_VERIFY_ERR:<原因>
 退出码: 0=一致 1=不一致 3=配置库不存在 4=账号不存在 6=无法判定
 """
@@ -603,7 +662,19 @@ import sys
 DB_PATH = {db_path!r}
 PGADMIN_DIR = {pgadmin_dir!r}
 EMAIL = sys.argv[1]
-PASSWORD = sys.argv[2]
+
+
+def read_password():
+    """口令从 stdin 读入，绝不放进 argv（ps -eo args 对所有本地用户可见）。"""
+    data = sys.stdin.read() if sys.stdin else ''
+    if data.endswith('\\n'):
+        data = data[:-1]
+    if data.endswith('\\r'):
+        data = data[:-1]
+    return data
+
+
+PASSWORD = read_password()
 
 HASHERS = {{}}
 
@@ -732,8 +803,8 @@ def runVerifyPassword(email, password):
     if not yf.writeFile(script_path, buildVerifyScript(getPgAdminDbPath(), getPgAdminDir())):
         return None, '无法写入口令校验脚本'
 
-    out, err = yf.safeExecShell([py_bin, script_path, email, password],
-                                cwd=getServerDir(), timeout=60)
+    out, err = yf.safeExecShell([py_bin, script_path, email],
+                                cwd=getServerDir(), timeout=60, stdin_data=password)
     reason = ''
     for line in (out or '').splitlines():
         line = line.strip()
@@ -818,8 +889,10 @@ def getAccountStatePath():
 
 def saveAccountState(state):
     try:
-        return bool(yf.writeFile(getAccountStatePath(),
-                                 json.dumps(state, ensure_ascii=False)))
+        ok = bool(yf.writeFile(getAccountStatePath(),
+                                json.dumps(state, ensure_ascii=False)))
+        _chmodOwnerOnly(getAccountStatePath())
+        return ok
     except Exception:
         return False
 
@@ -1282,6 +1355,13 @@ def ensureBasicAuth():
 
     旧实现只在 pg.pass 不存在时才生成，若 cfg.json 被删或被改，
     面板显示的账号和 Nginx 实际校验的账号就会对不上。
+
+    权限：pg.pass 是给 Nginx 读的 htpasswd 文件，worker 以 www 运行。
+    旧实现写完后 `os.chmod(path, 0o600)`（属主 root），worker open() 直接
+    Permission denied —— 真机实测：改一次基础认证密码后，带**正确**凭据访问
+    http://127.0.0.1:5051/login 也一律 500，error.log 里就是
+    `open() "<serverDir>/pgadmin/pg.pass" failed (13: Permission denied)`。
+    与网站密码文件 setHasPwd 的口径保持一致（0644）。
     """
     cfg = getCfg()
     username = cfg.get('username', '')
@@ -1289,6 +1369,8 @@ def ensureBasicAuth():
     if username and password:
         content = yf.readFile(getBasicAuthFile())
         if content and content.split(':', 1)[0] == username:
+            # 已存在且账号一致：也要修回 Nginx 可读的权限（可能是旧版本写下的 0600）
+            _ensureBasicAuthReadable(getBasicAuthFile())
             return True
     else:
         username = yf.getRandomString(8)
@@ -1299,12 +1381,19 @@ def ensureBasicAuth():
     path = getBasicAuthFile()
     if not yf.writeFile(path, username + ':' + yf.hasPwd(password)):
         return False
-    try:
-        # 口令文件只允许属主读写
-        os.chmod(path, 0o600)
-    except Exception as _e:
-        _log.debug('[pgadmin] ensureBasicAuth 异常已忽略: %s', _e)
+    _ensureBasicAuthReadable(path)
     return True
+
+
+def _ensureBasicAuthReadable(path):
+    """保证 pg.pass 对 Nginx worker（www）可读；幂等。"""
+    try:
+        if (os.stat(path).st_mode & 0o044) != 0o044:
+            os.chmod(path, 0o644)
+        return True
+    except Exception as _e:
+        _log.debug('[pgadmin] 修正 pg.pass 权限失败: %s', _e)
+        return False
 
 
 def ensurePgAdminAccount():
@@ -1320,8 +1409,9 @@ def ensurePgAdminAccount():
         setCfg('web_pg_username', pg_username)
         setCfg('web_pg_password', pg_password)
         pg_init_bash = getPluginDir() + '/pg_init.sh'
-        yf.safeExecShell(['bash', pg_init_bash, pg_username, pg_password, yf.getServerDir()],
-                         cwd=getPluginDir(), timeout=600)
+        # 口令走 stdin（不进 argv）
+        yf.safeExecShell(['bash', pg_init_bash, pg_username, yf.getServerDir()],
+                         cwd=getPluginDir(), timeout=600, stdin_data=pg_password)
 
     # 凭据只生成一次：只要 cfg 里已有值就不再重新生成。
     # 绝不能拿「库文件是否存在」当判据 —— 路径判断一旦有偏差，
@@ -1344,6 +1434,8 @@ def initReplace():
     global _LAST_PROVISION
     initPgConfFile()
     patchPgAdminModel()
+    # 自愈 cfg.json 权限（可能由旧版本写成 0644：里面有明文口令）
+    _chmodOwnerOnly(getServerDir() + "/cfg.json")
 
     file_tpl = getPluginDir() + '/conf/pgadmin.conf'
     file_run = getConf()
@@ -1400,25 +1492,49 @@ def pgOp(method, do_init=True):
 
 def status():
     sock = '/tmp/pgadmin4.sock'
-    if os.path.exists(sock):
+    if not os.path.exists(sock):
+        return 'stop'
+    # 仅凭 socket 文件存在会误判：进程被 kill -9（或异常崩溃）时 gunicorn 来不及
+    # unlink，残留的 socket inode 仍留在 /tmp。真机实测：unit=failed、进程已死，
+    # 旧实现照样返回 start —— 面板显示「运行中」而页面根本打不开。
+    # 必须真的连上一次才算运行中。
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1.5)
+        try:
+            s.connect(sock)
+        finally:
+            s.close()
         return 'start'
-    return 'stop'
+    except Exception:
+        return 'stop'
 
 
 def start():
     initCfg()
     openPort()
 
-    pgOp('start')
+    state = pgOp('start')
 
     yf.restartWeb()
-    return 'ok'
+
+    # 闭环校验：`systemctl start` 被受理不代表服务已就绪，更不代表能用。
+    # 旧实现不看 pgOp 结果、也不探测就绪，一律 return 'ok' —— 真机实测
+    # unit 被 mask 时 `plugins/pgadmin/index.py start` 照样打印 ok，面板把
+    # 失败记成成功（状态缓存也写成功）。
+    for _ in range(10):
+        time.sleep(1)
+        if status() == 'start':
+            return 'ok'
+    if state and state != 'ok':
+        return state
+    return 'pgadmin 启动失败：socket 未就绪(/tmp/pgadmin4.sock)'
 
 
 def stop():
     # 停止时不走 initReplace()：那会重新写 vhost、跑建库与账号同步，
     # 对一个「停止」操作来说纯属多余副作用
-    pgOp('stop', do_init=False)
+    state = pgOp('stop', do_init=False)
 
     conf = getConf()
     if os.path.exists(conf):
@@ -1426,14 +1542,30 @@ def stop():
 
     delPort()
     yf.restartWeb()
-    return 'ok'
+
+    # 闭环校验：还能连上 socket 就不能报成功（旧实现无论结果如何都 return 'ok'）
+    for _ in range(5):
+        if status() == 'stop':
+            return 'ok'
+        time.sleep(1)
+    if state and state != 'ok':
+        return state
+    return 'pgadmin 停止失败：服务仍在运行'
 
 
 def restart():
     cleanNginxLog()
     state = pgOp('restart')
     yf.restartWeb()
-    return state
+
+    # 与 start() 同样的就绪闭环：不能没起来就报 ok
+    for _ in range(10):
+        time.sleep(1)
+        if status() == 'start':
+            return 'ok'
+    if state and state != 'ok':
+        return state
+    return 'pgadmin 重启失败：socket 未就绪(/tmp/pgadmin4.sock)'
 
 
 def reload():
@@ -1473,6 +1605,18 @@ def setPgPort():
     file = getConf()
     if not os.path.exists(file):
         return yf.returnJson(False, '插件未启动!')
+
+    cfg = getCfg()
+    old_port = str(cfg.get('port') or '').strip()
+    if old_port == port:
+        return yf.returnJson(True, '修改成功!')
+
+    # 先看目标端口是否已被其它服务占用：listen 一旦与其它站点/组件冲突，
+    # nginx 整份配置校验失败（openresty 继续跑旧配置），而旧实现无条件回
+    # 「修改成功」—— 用户以为改好了，实际还在旧端口上。
+    if yf.isOpenPort(port):
+        return yf.returnJson(False, '端口已被占用: ' + port)
+
     content = yf.readFile(file)
     rep = r'listen\s*(.*);'
     new_content = re.sub(rep, "listen " + port + ';', content)
@@ -1483,6 +1627,10 @@ def setPgPort():
     yf.writeFile(file, new_content)
 
     setCfg("port", port)
+    # 端口换了，防火墙规则也要跟着换：否则旧端口一直开着（残留），新端口访问不了
+    if old_port:
+        __delete_port(old_port)
+    __release_port(port)
     yf.restartWeb()
     return yf.returnJson(True, '修改成功!')
 
@@ -1496,6 +1644,10 @@ def setPgUsername():
     username = (args['username'] or '').strip()
     if not username:
         return yf.returnJson(False, '基础认证用户名不能为空!')
+    # pg.pass 是 htpasswd 文本文件，换行/冒号会让用户输入变成文件结构
+    # （可凭空注入任意额外账号行），用户名本身也不该含这些字符
+    if len(username) > 64 or re.search(r'[\r\n:]', username):
+        return yf.returnJson(False, '基础认证用户名不能包含换行或冒号!')
 
     setCfg('username', username)
     if not ensureBasicAuth():

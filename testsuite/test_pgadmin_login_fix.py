@@ -184,8 +184,11 @@ class PgAdminStaticContract(unittest.TestCase):
         self.assertIn('PGADMIN_SETUP_EMAIL', sh)          # 仅向后兼容 v4~v7
         self.assertIn('账号由 plugins/pgadmin/index.py', sh)
         self.assertIn('exit ${rc}', sh)
-        # 第三个参数是 serverDir，不能再把 /www/server 写死成唯一路径
-        self.assertIn('${3:-/www/server}', sh)
+        # serverDir 是参数，不能再把 /www/server 写死成唯一路径。
+        # 2026-10-08 B07：口令改为从 stdin 读入（不进 argv），参数顺序随之变为
+        # `pg_init.sh <email> [serverDir]`，于是从 ${3:-} 变成 ${2:-}
+        self.assertIn('${2:-/www/server}', sh)
+        self.assertIn('IFS= read -r email_pwd', sh)
 
         idx = _read(os.path.join(PLUGIN_DIR, 'index.py'))
         # 建库之后必须紧跟账号同步
@@ -482,7 +485,15 @@ class PgAdminSettingsGuards(unittest.TestCase):
         self.assertFalse(r['status'])
         self.assertEqual(self.pg.getCfg()['username'], 'u1')
 
-    def test_31_ensure_basic_auth_writes_0600(self):
+    def test_31_ensure_basic_auth_writes_nginx_readable(self):
+        """pg.pass 是 Nginx 的 auth_basic_user_file，必须让 worker（www）读得到
+
+        旧用例把 0600（属主 root）当成正确口径，而 Nginx worker 以 www 运行：
+        真机实测改一次基础认证密码后，带**正确**凭据访问
+        http://127.0.0.1:5051/login 一律 500，error.log 为
+        `open() "/www/server/pgadmin/pg.pass" failed (13: Permission denied)`；
+        改回 0644 立刻 200。口径与网站密码文件 site.setHasPwd 保持一致。
+        """
         self.pg.setCfg('username', 'u1')
         self.pg.setCfg('password', 'p1')
         self.pg.yf.hasPwd = lambda p: 'hashed'
@@ -491,7 +502,10 @@ class PgAdminSettingsGuards(unittest.TestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual(_read(path), 'u1:hashed')
         if os.name != 'nt':
-            self.assertEqual(os.stat(path).st_mode & 0o777, 0o600)
+            mode = os.stat(path).st_mode & 0o777
+            self.assertTrue(mode & 0o044,
+                            'Nginx(www) 必须能读 pg.pass，实际 %o' % mode)
+            self.assertEqual(mode, 0o644)
 
 
 class PgAdminFrontendSafety(unittest.TestCase):

@@ -7,14 +7,26 @@
 # 内部账号由 plugins/pgadmin/index.py 的 syncPgAdminPassword() 通过官方
 # create_user / update_user 创建，并在写完后回读校验。
 #
-# 用法: bash pg_init.sh <email> <password> [serverDir]
+# 用法: bash pg_init.sh <email> [serverDir]   # 口令从 stdin 读入（不进 argv，argv 对任意本地用户可见）
 
-python_ver=`ls "${3:-/www/server}/pgadmin/run/lib/" 2>/dev/null | grep '^python' | cut -d \  -f 1 | awk 'END {print}'`
-
-server_dir="${3:-/www/server}"
-pg_dir="${server_dir}/pgadmin"
 email=$1
-email_pwd=$2
+server_dir="${2:-/www/server}"
+pg_dir="${server_dir}/pgadmin"
+
+if [ -z "${email}" ]; then
+    echo "usage: bash pg_init.sh <email> [serverDir]   # password via stdin" >&2
+    exit 1
+fi
+
+# 口令走 stdin：旧接口把口令当 $2 传，`ps -eo args` 对任意本地用户可见明文
+IFS= read -r email_pwd || true
+email_pwd=${email_pwd%$'\r'}
+if [ -z "${email_pwd}" ]; then
+    echo "pg_init.sh: password must be supplied on stdin" >&2
+    exit 1
+fi
+
+python_ver=`ls "${pg_dir}/run/lib/" 2>/dev/null | grep '^python' | cut -d \  -f 1 | awk 'END {print}'`
 
 if [ -z "${python_ver}" ]; then
     echo "pgadmin not installed: ${pg_dir}/run/lib has no python* dir" >&2
