@@ -41,7 +41,12 @@ class TestRedisUIAndDataManagerFix(unittest.TestCase):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def test_01_getRedisCmd_with_complex_pass_and_port(self):
-        """测试 getRedisCmd 与 getPort 对复杂密码（含引号、#）和端口注释的准确解析"""
+        """测试 getRedisCmd 与 getPort 对复杂密码（含引号、#）和端口注释的准确解析
+
+        getRedisCmd() 现在返回 **参数列表**（不再是可拼进 shell 的字符串）：
+        execRedisCommand 的第 3 级回退会把它直接交给 subprocess(shell=False)，
+        列表形态下密码里的特殊字符原样进入 argv，不再需要也不会再做 shell 转义。
+        """
         conf_content = """
 bind 127.0.0.1 -::1
 port 6380 # 自定义端口
@@ -53,10 +58,14 @@ requirepass "My@Complex#Pass!2026"
         port = redis_plugin.getPort()
         self.assertEqual(port, '6380', "端口应正确剥离行尾注释")
 
-        cmd = redis_plugin.getRedisCmd()
-        self.assertIn('-p 6380', cmd)
-        self.assertIn('-a "My@Complex#Pass!2026"', cmd, "密码应完整提取并保留特殊字符与安全包裹")
-        self.assertIn('--no-auth-warning', cmd)
+        argv = redis_plugin.getRedisCmd()
+        self.assertIsInstance(argv, list, "必须返回参数列表，绝不能再返回可拼进 shell 的字符串")
+        self.assertEqual(argv[argv.index('-p') + 1], '6380')
+        self.assertEqual(argv[argv.index('-a') + 1], 'My@Complex#Pass!2026',
+                         "密码必须原样进入 argv（含引号/# 等特殊字符）")
+        self.assertIn('--no-auth-warning', argv)
+        for item in argv:
+            self.assertNotIn('"', item, "列表传参下不得再出现 shell 引号包裹")
 
     def test_02_runInfo_parsing_and_noauth_capture(self):
         """测试 runInfo 数据解析与 NOAUTH 捕获，杜绝 undefined"""
@@ -79,7 +88,8 @@ keyspace_misses:200
 latest_fork_usec:150
 """
         redis_plugin.status = lambda: 'start'
-        redis_plugin.yf.execShell = lambda cmd: (mock_info_output, '')
+        # 第 3 级回退（redis-cli）现在走 yf.execShellRc(argv, shell=False)，返回 (rc, out, err)
+        redis_plugin.yf.execShellRc = lambda *a, **k: (0, mock_info_output, '')
 
         res_json = redis_plugin.runInfo()
         res = json.loads(res_json)
@@ -89,7 +99,7 @@ latest_fork_usec:150
         self.assertEqual(res.get('keyspace_hits'), '800')
 
         # 2. 模拟密码未认证拦截
-        redis_plugin.yf.execShell = lambda cmd: ('(error) NOAUTH Authentication required.', '')
+        redis_plugin.yf.execShellRc = lambda *a, **k: (0, '(error) NOAUTH Authentication required.', '')
         res_noauth_json = redis_plugin.runInfo()
         res_noauth = json.loads(res_noauth_json)
         self.assertFalse(res_noauth.get('status'), "未认证时应明确返回 status: False")

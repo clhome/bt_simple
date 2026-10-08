@@ -80,16 +80,17 @@ class TestRedisHotSyncAndFullWidth(unittest.TestCase):
         exec_count = [0]
         restart_called = [False]
 
-        def mock_exec(cmd):
+        def mock_exec(cmd, *a, **k):
             exec_count[0] += 1
             if exec_count[0] == 1:
                 # 第一次返回 WRONGPASS invalid username-password pair
-                return ('(error) WRONGPASS invalid username-password pair or user is disabled.', '')
+                return (0, '(error) WRONGPASS invalid username-password pair or user is disabled.', '')
             else:
                 # 自愈重启后第二次执行返回正常 info 输出
-                return ('# Server\ntcp_port:6379\nuptime_in_days:3\nused_memory:2048\n', '')
+                return (0, '# Server\ntcp_port:6379\nuptime_in_days:3\nused_memory:2048\n', '')
 
-        redis_plugin.yf.execShell = mock_exec
+        # 第 3 级回退（redis-cli）现在走 yf.execShellRc(argv, shell=False)
+        redis_plugin.yf.execShellRc = mock_exec
         def mock_restart():
             restart_called[0] = True
             return 'ok'

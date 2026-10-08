@@ -238,10 +238,14 @@ def readConfigTpl():
         if target_file != allowed_dir:
             return yf.returnJson(False, '越界访问被拒绝！')
 
-    if not os.path.exists(target_file):
+    # 必须是可读普通文件：传目录（或读失败）时 readFile 返回 False，旧写法会在
+    # contentReplace(False) 上抛 AttributeError（真机实测 traceback）。
+    if not os.path.isfile(target_file):
         return yf.returnJson(False, '模板文件不存在')
 
     content = yf.readFile(target_file)
+    if content is False:
+        return yf.returnJson(False, '模板文件不存在')
     content = contentReplace(content)
     return yf.returnJson(True, 'ok', content)
 
@@ -557,6 +561,16 @@ def getPort():
 
 
 def getRedisCmd():
+    """构造 redis-cli 的参数列表（列表化，绝不拼成 shell 字符串）。
+
+    为什么必须是列表而不是字符串：调用方（execRedisCommand 第 3 级回退）要把
+    待执行的 Redis 命令接在末尾。字符串形态最终会交给 shell 解释，一旦前两级
+    （redis-py / RESP socket）都不可达（Redis 未启动、端口不符、socket 超时、
+    空应答），用户传入的命令就会以 root 身份被 shell 执行 —— 真机实测：
+    redis 停机时 `POST /plugins/callback`（func=execRedisCommand）带上
+    `args=info; id > /tmp/pwn` 能直接落地任意命令。列表化后参数不再经过 shell。
+    列表传参同时免去 shell 转义：含 `"`、`$`、反引号的密码原样进入 argv。
+    """
     requirepass = ""
     port = "6379"
     conf_list = getRedisConfInfo()
@@ -573,16 +587,13 @@ def getRedisCmd():
             if os.path.exists(b):
                 redis_cli = b
                 break
-        if not os.path.exists(redis_cli):
+        else:
             redis_cli = "redis-cli"
 
-    cmd = f'{redis_cli} -h {default_ip} -p {port} '
+    argv = [redis_cli, '-h', default_ip, '-p', port]
     if requirepass != "":
-        # 安全转义 shell 特殊字符
-        escaped_pass = requirepass.replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`')
-        cmd += f'-a "{escaped_pass}" --no-auth-warning '
-
-    return cmd
+        argv += ['-a', requirepass, '--no-auth-warning']
+    return argv
 
 
 def execRedisCommand(command='info'):
@@ -590,9 +601,14 @@ def execRedisCommand(command='info'):
     高可靠 Redis 命令执行器（三级容灾）：
     1. 优先使用 Python redis 库原生直连；
     2. 降级使用标准库 socket RESP 原生通信（零外部依赖、零 shell 污染）；
-    3. 最后回退到命令行 redis-cli。
+    3. 最后回退到命令行 redis-cli（列表传参 + shell=False，命令内容绝不经 shell）。
     返回: (success_output, error_output)
     """
+    if not isinstance(command, str) or not command.strip():
+        # 非字符串/空命令既构造不出 RESP，也拼不出 argv。显式拒绝，否则会静默
+        # 穿过三级回退并最终返回 ('', '')，让调用方误判成「执行成功但无输出」。
+        return ('', 'Redis 命令不能为空')
+
     port = 6379
     requirepass = ""
     conf_list = getRedisConfInfo()
@@ -628,8 +644,9 @@ def execRedisCommand(command='info'):
         parts = command.strip().split()
         res = r.execute_command(*parts)
         r.close()
-        if res is not None:
-            return (format_redis_res(res), '')
+        # 成功即返回（含 nil 应答）：此处若对 None 继续往下一级回退，同一条命令
+        # 会被重复执行一次（GET 未命中 → 再走 socket 执行一遍），破坏非幂等语义。
+        return (format_redis_res(res) if res is not None else '', '')
     except Exception as e:
         err_msg = str(e)
         if 'NOAUTH' in err_msg or 'WRONGPASS' in err_msg or 'invalid username-password' in err_msg.lower():
@@ -638,8 +655,7 @@ def execRedisCommand(command='info'):
                 r = redis.Redis(host='127.0.0.1', port=port, password=None, socket_timeout=3, decode_responses=True)
                 res = r.execute_command(*command.strip().split())
                 r.close()
-                if res is not None:
-                    return (format_redis_res(res), '')
+                return (format_redis_res(res) if res is not None else '', '')
             except Exception:
                 return ('', err_msg)
 
@@ -700,11 +716,11 @@ def execRedisCommand(command='info'):
     except Exception as _e:
         _log.debug('[redis] execRedisCommand 异常已忽略: %s', _e)
 
-    # 3. 回退到命令行 redis-cli
-    cmd = getRedisCmd() + command
-    exec_res = yf.execShell(cmd)
-    data = exec_res[0] if exec_res and len(exec_res) > 0 else ''
-    err = exec_res[1] if exec_res and len(exec_res) > 1 else ''
+    # 3. 回退到命令行 redis-cli：列表传参 + shell=False，命令内容绝不进 shell
+    argv = getRedisCmd() + command.strip().split()
+    rc, data, err = yf.execShellRc(argv, shell=False, timeout=5)
+    if rc != 0 and not err:
+        err = 'redis-cli 执行失败(rc=%s)' % rc
     return (data, err)
 
 
@@ -853,7 +869,12 @@ def infoReplication():
             _log.debug('[redis] infoReplication 异常已忽略: %s', _e)
 
     if 'role' in result and result['role'] == 'master':
-        connected_slaves = int(result['connected_slaves'])
+        # connected_slaves 缺失/非数字时不能直接 int()：INFO 被截断或换实现时
+        # 实测 KeyError → 接口 500 / 子进程 traceback。缺失即按 0 个从库处理。
+        try:
+            connected_slaves = int(result.get('connected_slaves', 0) or 0)
+        except (TypeError, ValueError):
+            connected_slaves = 0
         slave_l = [] 
         for x in range(connected_slaves):
             slave_l.append('slave'+str(x))
@@ -861,8 +882,10 @@ def infoReplication():
         for d in data:
             if len(d) < 3:
                 continue
-            t = d.strip().split(':')
-            if not t[0] in slave_l:
+            # 只按第一个冒号切分：从库行是 `slave0:ip=..,port=..`，IPv6 场景值里
+            # 还会再出现冒号，旧的 split(':') 会把值截断。
+            t = d.strip().split(':', 1)
+            if t[0] not in slave_l or len(t) < 2:
                 continue
             result[t[0]] = t[1]
 
@@ -923,7 +946,9 @@ def clusterNodes():
         return yf.returnJson(False, '未启动')
 
     data, _ = execRedisCommand('cluster nodes')
-    data = data.strip().split("\n")
+    # 空应答必须回空列表：旧的 strip().split('\n') 会产出 ['']，前端把这条假数据
+    # 渲染成一行空行，而不是「无数据/未设置集群」。
+    data = [line for line in data.strip().split("\n") if line.strip()]
     return yf.getJson(data)
 
 def initdStatus():
@@ -1124,24 +1149,28 @@ def getRunLog():
 
         if not content:
             # 尝试从 journalctl 同步
+            import html
             if yf.getOs() != 'win32' and not yf.isAppleSystem():
                 for svc in ['redis', 'redis-server']:
                     try:
                         res = yf.execShell(f"journalctl -u {svc} --no-pager -n 100")
                         j_out = res[0].strip() if res and len(res) > 0 and res[0] else ''
                         if j_out and len(j_out) > 30 and '-- No entries --' not in j_out:
-                            content = j_out
+                            # 与 getLastLine 的转义口径保持一致：否则 journalctl 原文里
+                            # 出现 </textarea> 就能从日志文本框逃逸出 HTML。
+                            content = html.escape(j_out)
                             yf.writeFile(log_file, j_out + "\n")
                             break
                     except Exception as _e:
                         _log.debug('[redis] getRunLog 异常已忽略: %s', _e)
 
         if not content:
+            import html
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
             port = getPort()
             pid = getRedisPid() or 'N/A'
             st = status()
-            content = (
+            content = html.escape(
                 f"[{timestamp}] * Redis 服务运行状态监控\n"
                 f"[{timestamp}] * 当前运行状态: {st}\n"
                 f"[{timestamp}] * 监听端口: {port} | 进程 PID: {pid}\n"
@@ -1251,20 +1280,25 @@ def submitRedisConf():
     content = yf.readFile(conf) if os.path.exists(conf) else ''
     if not content:
         content = ''
+    # 落盘前的原配置快照：写坏/重启失败时整份回滚，绝不许「设置成功」假成功
+    original_content = content
 
     # 强正则安全白名单校验体系，彻底杜绝任意指令与换行符注入（RCE）
     for g in gets:
         if g in args:
             val_str = str(args[g]).strip()
             
-            # 1. 纯数字项过滤
+            # 1. 纯数字项过滤（port 另加 1..65535 范围：越界端口写下去 Redis 必然起不来）
             if g in ['port', 'timeout', 'maxclients', 'databases', 'maxmemory']:
-                if not re.match(r'^\d+$', val_str):
+                if not re.match(r'^\d+$', val_str) or (g == 'port' and not (1 <= int(val_str) <= 65535)):
                     return yf.returnJson(False, '参数 [' + g + '] 格式不合法！')
             
-            # 2. 绑定 IP 与主从同步过滤 (支持 IPv4, IPv6 如 -::1, 空格, 逗号)
+            # 2. 绑定 IP 与主从同步过滤 (支持 IPv4, IPv6 如 -::1, 半角空格分隔, 逗号)
+            #    这里刻意不用 \s：\s 含 \n/\r/\f/\v，而这些字符会被 Redis 配置解析器
+            #    当作换行/分隔符 —— 等于把任意指令注入 redis.conf。真机实测
+            #    `slaveof="127.0.0.1:6379\nport 1"` 通过校验并把服务改到 port 1。
             elif g in ['bind', 'slaveof']:
-                if val_str != '' and not re.match(r'^[0-9a-zA-Z_.:\s,-]+$', val_str):
+                if val_str != '' and not re.match(r'^[0-9a-zA-Z_.,:\- ]+$', val_str):
                     return yf.returnJson(False, '参数 [' + g + '] 格式不合法！')
             
             # 3. 密码及凭据强抗注入过滤 (允许常见安全字符，杜绝换行符注入)
@@ -1285,32 +1319,42 @@ def submitRedisConf():
                 # 若密码含 #、空格或特殊引号字符，自动采用双引号包裹，保证 Redis 核心服务解析合规
                 write_val = f'"{val_str}"' if ('#' in val_str or ' ' in val_str) else val_str
                 if val_str == '':
-                    if re.search(r'^\s*' + g + r'\s+', content, flags=re.M):
-                        content = re.sub(r'^\s*' + g + r'\s+.*', '#' + g + ' ""', content, flags=re.M)
+                    if re.search(r'^[ \t]*' + g + r'[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*' + g + r'[ \t]+.*', '#' + g + ' ""', content, flags=re.M)
                 else:
-                    if re.search(r'^\s*#?\s*' + g + r'\s+', content, flags=re.M):
-                        content = re.sub(r'^\s*#?\s*' + g + r'\s+.*', g + ' ' + write_val, content, flags=re.M)
+                    if re.search(r'^[ \t]*#?[ \t]*' + g + r'[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*#?[ \t]*' + g + r'[ \t]+.*', g + ' ' + write_val, content, flags=re.M)
                     else:
                         content += '\n' + g + ' ' + write_val
             elif g == 'slaveof':
                 if val_str == '':
-                    if re.search(r'^\s*(slaveof|replicaof)\s+', content, flags=re.M):
-                        content = re.sub(r'^\s*(slaveof|replicaof)\s+.*', '', content, flags=re.M)
+                    if re.search(r'^[ \t]*(slaveof|replicaof)[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*(slaveof|replicaof)[ \t]+.*', '', content, flags=re.M)
                 else:
-                    if re.search(r'^\s*#?\s*(slaveof|replicaof)\s+', content, flags=re.M):
-                        content = re.sub(r'^\s*#?\s*(slaveof|replicaof)\s+.*', 'replicaof ' + val_str, content, flags=re.M)
+                    if re.search(r'^[ \t]*#?[ \t]*(slaveof|replicaof)[ \t]+', content, flags=re.M):
+                        content = re.sub(r'^[ \t]*#?[ \t]*(slaveof|replicaof)[ \t]+.*', 'replicaof ' + val_str, content, flags=re.M)
                     else:
                         content += '\nreplicaof ' + val_str
             else:
-                rep = r'^\s*' + g + r'\s+.*'
+                # 行首缩进只用 [ \t]：旧的 \s* 会把该行**前面的空行一起吃掉**，
+                # 于是「原值重提一次」也会改动配置文件（实测少一个空行、md5 漂移）。
+                rep = r'^[ \t]*' + g + r'[ \t]+.*'
                 if re.search(rep, content, flags=re.M):
                     content = re.sub(rep, g + ' ' + target_val, content, flags=re.M)
                 else:
                     content += '\n' + g + ' ' + target_val
 
-    yf.writeFile(conf, content)
+    # 落盘 + 闭环校验：写坏要能回滚，失败绝不许假成功。
+    # 真机实测：port 改成被 openresty 占用的 888 时 restart() 失败、Redis 停在
+    # failed，接口却仍回「设置成功」，且坏配置留在盘上无法自愈。
+    if not yf.writeFile(conf, content):
+        return yf.returnJson(False, '配置文件写入失败！')
     if status() == 'start':
-        restart()
+        res = restart()
+        if res != 'ok':
+            yf.writeFile(conf, original_content)
+            restart()
+            return yf.returnJson(False, 'Redis 重启失败，配置已回滚！')
     return yf.returnJson(True, '设置成功')
 
 

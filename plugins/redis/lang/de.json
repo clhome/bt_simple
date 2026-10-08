@@ -109,5 +109,7 @@
     "Redis 密码认证失败，请检查 requirepass 密码": "Redis-Passwortauthentifizierung fehlgeschlagen; bitte prüfen Sie das requirepass-Passwort",
     "获取日志异常:": "Fehler beim Abrufen der Protokolle:",
     "清空日志失败:": "Leeren der Protokolle fehlgeschlagen:",
-    "未能读取到有效的 Redis 状态数据:": "Es konnten keine gültigen Redis-Statusdaten gelesen werden:"
+    "未能读取到有效的 Redis 状态数据:": "Es konnten keine gültigen Redis-Statusdaten gelesen werden:",
+    "配置文件写入失败！": "Schreiben der Konfigurationsdatei fehlgeschlagen!",
+    "Redis 重启失败，配置已回滚！": "Redis-Neustart fehlgeschlagen; die Konfiguration wurde zurückgesetzt!"
 }
