@@ -435,5 +435,20 @@
   "(预计 1~3 分钟)": "(circa 1-3 min)",
   "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Distribuisce il pacchetto binario generico precompilato ufficiale - veloce e senza sforzo. Adatto alla maggior parte degli scenari quotidiani, a distribuzioni rapide e a server poco potenti.",
   "(预计 20~60 分钟)": "(circa 20-60 min)",
-  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilazione profondamente ottimizzata in base all'hardware e all'ambiente di sistema del server. Adatto ad ambienti di produzione potenti con requisiti estremi di prestazioni del database."
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilazione profondamente ottimizzata in base all'hardware e all'ambiente di sistema del server. Adatto ad ambienti di produzione potenti con requisiti estremi di prestazioni del database.",
+  "分页参数不合法!": "Paginazione non valida!",
+  "端口不合法!": "Porta non valida!",
+  "配置文件中未找到端口配置!": "Porta non trovata nella config!",
+  "修改端口后服务未就绪:": "Servizio non pronto dopo il cambio porta:",
+  "备份文件名不合法!": "Nome file di backup non valido!",
+  "备份文件不存在!": "File di backup non trovato!",
+  "备份目录不合法!": "Directory di backup non valida!",
+  "删除失败:": "Eliminazione non riuscita:",
+  "访问地址不合法!": "Indirizzo di accesso non valido!",
+  "数据库编码不合法!": "Codifica database non valida!",
+  "获取数据库用户失败!": "Recupero utente DB non riuscito!",
+  "访问地址不合法:": "Indirizzo di accesso non valido:",
+  "权限类型不合法!": "Tipo di permesso non valido!",
+  "数据库不存在!": "Database non esiste!",
+  "切换失败!": "Cambio non riuscito!"
 }

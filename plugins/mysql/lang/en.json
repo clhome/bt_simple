@@ -435,5 +435,20 @@
   "(预计 1~3 分钟)": "(Est. 1-3 min)",
   "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Deploys the official precompiled generic binary package - saving time and effort. Suitable for most daily scenarios, quick deployment and low-spec servers.",
   "(预计 20~60 分钟)": "(Est. 20-60 min)",
-  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Deeply optimized compilation based on the current server hardware and system environment. Suitable for high-spec production environments with extreme database performance requirements."
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Deeply optimized compilation based on the current server hardware and system environment. Suitable for high-spec production environments with extreme database performance requirements.",
+  "分页参数不合法!": "Invalid pagination!",
+  "端口不合法!": "Invalid port!",
+  "配置文件中未找到端口配置!": "Port not found in config!",
+  "修改端口后服务未就绪:": "Service not ready after port change:",
+  "备份文件名不合法!": "Invalid backup filename!",
+  "备份文件不存在!": "Backup file not found!",
+  "备份目录不合法!": "Invalid backup directory!",
+  "删除失败:": "Delete failed:",
+  "访问地址不合法!": "Invalid access address!",
+  "数据库编码不合法!": "Invalid database encoding!",
+  "获取数据库用户失败!": "Failed to get DB user!",
+  "访问地址不合法:": "Invalid access address:",
+  "权限类型不合法!": "Invalid permission type!",
+  "数据库不存在!": "Database does not exist!",
+  "切换失败!": "Switch failed!"
 }

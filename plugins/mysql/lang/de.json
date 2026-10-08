@@ -435,5 +435,20 @@
   "(预计 1~3 分钟)": "(ca. 1-3 Min.)",
   "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Stellt das offizielle vorkompilierte Universal-Binärpaket bereit - zeitsparend und mühelos. Geeignet für die meisten Alltagsszenarien, schnelle Bereitstellung und Server mit geringer Ausstattung.",
   "(预计 20~60 分钟)": "(ca. 20-60 Min.)",
-  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Tief optimierte Kompilierung basierend auf der aktuellen Server-Hardware und Systemumgebung. Geeignet für leistungsstarke Produktionsumgebungen mit höchsten Anforderungen an die Datenbankleistung."
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Tief optimierte Kompilierung basierend auf der aktuellen Server-Hardware und Systemumgebung. Geeignet für leistungsstarke Produktionsumgebungen mit höchsten Anforderungen an die Datenbankleistung.",
+  "分页参数不合法!": "Ungültige Seitenangabe!",
+  "端口不合法!": "Ungültiger Port!",
+  "配置文件中未找到端口配置!": "Port in Konfiguration nicht gefunden!",
+  "修改端口后服务未就绪:": "Dienst nach Portänderung nicht bereit:",
+  "备份文件名不合法!": "Ungültiger Sicherungsdateiname!",
+  "备份文件不存在!": "Sicherungsdatei nicht gefunden!",
+  "备份目录不合法!": "Ungültiges Sicherungsverzeichnis!",
+  "删除失败:": "Löschen fehlgeschlagen:",
+  "访问地址不合法!": "Ungültige Zugriffsadresse!",
+  "数据库编码不合法!": "Ungültige Datenbankkodierung!",
+  "获取数据库用户失败!": "DB-Benutzer laden fehlgeschlagen!",
+  "访问地址不合法:": "Ungültige Zugriffsadresse:",
+  "权限类型不合法!": "Ungültiger Berechtigungstyp!",
+  "数据库不存在!": "Datenbank existiert nicht!",
+  "切换失败!": "Wechsel fehlgeschlagen!"
 }

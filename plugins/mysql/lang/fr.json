@@ -435,5 +435,20 @@
   "(预计 1~3 分钟)": "(env. 1-3 min)",
   "直接部署官方预编译的通用二进制包，省时省力。适合绝大多数日常应用场景、快速部署及低配置服务器。": "Déploie le paquet binaire générique précompilé officiel - gain de temps et simplicité. Adapté à la plupart des usages quotidiens, aux déploiements rapides et aux serveurs peu puissants.",
   "(预计 20~60 分钟)": "(env. 20-60 min)",
-  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilation profondément optimisée selon le matériel et l'environnement système du serveur. Adapté aux environnements de production puissants exigeant des performances de base de données extrêmes."
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilation profondément optimisée selon le matériel et l'environnement système du serveur. Adapté aux environnements de production puissants exigeant des performances de base de données extrêmes.",
+  "分页参数不合法!": "Pagination invalide !",
+  "端口不合法!": "Port invalide !",
+  "配置文件中未找到端口配置!": "Port introuvable dans la config !",
+  "修改端口后服务未就绪:": "Service non prêt après changement de port :",
+  "备份文件名不合法!": "Nom de sauvegarde invalide !",
+  "备份文件不存在!": "Fichier de sauvegarde introuvable !",
+  "备份目录不合法!": "Répertoire de sauvegarde invalide !",
+  "删除失败:": "Échec de la suppression :",
+  "访问地址不合法!": "Adresse d'accès invalide !",
+  "数据库编码不合法!": "Encodage de base invalide !",
+  "获取数据库用户失败!": "Échec de récupération de l'utilisateur !",
+  "访问地址不合法:": "Adresse d'accès invalide :",
+  "权限类型不合法!": "Type de permission invalide !",
+  "数据库不存在!": "La base de données n'existe pas !",
+  "切换失败!": "Échec du basculement !"
 }
