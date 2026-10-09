@@ -125,5 +125,15 @@
     "文件: ": "File: ",
     "行号: ": "Riga: ",
     "操作失败:": "Operazione non riuscita:",
-    "获取日志失败:": "Recupero dei log non riuscito:"
+    "获取日志失败:": "Recupero dei log non riuscito:",
+    "读取已有服务配置失败，拒绝覆盖": "Lettura della configurazione esistente non riuscita, sovrascrittura negata",
+    "越权拦截：同名非专属服务已存在，禁止覆盖！": "Accesso negato: esiste già un servizio omonimo, sovrascrittura vietata!",
+    "运行用户不合法！": "Utente di esecuzione non valido!",
+    "服务已启动，但开机自启未生效（当前: {file_state}）": "Servizio avviato, ma l'avvio automatico non è attivo (attuale: {file_state})",
+    "操作失败：服务未进入 active 状态（当前: {active}）": "Operazione non riuscita: il servizio non ha raggiunto lo stato active (attuale: {active})",
+    "操作失败：服务未停止（当前: {active}）": "Operazione non riuscita: servizio non arrestato (attuale: {active})",
+    "操作失败：自启状态未生效（当前: {file_state}）": "Operazione non riuscita: stato di avvio automatico non attivo (attuale: {file_state})",
+    "删除服务文件失败: {str(e)}": "Eliminazione del file di servizio non riuscita: {str(e)}",
+    "越权拦截：非专属服务禁止读取日志！": "Accesso negato: lettura dei log di un servizio non esclusivo vietata!",
+    "越权拦截：非专属服务禁止清空日志！": "Accesso negato: cancellazione dei log di un servizio non esclusivo vietata!"
 }

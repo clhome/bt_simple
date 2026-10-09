@@ -12,6 +12,20 @@ window.onerror = function(message, source, lineno, colno, error) {
     return false;
 };
 
+// 动态值转义：日志/列表/提示里的内容与 unit 名一律先转义再拼 HTML（防空字体入构造存储型 XSS）
+function ysEsc(text) {
+    var map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+    return String(text === undefined || text === null ? '' : text).replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// 行内 onclick="...('name')" 里的 unit 名：先做 JS 字符串字面量转义，再交给 HTML 属性
+function ysArg(text) {
+    return String(text === undefined || text === null ? '' : text)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/[\r\n\u2028\u2029]/g, '');
+}
+
 var yufeng_systemd = {
     plugin_name: 'yufeng_systemd',
     
@@ -27,17 +41,15 @@ var yufeng_systemd = {
     
     // 获取列表
     get_list: function() {
-        var loadT = layer.msg(pt('正在获取服务列表...'), {icon: 16, time: 0, shade: 0.3});
         this.request('get_services', {}, function(res) {
-            layer.close(loadT);
             var tbody = $('#yufeng_service_list');
             if (!res.status) {
-                tbody.html('<tr><td colspan="4" style="text-align:center;color:red;">' + res.msg + '</td></tr>');
+                tbody.html('<tr><td colspan="4" style="text-align:center;color:red;">' + ysEsc(res.msg) + '</td></tr>');
                 return;
             }
             
             var data = res.data;
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 tbody.html('<tr><td colspan="4" style="text-align:center;">' + pt('暂无专属守护服务') + '</td></tr>');
                 return;
             }
@@ -45,46 +57,48 @@ var yufeng_systemd = {
             var html = '';
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
+                var sname = ysArg(item.name);
                 var status_html = '';
                 if (item.status === 'active') {
-                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="' + pt('点击停止服务') + '" style="width:80px;">' + pt('运行中 ▶') + '</a>';
+                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+sname+'\', \'stop\')" title="' + pt('点击停止服务') + '" style="width:80px;">' + pt('运行中 ▶') + '</a>';
                 } else if (item.status === 'failed') {
-                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="' + pt('点击尝试修复并启动') + '" style="width:80px;">' + pt('崩溃报错 ⚠') + '</a>';
+                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+sname+'\', \'start\')" title="' + pt('点击尝试修复并启动') + '" style="width:80px;">' + pt('崩溃报错 ⚠') + '</a>';
                 } else {
-                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="' + pt('点击启动服务') + '" style="width:80px;">' + pt('已停止 ⏹') + '</a>';
+                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+sname+'\', \'start\')" title="' + pt('点击启动服务') + '" style="width:80px;">' + pt('已停止 ⏹') + '</a>';
                 }
                 
                 var enabled_html = item.enabled ? 
-                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="' + pt('点击取消开机自启') + '" style="width:80px;">' + pt('已开启 ▶') + '</a>' : 
-                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="' + pt('点击允许开机自启') + '" style="width:80px;">' + pt('已关闭 ⏹') + '</a>';
+                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+sname+'\', \'disable\')" title="' + pt('点击取消开机自启') + '" style="width:80px;">' + pt('已开启 ▶') + '</a>' : 
+                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+sname+'\', \'enable\')" title="' + pt('点击允许开机自启') + '" style="width:80px;">' + pt('已关闭 ⏹') + '</a>';
                     
                 html += '<tr>' +
-                        '<td>' + item.name + '</td>' +
+                        '<td>' + ysEsc(item.name) + '</td>' +
                         '<td>' + status_html + '</td>' +
                         '<td>' + enabled_html + '</td>' +
                         '<td style="text-align: right;">' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.get_logs(\''+item.name+'\')">' + pt('日志') + '</a> | ' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.control(\''+item.name+'\', \'restart\')">' + pt('重启') + '</a> | ' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.open_edit(\''+item.name+'\')">' + pt('修改') + '</a> | ' +
-                            '<a class="btlink btn-yufeng" style="color:red;" onclick="yufeng_systemd.delete(\''+item.name+'\')">' + pt('删除') + '</a>' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.get_logs(\''+sname+'\')">' + pt('日志') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.control(\''+sname+'\', \'restart\')">' + pt('重启') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.open_edit(\''+sname+'\')">' + pt('修改') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" style="color:red;" onclick="yufeng_systemd.delete(\''+sname+'\')">' + pt('删除') + '</a>' +
                         '</td>' +
                     '</tr>';
             }
             tbody.html(html);
-        });
+        }, pt('正在获取服务列表...'));
     },
     
     // 打开编辑/新增弹窗
     open_edit: function(service_name) {
         var is_edit = service_name ? true : false;
-        var title = is_edit ? (window.msgTpl ? msgTpl(pt('修改服务 [{1}]'), [service_name]) : pt('修改服务') + ' [' + service_name + ']') : pt('添加专属守护服务');
+        var safe_name = ysEsc(service_name || '');
+        var title = is_edit ? (window.msgTpl ? msgTpl(pt('修改服务 [{1}]'), [safe_name]) : pt('修改服务') + ' [' + safe_name + ']') : pt('添加专属守护服务');
         
         var form_html = '<div id="yufeng_service_form" class="bt-form pd20">' +
             '<div class="form-horizontal">' +
                 '<div class="line">' +
                     '<span class="tname">' + pt('服务名称') + '</span>' +
                     '<div class="info-r">' +
-                        '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="' + pt('如: my_node_app') + '">' +
+                        '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + safe_name + '" ' + (is_edit?'readonly':'') + ' placeholder="' + pt('如: my_node_app') + '">' +
                         '<span style="color: #ff4d4f; margin-left: 10px; font-weight: bold;">' + pt('请勿使用中文名称') + '</span>' +
                     '</div>' +
                 '</div>' +
@@ -162,9 +176,7 @@ var yufeng_systemd = {
             success: function(layero, index) {
                 // 如果是编辑高级模式，需要回显数据
                 if (is_edit) {
-                    var loadT = layer.msg(pt('正在获取配置...'), {icon:16, time:0});
                     yufeng_systemd.request('get_service_detail', {service_name: service_name}, function(res) {
-                        layer.close(loadT);
                         if(res.status) {
                             var content = res.data;
                             $('#yufeng_service_form textarea[name="service_content"]').val(content);
@@ -185,7 +197,7 @@ var yufeng_systemd = {
                                 $('#yufeng_service_form select[name="mode"]').val('advanced').trigger('change');
                             }
                         }
-                    });
+                    }, pt('正在获取配置...'));
                 } else {
                     var default_tpl = "[Unit]\nDescription=Managed by yufeng_systemd Plugin\nAfter=network-online.target\n\n[Service]\nType=simple\nUser=www\nWorkingDirectory=/www/wwwroot/\nExecStart=\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n";
                     $('#yufeng_service_form textarea[name="service_content"]').val(default_tpl);
@@ -238,15 +250,13 @@ var yufeng_systemd = {
             }
         }
         
-        var loadT = layer.msg(pt('正在保存并重启服务...'), {icon: 16, time: 0, shade: 0.3});
         this.request('create_or_modify_service', data, function(res) {
-            layer.close(loadT);
-            layer.msg(res.msg, {icon: res.status ? 1 : 2});
+            layer.msg(ysEsc(res.msg), {icon: res.status ? 1 : 2});
             if (res.status) {
                 layer.closeAll('page');
                 yufeng_systemd.get_list();
             }
-        });
+        }, pt('正在保存并重启服务...'));
     },
     
     control: function(service_name, action) {
@@ -260,46 +270,36 @@ var yufeng_systemd = {
         
         layer.confirm(pt('确定要 {1} 服务 [{2}] 吗？').replace('{1}', action_name).replace('{2}', service_name), {icon: 3, title:  pt('提示')}, function(index) {
             layer.close(index);
-            var loadT = layer.msg(pt('正在执行...'), {icon: 16, time: 0, shade: 0.3});
-            yufeng_systemd.request('control_service', {service_name: service_name, action: action}, function(res) {
-                layer.close(loadT);
-                layer.msg(res.msg, {icon: res.status ? 1 : 2});
+            this.request('control_service', {service_name: service_name, action: action}, function(res) {
+                layer.msg(ysEsc(res.msg), {icon: res.status ? 1 : 2});
                 if (res.status) {
                     yufeng_systemd.get_list();
                 }
-            });
+            }, pt('正在执行...'));
         });
     },
     
     delete: function(service_name) {
         layer.confirm(pt('确定要彻底删除专属守护服务 [{1}] 吗？').replace('{1}', service_name) + '<br><br><span style="color:red">' + pt('注意：删除前必须先停止该服务。') + '</span>', {icon: 3, title:  pt('危险操作')}, function(index) {
             layer.close(index);
-            var loadT = layer.msg(pt('正在删除...'), {icon: 16, time: 0, shade: 0.3});
             yufeng_systemd.request('delete_service', {service_name: service_name}, function(res) {
-                layer.close(loadT);
-                layer.msg(res.msg, {icon: res.status ? 1 : 2});
+                layer.msg(ysEsc(res.msg), {icon: res.status ? 1 : 2});
                 if (res.status) {
                     yufeng_systemd.get_list();
                 }
-            });
+            }, pt('正在删除...'));
         });
     },
     
     get_logs: function(service_name) {
-        var loadT = layer.msg(pt('正在获取日志...'), {icon: 16, time: 0, shade: 0.3});
         this.request('get_service_logs', {service_name: service_name}, function(res) {
-            layer.close(loadT);
             if (res.status) {
-                var escapeHtml = function(text) {
-                    var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-                    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-                };
-                var log_content = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(res.data) : escapeHtml(res.data);
+                var log_content = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(res.data) : ysEsc(res.data);
                 
                 var log_html = '<div id="yufeng_log_box" style="padding: 10px; background-color: #333; color: #fff; height: 380px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;">' + (log_content || pt('暂无运行日志')) + '</div>';
                 layer.open({
                     type: 1,
-                    title: pt('运行日志 (最近100行防OOM) - [') + service_name + ']',
+                    title: pt('运行日志 (最近100行防OOM) - [') + ysEsc(service_name) + ']',
                     area: ['800px', '500px'],
                     shadeClose: true,
                     btn: [pt('清空日志'), pt('关闭')],
@@ -307,30 +307,40 @@ var yufeng_systemd = {
                     yes: function(index, layero) {
                         layer.confirm(pt('确定要清空该服务的运行日志吗？'), {icon: 3, title:  pt('提示')}, function(c_index) {
                             layer.close(c_index);
-                            var loadC = layer.msg(pt('正在清空...'), {icon: 16, time: 0, shade: 0.3});
                             yufeng_systemd.request('clear_service_logs', {service_name: service_name}, function(c_res) {
-                                layer.close(loadC);
-                                layer.msg(c_res.msg, {icon: c_res.status ? 1 : 2});
+                                layer.msg(ysEsc(c_res.msg), {icon: c_res.status ? 1 : 2});
                                 if (c_res.status) {
                                     yufeng_systemd.request('get_service_logs', {service_name: service_name}, function(new_res) {
                                         if (new_res.status) {
-                                            var new_log = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(new_res.data) : escapeHtml(new_res.data);
+                                            var new_log = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(new_res.data) : ysEsc(new_res.data);
                                             $('#yufeng_log_box').html(new_log || pt('暂无运行日志'));
                                         }
                                     });
                                 }
-                            });
+                            }, pt('正在清空...'));
                         });
                     }
                 });
             } else {
-                layer.msg(res.msg, {icon: 2});
+                layer.msg(ysEsc(res.msg), {icon: 2});
             }
-        });
+        }, pt('正在获取日志...'));
     },
     
-    // 基础请求封装
-    request: function(method, args, callback) {
+    // 基础请求封装：loading 由本函数自己开关 —— 业务失败（status:false，例如插件抛异常）
+    // 或网络失败时也必定关闭，否则 time:0 的遮罩会把整个弹窗点死（旧实现只在成功分支
+    // layer.close(loadT)）。
+    request: function(method, args, callback, loading_msg) {
+        var loadT = null;
+        if (loading_msg) {
+            loadT = layer.msg(loading_msg, {icon: 16, time: 0, shade: 0.3});
+        }
+        var finish = function() {
+            if (loadT !== null) {
+                layer.close(loadT);
+                loadT = null;
+            }
+        };
         var req_data = {
             name: this.plugin_name,
             func: method,
@@ -343,8 +353,9 @@ var yufeng_systemd = {
             data: req_data,
             dataType: 'json',
             success: function(data) {
+                finish();
                 if (!data.status) {
-                    layer.msg(data.msg, {icon: 2});
+                    layer.msg(ysEsc(data.msg), {icon: 2});
                     return;
                 }
                 var rdata;
@@ -358,6 +369,7 @@ var yufeng_systemd = {
                 }
             },
             error: function() {
+                finish();
                 layer.msg(pt('网络请求异常，请检查面板后端日志。'), {icon: 2});
             }
         });

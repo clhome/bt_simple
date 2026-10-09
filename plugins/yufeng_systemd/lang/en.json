@@ -125,5 +125,15 @@
     "文件: ": "File: ",
     "行号: ": "Line: ",
     "操作失败:": "Operation failed:",
-    "获取日志失败:": "Failed to retrieve logs:"
+    "获取日志失败:": "Failed to retrieve logs:",
+    "读取已有服务配置失败，拒绝覆盖": "Failed to read existing service config, overwrite refused",
+    "越权拦截：同名非专属服务已存在，禁止覆盖！": "Permission denied: a service with the same name already exists, overwrite forbidden!",
+    "运行用户不合法！": "Invalid run user!",
+    "服务已启动，但开机自启未生效（当前: {file_state}）": "Service started, but autostart is not effective (now: {file_state})",
+    "操作失败：服务未进入 active 状态（当前: {active}）": "Operation failed: service did not reach active state (now: {active})",
+    "操作失败：服务未停止（当前: {active}）": "Operation failed: service not stopped (now: {active})",
+    "操作失败：自启状态未生效（当前: {file_state}）": "Operation failed: autostart state not effective (now: {file_state})",
+    "删除服务文件失败: {str(e)}": "Failed to delete service file: {str(e)}",
+    "越权拦截：非专属服务禁止读取日志！": "Permission denied: reading logs of a non-exclusive service is forbidden!",
+    "越权拦截：非专属服务禁止清空日志！": "Permission denied: clearing logs of a non-exclusive service is forbidden!"
 }

@@ -125,5 +125,15 @@
     "文件: ": "Fichier : ",
     "行号: ": "Ligne : ",
     "操作失败:": "Échec de l'opération :",
-    "获取日志失败:": "Échec de la récupération des journaux :"
+    "获取日志失败:": "Échec de la récupération des journaux :",
+    "读取已有服务配置失败，拒绝覆盖": "Échec de lecture de la configuration existante, écrasement refusé",
+    "越权拦截：同名非专属服务已存在，禁止覆盖！": "Accès refusé : un service de même nom existe déjà, écrasement interdit !",
+    "运行用户不合法！": "Utilisateur d'exécution invalide !",
+    "服务已启动，但开机自启未生效（当前: {file_state}）": "Service démarré, mais le démarrage automatique est inactif (actuel : {file_state})",
+    "操作失败：服务未进入 active 状态（当前: {active}）": "Échec : le service n'a pas atteint l'état active (actuel : {active})",
+    "操作失败：服务未停止（当前: {active}）": "Échec : service non arrêté (actuel : {active})",
+    "操作失败：自启状态未生效（当前: {file_state}）": "Échec : état de démarrage automatique inactif (actuel : {file_state})",
+    "删除服务文件失败: {str(e)}": "Échec de suppression du fichier de service : {str(e)}",
+    "越权拦截：非专属服务禁止读取日志！": "Accès refusé : lecture des journaux d'un service non exclusif interdite !",
+    "越权拦截：非专属服务禁止清空日志！": "Accès refusé : effacement des journaux d'un service non exclusif interdit !"
 }
