@@ -172,5 +172,9 @@
     "【{1}】监控配置": "[{1}] Überwachungseinstellungen",
     "【{1}】详情信息": "[{1}] Details",
     "【{1}】HTTP详情": "[{1}] HTTP-Details",
-    "{1}/次": "{1}/Mal"
+    "{1}/次": "{1}/Mal",
+    "站点参数不合法": "Ungültiger Website-Parameter",
+    "参数格式错误": "Ungültiges Parameterformat",
+    "时间范围参数不合法": "Ungültiger Zeitraum",
+    "配置文件不存在或无法读取": "Konfigurationsdatei fehlt oder nicht lesbar"
 }

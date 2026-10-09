@@ -172,5 +172,9 @@
     "【{1}】监控配置": "[{1}] Impostazioni di monitoraggio",
     "【{1}】详情信息": "[{1}] Dettagli",
     "【{1}】HTTP详情": "[{1}] Dettagli HTTP",
-    "{1}/次": "{1}/volta"
+    "{1}/次": "{1}/volta",
+    "站点参数不合法": "Parametro sito non valido",
+    "参数格式错误": "Formato parametro non valido",
+    "时间范围参数不合法": "Intervallo date non valido",
+    "配置文件不存在或无法读取": "File di configurazione mancante o illeggibile"
 }

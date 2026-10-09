@@ -172,5 +172,9 @@
     "【{1}】监控配置": "[{1}] Paramètres de surveillance",
     "【{1}】详情信息": "[{1}] Détails",
     "【{1}】HTTP详情": "[{1}] Détails HTTP",
-    "{1}/次": "{1}/fois"
+    "{1}/次": "{1}/fois",
+    "站点参数不合法": "Paramètre de site invalide",
+    "参数格式错误": "Format de paramètre invalide",
+    "时间范围参数不合法": "Plage de dates invalide",
+    "配置文件不存在或无法读取": "Fichier de configuration manquant ou illisible"
 }

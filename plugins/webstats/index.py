@@ -6,6 +6,7 @@ import os
 import time
 import json
 import re
+import logging
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -13,6 +14,8 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+
+_log = logging.getLogger('yf.webstats')
 
 
 app_debug = False
@@ -48,27 +51,154 @@ def getConf():
 
 
 def getArgs():
+    # 前端 utils/plugin.py::run() 把整个 args 当作**一个** argv 传进来，且是 JSON 文本。
+    # 旧实现只按 ':' 切分，于是 {"page":"1","page_size":"10"} 被切成
+    # 键 '"page"' / 值 '"1","page_size"' —— 所有带参接口恒回「缺少必要参数」。
     args = sys.argv[2:]
     tmp = {}
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        tmp[t[0]] = t[1]
+        val = args[0].strip()
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                data = json.loads(val)
+            except Exception as e:
+                _log.debug('[webstats] getArgs JSON 解析失败: %s', e)
+                data = None
+            if isinstance(data, dict):
+                return data
+        t = val.strip('{').strip('}')
+        if t.strip() == '':
+            return tmp
+        t = t.split(':', 1)
+        if len(t) == 2:
+            k = t[0].strip().strip('"').strip("'")
+            v = t[1].strip().strip('"').strip("'")
+            tmp[k] = v
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            t = args[i].split(':', 1)
+            if len(t) == 2:
+                k = t[0].strip().strip('"').strip("'")
+                v = t[1].strip().strip('"').strip("'")
+                tmp[k] = v
 
     return tmp
 
 
 def checkArgs(data, ck=[]):
+    if not isinstance(data, dict):
+        return (False, yf.returnJson(False, '参数格式错误'))
     for i in range(len(ck)):
         if not ck[i] in data:
             return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
+
+
+def isSafeSiteName(name):
+    """站点名（日志目录名）白名单：拒绝路径分隔符与 ``..``。
+
+    站点名会直接拼成 ``<serverDir>/webstats/logs/<site>/`` 并据此建 sqlite 库，
+    历史实现未校验，``site='../../../../tmp/x'`` 可让面板以 root 身份在任意
+    目录建出目录与库文件。
+    """
+    name = str(name or '').strip()
+    if not name or len(name) > 255:
+        return False
+    if '/' in name or '\\' in name or '..' in name or '\x00' in name:
+        return False
+    # 名字会参与路径拼接与 ATTACH DATABASE 语句，拒绝引号/空白/分隔符
+    for ch in name:
+        if ch in "'\"`;" or ch.isspace():
+            return False
+    return True
+
+
+def getSiteArg(args, key='site'):
+    """取并校验站点参数。返回 (True, site) 或 (False, 错误信封)。"""
+    site = str(args.get(key, '') or '').strip()
+    if not isSafeSiteName(site):
+        return False, yf.returnJson(False, '站点参数不合法')
+    return True, site
+
+
+_QUERY_DATE_RE = re.compile(r'^\d{1,12}-\d{1,12}$')
+# 2100-01-01：超过它 time.localtime() 会抛 OSError/ValueError
+_MAX_QUERY_TS = 4102444800
+
+
+def normalizeQueryDate(value):
+    """校验时间范围参数：today/yesterday/l7/l30 或 ``<epoch>-<epoch>``。
+
+    自定义范围来自前端 laydate，形如 ``1700000000-1700086400``。
+    非日期（如 'abc'）在旧实现里会走到 ``exlist[1]`` 抛 IndexError。
+    """
+    value = str(value or '').strip()
+    if value in ('today', 'yesterday', 'l7', 'l30'):
+        return value
+    if _QUERY_DATE_RE.match(value):
+        a, b = value.split('-', 1)
+        ia, ib = int(a), int(b)
+        if ia > ib or ib > _MAX_QUERY_TS:
+            return None
+        return value
+    return None
+
+
+def toIntArg(value, min_v=None, max_v=None):
+    """表单/JSON 传来的值安全转 int；非数字或越界返回 None。"""
+    try:
+        n = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    if min_v is not None and n < min_v:
+        return None
+    if max_v is not None and n > max_v:
+        return None
+    return n
+
+
+_MAX_PAGE_SIZE = 1000
+
+
+def checkPager(args):
+    """校验分页参数。返回 (True, page, page_size) 或 (False, 错误信封)。
+
+    旧实现把 page_size 直接拼进 ``LIMIT``：负数在 SQLite 里等于**不限制**
+    （一次把整库拉回内存），超大值同理。
+    """
+    page = toIntArg(args.get('page'), 1, 10 ** 9)
+    page_size = toIntArg(args.get('page_size'), 1, _MAX_PAGE_SIZE)
+    if page is None or page_size is None:
+        return False, yf.returnJson(False, '参数格式错误')
+    return True, page, page_size
+
+
+def readConfJson():
+    """读 <serverDir>/webstats/lua/config.json。
+
+    返回 (True, dict) 或 (False, 错误信封)。yf.readFile() 读不到时返回 **False**
+    （不是空串），旧实现直接 json.loads(False) → TypeError traceback。
+    """
+    content = yf.readFile(getConf())
+    if not content:
+        return False, yf.returnJson(False, '配置文件不存在或无法读取')
+    try:
+        return True, json.loads(content)
+    except Exception as e:
+        _log.debug('[webstats] config.json 解析失败: %s', e)
+        return False, yf.returnJson(False, '配置文件不存在或无法读取')
+
+
+def splitLines(value):
+    """按「真实换行」或「字面 \\n」切分多行配置项。
+
+    JSON 单 argv 形态下前端 textarea 的换行是真实换行；旧实现只 split('\\n')，
+    整段文本被当成单元素列表写进 lua，生成的文件含裸换行 → luajit 语法错误。
+    """
+    value = str(value or '')
+    return [x for x in re.split(r'\r?\n|\\n', value) if x != '']
 
 
 def luaConf():
@@ -89,9 +219,13 @@ def loadLuaFile(name):
     if not os.path.exists(lua_dst):
         lua_tpl = getPluginDir() + '/lua/' + name
         content = yf.readFile(lua_tpl)
+        if not content:
+            _log.debug('[webstats] lua 模板不存在或无法读取: %s', lua_tpl)
+            return False
         content = content.replace('{$SERVER_APP}', getServerDir())
         content = content.replace('{$ROOT_PATH}', yf.getServerDir())
         yf.writeFile(lua_dst, content)
+    return True
 
 
 def loadLuaFileReload(name):
@@ -100,17 +234,27 @@ def loadLuaFileReload(name):
 
     lua_tpl = getPluginDir() + '/lua/' + name
     content = yf.readFile(lua_tpl)
+    if not content:
+        _log.debug('[webstats] lua 模板不存在或无法读取: %s', lua_tpl)
+        return False
     content = content.replace('{$SERVER_APP}', getServerDir())
     content = content.replace('{$ROOT_PATH}', yf.getServerDir())
     yf.writeFile(lua_dst, content)
+    return True
 
 
 def loadConfigFile():
-    lua_dir = getServerDir() + "/lua"
     conf_tpl = getPluginDir() + "/conf/config.json"
 
     content = yf.readFile(conf_tpl)
-    content = json.loads(content)
+    if not content:
+        _log.debug('[webstats] config.json 模板不存在或无法读取: %s', conf_tpl)
+        return False
+    try:
+        content = json.loads(content)
+    except Exception as e:
+        _log.debug('[webstats] config.json 模板解析失败: %s', e)
+        return False
 
     dst_conf_json = getServerDir() + "/lua/config.json"
     if not os.path.exists(dst_conf_json):
@@ -119,6 +263,7 @@ def loadConfigFile():
     dst_conf_lua = getServerDir() + "/lua/webstats_config.lua"
     if not os.path.exists(dst_conf_lua):
         listToLuaFile(dst_conf_lua, content)
+    return True
 
 
 # def loadConfigFileReload():
@@ -141,6 +286,9 @@ def loadLuaSiteFile():
 
     content = makeSiteConfig()
     for index in range(len(content)):
+        if not isSafeSiteName(content[index]['name']):
+            _log.debug('[webstats] 跳过不安全的站点名: %r', content[index]['name'])
+            continue
         pSqliteDb('web_log', content[index]['name'])
 
     lua_site_json = lua_dir + "/sites.json"
@@ -180,7 +328,13 @@ def loadDebugLogFile():
 
 def pSqliteDb(dbname='web_logs', site_name='unset', name="logs"):
 
+    if not isSafeSiteName(site_name):
+        raise ValueError('unsafe site name: %r' % (site_name,))
+
     db_dir = getServerDir() + '/logs/' + site_name
+    logs_root = os.path.realpath(getServerDir() + '/logs')
+    if not os.path.realpath(db_dir).startswith(logs_root + os.sep):
+        raise ValueError('site dir escapes logs root: %r' % (site_name,))
     if not os.path.exists(db_dir):
         yf.makeDirs(db_dir)
 
@@ -188,6 +342,9 @@ def pSqliteDb(dbname='web_logs', site_name='unset', name="logs"):
     if not os.path.exists(file):
         conn = yf.M(dbname).dbPos(db_dir, name)
         sql = yf.readFile(getPluginDir() + '/conf/init.sql')
+        if not sql:
+            _log.debug('[webstats] init.sql 不存在或无法读取')
+            return conn
         sql_list = sql.split(';')
         for index in range(len(sql_list)):
             conn.execute(sql_list[index])
@@ -226,9 +383,31 @@ def makeSiteConfig():
     return data
 
 
+def checkReady():
+    """运行前置检查。未就绪返回错误字符串，就绪返回 True。
+
+    旧实现在未安装时也返回 'ok' 并凭空建出 web_conf/nginx/vhost/webstats.conf，
+    紧接着 luaRestart() 停/启**生产 openresty** —— 而该 vhost 会 include
+    webstats_log.lua（依赖 lsqlite3.so），缺库时 nginx 起不来 = 生产 web 宕机。
+    """
+    if not os.path.exists(yf.getServerDir() + '/openresty'):
+        return 'ERROR: 请先安装OpenResty'
+    server_webstats = getServerDir()
+    if not (os.path.exists(server_webstats + '/version.pl')
+            or os.path.exists(server_webstats + '/lua/lsqlite3.so')):
+        return 'ERROR: 网站统计插件未安装'
+    return True
+
+
 def initDreplace():
 
     service_path = getServerDir()
+
+    for fl in ('webstats_common.lua', 'webstats_log.lua'):
+        if not os.path.exists(getPluginDir() + '/lua/' + fl):
+            return 'ERROR: webstats lua 模板缺失: ' + fl
+    if not os.path.exists(getPluginDir() + '/conf/init.sql'):
+        return 'ERROR: webstats init.sql 缺失'
 
     pSqliteDb()
 
@@ -236,6 +415,9 @@ def initDreplace():
     path_tpl = getPluginDir() + '/conf/webstats.conf'
     if not os.path.exists(path):
         content = yf.readFile(path_tpl)
+        if not content:
+            _log.debug('[webstats] vhost 模板不存在或无法读取: %s', path_tpl)
+            return 'ERROR: webstats vhost 模板缺失'
         content = content.replace('{$SERVER_APP}', service_path)
         content = content.replace('{$ROOT_PATH}', yf.getServerDir())
         yf.writeFile(path, content)
@@ -243,8 +425,14 @@ def initDreplace():
     # 已经安装的
     al_config = getServerDir() + "/lua/config.json"
     if os.path.exists(al_config):
-        tmp = json.loads(yf.readFile(al_config))
-        if tmp['global']['record_post_args'] or tmp['global']['record_get_403_args']:
+        try:
+            tmp = json.loads(yf.readFile(al_config))
+        except Exception as e:
+            _log.debug('[webstats] 读取已存在 config.json 失败: %s', e)
+            tmp = None
+        if tmp and tmp.get('global') and (
+                tmp['global'].get('record_post_args')
+                or tmp['global'].get('record_get_403_args')):
             openLuaNeedRequestBody()
         else:
             closeLuaNeedRequestBody()
@@ -263,9 +451,11 @@ def initDreplace():
     ]
 
     for fl in file_list:
-        loadLuaFile(fl)
+        if loadLuaFile(fl) is False:
+            return 'ERROR: webstats lua 模板读取失败: ' + fl
 
-    loadConfigFile()
+    if loadConfigFile() is False:
+        return 'ERROR: webstats config.json 模板读取失败'
     loadLuaSiteFile()
     loadDebugLogFile()
 
@@ -280,7 +470,13 @@ def luaRestart():
 
 
 def start():
-    initDreplace()
+    ready = checkReady()
+    if ready is not True:
+        return ready
+
+    ret = initDreplace()
+    if ret != 'ok':
+        return ret
 
     import tool_task
     tool_task.createBgTask()
@@ -292,32 +488,48 @@ def start():
 
 def stop():
     path = luaConf()
-    if os.path.exists(path):
+    existed = os.path.exists(path)
+    if existed:
         os.remove(path)
 
     import tool_task
     tool_task.removeBgTask()
 
-    luaRestart()
+    # 未安装/无 vhost 时不必重启生产 openresty
+    if existed:
+        luaRestart()
     return 'ok'
 
 
 def restart():
-    initDreplace()
+    ready = checkReady()
+    if ready is not True:
+        return ready
+
+    ret = initDreplace()
+    if ret != 'ok':
+        return ret
     loadDebugLogFile()
     luaRestart()
     return 'ok'
 
 
 def reload():
-    initDreplace()
+    ready = checkReady()
+    if ready is not True:
+        return ready
+
+    ret = initDreplace()
+    if ret != 'ok':
+        return ret
 
     file_list = [
         'webstats_common.lua',
         'webstats_log.lua',
     ]
     for fl in file_list:
-        loadLuaFileReload(fl)
+        if loadLuaFileReload(fl) is False:
+            return 'ERROR: webstats lua 模板读取失败: ' + fl
 
     loadDebugLogFile()
 
@@ -326,34 +538,40 @@ def reload():
 
 
 def getGlobalConf():
-    conf = getConf()
-    content = yf.readFile(conf)
-    content = json.loads(content)
+    ok, content = readConfJson()
+    if not ok:
+        return content
     return yf.returnJson(True, 'ok', content)
 
 
 def openLuaNeedRequestBody():
     conf = luaConf()
     content = yf.readFile(conf)
+    if not content:
+        return False
     content = re.sub(r"lua_need_request_body (.*);",
                      'lua_need_request_body on;', content)
     yf.writeFile(conf, content)
+    return True
 
 
 def closeLuaNeedRequestBody():
     conf = luaConf()
     content = yf.readFile(conf)
+    if not content:
+        return False
     content = re.sub(r"lua_need_request_body (.*);",
                      'lua_need_request_body off;', content)
     yf.writeFile(conf, content)
+    return True
 
 
 def setGlobalConf():
     args = getArgs()
 
-    conf = getConf()
-    content = yf.readFile(conf)
-    content = json.loads(content)
+    ok, content = readConfJson()
+    if not ok:
+        return content
 
     open_force_get_request_body = False
     for v in ['record_post_args', 'record_get_403_args']:
@@ -375,12 +593,15 @@ def setGlobalConf():
     for v in ['ip_top_num', 'uri_top_num', 'save_day']:
         data = checkArgs(args, [v])
         if data[0]:
-            content['global'][v] = int(args[v])
+            n = toIntArg(args[v], 0, 10 ** 9)
+            if n is None:
+                return yf.returnJson(False, '参数格式错误')
+            content['global'][v] = n
 
     for v in ['cdn_headers', 'exclude_extension', 'exclude_status', 'exclude_ip']:
         data = checkArgs(args, [v])
         if data[0]:
-            content['global'][v] = args[v].split("\\n")
+            content['global'][v] = splitLines(args[v])
 
     data = checkArgs(args, ['exclude_url'])
     if data[0]:
@@ -390,13 +611,15 @@ def setGlobalConf():
             exclude_url_list = exclude_url.split(";")
             for i in exclude_url_list:
                 t = i.split("|")
+                if len(t) != 2:
+                    return yf.returnJson(False, '参数格式错误')
                 val = {}
                 val['mode'] = t[0]
                 val['url'] = t[1]
                 exclude_url_val.append(val)
         content['global']['exclude_url'] = exclude_url_val
 
-    yf.writeFile(conf, json.dumps(content))
+    yf.writeFile(getConf(), json.dumps(content))
     conf_lua = getServerDir() + "/lua/webstats_config.lua"
     listToLuaFile(conf_lua, content)
     luaRestart()
@@ -410,10 +633,13 @@ def getSiteConf():
     if not check[0]:
         return check[1]
 
-    domain = args['site']
-    conf = getConf()
-    content = yf.readFile(conf)
-    content = json.loads(content)
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    ok, content = readConfJson()
+    if not ok:
+        return content
 
     site_conf = {}
     if domain in content:
@@ -437,10 +663,13 @@ def setSiteConf():
     if not check[0]:
         return check[1]
 
-    domain = args['site']
-    conf = getConf()
-    content = yf.readFile(conf)
-    content = json.loads(content)
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    ok, content = readConfJson()
+    if not ok:
+        return content
 
     site_conf = {}
     if domain in content:
@@ -466,12 +695,15 @@ def setSiteConf():
     for v in ['ip_top_num', 'uri_top_num', 'save_day']:
         data = checkArgs(args, [v])
         if data[0]:
-            site_conf[v] = int(args[v])
+            n = toIntArg(args[v], 0, 10 ** 9)
+            if n is None:
+                return yf.returnJson(False, '参数格式错误')
+            site_conf[v] = n
 
     for v in ['cdn_headers', 'exclude_extension', 'exclude_status', 'exclude_ip']:
         data = checkArgs(args, [v])
         if data[0]:
-            site_conf[v] = args[v].strip().split("\\n")
+            site_conf[v] = splitLines(args[v])
 
     data = checkArgs(args, ['exclude_url'])
     if data[0]:
@@ -481,6 +713,8 @@ def setSiteConf():
             exclude_url_list = exclude_url.split(";")
             for i in exclude_url_list:
                 t = i.split("|")
+                if len(t) != 2:
+                    return yf.returnJson(False, '参数格式错误')
                 val = {}
                 val['mode'] = t[0]
                 val['url'] = t[1]
@@ -489,7 +723,7 @@ def setSiteConf():
 
     content[domain] = site_conf
 
-    yf.writeFile(conf, json.dumps(content))
+    yf.writeFile(getConf(), json.dumps(content))
     conf_lua = getServerDir() + "/lua/webstats_config.lua"
     listToLuaFile(conf_lua, content)
     luaRestart()
@@ -500,7 +734,13 @@ def getSiteListData():
     lua_dir = getServerDir() + "/lua"
     path = lua_dir + "/default.json"
     data = yf.readFile(path)
-    return json.loads(data)
+    if not data:
+        return {"list": ["unset"], "default": "unset"}
+    try:
+        return json.loads(data)
+    except Exception as e:
+        _log.debug('[webstats] default.json 解析失败: %s', e)
+        return {"list": ["unset"], "default": "unset"}
 
 
 def getDefaultSite():
@@ -509,10 +749,19 @@ def getDefaultSite():
 
 
 def setDefaultSite(name):
+    if not isSafeSiteName(name):
+        return yf.returnJson(False, '站点参数不合法')
+    name = str(name).strip()
     lua_dir = getServerDir() + "/lua"
     path = lua_dir + "/default.json"
     data = yf.readFile(path)
-    data = json.loads(data)
+    if not data:
+        return yf.returnJson(False, '配置文件不存在或无法读取')
+    try:
+        data = json.loads(data)
+    except Exception as e:
+        _log.debug('[webstats] default.json 解析失败: %s', e)
+        return yf.returnJson(False, '配置文件不存在或无法读取')
     data['default'] = name
     yf.writeFile(path, json.dumps(data))
     return yf.returnJson(True, 'OK')
@@ -557,11 +806,14 @@ def getSiteStatInfo(domain, query_date):
             '%Y%m%d00', time.localtime(time.time() - 30 * 86400))
         conn.andWhere("time >= ?", (todayTime,))
     else:
-        exlist = query_date.split("-")
-        start = time.strftime(
-            '%Y%m%d00', time.localtime(int(exlist[0])))
-        end = time.strftime(
-            '%Y%m%d23', time.localtime(int(exlist[1])))
+        exlist = str(query_date).split("-")
+        try:
+            start = time.strftime(
+                '%Y%m%d00', time.localtime(int(exlist[0])))
+            end = time.strftime(
+                '%Y%m%d23', time.localtime(int(exlist[1])))
+        except (IndexError, ValueError, OverflowError, OSError):
+            start = end = '0'
         conn.andWhere("time >= ? and time <= ? ", (start, end,))
 
     # 统计总数
@@ -576,8 +828,13 @@ def getOverviewList():
     if not check[0]:
         return check[1]
 
-    domain = args['site']
-    query_date = args['query_date']
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
     order = args['order']
 
     setDefaultSite(domain)
@@ -612,11 +869,14 @@ def getOverviewList():
             '%Y%m%d00', time.localtime(time.time() - 30 * 86400))
         conn.andWhere("time >= ?", (todayTime,))
     else:
-        exlist = query_date.split("-")
-        start = time.strftime(
-            '%Y%m%d00', time.localtime(int(exlist[0])))
-        end = time.strftime(
-            '%Y%m%d23', time.localtime(int(exlist[1])))
+        exlist = str(query_date).split("-")
+        try:
+            start = time.strftime(
+                '%Y%m%d00', time.localtime(int(exlist[0])))
+            end = time.strftime(
+                '%Y%m%d23', time.localtime(int(exlist[1])))
+        except (IndexError, ValueError, OverflowError, OSError):
+            start = end = '0'
         conn.andWhere("time >= ? and time <= ? ", (start, end,))
 
     # 统计总数
@@ -639,13 +899,17 @@ def getSiteList():
     if not check[0]:
         return check[1]
 
-    query_date = args['query_date']
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
 
     data = getSiteListData()
     data_list = data["list"]
 
     rdata = []
     for x in data_list:
+        if not isSafeSiteName(x):
+            continue
         tmp = getSiteStatInfo(x, query_date)
         tmp["site"] = x
         rdata.append(tmp)
@@ -664,8 +928,9 @@ def getLogsRealtimeInfo():
 
     domain = args['site']
     dtype = args['type']
-    second = int(args['second'])
-
+    second = toIntArg(args['second'], 1, 30 * 86400)
+    if second is None:
+        return yf.returnJson(False, '参数格式错误')
 
     conn = pSqliteDb('web_logs', domain)
     timeInt = time.mktime(datetime.datetime.now().timetuple())
@@ -713,19 +978,41 @@ def getLogsList():
     if not check[0]:
         return check[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
-    domain = args['site']
-    tojs = args['tojs']
+    pager = checkPager(args)
+    if not pager[0]:
+        return pager[1]
+    page, page_size = pager[1], pager[2]
+
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
+
+    tojs = args.get('tojs', '')
     method = args['method']
     status_code = args['status_code']
     request_time = args['request_time']
-    request_size = args['request_size']
+    request_size = args.get('request_size', 'all')
     spider_type = args['spider_type']
-    query_date = args['query_date']
     search_uri = args['search_uri']
-    referer = args['referer']
-    ip = args['ip']
+    referer = args.get('referer', 'all')
+    ip = args.get('ip', '')
+
+    # 耗时/大小筛选：允许 all 或纯数字区间（前端 select 固定值）
+    for name, val in (('request_time', request_time), ('request_size', request_size)):
+        if val != 'all' and not re.match(r'^\d+(\-\d+)?$', str(val).strip()):
+            return yf.returnJson(False, '参数格式错误')
+
+    # 蜘蛛筛选：normal/only_spider/no_spider 或正整数蜘蛛类型 id
+    if spider_type not in ('normal', 'only_spider', 'no_spider'):
+        spider_type_id = toIntArg(spider_type, 1, 10 ** 9)
+        if spider_type_id is None:
+            return yf.returnJson(False, '参数格式错误')
+        spider_type = spider_type_id
+
     setDefaultSite(domain)
 
     limit = str(page_size) + ' offset ' + str(page_size * (page - 1))
@@ -837,12 +1124,21 @@ def getLogsErrorList():
     if not check[0]:
         return check[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
-    domain = args['site']
-    tojs = args['tojs']
+    pager = checkPager(args)
+    if not pager[0]:
+        return pager[1]
+    page, page_size = pager[1], pager[2]
+
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
+
+    tojs = args.get('tojs', '')
     status_code = args['status_code']
-    query_date = args['query_date']
     setDefaultSite(domain)
 
     limit = str(page_size) + ' offset ' + str(page_size * (page - 1))
@@ -902,11 +1198,20 @@ def getClientStatList():
     if not check[0]:
         return check[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
-    domain = args['site']
-    tojs = args['tojs']
-    query_date = args['query_date']
+    pager = checkPager(args)
+    if not pager[0]:
+        return pager[1]
+    page, page_size = pager[1], pager[2]
+
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
+
+    tojs = args.get('tojs', '')
     setDefaultSite(domain)
 
     conn = pSqliteDb('client_stat', domain)
@@ -1028,15 +1333,37 @@ def getDateRangeList(start, end):
     return dlist
 
 
+def dayRangeList(start_day, end_day):
+    """[start_day, end_day] 闭区间的日号列表（跨月时环绕）。"""
+    if start_day <= end_day:
+        return list(range(start_day, end_day + 1))
+    return list(range(start_day, 32)) + list(range(1, end_day + 1))
+
+
+def dayFlowField(query_date, prefix):
+    """自定义时间范围（<epoch>-<epoch>）→ 按 day/flow 列求和字段。"""
+    a, b = query_date.split('-', 1)
+    rlist = dayRangeList(time.localtime(int(a)).tm_mday,
+                         time.localtime(int(b)).tm_mday)
+    field_day = "".join("+cast(day" + str(x) + " as TEXT)" for x in rlist).strip("+")
+    field_flow = "".join("+cast(flow" + str(x) + " as TEXT)" for x in rlist).strip("+")
+    return prefix + ",(" + field_day + ') as day,(' + field_flow + ") as flow"
+
+
 def getIpStatList():
     args = getArgs()
     check = checkArgs(args, ['site', 'query_date'])
     if not check[0]:
         return check[1]
 
-    domain = args['site']
-    tojs = args['tojs']
-    query_date = args['query_date']
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    tojs = args.get('tojs', '')
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
     setDefaultSite(domain)
 
     conn = pSqliteDb('ip_stat', domain)
@@ -1110,6 +1437,12 @@ def getIpStatList():
         conn = conn.field(field)
         conn = conn.where("day>? and flow>?", (0, 0,))
 
+    else:
+        # 自定义时间范围（前端 laydate 传 <epoch>-<epoch>）
+        field = dayFlowField(query_date, 'ip')
+        conn = conn.field(field)
+        conn = conn.where("day>? and flow>?", (0, 0,))
+
     clist = conn.order("flow desc").limit("50").inquiry(origin_field)
     # print(clist)
 
@@ -1175,9 +1508,14 @@ def getUriStatList():
     if not check[0]:
         return check[1]
 
-    domain = args['site']
-    tojs = args['tojs']
-    query_date = args['query_date']
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    tojs = args.get('tojs', '')
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
     setDefaultSite(domain)
 
     conn = pSqliteDb('uri_stat', domain)
@@ -1251,6 +1589,12 @@ def getUriStatList():
         conn = conn.field(field)
         conn = conn.where("day>? and flow>?", (0, 0,))
 
+    else:
+        # 自定义时间范围（前端 laydate 传 <epoch>-<epoch>）
+        field = dayFlowField(query_date, 'uri')
+        conn = conn.field(field)
+        conn = conn.where("day>? and flow>?", (0, 0,))
+
     clist = conn.order("flow desc").limit("50").inquiry(origin_field)
 
     total_req = 0
@@ -1281,7 +1625,9 @@ def getWebLogCount(domain, query_date):
     elif query_date == "l30":
         conn = conn.where("time>=?", (todayUt - 30 * 86400,))
     else:
-        exlist = query_date.split("-")
+        exlist = str(query_date).split("-")
+        if len(exlist) != 2:
+            return 0
         conn = conn.where("time>=? and time<=?", (exlist[0], exlist[1]))
 
     count_key = "count(*) as num"
@@ -1297,11 +1643,20 @@ def getSpiderStatList():
     if not check[0]:
         return check[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
-    domain = args['site']
-    tojs = args['tojs']
-    query_date = args['query_date']
+    pager = checkPager(args)
+    if not pager[0]:
+        return pager[1]
+    page, page_size = pager[1], pager[2]
+
+    ok, domain = getSiteArg(args)
+    if not ok:
+        return domain
+
+    query_date = normalizeQueryDate(args['query_date'])
+    if query_date is None:
+        return yf.returnJson(False, '时间范围参数不合法')
+
+    tojs = args.get('tojs', '')
     setDefaultSite(domain)
 
     conn = pSqliteDb('spider_stat', domain)
@@ -1397,6 +1752,11 @@ def installPreInspection():
     if not os.path.exists(check_op):
         return "请先安装OpenResty"
     return 'ok'
+
+
+def runInfo():
+    """运行信息。webstats 没有独立守护进程，运行态由 vhost 配置是否存在决定。"""
+    return status()
 
 def uninstallPreInspection():
     stop()

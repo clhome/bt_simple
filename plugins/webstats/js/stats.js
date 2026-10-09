@@ -1,5 +1,12 @@
 var api = YfPlugin.createApi('webstats');
 var pt = YfI18n.createPluginTranslator('webstats');
+
+// 日志里的 uri/referer/user_agent/domain 全部来自外部请求，直接拼进 HTML 就是存储型 XSS
+function wsEsc(v){
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -663,7 +670,7 @@ function wsSitesListRequest(page){
                 }
 
                 list += '<tr>';
-                list += '<td>' + data[i]['site']+'</td>';
+                list += '<td>' + wsEsc(data[i]['site']) +'</td>';
                 list += '<td>' + tmp_pv +'</td>';
                 list += '<td>' + tmp_uv +'</td>';
                 list += '<td>' + tmp_ip +'</td>';
@@ -710,7 +717,7 @@ function wsSitesListRequest(page){
                 console.log(rdata);
                 layer.open({
                     type: 1,
-                    title: msgTpl(pt('【{1}】监控配置'), [domain]),
+                    title: msgTpl(pt('【{1}】监控配置'), [wsEsc(domain)]),
                     btn: [pt('保存'), pt('取消')], 
                     area: ['600px',"380px"],
                     closeBtn: 1,
@@ -1724,8 +1731,8 @@ function wsIpStatLogRequest(page){
             for(i in data){
                 list += '<tr>';
                 list += '<td>' + (parseInt(i)+1)+'</td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['ip']+'</span></td>';
-                list += '<td>' + data[i]['area'] +'</td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['ip']) +'</span></td>';
+                list += '<td>' + wsEsc(data[i]['area']) +'</td>';
                 list += '<td>' + data[i]['day'] +'('+data[i]['day_rate']+'%)</td>';
                 list += '<td>' + toSize(data[i]['flow']) +'('+data[i]['flow_rate']+'%)</td>';
                 list += '<td><span><div class="share_num" style="width:'+data[i]['flow_rate']+'%"></div></span>' +'</td>';
@@ -1841,7 +1848,7 @@ function wsUriStatLogRequest(page){
             for(i in data){
                 list += '<tr>';
                 list += '<td>' + (parseInt(i)+1)+'</td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['uri']+'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['uri']) +'</span></td>';
                 list += '<td>' + data[i]['day'] +'('+data[i]['day_rate']+'%)</td>';
                 list += '<td>' + toSize(data[i]['flow']) +'('+data[i]['flow_rate']+'%)</td>';
                 list += '<td><span><div class="share_num" style="width:'+data[i]['flow_rate']+'%"></div></span>' +'</td>';
@@ -1967,12 +1974,12 @@ function wsTableErrorLogRequest(page){
             for(i in data){
                 list += '<tr>';
                 list += '<td>' + getLocalTime(data[i]['time'])+'</td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['domain'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['ip'] +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['domain']) +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['ip']) +'</span></td>';
                 list += '<td>' + toSize(data[i]['body_length']) +'</td>';
                 list += '<td>' + toSecond(data[i]['request_time']) +'</td>';
-                list += '<td><span class="overflow_hide" style="width:130px;">' + data[i]['uri'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:60px;">' + data[i]['status_code']+'/' + data[i]['method'] +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:130px;">' + wsEsc(data[i]['uri']) +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:60px;">' + wsEsc(data[i]['status_code'])+'/' + wsEsc(data[i]['method']) +'</span></td>';
                 list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="' + pt('详情') + '">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
@@ -2005,26 +2012,26 @@ function wsTableErrorLogRequest(page){
             var res = data[index];
             layer.open({
                 type: 1,
-                title: msgTpl(pt('【{1}】详情信息'), [res.domain]),
+                title: msgTpl(pt('【{1}】详情信息'), [wsEsc(res.domain)]),
                 area: '600px',
                 closeBtn: 1,
                 shadeClose: false,
                 content: '<div class="pd15 lib-box">\
                     <div style="height:80px;"><table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
                     <tbody class="site_details_tbody">\
-                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
-                        <tr><th>' + pt('类型') + '</th><td>' + res.method + '</td><th>' + pt('状态') + '</th><td>' + res.status_code + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
+                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + wsEsc(res.ip) + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
+                        <tr><th>' + pt('类型') + '</th><td>' + wsEsc(res.method) + '</td><th>' + pt('状态') + '</th><td>' + wsEsc(res.status_code) + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
                     </tbody></table></div>\
                     <div><b style="margin-left:10px">' + pt('协议') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + res.protocol + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.protocol) + '</div></div>\
                     <div><b style="margin-left:10px">URL</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.uri).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.uri) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('完整IP列表') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + $('<div ></div>').text(res.ip_list).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + wsEsc(res.ip_list) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('来路') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.referer == null ?'None':res.referer).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.referer == null ?'None':res.referer) + '</div></div>\
                     <div><b style="margin-left:10px">User-Agent</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.user_agent).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.user_agent) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('处理耗时') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' +res.request_time + ' ms</div></div>\
                 </div>',
@@ -2218,12 +2225,12 @@ function wsTableLogRequest(page){
 
                 list += '<tr>';
                 list += '<td>' + getLocalTime(data[i]['time'])+'</td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['domain'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:100px;">' + data[i]['ip'] +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['domain']) +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:100px;">' + wsEsc(data[i]['ip']) +'</span></td>';
                 list += '<td>' + toSize(data[i]['body_length']) +'</td>';
                 list += '<td>' + toSecond(data[i]['request_time']) +'</td>';
-                list += '<td><span class="overflow_hide" style="width:130px;">' + data[i]['uri'] +'</span></td>';
-                list += '<td>'+spider_tip+'<span class="overflow_hide" style="width:60px;">' + data[i]['status_code']+'/' + data[i]['method'] +'</span></td>';
+                list += '<td><span class="overflow_hide" style="width:130px;">' + wsEsc(data[i]['uri']) +'</span></td>';
+                list += '<td>'+spider_tip+'<span class="overflow_hide" style="width:60px;">' + wsEsc(data[i]['status_code'])+'/' + wsEsc(data[i]['method']) +'</span></td>';
 
                 var http_data = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
                 if (data[i]['request_headers']!=''){
@@ -2260,26 +2267,26 @@ function wsTableLogRequest(page){
             var res = data[index];
             layer.open({
                 type: 1,
-                title: msgTpl(pt('【{1}】详情信息'), [res.domain]),
+                title: msgTpl(pt('【{1}】详情信息'), [wsEsc(res.domain)]),
                 area: '600px',
                 closeBtn: 1,
                 shadeClose: false,
                 content: '<div class="pd15 lib-box">\
                     <div style="height:80px;"><table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
                     <tbody class="site_details_tbody">\
-                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
-                        <tr><th>' + pt('类型') + '</th><td>' + res.method + '</td><th>' + pt('状态') + '</th><td>' + res.status_code + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
+                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + wsEsc(res.ip) + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
+                        <tr><th>' + pt('类型') + '</th><td>' + wsEsc(res.method) + '</td><th>' + pt('状态') + '</th><td>' + wsEsc(res.status_code) + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
                     </tbody></table></div>\
                     <div><b style="margin-left:10px">' + pt('协议') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + res.protocol + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.protocol) + '</div></div>\
                     <div><b style="margin-left:10px">URL</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.uri).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.uri) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('完整IP列表') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + $('<div ></div>').text(res.ip_list).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + wsEsc(res.ip_list) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('来路') + '</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.referer == null ?'None':res.referer).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.referer == null ?'None':res.referer) + '</div></div>\
                     <div><b style="margin-left:10px">User-Agent</b></div>\
-                    <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.user_agent).html() + '</div></div>\
+                    <div class="lib-con mt10"><div class="divpre">' + wsEsc(res.user_agent) + '</div></div>\
                     <div><b style="margin-left:10px">' + pt('处理耗时') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' +res.request_time + ' ms</div></div>\
                 </div>',
@@ -2291,25 +2298,25 @@ function wsTableLogRequest(page){
             var res = data[index];
             var request_headers = res.request_headers;
 
-            var req_data_html = res.method +' ' + res.uri + '<br/>';
+            var req_data_html = wsEsc(res.method) +' ' + wsEsc(res.uri) + '<br/>';
 
             try {
                 var req_data = JSON.parse(request_headers);
                 for (var d in req_data) {
                     if (d == 'payload'){
-                        req_data_html += '<b style="color:red;">'+d +"</b>:"+req_data[d]+"<br/>";
+                        req_data_html += '<b style="color:red;">'+wsEsc(d) +"</b>:"+wsEsc(req_data[d])+"<br/>";
                     } else{
-                        req_data_html += d+":"+req_data[d]+"<br/>";
+                        req_data_html += wsEsc(d)+":"+wsEsc(req_data[d])+"<br/>";
                     }
                 }
             } catch (error) {
-                req_data_html += request_headers;
+                req_data_html += wsEsc(request_headers);
             }
 
 
             layer.open({
                 type: 1,
-                title: msgTpl(pt('【{1}】HTTP详情'), [res.domain]),
+                title: msgTpl(pt('【{1}】HTTP详情'), [wsEsc(res.domain)]),
                 area: ['600px','375px'],
                 closeBtn: 1,
                 shadeClose: false,
