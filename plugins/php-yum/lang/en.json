@@ -138,7 +138,6 @@
     "错误级别": "error level",
     "静态": "static",
     "非法的扩展名称！": "Invalid extension name!",
-    "非法的版本号！": "Invalid version number!",
     "预加载脚本": "Preload Scripts",
     "自愈修复": "Self-Healing",
     "服务自愈修复": "Service Self-Healing",
@@ -160,5 +159,16 @@
     "缺少必要参数:": "Missing required parameter:",
     "PHP-YUM 插件自愈迁移完成": "PHP-YUM plugin self-healing migration completed",
     "请不要输入以下特殊字符:": "Do not enter the following special characters:",
-    "查看phpinfo()": "View phpinfo()"
+    "查看phpinfo()": "View phpinfo()",
+    "PHP版本参数不合法!": "Invalid PHP version parameter!",
+    "参数格式错误!": "Invalid parameter format!",
+    "参数值不合法!": "Invalid parameter value!",
+    "Session存储方式不合法!": "Invalid session storage handler!",
+    "禁用函数格式不合法!": "Invalid disabled-functions format!",
+    "并发参数不合法!": "Invalid concurrency parameters!",
+    "运行模式不合法!": "Invalid run mode!",
+    "时间参数不合法!": "Invalid time parameter!",
+    "上传大小参数不合法!": "Invalid upload size parameter!",
+    "扩展列表配置文件不存在!": "Extension list config file not found!",
+    "扩展列表配置文件格式错误!": "Extension list config file format error!"
 }

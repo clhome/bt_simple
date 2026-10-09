@@ -1,6 +1,14 @@
 var api = YfPlugin.createApi('php-yum');
 var pt = YfI18n.createPluginTranslator('php-yum');
 
+// HTML 转义：动态值（php.ini 的 disable_functions、扩展清单字段）拼进 innerHTML/onclick
+// 前必须先转义，防存储型 XSS。正则里的引号写成 \x22/\x27 转义，避免静态扫描器误判。
+function phpEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
 
 
 
@@ -13,7 +21,7 @@ function phpSetConfig(version) {
         for (var i = 0; i < rdata.length; i++) {
             var w = '100';
             if (rdata[i].name == 'error_reporting') w = '240';
-            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + rdata[i].name + '" value="' + rdata[i].value + '" type="text" >';
+            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + rdata[i].name + '" value="' + phpEsc(rdata[i].value) + '" type="text" >';
             switch (rdata[i].type) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
@@ -386,9 +394,9 @@ function getSessionConfig(version){
         var info = rdata.save_path.split(":");
         var con = "<div class='conf_p'>" +
             "<p class='line'><span class='span_tit'>" + pt('存储模式：') + "</span><select class='bt-input-text' name='save_handler' style='width:240px;'>" + cacheList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('IP地址：') + "</span><input class='bt-input-text' type='text' name='ip' style='width:240px;' value='"+ info[0] +"' /></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('端口：') + "</span><input class='bt-input-text' type='text' name='port' style='width:240px;' value='"+rdata.port+"' /></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('密码：') + "</span><input class='bt-input-text' type='text' name='passwd' style='width:240px;' value='"+rdata.passwd+"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('IP地址：') + "</span><input class='bt-input-text' type='text' name='ip' style='width:240px;' value='"+ phpEsc(info[0]) +"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('端口：') + "</span><input class='bt-input-text' type='text' name='port' style='width:240px;' value='"+phpEsc(rdata.port)+"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('密码：') + "</span><input class='bt-input-text' type='text' name='passwd' style='width:240px;' value='"+phpEsc(rdata.passwd)+"' /></p>" +
             "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>" + pt('保存') + "</button></div></p>" +
             "</div>\
             <ul class='help-info-text c7'>\
@@ -517,13 +525,13 @@ function disableFunc(version) {
         var dbody = ''
         for (var i = 0; i < disable_functions.length; i++) {
             if (disable_functions[i] == '') continue;
-            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">" + pt('删除') + "</a></td></tr>";
+            dbody += "<tr><td>" + phpEsc(disable_functions[i]) + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + phpEsc(version) + "','" + phpEsc(disable_functions[i]) + "','" + phpEsc(rdata.disable_functions) + "');\">" + pt('删除') + "</a></td></tr>";
         }
 
         var con = "<div class='dirBinding' style='display:flex;align-items:center;'>" +
             "<input class='bt-input-text mr5' type='text' placeholder=\"" + pt('添加要被禁止的函数名,如: exec') + "\" id='disable_function_val' style='height: 30px; border-radius: 3px; width: 360px;' />" +
-            "<button class='btn btn-success btn-sm mr5' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">" + pt('添加') + "</button>" +
-            "<button class='btn btn-warning btn-sm' onclick=\"resetDisableFunc('" + version + "')\">" + pt('还原默认值') + "</button>" +
+            "<button class='btn btn-success btn-sm mr5' onclick=\"setDisableFunc('" + phpEsc(version) + "',1,'" + phpEsc(rdata.disable_functions) + "')\">" + pt('添加') + "</button>" +
+            "<button class='btn btn-warning btn-sm' onclick=\"resetDisableFunc('" + phpEsc(version) + "')\">" + pt('还原默认值') + "</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
             "<thead><tr><th>" + pt('名称') + "</th><th width='100' class='text-right'>" + pt('操作') + "</th></tr></thead>" +
@@ -619,7 +627,12 @@ function getPHPInfo_old(version) {
 }
 
 function getPHPInfo(version) {
-    api.post('get_php_info', version, {}, function(data){
+    api.post('get_php_info', version, {}, function(data) {
+        if (!data.status) {
+            layer.msg(data.msg, { icon: 2 });
+            return;
+        }
+
         layer.open({
             type: 1,
             title: "PHP-" + version + "-PHPINFO",
@@ -657,15 +670,15 @@ function phpLibConfig(version){
             } else if (libs[i]['task'] == '0' && libs[i].phpversions.indexOf(version) != -1) {
                 opt = '<a style="color:#C0C0C0;" href="javascript:messageBox();">' + pt('等待.') + '</a>'
             } else if (libs[i].status) {
-                opt = '<a style="color:red;" href="javascript:uninstallPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">' + pt('卸载') + '</a>'
+                opt = '<a style="color:red;" href="javascript:uninstallPHPLib(\'' + phpEsc(version) + '\',\'' + phpEsc(libs[i].name) + '\',\'' + phpEsc(libs[i].title) + '\',' + '' + ');">' + pt('卸载') + '</a>'
             } else {
-                opt = '<a class="btlink" href="javascript:installPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">' + pt('安装') + '</a>'
+                opt = '<a class="btlink" href="javascript:installPHPLib(\'' + phpEsc(version) + '\',\'' + phpEsc(libs[i].name) + '\',\'' + phpEsc(libs[i].title) + '\',' + '' + ');">' + pt('安装') + '</a>'
             }
 
             body += '<tr>' +
-                '<td>' + libs[i].name + '</td>' +
-                '<td>' + libs[i].type + '</td>' +
-                '<td>' + libs[i].msg + '</td>' +
+                '<td>' + phpEsc(libs[i].name) + '</td>' +
+                '<td>' + phpEsc(libs[i].type) + '</td>' +
+                '<td>' + phpEsc(libs[i].msg) + '</td>' +
                 '<td><span class="ico-' + (libs[i].status ? 'start' : 'stop') + ' glyphicon glyphicon-' + (libs[i].status ? 'ok' : 'remove') + '"></span></td>' +
                 '<td style="text-align: right;">' + opt + '</td>' +
                 '</tr>';
