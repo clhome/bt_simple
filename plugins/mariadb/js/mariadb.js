@@ -1,6 +1,12 @@
 var api = YfPlugin.createApi('mariadb');
 var pt = YfI18n.createPluginTranslator('mariadb');
 
+// HTML 转义：服务端配置值（datadir/port 等）会被直接拼进 HTML 属性，未转义可注入
+function maEsc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 
 
 
@@ -52,7 +58,7 @@ function myDbPos(){
     api.post('my_db_pos','',function(data){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
-            <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+data.data+'">\
+            <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+maEsc(data.data)+'">\
             <span class="glyphicon cursor mr5 glyphicon-folder-open icon_datadir" onclick="changePath(\'datadir\')"></span>\
             <button id="btn_change_path" name="btn_change_path" class="btn btn-success btn-sm mr5 ml5 btn_change_port">' + pt('迁移') + '</button>\
             </div></div>';
@@ -72,7 +78,7 @@ function myPort(){
     api.post('my_port','',function(data){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
-            <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+data.data+'">\
+            <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+maEsc(data.data)+'">\
             <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">' + pt('修改') + '</button>\
             </div></div>';
         $(".soft-man-con").html(con);
@@ -100,8 +106,11 @@ function changeMySQLDataPath(act) {
             var data = 'datadir=' + datadir;
             var loadT = layer.msg(pt('正在迁移数据，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
             $.post('/database?action=SetDataDir', data, function(rdata) {
-                layer.close(loadT)
+                layer.close(loadT);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
+            }).fail(function() {
+                layer.close(loadT);
+                layer.msg(pt('文件迁移失败!'), { icon: 5 });
             });
         });
         return;
@@ -109,7 +118,7 @@ function changeMySQLDataPath(act) {
 
     $.post('/database?action=GetMySQLInfo', '', function(rdata) {
         var LimitCon = '<p class="conf_p">\
-                            <input id="datadir" class="phpUploadLimit bt-input-text mr5" style="width:350px;" type="text" value="' + rdata.datadir + '" name="datadir">\
+                            <input id="datadir" class="phpUploadLimit bt-input-text mr5" style="width:350px;" type="text" value="' + maEsc(rdata.datadir) + '" name="datadir">\
                             <span onclick="ChangePath(\'datadir\')" class="glyphicon glyphicon-folder-open cursor mr20" style="width:auto"></span><button class="btn btn-success btn-sm" onclick="changeMySQLDataPath(1)">' + pt('迁移') + '</button>\
                         </p>';
         $(".soft-man-con").html(LimitCon);

@@ -26,7 +26,10 @@ function redisPostCallbak(method, version, args,callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(xhr){
+        layer.close(loadT);
+        layer.msg((window.lan && lan.public && lan.public.CONNECT_ERR) || '连接服务器失败!', {icon: 0, time: 2000});
+    }); 
 }
 
 //redis状态  start
