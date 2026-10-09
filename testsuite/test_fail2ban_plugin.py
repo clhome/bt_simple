@@ -308,7 +308,10 @@ class TestBlacklistChain(unittest.TestCase):
         banip_calls = [c for c in calls if len(c) >= 3 and c[2] == 'banip']
         self.assertEqual(len(banip_calls), 1)
         self.assertEqual(banip_calls[0][1], f2b.MANUAL_JAIL)
-        self.assertEqual(banip_calls[0][3], '1.1.1.1 2.2.2.2')
+        # 每个 IP 必须是独立参数：fail2ban-client 1.0+ 走结构化命令协议，
+        # 空格拼接的单个参数会被当成「一个 IP」（真机实测 bans 表落成
+        # 'a.b.c.d e.f.g.h' + 日志 `Error banning`，界面此条永远解封不掉）
+        self.assertEqual(banip_calls[0][3:], ('1.1.1.1', '2.2.2.2'))
 
         # 3. 绝不能出现历史上打到 "server" 假 jail 的调用
         self.assertFalse([c for c in calls if len(c) >= 2 and c[1] == 'server'])
@@ -426,7 +429,7 @@ class TestBlacklistChain(unittest.TestCase):
             self.assertTrue(f2b.apply_black_list())
 
         self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0], ('set', f2b.MANUAL_JAIL, 'banip', '1.1.1.1 2.2.2.2'))
+        self.assertEqual(calls[0], ('set', f2b.MANUAL_JAIL, 'banip', '1.1.1.1', '2.2.2.2'))
 
 
 class TestLogParsing(unittest.TestCase):

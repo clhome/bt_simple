@@ -190,5 +190,8 @@
     "📖 御风F2B底层防火墙  使用指南": "📖 Yufeng F2B Layer 1 Firewall  User Guide",
     "缺少必要参数:": "Missing required parameter:",
     "部分IP封禁失败:": "Failed to ban some IPs:",
-    "不支持的防护类型:": "Unsupported protection type:"
+    "不支持的防护类型:": "Unsupported protection type:",
+    "配置文件读取失败": "Failed to read config file",
+    "black_ip 参数格式错误": "Invalid black_ip parameter",
+    "请求失败": "Request failed"
 }

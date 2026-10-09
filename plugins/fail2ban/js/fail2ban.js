@@ -221,7 +221,11 @@ function f2bPostCallbak(method, version, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(xhr){
+        // 缺 .fail() 会让 500 / 超时时 loading 遮罩永久卡死（与 core/plugin_api.js 的失败分支保持一致文案）
+        layer.close(loadT);
+        layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status),{icon:0,time:2000,shade: [0.3, '#000']});
+    });
 }
 
 function f2bBanIpSave(black_ip){

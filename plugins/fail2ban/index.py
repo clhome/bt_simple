@@ -1005,6 +1005,9 @@ def readConfigTpl():
         return yf.returnJson(False, '配置文件不存在')
 
     content = yf.readFile(path)
+    # readFile 失败返回 False，未判会变成 False.replace(...) → AttributeError → 500
+    if content is False or content is None:
+        return yf.returnJson(False, '配置文件读取失败')
     content = contentReplace(content)
     return yf.returnJson(True, 'ok', content)
 
@@ -1276,7 +1279,13 @@ def _read_conf(path, l=None):
             conf = []
         yf.writeFile(path, json.dumps(conf))
         return conf
-    return json.loads(conf)
+    try:
+        data = json.loads(conf)
+    except Exception:
+        # 配置文件被截断 / 手工改坏时按默认值重建，
+        # 绝不让 JSONDecodeError 冒泡成 500（黑名单损坏不能让整个插件不可用）
+        data = [] if l else {}
+    return data
 
 def getBlackFile():
     return getServerDir() + "/black_list.json"
@@ -1289,9 +1298,11 @@ def getConfigFile():
 def getBlackListArr():
     _black_list = getBlackFile()
     conf = _read_conf(_black_list, l=1)
-    if not conf:
-        conf = []
-    return conf
+    # 只接受字符串列表：JSON 合法但结构不对（如 {"a":1} / 5 / [1,2]）时
+    # 必须降级为空列表，否则 "\n".join(conf) 会抛 TypeError
+    if not isinstance(conf, list):
+        return []
+    return [x for x in conf if isinstance(x, str) and x.strip()]
 
 
 def getBlackList():
@@ -1308,9 +1319,19 @@ def _sync_manual_jail(conf):
         _log.debug('[fail2ban] _sync_manual_jail 异常已忽略: %s', _e)
 
     filter_file = f2bEtcDir() + '/filter.d/' + MANUAL_JAIL + '.conf'
-    if not os.path.exists(filter_file):
-        # 永不匹配的过滤器：yf-manual 只用于手动永久封禁，不依赖日志命中
-        yf.writeFile(filter_file, "[Definition]\nfailregex = ^(?!) *$\nignoreregex = \n")
+    # fail2ban >= 1.0 要求 failregex 必须包含 <HOST>（failure-id）组，
+    # 否则 jail 启动直接抛 RegexException("No failure-id group")，
+    # 导致该 jail 的 maxretry / bantime = -1 / actionstart 全部不生效：
+    # 手动黑名单既不永久（回退为默认 600s），也不写 iptables（内核层根本没拦）。
+    # 这里用一条实际不可能命中的规则（手册里不会出现字面量 yf-manual-never-match）。
+    manual_filter = "[Definition]\nfailregex = ^<HOST> yf-manual-never-match$\nignoreregex = \n"
+    try:
+        old_filter = yf.readFile(filter_file) if os.path.exists(filter_file) else ''
+        # 自愈：历史上写下的非法过滤器（无 <HOST>）必须重写，否则老机器升级后依旧起不来
+        if not old_filter or '<HOST>' not in old_filter:
+            yf.writeFile(filter_file, manual_filter)
+    except Exception as _e:
+        _log.debug('[fail2ban] _sync_manual_jail 异常已忽略: %s', _e)
 
     try:
         get_fail2ban_inst().sync_jail_local(conf)
@@ -1328,6 +1349,10 @@ def setBlackIp():
 
     # 智能解析 black_ip 参数：支持 JSON 格式数组、逗号分隔字符串或单一 IP 字符串
     new_ip_list_raw = args.get('black_ip', '')
+    # 类型不合法（dict / None / 数字）时直接拒绝：
+    # 否则会被解析成空列表 → 写空黑名单并解封全部 IP，还返回「添加成功」（假成功 + 静默解封）
+    if not isinstance(new_ip_list_raw, (str, list)):
+        return yf.returnJson(False, "black_ip 参数格式错误")
     new_ip_list = []
     if isinstance(new_ip_list_raw, str):
         new_ip_list_raw = new_ip_list_raw.strip()
@@ -1379,14 +1404,16 @@ def setBlackIp():
     if not service_running:
         return yf.returnJson(True, "黑名单已保存，fail2ban 服务启动后自动生效")
 
-    # 4. 批量下发新增封禁（单次进程完成，避免逐条 spawn）
-    if add_ip_list:
-        ok, msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ' '.join(add_ip_list))
-        if not ok:
+    # 4. 重新下发「完整黑名单」而不是只下发新增项：
+    #    reload / restart 会重建 jail 并丢掉运行时封禁，若只封 add_ip_list，
+    #    则「重复添加同一 IP」「新增一个 IP」都会把先前已封禁的 IP 静默解封，
+    #    却仍然返回添加成功（假成功 + 非幂等）。
+    if valid_ip_list:
+        if not apply_black_list():
             # 兜底：逐条重试并回报真实失败原因
             failed = []
-            for ip in add_ip_list:
-                one_ok, one_msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ip)
+            for ip in valid_ip_list:
+                one_ok, _one_msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ip)
                 if not one_ok:
                     failed.append(ip)
             if failed:
@@ -1405,7 +1432,10 @@ def apply_black_list():
         return True
     if status() != 'start':
         return False
-    ok, _msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', ' '.join(ip_list))
+    # 每个 IP 必须作为独立参数下发：fail2ban-client 在 1.0+ 走结构化命令协议，
+    # 空格拼接的单个参数会被当成「一个 IP」写进 bans 表（如 "a.b.c.d e.f.g.h"），
+    # 界面显示成一条脏记录且 safe_ip 校验不过 → 用户永远解封不掉。
+    ok, _msg = f2b_client_ok('set', MANUAL_JAIL, 'banip', *ip_list)
     if not ok:
         for ip in ip_list:
             f2b_client_ok('set', MANUAL_JAIL, 'banip', ip)
@@ -1917,6 +1947,9 @@ class fail2ban_main:
         content = "[DEFAULT]\n"
         content += "allowipv6 = auto\n\n"
 
+        # 已启用的 jail 名集合，用于段落末尾显式关闭其余白名单 jail
+        enabled_modes = []
+
         # ---- 系统服务防护 ----
         for item in conf.get('server', []):
             if not isinstance(item, dict):
@@ -1924,6 +1957,7 @@ class fail2ban_main:
             mode = item.get('mode', '')
             if not is_allowed_mode(mode) or not safe_bool(item.get('act'), True):
                 continue
+            enabled_modes.append(mode)
 
             # 必须先补齐占位日志与兜底 filter，再解析 backend/logpath：
             # 否则「日志目录存在但尚无 .err 文件」的服务会因 glob 未命中而被整段跳过
@@ -1956,6 +1990,7 @@ class fail2ban_main:
             mode = item.get('mode', '')
             if not is_allowed_mode(mode) or not safe_bool(item.get('act'), True):
                 continue
+            enabled_modes.append(mode)
 
             content += f"[{mode}]\n"
             content += "enabled = true\n"
@@ -1970,6 +2005,15 @@ class fail2ban_main:
             content += f"bantime = {safe_int(item.get('bantime'), 86400, 'bantime')}\n\n"
 
             ensure_filter(mode)
+
+        # ---- 显式关闭「未启用 / 已删除」的白名单 jail ----
+        # 必须写成 enabled = false，不能只是「不输出该 jail」：
+        # 发行版自带的 jail.d/defaults-debian.conf 里 [sshd] enabled = true，
+        # 缺失小节时它会把 sshd jail 重新打开，导致 UI 上「停用 / 删除 SSH 防护」
+        # 在守护进程重启（含重启服务器）后又自动恢复为防御中。
+        for mode in ALLOWED_MODES:
+            if mode not in enabled_modes:
+                content += f"[{mode}]\nenabled = false\n\n"
 
         # ---- 手动黑名单专用永久封禁 jail ----
         # 仅在黑名单非空时下发，避免给不使用该功能的用户增加无谓 jail。
