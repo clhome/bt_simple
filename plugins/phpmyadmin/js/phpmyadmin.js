@@ -1,5 +1,37 @@
 var api = YfPlugin.createApi('phpmyadmin');
 var pt = YfI18n.createPluginTranslator('phpmyadmin');
+
+/**
+ * HTML 文本上下文转义。
+ * 用户名/密码/路径/端口全部来自服务端且可由用户写入（安全设置页），
+ * 历史实现直接拼 innerHTML → 存 `<img src=x onerror=...>` 即存储型 XSS
+ * （与 A09/A11/A12/B03/mongodb 同族）。
+ */
+function yfPmaText(v) {
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * 行内 onclick="fn('...')" 里的 JS 字符串字面量：HTML 转义挡不住注入
+ * （浏览器会先把实体还原成引号再交给 JS 解析），必须按 JS 字符串转义；
+ * 引号一律走实体，否则会直接终止 HTML 属性值，变成属性注入。
+ */
+function yfPmaJsStr(v) {
+    return String(v == null ? '' : v)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -21,10 +53,11 @@ function homePage() {
             return;
         }
         var url = rdata.data;
+        var urlHtml = yfPmaText(url);
         var con = '<div class="line" style="margin-top: 15px;">\
-                    <button class="btn btn-success btn-sm" onclick="window.open(\'' + url + '\')">' + pt('进入 phpMyAdmin 主页') + '</button>\
+                    <button class="btn btn-success btn-sm" onclick="window.open(\'' + yfPmaJsStr(url) + '\')">' + pt('进入 phpMyAdmin 主页') + '</button>\
                     <div style="margin-top: 15px; color: #666; font-size: 13px; line-height: 1.8;">\
-                        <p>' + pt('访问地址：') + '<a href="' + url + '" target="_blank" class="btlink">' + url + '</a></p>\
+                        <p>' + pt('访问地址：') + '<a href="' + urlHtml + '" target="_blank" class="btlink">' + urlHtml + '</a></p>\
                         <p style="color: #999; font-size: 12px;">' + pt('提示：如出现 401 认证弹窗，请使用【服务】页面中的随机用户名和密码进行认证。') + '</p>\
                     </div>\
                 </div>';
@@ -44,7 +77,9 @@ function phpVer(version) {
             }
             body += '</select><button class="btn btn-success btn-sm" onclick="phpVerChange(\'phpversion\',\'get\')">' + pt('保存') + '</button></div>';
             $(".soft-man-con").html(body);
-        }, 'json');
+        }, 'json').fail(function(xhr) {
+            layer.msg(t('public.operation_failed', pt('操作失败!')) + ' (' + xhr.status + ')', { icon: 2 });
+        });
     });
 }
 
@@ -70,9 +105,13 @@ function safeConf() {
         }
 
         var cfg = rdata.data;
+        var cfgPort = yfPmaText(cfg['port']);
+        var cfgUser = yfPmaText(cfg['username']);
+        var cfgPass = yfPmaText(cfg['password']);
+        var cfgPath = yfPmaText(cfg['path']);
         var con = '<div class="ver line">\
                     <span class="tname">' + pt('访问端口') + '</span>\
-                    <input style="width:110px" class="bt-input-text phpmyadmindk mr20" name="Name" id="pmport" value="' + cfg['port'] + '" placeholder="phpmyadmin访问端口" maxlength="5" type="number">\
+                    <input style="width:110px" class="bt-input-text phpmyadmindk mr20" name="Name" id="pmport" value="' + cfgPort + '" placeholder="phpmyadmin访问端口" maxlength="5" type="number">\
                     <button class="btn btn-success btn-sm" onclick="setPamPort()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
@@ -88,18 +127,18 @@ function safeConf() {
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('用户名') + '</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfg['username'] + '" placeholder="' + pt('认证用户名') + '" type="text">\
+                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfgUser + '" placeholder="' + pt('认证用户名') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('密码') + '</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['password'] + '" placeholder="' + pt('密码') + '" type="text">\
+                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfgPass + '" placeholder="' + pt('密码') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaPassword()">' + pt('保存') + '</button>\
                 </div>\
                 <hr/>\
                 <div class="ver line">\
                     <span class="tname">' + pt('路径名') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="path" id="pmport" value="' + cfg['path'] + '" placeholder="" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="path" id="pmport" value="' + cfgPath + '" placeholder="" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaPath()">' + pt('保存') + '</button>\
                 </div>';
         $(".soft-man-con").html(con);
@@ -155,8 +194,9 @@ function setPamPort() {
 }
 
 function pmaOpService(action) {
-    layer.msg(t('public.executing', pt('正在执行...')), { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(t('public.executing', pt('正在执行...')), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', { name: 'phpmyadmin', func: action, version: '', args: '' }, function(data) {
+        layer.close(loadT);
         var msg = data.data == 'ok' ? t('public.operation_successful', pt('操作成功!')) : t('public.operation_failed', pt('操作失败!'));
         if (data.data == 'ok') {
             layer.msg(msg, { icon: 1 });
@@ -166,7 +206,11 @@ function pmaOpService(action) {
         } else {
             layer.msg(msg, { icon: 2 });
         }
-    }, 'json');
+    }, 'json').fail(function(xhr) {
+        // 缺 .fail()：面板 500 时 time:0 的遮罩会永久卡死页面（同族缺陷）
+        layer.close(loadT);
+        layer.msg(t('public.operation_failed', pt('操作失败!')) + ' (' + xhr.status + ')', { icon: 2 });
+    });
 }
 
 function pmaService() {
@@ -195,6 +239,10 @@ function pmaService() {
                 return;
             }
             var info = data.data;
+            var infoInternal = yfPmaText(info.internal_url);
+            var infoExternal = yfPmaText(info.external_url);
+            var infoUser = yfPmaText(info.username);
+            var infoPass = yfPmaText(info.password);
             var html = '<div class="service-notice" style="margin-top: 15px; padding: 12px 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' +
                 '<div style="margin-bottom: 4px;"><b style="color:#333;">' + t('public.reload_configuration_reload', pt('重载配置 (Reload)')) + '</b>' + t('public.smoothly_loads_the_latest', pt('：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现')) + '<b style="color:#20a53a;">' + t('public.zero_business_disruption', pt('业务零中断')) + '</b>' + t('public.recommended_for_use_after', pt('，推荐日常修改配置后使用。')) + '</div>' +
                 '<div><b style="color:#333;">' + t('public.restart_the_service_restart', pt('重启服务 (Restart)')) + '</b>' + t('public.forcibly_terminates_and_restarts', pt('：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。')) + '</div>' +
@@ -204,19 +252,19 @@ function pmaService() {
                 '<div class="pma-info-body">' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('内网地址：') + '</span>' +
-                        '<a href="' + info.internal_url + '" target="_blank" class="pma-info-value pma-link">' + info.internal_url + '</a>' +
+                        '<a href="' + infoInternal + '" target="_blank" class="pma-info-value pma-link">' + infoInternal + '</a>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('外网地址：') + '</span>' +
-                        '<a href="' + info.external_url + '" target="_blank" class="pma-info-value pma-link">' + info.external_url + '</a>' +
+                        '<a href="' + infoExternal + '" target="_blank" class="pma-info-value pma-link">' + infoExternal + '</a>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('用户名：') + '</span>' +
-                        '<span class="pma-info-value">' + info.username + '</span>' +
+                        '<span class="pma-info-value">' + infoUser + '</span>' +
                     '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('密码：') + '</span>' +
-                        '<span class="pma-info-value">' + info.password + '</span>' +
+                        '<span class="pma-info-value">' + infoPass + '</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="pma-info-footer">' +
@@ -299,5 +347,7 @@ function pmaService() {
                 $(".soft-man-con").append(style + html);
             }
         });
-    }, 'json');
+    }, 'json').fail(function(xhr) {
+        layer.msg(t('public.operation_failed', pt('操作失败!')) + ' (' + xhr.status + ')', { icon: 2 });
+    });
 }

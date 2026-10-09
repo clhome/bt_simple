@@ -6,6 +6,7 @@ import os
 import time
 import re
 import json
+import shutil
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -22,6 +23,20 @@ from utils.site import sites as YfSites
 app_debug = False
 if yf.isAppleSystem():
     app_debug = True
+
+
+# ---------------------------------------------------------------------------------
+# 输入白名单：这些值会被写进 nginx vhost / htpasswd(pma.pass) / config.inc.php，
+# 或被拼进 shell。历史实现只做「长度>=5」就交给 `mv`，导致：
+#   - setPmaPath 命令注入（`; touch /tmp/x` 真机夹具已复现）与 `../` 目录逃逸；
+#   - setPmaPort 换行注入 nginx 指令、`abc` 这种非数字被写进 `listen`；
+#   - setPmaUsername 换行在 pma.pass 追加一个任意 basic-auth 用户（认证绕过）。
+# 一律白名单化后再落盘。
+# ---------------------------------------------------------------------------------
+_PMA_PATH_RE = re.compile(r'^[A-Za-z0-9_-]{5,32}$')
+_PMA_USER_RE = re.compile(r'^[A-Za-z0-9_.@-]{1,64}$')
+_PMA_PORT_RE = re.compile(r'^[0-9]{1,5}$')
+_PMA_CHOOSE = ('mysql', 'mysql-community', 'mysql-apt', 'mysql-yum', 'mariadb')
 
 
 def getPluginName():
@@ -238,7 +253,10 @@ def getCfg():
                 os.rename(server_dir + "/" + path, server_dir + "/" + new_path)
             except Exception as _e:
                 _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
-                yf.execShell("mv " + server_dir + "/" + path + " " + server_dir + "/" + new_path)
+                try:
+                    shutil.move(os.path.join(server_dir, path), os.path.join(server_dir, new_path))
+                except Exception as _e2:
+                    _log.debug('[phpmyadmin] getCfg 重命名失败: %s', _e2)
         
         # 只有新目录真正存在了（或者老目录不存在了），才算更名成功
         if os.path.exists(server_dir + "/" + new_path) or not os.path.exists(server_dir + "/" + path):
@@ -319,7 +337,10 @@ def getCfg():
                     shutil.move(server_dir + "/phpmyadmin", dst)
             except Exception as _e:
                 _log.debug('[phpmyadmin] getCfg 异常已忽略: %s', _e)
-                yf.execShell("mv " + server_dir + "/phpmyadmin/* " + dst + "/ 2>/dev/null || mv " + server_dir + "/phpmyadmin " + dst)
+                try:
+                    shutil.move(server_dir + "/phpmyadmin", dst)
+                except Exception as _e2:
+                    _log.debug('[phpmyadmin] getCfg 归档 phpmyadmin 目录失败: %s', _e2)
             
             # 如果重命名失败，且目标目录还是没生成，强制使用 phpmyadmin 作为路径，避免 404
             if not os.path.exists(dst):
@@ -521,7 +542,12 @@ def setPmaPort():
     if not data[0]:
         return data[1]
 
-    port = args['port']
+    port = str(args['port']).strip()
+    # 端口必须纯数字且在 1-65535：否则会被原样写进 nginx `listen`，换行还能注入任意指令
+    if not _PMA_PORT_RE.match(port):
+        return yf.returnJson(False, '端口必须是数字!')
+    if int(port) < 1 or int(port) > 65535:
+        return yf.returnJson(False, '端口范围不合法!')
     if port == '80':
         return yf.returnJson(False, '80端不能使用!')
 
@@ -544,7 +570,9 @@ def setPmaChoose():
     if not data[0]:
         return data[1]
 
-    choose = args['choose']
+    choose = str(args['choose']).strip()
+    if choose not in _PMA_CHOOSE:
+        return yf.returnJson(False, '不支持的数据库类型!')
     setCfg('choose', choose)
 
     pma_path = getCfg()['path']
@@ -565,12 +593,14 @@ def setPmaUsername():
     if not data[0]:
         return data[1]
 
-    username = args['username']
+    username = str(args['username']).strip()
+    # htpasswd 是「用户名:口令哈希」逐行文件：用户名里的换行会追加一个任意 basic-auth 用户
+    if not _PMA_USER_RE.match(username):
+        return yf.returnJson(False, '用户名只能使用字母/数字/下划线/点/中划线/@!')
     setCfg('username', username)
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pma.pass'
-    username = yf.getRandomString(10)
     pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
     yf.writeFile(pma_path, pass_cmd)
 
@@ -584,12 +614,14 @@ def setPmaPassword():
     if not data[0]:
         return data[1]
 
-    password = args['password']
+    password = str(args['password'])
+    # 口令会被回显到前端并写进 cfg.json：禁止换行/控制字符，限制长度
+    if password == '' or len(password) > 128 or '\n' in password or '\r' in password:
+        return yf.returnJson(False, '密码不能为空、不能含换行且不超过128位!')
     setCfg('password', password)
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pma.pass'
-    username = yf.getRandomString(10)
     pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
     yf.writeFile(pma_path, pass_cmd)
 
@@ -603,15 +635,26 @@ def setPmaPath():
     if not data[0]:
         return data[1]
 
-    path = args['path']
+    path = str(args['path']).strip()
 
-    if len(path) < 5:
-        return yf.returnJson(False, '不能小于5位!')
+    # 只允许 5-32 位字母/数字/下划线/中划线：`../` 逃逸与 `; cmd` 命令注入都从这里进
+    if not _PMA_PATH_RE.match(path):
+        return yf.returnJson(False, '路径只能使用 5-32 位字母/数字/下划线/中划线!')
 
-    old_path = getServerDir() + "/" + getCfg()['path']
-    new_path = getServerDir() + "/" + path
+    server_dir = getServerDir()
+    old_path = os.path.join(server_dir, getCfg()['path'])
+    new_path = os.path.join(server_dir, path)
+    # 真实路径必须仍落在插件安装目录内（纵深防御，杜绝软链/相对路径逃逸）
+    if os.path.realpath(os.path.dirname(new_path)) != os.path.realpath(server_dir):
+        return yf.returnJson(False, '路径非法!')
+    if not os.path.exists(old_path):
+        return yf.returnJson(False, '插件未启动!')
 
-    yf.execShell("mv " + old_path + " " + new_path)
+    try:
+        shutil.move(old_path, new_path)
+    except Exception as e:
+        _log.debug('[phpmyadmin] setPmaPath 移动目录失败: %s', e)
+        return yf.returnJson(False, '移动目录失败!')
     setCfg('path', path)
     return yf.returnJson(True, '修改成功!')
 

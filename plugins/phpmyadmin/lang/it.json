@@ -4,7 +4,6 @@
     "kill所有php进程": "uccidi tutti i processi php",
     "phpMyAdmin默认端口": "Porta predefinita di phpMyAdmin",
     "phpmyadmin访问端口": "Porta di accesso a phpMyAdmin",
-    "不能小于5位!": "Non può essere inferiore a 5 cifre!",
     "业务零中断": "Zero interruzioni dell'attività",
     "保存": "Salva",
     "修改成功!": "Modificato con successo!",
@@ -50,5 +49,12 @@
     "，推荐日常修改配置后使用。": ", si consiglia di utilizzarlo dopo la modifica quotidiana della configurazione.",
     "：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现": ": carica senza problemi la configurazione più recente. Il processo rilegge la configurazione senza disconnettere la connessione esistente, implementata",
     "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。": ": Termina e riavvia forzatamente tutti i processi. Ciò causerà l'interruzione momentanea delle richieste in corso (come l'invio di ordini, il caricamento di file) e genererà un errore 502. Viene utilizzato solo in rari casi di recupero anomalo.",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "端口必须是数字!": "La porta deve essere un numero!",
+    "不支持的数据库类型!": "Tipo di database non supportato!",
+    "用户名只能使用字母/数字/下划线/点/中划线/@!": "Il nome utente può contenere solo lettere/numeri/underscore/punto/trattino/@!",
+    "密码不能为空、不能含换行且不超过128位!": "La password non può essere vuota o contenere a capo, max 128 caratteri!",
+    "路径只能使用 5-32 位字母/数字/下划线/中划线!": "Il percorso può usare solo 5-32 lettere/numeri/underscore/trattino!",
+    "路径非法!": "Percorso non valido!",
+    "移动目录失败!": "Spostamento della directory non riuscito!"
 }

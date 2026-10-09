@@ -4,7 +4,6 @@
     "kill所有php进程": "kill all php processes",
     "phpMyAdmin默认端口": "phpMyAdmin default port",
     "phpmyadmin访问端口": "phpmyadmin access port",
-    "不能小于5位!": "Must be at least 5 digits!",
     "业务零中断": "Zero business interruption",
     "保存": "Save",
     "修改成功!": "Modified successfully!",
@@ -50,5 +49,12 @@
     "，推荐日常修改配置后使用。": ", it is recommended to use it after daily modification of configuration.",
     "：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现": ": Smoothly load the latest configuration. The process re-reads the configuration without disconnecting the existing connection, implemented",
     "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。": ": Forcefully terminate and restart all processes. It will cause ongoing requests (such as order submission, file upload) to be interrupted momentarily and throw a 502 error. It is only used in rare cases of abnormal recovery.",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "端口必须是数字!": "Port must be a number!",
+    "不支持的数据库类型!": "Unsupported database type!",
+    "用户名只能使用字母/数字/下划线/点/中划线/@!": "Username may only contain letters/numbers/underscore/dot/hyphen/@!",
+    "密码不能为空、不能含换行且不超过128位!": "Password cannot be empty or contain newlines, max 128 chars!",
+    "路径只能使用 5-32 位字母/数字/下划线/中划线!": "Path may only use 5-32 letters/numbers/underscore/hyphen!",
+    "路径非法!": "Invalid path!",
+    "移动目录失败!": "Failed to move directory!"
 }
