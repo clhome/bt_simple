@@ -193,8 +193,13 @@ class TestCnfCacheSemantics(unittest.TestCase):
                     fh.write('port = 3310\n')
                 with patch.object(mod, 'getConf', return_value=cnf):
                     self.assertEqual('3310', mod.getDbPort())
+                    # 只改内容、长度不变（都是 12 字节）→ 只能靠 mtime 失效。
+                    # Windows 的文件时间戳粒度较粗，连续两次写可能落在同一个 tick
+                    # （实测过：本用例会概率性假红），所以显式 utime 把 stamp 推一格。
                     with open(cnf, 'w', encoding='utf-8', newline='\n') as fh:
-                        fh.write('port = 3399\n')          # 内容与长度都变 → stamp 变
+                        fh.write('port = 3399\n')
+                    st = os.stat(cnf)
+                    os.utime(cnf, ns=(st.st_atime_ns, st.st_mtime_ns + 10_000_000))
                     self.assertEqual('3399', mod.getDbPort())
                     with open(cnf, 'w', encoding='utf-8', newline='\n') as fh:
                         fh.write('port = 3\n')             # 只变长度也必须失效

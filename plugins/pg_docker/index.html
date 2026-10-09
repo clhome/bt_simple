@@ -269,6 +269,30 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
     ? window.YfI18n.createPluginTranslator('pg_docker') 
     : function(k) { return k; };
 
+// 实例名/库名/用户名/口令/备注/路径都来自用户输入（部署表单）或 instances.json，
+// 直接拼进 innerHTML 与行内 onclick 即存储型 XSS（与 A09/A11/A12 同族）。
+// pgText 用于 HTML 文本/属性上下文；行内 onclick="fn('...')" 里的 JS 字符串
+// 必须用 pgJsStr：浏览器会先把实体还原成引号再交给 JS 解析。
+function pgText(v) {
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function pgJsStr(v) {
+    return String(v == null ? '' : v)
+        .replace(/\\/g, '\\\\')
+        .replace(/&/g, '&amp;')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 function pgPost(method, args, callback) {
     var req_data = {
         name: 'pg_docker',
@@ -335,36 +359,36 @@ function loadList() {
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
                 var statusIcon = item.status 
-                    ? '<span style="color: #20a53a; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'stop\')" title="' + pt('点击停止实例') + '"><i class="glyphicon glyphicon-play-circle" style="margin-right: 3px;"></i>' + pt('运行中') + '</span>' 
-                    : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="' + pt('点击启动实例') + '"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>' + pt('已停止') + '</span>';
+                    ? '<span style="color: #20a53a; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+pgJsStr(item.name)+'\', \'stop\')" title="' + pt('点击停止实例') + '"><i class="glyphicon glyphicon-play-circle" style="margin-right: 3px;"></i>' + pt('运行中') + '</span>' 
+                    : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+pgJsStr(item.name)+'\', \'start\')" title="' + pt('点击启动实例') + '"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>' + pt('已停止') + '</span>';
                 var extColor = item.is_external ? 'red' : '#999';
                 var extChecked = item.is_external ? 'checked' : '';
                 var extTip = pt('勾选允许外部网络访问(0.0.0.0)') + '\n' + pt('取消仅限本地网络访问(127.0.0.1)');
                 var extHtml = '<label title="' + extTip + '" style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
-                              '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">' + pt('外') + '</label>';
+                              '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+pgJsStr(item.name)+'\', this.checked, event)">' + pt('外') + '</label>';
 
                 var cpuHtml = '';
                 var memHtml = '';
                 if (item.status && item.cpu !== undefined && item.mem !== undefined) {
-                    cpuHtml = '<span style="margin-left: 10px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('CPU 使用率') + '"><i class="glyphicon glyphicon-tasks" style="color: #1890ff; margin-right: 3px;"></i>' + item.cpu + '%</span>';
-                    memHtml = '<span style="margin-left: 8px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('内存占用 (MB)') + '"><i class="glyphicon glyphicon-hdd" style="color: #52c41a; margin-right: 3px;"></i>' + item.mem + ' MB</span>';
+                    cpuHtml = '<span style="margin-left: 10px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('CPU 使用率') + '"><i class="glyphicon glyphicon-tasks" style="color: #1890ff; margin-right: 3px;"></i>' + pgText(item.cpu) + '%</span>';
+                    memHtml = '<span style="margin-left: 8px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('内存占用 (MB)') + '"><i class="glyphicon glyphicon-hdd" style="color: #52c41a; margin-right: 3px;"></i>' + pgText(item.mem) + ' MB</span>';
                 }
 
                 html += '<tr>' +
-                    '<td style="font-weight: bold; color: #333;">' + item.name + cpuHtml + memHtml + '</td>' +
+                    '<td style="font-weight: bold; color: #333;">' + pgText(item.name) + cpuHtml + memHtml + '</td>' +
                     '<td>' + statusIcon + '</td>' +
-                    '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + item.port + '</code>' + extHtml + '</td>' +
+                    '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + pgText(item.port) + '</code>' + extHtml + '</td>' +
                     '<td>' +
-                        '<span class="btlink" style="color: #666; font-weight: bold;" title="' + pt('点击复制数据库名') + '" onclick="copyToClipboard(\''+item.dbname+'\', \'' + pt('数据库名') + '\')">' + item.dbname + '</span>' +
-                        '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制用户名') + '" onclick="copyToClipboard(\''+item.dbuser+'\', \'' + pt('数据库用户名') + '\')"></i>' +
-                        '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制密码') + '" onclick="copyToClipboard(\''+item.dbpass+'\', \'' + pt('数据库密码') + '\')"></i>' +
+                        '<span class="btlink" style="color: #666; font-weight: bold;" title="' + pt('点击复制数据库名') + '" onclick="copyToClipboard(\''+pgJsStr(item.dbname)+'\', \'' + pgJsStr(pt('数据库名')) + '\')">' + pgText(item.dbname) + '</span>' +
+                        '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制用户名') + '" onclick="copyToClipboard(\''+pgJsStr(item.dbuser)+'\', \'' + pgJsStr(pt('数据库用户名')) + '\')"></i>' +
+                        '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制密码') + '" onclick="copyToClipboard(\''+pgJsStr(item.dbpass)+'\', \'' + pgJsStr(pt('数据库密码')) + '\')"></i>' +
                     '</td>' +
-                    '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
+                    '<td><span style="color: #999; font-size: 12px;">' + pgText(item.path) + '</span></td>' +
                     '<td style="text-align: right; white-space: nowrap;">' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>' + pt('备份') + '</a>' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>' + pt('明细') + '</a>' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+item.name+'\', \''+item.port+'\', \''+item.dbuser+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>' + pt('修改') + '</a>' +
-                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">' + pt('卸载') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+pgJsStr(item.name)+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>' + pt('备份') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+pgJsStr(item.name)+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>' + pt('明细') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+pgJsStr(item.name)+'\', \''+pgJsStr(item.port)+'\', \''+pgJsStr(item.dbuser)+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>' + pt('修改') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+pgJsStr(item.name)+'\', \''+pgJsStr(item.path)+'\')">' + pt('卸载') + '</a>' +
                     '</td>' +
                 '</tr>';
             }
@@ -461,11 +485,11 @@ function showConfig(name) {
         
         layer.open({
             type: 1,
-            title: pt('实例') + ' [' + name + '] ' + pt('配置详情 (docker-compose.yml)'),
+            title: pt('实例') + ' [' + pgText(name) + '] ' + pt('配置详情 (docker-compose.yml)'),
             area: ['750px', '750px'],
             closeBtn: 1,
             shadeClose: true,
-            content: '<div style="padding: 15px; height: 100%; box-sizing: border-box; overflow-y: auto;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: calc(100% - 30px); overflow-y: auto; font-family: Consolas, monospace; margin: 0;">' + content + '</pre></div>'
+            content: '<div style="padding: 15px; height: 100%; box-sizing: border-box; overflow-y: auto;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: calc(100% - 30px); overflow-y: auto; font-family: Consolas, monospace; margin: 0;">' + pgText(content) + '</pre></div>'
         });
     });
 }
@@ -498,7 +522,7 @@ function toggleExternal(name, checked, e) {
 function showModifyConfig(name, port, dbuser) {
     layer.open({
         type: 1,
-        title: pt('修改实例') + ' [' + name + '] ' + pt('配置'),
+        title: pt('修改实例') + ' [' + pgText(name) + '] ' + pt('配置'),
         area: '450px',
         closeBtn: 1,
         shadeClose: true,
@@ -506,7 +530,7 @@ function showModifyConfig(name, port, dbuser) {
             '<div class="line">' +
                 '<span class="tname">' + pt('当前用户名') + '</span>' +
                 '<div class="info-r">' +
-                    '<input type="text" class="bt-input-text mr5" value="' + dbuser + '" readonly style="width: 250px; background-color: #f5f5f5; color: #666;">' +
+                    '<input type="text" class="bt-input-text mr5" value="' + pgText(dbuser) + '" readonly style="width: 250px; background-color: #f5f5f5; color: #666;">' +
                 '</div>' +
             '</div>' +
             '<div class="line">' +
@@ -519,13 +543,13 @@ function showModifyConfig(name, port, dbuser) {
             '<div class="line">' +
                 '<span class="tname">' + pt('宿主机端口') + '</span>' +
                 '<div class="info-r">' +
-                    '<input type="number" class="bt-input-text mr5" id="mod_port" value="' + port + '" placeholder="' + pt('请输入新的映射端口') + '" style="width: 250px;">' +
+                    '<input type="number" class="bt-input-text mr5" id="mod_port" value="' + pgText(port) + '" placeholder="' + pt('请输入新的映射端口') + '" style="width: 250px;">' +
                     '<div class="c9" style="margin-top: 5px; line-height: 20px;">' + pt('确保不与服务器已用端口冲突') + '</div>' +
                 '</div>' +
             '</div>' +
             '<div class="bt-form-submit-btn">' +
                 '<button type="button" class="btn btn-sm btn-danger" onclick="layer.closeAll()">' + pt('取消') + '</button>' +
-                '<button type="button" class="btn btn-sm btn-success" onclick="doModifyConfig(\'' + name + '\', \'' + dbuser + '\', \'' + port + '\')">' + pt('提交保存') + '</button>' +
+                '<button type="button" class="btn btn-sm btn-success" onclick="doModifyConfig(\'' + pgJsStr(name) + '\', \'' + pgJsStr(dbuser) + '\', \'' + pgJsStr(port) + '\')">' + pt('提交保存') + '</button>' +
             '</div>' +
         '</div>'
     });
@@ -574,7 +598,7 @@ function doModifyConfig(name, dbuser, oldPort) {
 
 function toggleStatus(name, action) {
     var actionName = action === 'start' ? pt('启动') : pt('停止');
-    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 吗？'), [actionName, name]), {
+    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 吗？'), [actionName, pgText(name)]), {
         title: pt('状态切换确认'),
         btn: [pt('确定'), pt('取消')]
     }, function() {
@@ -602,13 +626,13 @@ function uninstallInstance(name, path) {
         closeBtn: 1,
         shadeClose: true,
         content: '<div style="padding: 20px;">' +
-            '<p style="color: red; font-weight: bold;">' + pt('注意：此操作将停止并移除容器') + ' <code>pg-'+name+'</code>' + pt('，以及清理所有的定时备份任务！') + '</p>' +
+            '<p style="color: red; font-weight: bold;">' + pt('注意：此操作将停止并移除容器') + ' <code>pg-'+pgText(name)+'</code>' + pt('，以及清理所有的定时备份任务！') + '</p>' +
             '<div style="margin-top: 20px;">' +
-                '<label><input type="checkbox" id="del_data_cb" value="1"> ' + pt('彻底删除挂载的卷和配置数据') + ' ('+path+')</label>' +
+                '<label><input type="checkbox" id="del_data_cb" value="1"> ' + pt('彻底删除挂载的卷和配置数据') + ' ('+pgText(path)+')</label>' +
             '</div>' +
             '<div style="margin-top: 10px; color: #999; font-size: 12px;">' + pt('强烈建议勾选前先确保所有重要数据已备份。') + '</div>' +
             '<div style="margin-top: 20px; text-align: center;">' +
-                '<button class="btn btn-danger btn-sm" onclick="doUninstall(\''+name+'\', \''+path+'\')">' + pt('确认卸载') + '</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="doUninstall(\''+pgJsStr(name)+'\', \''+pgJsStr(path)+'\')">' + pt('确认卸载') + '</button>' +
             '</div>' +
         '</div>'
     });
@@ -635,7 +659,7 @@ function doUninstall(name, path) {
 
 function toggleAutoBackup(name, enable) {
     var actionName = enable ? pt('开启') : pt('关闭');
-    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 的自动备份计划任务吗？'), [actionName, name]), {
+    layer.confirm(msgTpl(pt('确定要{1}实例 [{2}] 的自动备份计划任务吗？'), [actionName, pgText(name)]), {
         title: msgTpl(pt('确认{1}'), [actionName]),
         btn: [pt('确定'), pt('取消')]
     }, function() {
@@ -699,18 +723,17 @@ function showBackups(name) {
                 var it = list[i];
                 var remarkHtml = '';
                 if (isManual) {
-                    var safeRemark = (it.remark || '').replace(/"/g, '&quot;');
-                    remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+safeRemark+'" placeholder="' + pt('点击输入备注') + '" onblur="saveBackupRemark(\''+name+'\', \''+it.name+'\', this.value)"></td>';
+                    remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+pgText(it.remark)+'" placeholder="' + pt('点击输入备注') + '" onblur="saveBackupRemark(\''+pgJsStr(name)+'\', \''+pgJsStr(it.name)+'\', this.value)"></td>';
                 }
                 h += '<tr>' +
-                    '<td style="word-break: break-all;">'+it.name+'</td>' +
-                    '<td style="white-space: nowrap;">'+it.size+'</td>' +
-                    '<td style="white-space: nowrap;">'+it.time+'</td>' +
+                    '<td style="word-break: break-all;">'+pgText(it.name)+'</td>' +
+                    '<td style="white-space: nowrap;">'+pgText(it.size)+'</td>' +
+                    '<td style="white-space: nowrap;">'+pgText(it.time)+'</td>' +
                     remarkHtml +
                     '<td style="text-align:right; white-space: nowrap;">' +
                         '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">' + pt('下载') + '</a>' +
-                        '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">' + pt('删除') + '</a>' +
-                        '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">' + pt('还原') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+pgJsStr(name)+'\', \''+pgJsStr(it.path)+'\')">' + pt('删除') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+pgJsStr(name)+'\', \''+pgJsStr(it.path)+'\')">' + pt('还原') + '</a>' +
                     '</td>' +
                 '</tr>';
             }
@@ -719,11 +742,11 @@ function showBackups(name) {
 
         var autoBackupHtml = '';
         if (bk.auto_backup_enabled) {
-            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', false)">' +
+            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+pgJsStr(name)+'\', false)">' +
                 '<i class="glyphicon glyphicon-ok-sign" style="color: #20a53a; margin-right: 5px;"></i>' +
                 '<span style="color: #666; font-size: 13px;">' + pt('自动备份运行中') + '</span></span>';
         } else {
-            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', true)">' +
+            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+pgJsStr(name)+'\', true)">' +
                 '<i class="glyphicon glyphicon-remove-sign" style="color: red; margin-right: 5px;"></i>' +
                 '<span style="color: #666; font-size: 13px;">' + pt('自动备份未启动') + '</span></span>';
         }
@@ -731,7 +754,7 @@ function showBackups(name) {
         var html = '<div style="padding: 15px 20px; height: 100%; box-sizing: border-box; overflow-y: auto;">' +
             '<div class="mb15">' +
                 '<h4 style="display:inline-block; margin-right:15px;">' + pt('日备份 (近7天)') + '</h4>' +
-                '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> ' + pt('一键备份当前数据') + '</button>' +
+                '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+pgJsStr(name)+'\')"><i class="glyphicon glyphicon-floppy-save"></i> ' + pt('一键备份当前数据') + '</button>' +
                 autoBackupHtml +
             '</div>' +
             '<div class="divtable">' +
@@ -758,7 +781,7 @@ function showBackups(name) {
 
         layer.open({
             type: 1,
-            title: pt('实例') + ' [' + name + '] ' + pt('备份管理'),
+            title: pt('实例') + ' [' + pgText(name) + '] ' + pt('备份管理'),
             area: ['820px', '600px'],
             closeBtn: 1,
             shadeClose: true,
@@ -807,7 +830,7 @@ function doRestore(name, path) {
 }
 
 function doDeleteBackup(name, path) {
-    var confirmMsg = '⚠️ ' + pt('警告：确定要永久删除这个备份文件吗？') + '<br><br><span style="color:#999; font-size:12px; word-break:break-all;">' + path + '</span>';
+    var confirmMsg = '⚠️ ' + pt('警告：确定要永久删除这个备份文件吗？') + '<br><br><span style="color:#999; font-size:12px; word-break:break-all;">' + pgText(path) + '</span>';
     layer.confirm(confirmMsg, {
         title: pt('删除备份确认'),
         icon: 3,
