@@ -41,9 +41,15 @@ class luamaker:
                         if type(v) not in [int, float, bool, list, dict, tuple]:
                             v = v.encode()
                     if isinstance(v, str):
-                         # print("lua", var)
+                        # 转义顺序：先反斜杠，再引号，最后控制字符。
+                        # 原实现不处理 \r\n：字符串值里带换行就会写出
+                        # `["k"] = "a<换行>b"` —— Lua 语法错误，整份规则文件报废，
+                        # nginx reload 静默失败、下次重启起不来（真机已实测）。
                         v = v.replace("\\", "\\\\")
                         v = v.replace("\"", "\\\"")
+                        v = v.replace("\r", "\\r")
+                        v = v.replace("\n", "\\n")
+                        v = v.replace("\t", "\\t")
                         var = "\"" + v + "\""
 
                     elif isinstance(v, bool):

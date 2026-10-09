@@ -2544,14 +2544,16 @@ function showDropIpLogs(ip) {
         } else {
             for (var i = 0; i < logs.length; i++) {
                 var log = logs[i];
-                var ruleOrUri = log.uri || '-';
-                if (log.rule_name) ruleOrUri = '[' + log.rule_name + '] ' + ruleOrUri;
+                // 日志里的 uri / rule_name / reason 直接来自被拦截请求（攻击者可控），
+                // 不转义就是存储型 XSS（与 wafLogRequest 的 entitiesEncode 口径保持一致）
+                var ruleOrUri = entitiesEncode(log.uri || '-');
+                if (log.rule_name) ruleOrUri = '[' + entitiesEncode(log.rule_name) + '] ' + ruleOrUri;
                 
                 tableHtml += '<tr>\
-                    <td>' + log.time + '</td>\
-                    <td>' + (log.server_name || log.domain) + '</td>\
+                    <td>' + escapeHTML(log.time) + '</td>\
+                    <td>' + escapeHTML(log.server_name || log.domain) + '</td>\
                     <td style="word-break: break-all; max-width: 200px;">' + ruleOrUri + '</td>\
-                    <td><span style="color:#d9534f">' + (log.reason || '-') + '</span></td>\
+                    <td><span style="color:#d9534f">' + escapeHTML(log.reason || '-') + '</span></td>\
                 </tr>';
             }
         }

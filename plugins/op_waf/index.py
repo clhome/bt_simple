@@ -7,6 +7,7 @@ import time
 import subprocess
 import json
 import re
+import urllib.parse
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -44,7 +45,11 @@ def getArgs():
         val = args[0].strip()
         try:
             if val.startswith('{') and val.endswith('}'):
-                return json.loads(val)
+                data = json.loads(val)
+                # 只接受对象：`[1,2]` / `"x"` 之类合法 JSON 若被放行，
+                # 下游 `args['k']` 会 TypeError，而 `ck[i] in data` 会静默误判。
+                if isinstance(data, dict):
+                    return data
         except Exception as _e:
             _log.debug('[op_waf] getArgs 异常已忽略: %s', _e)
 
@@ -53,7 +58,9 @@ def getArgs():
         try:
             decoded = urllib.parse.unquote(base64.b64decode(val.encode('utf-8')).decode('utf-8'))
             if decoded.startswith('{') and decoded.endswith('}'):
-                return json.loads(decoded)
+                data = json.loads(decoded)
+                if isinstance(data, dict):
+                    return data
         except Exception as _e:
             _log.debug('[op_waf] getArgs 异常已忽略: %s', _e)
 
@@ -64,7 +71,12 @@ def getArgs():
     return tmp
 
 
-def checkArgs(data, ck=[]):
+def checkArgs(data, ck=None):
+    # 可变默认参数 + 非 dict 入参都会让「缺少必要参数」判定失真
+    if ck is None:
+        ck = []
+    if not isinstance(data, dict):
+        data = {}
     for i in range(len(ck)):
         if not ck[i] in data:
             # 单一完整消息键（前端 wafMsg() 负责用 {1} 插值本地化）。
@@ -80,12 +92,23 @@ from luamaker import luamaker
 
 def listToLuaFile(path, lists):
     content = luamaker.makeLuaTable(lists)
+    # makeLuaTable 遇到非法键/重复键会返回 None，`"return " + None` 会 TypeError
+    if not isinstance(content, str) or not content:
+        content = '{}'
     content = "return " + content
     yf.writeFile(path, content)
 
 
 def htmlToLuaFile(path, content):
-    content = "return [[" + content + "]]"
+    # Lua 长字符串定界符：内容里出现 `]]` 会提前闭合 → 整份 Lua 语法错误。
+    # 按需提升定界符层级（[==[ … ]==]），保证生成物永远是合法 Lua。
+    if not isinstance(content, str):
+        content = ''
+    level = 0
+    while (']' + '=' * level + ']') in content:
+        level += 1
+    eq = '=' * level
+    content = "return [" + eq + "[" + content + "]" + eq + "]"
     yf.writeFile(path, content)
 
 
@@ -442,6 +465,11 @@ def getSiteListData():
 def setDefaultSite(name):
     path = getServerDir()
     dst_path = path + "/waf/default.pl"
+    # default.pl 会被 getSiteListData() 回显、被 test_run() 拼成 `http://<值>/?t=../etc/passwd`
+    # 发起真实请求（SSRF）；必须白名单到真实站点列表，不允许任意内容落盘。
+    name = str(name if name is not None else '').strip()
+    if name not in getSiteListData()['list']:
+        return yf.returnJson(False, '输入的站点错误!')
     yf.writeFile(dst_path, name)
     return yf.returnJson(True, 'OK')
 
@@ -618,7 +646,17 @@ def makeOpDstStopLua():
     return True
 
 
+def isOpenrestyInstalled():
+    """op_waf 是 openresty 的 Lua 规则模块，没有 openresty 就没有宿主"""
+    try:
+        return bool(yf.isInstalledWeb())
+    except Exception:
+        return False
+
+
 def initDreplace():
+    if not isOpenrestyInstalled():
+        return 'ERROR: 请先安装OpenResty'
     path = getServerDir()
     if not os.path.exists(path + '/waf/lua'):
         sdir = getPluginDir() + '/waf'
@@ -634,7 +672,13 @@ def initDreplace():
 
     config = path + '/waf/config.json'
     content = yf.readFile(config)
-    content = json.loads(content)
+    # readFile 失败回 False，json.loads(False) 会 TypeError traceback 回前端
+    if type(content) == bool or not content:
+        return 'ERROR: 配置文件不存在'
+    try:
+        content = json.loads(content)
+    except Exception:
+        return 'ERROR: 配置文件格式错误'
     content['reqfile_path'] = path + "/waf/html"
     yf.writeFile(config, yf.getJson(content))
 
@@ -664,13 +708,22 @@ def status():
     waf_conf = dstWafConfPath()
     if not os.path.exists(waf_conf):
         return 'stop'
+    # 配置齐了但规则树缺失时不能报 start（否则前端绿灯而实际未生效）
+    if not os.path.exists(getServerDir() + '/waf/config.json'):
+        return 'stop'
     return 'start'
 
 
 def start():
     if not hasattr(yf, 'isYufengPanel') or not yf.isYufengPanel():
         return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
-    initDreplace()
+    # 未安装 openresty 时原实现会凭空建出 /www/server/op_waf 整棵树、
+    # 再 opWeb('stop')+opWeb('start')（返回值被丢弃）并回 'ok' —— 典型假成功。
+    if not isOpenrestyInstalled():
+        return 'ERROR: 请先安装OpenResty'
+    res = initDreplace()
+    if isinstance(res, str) and res.startswith('ERROR:'):
+        return res
 
     import tool_task
     tool_task.createBgTask()
@@ -691,6 +744,8 @@ def stop():
 
 
 def restart():
+    if not isOpenrestyInstalled():
+        return 'ERROR: 请先安装OpenResty'
     restartWeb()
     return 'ok'
 
@@ -698,6 +753,8 @@ def restart():
 def reload():
     if not hasattr(yf, 'isYufengPanel') or not yf.isYufengPanel():
         return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+    if not isOpenrestyInstalled():
+        return 'ERROR: 请先安装OpenResty'
     yf.opWeb('stop')
 
     makeOpDstRunLua(True)
@@ -722,9 +779,97 @@ def getJsonPath(name):
     return path
 
 
+# ---------------------------------------------------------------------------
+# 入参白名单 / 安全转换
+# ---------------------------------------------------------------------------
+# rule_name、sname 会被拼进 `<server>/waf/rule/<name>.json`。不校验时
+# `../../../../etc/xxx` 可让 root 进程读写规则目录外的任意 .json
+# （get_rule/output_data 任意读，import_data 覆写数组型 .json → 污染 WAF 规则）。
+RULE_NAME_RE = re.compile(r'^[a-zA-Z0-9_\-]+$')
+_IPV4_RE = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+
+
+def isRuleName(name):
+    """规则名/导入导出名白名单：只允许字母数字下划线连字符"""
+    return bool(RULE_NAME_RE.match(str(name if name is not None else '')))
+
+
+def rulePathOrError(name):
+    """返回 (path, err)；name 非法时 path=None 且 err 可直接 return 给前端"""
+    if not isRuleName(name):
+        return (None, yf.returnJson(False, '非法的规则名称!'))
+    return (getRuleJsonPath(name), None)
+
+
+def toInt(val, default=None, lo=None, hi=None):
+    """前端数字参数安全转换：非法/越界一律返回 default，绝不抛 ValueError"""
+    try:
+        v = int(str(val).strip())
+    except Exception:
+        return default
+    if lo is not None and v < lo:
+        return default
+    if hi is not None and v > hi:
+        return default
+    return v
+
+
+def isIpv4(addr):
+    """严格点分十进制 IPv4：`1.2.3` / `1.2.3.4.5` / `a.b.c.d` 全部拒绝"""
+    addr = str(addr if addr is not None else '').strip()
+    if not _IPV4_RE.match(addr):
+        return False
+    for x in addr.split('.'):
+        if int(x) > 255:
+            return False
+    return True
+
+
+def ipv4ToInt(addr):
+    p = [int(x) for x in str(addr).split('.')]
+    return (p[0] << 24) + (p[1] << 16) + (p[2] << 8) + p[3]
+
+
+def isIpOrCidr(value):
+    """单个 IP 或 CIDR（含 IPv6）；用 stdlib ipaddress 校验，拒绝一切注入串"""
+    try:
+        import ipaddress
+        ipaddress.ip_network(str(value if value is not None else '').strip(), strict=False)
+        return True
+    except Exception:
+        return False
+
+
+def isIpv6OrCidr(value):
+    """单个 IPv6 地址或 IPv6 CIDR（IPv6 黑名单专用：IPv4 不该落进 ipv6_black.json）"""
+    try:
+        import ipaddress
+        net = ipaddress.ip_network(str(value if value is not None else '').strip(),
+                                   strict=False)
+        return net.version == 6
+    except Exception:
+        return False
+
+
+def isIpAddr(value):
+    """单个 IPv4/IPv6 地址（不含 CIDR）"""
+    value = str(value if value is not None else '').strip()
+    if isIpv4(value):
+        return True
+    try:
+        import ipaddress
+        ipaddress.ip_address(value)
+        return True
+    except Exception:
+        return False
+
+
 def getRuleJsonPath(name):
-    path = getServerDir() + "/waf/rule/" + name + ".json"
-    return path
+    # 第二道门（调用方应先走 rulePathOrError）：名字非法就回 None，绝不让
+    # `../../..` 拼进路径（root 进程任意 .json 读写）。
+    if not isRuleName(name):
+        return None
+    return getServerDir() + "/waf/rule/" + str(name) + ".json"
 
 
 # ------------------------------------------------------------
@@ -926,15 +1071,32 @@ def setBanSync():
     return yf.returnJson(True, msg, {'open': want_open, 'sync': sync_ok})
 
 
+def readRuleJson(fpath):
+    """读规则 json，返回 (list, err)；文件缺失/损坏一律回业务错误而不是 traceback"""
+    content = yf.readFile(fpath)
+    if type(content) == bool or not content:
+        return (None, yf.returnJson(False, '规则文件不存在!'))
+    try:
+        data = json.loads(content)
+    except Exception:
+        return (None, yf.returnJson(False, '规则文件格式错误!'))
+    if not isinstance(data, list):
+        return (None, yf.returnJson(False, '规则文件格式错误!'))
+    return (data, None)
+
+
 def getRule():
     args = getArgs()
     data = checkArgs(args, ['rule_name'])
     if not data[0]:
         return data[1]
 
-    rule_name = args['rule_name']
-    fpath = getRuleJsonPath(rule_name)
+    fpath, err = rulePathOrError(args['rule_name'])
+    if err:
+        return err
     content = yf.readFile(fpath)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '规则文件不存在!')
     return yf.returnJson(True, 'ok', content)
 
 
@@ -948,9 +1110,12 @@ def addRule():
     ruleName = args['ruleName']
     ps = args['ps']
 
-    fpath = getRuleJsonPath(ruleName)
-    content = yf.readFile(fpath)
-    content = json.loads(content)
+    fpath, err = rulePathOrError(ruleName)
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
 
     tmp_k = []
     tmp_k.append(1)
@@ -973,12 +1138,19 @@ def removeRule():
     if not data[0]:
         return data[1]
 
-    index = int(args['index'])
+    index = toInt(args['index'])
     ruleName = args['ruleName']
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
-    fpath = getRuleJsonPath(ruleName)
-    content = yf.readFile(fpath)
-    content = json.loads(content)
+    fpath, err = rulePathOrError(ruleName)
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if not (0 <= index < len(content)):
+        return yf.returnJson(False, '指定的索引不存在!')
 
     k = content[index]
     content.remove(k)
@@ -996,12 +1168,19 @@ def setRuleState():
     if not data[0]:
         return data[1]
 
-    index = int(args['index'])
+    index = toInt(args['index'])
     ruleName = args['ruleName']
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
-    fpath = getRuleJsonPath(ruleName)
-    content = yf.readFile(fpath)
-    content = json.loads(content)
+    fpath, err = rulePathOrError(ruleName)
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if not (0 <= index < len(content)) or not isinstance(content[index], list) or not content[index]:
+        return yf.returnJson(False, '指定的索引不存在!')
 
     b = content[index][0]
     if b == 1:
@@ -1022,14 +1201,21 @@ def modifyRule():
     if not data[0]:
         return data[1]
 
-    index = int(args['index'])
+    index = toInt(args['index'])
     ruleName = args['ruleName']
     ruleBody = args['ruleBody']
     rulePs = args['rulePs']
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
-    fpath = getRuleJsonPath(ruleName)
-    content = yf.readFile(fpath)
-    content = json.loads(content)
+    fpath, err = rulePathOrError(ruleName)
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if not (0 <= index < len(content)) or not isinstance(content[index], list) or len(content[index]) < 4:
+        return yf.returnJson(False, '指定的索引不存在!')
 
     tmp = content[index]
 
@@ -1059,7 +1245,14 @@ def getSiteRule():
 
     path = getJsonPath('site')
     content = yf.readFile(path)
-    content = json.loads(content)
+    try:
+        content = json.loads(content) if content and type(content) != bool else {}
+    except Exception:
+        content = {}
+    if not isinstance(content, dict) or siteName not in content:
+        return yf.returnJson(False, '站点不存在!')
+    if siteRule not in content[siteName]:
+        return yf.returnJson(False, '规则不存在!')
 
     r = content[siteName][siteRule]
 
@@ -1079,7 +1272,14 @@ def addSiteRule():
 
     path = getJsonPath('site')
     content = yf.readFile(path)
-    content = json.loads(content)
+    try:
+        content = json.loads(content) if content and type(content) != bool else {}
+    except Exception:
+        content = {}
+    if not isinstance(content, dict) or siteName not in content:
+        return yf.returnJson(False, '站点不存在!')
+    if siteRule not in content[siteName] or not isinstance(content[siteName][siteRule], list):
+        return yf.returnJson(False, '规则不存在!')
 
     content[siteName][siteRule].append(ruleValue)
 
@@ -1096,12 +1296,22 @@ def addIpWhite():
     if not data[0]:
         return data[1]
 
-    start_ip = args['start_ip']
-    end_ip = args['end_ip']
+    start_ip = str(args['start_ip']).strip()
+    end_ip = str(args['end_ip']).strip()
 
-    path = getRuleJsonPath('ip_white')
-    content = yf.readFile(path)
-    content = json.loads(content)
+    # 后端必须自己校验：前端只数了 `.` 的个数（`1.2.3.4.5`/`a.b.c.d` 都能过），
+    # 直接 int() 会 ValueError traceback，5 段还会把非法区间写进生产规则。
+    if not isIpv4(start_ip) or not isIpv4(end_ip):
+        return yf.returnJson(False, '起始IP或结束IP格式不正确!')
+    if ipv4ToInt(start_ip) > ipv4ToInt(end_ip):
+        return yf.returnJson(False, '起始IP或结束IP格式不正确!')
+
+    fpath, err = rulePathOrError('ip_white')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
 
     data = []
 
@@ -1124,7 +1334,7 @@ def addIpWhite():
     content.append(data)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -1135,17 +1345,24 @@ def removeIpWhite():
     if not data[0]:
         return data[1]
 
-    index = args['index']
+    index = toInt(args['index'])
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
-    path = getRuleJsonPath('ip_white')
-    content = yf.readFile(path)
-    content = json.loads(content)
+    fpath, err = rulePathOrError('ip_white')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if not (0 <= index < len(content)):
+        return yf.returnJson(False, '指定的索引不存在!')
 
-    k = content[int(index)]
+    k = content[index]
     content.remove(k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1157,12 +1374,20 @@ def addIpBlack():
     if not data[0]:
         return data[1]
 
-    start_ip = args['start_ip']
-    end_ip = args['end_ip']
+    start_ip = str(args['start_ip']).strip()
+    end_ip = str(args['end_ip']).strip()
 
-    path = getRuleJsonPath('ip_black')
-    content = yf.readFile(path)
-    content = json.loads(content)
+    if not isIpv4(start_ip) or not isIpv4(end_ip):
+        return yf.returnJson(False, '起始IP或结束IP格式不正确!')
+    if ipv4ToInt(start_ip) > ipv4ToInt(end_ip):
+        return yf.returnJson(False, '起始IP或结束IP格式不正确!')
+
+    fpath, err = rulePathOrError('ip_black')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
 
     data = []
 
@@ -1185,7 +1410,7 @@ def addIpBlack():
     content.append(data)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1197,17 +1422,24 @@ def removeIpBlack():
     if not data[0]:
         return data[1]
 
-    index = args['index']
+    index = toInt(args['index'])
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
-    path = getRuleJsonPath('ip_black')
-    content = yf.readFile(path)
-    content = json.loads(content)
+    fpath, err = rulePathOrError('ip_black')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if not (0 <= index < len(content)):
+        return yf.returnJson(False, '指定的索引不存在!')
 
-    k = content[int(index)]
+    k = content[index]
     content.remove(k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1219,15 +1451,20 @@ def setIpv6Black():
     if not data[0]:
         return data[1]
 
-    addr = args['addr'].replace('_', ':')
-    path = getRuleJsonPath('ipv6_black')
+    addr = str(args['addr']).replace('_', ':').strip()
+    if not isIpv6OrCidr(addr):
+        return yf.returnJson(False, 'IPv6地址格式不正确!')
 
-    content = yf.readFile(path)
-    content = json.loads(content)
+    fpath, err = rulePathOrError('ipv6_black')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
     content.append(addr)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -1238,15 +1475,22 @@ def delIpv6Black():
     if not data[0]:
         return data[1]
 
-    addr = args['addr'].replace('_', ':')
-    path = getRuleJsonPath('ipv6_black')
+    addr = str(args['addr']).replace('_', ':').strip()
+    if not isIpv6OrCidr(addr):
+        return yf.returnJson(False, 'IPv6地址格式不正确!')
 
-    content = yf.readFile(path)
-    content = json.loads(content)
+    fpath, err = rulePathOrError('ipv6_black')
+    if err:
+        return err
+    content, err = readRuleJson(fpath)
+    if err:
+        return err
+    if addr not in content:
+        return yf.returnJson(False, '不存在!')
 
     content.remove(addr)
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1260,13 +1504,24 @@ def removeSiteRule():
 
     siteName = args['siteName']
     siteRule = args['ruleName']
-    index = args['index']
+    index = toInt(args['index'])
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
 
     path = getJsonPath('site')
     content = yf.readFile(path)
-    content = json.loads(content)
+    try:
+        content = json.loads(content) if content and type(content) != bool else {}
+    except Exception:
+        content = {}
+    if not isinstance(content, dict) or siteName not in content:
+        return yf.returnJson(False, '站点不存在!')
+    if siteRule not in content[siteName] or not isinstance(content[siteName][siteRule], list):
+        return yf.returnJson(False, '规则不存在!')
+    if not (0 <= index < len(content[siteName][siteRule])):
+        return yf.returnJson(False, '指定的索引不存在!')
 
-    ruleValue = content[siteName][siteRule][int(index)]
+    ruleValue = content[siteName][siteRule][index]
     content[siteName][siteRule].remove(ruleValue)
 
     cjson = yf.getJson(content)
@@ -1284,10 +1539,19 @@ def setObjStatus():
 
     conf = getJsonPath('config')
     content = yf.readFile(conf)
-    cobj = json.loads(content)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
+    try:
+        cobj = json.loads(content)
+    except Exception:
+        return yf.returnJson(False, '文件不存在!')
 
     o = args['obj']
-    status = int(args['statusCode'])
+    status = toInt(args['statusCode'])
+    if status is None:
+        return yf.returnJson(False, '参数格式错误!')
+    if not isinstance(cobj, dict) or not isinstance(cobj.get(o), dict):
+        return yf.returnJson(False, '不存在!')
     cobj[o]['status'] = status
 
     cjson = yf.getJson(cobj)
@@ -1309,11 +1573,19 @@ def setRetry():
     cobj = json.loads(content)
     
     ## 修复数据类型错误
-    tmp = args
-    tmp['retry'] = int(tmp['retry'])
-    tmp['retry_time'] = int(tmp['retry_time'])
-    tmp['retry_cycle'] = int(tmp['retry_cycle'])
-    
+    # 只回写白名单字段：原实现把整个 args 字典写进 config['retry']，
+    # 客户端多传的任意键会被一并落盘并编译进 waf_config.lua。
+    retry = toInt(args['retry'], None, 1, 100000)
+    retry_time = toInt(args['retry_time'], None, 1, 86400 * 30)
+    retry_cycle = toInt(args['retry_cycle'], None, 1, 86400 * 30)
+    if retry is None or retry_time is None or retry_cycle is None:
+        return yf.returnJson(False, '参数格式错误!')
+    tmp = {}
+    tmp['retry'] = retry
+    tmp['retry_time'] = retry_time
+    tmp['retry_cycle'] = retry_cycle
+    tmp['is_open_global'] = args['is_open_global']
+
     cobj['retry'] = tmp
     cjson = yf.getJson(cobj)
     yf.writeFile(conf, cjson)
@@ -1330,10 +1602,18 @@ def setSafeVerify():
 
     conf = getJsonPath('config')
     content = yf.readFile(conf)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
     cobj = json.loads(content)
 
+    cpu = toInt(args['cpu'], None, 1, 100)
+    if cpu is None:
+        return yf.returnJson(False, '参数格式错误!')
+    if not isinstance(cobj.get('safe_verify'), dict):
+        return yf.returnJson(False, '不存在!')
+
     cobj['safe_verify']['time'] = args['time']
-    cobj['safe_verify']['cpu'] = int(args['cpu'])
+    cobj['safe_verify']['cpu'] = cpu
     cobj['safe_verify']['mode'] = args['mode']
 
     if args['auto'] == '0':
@@ -1361,15 +1641,26 @@ def setCcConf():
 
     conf = getJsonPath('config')
     content = yf.readFile(conf)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
     cobj = json.loads(content)
+    if not isinstance(cobj.get('cc'), dict):
+        return yf.returnJson(False, '不存在!')
+
+    cycle = toInt(args['cycle'], None, 1, 86400 * 30)
+    limit = toInt(args['limit'], None, 1, 10000000)
+    endtime = toInt(args['endtime'], None, 1, 86400 * 30)
+    if cycle is None or limit is None or endtime is None:
+        return yf.returnJson(False, '参数格式错误!')
 
     tmp = cobj['cc']
 
-    tmp['cycle'] = int(args['cycle'])
-    tmp['limit'] = int(args['limit'])
-    tmp['endtime'] = int(args['endtime'])
+    tmp['cycle'] = cycle
+    tmp['limit'] = limit
+    tmp['endtime'] = endtime
     tmp['is_open_global'] = args['is_open_global']
-    tmp['increase'] = args['increase']
+    # increase 未列入 checkArgs，缺参时原实现直接 KeyError traceback
+    tmp['increase'] = args.get('increase', 0)
     cobj['cc'] = tmp
 
     cjson = yf.getJson(cobj)
@@ -1519,8 +1810,12 @@ def outputData():
     if not data[0]:
         return data[1]
 
-    path = getRuleJsonPath(args['sname'])
+    path, err = rulePathOrError(args['sname'])
+    if err:
+        return err
     content = yf.readFile(path)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '规则文件不存在!')
     return yf.returnJson(True, 'ok', content)
 
 
@@ -1530,23 +1825,34 @@ def importData():
     if not data[0]:
         return data[1]
 
-    path = getRuleJsonPath(args['sname'])
+    path, err = rulePathOrError(args['sname'])
+    if err:
+        return err
 
-    source_data = yf.readFile(path)
-    source_data = json.loads(source_data)
+    source_data, err = readRuleJson(path)
+    if err:
+        return err
 
     save_data = []
+    if not source_data:
+        # 空规则文件（合法初始态）→ 原实现 source_data[0] IndexError traceback
+        source_data = [None]
     save_data.append(source_data[0])
-    pdata = args['pdata'].strip()
+    pdata = str(args['pdata']).strip()
+    if not pdata:
+        return yf.returnJson(False, '参数格式错误!')
     try:
         pdata = json.loads(pdata)
         yf.writeFile(path, json.dumps(pdata))
-    except Exception as e:
+    except Exception:
         pdata = pdata.split("\\n")
         for x in pdata:
             pval = x.strip()
             if pval != "":
-                vv = json.loads(pval)
+                try:
+                    vv = json.loads(pval)
+                except Exception:
+                    return yf.returnJson(False, '规则文件格式错误!')
                 save_data.append(vv[0])
         yf.writeFile(path, json.dumps(save_data))
     # restartWeb()
@@ -1559,10 +1865,20 @@ def getLogsList():
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    page = toInt(args['page'], None, 1)
+    # 上界必须 ≥ 导出用的 100000（js/op_waf.js 的导出 excel 走 page_size=100000），
+    # 否则会把「导出全部」判成参数错误；下界 1 同时堵住负 LIMIT（SQLite 负值=不限制）。
+    page_size = toInt(args['page_size'], None, 1, 100000)
     domain = args['site']
     tojs = args['tojs']
+    if page is None or page_size is None:
+        return yf.returnJson(False, '参数格式错误!')
+
+    # site 会被 setDefaultSite() 原样写进 default.pl，并被 test_run() 拼成请求 URL；
+    # 不白名单就是一个「任意内容写文件 + 后续 SSRF」入口。
+    site_list = getSiteListData()['list']
+    if domain not in site_list:
+        return yf.returnJson(False, '输入的站点错误!')
 
     setDefaultSite(domain)
 
@@ -1581,6 +1897,8 @@ def getLogsList():
     count_key = "count(*) as num"
     count = conn.field(count_key).limit('').order('').inquiry()
     # print(count)
+    if not count or not isinstance(count[0], dict) or count_key not in count[0]:
+        return yf.returnJson(False, '查询日志失败!')
     count = count[0][count_key]
 
     data = {}
@@ -1644,9 +1962,16 @@ def setObjOpen():
 
     conf = getJsonPath('config')
     content = yf.readFile(conf)
-    cobj = json.loads(content)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
+    try:
+        cobj = json.loads(content)
+    except Exception:
+        return yf.returnJson(False, '文件不存在!')
 
     o = args['obj']
+    if not isinstance(cobj, dict) or not isinstance(cobj.get(o), dict) or 'open' not in cobj[o]:
+        return yf.returnJson(False, '不存在!')
     if cobj[o]["open"]:
         cobj[o]["open"] = False
     else:
@@ -1669,7 +1994,12 @@ def setSiteObjOpen():
 
     path = getJsonPath('site')
     content = yf.readFile(path)
-    content = json.loads(content)
+    try:
+        content = json.loads(content) if content and type(content) != bool else {}
+    except Exception:
+        content = {}
+    if not isinstance(content, dict) or siteName not in content:
+        return yf.returnJson(False, '站点不存在!')
 
     if obj not in content[siteName]:
         content[siteName][obj] = True
@@ -1678,11 +2008,13 @@ def setSiteObjOpen():
             content[siteName][obj] = False
         else:
             content[siteName][obj] = True
-    else:
+    elif isinstance(content[siteName][obj], dict) and 'open' in content[siteName][obj]:
         if content[siteName][obj]['open']:
             content[siteName][obj]['open'] = False
         else:
             content[siteName][obj]['open'] = True
+    else:
+        return yf.returnJson(False, '不存在!')
 
     cjson = yf.getJson(content)
     yf.writeFile(path, cjson)
@@ -2018,7 +2350,10 @@ def getIpLocation():
     if not data[0]:
         return data[1]
     
-    ip = args['ip']
+    ip = str(args['ip']).strip()
+    # ip 会被拼进外部查询 URL 路径：不校验时 `1.2.3.4?x=y` 可改写请求参数
+    if not isIpAddr(ip):
+        return yf.returnJson(False, 'IP地址格式不正确!')
     api_lang = normalize_ip_api_lang(args.get('lang', ''))
     try:
         import urllib.request
@@ -2049,7 +2384,12 @@ def removeDropIp():
     # silent 用于打断与 fail2ban 侧的双向递归调用链（对方解封时回调本接口）
     silent = str(args.get('silent', '')).strip().lower() in ('1', 'true', 'on', 'yes')
 
-    url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + ip
+    # ip 会被拼进内部 HTTP 查询串：不校验/不编码时 `1.2.3.4&x=1` 会变成两个参数，
+    # `1.2.3.4/../xxx` 会改写请求路径（参数注入 / 路径注入）。
+    if not isIpAddr(ip):
+        return yf.returnJson(False, 'IP地址格式不正确!')
+
+    url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + urllib.parse.quote(ip, safe='')
     try:
         res_data = yf.httpGet(url)
         res = json.loads(res_data)
@@ -2100,17 +2440,30 @@ def addTrustedProxy():
     data = checkArgs(args, ['ip'])
     if not data[0]:
         return data[1]
-    
+
+    ip = str(args['ip']).strip()
+    # trusted_proxy 会进 config.json → 编译进 waf_config.lua；
+    # 不校验时 `1.2.3.4\n<任意行>` 会直接制造 Lua 语法错误（reload 静默失败、重启起不来）。
+    if not isIpOrCidr(ip):
+        return yf.returnJson(False, 'IP或CIDR格式不正确!')
+
     conf = getJsonPath('config')
     content = yf.readFile(conf)
-    cobj = json.loads(content)
-    
-    if "trusted_proxy" not in cobj:
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
+    try:
+        cobj = json.loads(content)
+    except Exception:
+        return yf.returnJson(False, '文件不存在!')
+    if not isinstance(cobj, dict):
+        return yf.returnJson(False, '文件不存在!')
+
+    if "trusted_proxy" not in cobj or not isinstance(cobj["trusted_proxy"], list):
         cobj["trusted_proxy"] = []
-    
-    if args['ip'] not in cobj["trusted_proxy"]:
-        cobj["trusted_proxy"].append(args['ip'])
-        
+
+    if ip not in cobj["trusted_proxy"]:
+        cobj["trusted_proxy"].append(ip)
+
     cjson = yf.getJson(cobj)
     yf.writeFile(conf, cjson)
     setConfRestartWeb()
@@ -2122,13 +2475,21 @@ def removeTrustedProxy():
     data = checkArgs(args, ['index'])
     if not data[0]:
         return data[1]
-    
-    index = int(args['index'])
+
+    index = toInt(args['index'], None, 0)
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
     conf = getJsonPath('config')
     content = yf.readFile(conf)
-    cobj = json.loads(content)
-    
-    if "trusted_proxy" in cobj and index < len(cobj["trusted_proxy"]):
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
+    try:
+        cobj = json.loads(content)
+    except Exception:
+        return yf.returnJson(False, '文件不存在!')
+
+    if isinstance(cobj, dict) and isinstance(cobj.get("trusted_proxy"), list) \
+            and index < len(cobj["trusted_proxy"]):
         cobj["trusted_proxy"].pop(index)
         cjson = yf.getJson(cobj)
         yf.writeFile(conf, cjson)
@@ -2145,11 +2506,23 @@ def setHoneypotPaths():
 
     conf = getJsonPath('config')
     content = yf.readFile(conf)
-    cobj = json.loads(content)
+    if type(content) == bool or not content:
+        return yf.returnJson(False, '文件不存在!')
+    try:
+        cobj = json.loads(content)
+    except Exception:
+        return yf.returnJson(False, '文件不存在!')
+    if not isinstance(cobj, dict):
+        return yf.returnJson(False, '文件不存在!')
 
     paths = args['paths']
     if type(paths) == str:
-        paths = json.loads(paths)
+        try:
+            paths = json.loads(paths)
+        except Exception:
+            return yf.returnJson(False, '参数格式错误!')
+    if not isinstance(paths, list) or not all(isinstance(p, str) for p in paths):
+        return yf.returnJson(False, '参数格式错误!')
 
     if 'honeypot' not in cobj:
         cobj['honeypot'] = {
@@ -2326,7 +2699,9 @@ def removeSpiderIp():
     data = checkArgs(args, ['index'])
     if not data[0]:
         return data[1]
-    index = int(args['index'])
+    index = toInt(args['index'], None, 0)
+    if index is None:
+        return yf.returnJson(False, '参数格式错误!')
     rule_path = getRuleJsonPath('spider_ip')
     if not os.path.exists(rule_path):
         return yf.returnJson(False, '规则文件不存在!')
