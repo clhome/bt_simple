@@ -49,6 +49,19 @@
   非中文界面会漏出中文（属既有 i18n 缺口，需按 `lan.js` 单源补键与载体后再改）。
 - `enhanced_log_rotation.EnhancedRotatingFileHandler` 的双父类 `__init__` 是既有设计，
   会在启动时多开一次文件句柄；改动风险高于收益，本轮不动。
+- **前端「遮罩死锁」系统性残留（A/B 组交叉核对发现，2026-10-09）**：裸 `$.post`/`$.ajax`
+  未挂 `.fail()` 时，`layer.msg(..., {icon: 16, time: 0})` 遮罩在 500/网络中断下永不关闭。
+  全仓扫描「捕获遮罩变量 + 紧随裸 ajax + 无 `.fail()`」的精确候选约 **248 处**（多数可被
+  后续 `layer.closeAll()` 恢复，只有「变量捕获 + 仅成功关闭」才是永久死锁）。
+  **本轮已修确认实例**：`plugins/mariadb`（数据目录迁移遮罩）、`plugins/redis`、
+  `plugins/valkey`（`*PostCallbak` 自定义封装），并修 `mariadb` 服务端配置值（datadir/port）
+  拼进 HTML 属性未转义的注入面；守卫 `testsuite/test_frontend_mask_deadlock_guard.py`（7 项）
+  + `test/mask_deadlock_mutation_probe.py` 变异 5/5 全红；真机已部署，服务端实际下发内容
+  md5 与本地逐一一致（`/plugins/file` HTTP 200）。
+  **剩余存量未逐个补 `.fail()`**：`YfPlugin.createApi` 封装（`api.post`/`api.postCallback`）
+  自带 `.fail()` + 关遮罩，故走封装的主路径均安全；仅裸 ajax 的次要路径在失败时无提示
+  （遮罩通常被后续 `layer.closeAll()` 清除）。对约 200 处做全量逐点改造回归面大于收益，
+  属产品决策，不在本轮范围。
 
 ---
 
