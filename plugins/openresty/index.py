@@ -4,6 +4,7 @@ import sys
 import io
 import os
 import time
+import json
 import threading
 import subprocess
 import re
@@ -36,6 +37,17 @@ def getServerDir():
     return yf.getServerDir() + '/' + getPluginName()
 
 
+def getRestyBin():
+    return getServerDir() + '/nginx/sbin/nginx'
+
+
+def isInstalled():
+    # 判据用主程序 nginx 是否存在，而不是安装目录是否存在：confReplace() 会写出
+    # nginx/conf/nginx.conf，让空目录看起来「已安装」，随后 initDreplace 就在没有
+    # 二进制的情况下伪造出 init.d 脚本与 systemd unit（与 C01 apache 同源缺陷）。
+    return os.path.exists(getRestyBin())
+
+
 def getInitDFile():
     current_os = yf.getOs()
     if current_os == 'darwin':
@@ -48,59 +60,30 @@ def getInitDFile():
 
 
 def getArgs():
+    # utils/plugin.py::run() 把前端序列化后的 args 作为**一个** argv 传进来
+    # （cmd_list=[python, path, func, version?, args]），所以必须优先按 JSON 解析；
+    # 旧实现的 `k:v` 回退在畸形 argv（无冒号 / 非对象）上直接 IndexError，整段
+    # traceback 回给前端；version 单独成 argv 时也会被误当参数。
     args = sys.argv[2:]
     tmp = {}
-    
-    full_str = " ".join(args).strip()
-    
-    # 1. 尝试使用标准的 JSON 反序列化
-    try:
-        import json
-        parsed = json.loads(full_str)
-        if isinstance(parsed, dict):
-            return {k.strip(): str(v).strip() for k, v in parsed.items()}
-    except Exception as e:
-        _log.debug('[openresty] getArgs 异常已忽略: %s', e)
-
-    # 2. 如果 JSON 序列化由于转义或引号丢失失败，使用智能正则拆分法
-    content = full_str.strip('{').strip('}').strip()
-    content = content.replace('\\:', ':').replace('\\,', ',').replace('\\"', '"').replace('\\\\', '\\')
-    
-    if content.endswith('\\}'):
-        content = content[:-2] + '}'
-    elif content.endswith('\\'):
-        content = content[:-1]
-
-    pairs = content.split(',')
-    has_valid_pair = False
-    for pair in pairs:
-        pair = pair.strip()
-        if ':' in pair:
-            parts = pair.split(':', 1)
-            k = parts[0].strip().strip('"').strip("'").strip('\\').strip()
-            v = parts[1].strip().strip('"').strip("'").strip('\\').strip()
+    for raw in args:
+        val = str(raw).strip()
+        if not val:
+            continue
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                parsed = json.loads(val)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, dict):
+                tmp.update({str(k).strip(): str(v).strip() for k, v in parsed.items()})
+                continue
+        parts = val.strip('{').strip('}').split(':', 1)
+        if len(parts) == 2:
+            k = parts[0].strip().strip('"').strip("'").strip('\\')
+            v = parts[1].strip().strip('"').strip("'").strip('\\')
             if k:
                 tmp[k] = v
-                has_valid_pair = True
-                
-    if has_valid_pair and 'worker_processes' in tmp:
-        return tmp
-        
-    # 3. 如果还是失败，回退到历史默认的分隔逻辑
-    args_len = len(args)
-    if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':',2)
-        k = t[0].strip().strip('"').strip("'")
-        v = t[1].strip().strip('"').strip("'")
-        tmp[k] = v
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':',2)
-            k = t[0].strip().strip('"').strip("'").strip('{').strip('}')
-            v = t[1].strip().strip('"').strip("'").strip('{').strip('}')
-            tmp[k] = v
-            
     return tmp
 
 
@@ -342,8 +325,14 @@ def getInitDTpl():
 def getPidFile():
     file = getConf()
     content = yf.readFile(file)
+    # yf.readFile 读不到返回 False（不是空串），且配置里可能没有 pid 指令，
+    # 旧实现两处都会抛异常（TypeError / AttributeError）回给前端。
+    if not content:
+        return None
     rep = r'pid\s*(.*);'
     tmp = re.search(rep, content)
+    if not tmp:
+        return None
     return tmp.groups()[0].strip()
 
 
@@ -365,6 +354,9 @@ def checkAuthEq(file, owner='root'):
 def confReplace():
     service_path = yf.getServerDir()
     content = yf.readFile(getConfTpl())
+    # yf.readFile 读不到返回 False（不是空串），直接 .replace() 会 AttributeError
+    if not content:
+        return False
     content = content.replace('{$SERVER_PATH}', service_path)
 
     user = 'www'
@@ -470,6 +462,7 @@ def confReplace():
     src_resty_dir = getPluginDir()+'/resty/*'
     dst_resty_dir = getServerDir()+'/lualib/resty'
     yf.execShell('cp -rf ' + src_resty_dir + ' ' + dst_resty_dir)
+    return True
 
 
 def initDreplace():
@@ -479,10 +472,11 @@ def initDreplace():
 
     initD_path = getServerDir() + '/init.d'
 
-    # OpenResty is not installed
-    if not os.path.exists(getServerDir()):
-        print("ok")
-        exit(0)
+    # openresty 未安装：不得伪造安装产物（init.d 脚本 / systemd unit）。旧实现在这里
+    # `print("ok"); exit(0)` —— start/stop/restart 对未安装的 openresty 也回 ok（假启动），
+    # 而 reload 会先经 confReplace 建出 nginx/conf 目录，再一路生成 systemd unit。
+    if not isInstalled():
+        return None
 
     # init.d
     file_bin = initD_path + '/' + getPluginName()
@@ -491,6 +485,8 @@ def initDreplace():
 
         # initd replace
         content = yf.readFile(file_tpl)
+        if not content:
+            return None
         content = content.replace('{$SERVER_PATH}', service_path)
         yf.writeFile(file_bin, content)
         yf.execShell('chmod +x ' + file_bin)
@@ -499,7 +495,7 @@ def initDreplace():
         confReplace()
 
     # give nginx root permission
-    ng_exe_bin = getServerDir() + "/nginx/sbin/nginx"
+    ng_exe_bin = getRestyBin()
     if not checkAuthEq(ng_exe_bin, 'root'):
         user = 'www'
         user_group = 'www'
@@ -514,11 +510,14 @@ def initDreplace():
 
         sudoPwd = args['pwd']
         cmd_own = 'chown -R ' + user+':' + user_group + ' ' + ng_exe_bin
-        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_own))
+        # 密码来自前端/插件 args，必须 shell 转义：旧写法直接 `echo %s|sudo -S %s`
+        # 拼进 shell，`pwd` 传 `x; touch /tmp/pwned #` 就能以 root 执行任意命令。
+        safe_pwd = yf.shlexQuote(sudoPwd)
+        yf.execShell('echo %s|sudo -S %s' % (safe_pwd, cmd_own))
         cmd_mod = 'chmod 755 ' + ng_exe_bin
-        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_mod))
+        yf.execShell('echo %s|sudo -S %s' % (safe_pwd, cmd_mod))
         cmd_s = 'chmod u+s ' + ng_exe_bin
-        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
+        yf.execShell('echo %s|sudo -S %s' % (safe_pwd, cmd_s))
 
     # systemd
     # /usr/lib/systemd/system
@@ -527,6 +526,8 @@ def initDreplace():
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/openresty.service.tpl'
         se_content = yf.readFile(systemServiceTpl)
+        if not se_content:
+            return None
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
         yf.writeFile(systemService, se_content)
         yf.execShell('systemctl daemon-reload')
@@ -536,12 +537,26 @@ def initDreplace():
 
 def status():
     pid_file = getPidFile()
-    if not os.path.exists(pid_file):
+    if not pid_file or not os.path.exists(pid_file):
         return 'stop'
-    return 'start'
+    # pid 文件在进程被强杀后会残留：必须确认该 pid 真的还活着，否则界面会显示
+    # 「运行中」而实际已停（假阳性），用户也无法再启动。
+    try:
+        pid = int(str(yf.readFile(pid_file)).strip())
+    except (TypeError, ValueError):
+        return 'stop'
+    if pid <= 0:
+        return 'stop'
+    if os.path.isdir('/proc'):
+        return 'start' if os.path.exists('/proc/%d' % pid) else 'stop'
+    rc, _out, _err = yf.execShellRc('kill -0 %d' % pid)
+    return 'start' if rc == 0 else 'stop'
 
 
 def restyOp(method):
+    if not isInstalled():
+        return 'ERROR: openresty 未安装'
+
     # 执行配置语法自愈，杜绝常见语法损坏阻碍启动
     confSelfHeal()
 
@@ -560,9 +575,11 @@ def restyOp(method):
                 return f"ERROR: 端口 {port} 已被服务 [{pname}] (PID: {pid}) 占用。请先停用该服务后再启动 OpenResty！"
 
     file = initDreplace()
+    if not file:
+        return 'ERROR: openresty 初始化脚本模板缺失'
 
     # 启动时,先检查一下配置文件
-    check = getServerDir() + "/bin/openresty -t"
+    check = getRestyBin() + " -t"
     check_data = yf.execShell(check)
     if not check_data[1].find('test is successful') > -1:
         return check_data[1]
@@ -604,12 +621,17 @@ def op_submit_init_restart(file):
 
 
 def restyOp_restart():
+    if not isInstalled():
+        return 'ERROR: openresty 未安装'
+
     # 执行配置语法自愈，杜绝常见语法损坏阻碍启动
     confSelfHeal()
     file = initDreplace()
+    if not file:
+        return 'ERROR: openresty 初始化脚本模板缺失'
 
     # 启动时,先检查一下配置文件
-    check = getServerDir() + "/bin/openresty -t"
+    check = getRestyBin() + " -t"
     check_data = yf.execShell(check)
     if not check_data[1].find('test is successful') > -1:
         return 'ERROR: 配置出错<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
@@ -629,7 +651,7 @@ def start():
 def stop():
     r = restyOp('stop')
     pid_file = getPidFile()
-    if os.path.exists(pid_file):
+    if pid_file and os.path.exists(pid_file):
         os.remove(pid_file)
     return r
 
@@ -639,7 +661,10 @@ def restart():
 
 
 def reload():
-    confReplace()
+    if not isInstalled():
+        return 'ERROR: openresty 未安装'
+    if not confReplace():
+        return 'ERROR: openresty 配置文件模板缺失'
     return restyOp('reload')
 
 
@@ -653,11 +678,12 @@ def initdStatus():
         if os.path.exists(initd_bin):
             return 'ok'
 
-    shell_cmd = 'systemctl status openresty | grep loaded | grep "enabled;"'
-    data = yf.execShell(shell_cmd)
-    if data[0] == '':
-        return 'fail'
-    return 'ok'
+    # `systemctl status | grep loaded | grep "enabled;"` 依赖人类可读输出（语言/格式一变
+    # 就误判），改用 systemctl is-enabled 的退出码 + 单字输出判定开机自启。
+    rc, out, _err = yf.execShellRc('systemctl is-enabled openresty')
+    if rc == 0 and out.strip().startswith('enabled'):
+        return 'ok'
+    return 'fail'
 
 
 def initdInstall():
@@ -665,17 +691,24 @@ def initdInstall():
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
+    if not isInstalled():
+        return 'ERROR: openresty 未安装'
+
     # freebsd initd install
     if current_os.startswith('freebsd'):
         import shutil
         source_bin = initDreplace()
+        if not source_bin:
+            return 'ERROR: openresty 初始化脚本模板缺失'
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
         yf.execShell('chmod +x ' + initd_bin)
         yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    yf.execShell('systemctl enable openresty')
+    rc, out, err = yf.execShellRc('systemctl enable openresty')
+    if rc != 0:
+        return 'ERROR: 设置开机自启失败: ' + (err or out)
     return 'ok'
 
 
@@ -690,14 +723,20 @@ def initdUinstall():
         yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    yf.execShell('systemctl disable openresty')
+    rc, out, err = yf.execShellRc('systemctl disable openresty')
+    if rc != 0:
+        return 'ERROR: 取消开机自启失败: ' + (err or out)
     return 'ok'
 
 def getNgxStatusPort():
     ngx_status_file = yf.getServerDir() + '/web_conf/nginx/vhost/0.nginx_status.conf'
     content = yf.readFile(ngx_status_file)
+    if not content:
+        return None
     rep = r'listen\s*(.*);'
     tmp = re.search(rep, content)
+    if not tmp:
+        return None
     port =  tmp.groups()[0].strip()
     return port
 
@@ -708,6 +747,8 @@ def runInfo():
         return yf.returnJson(False, "未启动!")
 
     port = getNgxStatusPort()
+    if not port:
+        return yf.returnJson(False, "oprenresty异常!")
     # 取Openresty负载状态
     try:
         url = 'http://127.0.0.1:%s/nginx_status' % port
@@ -750,6 +791,10 @@ def errorLogPath():
 def getCfg():
     cfg = getConf()
     content = yf.readFile(cfg)
+    # yf.readFile 读不到返回 False（不是空串），旧实现直接 re.search(pattern, False)
+    # → TypeError，整段 traceback 回给前端。
+    if not content:
+        return yf.returnJson(False, 'openresty 未安装或配置文件不存在!')
 
     # 检测模块支持情况
     has_zstd = checkModuleSupport('zstd')
@@ -830,8 +875,10 @@ def setCfg():
         return data[1]
 
     cfg = getConf()
-    yf.backFile(cfg)
     content = yf.readFile(cfg)
+    if not content:
+        return yf.returnJson(False, 'openresty 未安装或配置文件不存在!')
+    yf.backFile(cfg)
 
     unitrep = "[kmgKMG]"
     cfg_args = [
@@ -849,10 +896,39 @@ def setCfg():
         {"name": "client_header_buffer_size", "ps": "客户端请求头buffer大小", 'type': 2},
     ]
 
+    # 每个调优项的值形态：worker_processes 允许 auto，压缩开关只允许 on/off，
+    # 其余一律纯数字（单位由前端单独展示，不进值里）。
+    value_rules = {
+        'worker_processes': r'^(auto|\d+)$',
+        'worker_connections': r'^\d+$',
+        'keepalive_timeout': r'^\d+$',
+        'zstd': r'^(on|off)$',
+        'brotli': r'^(on|off)$',
+        'gzip': r'^(on|off)$',
+        'gzip_min_length': r'^\d+$',
+        'gzip_comp_level': r'^\d+$',
+        'client_max_body_size': r'^\d+$',
+        'server_names_hash_bucket_size': r'^\d+$',
+        'client_header_buffer_size': r'^\d+$',
+    }
+    switch_keys = ('worker_processes', 'gzip', 'zstd', 'brotli')
+
     # print(args)
     for k, v in args.items():
-        # print(k, v)
-        rep = r"%s\s+[^kKmMgG\;\n]+" % k
+        k = str(k).strip()
+        v = str(v).strip()
+        # 参数名白名单：旧实现把任意键直接拼进 re.sub 的正则（正则注入面），
+        # 未知键还会被无脑写进配置。
+        if k not in value_rules:
+            continue
+        # 值必须匹配该项的严格形态：旧实现只要求「含数字」，放行 `60;\n# ...`
+        # 这类换行注入（真机实测被原样写进 nginx.conf 并 reload）。
+        if not re.match(value_rules[k], v):
+            if k in switch_keys:
+                return yf.returnJson(False, '参数值错误')
+            return yf.returnJson(False, '参数值错误,请输入数字整数')
+
+        rep = r"%s\s+[^kKmMgG\;\n]+" % re.escape(k)
 
         # 如果是 zstd 或 brotli，且当前 OpenResty 没有编译对应的模块，且原配置文件里没有这一项，直接忽略不处理，杜绝 Nginx 无法启动报错
         if k == "zstd" and not checkModuleSupport('zstd'):
@@ -861,13 +937,6 @@ def setCfg():
         if k == "brotli" and not checkModuleSupport('brotli'):
             if not re.search(rep, content):
                 continue
-
-        if k == "worker_processes" or k == "gzip" or k == "zstd" or k == "brotli":
-            if not re.search(r"auto|on|off|\d+", v):
-                return yf.returnJson(False, '参数值错误')
-        else:
-            if not re.search(r"\d+", v):
-                return yf.returnJson(False, '参数值错误,请输入数字整数')
 
         if k == "worker_processes" :
             k_wca = "worker_cpu_affinity"

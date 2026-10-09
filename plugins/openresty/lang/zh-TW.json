@@ -1,5 +1,6 @@
 {
  "ERROR: 端口 {port} 已被服务 [{pname}] (PID: {pid}) 占用。请先停用该服务后再启动 OpenResty！": "ERROR: 埠 {port} 已被服務 [{pname}] (PID: {pid}) 佔用。請先停用該服務後再啟動 OpenResty！",
+ "openresty 未安装或配置文件不存在!": "OpenResty 未安裝或設定檔不存在!",
  "oprenresty异常!": "oprenresty異常!",
  "{1}{2}服务{3}失败!": "{1}{2}服務{3}失敗!",
  "{1}{2}服务已{3}": "{1}{2}服務已{3}",

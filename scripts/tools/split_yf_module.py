@@ -51,7 +51,7 @@ BACKUP_DIR = os.path.join(ROOT, 'test', 'tmp_yf_split')
 # 这些符号必须留在 __init__.py（这样 yf.X 才是可被替换的那个对象），
 # 且子模块里对它们的调用一律走运行时 shim。
 PATCHED_FUNCS = {
-    'execShell', 'safeExecShell', 'getServerDir', 'getPanelDir', 'getPluginDir',
+    'execShell', 'execShellRc', 'safeExecShell', 'getServerDir', 'getPanelDir', 'getPluginDir',
     'writeFile', 'opWeb', 'httpGet', 'hasPwd', 'returnData', 'isAppleSystem',
     'readFile', 'writeFileLog', 'writeLog', 'checkPid', 'removeDir',
     'isSupportSystemctl', 'getOs', 'M', 'getPanelDataDir', 'systemdCfgDir',

@@ -1,5 +1,6 @@
 {
     "ERROR: 端口 {port} 已被服务 [{pname}] (PID: {pid}) 占用。请先停用该服务后再启动 OpenResty！": "FEHLER: Der Port {port} wird bereits vom Dienst [{pname}] (PID: {pid}) belegt. Bitte beenden Sie diesen Dienst, bevor Sie OpenResty starten!",
+    "openresty 未安装或配置文件不存在!": "OpenResty ist nicht installiert oder die Konfigurationsdatei existiert nicht!",
     "oprenresty异常!": "oprenresty-Fehler!",
     "{1}{2}服务{3}失败!": "{1}{2}Der Dienst {3} ist fehlgeschlagen!",
     "{1}{2}服务已{3}": "{1}{2}Der Dienst wurde {3}",

@@ -135,14 +135,25 @@ function getOpStatus() {
         }catch(err){
              showMsg(data.data, function(){}, null,3000);
         }
-    },'json');
+    },'json').fail(function() {
+        // 缺 .fail() 时请求 500/超时会让 loading 遮罩永久卡死（层叠遮罩无法关闭）。
+        layer.close(loadT);
+        layer.msg(pt('操作异常!'), {icon: 2});
+    });
 }
 
 
 function setOpCfg(){
     api.post('get_cfg', {}, function(data){
         var rdata = JSON.parse(data.data);
-        var rdata = rdata.data;
+        // get_cfg 的业务失败（如 openresty 未安装 / 配置文件不存在）也是 HTTP 200 + 内层
+        // status:false，必须在这里拦掉：否则 rdata.data 为 undefined，下面的 rdata.length
+        // 直接抛异常，界面既无提示也无内容（静默失败）。
+        if ('status' in rdata && !rdata.status) {
+            showMsg(rdata.msg, function(){}, null, 3000);
+            return;
+        }
+        rdata = rdata.data;
         // console.log(rdata);
 
         var mlist = '';
