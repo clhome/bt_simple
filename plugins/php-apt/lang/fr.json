@@ -162,5 +162,16 @@
     "升级自愈正在执行中...": "Auto-réparation de la mise à niveau en cours...",
     "已是最新版本，无需自愈。": "Déjà la dernière version ; aucune auto-réparation nécessaire.",
     "大版本迁移升级自愈成功完成。": "Auto-réparation de la migration de version majeure terminée avec succès.",
-    "请不要输入以下特殊字符:": "Ne saisissez pas les caractères spéciaux suivants :"
+    "请不要输入以下特殊字符:": "Ne saisissez pas les caractères spéciaux suivants :",
+    "PHP版本参数不合法!": "Paramètre de version PHP invalide !",
+    "参数格式错误!": "Format de paramètre invalide !",
+    "参数值不合法!": "Valeur de paramètre invalide !",
+    "Session存储方式不合法!": "Mode de stockage de session invalide !",
+    "禁用函数格式不合法!": "Format des fonctions désactivées invalide !",
+    "并发参数不合法!": "Paramètres de concurrence invalides !",
+    "运行模式不合法!": "Mode d'exécution invalide !",
+    "时间参数不合法!": "Paramètre de temps invalide !",
+    "上传大小参数不合法!": "Paramètre de taille d'envoi invalide !",
+    "扩展列表配置文件不存在!": "Fichier de configuration de la liste d'extensions introuvable !",
+    "扩展列表配置文件格式错误!": "Format du fichier de configuration de la liste d'extensions invalide !"
 }

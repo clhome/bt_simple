@@ -28,6 +28,35 @@ if yf.isAppleSystem():
 CURRENT_PLUGIN_VERSION = '2.0'
 _PHP_APT_UPGRADE_CHECKING = False
 
+#: 版本号白名单：安装目录名即「主.次」版本（如 7.4 / 8.3），与 getInstalledPhpVersions 的
+#  磁盘目录过滤同口径。version 会被拼进文件路径与 shell 命令，是 php-apt 唯一用户可控的
+#  「路径/命令片段」入口，必须先校验再使用（formatVersion 只做补点归一化，不做安全校验）。
+PHP_APT_VERSION_RE = re.compile(r'^[0-9]{1,3}\.[0-9]{1,3}$')
+#: FPM 进程管理方式白名单（写入 pool 配置的 `pm = ` 行）。
+PHP_PM_MODES = ('static', 'dynamic', 'ondemand')
+#: Session 存储方式白名单（写入 php.ini 的 `session.save_handler` 行）。
+PHP_SESSION_HANDLERS = ('files', 'redis', 'memcache', 'memcached')
+#: 禁用函数名白名单（逗号分隔）。
+PHP_FUNC_LIST_RE = re.compile(r'^[A-Za-z0-9_ ,]{0,4000}$')
+#: php.ini 可写键的值白名单：只接受预期取值形态，阻止换行注入任意指令。
+PHP_INI_KEY_RULES = {
+    'short_open_tag': r'^(On|Off|1|0)$',
+    'asp_tags': r'^(On|Off|1|0)$',
+    'file_uploads': r'^(On|Off|1|0)$',
+    'display_errors': r'^(On|Off|1|0)$',
+    'cgi.fix_pathinfo': r'^[01]$',
+    'max_execution_time': r'^[0-9]{1,6}$',
+    'max_input_time': r'^[0-9]{1,6}$',
+    'max_input_vars': r'^[0-9]{1,9}$',
+    'max_file_uploads': r'^[0-9]{1,6}$',
+    'default_socket_timeout': r'^[0-9]{1,6}$',
+    'memory_limit': r'^[0-9]{1,9}[KMG]?$',
+    'post_max_size': r'^[0-9]{1,9}[KMG]?$',
+    'upload_max_filesize': r'^[0-9]{1,9}[KMG]?$',
+    'error_reporting': r'^[0-9A-Za-z_ &~|^!()-]{1,60}$',
+    'date.timezone': r'^[A-Za-z0-9_/+\-]{1,40}$',
+}
+
 
 def formatVersion(v):
     v = str(v).strip()
@@ -38,6 +67,53 @@ def formatVersion(v):
     if len(v) >= 2:
         return v[0] + '.' + v[1:]
     return v
+
+
+def isPhpVersion(version):
+    """版本号是否为「主.次」形态（防路径穿越与 shell 注入）。"""
+    return bool(PHP_APT_VERSION_RE.match(str(version if version is not None else '').strip()))
+
+
+def versionOrError(version):
+    """JSON 信封型入口的版本校验：非法返回 (错误信封, None)，合法返回 (None, 版本)。"""
+    v = str(version if version is not None else '').strip()
+    if not isPhpVersion(v):
+        return (yf.returnJson(False, 'PHP版本参数不合法!'), None)
+    return (None, v)
+
+
+def versionOrFail(version):
+    """原始字符串型入口（status/start/conf 等）的版本校验：非法返回错误文案。"""
+    v = str(version if version is not None else '').strip()
+    if not isPhpVersion(v):
+        return 'ERROR: PHP版本参数不合法'
+    return None
+
+
+def validateIniValue(key, value):
+    """校验 php.ini 单键取值：返回 (错误消息, 规范化值)，合法时错误消息为 ''。"""
+    if not isinstance(value, str):
+        value = str(value)
+    v = value.strip()
+    rule = PHP_INI_KEY_RULES.get(key)
+    if rule is None:
+        return ('参数值不合法!', None)
+    if not re.match(rule, v):
+        return ('参数值不合法!', None)
+    return ('', v)
+
+
+def setIniKey(content, key, value):
+    """把 `key = value` 写回 ini 文本（含被注释的同名行），保留其余内容。
+
+    用 lambda 做替换体：旧实现直接拿用户值当 re.sub 的替换字符串，值里出现
+    `\\1`/`\\g<...>` 会报 re.error 或被当作分组引用。
+    """
+    pattern = r'(?m)^\s*;?\s*' + re.escape(key) + r'\s*=.*'
+    line = '%s = %s' % (key, value)
+    if re.search(pattern, content):
+        return re.sub(pattern, lambda m: line, content)
+    return content.rstrip('\n') + '\n' + line + '\n'
 
 
 def getPluginName():
@@ -87,27 +163,45 @@ def getInstalledPhpVersions():
 
 
 def getArgs():
+    """解析插件参数。
+
+    面板 `utils/plugin.py::run()` 把 args 当**一个** argv 传进来，前端 `YfPlugin.parseArgs`
+    统一发 JSON 字符串，因此 JSON 优先；同时兼容 `k:v` 旧写法。任何畸形入参一律回 {}
+    而不是抛 IndexError/JSONDecodeError/TypeError（旧实现 json.loads 出非 dict 时直接崩）。
+    """
     args = sys.argv[3:]
     tmp = {}
     args_len = len(args)
 
     if args_len == 1:
         try:
-            tmp = json.loads(args[0])
+            parsed = json.loads(args[0])
         except Exception:
-            t = args[0].strip('{').strip('}')
-            t = t.split(':')
-            if len(t) >= 2:
-                tmp[t[0]] = t[1]
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+        if parsed is not None:
+            # 合法 JSON 但不是对象（数组/字符串/数字）：没有键值语义
+            return {}
+        t = str(args[0]).strip().strip('{').strip('}')
+        if t.strip() == '':
+            return {}
+        if ':' in t:
+            k, v = t.split(':', 1)
+            tmp[k.strip('"').strip("'")] = v.strip('"').strip("'")
+        return tmp
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            if len(t) >= 2:
-                tmp[t[0]] = t[1]
+            if ':' not in str(args[i]):
+                continue
+            t = str(args[i]).split(':', 1)
+            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     return tmp
 
 
 def checkArgs(data, ck=[]):
+    if not isinstance(data, dict):
+        return (False, yf.returnJson(False, '参数格式错误!'))
     for i in range(len(ck)):
         if not ck[i] in data:
             return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
@@ -126,6 +220,8 @@ DEFAULT_DISABLE_FUNCTIONS = (
 
 
 def getConf(version):
+    if not isPhpVersion(version):
+        return ''
     path = getServerDir() + '/' + version + '/fpm/php.ini'
     if not os.path.exists(path) or os.path.getsize(path) < 50:
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -181,11 +277,31 @@ TimeoutStopSec=15s
         yf.writeLog('php-apt', f'注入 systemd override 容灾配置失败: {e}')
 
 
+def _pidIsPhpFpmMaster(pid, version):
+    """pid 是否确属本版本的 php-fpm master。
+
+    防陈旧 pid 文件指向无关存活进程时 `os.kill(pid, 0)` 成功即误报 start（C07 同族）。
+    """
+    try:
+        with open('/proc/%s/comm' % pid, 'r', encoding='utf-8', errors='replace') as fp:
+            comm = fp.read().strip()
+        if comm != 'php-fpm':
+            return False
+        with open('/proc/%s/cmdline' % pid, 'rb') as fp:
+            args = fp.read().replace(b'\x00', b' ').decode('utf-8', 'replace')
+        return ('/etc/php/%s/' % version) in args or ('(%s)' % version) in args
+    except Exception:
+        return False
+
+
 def status(version):
     if yf.isAppleSystem():
         return 'stop'
 
     version = formatVersion(version)
+    err = versionOrFail(version)
+    if err:
+        return err
     try:
         checkPluginUpgrade(version)
     except Exception as _e:
@@ -203,15 +319,16 @@ def status(version):
         if chk_act and chk_act[0].strip():
             return 'start'
 
-    # 2. 降级通过 pid 文件校验
+    # 2. 降级通过 pid 文件校验（必须确认 pid 真属于本版本的 php-fpm master）
     pid_file = '/run/php/php' + version + '-fpm.pid'
     if os.path.exists(pid_file):
         try:
-            pid_str = yf.readFile(pid_file).strip()
+            pid_str = yf.readFile(pid_file)
+            pid_str = pid_str.strip() if isinstance(pid_str, str) else ''
             if pid_str and pid_str.isdigit():
                 pid = int(pid_str)
-                os.kill(pid, 0)
-                return 'start'
+                if _pidIsPhpFpmMaster(pid, version):
+                    return 'start'
         except Exception as _e:
             _log.debug('[php-apt] status 异常已忽略: %s', _e)
 
@@ -266,6 +383,8 @@ def getDstEnablePHP(version):
 
 
 def makeOpConf(version):
+    if not isPhpVersion(version):
+        return
 
     sdir = yf.getServerDir()
 
@@ -280,10 +399,14 @@ def makeOpConf(version):
 
     info = getPluginDir() + '/info.json'
     content = yf.readFile(info)
+    if not content:
+        return
     content = json.loads(content)
     versions = content['versions']
     tpl = getPluginDir() + '/conf/enable-php.conf'
     tpl_content = yf.readFile(tpl)
+    if not tpl_content:
+        return
     dfile = getDstEnablePHP(version)
     if not os.path.exists(dfile):
         w_content = contentReplace(tpl_content, version)
@@ -448,13 +571,16 @@ def initReplace(version):
 
 
 def tunePhpConfig(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     php_dir = getServerDir()
     ini_file = php_dir + '/' + version + '/fpm/php.ini'
     if not os.path.exists(ini_file):
         return yf.returnJson(False, '该版本的 PHP 配置文件不存在！')
 
     content = yf.readFile(ini_file)
-    if not content:
+    if not content or isinstance(content, bool):
         return yf.returnJson(False, '读取 PHP 配置文件失败！')
 
     def remove_putenv(match):
@@ -533,6 +659,9 @@ def tuneAllPhpConfig():
 
 def phpOp(version, method):
     version = formatVersion(version)
+    err = versionOrFail(version)
+    if err:
+        return err
     if method in ['start', 'restart']:
         initReplace(version)
 
@@ -563,7 +692,7 @@ def phpOp(version, method):
                 try:
                     os.remove(sock_file)
                 except Exception:
-                    yf.execShell(f'rm -f {sock_file}')
+                    yf.execShell(f'rm -f {yf.shlexQuote(sock_file)}')
 
         # 3. 清理无效僵尸 PID 文件
         pid_file = '/run/php/php' + version + '-fpm.pid'
@@ -657,6 +786,9 @@ def upgradeSelfHealing(version=''):
     logs = []
     logs.append("开始执行 PHP-APT 插件平滑无损升级与全链路环境自愈流程...")
 
+    if str(version).strip() and not isPhpVersion(version):
+        return yf.returnJson(False, 'PHP版本参数不合法!')
+
     try:
         run_php = '/run/php'
         if not os.path.exists(run_php):
@@ -710,13 +842,13 @@ def upgradeSelfHealing(version=''):
                         try:
                             os.remove(sock_file)
                         except Exception:
-                            yf.execShell(f'rm -f {sock_file}')
+                            yf.execShell(f'rm -f {yf.shlexQuote(sock_file)}')
                         logs.append(f"已清理残留的孤儿套接字: {sock_file}")
                 if os.path.exists(pid_file):
                     try:
                         os.remove(pid_file)
                     except Exception:
-                        yf.execShell(f'rm -f {pid_file}')
+                        yf.execShell(f'rm -f {yf.shlexQuote(pid_file)}')
                     logs.append(f"已清理残留的僵死 PID 文件: {pid_file}")
         except Exception as ex:
             logs.append(f"PHP-{ver} 死锁排查异常: {ex}")
@@ -750,6 +882,8 @@ PHP_APT_MIGRATION_STEPS = [
 
 def checkPluginUpgrade(version=''):
     global _PHP_APT_UPGRADE_CHECKING
+    if str(version).strip() and not isPhpVersion(version):
+        return yf.returnJson(False, 'PHP版本参数不合法!')
     if _PHP_APT_UPGRADE_CHECKING:
         return yf.returnJson(True, '升级自愈正在执行中...')
 
@@ -784,6 +918,9 @@ def initdStatus(version):
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
+    err = versionOrFail(version)
+    if err:
+        return err
     shell_cmd = 'systemctl status php' + version + \
         '-fpm | grep loaded | grep "enabled;"'
     data = yf.execShell(shell_cmd)
@@ -796,6 +933,9 @@ def initdInstall(version):
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
+    err = versionOrFail(version)
+    if err:
+        return err
     yf.execShell('systemctl enable php' + version + '-fpm')
     return 'ok'
 
@@ -804,6 +944,9 @@ def initdUinstall(version):
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
+    err = versionOrFail(version)
+    if err:
+        return err
     yf.execShell('systemctl disable php' + version + '-fpm')
     return 'ok'
 
@@ -817,6 +960,9 @@ def fpmSlowLog(version):
 
 
 def getPhpConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     gets = [
         {'name': 'short_open_tag', 'type': 1, 'ps': '短标签支持'},
         {'name': 'asp_tags', 'type': 1, 'ps': 'ASP标签支持'},
@@ -869,29 +1015,35 @@ def getPhpConf(version):
 
 
 def submitPhpConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     gets = ['display_errors', 'cgi.fix_pathinfo', 'date.timezone', 'short_open_tag',
             'asp_tags', 'max_execution_time', 'max_input_time', 'max_input_vars', 'memory_limit',
             'post_max_size', 'file_uploads', 'upload_max_filesize', 'max_file_uploads',
             'default_socket_timeout', 'error_reporting']
     args = getArgs()
+    if not isinstance(args, dict):
+        return yf.returnJson(False, '参数格式错误!')
     filename = getConf(version)
     phpini = yf.readFile(filename)
     if not phpini or isinstance(phpini, bool):
         phpini = ''
     for g in gets:
         if g in args:
-            rep = r'(?m)^\s*;?\s*' + re.escape(g) + r'\s*=.*'
-            val = f'{g} = {args[g]}'
-            if re.search(rep, phpini):
-                phpini = re.sub(rep, val, phpini)
-            else:
-                phpini += f'\n{val}\n'
+            verr, vval = validateIniValue(g, args[g])
+            if verr:
+                return yf.returnJson(False, verr)
+            phpini = setIniKey(phpini, g, vval)
     yf.writeFile(filename, phpini)
     reload(version)
     return yf.returnJson(True, '设置成功')
 
 
 def resetPhpConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     defaults_map = {
         'short_open_tag': 'On',
         'asp_tags': 'Off',
@@ -914,18 +1066,16 @@ def resetPhpConf(version):
     if not phpini or isinstance(phpini, bool):
         phpini = ''
     for k, v in defaults_map.items():
-        rep = r'(?m)^\s*;?\s*' + re.escape(k) + r'\s*=.*'
-        val = f'{k} = {v}'
-        if re.search(rep, phpini):
-            phpini = re.sub(rep, val, phpini)
-        else:
-            phpini += f'\n{val}\n'
+        phpini = setIniKey(phpini, k, v)
     yf.writeFile(filename, phpini)
     reload(version)
     return yf.returnJson(True, '配置已成功还原为默认值')
 
 
 def getLimitConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     fileini = getConf(version)
     phpini = yf.readFile(fileini)
     if not phpini or isinstance(phpini, bool):
@@ -951,47 +1101,62 @@ def getLimitConf(version):
 
 
 def setMaxTime(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     args = getArgs()
     data = checkArgs(args, ['time'])
     if not data[0]:
         return data[1]
 
-    time = args['time']
-    if int(time) < 30 or int(time) > 86400:
+    time_val = str(args['time']).strip()
+    if not time_val.isdigit():
+        return yf.returnJson(False, '时间参数不合法!')
+    if int(time_val) < 30 or int(time_val) > 86400:
         return yf.returnJson(False, '请填写30-86400间的值!')
 
     filefpm = getFpmConfFile(version)
     conf = yf.readFile(filefpm)
-    rep = r"request_terminate_timeout\s*=\s*([0-9]+)\n"
-    conf = re.sub(rep, "request_terminate_timeout = " + time + "\n", conf)
+    if not conf or isinstance(conf, bool):
+        conf = ''
+    rep = r"request_terminate_timeout\s*=\s*([0-9]+)\r?\n"
+    if re.search(rep, conf):
+        conf = re.sub(rep, "request_terminate_timeout = " + time_val + "\n", conf)
+    else:
+        conf = conf.rstrip('\n') + "\nrequest_terminate_timeout = " + time_val + "\n"
     yf.writeFile(filefpm, conf)
 
     fileini = getConf(version)
     phpini = yf.readFile(fileini)
-    rep = r"max_execution_time\s*=\s*([0-9]+)\r?\n"
-    phpini = re.sub(rep, "max_execution_time = " + time + "\n", phpini)
-    rep = r"max_input_time\s*=\s*([0-9]+)\r?\n"
-    phpini = re.sub(rep, "max_input_time = " + time + "\n", phpini)
+    if not phpini or isinstance(phpini, bool):
+        phpini = ''
+    phpini = setIniKey(phpini, 'max_execution_time', time_val)
+    phpini = setIniKey(phpini, 'max_input_time', time_val)
     yf.writeFile(fileini, phpini)
     return yf.returnJson(True, '设置成功!')
 
 
 def setMaxSize(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     args = getArgs()
     data = checkArgs(args, ['max'])
     if not data[0]:
         return data[1]
 
-    maxVal = args['max']
+    maxVal = str(args['max']).strip()
+    if not maxVal.isdigit() or int(maxVal) > 102400:
+        return yf.returnJson(False, '上传大小参数不合法!')
     if int(maxVal) < 2:
         return yf.returnJson(False, '上传大小限制不能小于2MB!')
 
     path = getConf(version)
     conf = yf.readFile(path)
-    rep = r"\nupload_max_filesize\s*=\s*[0-9]+M"
-    conf = re.sub(rep, u'\nupload_max_filesize = ' + maxVal + 'M', conf)
-    rep = r"\npost_max_size\s*=\s*[0-9]+M"
-    conf = re.sub(rep, u'\npost_max_size = ' + maxVal + 'M', conf)
+    if not conf or isinstance(conf, bool):
+        conf = ''
+    conf = setIniKey(conf, 'upload_max_filesize', maxVal + 'M')
+    conf = setIniKey(conf, 'post_max_size', maxVal + 'M')
     yf.writeFile(path, conf)
 
     msg = yf.getInfo('设置PHP-{1}最大上传大小为[{2}MB]!', (version, maxVal,))
@@ -1000,6 +1165,9 @@ def setMaxSize(version):
 
 
 def getFpmConfig(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     filefpm = getFpmConfFile(version)
     if not os.path.exists(filefpm):
         phpFpmWwwReplace(version)
@@ -1031,12 +1199,26 @@ def getFpmConfig(version):
 
 
 def setFpmConfig(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     args = getArgs()
+    if not isinstance(args, dict):
+        return yf.returnJson(False, '参数格式错误!')
     max_children = str(args.get('max_children', '30')).strip()
     start_servers = str(args.get('start_servers', '5')).strip()
     min_spare_servers = str(args.get('min_spare_servers', '5')).strip()
     max_spare_servers = str(args.get('max_spare_servers', '10')).strip()
     pm = str(args.get('pm', 'dynamic')).strip()
+
+    for val in (max_children, start_servers, min_spare_servers, max_spare_servers):
+        if not val.isdigit() or int(val) < 1 or int(val) > 100000:
+            return yf.returnJson(False, '并发参数不合法!')
+    if pm not in PHP_PM_MODES:
+        return yf.returnJson(False, '运行模式不合法!')
+    if int(start_servers) > int(max_children) or int(min_spare_servers) > int(max_spare_servers) \
+            or int(max_spare_servers) > int(max_children):
+        return yf.returnJson(False, '并发参数不合法!')
 
     filefpm = getFpmConfFile(version)
     if not os.path.exists(filefpm):
@@ -1094,7 +1276,9 @@ def getFpmAddress(version):
 
 
 def getFpmStatus(version):
-
+    err, version = versionOrError(version)
+    if err:
+        return err
     stat = status(version)
     if stat == 'stop':
         return yf.returnJson(False, 'PHP[' + version + ']未启动!!!')
@@ -1117,6 +1301,9 @@ def getFpmStatus(version):
 
 
 def getSessionConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     filename = getConf(version)
     if not os.path.exists(filename):
         return yf.returnJson(True, 'ok', {"save_handler": "files", "save_path": "", "passwd": "", "port": ""})
@@ -1155,16 +1342,25 @@ def getSessionConf(version):
 
 
 def setSessionConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
 
     args = getArgs()
+    data = checkArgs(args, ['ip', 'port', 'passwd', 'save_handler'])
+    if not data[0]:
+        return data[1]
 
-    ip = args['ip']
+    ip = str(args['ip']).strip()
     port = args['port']
-    passwd = args['passwd']
-    save_handler = args['save_handler']
+    passwd = str(args['passwd'])
+    save_handler = str(args['save_handler']).strip()
+
+    if save_handler not in PHP_SESSION_HANDLERS:
+        return yf.returnJson(False, 'Session存储方式不合法!')
 
     if save_handler != "files":
-        iprep = r"(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})"
+        iprep = r"^(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})\.(2(5[0-5]{1}|[0-4]\d{1})|[0-1]?\d{1,2})$"
         if not re.search(iprep, ip):
             return yf.returnJson(False, '请输入正确的IP地址')
 
@@ -1175,7 +1371,7 @@ def setSessionConf(version):
         except Exception as _e:
             _log.debug('[php-apt] setSessionConf 异常已忽略: %s', _e)
             return yf.returnJson(False, '请输入正确的端口号')
-        prep = r"[\~\`\/\=]"
+        prep = r"[\~\`\/\=\"\'\s]"
         if re.search(prep, passwd):
             return yf.returnJson(False, '请不要输入以下特殊字符: " ~ ` / = "')
 
@@ -1183,6 +1379,8 @@ def setSessionConf(version):
     if not os.path.exists(filename):
         return yf.returnJson(False, '指定PHP版本不存在!')
     phpini = yf.readFile(filename)
+    if not phpini or isinstance(phpini, bool):
+        phpini = ""
 
     session_tmp = getServerDir() + "/tmp/session"
 
@@ -1246,6 +1444,14 @@ def setSessionConf(version):
     return yf.returnJson(True, '设置成功!')
 
 
+def _intShell(cmd):
+    """把 shell 输出安全解析成 int（空/畸形输出回 0，不再 ValueError）。"""
+    out = yf.execShell(cmd)
+    raw = out[0] if out and out[0] else ''
+    raw = raw.split('\n')[0].strip()
+    return int(raw) if raw.isdigit() else 0
+
+
 def getSessionCount_Origin(version):
     session_tmp = getServerDir() + "/tmp/session"
     d = ["/tmp", "/var/lib/php/sessions", session_tmp]
@@ -1253,8 +1459,8 @@ def getSessionCount_Origin(version):
     for i in d:
         if not os.path.exists(i):
             yf.makeDirs(i)
-        list = os.listdir(i)
-        for l in list:
+        entries = os.listdir(i)
+        for l in entries:
             if os.path.isdir(i + "/" + l):
                 l1 = os.listdir(i + "/" + l)
                 for ll in l1:
@@ -1264,26 +1470,29 @@ def getSessionCount_Origin(version):
             if "sess_" in l:
                 count += 1
 
-    s = "find /tmp -mtime +1 |grep 'sess_' | wc -l"
-    old_file = int(yf.execShell(s)[0].split("\n")[0])
-
-    s = "find " + session_tmp + " -mtime +1 |grep 'sess_'|wc -l"
-    old_file += int(yf.execShell(s)[0].split("\n")[0])
+    old_file = _intShell("find /tmp -mtime +1 -name 'sess_*' -type f | wc -l")
+    old_file += _intShell("find " + yf.shlexQuote(session_tmp)
+                          + " -mtime +1 -name 'sess_*' -type f | wc -l")
     return {"total": count, "oldfile": old_file}
 
 
 def getSessionCount(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     data = getSessionCount_Origin(version)
     return yf.returnJson(True, 'ok!', data)
 
 
 def cleanSessionOld(version):
-    s = "find /tmp -mtime +1 |grep 'sess_'|xargs rm -f"
-    yf.execShell(s)
+    err, version = versionOrError(version)
+    if err:
+        return err
+    yf.execShell("find /tmp -mtime +1 -name 'sess_*' -type f -print0 | xargs -0 -r rm -f")
 
     session_tmp = getServerDir() + "/tmp/session"
-    s = "find " + session_tmp + " -mtime +1 |grep 'sess_' |xargs rm -f"
-    yf.execShell(s)
+    yf.execShell("find " + yf.shlexQuote(session_tmp)
+                 + " -mtime +1 -name 'sess_*' -type f -print0 | xargs -0 -r rm -f")
     old_file_conf = getSessionCount_Origin(version)["oldfile"]
     if old_file_conf == 0:
         return yf.returnJson(True, '清理成功')
@@ -1292,9 +1501,12 @@ def cleanSessionOld(version):
 
 
 def getDisableFunc(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     filename = getConf(version)
     phpini = yf.readFile(filename) if os.path.exists(filename) else ''
-    if not phpini:
+    if not phpini or isinstance(phpini, bool):
         phpini = ''
 
     data = {}
@@ -1317,22 +1529,23 @@ def getDisableFunc(version):
 
 
 def setDisableFunc(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     filename = getConf(version)
-    if not os.path.exists(filename):
+    if not filename or not os.path.exists(filename):
         return yf.returnJson(False, '指定PHP版本不存在!')
 
     args = getArgs()
     disable_functions = str(args.get('disable_functions', '')).strip()
+    if not PHP_FUNC_LIST_RE.match(disable_functions):
+        return yf.returnJson(False, '禁用函数格式不合法!')
 
     phpini = yf.readFile(filename)
-    if not phpini:
+    if not phpini or isinstance(phpini, bool):
         phpini = ""
 
-    rep = r"(?m)^\s*;?\s*disable_functions\s*=.*$"
-    if re.search(rep, phpini):
-        phpini = re.sub(rep, 'disable_functions = ' + disable_functions, phpini)
-    else:
-        phpini = phpini.rstrip() + '\ndisable_functions = ' + disable_functions + '\n'
+    phpini = setIniKey(phpini, 'disable_functions', disable_functions)
 
     msg = yf.getInfo('修改PHP-{1}的禁用函数为[{2}]', (version, disable_functions,))
     yf.writeLog('插件管理[PHP-APT]', msg)
@@ -1342,23 +1555,25 @@ def setDisableFunc(version):
 
 
 def resetDisableFunc(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     filename = getConf(version)
-    if not os.path.exists(filename):
+    if not filename or not os.path.exists(filename):
         return yf.returnJson(False, '指定PHP版本不存在!')
     phpini = yf.readFile(filename) if os.path.exists(filename) else ''
-    if not phpini:
+    if not phpini or isinstance(phpini, bool):
         phpini = ""
-    rep = r"(?m)^\s*;?\s*disable_functions\s*=.*$"
-    if re.search(rep, phpini):
-        phpini = re.sub(rep, 'disable_functions = ' + DEFAULT_DISABLE_FUNCTIONS, phpini)
-    else:
-        phpini = phpini.rstrip() + '\ndisable_functions = ' + DEFAULT_DISABLE_FUNCTIONS + '\n'
+    phpini = setIniKey(phpini, 'disable_functions', DEFAULT_DISABLE_FUNCTIONS)
     yf.writeFile(filename, phpini)
     reload(version)
     return yf.returnJson(True, '已成功还原为默认禁用函数列表!')
 
 
 def getPhpinfo(version):
+    err = versionOrFail(version)
+    if err:
+        return err
     stat = status(version)
     if stat == 'stop':
         return 'PHP[' + version + ']未启动,不可访问!!!'
@@ -1376,12 +1591,17 @@ def getPhpinfo(version):
 
 
 def get_php_info(args):
-    inputVer = args['version']
+    if not isinstance(args, dict):
+        return 'ERROR: PHP版本参数不合法'
+    inputVer = args.get('version', '')
     version = formatVersion(inputVer)
     return getPhpinfo(version)
 
 
 def getLibConf(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     fname = getConf(version)
     if not os.path.exists(fname):
         return yf.returnJson(False, '指定PHP版本不存在!')
@@ -1391,7 +1611,15 @@ def getLibConf(version):
     content = content[0]
 
     libpath = getPluginDir() + '/versions/phplib.conf'
-    phplib = json.loads(yf.readFile(libpath))
+    raw_lib = yf.readFile(libpath)
+    if not raw_lib or isinstance(raw_lib, bool):
+        return yf.returnJson(False, '扩展列表配置文件不存在!')
+    try:
+        phplib = json.loads(raw_lib)
+    except Exception:
+        return yf.returnJson(False, '扩展列表配置文件格式错误!')
+    if not isinstance(phplib, list):
+        return yf.returnJson(False, '扩展列表配置文件格式错误!')
 
     libs = []
     tasks = yf.M('tasks').where("status!=?", ('1',)).field('status,name').select()
@@ -1415,6 +1643,9 @@ def getLibConf(version):
 
 
 def installLib(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     args = getArgs()
     data = checkArgs(args, ['name'])
     if not data[0]:
@@ -1426,7 +1657,8 @@ def installLib(version):
     if not re.match(r'^[a-zA-Z0-9_-]+$', name):
         return yf.returnJson(False, '扩展名称包含非法字符！')
 
-    cmd = "cd " + getPluginDir() + "/versions && /bin/bash  common.sh " + version + ' install ' + name
+    cmd = "cd " + yf.shlexQuote(getPluginDir() + "/versions") + " && /bin/bash " \
+        + yf.shlexQuote("common.sh") + " " + yf.shlexQuote(version) + ' install ' + yf.shlexQuote(name)
     install_name = '安装PHPAPT[' + name + '-' + version + ']'
     import thisdb
     thisdb.addTask(name=install_name,cmd=cmd)
@@ -1436,6 +1668,9 @@ def installLib(version):
 
 
 def uninstallLib(version):
+    err, version = versionOrError(version)
+    if err:
+        return err
     args = getArgs()
     data = checkArgs(args, ['name'])
     if not data[0]:
@@ -1447,7 +1682,8 @@ def uninstallLib(version):
     if not re.match(r'^[a-zA-Z0-9_-]+$', name):
         return yf.returnJson(False, '扩展名称包含非法字符！')
 
-    execstr = "cd " + getPluginDir() + "/versions && /bin/bash common.sh " + version + ' uninstall ' + name
+    execstr = "cd " + yf.shlexQuote(getPluginDir() + "/versions") + " && /bin/bash " \
+        + yf.shlexQuote("common.sh") + " " + yf.shlexQuote(version) + ' uninstall ' + yf.shlexQuote(name)
 
     data = yf.execShell(execstr)
     # data[0] == '' and
@@ -1513,6 +1749,10 @@ if __name__ == "__main__":
 
     inputVer = sys.argv[2]
     version = formatVersion(inputVer)
+    # 版本号是所有 path/shell 拼接的唯一用户可控入口，统一在此收口校验
+    if not isPhpVersion(version):
+        print('ERROR: PHP版本参数不合法')
+        exit(0)
 
     if func == 'status':
         print(status(version))
