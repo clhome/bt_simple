@@ -7,7 +7,17 @@ var pt = YfI18n.createPluginTranslator('swap');
 
 function swapStatus() {
     api.post('swap_status', '', {}, function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = null;
+        try {
+            rdata = JSON.parse(data.data);
+        } catch (e) {
+            layer.msg(pt('请求失败'), {icon: 2, time: 3000});
+            return;
+        }
+        if (!rdata || !rdata.data) {
+            layer.msg(pt('请求失败'), {icon: 2, time: 3000});
+            return;
+        }
         var size = parseInt(rdata.data['size']) || 0;           // 插件专属 Swap (MB)
         var system_total = parseInt(rdata.data['system_total']) || 0; // 系统实际总 Swap (MB)
         var mem_total = parseInt(rdata.data['mem_total']) || 0;       // 物理内存总量 (MB)
@@ -163,14 +173,33 @@ function submitSwap(){
     $.post('/plugins/run', req_data, function(data) {
         layer.close(loadT);
         if (!data.status){
-            layer.msg(data.msg, {icon: 5, time: 3000});
+            layer.msg(pt(data.msg), {icon: 5, time: 3000});
             return;
         }
 
-        var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5, time: 3000 });
+        var rdata = null;
+        try {
+            rdata = JSON.parse(data.data);
+        } catch (e) {
+            layer.msg(pt('请求失败'), {icon: 2, time: 3000});
+            return;
+        }
+        if (rdata.status) {
+            // 成功文案由前端拼接（六语言词条已存在），后端只回结构化状态
+            layer.msg(pt('修改成功：已成功挂载') + ' ' + size + ' ' + pt('MB 专属虚拟内存文件！'), { icon: 1, time: 3000 });
+        } else {
+            var fmsg = pt(rdata.msg);
+            if (rdata.data && rdata.data.detail) {
+                fmsg += '<br><span style="font-size:11px;">' + YfI18n.escapeHtml(String(rdata.data.detail)) + '</span>';
+            }
+            layer.msg(fmsg, { icon: 5, time: 5000 });
+        }
         swapStatus();
-    }, 'json');
+    }, 'json').fail(function(xhr) {
+        // 缺 .fail() 时 500/断连会把全屏 time:0 遮罩永久留在页面上（页面卡死）
+        layer.close(loadT);
+        layer.msg(pt('请求失败'), { icon: 2, time: 3000 });
+    });
 }
 
 function readme(){

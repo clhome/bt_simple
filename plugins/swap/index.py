@@ -3,6 +3,7 @@
 import sys
 import io
 import os
+import shutil
 import time
 
 web_dir = os.getcwd() + "/web"
@@ -74,19 +75,64 @@ def checkArgs(data, ck=[]):
     return (True, yf.returnJson(True, 'ok'))
 
 
-def status():
-    # 检测本插件的 swapfile 是否挂载在系统上
-    sfile = getServerDir() + '/swapfile'
-    if not os.path.exists(sfile):
-        return 'stop'
+# 虚拟内存文件容量范围(MB)：与 changeSwap 的校验、前端 preset 同一口径
+SWAP_MIN_MB = 100
+SWAP_MAX_MB = 32768
+
+
+def getSwapFile():
+    return getServerDir() + '/swapfile'
+
+
+def _procSwapsText():
+    """内核 swap 表原文。优先直读 /proc/swaps（无子进程），读不到才回落 cat。"""
     try:
-        with open('/proc/swaps', 'r') as f:
-            if sfile in f.read():
-                return 'start'
+        with io.open('/proc/swaps', 'r') as f:
+            return f.read()
     except Exception as e:
-        data = yf.execShell("cat /proc/swaps")
-        if sfile in data[0]:
-            return 'start'
+        _log.debug('[swap] 读取 /proc/swaps 失败，回退 cat: %s', e)
+    data = yf.execShell("cat /proc/swaps")
+    return data[0] if data and data[0] else ''
+
+
+def getSwappedKb(sfile=None):
+    """回读 /proc/swaps 中该 swapfile 的实际容量(KB)；未挂载返回 None。
+
+    旧实现判断「路径是 /proc/swaps 文本的子串」，在同目录存在 swapfile.yfold /
+    swapfile.yfnew 这类兄弟文件时，或存在名为 swapfile2 的文件时都会误判已挂载。
+    这里按第一列整列相等判断（Filename 列就是设备/文件的绝对路径）。
+    """
+    if sfile is None:
+        sfile = getSwapFile()
+    for line in _procSwapsText().split('\n'):
+        parts = line.split()
+        if parts and parts[0] == sfile:
+            try:
+                return int(parts[2])
+            except (IndexError, ValueError):
+                return None
+    return None
+
+
+def _removeQuiet(path):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError as e:
+        _log.debug('[swap] 删除临时文件失败 %s: %s', path, e)
+
+
+def _cmdFailDetail(out, err, rc):
+    detail = (err or out or '').strip() or ('exit code %s' % rc)
+    return detail.replace('\r', ' ').replace('\n', ' ')[:300]
+
+
+def status():
+    # 检测本插件的 swapfile 是否真的挂载在系统上（以 /proc/swaps 为准）
+    if not os.path.exists(getSwapFile()):
+        return 'stop'
+    if getSwappedKb() is not None:
+        return 'start'
     return 'stop'
 
 
@@ -211,7 +257,7 @@ def initdUinstall():
 
 
 def swapStatus():
-    sfile = getServerDir() + '/swapfile'
+    sfile = getSwapFile()
 
     if os.path.exists(sfile):
         size = int(os.path.getsize(sfile) / 1024 / 1024)
@@ -276,28 +322,103 @@ def changeSwap():
     if not data[0]:
         return data[1]
 
+    # 参数：只接受整数标量。此前 int(size) 裸调用，size=null / size=[1,2]
+    # （JSON 合法但非标量）会抛 TypeError → HTTP 500 并把 traceback 外泄。
     size = args['size']
-    
-    # 安全强固：参数类型与范围强制限制，彻底消除任意 Shell 命令注入 (RCE) 的高危漏洞
-    try:
-        size_int = int(size)
-        if size_int < 100 or size_int > 32768: # 限制虚拟内存范围为 100MB 至 32GB
-            return yf.returnJson(False, '容量大小不合法！范围应在 100MB - 32768MB 之间。')
-        size = str(size_int)
-    except ValueError:
+    if isinstance(size, bool) or not isinstance(size, (int, str)):
         return yf.returnJson(False, '容量大小必须为纯正整数！')
-
-    swapOp('stop')
+    try:
+        size_int = int(str(size).strip())
+    except (TypeError, ValueError):
+        return yf.returnJson(False, '容量大小必须为纯正整数！')
+    if size_int < SWAP_MIN_MB or size_int > SWAP_MAX_MB:
+        return yf.returnJson(False, '容量大小不合法！范围应在 100MB - 32768MB 之间。')
 
     gsdir = getServerDir()
+    sfile = getSwapFile()
+    newfile = sfile + '.yfnew'
+    oldfile = sfile + '.yfold'
 
-    cmd = 'dd if=/dev/zero of=' + gsdir + '/swapfile bs=1M count=' + size
-    cmd += ' && mkswap ' + gsdir + '/swapfile && chmod 600 ' + gsdir + '/swapfile'
-    msg = yf.execShell(cmd)
+    try:
+        if not os.path.isdir(gsdir):
+            os.makedirs(gsdir)
+    except OSError as e:
+        return yf.returnJson(False, '虚拟内存工作目录创建失败！', {'detail': str(e)})
+
+    # 磁盘空间预检：dd 把根分区写满会把整机拖死，且事后留下半个垃圾文件
+    try:
+        free_mb = shutil.disk_usage(gsdir).free // 1024 // 1024
+    except OSError as e:
+        return yf.returnJson(False, '虚拟内存工作目录创建失败！', {'detail': str(e)})
+    if free_mb < size_int + 64:
+        return yf.returnJson(False, '磁盘剩余空间不足，无法创建虚拟内存文件！',
+                             {'detail': '需要 %sMB，可用 %sMB' % (size_int, free_mb)})
+
+    # 关键：先在**同目录**建好新文件并格式化，每一步判退出码。任一失败就中止 ——
+    # 此时系统上的原有 swap 完全没被动过。旧实现先 swapoff 再 dd，dd 失败即
+    # 「原有 swap 已停 + 新 swap 没建 + 依旧回成功」，是双输（真机已复现）。
+    _removeQuiet(newfile)
+    steps = (
+        ('dd if=/dev/zero of=%s bs=1M count=%s status=none' % (yf.shlexQuote(newfile), size_int), 600),
+        ('mkswap %s' % yf.shlexQuote(newfile), 120),
+        ('chmod 600 %s' % yf.shlexQuote(newfile), 30),
+    )
+    for cmd, tmo in steps:
+        rc, out, err = yf.execShellRc(cmd, timeout=tmo)
+        if rc != 0:
+            _removeQuiet(newfile)
+            return yf.returnJson(False, '虚拟内存文件创建失败！',
+                                 {'detail': _cmdFailDetail(out, err, rc)})
+
+    expected_kb = size_int * 1024
+
+    def _rollback():
+        """换文件/启用失败时把原有 swapfile 放回去并重新启用。"""
+        swapOp('stop')
+        _removeQuiet(sfile)
+        if os.path.exists(oldfile):
+            try:
+                os.replace(oldfile, sfile)
+            except OSError as e:
+                _log.debug('[swap] 回滚旧 swapfile 失败: %s', e)
+            else:
+                swapOp('start')
+
+    # 停用原有 swap；确认真的停了才继续，否则直接放弃（不做半吊子替换）
+    swapOp('stop')
+    if getSwappedKb(sfile) is not None:
+        _removeQuiet(newfile)
+        return yf.returnJson(False, '虚拟内存变更未生效，已还原原有配置！',
+                             {'detail': '原有 swapfile 停用失败，未做任何替换'})
+
+    try:
+        if os.path.exists(sfile):
+            os.replace(sfile, oldfile)
+        os.replace(newfile, sfile)
+    except OSError as e:
+        _removeQuiet(newfile)
+        if os.path.exists(oldfile) and not os.path.exists(sfile):
+            try:
+                os.replace(oldfile, sfile)
+            except OSError as _e:
+                _log.debug('[swap] 还原旧 swapfile 失败: %s', _e)
+        swapOp('start')
+        return yf.returnJson(False, '虚拟内存变更未生效，已还原原有配置！', {'detail': str(e)})
+
     swapOp('start')
 
+    # 以内核 swap 表回读判定，不看命令退出码/文本 grep（真机已复现「回成功但
+    # /proc/swaps 里仍是旧容量」的假成功），容量对不上就回滚并如实报错。
+    actual_kb = getSwappedKb(sfile)
+    if actual_kb is None or abs(actual_kb - expected_kb) > expected_kb * 0.03 + 1024:
+        actual_desc = '未挂载' if actual_kb is None else '%.0fMB' % (actual_kb / 1024.0)
+        _rollback()
+        return yf.returnJson(False, '虚拟内存变更未生效，已还原原有配置！',
+                             {'detail': '期望 %sMB，实际 %s' % (size_int, actual_desc)})
+
+    _removeQuiet(oldfile)
     # 可用性提升：不再将 dd 底层的多行英文状态日志原样输出，而是净化为优雅、亲切的中文成功提示
-    return yf.returnJson(True, "修改成功：已成功挂载 " + size + " MB 专属虚拟内存文件！")
+    return yf.returnJson(True, "修改成功：已成功挂载 " + str(size_int) + " MB 专属虚拟内存文件！")
 
 if __name__ == "__main__":
     func = sys.argv[1]
@@ -317,8 +438,6 @@ if __name__ == "__main__":
         print(initdInstall())
     elif func == 'initd_uninstall':
         print(initdUinstall())
-    elif func == 'conf':
-        print(getConf())
     elif func == "swap_status":
         print(swapStatus())
     elif func == "change_swap":

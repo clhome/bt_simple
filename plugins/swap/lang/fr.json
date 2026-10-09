@@ -57,5 +57,10 @@
     "📊 系统当前 Swap 状态": "📊 Statut de swap actuel du système",
     "（已扣除系统自带 {1} MB）。因此本插件最接近的最佳推荐档位为": " (après déduction des {1} Mo propres au système). Par conséquent, le profil recommandé le plus proche pour ce plugin est",
     "Swap 也就是虚拟内存，当物理内存 (RAM) 不足时，Linux 系统会自动将部分闲置内存数据临时交换到磁盘上的专属 Swap 空间中，以保证系统稳定运行。配置 Swap能极大防止因内存溢出 (OOM) 导致关键服务 (如 MySQL、Nginx 等) 被系统强制杀死的现象。": "Le Swap est de la mémoire virtuelle. Lorsque la mémoire physique (RAM) est insuffisante, Linux échange automatiquement une partie des données mémoire inactives vers un espace Swap dédié sur le disque afin de garantir la stabilité du système. Configurer le Swap permet d'éviter en grande partie que des services critiques (tels que MySQL, Nginx, etc.) soient tués de force par le système en cas de saturation mémoire (OOM).",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "请求失败": "Échec de la requête",
+    "虚拟内存文件创建失败！": "Échec de création du fichier swap !",
+    "虚拟内存工作目录创建失败！": "Échec de création du répertoire de travail swap !",
+    "磁盘剩余空间不足，无法创建虚拟内存文件！": "Espace disque insuffisant pour créer le fichier swap !",
+    "虚拟内存变更未生效，已还原原有配置！": "Modification du swap sans effet, état précédent restauré !"
 }
