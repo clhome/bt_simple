@@ -47,8 +47,8 @@ fi
 if [ "${action}" == "uninstall" ];then
 	if [ -f /usr/lib/systemd/system/httpd.service ] || [ -f /lib/systemd/system/httpd.service ];then
 		systemctl stop httpd
-		rm -rf /usr/systemd/system/httpd.service
-		rm -rf /lib/systemd/system/httpd.service
+		rm -f /usr/lib/systemd/system/httpd.service
+		rm -f /lib/systemd/system/httpd.service
 		systemctl daemon-reload
 	fi
 

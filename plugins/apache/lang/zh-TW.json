@@ -6,6 +6,7 @@
  "CPU系统时间(CPUSystem)": "CPU系統時間(CPUSystem)",
  "CPU负载(CPULoad)": "CPU負載(CPULoad)",
  "MPM性能调整": "MPM效能調整",
+ "apache 未安装或配置文件不存在!": "apache 未安裝或設定檔不存在!",
  "apache异常!": "apache異常!",
  "{1}{2}服务{3}失败!": "{1}{2}服務{3}失敗!",
  "{1}{2}服务已{3}": "{1}{2}服務已{3}",

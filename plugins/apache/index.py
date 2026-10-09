@@ -4,6 +4,7 @@ import sys
 import io
 import os
 import time
+import json
 import threading
 import subprocess
 import re
@@ -33,6 +34,43 @@ def getServerDir():
     return yf.getServerDir() + '/' + getPluginName()
 
 
+def getHttpdBin():
+    return getServerDir() + '/httpd/bin/httpd'
+
+
+def isInstalled():
+    # 判据用主程序 httpd 是否存在，而不是安装目录是否存在：confReplace() 只写
+    # httpd/conf/httpd.conf，会让空目录看起来「已安装」，随后 initDreplace 就在
+    # 没有二进制的情况下伪造出 init.d 脚本与 systemd unit（真机实测：对未安装的
+    # apache 调一次 reload 就生成了可被 `systemctl enable` 的假 httpd.service）。
+    return os.path.exists(getHttpdBin())
+
+
+def detectMpmModule(content):
+    r"""判定当前生效的 MPM 模块名（prefork / worker / event ...）。
+
+    旧实现 `re.search(r"mpm_(\w+)_module", content)` 命中的是**第一个**出现处，
+    而 httpd-mpm.conf 第一行就是 `<IfModule !mpm_netware_module>` —— 于是无论实际
+    构建的是哪个 MPM，面板都只显示 netware 的参数、set_cfg 也只写进永不生效的
+    netware 块（真机夹具实测：改 StartServers 后 prefork 块纹丝不动）。
+    优先问安装的二进制（`httpd -V` 的 `Server MPM:`，静态 MPM 构建同样适用），
+    取不到再退回配置文件里第一个**非取反**的 `<IfModule mpm_XXX_module>` 块。
+    """
+    if isInstalled():
+        try:
+            out = yf.execShell(getHttpdBin() + ' -V', timeout=10)
+        except Exception:
+            out = None
+        if out:
+            m = re.search(r"Server MPM:\s*(\w+)", out[0] + out[1])
+            if m:
+                return m.group(1).lower()
+    m = re.search(r"<IfModule\s+mpm_(\w+?)_module\s*>", content)
+    if m:
+        return m.group(1)
+    return ""
+
+
 def getInitDFile():
     current_os = yf.getOs()
     if current_os == 'darwin':
@@ -45,20 +83,34 @@ def getInitDFile():
 
 
 def getArgs():
+    # utils/plugin.py::run() 把前端序列化后的 args 作为**一个** argv 传进来
+    # （cmd_list=[python, path, func, version?, args]），所以必须优先按 JSON 解析；
+    # 旧实现只按 `k:v` 切 → 键变成带引号的 `"StartServers"` → 带参接口恒静默失效。
     args = sys.argv[2:]
-    # print(args)
     tmp = {}
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':',2)
-        tmp[t[0]] = t[1]
+        val = args[0].strip()
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                parsed = json.loads(val)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, dict):
+                return parsed
+        t = val.strip('{').strip('}')
+        if t.strip() == '':
+            tmp = {}
+        else:
+            t = t.split(':', 1)
+            if len(t) == 2:
+                tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':',2)
-            tmp[t[0]] = t[1]
-    # print(tmp)
+            t = args[i].split(':', 1)
+            if len(t) == 2:
+                tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
     return tmp
 
 
@@ -103,8 +155,14 @@ def getInitDTpl():
 def getPidFile():
     file = getConf()
     content = yf.readFile(file)
+    # readFile 读不到返回 False；且模板里没有 `pid ...;` 形态的指令（Apache 用
+    # `PidFile "logs/httpd.pid"`，无分号），两处都会让旧实现抛异常
+    if not content:
+        return None
     rep = r'pid\s*(.*);'
     tmp = re.search(rep, content)
+    if not tmp:
+        return None
     return tmp.groups()[0].strip()
 
 
@@ -126,11 +184,15 @@ def checkAuthEq(file, owner='root'):
 def confReplace():
     service_path = yf.getServerDir()
     content = yf.readFile(getConfTpl())
+    # yf.readFile 读不到返回 False（不是空串），直接 .replace() 会 AttributeError
+    if not content:
+        return False
     content = content.replace('{$SERVER_PATH}', service_path)
 
     # 主配置文件
     nconf = getServerDir() + '/httpd/conf/httpd.conf'
     yf.writeFile(nconf, content)
+    return True
 
 
 def initDreplace():
@@ -140,10 +202,11 @@ def initDreplace():
 
     initD_path = getServerDir() + '/init.d'
 
-    # OpenResty is not installed
-    if not os.path.exists(getServerDir()):
-        print("ok")
-        exit(0)
+    # Apache 未安装：不得伪造安装产物（init.d 脚本 / systemd unit）。旧实现在这里
+    # `print("ok"); exit(0)` —— start/restart 对未安装的 apache 也回 ok（假启动），
+    # 而 reload 会先经 confReplace 建出 conf 目录，再一路生成 systemd unit。
+    if not isInstalled():
+        return None
 
     # init.d
     file_bin = initD_path + '/' + getPluginName()
@@ -152,6 +215,8 @@ def initDreplace():
 
         # initd replace
         content = yf.readFile(file_tpl)
+        if not content:
+            return None
         content = content.replace('{$SERVER_PATH}', service_path)
         yf.writeFile(file_bin, content)
         yf.execShell('chmod +x ' + file_bin)
@@ -166,6 +231,8 @@ def initDreplace():
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/httpd.service.tpl'
         se_content = yf.readFile(systemServiceTpl)
+        if not se_content:
+            return None
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
         yf.writeFile(systemService, se_content)
         yf.execShell('systemctl daemon-reload')
@@ -182,10 +249,15 @@ def status():
 
 
 def restyOp(method):
+    if not isInstalled():
+        return 'ERROR: apache 未安装'
+
     file = initDreplace()
+    if not file:
+        return 'ERROR: apache 未安装'
 
     # 启动时,先检查一下配置文件
-    check = getServerDir() + "/httpd/bin/httpd -t"
+    check = getHttpdBin() + " -t"
     check_data = yf.execShell(check)
     if not check_data[1].find('Syntax OK') > -1:
         return check_data[1]
@@ -224,10 +296,15 @@ def op_submit_init_restart(file):
 
 
 def restyOp_restart():
+    if not isInstalled():
+        return 'ERROR: apache 未安装'
+
     file = initDreplace()
+    if not file:
+        return 'ERROR: apache 未安装'
 
     # 启动时,先检查一下配置文件
-    check = getServerDir() + "/httpd/bin/httpd -t"
+    check = getHttpdBin() + " -t"
     check_data = yf.execShell(check)
     if not check_data[1].find('Syntax OK') > -1:
         return 'ERROR: 配置出错<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
@@ -247,7 +324,9 @@ def start():
 def stop():
     r = restyOp('stop')
 
-    yf.execShell("ps -ef|grep httpd | grep -v grep | awk '{print $2}'|xargs -r kill")
+    # 兜底清理残留进程：与 status 用同一判据（限定 httpd 主程序路径 + 排除 python 自匹配），
+    # 旧写法 `grep httpd` 会连带匹配 `vim httpd.conf` 这类无关进程。
+    yf.execShell("ps -ef|grep '" + getHttpdBin() + "' |grep -v grep | grep -v python | awk '{print $2}'|xargs -r kill")
     return r
 
 
@@ -256,7 +335,10 @@ def restart():
 
 
 def reload():
-    confReplace()
+    if not isInstalled():
+        return 'ERROR: apache 未安装'
+    if not confReplace():
+        return 'ERROR: 配置文件模板缺失'
     return restyOp('reload')
 
 
@@ -283,16 +365,23 @@ def initdInstall():
         return "Apple Computer does not support"
 
     # freebsd initd install
+    if not isInstalled():
+        return 'ERROR: apache 未安装'
+
     if current_os.startswith('freebsd'):
         import shutil
         source_bin = initDreplace()
+        if not source_bin:
+            return 'ERROR: apache 未安装'
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
         yf.execShell('chmod +x ' + initd_bin)
         yf.execShell('sysrc httpd_enable="YES"')
         return 'ok'
 
-    yf.execShell('systemctl enable httpd')
+    rc, out, err = yf.execShellRc('systemctl enable httpd')
+    if rc != 0:
+        return 'ERROR: 设置开机自启失败: ' + (err or out)
     return 'ok'
 
 
@@ -307,7 +396,9 @@ def initdUinstall():
         yf.execShell('sysrc httpd_enable="NO"')
         return 'ok'
 
-    yf.execShell('systemctl disable httpd')
+    rc, out, err = yf.execShellRc('systemctl disable httpd')
+    if rc != 0:
+        return 'ERROR: 取消开机自启失败: ' + (err or out)
     return 'ok'
 
 def getHttpdStatusPort():
@@ -375,14 +466,13 @@ def errorLogPath():
 def getCfg():
     cfg = getConfMpm()
     content = yf.readFile(cfg)
+    if not content:
+        return yf.returnJson(False, 'apache 未安装或配置文件不存在!')
 
     unitrep = "[kmgKMG]"
-    
+
     # 获取当前 MPM 模块
-    mpm_module = ""
-    mpm_match = re.search(r"mpm_(\w+)_module", content)
-    if mpm_match:
-        mpm_module = mpm_match.group(1)
+    mpm_module = detectMpmModule(content)
     
     # MPM 配置参数
     mpm_cfg_args = {
@@ -480,33 +570,38 @@ def setCfg():
     
     # 检查参数，允许动态参数
     cfg = getConfMpm()
-    yf.backFile(cfg)
     content = yf.readFile(cfg)
+    if not content:
+        return yf.returnJson(False, 'apache 未安装或配置文件不存在!')
+    yf.backFile(cfg)
 
     # 获取当前 MPM 模块
-    mpm_module = ""
-    mpm_match = re.search(r"mpm_(\w+)_module", content)
-    if mpm_match:
-        mpm_module = mpm_match.group(1)
+    mpm_module = detectMpmModule(content)
 
     # 验证参数值
     for k, v in args.items():
-        # 检查是否为数字参数
-        if not re.search(r"\d+", v):
+        k = str(k).strip()
+        v = str(v).strip()
+        # 只接受纯数字：旧写法 `re.search(r"\d+", v)` 放行 `7; rm -rf /`、`7\nFoo`，
+        # 这类值会被原样写进 httpd-mpm.conf（换行可注入任意指令）。
+        if not re.match(r"^\d+$", v):
             return yf.returnJson(False, '参数值错误,请输入数字整数')
+        # 参数名必须是合法标识符：它会被拼进正则与配置文本（旧写法即正则注入面）。
+        if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", k):
+            continue
 
         # 替换 MPM 特定配置
         if mpm_module:
             def replace_mpm_config(match):
                 return match.group(1) + k + match.group(2) + v + match.group(3)
-            rep = r"(<IfModule mpm_%s_module>.*?)%s(\s+)\d+(.*?</IfModule>)" % (mpm_module, k)
+            rep = r"(<IfModule mpm_%s_module>.*?)%s(\s+)\d+(.*?</IfModule>)" % (mpm_module, re.escape(k))
             if re.search(rep, content, re.DOTALL):
                 content = re.sub(rep, replace_mpm_config, content, flags=re.DOTALL)
-        
+
         # 替换通用配置
         def replace_common_config(match):
             return k + match.group(1) + v
-        rep = r"%s(\s+)\d+" % k
+        rep = r"%s(\s+)\d+" % re.escape(k)
         if re.search(rep, content):
             content = re.sub(rep, replace_common_config, content)
 

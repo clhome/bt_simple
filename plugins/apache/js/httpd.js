@@ -183,7 +183,14 @@ function stopHttpdStatusAutoRefresh() {
 function setOpCfg(){
     api.post('get_cfg', {}, function(data){
         var rdata = JSON.parse(data.data);
-        var rdata = rdata.data;
+        // get_cfg 的业务失败（如 apache 未安装）也是 HTTP 200 + status:true，
+        // 必须在这里拦掉：否则 rdata.data 为 undefined，下面的 rdata.length 直接抛异常，
+        // 界面既无提示也无内容（静默失败）。
+        if ('status' in rdata && !rdata.status) {
+            showMsg(rdata.msg, function(){}, null, 3000);
+            return;
+        }
+        rdata = rdata.data;
         // console.log(rdata);
 
         var mlist = '';
@@ -223,13 +230,15 @@ function setOpCfg(){
 
 function submitConf() {
     var data = {};
-    
-    // 收集所有配置参数
-    $("input[name]").each(function() {
+
+    // 只收集本插件容器内的表单控件：`$("input[name]")` 是文档级选择器，
+    // 插件弹窗是挂在主文档上的（见 soft.js::resetPluginWinWidth），会把页面里
+    // 其它带 name 的字段（如 index.html 的 list1SortOrder）一并当成 MPM 参数提交。
+    $(".soft-man-con input[name]").each(function() {
         data[$(this).attr('name')] = $(this).val();
     });
-    
-    $("select[name]").each(function() {
+
+    $(".soft-man-con select[name]").each(function() {
         data[$(this).attr('name')] = $(this).val() || 'on';
     });
 
