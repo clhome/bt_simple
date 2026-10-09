@@ -131,10 +131,19 @@ class TestNoDeadPanelPathGuard(unittest.TestCase):
                                   + '\n  '.join(bad))
 
     def test_02_status_commands_filter_panel_process(self):
-        """sphinx/postgresql/varnish 的 status 命令必须排除面板自身进程，并用运行时面板目录"""
+        """sphinx/postgresql/varnish 的 status 必须排除面板自身进程（两种合格形态之一）"""
         for path in (SPHINX_SRC, POSTGRES_SRC, VARNISH_SRC):
             code = _func_code_only(path, 'status')   # 去注释，避免注释里的字样造成假绿
             rel = os.path.relpath(path, PROJECT_ROOT).replace(os.sep, '/')
+            if "'pgrep', '-x'" in code:
+                # 更强形态：按**精确进程名**判定（`pgrep -x <进程名>`）。既不匹配面板
+                # 自己的 python 子进程，也不匹配 cmdline 里提到服务名的无关进程
+                # （真机实测：varnish 旧写法对 `tail -f /var/log/varnish/varnish.log`
+                # 误报 start）。此形态下不再需要 grep 过滤链。
+                self.assertNotIn('ps -ef', code, '%s::status 不得再用 ps|grep 判据' % rel)
+                self.assertNotIn('mdserver-web', code, '%s::status 仍在用过期的 mdserver-web 判据' % rel)
+                self.assertNotIn("grep -v", code, '%s::status 不得混用 grep 过滤链' % rel)
+                continue
             self.assertIn('grep -v python', code,
                           '%s::status 少了 `grep -v python`（面板以 python 调用插件，'
                           '不排除会把插件自己当成服务在跑 → 未安装也报 start）' % rel)
@@ -150,16 +159,28 @@ class TestStatusCommandBehaviour(unittest.TestCase):
     """B. 行为验证：真正传给 execShell 的命令串"""
 
     def test_03_command_excludes_panel_and_uses_runtime_dir(self):
-        for modname in ('plugins.sphinx.index', 'plugins.varnish.index'):
-            mod = _import_plugin(modname)
-            with patch.object(yf, 'getPanelDir', return_value=REAL_PANEL_DIR), \
-                 patch.object(yf, 'execShell', return_value=('', '')) as mock_exec:
-                result = mod.status()
-            cmd = mock_exec.call_args[0][0]
-            self.assertIn('grep -v python', cmd, '%s 命令未排除面板 python 进程' % modname)
-            self.assertIn(REAL_PANEL_DIR, cmd, '%s 命令未排除运行时面板目录' % modname)
-            self.assertNotIn('mdserver-web', cmd, '%s 命令仍在用过期的 mdserver-web 判据' % modname)
-            self.assertEqual('stop', result, '%s 无进程时必须返回 stop' % modname)
+        mod = _import_plugin('plugins.sphinx.index')
+        with patch.object(yf, 'getPanelDir', return_value=REAL_PANEL_DIR), \
+             patch.object(yf, 'execShell', return_value=('', '')) as mock_exec:
+            result = mod.status()
+        cmd = mock_exec.call_args[0][0]
+        self.assertIn('grep -v python', cmd, 'plugins.sphinx.index 命令未排除面板 python 进程')
+        self.assertIn(REAL_PANEL_DIR, cmd, 'plugins.sphinx.index 命令未排除运行时面板目录')
+        self.assertNotIn('mdserver-web', cmd,
+                         'plugins.sphinx.index 命令仍在用过期的 mdserver-web 判据')
+        self.assertEqual('stop', result, 'plugins.sphinx.index 无进程时必须返回 stop')
+
+    def test_03b_varnish_uses_exact_process_name(self):
+        """varnish 走精确进程名形态：面板 python 自身与「cmdline 提到 varnish」的无关
+        进程都不得被当成服务在运行（真机实测 HEAD 版对 decoy 进程误报 start）。"""
+        mod = _import_plugin('plugins.varnish.index')
+        self.assertEqual('varnishd', mod.VARNISH_PROCESS,
+                         'varnish 守护进程名必须是 varnishd（不是插件名 varnish）')
+        with patch.object(yf, 'execShellRc', return_value=(1, '', '')) as mock_rc:
+            self.assertEqual('stop', mod.status())
+        self.assertEqual(['pgrep', '-x', mod.VARNISH_PROCESS], list(mock_rc.call_args[0][0]))
+        with patch.object(yf, 'execShellRc', return_value=(0, '4245\n', '')):
+            self.assertEqual('start', mod.status())
 
     def test_04_sphinx_status_returns_stop_when_no_process(self):
         """面板自身进程已被过滤干净 -> 输出为空 -> 必须返回 stop（真机 P0 形态）"""

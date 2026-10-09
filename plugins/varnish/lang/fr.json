@@ -31,5 +31,13 @@
     "缺少必要参数:": "Paramètre requis manquant :",
     "{1}天": "{1}j",
     "{1}小时": "{1}h",
-    "{1}分钟": "{1}min"
+    "{1}分钟": "{1}min",
+    "varnish 未安装!": "Varnish n'est pas installe !",
+    "Varnish 状态获取失败,请检查服务是否已启动!": "Echec de la recuperation de l'etat de Varnish. Veuillez verifier que le service est demarre !",
+    "配置文件不存在或无法读取!": "Le fichier de configuration n'existe pas ou ne peut pas etre lu !",
+    "varnish 日志文件不存在!": "Le fichier journal de varnish n'existe pas !",
+    "开机启动设置失败!": "Echec de la configuration du demarrage automatique !",
+    "状态获取请求失败,请刷新后重试!": "Echec de la demande d'etat. Veuillez actualiser et reessayer !",
+    "配置文件路径获取失败!": "Echec de l'obtention du chemin du fichier de configuration !",
+    "文件内容获取失败!": "Echec de la recuperation du contenu du fichier !"
 }

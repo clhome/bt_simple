@@ -1,6 +1,17 @@
 var api = YfPlugin.createApi('varnish');
 var pt = YfI18n.createPluginTranslator('varnish');
 
+// 渲染到 .soft-man-con 的动态值（varnishstat 字段、后端消息）统一转义，
+// 避免任何字符串带 HTML 时被当成标签执行。
+function vhEscape(s){
+    return String(s === undefined || s === null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 
 function pRead(){
 	var readme = '<ul class="help-info-text c7">';
@@ -18,7 +29,7 @@ function varnishStatus() {
         layer.close(loadT);
         if (!data.status){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + msgTpl(pt('Varnish 状态获取失败：{1}。请检查 Varnish 服务是否已启动并正常运行。'), [data.msg]) + '</div>';
+            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + msgTpl(pt('Varnish 状态获取失败：{1}。请检查 Varnish 服务是否已启动并正常运行。'), [vhEscape(data.msg)]) + '</div>';
             $(".soft-man-con").html(errorCon);
             return;
         }
@@ -36,6 +47,15 @@ function varnishStatus() {
         if (!rdata) {
             var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + pt('未获取到有效的 Varnish 运行状态。请确保服务已在“服务”标签页中启动。') + '</div>';
             $(".soft-man-con").html(errorCon);
+            return;
+        }
+
+        // 后端业务错误（HTTP 200 + 内层 status:false，如「varnish 未安装!」）必须显式提示，
+        // 否则会被当成正常 counters 渲染成一张空表。
+        if (rdata.status === false) {
+            layer.msg(rdata.msg, {icon: 0, time: 3000, shade: [0.3, '#000']});
+            var errCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + vhEscape(rdata.msg) + '</div>';
+            $(".soft-man-con").html(errCon);
             return;
         }
 
@@ -116,16 +136,16 @@ function varnishStatus() {
             var desc = item.description || '';
             
             tmp += "<tr>\
-                <td style='font-family: monospace; font-size: 12px; color: #555; font-weight: 500;'>" + keyName + "</td>\
-                <td style='font-family: \"Outfit\", \"Inter\", sans-serif; font-weight: 600; color: #222;'>" + val + "</td>\
-                <td style='color: #666; font-size: 13px;'>" + desc + "</td>\
+                <td style='font-family: monospace; font-size: 12px; color: #555; font-weight: 500;'>" + vhEscape(keyName) + "</td>\
+                <td style='font-family: \"Outfit\", \"Inter\", sans-serif; font-weight: 600; color: #222;'>" + vhEscape(val) + "</td>\
+                <td style='color: #666; font-size: 13px;'>" + vhEscape(desc) + "</td>\
             </tr>";
         }
 
         if (timestamp) {
             tmp += "<tr>\
                 <td style='color: #888; font-weight: 500;'>" + pt('采样时间 (timestamp)') + "</td>\
-                <td colspan='2' style='font-family: monospace; color: #444;'>" + timestamp + "</td>\
+                <td colspan='2' style='font-family: monospace; color: #444;'>" + vhEscape(timestamp) + "</td>\
             </tr>";
         }
 
@@ -135,7 +155,11 @@ function varnishStatus() {
                         <tbody>'+tmp+'</tbody>\
                 </table></div>';
         $(".soft-man-con").html(Con);
-    },'json');
+    },'json').fail(function(){
+        // 缺 .fail() 时 500/超时会让 loading 遮罩永久卡死
+        layer.close(loadT);
+        layer.msg(pt('状态获取请求失败,请刷新后重试!'), {icon: 0, time: 3000, shade: [0.3, '#000']});
+    });
 }
 //varnish负载状态 end
 
@@ -163,6 +187,11 @@ function varnishPluginConfig(_name, version, func){
     var loadT = layer.msg(pt('配置文件路径获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version},function (data) {
         layer.close(loadT);
+        // 后端业务错误（HTTP 200 + 内层 status:false）/空路径不得继续拿去拼 /files/get_body 的 path
+        if (!data || !data.status || !data.data || typeof data.data !== 'string'){
+            layer.msg((data && data.msg) || pt('配置文件路径获取失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
+            return;
+        }
 
         var loadT2 = layer.msg(pt('文件内容获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
@@ -193,6 +222,13 @@ function varnishPluginConfig(_name, version, func){
                 $("#textBody").text(editor.getValue());
                 pluginConfigSave(fileName);
             });
-        },'json');
-    },'json');
+        },'json').fail(function(){
+            // 缺 .fail() 时 500/超时会让 loading 遮罩永久卡死
+            layer.close(loadT2);
+            layer.msg(pt('文件内容获取失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
+        });
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('配置文件路径获取失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
+    });
 }

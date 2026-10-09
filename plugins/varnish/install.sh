@@ -35,10 +35,20 @@ Install_varnish()
 
 	mkdir -p $serverPath/varnish
 	echo "1.0" > $serverPath/varnish/version.pl
-	echo '安装完成'
 
-	cd ${rootPath} && python3 ${rootPath}/plugins/varnish/index.py start
+	# 包管理器失败时旧实现照样写安装标记 + 调 start（回 fail 也当成功）= 假成功
+	if [ ! -x /usr/sbin/varnishd ] && [ ! -x /usr/bin/varnishd ] && [ ! -x /usr/local/sbin/varnishd ]; then
+		echo 'Varnish 安装失败: 未找到 varnishd'
+		exit 1
+	fi
+
+	out=$(cd ${rootPath} && python3 ${rootPath}/plugins/varnish/index.py start 2>&1)
+	if [ "$out" != 'ok' ]; then
+		echo "Varnish 启动失败: ${out}"
+		exit 1
+	fi
 	cd ${rootPath} && python3 ${rootPath}/plugins/varnish/index.py initd_install
+	echo '安装完成'
 }
 
 Uninstall_varnish()

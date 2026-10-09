@@ -31,5 +31,13 @@
     "缺少必要参数:": "Missing required parameter:",
     "{1}天": "{1}d",
     "{1}小时": "{1}h",
-    "{1}分钟": "{1}m"
+    "{1}分钟": "{1}m",
+    "varnish 未安装!": "Varnish is not installed!",
+    "Varnish 状态获取失败,请检查服务是否已启动!": "Failed to get the Varnish status. Please check whether the service is running!",
+    "配置文件不存在或无法读取!": "The configuration file does not exist or cannot be read!",
+    "varnish 日志文件不存在!": "The varnish log file does not exist!",
+    "开机启动设置失败!": "Failed to set auto-start on boot!",
+    "状态获取请求失败,请刷新后重试!": "Failed to request the status. Please refresh and try again!",
+    "配置文件路径获取失败!": "Failed to get the configuration file path!",
+    "文件内容获取失败!": "Failed to get the file content!"
 }
