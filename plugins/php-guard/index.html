@@ -376,6 +376,13 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
 resetPluginWinWidth(750);
 resetPluginWinHeight(500);
 
+// 后端回显内容（自愈日志、监听地址、版本号）一律转义后再拼 HTML
+function pgEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
 function getStatus() {
     // 渲染网格加载中
     $("#php-grid-list").html('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"><div class="loading-spinner"></div> 正在诊断 PHP 各实例存活状态...</div>');
@@ -389,7 +396,15 @@ function getStatus() {
         
         var data = res.data;
         if (typeof(data) == 'string') {
-            data = JSON.parse(data);
+            try { data = JSON.parse(data); } catch (e) { data = null; }
+        }
+        // 内层业务失败（后端回 {"status":false,...}）时外层 HTTP 仍算成功，
+        // 缺守卫会继续读 data.daemon_enabled / data.php_status.length 抛异常，
+        // 列表区永久停在 loading，总开关还会被误显示成「未激活」。
+        if (!data || typeof(data) !== 'object' || data.status === false || !data.php_status) {
+            $("#php-grid-list").html('');
+            layer.msg((data && data.msg) ? data.msg : pt('状态获取请求失败,请刷新后重试!'), {icon: 2});
+            return;
         }
         
         // 1. 渲染总守护开关状态
@@ -412,15 +427,15 @@ function getStatus() {
                 var php = phpList[i];
                 var statusClass = php.status === "running" ? "running" : "stopped";
                 var statusText = php.status === "running" ? "● 运行正常" : "● 连通异常";
-                var socketDesc = php.sock;
+                var socketDesc = pgEsc(php.sock);
                 
                 gridHtml += '<div class="glass-card php-card">';
                 gridHtml += '    <div class="php-header">';
-                gridHtml += '        <span class="php-ver">PHP ' + formatVer(php.version) + '</span>';
+                gridHtml += '        <span class="php-ver">PHP ' + pgEsc(formatVer(php.version)) + '</span>';
                 gridHtml += '        <span class="status-badge ' + statusClass + '">' + statusText + '</span>';
                 gridHtml += '    </div>';
                 gridHtml += '    <div class="php-detail" title="' + socketDesc + '">' + socketDesc + '</div>';
-                gridHtml += '    <button class="repair-btn" onclick="repairPHP(\'' + php.version + '\')">';
+                gridHtml += '    <button class="repair-btn" onclick="repairPHP(\'' + pgEsc(php.version) + '\')">';
                 gridHtml += '        <span class="glyphicon glyphicon-wrench"></span> 手动诊断与自愈';
                 gridHtml += '    </button>';
                 gridHtml += '</div>';
@@ -428,7 +443,11 @@ function getStatus() {
         }
         
         $("#php-grid-list").html(gridHtml);
-    }, 'json');
+    }, 'json').fail(function() {
+        // 缺 .fail() 时 500/超时会让列表区永久停在 loading
+        $("#php-grid-list").html('');
+        layer.msg(pt('状态获取请求失败,请刷新后重试!'), {icon: 0, time: 3000});
+    });
 }
 
 function formatVer(ver) {
@@ -443,20 +462,36 @@ function repairPHP(version) {
     $.post('/plugins/callback', {
         name: 'php-guard', 
         func: 'repair_version', 
-        args: "'" + version + "'", 
+        // 旧写法 args: "'" + version + "'" 发的是带**字面引号**的字符串：
+        // 后端 json.loads 失败后把它原样当版本号（"'80'"），拼出的 systemd/init.d
+        // 路径全不命中，最后走到兜底分支把该版本 FPM 真杀一遍还报失败。
+        args: JSON.stringify(String(version)), 
         script: 'index'
     }, function(res) {
         layer.close(loading);
-        if (res.status) {
-            layer.msg(res.data || '修复指令执行成功', {icon: 1, time: 2000});
-            setTimeout(function() {
-                getStatus();
-                loadLogs();
-            }, 1000);
-        } else {
-            layer.msg(res.msg || '手动诊断异常', {icon: 2});
+        if (!res.status) {
+            layer.msg(res.msg || pt('手动诊断请求失败,请刷新后重试!'), {icon: 2});
+            return;
         }
-    }, 'json');
+        // 业务结果在 res.data（后端 {"status":false,"msg":"..."}），外层 HTTP 仍是成功：
+        // 旧写法把对象直接塞给 layer.msg（显示 [object Object]），失败被显示成成功。
+        var body = res.data;
+        if (typeof(body) == 'string') {
+            try { body = JSON.parse(body); } catch (e) { body = null; }
+        }
+        if (body && body.status === false) {
+            layer.msg(body.msg || pt('手动诊断异常'), {icon: 2});
+            return;
+        }
+        layer.msg((body && body.msg) || pt('修复指令执行成功'), {icon: 1, time: 2000});
+        setTimeout(function() {
+            getStatus();
+            loadLogs();
+        }, 1000);
+    }, 'json').fail(function() {
+        layer.close(loading);
+        layer.msg(pt('手动诊断请求失败,请刷新后重试!'), {icon: 0, time: 3000});
+    });
 }
 
 function loadLogs() {
@@ -469,13 +504,20 @@ function loadLogs() {
         script: 'index'
     }, function(res) {
         if (!res.status) {
-            $("#log-list").html('<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">' + msgTpl(pt('加载日志失败：{1}'), [res.msg]) + '</td></tr>');
+            $("#log-list").html('<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">' + pgEsc(msgTpl(pt('加载日志失败：{1}'), [res.msg])) + '</td></tr>');
             return;
         }
         
         var list = res.data;
         if (typeof(list) == 'string') {
-            list = JSON.parse(list);
+            try { list = JSON.parse(list); } catch (e) { list = null; }
+        }
+        // 内层业务失败时 res.data 是 {"status":false,...} 而不是数组，
+        // 旧写法读 list.length 抛异常 → 日志区永久停在 loading。
+        if (!list || typeof(list) !== 'object' || list.status === false) {
+            $("#log-list").html('');
+            layer.msg((list && list.msg) ? list.msg : pt('自愈日志获取失败,请刷新后重试!'), {icon: 2});
+            return;
         }
         
         if (list.length === 0) {
@@ -488,13 +530,16 @@ function loadLogs() {
         for (var i = 0; i < list.length; i++) {
             var item = list[i];
             logHtml += '<tr>';
-            logHtml += '    <td class="log-time">' + item.add_time + '</td>';
-            logHtml += '    <td class="log-type">' + item.type + '</td>';
-            logHtml += '    <td class="log-msg">' + item.log + '</td>';
+            logHtml += '    <td class="log-time">' + pgEsc(item.add_time) + '</td>';
+            logHtml += '    <td class="log-type">' + pgEsc(item.type) + '</td>';
+            logHtml += '    <td class="log-msg">' + pgEsc(item.log) + '</td>';
             logHtml += '    </tr>';
         }
         $("#log-list").html(logHtml);
-    }, 'json');
+    }, 'json').fail(function() {
+        $("#log-list").html('');
+        layer.msg(pt('自愈日志获取失败,请刷新后重试!'), {icon: 0, time: 3000});
+    });
 }
 
 // 页面初始化
