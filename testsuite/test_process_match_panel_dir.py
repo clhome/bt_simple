@@ -159,16 +159,21 @@ class TestStatusCommandBehaviour(unittest.TestCase):
     """B. 行为验证：真正传给 execShell 的命令串"""
 
     def test_03_command_excludes_panel_and_uses_runtime_dir(self):
+        """sphinx 已收窄到「精确进程名」形态：`execShellRc(['pgrep','-x','searchd'])`。
+
+        旧写法 `ps -ef|grep sphinx|…|grep -v python|grep -v <面板目录>` 只是滤掉了面板
+        自己，仍会误报 cmdline 里提到 sphinx 的无关进程（真机：`tail -f …/searchd.log`）。
+        精确进程名形态下无需任何 grep 过滤链，也不可能再命中面板 python 子进程。
+        """
         mod = _import_plugin('plugins.sphinx.index')
-        with patch.object(yf, 'getPanelDir', return_value=REAL_PANEL_DIR), \
-             patch.object(yf, 'execShell', return_value=('', '')) as mock_exec:
-            result = mod.status()
-        cmd = mock_exec.call_args[0][0]
-        self.assertIn('grep -v python', cmd, 'plugins.sphinx.index 命令未排除面板 python 进程')
-        self.assertIn(REAL_PANEL_DIR, cmd, 'plugins.sphinx.index 命令未排除运行时面板目录')
-        self.assertNotIn('mdserver-web', cmd,
-                         'plugins.sphinx.index 命令仍在用过期的 mdserver-web 判据')
-        self.assertEqual('stop', result, 'plugins.sphinx.index 无进程时必须返回 stop')
+        self.assertEqual('searchd', mod.SEARCHD_PROCESS,
+                         'sphinx 守护进程名必须是 searchd（不是插件名 sphinx）')
+        with patch.object(yf, 'execShellRc', return_value=(1, '', '')) as mock_rc:
+            self.assertEqual('stop', mod.status())
+        self.assertEqual(['pgrep', '-x', 'searchd'], list(mock_rc.call_args[0][0]),
+                         'plugins.sphinx.index 必须按精确进程名探活')
+        self.assertFalse(mock_rc.call_args[1].get('shell', False),
+                         'plugins.sphinx.index 不得经 shell（否则 grep 链会回来）')
 
     def test_03b_varnish_uses_exact_process_name(self):
         """varnish 走精确进程名形态：面板 python 自身与「cmdline 提到 varnish」的无关
@@ -183,17 +188,26 @@ class TestStatusCommandBehaviour(unittest.TestCase):
             self.assertEqual('start', mod.status())
 
     def test_04_sphinx_status_returns_stop_when_no_process(self):
-        """面板自身进程已被过滤干净 -> 输出为空 -> 必须返回 stop（真机 P0 形态）"""
+        """无 searchd 进程（pgrep rc=1）-> 必须返回 stop（真机 P0 形态）"""
         mod = _import_plugin('plugins.sphinx.index')
-        with patch.object(yf, 'getPanelDir', return_value=REAL_PANEL_DIR), \
-             patch.object(yf, 'execShell', return_value=('', '')):
+        with patch.object(yf, 'execShellRc', return_value=(1, '', '')):
             self.assertEqual('stop', mod.status())
 
     def test_05_sphinx_status_returns_start_when_process_exists(self):
         mod = _import_plugin('plugins.sphinx.index')
-        with patch.object(yf, 'getPanelDir', return_value=REAL_PANEL_DIR), \
-             patch.object(yf, 'execShell', return_value=('1234\n', '')):
+        with patch.object(yf, 'execShellRc', return_value=(0, '1234\n', '')):
             self.assertEqual('start', mod.status())
+
+    def test_05b_sphinx_status_does_not_touch_cmdline_grep(self):
+        """真机误报形态：无关进程 cmdline 里提到 sphinx 时不得报 start。
+        等价断言 = 探活命令只能是 argv 形式的 pgrep -x（无从做 cmdline 子串匹配）。"""
+        mod = _import_plugin('plugins.sphinx.index')
+        with patch.object(yf, 'execShellRc', return_value=(0, '1234\n', '')) as mock_rc:
+            mod.status()
+        argv = list(mock_rc.call_args[0][0])
+        self.assertEqual('pgrep', argv[0])
+        self.assertNotIn('-f', argv, "pgrep -f 是 cmdline 子串匹配（真机误报根因）")
+        self.assertNotIn('grep', argv)
 
 
 class TestPanelProcessClassification(unittest.TestCase):

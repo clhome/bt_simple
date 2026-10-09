@@ -2,6 +2,14 @@ var api = YfPlugin.createApi('sphinx');
 var pt = YfI18n.createPluginTranslator('sphinx');
 
 
+// 后端回显/配置内容的 HTML 转义（索引名、库名、命令行都来自服务端文件与面板库）
+function sphEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+
 function commonFunc(){
     var con = '<button class="btn btn-default btn-sm" onclick="confirmRebuildIndex();">' + pt('重建索引') + '</button>';
     con += '&nbsp;&nbsp; <button class="btn btn-default btn-sm" onclick="autoMakeConf();">' + pt('自动创建配置') + '</button>';
@@ -78,7 +86,8 @@ function autoMakeConf(){
 
                 var db_html = '';
                 for (var i = 0; i < dblist.length; i++) {
-                    db_html += "<option value='"+dblist[i]['name']+"'>"+dblist[i]['name']+"</option>";
+                    var db_name = sphEsc(dblist[i]['name']);
+                    db_html += "<option value='"+db_name+"'>"+db_name+"</option>";
                 }
 
                 if (dblist.length > 0){
@@ -145,7 +154,9 @@ function rebuildIndex(){
         if (data.data == 'ok'){
             layer.msg(pt('重建成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
-            layer.msg(data.data,{icon:2,time:10000,shade: [0.3, '#000']});
+            // rebuild 输出是 indexer 的原文（含索引名），且服务端用 <br/> 换行
+            var errHtml = sphEsc(data.data).replace(/&lt;br\/&gt;/g, '<br/>');
+            layer.msg(errHtml,{icon:2,time:10000,shade: [0.3, '#000']});
         }
     });
 }
@@ -196,7 +207,7 @@ function runStatus(){
 
         var tbody = '';
         for (var i in idata) {
-            tbody += '<tr><th>'+i+'</th><td>' + idata[i] + '</td><td colspan="2">'+i+'</td></tr>';
+            tbody += '<tr><th>'+sphEsc(i)+'</th><td>' + sphEsc(idata[i]) + '</td><td colspan="2">'+sphEsc(i)+'</td></tr>';
         }
 
         var con = '<div class="divtable"><table class="table table-hover table-bordered" style="margin-bottom:10px;background-color:#fafafa">\
@@ -234,18 +245,18 @@ function readme(){
         con += '<li style="color:red;">' + pt('如果数据量比较大,第一次启动会失败!(可通过手动建立索引)') + '</li>';
         con += '<li style="color:red;">' + pt('以下内容,需手动加入计划任务。') + '</li>';
 
-        con += '<li>' + pt('全量:') + rdata['data']['cmd'] + ' --all --rotate</li>';
+        con += '<li>' + pt('全量:') + sphEsc(rdata['data']['cmd']) + ' --all --rotate</li>';
 
         //主索引
         for (var i = 0; i < rdata['data']['index'].length; i++) {
             var index_kv = rdata['data']['index'][i];
-            var index = index_kv['index'];
+            var index = sphEsc(index_kv['index']);
             // console.log(index);
-            con += '<li>' + pt('主索引 :') + rdata['data']['cmd'] + ' '+ index +' --rotate</li>';
+            con += '<li>' + pt('主索引 :') + sphEsc(rdata['data']['cmd']) + ' '+ index +' --rotate</li>';
             if (typeof(index_kv['delta']) != 'undefined'){
-                var delta = index_kv['delta'];
-                con += '<li>' + pt('增量索引 :') + rdata['data']['cmd'] + ' '+ delta +' --rotate</li>';
-                con += '<li>' + pt('合并索引 :') + rdata['data']['cmd'] + ' --merge '+ index  + ' ' + delta +' --rotate</li>';
+                var delta = sphEsc(index_kv['delta']);
+                con += '<li>' + pt('增量索引 :') + sphEsc(rdata['data']['cmd']) + ' '+ delta +' --rotate</li>';
+                con += '<li>' + pt('合并索引 :') + sphEsc(rdata['data']['cmd']) + ' --merge '+ index  + ' ' + delta +' --rotate</li>';
             }
         }
         con += '</ul>';
