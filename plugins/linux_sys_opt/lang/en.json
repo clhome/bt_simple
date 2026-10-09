@@ -69,5 +69,7 @@
     "限制系统中同时保持的 TIME_WAIT 数量上限，过高会耗尽内存。": "Set an upper limit on the number of TIME_WAIT states that can be held simultaneously in the system; if this limit is too high, it will exhaust memory.",
     "限制脏页比例上限": "Limit the upper limit of dirty page ratio",
     "，优化脚本会": ", ",
-    "🛡️ 深度优化清单：": "🛡️ In-depth optimization list:"
+    "🛡️ 深度优化清单：": "🛡️ In-depth optimization list:",
+    "内核参数配置文件写入失败:": "Failed to write the kernel parameter config file:",
+    "部分优化项未生效:": "Some optimizations did not take effect:"
 }

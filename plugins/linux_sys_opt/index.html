@@ -103,6 +103,16 @@ function sysOptPost(method, args, callback) {
     });
 }
 
+// 失败明细来自后端（sysctl 回读值/命令错误摘要），拼进弹层前先转义
+function sysOptEscape(text) {
+    if (window.YfI18n && typeof window.YfI18n.escapeHtml === 'function') {
+        return window.YfI18n.escapeHtml(String(text));
+    }
+    return String(text).replace(/[&<>"']/g, function (c) {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+    });
+}
+
 function optStatus() {
     $('.bgw').removeClass('bgw');
     $('.bt-w-menu p:eq(0)').addClass('bgw');
@@ -285,7 +295,13 @@ function applyOpt() {
                 } catch(e) {}
             }
             
-            layer.msg(pt(rdata.msg), { icon: rdata.status ? 1 : 2 });
+            // 未完全生效时后端把「哪个参数没达标」放在 data 里，逐行展开给用户看
+            if (!rdata.status && rdata.data) {
+                var detail = String(rdata.data).split('; ').map(sysOptEscape).join('<br>');
+                layer.msg(pt(rdata.msg) + '<br>' + detail, { icon: 2, time: 8 });
+            } else {
+                layer.msg(pt(rdata.msg), { icon: rdata.status ? 1 : 2 });
+            }
             if(rdata.status){
                 setTimeout(function(){
                     optStatus();

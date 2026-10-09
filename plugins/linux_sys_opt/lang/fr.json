@@ -68,6 +68,8 @@
     "降低 Swap 倾向以防止 OOM，改善磁盘 IO 队列及脏页刷新平滑度。": "Réduisez la tendance au swap pour empêcher le MOO, améliorez la file d'attente d'E/S du disque et la fluidité de l'actualisation des pages sales.",
     "限制系统中同时保持的 TIME_WAIT 数量上限，过高会耗尽内存。": "Limite le nombre maximal de TIME_WAIT pouvant être conservés simultanément dans le système ; un nombre trop élevé risque d'épuiser la mémoire.",
     "限制脏页比例上限": "Limiter la limite supérieure du taux de pages sales",
+    "内核参数配置文件写入失败:": "Échec de l'écriture du fichier de paramètres du noyau :",
+    "部分优化项未生效:": "Certaines optimisations n'ont pas pris effet :",
     "，优化脚本会": ", ",
     "🛡️ 深度优化清单：": "🛡️ Liste d'optimisation approfondie :"
 }

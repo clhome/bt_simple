@@ -69,5 +69,7 @@
     "限制系统中同时保持的 TIME_WAIT 数量上限，过高会耗尽内存。": "Begrenzt die maximale Anzahl der gleichzeitig im System vorhandenen TIME_WAIT-Zustände; ein zu hoher Wert kann zu einem Speicherengpass führen.",
     "限制脏页比例上限": "Obergrenze für den Anteil der fehlerhaften Seiten festlegen",
     "，优化脚本会": ", ",
-    "🛡️ 深度优化清单：": "🛡️ Liste der umfassenden Optimierungen:"
+    "🛡️ 深度优化清单：": "🛡️ Liste der umfassenden Optimierungen:",
+    "内核参数配置文件写入失败:": "Schreiben der Kernelparameter-Datei fehlgeschlagen:",
+    "部分优化项未生效:": "Einige Optimierungen wurden nicht wirksam:"
 }
