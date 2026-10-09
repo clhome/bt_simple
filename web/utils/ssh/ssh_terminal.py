@@ -31,6 +31,9 @@ import paramiko
 
 from flask_socketio import SocketIO, emit, send
 
+# 主机名会拼进 <server>/webssh/host/<主机名>/info.json 的路径 → 白名单挡住路径穿越
+_HOST_RE = re.compile(r'^[A-Za-z0-9:][A-Za-z0-9.:_-]{0,253}$')
+
 
 class ssh_terminal(object):
 
@@ -375,7 +378,10 @@ class ssh_terminal(object):
         return json.loads(destr)
 
     def setAttr(self, sid, info):
-        self.__host = info['host'].strip()
+        host = info.get('host')
+        if not isinstance(host, str) or not _HOST_RE.match(host.strip()):
+            return self.returnMsg(False, 'utils.py_msg_b0ede7', 'host 参数不合法')
+        self.__host = host.strip()
 
         # 外部连接获取
         if not self.__host in ['127.0.0.1', 'localhost']:
@@ -383,11 +389,20 @@ class ssh_terminal(object):
             if os.path.exists(dst_info):
                 info = self.getSshInfo(dst_info)
 
+        if not isinstance(info, dict):
+            return self.returnMsg(False, 'utils.py_msg_b0ede7', '主机配置不合法')
+
         if 'type' in info:
             self.__type = info['type']
 
         if 'port' in info:
-            self.__port = int(info['port'])
+            try:
+                port = int(info['port'])
+            except (TypeError, ValueError):
+                return self.returnMsg(False, 'utils.py_msg_b0ede7', 'port 参数不合法')
+            if not 1 <= port <= 65535:
+                return self.returnMsg(False, 'utils.py_msg_b0ede7', 'port 参数不合法')
+            self.__port = port
         if 'username' in info:
             self.__user = info['username']
         if 'pkey' in info:
@@ -458,6 +473,8 @@ class ssh_terminal(object):
             time.sleep(3)
             cur_time = time.time()
             for x in list(self.__ssh_list.keys()):
+                if x not in self.__ssh_last_request_time:
+                    continue
                 ssh_last_time = self.__ssh_last_request_time[x]
                 sid_off_cos = cur_time - ssh_last_time
 
@@ -496,7 +513,7 @@ class ssh_terminal(object):
 
         result = self.returnMsg(False, '')
         if sid in self.__ssh_list:
-            if 'resize' in info:
+            if isinstance(info, dict) and 'resize' in info:
                 self.resize(sid, info)
             result = self.returnMsg(True, 'common.connected')
             if result['status']:

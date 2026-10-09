@@ -38,6 +38,9 @@ class ssh_local(object):
     __log_type = 'SSH终端'
 
     __ssh = None
+    # connectSsh 返回的是 invoke_shell 的 Channel，管理它的 SSHClient 必须自己留住，
+    # 否则重连时旧连接（TCP + 远端 shell 进程）永远收不回来
+    __client = None
     __lock = False
 
     # lock
@@ -179,6 +182,7 @@ class ssh_local(object):
             shell = ssh.invoke_shell(
                 term='xterm', width=83, height=21, environment={'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'})
             shell.setblocking(0)
+            self.__client = ssh
             self.wsSend("[SSH] 交互式终端通道构建成功！正在载入 Shell 界面...\r\n\r\n")
             return shell
         except Exception as e:
@@ -196,6 +200,13 @@ class ssh_local(object):
                 self.__ssh.close()
         except Exception as _e:
             _log.debug('[ssh] 关闭连接失败: %s', _e)
+        try:
+            if self.__client:
+                self.__client.close()
+        except Exception as _e:
+            _log.debug('[ssh] 关闭 SSHClient 失败: %s', _e)
+        self.__ssh = None
+        self.__client = None
 
     def resize(self, data):
         try:
@@ -240,12 +251,14 @@ class ssh_local(object):
                 if self.__ssh.exit_status_ready():
                     if cur_time - getattr(self, '_last_connect_time', 0) >= 10:
                         self._last_connect_time = cur_time
+                        # 重连前先收掉旧会话，否则每 10 秒泄漏一个 SSHClient/shell 进程
+                        self.close()
                         self.__ssh = self.connectSsh()
                     else:
-                        self.__ssh = None
+                        self.close()
                         return
             except Exception as e:
-                self.__ssh = None
+                self.close()
 
         if self.__ssh:
             if isinstance(info, dict) and 'resize' in info:
@@ -271,7 +284,6 @@ class ssh_local(object):
 
                 # 只有当通道确实死亡断开时，才重置连接状态
                 self.close()
-                self.__ssh = None
                 return self.wsSend('')
         else:
             self.__ssh = None

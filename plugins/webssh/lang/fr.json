@@ -42,5 +42,10 @@
     "错误:": "Erreur :",
     "验证方式": "Vérification",
     "已经关闭【{1}】": "Fermé [{1}]",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "参数格式错误!": "Paramètres invalides !",
+    "命令标题或内容不合法!": "Titre ou contenu de commande invalide !",
+    "端口不合法!": "Port invalide !",
+    "认证方式不合法!": "Type d'authentification invalide !",
+    "删除失败!": "Échec de la suppression !"
 }

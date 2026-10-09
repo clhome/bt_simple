@@ -42,5 +42,10 @@
     "错误:": "Error:",
     "验证方式": "Auth method",
     "已经关闭【{1}】": "Closed [{1}]",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "参数格式错误!": "Invalid parameters!",
+    "命令标题或内容不合法!": "Invalid command title or content!",
+    "端口不合法!": "Invalid port!",
+    "认证方式不合法!": "Invalid auth type!",
+    "删除失败!": "Delete failed!"
 }

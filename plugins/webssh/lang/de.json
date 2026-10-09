@@ -42,5 +42,10 @@
     "错误:": "Fehler:",
     "验证方式": "Prüfmethode",
     "已经关闭【{1}】": "Geschlossen [{1}]",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "参数格式错误!": "Ungültige Parameter!",
+    "命令标题或内容不合法!": "Ungültiger Befehlstitel oder -inhalt!",
+    "端口不合法!": "Ungültiger Port!",
+    "认证方式不合法!": "Ungültige Authentifizierungsart!",
+    "删除失败!": "Löschen fehlgeschlagen!"
 }

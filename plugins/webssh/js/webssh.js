@@ -4,6 +4,13 @@ var pt = YfI18n.createPluginTranslator('webssh');
 //全局
 var host_ssh_list = [];
 
+//服务器备注/主机名/命令标题与内容都来自用户输入，拼进 HTML 前必须转义（存储型 XSS）
+function whEsc(v){
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 //刷新页面
 $(window).unload(function(){
     for (i in host_ssh_list) {
@@ -13,8 +20,6 @@ $(window).unload(function(){
 });
 
 
-
-async 
 
 $(function() {
    var tag = $.getUrlParam('tag');
@@ -200,9 +205,9 @@ function webShell_getCmdList(){
 
         var tli = '';
         for (var i = 0; i < alist.length; i++) {
-            tli+='<li class="data-cmd-list" data-index="'+i+'" data-clipboard-text="'+alist[i]['cmd']+'">\
+            tli+='<li class="data-cmd-list" data-index="'+i+'" data-clipboard-text="'+whEsc(alist[i]['cmd'])+'">\
                     <i></i>\
-                    <span class="span_title">'+alist[i]['title']+'</span>\
+                    <span class="span_title">'+whEsc(alist[i]['title'])+'</span>\
                     <span class="tootls">\
                         <span class="glyphicon glyphicon-edit" aria-hidden="true" title="' + pt('编辑常用命令信息') + '"></span>\
                         <span class="glyphicon glyphicon-trash" aria-hidden="true" title="' + pt('删除常用命令信息') + '"></span>\
@@ -306,12 +311,12 @@ function webShell_openTermView(info) {
     var tab_content = $('.term_content_tab');
     var item_list = $('.term_item_tab .list');
     tab_content.find('.term_item').removeClass('active').siblings().removeClass('active');
-    tab_content.append('<div class="term_item active" id="' + random + '" data-host="' + info.host + '"></div>');
+    tab_content.append('<div class="term_item active" id="' + whEsc(random) + '" data-host="' + whEsc(info.host) + '"></div>');
     item_list.find('.item').removeClass('active');
     if (info.ps == ''){
         info.ps = info.host;
     }
-    item_list.append('<span class="active item ' + (info.host == '127.0.0.1' ? 'localhost_item' : '') + '" data-host="' + info.host + '" data-id="' + random + '"><i class="icon icon-sucess"></i><div class="content"><span>' + info.ps + '</span></div><span class="icon-trem-close"></span></span>');
+    item_list.append('<span class="active item ' + (info.host == '127.0.0.1' ? 'localhost_item' : '') + '" data-host="' + whEsc(info.host) + '" data-id="' + whEsc(random) + '"><i class="icon icon-sucess"></i><div class="content"><span>' + whEsc(info.ps) + '</span></div><span class="icon-trem-close"></span></span>');
     host_ssh_list[random] = Terms_WebSocketIO_Create(info.host, random);
 }
 
@@ -345,9 +350,9 @@ function webShell_getHostList(info){
 
         var tli = '';
         for (var i = 0; i < alist.length; i++) {
-            tli+='<li class="data-host-list" data-index="'+i+'" data-host="'+alist[i]['host']+'">\
+            tli+='<li class="data-host-list" data-index="'+i+'" data-host="'+whEsc(alist[i]['host'])+'">\
                     <i></i>\
-                    <span class="host">'+alist[i]['host']+'</span>\
+                    <span class="host">'+whEsc(alist[i]['host'])+'</span>\
                     <span class="tootls">\
                         <span class="glyphicon glyphicon-edit" aria-hidden="true" title="' + pt('编辑常用命令信息') + '"></span>\
                         <span class="glyphicon glyphicon-trash" aria-hidden="true" title="' + pt('删除常用命令信息') + '"></span>\
@@ -548,13 +553,13 @@ function webShell_cmd(title='', cmd='', old_title=''){
                     <div class="line">\
                         <span class="tname">' + pt('命令名称') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="title" class="bt-input-text mr5" style="width:305px" placeholder="' + pt('请输入常用命令描述，必填项') + '" value="'+title+'" autocomplete="off"/>\
+                            <input type="text" name="title" class="bt-input-text mr5" style="width:305px" placeholder="' + pt('请输入常用命令描述，必填项') + '" value="'+whEsc(title)+'" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
                         <span class="tname">' + pt('命令内容') + '</span>\
                         <div class="info-r">\
-                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="' + pt('请输入常用命令信息，必填项') + '" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+displayCmd+'</textarea>\
+                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="' + pt('请输入常用命令信息，必填项') + '" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+whEsc(displayCmd)+'</textarea>\
                         </div>\
                     </div>\
                 </div>',

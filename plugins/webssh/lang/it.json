@@ -42,5 +42,10 @@
     "错误:": "Errore:",
     "验证方式": "Verifica",
     "已经关闭【{1}】": "Chiuso [{1}]",
-    "缺少必要参数:": "Parametro obbligatorio mancante:"
+    "缺少必要参数:": "Parametro obbligatorio mancante:",
+    "参数格式错误!": "Parametri non validi!",
+    "命令标题或内容不合法!": "Titolo o contenuto del comando non valido!",
+    "端口不合法!": "Porta non valida!",
+    "认证方式不合法!": "Tipo di autenticazione non valido!",
+    "删除失败!": "Eliminazione non riuscita!"
 }
