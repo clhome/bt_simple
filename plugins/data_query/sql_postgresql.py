@@ -313,6 +313,13 @@ class nosqlPostgreSQL:
         primary_host = self.__config.get('host', '127.0.0.1')
         auth_db = self.__config.get('auth_db', '')
         docker_inst = self.__config.get('docker_instance')
+        # docker_instance 可能来自用户可写的连接备注/名称（get_options 的 conn_ 分支），
+        # 旧实现把它原样拼进 `docker inspect ...` shell 字符串 → root 命令注入。
+        # 这里先按容器名白名单收敛，非法值直接丢弃（不做网络穿透回退）。
+        if docker_inst is not None:
+            docker_inst = str(docker_inst).strip()
+            if not re.match(r'^[A-Za-z0-9_][A-Za-z0-9_.\-]*$', docker_inst):
+                docker_inst = None
 
         # 确定目标连接库：显式指定的库名优先；其次配置中的 auth_db；最后回退到 postgres
         db_candidates = []
@@ -334,9 +341,12 @@ class nosqlPostgreSQL:
             if docker_inst:
                 try:
                     for c_name in [f"pg-{docker_inst}", docker_inst]:
-                        cmd = f"docker inspect --format '{{{{range .NetworkSettings.Networks}}}}{{{{.IPAddress}}}}{{{{end}}}}' {c_name}"
-                        out = yf.execShell(cmd)
-                        c_ip = out[0].strip() if out and isinstance(out, (list, tuple)) else ''
+                        # 参数不进 shell：容器名已过白名单，仍用 argv + shell=False 执行
+                        rc, out, _err = yf.execShellRc(
+                            ['docker', 'inspect', '--format',
+                             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}', c_name],
+                            shell=False, timeout=10)
+                        c_ip = out.strip() if out else ''
                         if c_ip and re.match(r'^\d+\.\d+\.\d+\.\d+$', c_ip):
                             if (c_ip, 5432) not in host_candidates:
                                 host_candidates.append((c_ip, 5432))
@@ -363,7 +373,8 @@ class nosqlPostgreSQL:
                         password=password,
                         host=cur_host,
                         port=cur_port,
-                        connect_timeout=3
+                        connect_timeout=3,
+                        options='-c statement_timeout=10000'
                     )
                     conn_obj.autocommit = True
                     # 容灾成功后将有效 host 与 port 回写缓存，加速后续查询
@@ -398,7 +409,8 @@ class nosqlPostgreSQL:
                                 password=password,
                                 host=sock,
                                 port=port,
-                                connect_timeout=3
+                                connect_timeout=3,
+                                options='-c statement_timeout=10000'
                             )
                             conn_obj.autocommit = True
                             return PgConnectionWrapper(conn_obj)
@@ -556,6 +568,14 @@ class nosqlPostgreSQLCtr:
             size = int(args.get('size', 10))
         except Exception:
             size = 10
+
+        # 同 mysql：size 是客户端可控的，封顶防止一次拉全表
+        if p < 1:
+            p = 1
+        if size < 1:
+            size = 10
+        if size > 1000:
+            size = 1000
 
         start_index = (p - 1) * size
         if start_index < 0:

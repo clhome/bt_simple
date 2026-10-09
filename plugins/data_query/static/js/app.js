@@ -99,7 +99,10 @@ function redisPostCB(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function mgdbPostCB(method, args, callback){
@@ -130,7 +133,10 @@ function mgdbPostCB(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function memPostCB(method, args, callback){
@@ -161,7 +167,10 @@ function memPostCB(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function myPostCB(method, args, callback){
@@ -192,7 +201,10 @@ function myPostCB(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function myPostCBN(method, args, callback){
@@ -222,7 +234,9 @@ function myPostCBN(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function pgPostCB(method, args, callback){
@@ -253,7 +267,10 @@ function pgPostCB(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function pgPostCBN(method, args, callback){
@@ -283,7 +300,9 @@ function pgPostCBN(method, args, callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(){
+        layer.msg(pt('网络异常，请重试'),{icon:2,time:3000,shade: [0.3, '#000']});
+    });
 }
 
 function loadDbPort(dbType, containerSelector, sid){
@@ -361,7 +380,10 @@ function bindSaveDbPort(dbType, containerSelector, getSidFunc){
             } else {
                 layer.msg(pt('保存端口完成'), {icon: 1});
             }
-        }, 'json');
+        }, 'json').fail(function(){
+            layer.close(loadT);
+            layer.msg(pt('网络异常，请重试'), {icon: 2, time: 3000, shade: 0.3});
+        });
     });
 }
 
@@ -713,7 +735,7 @@ function loadUnifiedServerList(dbType, callback) {
             html += '<optgroup label="' + pt('本地与容器配置') + '">';
             for (var j = 0; j < localGroup.length; j++) {
                 var pAttr = localGroup[j].port ? (' data-port="' + localGroup[j].port + '"') : '';
-                html += '<option value="' + localGroup[j].val + '"' + pAttr + '>' + formatServerOptionName(localGroup[j].name) + '</option>';
+                html += '<option value="' + dqEscapeHtml(localGroup[j].val) + '"' + pAttr + '>' + dqEscapeHtml(formatServerOptionName(localGroup[j].name)) + '</option>';
             }
             html += '</optgroup>';
         }
@@ -722,7 +744,7 @@ function loadUnifiedServerList(dbType, callback) {
             html += '<optgroup label="' + pt('已保存连接记录') + '">';
             for (var k = 0; k < remoteGroup.length; k++) {
                 var rpAttr = remoteGroup[k].port ? (' data-port="' + remoteGroup[k].port + '"') : '';
-                html += '<option value="' + remoteGroup[k].val + '"' + rpAttr + '>' + formatServerOptionName(remoteGroup[k].name) + '</option>';
+                html += '<option value="' + dqEscapeHtml(remoteGroup[k].val) + '"' + rpAttr + '>' + dqEscapeHtml(formatServerOptionName(remoteGroup[k].name)) + '</option>';
             }
             html += '</optgroup>';
         }
@@ -829,7 +851,10 @@ function bindConnectionBar(dbType, connectFunc, disconnectFunc) {
             } else {
                 layer.msg((d && d.msg) ? d.msg : pt('保存端口完成'), { icon: 1 });
             }
-        }, 'json');
+        }, 'json').fail(function() {
+            layer.close(loadT);
+            layer.msg(pt('网络异常，请重试'), { icon: 2, time: 3000, shade: 0.3 });
+        });
     });
 }
 
@@ -944,7 +969,10 @@ function openConnectionModal(defaultDbType, editId, onSavedCallback) {
                     } else {
                         layer.msg(pt('加载连接失败'), { icon: 2 });
                     }
-                }, 'json');
+                }, 'json').fail(function() {
+                    layer.close(loadT);
+                    layer.msg(pt('网络异常，请重试'), { icon: 2, time: 3000, shade: 0.3 });
+                });
             }
 
             // 测试连接按钮
@@ -980,12 +1008,14 @@ function openConnectionModal(defaultDbType, editId, onSavedCallback) {
                 }, function(res) {
                     var d = res ? res.data : null;
                     if (d && d.status) {
-                        $resBox.html('<span style="color:#16a34a;"><span class="glyphicon glyphicon-ok-sign"></span> ' + d.msg + '</span>');
+                        $resBox.html('<span style="color:#16a34a;"><span class="glyphicon glyphicon-ok-sign"></span> ' + dqEscapeHtml(d.msg) + '</span>');
                     } else {
                         var emsg = (d && d.msg) ? d.msg : pt('连接测试失败');
-                        $resBox.html('<span style="color:#dc2626;"><span class="glyphicon glyphicon-remove-sign"></span> ' + emsg + '</span>');
+                        $resBox.html('<span style="color:#dc2626;"><span class="glyphicon glyphicon-remove-sign"></span> ' + dqEscapeHtml(emsg) + '</span>');
                     }
-                }, 'json');
+                }, 'json').fail(function() {
+                    $resBox.html('<span style="color:#dc2626;"><span class="glyphicon glyphicon-remove-sign"></span> ' + pt('网络异常，请重试') + '</span>');
+                });
             });
 
             // 取消按钮
@@ -1045,7 +1075,10 @@ function openConnectionModal(defaultDbType, editId, onSavedCallback) {
                     } else {
                         layer.msg((d && d.msg) ? d.msg : pt('保存连接失败'), { icon: 2 });
                     }
-                }, 'json');
+                }, 'json').fail(function() {
+                    layer.close(loadSave);
+                    layer.msg(pt('网络异常，请重试'), { icon: 2, time: 3000, shade: 0.3 });
+                });
             });
         }
     });
@@ -1101,15 +1134,15 @@ function openManageConnectionsModal(defaultDbType) {
                     for (var i = 0; i < items.length; i++) {
                         var c = items[i];
                         rows += '<tr>' +
-                            '<td><b>' + c.name + '</b></td>' +
-                            '<td><span class="badge" style="background:#e2e8f0;color:#334155;font-weight:normal;">' + c.db_type + '</span></td>' +
-                            '<td>' + c.host + ':' + c.port + '</td>' +
-                            '<td>' + (c.username || '-') + '</td>' +
-                            '<td><span style="color:#64748b;font-size:11px;">' + (c.notes || '-') + '</span></td>' +
+                            '<td><b>' + dqEscapeHtml(c.name) + '</b></td>' +
+                            '<td><span class="badge" style="background:#e2e8f0;color:#334155;font-weight:normal;">' + dqEscapeHtml(c.db_type) + '</span></td>' +
+                            '<td>' + dqEscapeHtml(c.host) + ':' + dqEscapeHtml(c.port) + '</td>' +
+                            '<td>' + dqEscapeHtml(c.username || '-') + '</td>' +
+                            '<td><span style="color:#64748b;font-size:11px;">' + dqEscapeHtml(c.notes || '-') + '</span></td>' +
                             '<td style="text-align:right;white-space:nowrap;">' +
-                            '   <a class="btlink btn-test-c mr5" data-id="' + c.id + '" href="javascript:;">' + pt('测试') + '</a>' +
-                            '   <a class="btlink btn-edit-c mr5" data-id="' + c.id + '" href="javascript:;">' + pt('编辑') + '</a>' +
-                            '   <a class="btlink btn-del-c" data-id="' + c.id + '" data-name="' + c.name + '" href="javascript:;" style="color:#ef4444;">' + pt('删除') + '</a>' +
+                            '   <a class="btlink btn-test-c mr5" data-id="' + dqEscapeHtml(c.id) + '" href="javascript:;">' + pt('测试') + '</a>' +
+                            '   <a class="btlink btn-edit-c mr5" data-id="' + dqEscapeHtml(c.id) + '" href="javascript:;">' + pt('编辑') + '</a>' +
+                            '   <a class="btlink btn-del-c" data-id="' + dqEscapeHtml(c.id) + '" data-name="' + dqEscapeHtml(c.name) + '" href="javascript:;" style="color:#ef4444;">' + pt('删除') + '</a>' +
                             '</td>' +
                             '</tr>';
                     }
@@ -1132,7 +1165,10 @@ function openManageConnectionsModal(defaultDbType) {
                             } else {
                                 layer.msg((d && d.msg) ? d.msg : pt('测试失败'), { icon: 2, time: 3500 });
                             }
-                        }, 'json');
+                        }, 'json').fail(function() {
+                            layer.close(loadT);
+                            layer.msg(pt('网络异常，请重试'), { icon: 2, time: 3000, shade: 0.3 });
+                        });
                     });
 
                     layero.find('.btn-edit-c').off('click').on('click', function() {
@@ -1146,7 +1182,7 @@ function openManageConnectionsModal(defaultDbType) {
                     layero.find('.btn-del-c').off('click').on('click', function() {
                         var id = $(this).data('id');
                         var cname = $(this).data('name');
-                        layer.confirm(msgTpl(pt('确定要删除连接配置【{1}】吗？'), [cname]), { icon: 3, title: pt('删除确认') }, function(cIdx) {
+                        layer.confirm(msgTpl(pt('确定要删除连接配置【{1}】吗？'), [dqEscapeHtml(cname)]), { icon: 3, title: pt('删除确认') }, function(cIdx) {
                             layer.close(cIdx);
                             $.post('/plugins/callback', {
                                 name: 'data_query',
@@ -1243,16 +1279,16 @@ function renderSyncServersDialog(items) {
 
         var oldStr = '-';
         if (it.old_config) {
-            oldStr = it.old_config.host + ':' + it.old_config.port;
-            if (it.old_config.username) oldStr += ' (' + it.old_config.username + ')';
+            oldStr = dqEscapeHtml(it.old_config.host) + ':' + dqEscapeHtml(it.old_config.port);
+            if (it.old_config.username) oldStr += ' (' + dqEscapeHtml(it.old_config.username) + ')';
         }
 
-        var newStr = it.new_config.host + ':' + it.new_config.port;
-        if (it.new_config.username) newStr += ' (' + it.new_config.username + ')';
+        var newStr = dqEscapeHtml(it.new_config.host) + ':' + dqEscapeHtml(it.new_config.port);
+        if (it.new_config.username) newStr += ' (' + dqEscapeHtml(it.new_config.username) + ')';
 
         var diffStr = '';
         if (it.diff_details && it.diff_details.length > 0) {
-            diffStr = '<span class="dq-sync-diff-text">' + it.diff_details.join('; ') + '</span>';
+            diffStr = '<span class="dq-sync-diff-text">' + dqEscapeHtml(it.diff_details.join('; ')) + '</span>';
         } else {
             diffStr = '<span style="color:#94a3b8;">' + pt('无变动') + '</span>';
         }
@@ -1264,8 +1300,8 @@ function renderSyncServersDialog(items) {
 
         rowsHtml += '<tr data-idx="' + i + '">' +
             '<td style="text-align:center;"><input type="checkbox" class="sync_item_chk" data-idx="' + i + '" ' + isChecked + '></td>' +
-            '<td><span style="text-transform:uppercase; font-weight:600; color:#475569;">' + it.db_type + '</span></td>' +
-            '<td>' + connNameDisplay + '</td>' +
+            '<td><span style="text-transform:uppercase; font-weight:600; color:#475569;">' + dqEscapeHtml(it.db_type) + '</span></td>' +
+            '<td>' + dqEscapeHtml(connNameDisplay) + '</td>' +
             '<td>' + badgeHtml + '</td>' +
             '<td>' + oldStr + '</td>' +
             '<td style="font-weight:500;">' + newStr + '</td>' +
@@ -1627,6 +1663,21 @@ function dqEscapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+// 行内 onclick 里的 JS 字符串上下文：单引号/反斜杠/换行与尖括号都要转义，
+// 否则 HTML 实体会在 JS 解析前被解码回去（dqEscapeHtml 的 &#39; 挡不住 JS 字符串逃逸）。
+function dqJsStr(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26');
 }
 
 function mysqlCommonFuncMysqlNSQL(){
@@ -2295,9 +2346,9 @@ function mysqlInitField(f, data){
     var option_html = '<option value="0">' + pt('无字段') + '</option>';
     for (var i = 0; i < f.length; i++) {
         if (data['soso_field'] == f[i]){
-            option_html+= '<option value="'+f[i]+'" selected>'+f[i]+'</option>';
+            option_html+= '<option value="'+dqEscapeHtml(f[i])+'" selected>'+dqEscapeHtml(f[i])+'</option>';
         } else {
-            option_html+= '<option value="'+f[i]+'">'+f[i]+'</option>';
+            option_html+= '<option value="'+dqEscapeHtml(f[i])+'">'+dqEscapeHtml(f[i])+'</option>';
         }
 
         
@@ -2325,9 +2376,9 @@ function mysqlGetServerList(call_func){
             for (var i = 0; i < items.length; i++) {
                 var t = items[i];
                 if (i == 0){
-                    content += '<option value="'+t['val']+'" selected>'+t['name']+'</option>';
+                    content += '<option value="'+dqEscapeHtml(t['val'])+'" selected>'+dqEscapeHtml(t['name'])+'</option>';
                 } else {
-                    content += '<option value="'+t['val']+'">'+t['name']+'</option>';
+                    content += '<option value="'+dqEscapeHtml(t['val'])+'">'+dqEscapeHtml(t['name'])+'</option>';
                 }
             }
 
@@ -2358,9 +2409,9 @@ function mysqlGetDbList(call_back){
             for (var i = 0; i < items.length; i++) {
                 var name = items[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>database['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">database['+dqEscapeHtml(name)+']</option>';
                 }
             }
             if (items.length == 0) {
@@ -2379,7 +2430,7 @@ function mysqlGetDbList(call_back){
                 var currentPort = $('#mysql input[name="db_port"]').val() || $('#mysql input[name=port]').val() || '3306';
                 var displayErr = connErr || (pt('未连接到 MySQL 服务 (端口: ') + currentPort + ')');
                 $('#mysql .mysql_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                    '<div style="font-size:15px;color:#d9534f;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + displayErr + '</div>' +
+                    '<div style="font-size:15px;color:#d9534f;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + dqEscapeHtml(displayErr) + '</div>' +
                     '<div style="color:#777;font-size:13px;margin-bottom:15px;">' + pt('当前未成功直连 MySQL 服务。上方下拉框已为您列出全部可用数据库，您可以选择一个数据库尝试连接，或检查服务状态与端口密码。') + '</div>' +
                     '<button class="btn btn-default btn-sm" onclick="mysqlGetDbList();"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新/重试连接') + '</button>' +
                     '</td></tr>');
@@ -2400,9 +2451,9 @@ function mysqlGetDbList(call_back){
             for (var i = 0; i < fallbackList.length; i++) {
                 var name = fallbackList[i];
                 if (i == 0) {
-                    content += '<option value="'+name+'" selected>database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>database['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">database['+dqEscapeHtml(name)+']</option>';
                 }
             }
             $('#mysql .mysql_db_list select[name=mysql_db]').html(content);
@@ -2411,7 +2462,7 @@ function mysqlGetDbList(call_back){
             });
             $('#mysql .mysql_table_list select[name=mysql_table]').html('<option value="">' + pt('数据表空') + '</option>');
             $('#mysql .mysql_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                '<div style="color:#d9534f;font-size:15px;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + errMsg + '</div>' +
+                '<div style="color:#d9534f;font-size:15px;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + dqEscapeHtml(errMsg) + '</div>' +
                 '<div style="color:#777;font-size:13px;margin-bottom:15px;">' + pt('已为您保留可用数据库选项，您可以切换选择库尝试连接，或检查配置后重试。') + '</div>' +
                 '<button class="btn btn-default btn-sm" onclick="mysqlGetDbList();"><span class="glyphicon glyphicon-refresh"></span> ' + pt('重试连接') + '</button>' +
                 '</td></tr>');
@@ -2439,9 +2490,9 @@ function mysqlGetTableList(p){
             for (var i = 0; i < items.length; i++) {
                 var name = items[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>table['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>table['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">table['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">table['+dqEscapeHtml(name)+']</option>';
                 }
             }
             if (items.length == 0) {
@@ -2457,8 +2508,8 @@ function mysqlGetTableList(p){
             var errMsg = (res && res.msg) ? res.msg : pt('无法连接数据库或获取数据表失败');
             $('#mysql .mysql_table_list select[name=mysql_table]').html('<option value="">数据表空</option>');
             $('#mysql .mysql_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [db]) + '</div>' +
-                '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + errMsg + '</div>' +
+                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [dqEscapeHtml(db)]) + '</div>' +
+                '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + dqEscapeHtml(errMsg) + '</div>' +
                 '<button class="btn btn-default btn-sm" onclick="mysqlGetTableList(1);"><span class="glyphicon glyphicon-refresh"></span> 重新连接此库</button>' +
                 '</td></tr>');
             $('#mysql .mysql_list_page').html('');
@@ -2503,7 +2554,7 @@ function mysqlGetDataList(p){
         
             var header_field = '';
             for (var i =0 ; i<fields.length ; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#mysql_table thead tr').html(header_field);
 
@@ -2513,7 +2564,7 @@ function mysqlGetDataList(p){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -2542,7 +2593,7 @@ function mysqlProcessList(){
         
             var header_field = '';
             for (var i =0 ; i<fields.length ; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#mysql_ot_table thead tr').html(header_field);
 
@@ -2552,7 +2603,7 @@ function mysqlProcessList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -2579,7 +2630,7 @@ function mysqlStatusList(){
         
             var header_field = '';
             for (var i =0 ; i<fields.length ; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#mysql_ot_table thead tr').html(header_field);
 
@@ -2589,7 +2640,7 @@ function mysqlStatusList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -2616,7 +2667,7 @@ function mysqlStatsList(){
         
             var header_field = '';
             for (var i =0 ; i<fields.length ; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#mysql_ot_table thead tr').html(header_field);
 
@@ -2626,7 +2677,7 @@ function mysqlStatsList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -2661,9 +2712,9 @@ function memcachedGetList(call_back){
             for (var i = 0; i < items.length; i++) {
                 var name = items[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>items['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>items['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">items['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">items['+dqEscapeHtml(name)+']</option>';
                 }
             }
             if (items.length == 0) {
@@ -2702,14 +2753,14 @@ function memcachedGetKeyList(p){
 
                 tbody += "<td><input type='checkbox' class='check' name='id' onclick='checkSelect();'></td>";
 
-                tbody += '<td>'+ dlist[i]['k'] +'</td>';
-                tbody += '<td><span style="width:100px;" class="size_ellipsis">'+dlist[i]['v']+'</span><span data-index="'+i+'" class="ico-copy cursor copy ml5" title="复制值"></span></td>';
-                tbody += '<td>'+ dlist[i]['s'] +'</td>';
+                tbody += '<td>'+ dqEscapeHtml(dlist[i]['k']) +'</td>';
+                tbody += '<td><span style="width:100px;" class="size_ellipsis">'+dqEscapeHtml(dlist[i]['v'])+'</span><span data-index="'+i+'" class="ico-copy cursor copy ml5" title="复制值"></span></td>';
+                tbody += '<td>'+ dqEscapeHtml(dlist[i]['s']) +'</td>';
 
                 if (dlist[i]['t'] == '0'){
                     tbody += '<td>' + pt('永久') + '</td>';
                 } else {
-                    tbody += '<td>'+ dlist[i]['t'] +'</td>';
+                    tbody += '<td>'+ dqEscapeHtml(dlist[i]['t']) +'</td>';
                 }
 
                 tbody += '<td style="text-align:right;">\
@@ -2822,9 +2873,9 @@ function mongodbInitField(f, data){
     var option_html = '<option value="0">' + pt('无字段') + '</option>';
     for (var i = 0; i < f.length; i++) {
         if (data['soso_field'] == f[i]){
-            option_html+= '<option value="'+f[i]+'" selected>'+f[i]+'</option>';
+            option_html+= '<option value="'+dqEscapeHtml(f[i])+'" selected>'+dqEscapeHtml(f[i])+'</option>';
         } else {
-            option_html+= '<option value="'+f[i]+'">'+f[i]+'</option>';
+            option_html+= '<option value="'+dqEscapeHtml(f[i])+'">'+dqEscapeHtml(f[i])+'</option>';
         }
 
         
@@ -2866,9 +2917,9 @@ function mongodbGetList(call_back){
             for (var i = 0; i < list.length; i++) {
                 var name = list[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>'+name+'</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>'+dqEscapeHtml(name)+'</option>';
                 } else {
-                    content += '<option value="'+name+'">'+name+'</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">'+dqEscapeHtml(name)+'</option>';
                 }
             }
             if (list.length == 0) {
@@ -3006,7 +3057,7 @@ function mongodbDataList(p){
 
             var header_field = '';
             for (var i =0 ; i<fields.length ; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             header_field += '<th class="text-right">' + pt('操作') + '</th>';
 
@@ -3020,9 +3071,9 @@ function mongodbDataList(p){
 
                     if (f in dlist[i]) {
                         if (f == '_id' ){
-                            tbody += '<td>'+dlist[i]['_id']['$oid']+'</td>';
+                            tbody += '<td>'+dqEscapeHtml(dlist[i]['_id']['$oid'])+'</td>';
                         } else {
-                            tbody += '<td>'+dlist[i][f]+'</td>';
+                            tbody += '<td>'+dqEscapeHtml(dlist[i][f])+'</td>';
                         }
                     } else {
                         tbody += '<td>undefined</td>';
@@ -3134,21 +3185,21 @@ function redisGetKeyList(page,search = ''){
 
 
                 tbody += '<tr>';
-                tbody += "<td><input type='checkbox' class='check' name='id' title='"+data[i].name+"' onclick='checkSelect();' value='"+data[i].name+"'></td>";
-                tbody += '<td style="width:100px;">'+data[i].name+'</td>';
-                tbody += '<td><span style="width:100px;" class="size_ellipsis">'+data[i].val+'</span><span data-index="'+i+'" class="ico-copy cursor copy ml5" title="复制值"></span></td>';
-                tbody += '<td>'+data[i].type+'</td>';
-                tbody += '<td>'+data[i].len+'</td>';
+                tbody += "<td><input type='checkbox' class='check' name='id' title='"+dqEscapeHtml(data[i].name)+"' onclick='checkSelect();' value='"+dqEscapeHtml(data[i].name)+"'></td>";
+                tbody += '<td style="width:100px;">'+dqEscapeHtml(data[i].name)+'</td>';
+                tbody += '<td><span style="width:100px;" class="size_ellipsis">'+dqEscapeHtml(data[i].val)+'</span><span data-index="'+i+'" class="ico-copy cursor copy ml5" title="复制值"></span></td>';
+                tbody += '<td>'+dqEscapeHtml(data[i].type)+'</td>';
+                tbody += '<td>'+dqEscapeHtml(data[i].len)+'</td>';
 
                 if (data[i].endtime == -1){
                     tbody += '<td>' + pt('永久') + '</td>';
                 } else {
-                    tbody += '<td>'+data[i].endtime+'</td>';
+                    tbody += '<td>'+dqEscapeHtml(data[i].endtime)+'</td>';
                 }
 
                 tbody += '<td style="width:200px;text-align:right; color:#bbb">\
                         <a href="javascript:;" data-index="'+i+'" class="btlink edit" title="编辑">编辑</a> | \
-                        <a href="javascript:;" class="btlink" onclick="redisDeleteKey(\''+data[i].name+'\')">删除</a>\
+                        <a href="javascript:;" class="btlink" onclick="redisDeleteKey(\''+dqJsStr(data[i].name)+'\')">删除</a>\
                         </td>';
 
                 tbody += '</tr>';
@@ -3509,9 +3560,9 @@ function pgInitField(f, data){
     var option_html = '<option value="0">' + pt('无字段') + '</option>';
     for (var i = 0; i < f.length; i++) {
         if (data['soso_field'] == f[i]){
-            option_html += '<option value="'+f[i]+'" selected>'+f[i]+'</option>';
+            option_html += '<option value="'+dqEscapeHtml(f[i])+'" selected>'+dqEscapeHtml(f[i])+'</option>';
         } else {
-            option_html += '<option value="'+f[i]+'">'+f[i]+'</option>';
+            option_html += '<option value="'+dqEscapeHtml(f[i])+'">'+dqEscapeHtml(f[i])+'</option>';
         }
     }
     $('select[name="pg_field_key"]').html(option_html);
@@ -3525,9 +3576,9 @@ function pgGetServerList(call_func){
         for (var i = 0; i < items.length; i++) {
             var t = items[i];
             if (i == 0){
-                content += '<option value="'+t['val']+'" selected>'+t['name']+'</option>';
+                content += '<option value="'+dqEscapeHtml(t['val'])+'" selected>'+dqEscapeHtml(t['name'])+'</option>';
             } else {
-                content += '<option value="'+t['val']+'">'+t['name']+'</option>';
+                content += '<option value="'+dqEscapeHtml(t['val'])+'">'+dqEscapeHtml(t['name'])+'</option>';
             }
         }
         $('#postgresql select[name=sid]').html(content);
@@ -3624,9 +3675,9 @@ function pgGetDbList(call_back){
             for (var i = 0; i < items.length; i++) {
                 var name = items[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>database['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">database['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">database['+dqEscapeHtml(name)+']</option>';
                 }
             }
             if (items.length == 0) {
@@ -3689,10 +3740,10 @@ function pgGetDbList(call_back){
                 $('#postgresql .pg_list_page').html('');
             } else {
                 $('#postgresql .btn_install_pg_driver').remove();
-                $('#postgresql .pg_db_list select[name=pg_db]').html('<option value="">' + errMsg + '</option>');
+                $('#postgresql .pg_db_list select[name=pg_db]').html('<option value="">' + dqEscapeHtml(errMsg) + '</option>');
                 $('#postgresql .pg_table_list select[name=pg_table]').html('<option value="">' + pt('数据表空') + '</option>');
                 $('#postgresql .pg_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                    '<div style="color:#d9534f;font-size:15px;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + errMsg + '</div>' +
+                    '<div style="color:#d9534f;font-size:15px;margin-bottom:10px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + dqEscapeHtml(errMsg) + '</div>' +
                     '<button class="btn btn-default btn-sm" onclick="pgGetDbList();"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新/重试连接') + '</button>' +
                     '</td></tr>');
                 $('#postgresql .pg_list_page').html('');
@@ -3718,9 +3769,9 @@ function pgGetTableList(p){
             for (var i = 0; i < items.length; i++) {
                 var name = items[i];
                 if (i == 0){
-                    content += '<option value="'+name+'" selected>table['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'" selected>table['+dqEscapeHtml(name)+']</option>';
                 } else {
-                    content += '<option value="'+name+'">table['+name+']</option>';
+                    content += '<option value="'+dqEscapeHtml(name)+'">table['+dqEscapeHtml(name)+']</option>';
                 }
             }
             if (items.length == 0) {
@@ -3735,8 +3786,8 @@ function pgGetTableList(p){
             var errMsg = (res && res.msg) ? res.msg : pt('无法连接数据库或获取数据表失败');
             $('#postgresql .pg_table_list select[name=pg_table]').html('<option value="">数据表空</option>');
             $('#postgresql .pg_list tbody').html('<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">' +
-                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [db]) + '</div>' +
-                '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + errMsg + '</div>' +
+                '<div style="color:#d9534f;margin-bottom:10px;font-size:14px;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + msgTpl(pt('尝试连接数据库 [{1}] 失败'), [dqEscapeHtml(db)]) + '</div>' +
+                '<div style="color:#666;font-size:12px;margin-bottom:15px;">' + dqEscapeHtml(errMsg) + '</div>' +
                 '<button class="btn btn-default btn-sm" onclick="pgGetTableList(1);"><span class="glyphicon glyphicon-refresh"></span> 重新连接此库</button>' +
                 '</td></tr>');
             $('#postgresql .pg_list_page').html('');
@@ -3778,7 +3829,7 @@ function pgGetDataList(p){
         
             var header_field = '';
             for (var i = 0; i < fields.length; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#pg_table thead tr').html(header_field);
 
@@ -3788,7 +3839,7 @@ function pgGetDataList(p){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -3810,7 +3861,7 @@ function pgProcessList(){
             var fields = mongodbGetDataFields(dlist);
             var header_field = '';
             for (var i = 0; i < fields.length; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#pg_ot_table thead tr').html(header_field);
 
@@ -3820,7 +3871,7 @@ function pgProcessList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -3841,7 +3892,7 @@ function pgStatusList(){
             var fields = mongodbGetDataFields(dlist);
             var header_field = '';
             for (var i = 0; i < fields.length; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#pg_ot_table thead tr').html(header_field);
 
@@ -3851,7 +3902,7 @@ function pgStatusList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }
@@ -3872,7 +3923,7 @@ function pgStatsList(){
             var fields = mongodbGetDataFields(dlist);
             var header_field = '';
             for (var i = 0; i < fields.length; i++) {
-                header_field += '<th>'+fields[i]+'</th>';
+                header_field += '<th>'+dqEscapeHtml(fields[i])+'</th>';
             }
             $('#pg_ot_table thead tr').html(header_field);
 
@@ -3882,7 +3933,7 @@ function pgStatsList(){
                 for (var j = 0; j < fields.length; j++) {
                     var f = fields[j];
                     if (f in dlist[i]) {
-                        tbody += '<td title="'+dlist[i][f]+'">'+dlist[i][f]+'</td>';
+                        tbody += '<td title="'+dqEscapeHtml(dlist[i][f])+'">'+dqEscapeHtml(dlist[i][f])+'</td>';
                     } else {
                         tbody += '<td>undefined</td>';
                     }

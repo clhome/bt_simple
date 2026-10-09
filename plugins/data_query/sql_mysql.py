@@ -12,6 +12,9 @@ import logging
 
 _log = logging.getLogger('yf.data_query.mysql')
 
+# 数据浏览单页最大行数（客户端可控 size 的硬上限，防止一次拉全表把面板线程/内存打爆）
+_MAX_PAGE_SIZE = 1000
+
 def safe_sql_identifier(val):
     """
     严格校验SQL标识符（数据库名、表名、字段名），防止任何SQL注入字符传入。
@@ -82,6 +85,9 @@ class PluginORM(object):
         self.db_name = ''
         self.charset = 'utf8mb4'
         self.timeout = 5
+        # 语句超时（秒）：pymysql 的 connect_timeout 只约束建连，不约束慢查询；
+        # 缺 read_timeout 时一条慢 SQL 会把面板 worker 挂到插件 op_timeout(600s)。
+        self.query_timeout = 10
         self.socket = ''
         self.conn = None
         self.cur = None
@@ -119,6 +125,12 @@ class PluginORM(object):
         except Exception:
             self.timeout = 5
 
+    def setQueryTimeout(self, timeout):
+        try:
+            self.query_timeout = int(timeout)
+        except Exception:
+            self.query_timeout = 10
+
     def setCharset(self, charset):
         self.charset = str(charset) if charset else 'utf8mb4'
 
@@ -142,6 +154,8 @@ class PluginORM(object):
                 'port': int(self.port),
                 'charset': self.charset,
                 'connect_timeout': self.timeout,
+                'read_timeout': self.query_timeout,
+                'write_timeout': self.query_timeout,
                 'cursorclass': pymysql.cursors.DictCursor,
                 'autocommit': True
             }
@@ -204,6 +218,8 @@ class PluginORM(object):
                             port=int(self.port),
                             charset=self.charset,
                             connect_timeout=self.timeout,
+                            read_timeout=self.query_timeout,
+                            write_timeout=self.query_timeout,
                             unix_socket=c_sock,
                             cursorclass=pymysql.cursors.DictCursor,
                             autocommit=True
@@ -808,6 +824,15 @@ class nosqlMySQLCtr():
                     _log.debug('[data_query] getDataList 异常已忽略: %s', _e)
                     size = 10
 
+            # 分页参数硬上限：size 是客户端可控的，旧实现不封顶 → `limit 0,50000`
+            # 一次把整表读进内存（真机实测 50000 行），面板线程与内存不可控。
+            if p < 1:
+                p = 1
+            if size < 1:
+                size = 10
+            if size > _MAX_PAGE_SIZE:
+                size = _MAX_PAGE_SIZE
+
             start_index = (p - 1) * size
             if start_index < 0:
                 start_index = 0
@@ -1047,7 +1072,14 @@ class nosqlMySQLCtr():
         if data is None:
             return yf.returnData(False, "查询失败!")
 
-        index = int(args['index'])
+        # index 是客户端可控的：旧实现直接 data[index] —— 负索引会静默丢掉
+        # **另一条**冗余索引，越界/非数字则抛未捕获的 IndexError/ValueError。
+        try:
+            index = int(args['index'])
+        except Exception:
+            return yf.returnData(False, '非法索引序号参数！')
+        if index < 0 or index >= len(data):
+            return yf.returnData(False, '索引序号超出范围！')
 
         cmd = data[index]['sql_drop_index']
 
