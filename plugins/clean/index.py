@@ -151,9 +151,10 @@ def do_clean():
 def do_truncate_file():
     """单文件即时截断清零"""
     args = getArgs()
-    filepath = args.get('path', '').strip()
-    if not filepath:
+    filepath = args.get('path', '')
+    if not isinstance(filepath, str) or not filepath.strip():
         return yf.returnJson(False, "未指定目标文件路径")
+    filepath = filepath.strip()
 
     ok, msg = clean_executor.truncate_single_file(filepath)
     return yf.returnJson(ok, msg)

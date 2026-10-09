@@ -4,31 +4,19 @@ import os
 import sys
 import time
 import fnmatch
-from clean_security import normalize_path, format_size, is_critical_audit_log, is_safe_path
+from clean_security import (
+    normalize_path,
+    format_size,
+    is_critical_audit_log,
+    is_safe_path,
+    is_forbidden_file,
+    FORBIDDEN_EXTENSIONS,
+    FORBIDDEN_BASENAMES,
+    FORBIDDEN_PATH_SEGMENTS,
+)
 import logging
 
 _log = logging.getLogger('yf.clean.scanner')
-
-# 核心严禁清理的文件扩展名黑名单（数据库核心数据、系统二进制、配置文件等）
-FORBIDDEN_EXTENSIONS = {
-    '.sys', '.sql', '.xml', '.ibd', '.frm', '.myd', '.myi', '.opt',
-    '.rdb', '.aof', '.db', '.sqlite', '.sqlite3', '.mdb',
-    '.pid', '.sock', '.conf', '.cnf', '.ini', '.yaml', '.yml', '.lock', '.pl',
-    '.py', '.sh', '.php', '.js', '.css', '.html', '.json',
-    '.so', '.a', '.dll', '.exe', '.bin', '.rpm', '.deb'
-}
-
-# 核心严禁清理的文件名黑名单
-FORBIDDEN_BASENAMES = {
-    'nginx.pid', 'php-fpm.pid', 'mysqld.pid', 'redis.pid', 'mariadb.pid',
-    'dump.rdb', 'appendonly.aof', 'ibdata1', 'my.cnf', 'php.ini', 'nginx.conf'
-}
-
-# 严禁扫描的非日志目录路径特征
-FORBIDDEN_PATH_SEGMENTS = [
-    '/share/', '/bin/', '/lib/', '/include/', '/support-files/',
-    '/data/mysql/', '/data/performance_schema/', '/data/sys/'
-]
 
 # 分类扫描规则配置
 CATEGORY_CONFIGS = {
@@ -108,6 +96,11 @@ def is_valid_log_or_cache_file(filepath, cat_key=''):
     norm_path = normalize_path(filepath)
     base_name = os.path.basename(norm_path)
     lower_name = base_name.lower()
+
+    # 0. 与单文件截断/删除同源的禁用清单（数据库数据/配置/程序/二进制）
+    forbidden, _why = is_forbidden_file(norm_path)
+    if forbidden:
+        return False
 
     # 1. 绝对文件名黑名单过滤
     if lower_name in FORBIDDEN_BASENAMES or base_name in FORBIDDEN_BASENAMES:
@@ -260,6 +253,7 @@ def scan_all_categories(custom_paths=None):
                 if f_path in all_scanned_files:
                     continue  # 防止重复统计
                 all_scanned_files[f_path] = f
+                f['category'] = cat_key
                 cat_files.append(f)
                 cat_total_size += f['size']
 

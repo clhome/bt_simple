@@ -303,6 +303,16 @@ function cleanApi(func, args, callback) {
     });
 }
 
+// HTML 转义（路径/文件名/后端消息回显到 DOM 前必须先转义，防止文件名构造存储型 XSS）
+function cleanEsc(s) {
+    if (window.YfI18n && typeof window.YfI18n.escapeHtml === 'function') {
+        return window.YfI18n.escapeHtml(s === null || s === undefined ? '' : String(s));
+    }
+    return String(s === null || s === undefined ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function switchCleanTab(tabName, elem) {
     $('.bt-w-menu p').removeClass('bgw');
     $(elem).addClass('bgw');
@@ -342,7 +352,7 @@ function renderOverviewTab() {
         $('#overview-content').show();
 
         if (!res.status) {
-            $('#overview-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $('#overview-content').html('<div class="alert alert-danger">' + cleanEsc(res.msg) + '</div>');
             return;
         }
 
@@ -531,7 +541,7 @@ function renderTopLogsTab() {
         $('#toplogs-content').show();
 
         if (!res.status) {
-            $('#toplogs-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $('#toplogs-content').html('<div class="alert alert-danger">' + cleanEsc(res.msg) + '</div>');
             return;
         }
 
@@ -565,8 +575,8 @@ function renderTopLogsTab() {
             tHtml += '<tr>\
                 <td style="color:#94a3b8; font-weight:bold;">' + (i + 1) + '</td>\
                 <td>\
-                    <div style="font-weight:600; color:#0f172a;">' + item.name + '</div>\
-                    <div style="font-size:11px; color:#94a3b8; word-break:break-all;">' + item.path + '</div>\
+                    <div style="font-weight:600; color:#0f172a;">' + cleanEsc(item.name) + '</div>\
+                    <div style="font-size:11px; color:#94a3b8; word-break:break-all;">' + cleanEsc(item.path) + '</div>\
                 </td>\
                 <td style="text-align:right;"><span class="clean-badge clean-badge-green">' + item.size_format + '</span></td>\
                 <td style="font-size:12px; color:#64748b;">' + item.mtime + '</td>\
@@ -581,7 +591,7 @@ function renderTopLogsTab() {
 
 function truncateSingleFile(encodedPath) {
     var realPath = unescape(encodedPath);
-    layer.confirm(pt('确定立即将该日志文件截断清零？') + '<br><small style="color:#e11d48; word-break:break-all;">' + realPath + '</small><br><small style="color:#64748b;">' + pt('大小将置为 0，保留文件句柄与权限，不会中断服务。') + '</small>', {
+    layer.confirm(pt('确定立即将该日志文件截断清零？') + '<br><small style="color:#e11d48; word-break:break-all;">' + cleanEsc(realPath) + '</small><br><small style="color:#64748b;">' + pt('大小将置为 0，保留文件句柄与权限，不会中断服务。') + '</small>', {
         title: pt('单文件截断清零'),
         icon: 3
     }, function(index) {
@@ -615,7 +625,7 @@ function renderStrategyTab() {
         $('#strategy-form').show();
 
         if (!res.status) {
-            $('#strategy-form').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $('#strategy-form').html('<div class="alert alert-danger">' + cleanEsc(res.msg) + '</div>');
             return;
         }
 
@@ -738,7 +748,7 @@ function renderHistoryTab() {
         $('#history-content').show();
 
         if (!res.status) {
-            $('#history-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $('#history-content').html('<div class="alert alert-danger">' + cleanEsc(res.msg) + '</div>');
             return;
         }
 
@@ -812,7 +822,7 @@ function showHistoryDetail(index) {
             var d = details[j];
             dHtml += '<tr>\
                 <td><span class="label label-' + (d.action === 'truncate' ? 'warning' : 'danger') + '">' + (d.action === 'truncate' ? pt('截断') : pt('删除')) + '</span></td>\
-                <td style="word-break:break-all; font-family:Consolas, monospace; font-size:11px;">' + d.path + '</td>\
+                <td style="word-break:break-all; font-family:Consolas, monospace; font-size:11px;">' + cleanEsc(d.path) + '</td>\
                 <td style="text-align:right; font-weight:600; color:#16a34a;">' + d.freed_format + '</td>\
             </tr>';
         }
@@ -849,7 +859,7 @@ function renderServiceTab() {
         $('#service-content').show();
 
         if (!res.status) {
-            $('#service-content').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $('#service-content').html('<div class="alert alert-danger">' + cleanEsc(res.msg) + '</div>');
             return;
         }
 

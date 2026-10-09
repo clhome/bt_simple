@@ -121,6 +121,11 @@ def execute_clean(options=None):
         options = {}
 
     selected_categories = options.get('categories', ['web', 'database', 'runtime', 'system', 'cache'])
+    if isinstance(selected_categories, str):
+        selected_categories = [selected_categories]
+    if not isinstance(selected_categories, (list, tuple)) or not selected_categories:
+        selected_categories = list(CATEGORY_CONFIGS.keys())
+    selected_categories = [str(c) for c in selected_categories]
     truncate_active = options.get('truncate_active', True)
     delete_rotated = options.get('delete_rotated', True)
     retention_days = int(options.get('retention_days', 7))
@@ -147,6 +152,10 @@ def execute_clean(options=None):
         fmtime = item['mtime']
         fname = item['name']
         total_scanned += 1
+
+        # 0. 用户勾选的分类才处理（未勾选的分类一律不动，保证「仅删限定的目标」）
+        if item.get('category') not in selected_categories:
+            continue
 
         # 1. 严格检查是否为合法日志或临时文件（杜绝非日志数据文件）
         if not is_valid_log_or_cache_file(fpath):
@@ -276,8 +285,16 @@ def truncate_single_file(filepath):
     """
     单文件截断操作（供 Top 10 大文件榜单即时截断）
     """
+    if not isinstance(filepath, str) or not filepath.strip():
+        return False, "未指定目标文件路径"
+    filepath = filepath.strip()
+
     if is_critical_audit_log(filepath):
         return False, f"该文件属于系统核心安全审计日志，受等保 2.0 规范保护，禁止直接清空: {filepath}"
+
+    # 与批量清理同一把尺子：非日志/临时缓存类（数据库数据、配置、程序、二进制）一律不允许清空
+    if not is_valid_log_or_cache_file(filepath):
+        return False, f"仅允许截断日志与临时缓存文件，受保护的数据或配置文件禁止清空: {filepath}"
 
     ok, freed, msg = safe_truncate_file(filepath)
     if ok:
