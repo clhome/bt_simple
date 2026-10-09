@@ -1293,7 +1293,7 @@ def importDbBackup():
     if not os.path.exists(mysql_bin):
         mysql_bin = getServerDir() + '/bin/mysql'
 
-    cmd = [mysql_bin, '-S', sock, '-uroot', '-p' + pwd, name]
+    cmd = [mysql_bin, '-S', sock, '-uroot', '-p' + str(pwd or ''), name]
     try:
         with open(file_path_sql, 'r', encoding='utf-8', errors='ignore') as f:
             p = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1637,7 +1637,7 @@ def importDbExternalProgressBar():
         mysql_bin = getServerDir() + '/bin/mysql'
 
     pv_cmd = ['pv', '-t', '-p', import_sql]
-    mysql_cmd = [mysql_bin, '--defaults-file=' + my_cnf, '-uroot', '-p' + pwd, '-f', name]
+    mysql_cmd = [mysql_bin, '--defaults-file=' + my_cnf, '-uroot', '-p' + str(pwd or ''), '-f', name]
 
     try:
         p_pv = subprocess.Popen(pv_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -3350,8 +3350,11 @@ def addSlaveSyncUser(version=''):
         res = conn.where("ip=?", (ip,)).save(
             'port,user,pass,mode,cmd', (port, user, apass, mode, cmd))
     else:
-        conn.add('ip,port,user,cmd,user,pass,mode,addtime',
-                 (ip, port, user, cmd, user, apass, mode, addTime))
+        # 列名列表曾重复 `user`（与 mysql 侧逐字节相同；SQLite 容忍重复列名并忽略
+        # 第二个，值恰好仍逐列对齐，故未暴露），但这是「换 ORM/换库即静默错列」的
+        # landmine，且与值元组长度不一致。同族参照：本文件 `slave_id_rsa` 的 add 调用是 7 列 7 值。
+        conn.add('ip,port,user,cmd,pass,mode,addtime',
+                 (ip, port, user, cmd, apass, mode, addTime))
 
     return yf.returnJson(True, '设置成功!')
 
@@ -4438,7 +4441,7 @@ def doFullSyncSSH(version=''):
     msock = root_dir + "/mysql.sock"
     yf.execShell("cd /tmp && gzip -d dump.sql.gz")
     cmd = root_dir + "/bin/mysql -S " + msock + \
-        " -uroot -p" + pwd + " < /tmp/dump.sql"
+        " -uroot -p" + str(pwd or '') + " < /tmp/dump.sql"
     import_data = yf.execShell(cmd)
     if import_data[0] == '':
         print(import_data[1])

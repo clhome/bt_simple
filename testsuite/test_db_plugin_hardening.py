@@ -401,5 +401,53 @@ class TestSyncCmdAccountGuard(unittest.TestCase):
                                 '%s::%s 守卫必须在 clist[0] 之前' % (os.path.basename(path), fn))
 
 
+class TestOrmAddColumnListGuard(unittest.TestCase):
+    """ORM `.add(keys, param)` 的列名列表必须「无重复」且「与值元组等长」。
+
+    背景（2026-10-09 父代理裁决）：`addSlaveSyncUser` 两侧都写成
+    `conn.add('ip,port,user,cmd,user,pass,mode,addtime', (ip, port, user, cmd, user, apass, mode, addTime))`
+    —— 列名重复 `user`。SQLite 对 INSERT 列表里的重复列名**不报错且忽略第二个**，
+    值恰好仍逐列对齐（实测：ip/port/user/cmd/pass/mode/addtime 全部落对），
+    所以**不是线上缺陷**；但它是「换 ORM/换库即静默错列」的 landmine，
+    且掩盖了「`db` 列从未被写入」的事实。
+
+    这里按**机制**（全文件所有 `.add(字符串字面量, 元组/列表)` 调用点）钉住，
+    而不是只钉这一个函数 —— 避免「点名 bug 只改点名处」。
+    """
+
+    def _add_calls(self, path):
+        with open(path, encoding='utf-8') as fh:
+            tree = ast.parse(fh.read())
+        out = []
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            fn = node.func
+            if not isinstance(fn, ast.Attribute) or fn.attr != 'add':
+                continue
+            if len(node.args) < 2:
+                continue
+            keys, param = node.args[0], node.args[1]
+            if not (isinstance(keys, ast.Constant) and isinstance(keys.value, str)):
+                continue
+            if not isinstance(param, (ast.Tuple, ast.List)):
+                continue
+            out.append((node.lineno, keys.value, len(param.elts)))
+        return out
+
+    def test_22_add_keys_no_duplicate_and_len_match(self):
+        for path in (MYSQL_SRC, MARIADB_SRC):
+            calls = self._add_calls(path)
+            self.assertTrue(calls, '%s 未扫到任何 .add(字符串, 元组) 调用，守卫失效'
+                            % os.path.basename(path))
+            for lineno, keys, nvalues in calls:
+                cols = [c.strip() for c in keys.split(',') if c.strip()]
+                self.assertEqual(len(cols), len(set(cols)),
+                                 '%s:%d .add 列名重复: %r' % (os.path.basename(path), lineno, keys))
+                self.assertEqual(len(cols), nvalues,
+                                 '%s:%d .add 列名数(%d) 与值数(%d) 不一致: %r'
+                                 % (os.path.basename(path), lineno, len(cols), nvalues, keys))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -70,7 +70,7 @@ def set_panel_pwd(password, ncli=False):
         'password', yf.md5(password))
     username = sql.table('users').where('id=?', (1,)).getField('username')
     if ncli:
-        print("|-用户名: " + username)
+        print("|-用户名: " + str(username))
         print("|-新密码: " + password)
     else:
         print(username)
@@ -93,6 +93,10 @@ def set_panel_username(username=None):
         return
 
     username = sql.table('users').where('id=?', (1,)).getField('username')
+    if not username:
+        # getField 查不到返回 None；旧实现直接 `'username: ' + username` 会 TypeError
+        print("|-错误，未找到面板用户记录")
+        return
     if username == 'admin':
         username = yf.getRandomString(8).lower()
         sql.table('users').where('id=?', (1,)).setField('username', username)

@@ -123,12 +123,17 @@ class backupTools:
     def backupDatabase(self, name, count):
         db_path = yf.getServerDir() + '/mysql'
         db_name = 'mysql'
+        # 保留调用方传进来的库名：下面 `name` 会被「查库结果」覆盖，查不到时它是 None，
+        # 直接拼进日志会 TypeError: can only concatenate str (not "NoneType") to str
+        # （与 backupSite 的 `path` 分支同族，但那边没覆盖 name 所以侥幸不炸）。
+        # mongodb 插件自己的 scripts/backup.py 已用同样写法修过，这里是单侧漂移。
+        req_name = str(name)
         name = yf.M('databases').dbPos(db_path, 'mysql').where(
             'name=?', (name,)).getField('name')
         startTime = time.time()
         if not name:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "数据库[" + name + "]不存在!"
+            log = "数据库[" + req_name + "]不存在!"
             print("★[" + endDate + "] " + log)
             print(
                 "----------------------------------------------------------------------------")

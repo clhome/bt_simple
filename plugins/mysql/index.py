@@ -3763,8 +3763,11 @@ def addSlaveSyncUser(version=''):
         res = conn.where("ip=?", (ip,)).save(
             'port,user,pass,mode,cmd', (port, user, apass, mode, cmd))
     else:
-        conn.add('ip,port,user,cmd,user,pass,mode,addtime',
-                 (ip, port, user, cmd, user, apass, mode, addTime))
+        # 列名列表曾重复 `user`（SQLite 容忍重复列名并忽略第二个，值恰好仍逐列对齐，
+        # 故未暴露），但这是「换 ORM/换库即静默错列」的 landmine，且与值元组长度不一致。
+        # 同族参照：本文件 `slave_id_rsa` 的 add 调用一直是 7 列 7 值。
+        conn.add('ip,port,user,cmd,pass,mode,addtime',
+                 (ip, port, user, cmd, apass, mode, addTime))
 
     return yf.returnJson(True, '设置成功!')
 
@@ -4967,7 +4970,7 @@ def doFullSyncSSH(version=''):
     msock = root_dir + "/mysql.sock"
     yf.execShell("cd /tmp && gzip -d dump.sql.gz")
     cmd = root_dir + "/bin/mysql -S " + msock + \
-        " -uroot -p" + pwd + " < /tmp/dump.sql"
+        " -uroot -p" + str(pwd or '') + " < /tmp/dump.sql"
 
     print(cmd)
     import_data = yf.execShell(cmd)
