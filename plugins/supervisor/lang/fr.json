@@ -77,5 +77,16 @@
     "非法的配置文件路径！": "Chemin d'accès au fichier de configuration non valide !",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Voici le fichier de configuration {1}. Si vous ne maîtrisez pas les règles de configuration, veuillez ne pas le modifier.",
     "缺少必要参数:": "Paramètre requis manquant :",
-    "]重启失败!": "] Le redémarrage a échoué !"
+    "]重启失败!": "] Le redémarrage a échoué !",
+    "supervisor 未安装!": "supervisor n'est pas installé !",
+    "supervisor 操作失败!": "Échec de l'opération supervisor !",
+    "写入配置失败!": "Échec de l'écriture de la configuration !",
+    "参数格式错误!": "Format d'argument invalide !",
+    "启动用户不存在!": "L'utilisateur de démarrage n'existe pas !",
+    "日志路径不合法!": "Chemin de journal invalide !",
+    "进程数量不合法!": "Nombre de processus invalide !",
+    "配置文件不存在!": "Le fichier de configuration n'existe pas !",
+    "配置内容不合法!": "Contenu de configuration invalide !",
+    "优先级参数不合法!": "Priorité invalide !",
+    "请求失败": "Échec de la requête"
 }

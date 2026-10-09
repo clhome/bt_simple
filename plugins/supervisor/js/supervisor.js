@@ -1,6 +1,24 @@
 var api = YfPlugin.createApi('supervisor');
 var pt = YfI18n.createPluginTranslator('supervisor');
 
+// 服务端返回的进程名/启动命令/用户等字段会拼进 HTML 与行内 onclick，必须转义：
+// conf.d 目录里被手工（或其他插件）放进 `<img src=x onerror=...>.ini` 之类文件名时
+// 就是存储型 XSS；进程名里的单引号还能提前闭合行内 onclick 的 JS 字符串。
+function supEsc(v){
+    if (typeof YfI18n !== 'undefined' && YfI18n && typeof YfI18n.escapeHtml === 'function'){
+        return YfI18n.escapeHtml(v == null ? '' : String(v));
+    }
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+}
+
+// 行内 onclick 的参数：先用 JSON.stringify 得到 JS 字面量（带双引号），再转义 HTML 实体。
+// 不能只做 escapeHtml：HTML 实体会在属性值被解析时先还原成 `'`，依然能闭合 JS 字符串。
+function supJsArg(v){
+    return supEsc(JSON.stringify(String(v == null ? '' : v)));
+}
+
 
 
 
@@ -23,12 +41,12 @@ function supList(page, search){
         var list = '';
         for(i in rdata.data){
             list += '<tr>';
-            list += '<td>' + rdata.data[i]['program'] +'</td>';
-            list += '<td>' + rdata.data[i]['command'] +'</td>';
-            list += '<td>' + rdata.data[i]['user'] +'</td>';
-            list += '<td>' + rdata.data[i]['pid'] +'</td>';
-            list += '<td>' + rdata.data[i]['numprocs'] +'</td>';
-            list += '<td>' + rdata.data[i]['priority'] +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['program']) +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['command']) +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['user']) +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['pid']) +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['numprocs']) +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['priority']) +'</td>';
 			
 			sup_status = 'start'
 			sup_status_desc = 'start'
@@ -42,13 +60,13 @@ function supList(page, search){
 
             list += '<td>'+sup_status_desc+'</td>';
 
-			list += '<td>' + rdata.data[i]['runStatus'] +'</td>';
+			list += '<td>' + supEsc(rdata.data[i]['runStatus']) +'</td>';
 
             list += '<td style="text-align:right">\
-            			<a href="javascript:;" class="btlink" onclick="startOrStop(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="' + pt('启动|停止') + '">'+sup_status_desc+'</a> | ' +
-            			'<a href="javascript:;" class="btlink" onclick="restartJob(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="' + pt('重启') + '">' + pt('重启') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="updateJob(\''+rdata.data[i]['program']+'\')">' + pt('修改') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delJob(\''+rdata.data[i]['program']+'\')" title="' + pt('删除') + '">' + pt('删除') + '</a>' +
+            			<a href="javascript:;" class="btlink" onclick="startOrStop(' + supJsArg(rdata.data[i]['program']) + ',' + supJsArg(sup_status) + ')" title="' + pt('启动|停止') + '">'+sup_status_desc+'</a> | ' +
+            			'<a href="javascript:;" class="btlink" onclick="restartJob(' + supJsArg(rdata.data[i]['program']) + ',' + supJsArg(sup_status) + ')" title="' + pt('重启') + '">' + pt('重启') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="updateJob(' + supJsArg(rdata.data[i]['program']) + ')">' + pt('修改') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delJob(' + supJsArg(rdata.data[i]['program']) + ')" title="' + pt('删除') + '">' + pt('删除') + '</a>' +
                     '</td>';
 
             list += '</tr>';
@@ -122,9 +140,9 @@ function updateJob(name){
 		var ulist = "<div class='line'><span class='tname'>" + pt('启动用户') + "</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
 		for (var i=0;i<rdata['userlist'].length;i++) {
 			if (rdata['userlist'][i] == rdata['daemoninfo']['user']){
-				ulist += "<option value='"+rdata['userlist'][i]+"' selected>"+rdata['userlist'][i]+"</option>";
+				ulist += "<option value='"+supEsc(rdata['userlist'][i])+"' selected>"+supEsc(rdata['userlist'][i])+"</option>";
 			} else {
-				ulist += "<option value='"+rdata['userlist'][i]+"'>"+rdata['userlist'][i]+"</option>";
+				ulist += "<option value='"+supEsc(rdata['userlist'][i])+"'>"+supEsc(rdata['userlist'][i])+"</option>";
 			}
         }
 
@@ -141,20 +159,20 @@ function updateJob(name){
 						<div class='line'>\
 		                    <span class='tname'>" + pt('名称') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+name+"' placeholder='" + pt('请输入名称') + "' style='width:270px' readonly/>\
+		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+supEsc(name)+"' placeholder='" + pt('请输入名称') + "' style='width:270px' readonly/>\
 		                    </div>\
 	                    </div>\
 	                    "+ulist+"\
 	                    <div class='line'>\
 		                    <span class='tname'>" + pt('进程数量') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='numprocs' class='bt-input-text' type='text' name='numprocs' value='"+rdata['daemoninfo']['numprocs']+"' style='width:270px' />\
+		                    	<input id='numprocs' class='bt-input-text' type='text' name='numprocs' value='"+supEsc(rdata['daemoninfo']['numprocs'])+"' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
 		                    <span class='tname'>" + pt('启动优先级') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='priority' class='bt-input-text' type='text' name='priority' value='"+rdata['daemoninfo']['priority']+"' style='width:270px' />\
+		                    	<input id='priority' class='bt-input-text' type='text' name='priority' value='"+supEsc(rdata['daemoninfo']['priority'])+"' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                   </div>",
@@ -224,7 +242,7 @@ function supAdd() {
 		var defaultPath = $("#defaultPath").html();
 		var ulist = "<div class='line'><span class='tname'>" + pt('启动用户') + "</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
 		for (var i=0;i<rdata.length;i++) {
-            ulist += "<option value='"+rdata[i]+"'>"+rdata[i]+"</option>";
+            ulist += "<option value='"+supEsc(rdata[i])+"'>"+supEsc(rdata[i])+"</option>";
         }
 
         var www = await api.post('/site/get_root_dir');
@@ -248,7 +266,7 @@ function supAdd() {
 	                    <div class='line'>\
 		                    <span class='tname'>" + pt('运行目录') + "</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='" + pt('请选择运行目录') + "' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:270px' />\
+		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='" + pt('请选择运行目录') + "' value='"+supEsc(www['dir'])+"/' placeholder='"+supEsc(www['dir'])+"' style='width:270px' />\
 		                    	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
 		                    </div>\
 	                    </div>\
@@ -358,7 +376,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
     $.post('/plugins/run',{name:_name, func:_config_tpl_func,version:version}, function(data){
     	var rdata = JSON.parse(data.data);
     	for (var i = 0; i < rdata.length; i++) {
-    		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
+    		$('#config_tpl').append('<option value="'+supEsc(rdata[i])+'">'+supEsc(getFileName(rdata[i]))+'</option>');
     	}
 
 
@@ -413,11 +431,16 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
 		                $("#textBody").html(editor.getValue());
 		                pluginConfigSave(fileName);
 		            });
-    			},'json');
+    			},'json').fail(function(xhr){
+    				layer.close(loadT);
+    				layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+    			});
     		}
     	});
 
-    },'json');
+    },'json').fail(function(xhr){
+        layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+    });
 
 }
 
@@ -430,7 +453,11 @@ function supConfigSave(fileName) {
     $.post('/files/save_body', 'data=' + data + '&path=' + fileName + '&encoding=' + encoding, function(rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
-    },'json');
+    },'json').fail(function(xhr){
+        // 缺 .fail() 时 500/断连会把 time:0 的遮罩永久留在页面上（页面卡死）
+        layer.close(loadT);
+        layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+    });
 }
 
 
@@ -487,7 +514,9 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
 	            }
 
 				$("#info_log").empty().html(rdata.data);
-			},'json');
+			},'json').fail(function(xhr){
+				layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+			});
     	});
     }
 
@@ -497,7 +526,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
 
         var rdata = JSON.parse(data.data);
     	for (var i = 0; i < rdata.length; i++) {
-    		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
+    		$('#config_tpl').append('<option value="'+supEsc(rdata[i])+'">'+supEsc(getFileName(rdata[i]))+'</option>');
     	}
 
     	$('#config_tpl').on('change', function(){
@@ -520,14 +549,22 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
 	            }
 
 				$("#info_log").empty().html(rdata.data);
-			},'json');
+			},'json').fail(function(xhr){
+				// 缺 .fail() 时遮罩永久留在页面上（页面卡死）
+				layer.close(loadT);
+				layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+			});
 
 			clearLog(selected);
 			errorLog(selected,file_line);
     	///
     	});
 
-    },'json');
+    },'json').fail(function(xhr){
+        // 缺 .fail() 时遮罩永久留在页面上（页面卡死）
+        layer.close(loadT);
+        layer.msg(pt('请求失败'), {icon: 2, time: 2000});
+    });
 }
 
 
@@ -561,11 +598,11 @@ function confdList(page, search){
         var list = '';
         for(i in rdata.data){
             list += '<tr>';
-            list += '<td>' + rdata.data[i]['name'] +'</td>';
+            list += '<td>' + supEsc(rdata.data[i]['name']) +'</td>';
 
             list += '<td style="text-align:right">\
-                        <a class="btlink" onclick="confdListTraceLog(\''+rdata.data[i]['name']+'\')">' + pt('日志跟踪') + '</a> | ' +
-                        '<a class="btlink" onclick="confdListErrLog(\''+rdata.data[i]['name']+'\')">' + pt('查看错误日志') + '</a>' +
+                        <a class="btlink" onclick="confdListTraceLog(' + supJsArg(rdata.data[i]['name']) + ')">' + pt('日志跟踪') + '</a> | ' +
+                        '<a class="btlink" onclick="confdListErrLog(' + supJsArg(rdata.data[i]['name']) + ')">' + pt('查看错误日志') + '</a>' +
                     '</td>';
 
             list += '</tr>';

@@ -77,5 +77,16 @@
     "非法的配置文件路径！": "Ungültiger Pfad zur Konfigurationsdatei!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Dies ist die Konfigurationsdatei {1}. Wenn Sie die Konfigurationsregeln nicht kennen, nehmen Sie bitte keine Änderungen vor.",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
-    "]重启失败!": "]Der Neustart ist fehlgeschlagen!"
+    "]重启失败!": "]Der Neustart ist fehlgeschlagen!",
+    "supervisor 未安装!": "supervisor ist nicht installiert!",
+    "supervisor 操作失败!": "supervisor-Vorgang fehlgeschlagen!",
+    "写入配置失败!": "Schreiben der Konfiguration fehlgeschlagen!",
+    "参数格式错误!": "Ungültiges Argumentformat!",
+    "启动用户不存在!": "Startbenutzer existiert nicht!",
+    "日志路径不合法!": "Ungültiger Log-Pfad!",
+    "进程数量不合法!": "Ungültige Prozessanzahl!",
+    "配置文件不存在!": "Konfigurationsdatei existiert nicht!",
+    "配置内容不合法!": "Ungültiger Konfigurationsinhalt!",
+    "优先级参数不合法!": "Ungültige Priorität!",
+    "请求失败": "Anfrage fehlgeschlagen"
 }

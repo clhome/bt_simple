@@ -77,5 +77,16 @@
     "非法的配置文件路径！": "Invalid profile path!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "This is the {1} configuration file. If you are unfamiliar with the configuration rules, please do not modify it.",
     "缺少必要参数:": "Missing required parameter:",
-    "]重启失败!": "]Restart failed!"
+    "]重启失败!": "]Restart failed!",
+    "supervisor 未安装!": "supervisor is not installed!",
+    "supervisor 操作失败!": "supervisor operation failed!",
+    "写入配置失败!": "Failed to write config!",
+    "参数格式错误!": "Invalid argument format!",
+    "启动用户不存在!": "Startup user does not exist!",
+    "日志路径不合法!": "Invalid log path!",
+    "进程数量不合法!": "Invalid process count!",
+    "配置文件不存在!": "Config file does not exist!",
+    "配置内容不合法!": "Invalid config content!",
+    "优先级参数不合法!": "Invalid priority!",
+    "请求失败": "Request Failed"
 }

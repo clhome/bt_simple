@@ -21,6 +21,18 @@ app_debug = False
 if yf.isAppleSystem():
     app_debug = True
 
+# supervisorctl 是「连不上也会长时间阻塞」的交互式客户端，必须带超时：
+# 面板 gunicorn 是 gthread 1 worker/4 threads，一条挂死命令会拖垮整个面板。
+SUP_CTL_TIMEOUT = 20
+SUP_SYSTEMCTL_TIMEOUT = 60
+
+# 配置值白名单：supervisor 的配置是逐行 `key=value` 解析的，值里出现换行就等于
+# 多写了一条指令（`command='x\nautostart=true'`）→ 可注入任意 [program:x] 段。
+_CTRL_CHARS_RE = re.compile(r'[\x00-\x1f\x7f]')
+_NUMPROCS_RE = re.compile(r'^[1-9]\d{0,3}$')
+_PRIORITY_RE = re.compile(r'^-?\d{1,4}$')
+_OS_USER_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_.\-]{0,31}$')
+
 
 def getPluginName():
     return 'supervisor'
@@ -64,7 +76,12 @@ def getArgs():
     first_arg = args[0].strip()
     if (first_arg.startswith('{') and first_arg.endswith('}')) or (first_arg.startswith('[') and first_arg.endswith(']')):
         try:
-            return json.loads(first_arg)
+            parsed = json.loads(first_arg)
+            # JSON 合法但非对象（`[]` / `123` / `"x"`）时不能原样返回：调用方一律按
+            # dict 取值，`args['name']` 会 TypeError，真机直接 500。
+            if not isinstance(parsed, dict):
+                return {}
+            return parsed
         except Exception as _e:
             _log.debug('[supervisor] getArgs 异常已忽略: %s', _e)
 
@@ -112,33 +129,134 @@ def checkSafeFile(filepath):
     return filepath.startswith(allowed_dir) and '..' not in filepath
 
 
-def getSupervisorctlBin():
+def checkSafeConfValue(value):
+    """配置值校验：非空且不含任何控制字符（含换行）。
+
+    supervisor 配置文件是逐行解析的，值里带 `\n` 等于多写了一条指令；
+    实测 `command='x\nautostart=true'`、`numprocs='1\nuser=root'` 都能改变配置语义。
     """
-    智能定位 supervisorctl 命令路径：
-    1. 优先从面板所在的虚拟环境中获取；
-    2. 其次通过 which 查找系统全局路径；
-    3. 最后退回为默认的 supervisorctl 执行。
+    if value is None:
+        return False
+    v = str(value)
+    if not v.strip():
+        return False
+    return not _CTRL_CHARS_RE.search(v)
+
+
+def checkSafeLogPath(filepath):
+    """日志文件沙盒：只允许清空面板自己写在 <server>/supervisor/log/ 下的日志。
+
+    日志路径来自 conf.d/*.ini 的 stdout_logfile 行（本插件的写类 sink），
+    若配置文件里被写成 `stdout_logfile=/etc/shadow`，「清空日志」就会变成
+    root 任意文件截断。
+    """
+    if not filepath:
+        return False
+    real = os.path.realpath(filepath)
+    log_dir = os.path.realpath(getServerDir() + '/log')
+    return real == log_dir or real.startswith(log_dir + os.sep)
+
+
+def _firstAbsPath(out):
+    """从 `command -v` / `which` 的输出里取第一条真实存在的绝对路径。"""
+    for line in str(out or '').splitlines():
+        line = line.strip()
+        if line and os.path.isabs(line) and os.path.exists(line):
+            return line
+    return ''
+
+
+def findSupBin(name):
+    """定位 supervisor 可执行文件：面板虚拟环境 → 系统 PATH；找不到回空串。
+
+    必须回空串（而非裸名字）：调用方要靠它判断「是否已安装」，裸名字会让未安装的
+    机器看起来像已安装。激活虚拟环境用 POSIX 的 `.`（不是 `source`）：execShell 默认
+    走 /bin/sh，在默认 /bin/sh 是 dash 的系统（CentOS/Debian 常见）上 `source` 直接报错，
+    旧实现的虚拟环境分支在那里从未生效过。
     """
     activate_file = yf.getPanelDir() + '/bin/activate'
     if os.path.exists(activate_file):
-        bin_path = yf.execShell('source ' + activate_file + ' && which supervisorctl')[0].strip()
-        if bin_path and os.path.exists(bin_path):
-            return bin_path
-    bin_path = yf.execShell('which supervisorctl')[0].strip()
-    if bin_path:
-        return bin_path
-    return 'supervisorctl'
+        out = yf.execShell('. ' + yf.shlexQuote(activate_file) + ' && command -v ' + name,
+                           timeout=15)[0]
+        path = _firstAbsPath(out)
+        if path:
+            return path
+    return _firstAbsPath(yf.execShell('command -v ' + name, timeout=15)[0])
+
+
+def getSupervisordBin():
+    return findSupBin('supervisord')
+
+
+def getSupervisorctlBin():
+    """智能定位 supervisorctl：面板虚拟环境 → 系统 PATH → 裸名字（保持旧契约）。"""
+    return findSupBin('supervisorctl') or 'supervisorctl'
+
+
+def isInstalled():
+    """已安装判据：install.sh 建的面板安装目录 `<server>/supervisor` 存在，且能找到 supervisord。
+
+    为什么不能只看可执行文件：真机实测面板虚拟环境里就有 bin/supervisord（pip 脚本），
+    但 `<server>/supervisor` 与 systemd unit 都不存在、服务 not running，面板按 info.json
+    的 checks/path（`server/supervisor`）显示的也是「未安装」。此时
+    HEAD 的 initDreplace 会照写 conf.d/主配置/systemd unit（ExecStart 指向未安装的路径），
+    等于在未安装机器上伪造产物，并把结果吞成成功。
+    """
+    if not os.path.isdir(getServerDir()):
+        return False
+    return bool(getSupervisordBin())
+
+
+def _pidIsSupervisord(pid):
+    """pid 是否确为 supervisord 主进程。
+
+    pip 装的 supervisord 是带 shebang 的 python 脚本，内核把 /proc/<pid>/comm 记成
+    解释器名（python3），所以 comm 命中不了时还要看 cmdline 里的脚本名。
+    """
+    try:
+        with open('/proc/%s/comm' % str(pid), 'r', encoding='utf-8', errors='replace') as fp:
+            comm = fp.read().strip()
+        if comm == 'supervisord':
+            return True
+        if not comm.startswith('python'):
+            return False
+        with open('/proc/%s/cmdline' % str(pid), 'rb') as fp:
+            argv = fp.read().decode('utf-8', 'replace').split('\x00')
+        # argv[0]=解释器, argv[1]=脚本：只有脚本名恰为 supervisord 才算
+        return len(argv) > 1 and os.path.basename(argv[1]) == 'supervisord'
+    except Exception:
+        return False
+
+
+def getSupervisordPid():
+    """当前存活的 supervisord pid（读不到或对不上则回 ''）。
+
+    pid 文件 + /proc 双重校验：只认「本插件写下的 pid 文件」且「该 pid 真是
+    supervisord」，同时避开两种假阳性——陈旧 pid（pid 复用后指向任意存活进程）与
+    `ps -ef|grep supervisor`（把命令行含该字样的无关进程当成 supervisord）。
+    """
+    pid_file = getServerDir() + '/run/supervisor.pid'
+    if not os.path.exists(pid_file):
+        return ''
+    pid = str(yf.readFile(pid_file) or '').strip()
+    if not pid.isdigit() or not _pidIsSupervisord(pid):
+        return ''
+    return pid
 
 
 def status():
-    data = yf.execShell(
-        "ps -ef|grep supervisor | grep -v grep | grep -v index.py | awk '{print $2}'")
-    if data[0] == '':
-        return 'stop'
-    return 'start'
+    # 只认 pid 文件 + /proc 双重校验，不用 `ps -ef|grep supervisor`：真机实测旧写法
+    # 会把命令行里含 supervisor 字样的无关进程（面板自己拉起的探针、
+    # `tail -f .../supervisor.log`）当成 supervisord → 未安装也报 start；
+    # 顺带省掉每次状态轮询的 3 个管道进程。
+    return 'start' if getSupervisordPid() else 'stop'
 
 
 def initDreplace():
+    if not isInstalled():
+        # 未安装：不造 conf.d / 主配置 / systemd unit（零产物），也不 daemon-reload
+        return False
+
     confD = getServerDir() + "/conf.d"
     conf = getServerDir() + "/supervisor.conf"
     systemDir = yf.systemdCfgDir()
@@ -148,7 +266,7 @@ def initDreplace():
     service_path = yf.getServerDir()
 
     if not os.path.exists(confD):
-        os.mkdir(confD)
+        os.makedirs(confD, exist_ok=True)
 
     if not os.path.exists(conf):
         # config replace
@@ -158,46 +276,68 @@ def initDreplace():
             user = yf.execShell(cmd)[0].strip()
 
         conf_content = yf.readFile(getConfTpl())
+        if conf_content is False:
+            return False
         conf_content = conf_content.replace('{$SERVER_PATH}', service_path)
         conf_content = conf_content.replace('{$OS_USER}', user)
         yf.writeFile(conf, conf_content)
 
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        activate_file = yf.getPanelDir() + '/bin/activate'
-        if os.path.exists(activate_file):
-            supervisord_bin = yf.execShell(
-                'source ' + activate_file + '&& which supervisord')[0].strip()
-        else:
-            supervisord_bin = yf.execShell('which supervisord')[0].strip()
-
-        se_content = yf.readFile(systemServiceTpl)
-        se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        se_content = se_content.replace('{$SUP_BIN}', supervisord_bin)
-        yf.writeFile(systemService, se_content)
-        yf.execShell('systemctl daemon-reload')
+        supervisord_bin = getSupervisordBin()
+        # 取不到主程序时宁可不写 unit：以前会把 {$SUP_BIN} 替换成空串，
+        # 留下 ExecStart=" -c .../supervisor.conf" 的坏 unit 并被 systemd 记入单元列表
+        if supervisord_bin:
+            se_content = yf.readFile(systemServiceTpl)
+            if se_content is not False:
+                se_content = se_content.replace('{$SERVER_PATH}', service_path)
+                se_content = se_content.replace('{$SUP_BIN}', supervisord_bin)
+                yf.writeFile(systemService, se_content)
+                yf.execShell('systemctl daemon-reload', timeout=30)
 
     return True
 
 
 def supOp(method):
+    if not isInstalled():
+        # 未安装：如实报错且零产物。原因写 stderr——面板 /plugins/run 以 stderr 判定
+        # 插件失败并把消息回给前端，只 print 到 stdout 会被当成成功。
+        sys.stderr.write('supervisor 未安装!')
+        return 'fail'
+
     initDreplace()
 
     if not yf.isAppleSystem():
-        data = yf.execShell('systemctl ' + method + ' supervisor')
-        if data[1] == '':
+        # 成败看退出码：execShell 的 (stdout, stderr) 契约区分不了「失败」与「无输出」
+        rc, out, err = yf.execShellRc(['systemctl', method, getPluginName()],
+                                      shell=False, timeout=SUP_SYSTEMCTL_TIMEOUT)
+        if rc == 0:
             return 'ok'
-        return data[1]
+        sys.stderr.write((err or out or '').strip() or 'supervisor 操作失败!')
+        return 'fail'
 
     if method in ('reload', 'restart'):
         return 'ok'
 
-    cmd = 'supervisord -c ' + getServerDir() + '/supervisor.conf'
     if method == 'stop':
-        cmd = "ps -ef|grep supervisor | grep -v grep | grep -v index.py | awk '{print $2}'|xargs kill"
-    data = yf.execShell(cmd)
-    if data[1] == '':
+        # 同族缺陷：旧写法 `ps -ef|grep supervisor|…|xargs kill` 会误杀命令行含
+        # supervisor 字样的无关进程；只认 pid 文件里那个真正的 supervisord。
+        pid = getSupervisordPid()
+        if not pid:
+            return 'ok'
+        try:
+            os.kill(int(pid), 15)
+            return 'ok'
+        except Exception as e:
+            sys.stderr.write(str(e))
+            return 'fail'
+
+    rc, out, err = yf.execShellRc([getSupervisordBin(), '-c',
+                                   getServerDir() + '/supervisor.conf'],
+                                  shell=False, timeout=SUP_SYSTEMCTL_TIMEOUT)
+    if rc == 0:
         return 'ok'
-    return data[1]
+    sys.stderr.write((err or out or '').strip() or 'supervisor 操作失败!')
+    return 'fail'
 
 
 def start():
@@ -220,38 +360,60 @@ def initdStatus():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    shell_cmd = 'systemctl status supervisor | grep loaded | grep "enabled;"'
-    data = yf.execShell(shell_cmd)
-    if data[0] == '':
+    if not isInstalled():
         return 'fail'
-    return 'ok'
+
+    # 机器可读判据：旧写法 `systemctl status … |grep loaded |grep "enabled;"` 依赖
+    # 人类可读输出（语言/版式一变就误判），未安装时也会被误报成「已设置开机启动」。
+    rc, out, err = yf.execShellRc(['systemctl', 'is-enabled', getPluginName()],
+                                  shell=False, timeout=15)
+    if rc == 0 and out.strip().startswith('enabled'):
+        return 'ok'
+    return 'fail'
+
+
+def initdOp(action):
+    """systemctl enable/disable 的真成败（旧实现无条件回 'ok'：未安装也显示已开启）。"""
+    if not isInstalled():
+        sys.stderr.write('supervisor 未安装!')
+        return 'fail'
+
+    rc, out, err = yf.execShellRc(['systemctl', action, getPluginName()],
+                                  shell=False, timeout=30)
+    if rc == 0:
+        return 'ok'
+    sys.stderr.write((err or out or '').strip() or 'supervisor 操作失败!')
+    return 'fail'
 
 
 def initdInstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    yf.execShell('systemctl enable supervisor')
-    return 'ok'
+    return initdOp('enable')
 
 
 def initdUinstall():
-    if not app_debug:
-        if yf.isAppleSystem():
-            return "Apple Computer does not support"
+    if yf.isAppleSystem():
+        return "Apple Computer does not support"
 
-    # 修复 diable 为 disable 的拼写错误
-    yf.execShell('systemctl disable supervisor')
-    return 'ok'
+    return initdOp('disable')
 
 
 def getSupList():
+    if not isInstalled():
+        # 未安装：不去跑 supervisorctl（两条无意义子进程），直接回空列表
+        return yf.getJson({'data': []})
+
     data = {}
 
     statusFile = getServerDir() + "/status.txt"
-    supCtl = getSupervisorctlBin()
-    cmd = "%s -c %s/supervisor.conf update; %s -c %s/supervisor.conf status > %s" % (supCtl, getServerDir(), supCtl, getServerDir(), statusFile)
-    yf.execShell(cmd)
+    supCtl = yf.shlexQuote(getSupervisorctlBin())
+    supConf = yf.shlexQuote(getServerDir() + "/supervisor.conf")
+    cmd = "%s -c %s update; %s -c %s status > %s" % (
+        supCtl, supConf, supCtl, supConf, yf.shlexQuote(statusFile))
+    # 带超时：supervisord 卡住时 supervisorctl 会一直等，不能把面板子进程一起拖死
+    yf.execShell(cmd, timeout=SUP_CTL_TIMEOUT)
 
     if not os.path.exists(statusFile):
         data['data'] = []
@@ -304,7 +466,11 @@ def getSupList():
 
 def confDList():
     confd_dir = getServerDir() + '/conf.d'
-    clist = os.listdir(confd_dir)
+    if not os.path.isdir(confd_dir):
+        # 未安装/目录缺失时不能 os.listdir：旧写法直接 FileNotFoundError → 前端 500
+        return yf.getJson({'data': []})
+
+    clist = sorted(os.listdir(confd_dir))
     array_list = []
     for x in range(len(clist)):
         t = {}
@@ -331,8 +497,15 @@ def confDlistTraceLog():
         return yf.returnJson(False, '非法的配置文件路径！')
 
     content = yf.readFile(confd_dir)
+    if content is False:
+        return ''
     rep = r'stdout_logfile\s*=\s*(.*)'
     tmp = re.search(rep, content)
+    if not tmp:
+        # 契约：前端 pluginRollingLogs 把返回值当「日志文件路径」用，所以不能回 JSON 信封；
+        # 读不到就回空串（旧写法 yf.readFile 回 False / re.search 回 None 时
+        # content 上做 re.search 或 tmp.groups() 直接 AttributeError/TypeError → 500）
+        return ''
     return tmp.groups()[0].strip()
 
 
@@ -351,8 +524,13 @@ def confDlistErrorLog():
         return yf.returnJson(False, '非法的配置文件路径！')
 
     content = yf.readFile(confd_dir)
+    if content is False:
+        return ''
     rep = r'stderr_logfile\s*=\s*(.*)'
     tmp = re.search(rep, content)
+    if not tmp:
+        # 同 confDlistTraceLog：读不到/配置里没有该指令时回空串，不抛异常也不回信封
+        return ''
     return tmp.groups()[0].strip()
 
 
@@ -405,14 +583,27 @@ def addJob():
     if not data[0]:
         return data[1]
 
-    program = args['name']
+    if not isInstalled():
+        # 未安装：不写 conf.d（零产物），如实报错
+        return yf.returnJson(False, 'supervisor 未安装!')
+
+    program = str(args['name']).strip()
     if not checkSafeName(program):
         return yf.returnJson(False, '进程名称不合法！仅支持英文字母、数字、下划线、中划线和点。')
 
-    command = args['command']
-    path = args['path']
-    numprocs = args['numprocs']
-    user = args['user']
+    command = str(args['command'])
+    path = str(args['path'])
+    numprocs = str(args['numprocs']).strip()
+    user = str(args['user']).strip()
+
+    # 配置值白名单：值里带换行 = 往 supervisor 配置里注入任意指令/段
+    if not checkSafeConfValue(command) or not checkSafeConfValue(path) \
+            or not checkSafeConfValue(user):
+        return yf.returnJson(False, '配置内容不合法!')
+    if not _OS_USER_RE.match(user) or user not in getUserListData():
+        return yf.returnJson(False, '启动用户不存在!')
+    if not _NUMPROCS_RE.match(numprocs):
+        return yf.returnJson(False, '进程数量不合法!')
 
     log_dir = getServerDir() + '/log/'
 
@@ -436,7 +627,8 @@ def addJob():
     if not checkSafeFile(dstFile):
         return yf.returnJson(False, '非法的目标配置文件路径！')
 
-    yf.writeFile(dstFile, w_body)
+    if not yf.writeFile(dstFile, w_body):
+        return yf.returnJson(False, '写入配置失败!')
 
     return yf.returnJson(True, '增加守护进程成功!')
 
@@ -447,22 +639,27 @@ def startJob():
     if not data[0]:
         return data[1]
 
-    name = args['name']
+    if not isInstalled():
+        return yf.returnJson(False, 'supervisor 未安装!')
+
+    name = str(args['name']).strip()
     if not checkSafeName(name):
         return yf.returnJson(False, '进程名称不合法！')
 
-    supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
+    supCtl = getSupervisorctlBin() + ' -c ' + yf.shlexQuote(getServerDir() + "/supervisor.conf")
 
-    status = args['status']
+    status = str(args['status'])
 
     action = "启动"
-    cmd = supCtl + " start " + name + ":"
+    cmd = supCtl + " start " + yf.shlexQuote(name + ':')
     if status == 'start':
         action = "停止"
-        cmd = supCtl + " stop " + name + ":"
-    data = yf.execShell(cmd)
+        cmd = supCtl + " stop " + yf.shlexQuote(name + ':')
+    rc, out, err = yf.execShellRc(cmd, timeout=SUP_CTL_TIMEOUT)
 
-    if data[1] != '':
+    # supervisorctl 对「没有该进程」这类错误是 "name: ERROR (no such process)" 走 stdout 且
+    # 退出码可能为 0，只看 stderr 会把失败报成成功
+    if rc != 0 or 'ERROR' in str(out):
         return yf.returnJson(False, action + '[' + name + ']失败!')
     return yf.returnJson(True, action + '[' + name + ']成功!')
 
@@ -473,21 +670,20 @@ def restartJob():
     if not data[0]:
         return data[1]
 
-    name = args['name']
+    if not isInstalled():
+        return yf.returnJson(False, 'supervisor 未安装!')
+
+    name = str(args['name']).strip()
     if not checkSafeName(name):
         return yf.returnJson(False, '进程名称不合法！')
 
-    supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
+    supCtl = getSupervisorctlBin() + ' -c ' + yf.shlexQuote(getServerDir() + "/supervisor.conf")
 
-    name = args['name']
-    status = args['status']
+    yf.execShellRc(supCtl + " stop " + yf.shlexQuote(name + ':'), timeout=SUP_CTL_TIMEOUT)
+    rc, out, err = yf.execShellRc(supCtl + " start " + yf.shlexQuote(name + ':'),
+                                  timeout=SUP_CTL_TIMEOUT)
 
-    cmd = supCtl + " stop " + name + ":"
-    data = yf.execShell(cmd)
-    cmd = supCtl + " start " + name + ":"
-    data = yf.execShell(cmd)
-
-    if data[1] != '':
+    if rc != 0 or 'ERROR' in str(out):
         return yf.returnJson(False, '[' + name + ']重启失败!')
     return yf.returnJson(True, '[' + name + ']重启成功!')
 
@@ -497,15 +693,21 @@ def delJob():
     data = checkArgs(args, ['name'])
     if not data[0]:
         return data[1]
-    name = args['name']
+    if not isInstalled():
+        return yf.returnJson(False, 'supervisor 未安装!')
+
+    name = str(args['name']).strip()
     if not checkSafeName(name):
         return yf.returnJson(False, '进程名称不合法！')
 
-    supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
+    supCtl = getSupervisorctlBin() + ' -c ' + yf.shlexQuote(getServerDir() + "/supervisor.conf")
     log_dir = getServerDir() + '/log/'
 
-    result = yf.execShell("{0} stop ".format(supCtl) + name + ":")
     program = getServerDir() + "/conf.d/" + name + ".ini"
+    if not os.path.isfile(program):
+        return yf.returnJson(False, '该守护进程不存在!')
+
+    yf.execShellRc(supCtl + " stop " + yf.shlexQuote(name + ':'), timeout=SUP_CTL_TIMEOUT)
 
     # 删除日志文件
     outlog = log_dir + name + ".out.log"
@@ -515,16 +717,9 @@ def delJob():
     if os.path.isfile(errlog):
         os.remove(errlog)
 
-    # 删除ini文件
-    if os.path.isfile(program):
-        os.remove(program)
-        result = yf.execShell(
-            "{0} update".format(supCtl))
-        return yf.returnJson(True, '删除守护进程成功!')
-    else:
-        result = yf.execShell(
-            "{0} update".format(supCtl))
-        return yf.returnJson(False, '该守护进程不存在!')
+    os.remove(program)
+    yf.execShellRc(supCtl + " update", timeout=SUP_CTL_TIMEOUT)
+    return yf.returnJson(True, '删除守护进程成功!')
 
 
 def updateJob():
@@ -532,10 +727,13 @@ def updateJob():
     data = checkArgs(args, ["name", 'user', 'numprocs', 'priority'])
     if not data[0]:
         return data[1]
-    user = args['user']
-    numprocs = args['numprocs']
-    priority = args['priority']
-    name = args['name']
+    if not isInstalled():
+        return yf.returnJson(False, 'supervisor 未安装!')
+
+    user = str(args['user']).strip()
+    numprocs = str(args['numprocs']).strip()
+    priority = str(args['priority']).strip()
+    name = str(args['name']).strip()
     if not checkSafeName(name):
         return yf.returnJson(False, '进程名称不合法！')
 
@@ -543,16 +741,31 @@ def updateJob():
     if not checkSafeFile(programFile):
         return yf.returnJson(False, '非法的配置文件路径！')
 
-    mess = {}
-    infos = []
-    with open(programFile, "r") as fr:
-        infos = fr.readlines()
+    # 参数白名单（旧实现直接把裸值拼进配置，numprocs/priority 可注入任意指令行）
+    if not checkSafeConfValue(user):
+        return yf.returnJson(False, '配置内容不合法!')
+    if not _OS_USER_RE.match(user) or user not in getUserListData():
+        return yf.returnJson(False, '启动用户不存在!')
+    if not _NUMPROCS_RE.match(numprocs):
+        return yf.returnJson(False, '进程数量不合法!')
+    if not _PRIORITY_RE.match(priority) or not (-999 <= int(priority) <= 999):
+        return yf.returnJson(False, '优先级参数不合法!')
 
-    for line in infos:
-        if "command=" in line.strip():
-            mess["command"] = line.strip().split('=')[1]
-        if "directory=" in line.strip():
-            mess["path"] = line.strip().split('=')[1]
+    content = yf.readFile(programFile)
+    if content is False:
+        return yf.returnJson(False, '配置文件不存在!')
+
+    mess = {}
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith('command='):
+            # split('=', 1)：旧写法 split('=')[1] 会把带 `=` 的命令截断
+            # （`command=env A=1 /bin/run` → 只剩 `env A`），改一次配置就丢掉命令
+            mess["command"] = s.split('=', 1)[1]
+        elif s.startswith('directory='):
+            mess["path"] = s.split('=', 1)[1]
+    if not mess.get("command") or not mess.get("path"):
+        return yf.returnJson(False, '配置文件不存在!')
 
     log_file_name = getServerDir() + '/log/' + name
 
@@ -572,7 +785,8 @@ def updateJob():
     w_body += "numprocs={0}".format(numprocs) + "\n"
     w_body += "process_name=%(program_name)s_%(process_num)02d"
 
-    yf.writeFile(programFile, w_body)
+    if not yf.writeFile(programFile, w_body):
+        return yf.returnJson(False, '写入配置失败!')
 
     return yf.returnJson(True, '修改守护进程成功!')
 
@@ -582,27 +796,30 @@ def getJobInfo():
     data = checkArgs(args, ['name'])
     if not data[0]:
         return data[1]
-    name = args['name']
+    name = str(args['name']).strip()
     if not checkSafeName(name):
         return yf.returnJson(False, '进程名称不合法！')
 
-    mess = {}
-    infos = []
     info = {}
     program = getServerDir() + "/conf.d/" + name + ".ini"
     if not checkSafeFile(program):
         return yf.returnJson(False, '非法的配置文件路径！')
 
-    with open(program, "r") as fr:
-        infos = fr.readlines()
-    mess = {}
-    for line in infos:
-        if "user=" in line.strip():
-            mess["user"] = line.strip().split('=')[1]
-        if "numprocs=" in line.strip():
-            mess["numprocs"] = line.strip().split('=')[1]
-        if "priority=" in line.strip():
-            mess["priority"] = line.strip().split('=')[1]
+    content = yf.readFile(program)
+    if content is False:
+        # 旧写法裸 open()：配置文件不存在时 FileNotFoundError → 前端 500
+        return yf.returnJson(False, '配置文件不存在!')
+
+    # 缺省值兜底：前端修改弹窗直接把这些值回填到 input，缺键会显示 undefined
+    mess = {'user': '', 'numprocs': '1', 'priority': '999'}
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith("user="):
+            mess["user"] = s.split('=', 1)[1]
+        elif s.startswith("numprocs="):
+            mess["numprocs"] = s.split('=', 1)[1]
+        elif s.startswith("priority="):
+            mess["priority"] = s.split('=', 1)[1]
     userlist = getUserListData()
     info["userlist"] = userlist
     info["daemoninfo"] = mess
@@ -611,13 +828,24 @@ def getJobInfo():
 
 def configTpl():
     path = getServerDir() + '/conf.d'
-    pathFile = os.listdir(path)
+    if not os.path.isdir(path):
+        # 未安装时旧写法 os.listdir 直接 FileNotFoundError → 前端子配置页 500
+        return yf.getJson([])
     tmp = []
-    for one in pathFile:
+    for one in sorted(os.listdir(path)):
         if one.endswith(".ini"):
             file = path + '/' + one
             tmp.append(file)
     return yf.getJson(tmp)
+
+
+def parseLineCount(value):
+    """日志行数参数：非数字/非正数一律回 None（旧实现裸 int() → ValueError 500）。"""
+    try:
+        num = int(str(value).strip())
+    except Exception:
+        return None
+    return num if num > 0 else None
 
 
 def readConfigTpl():
@@ -631,53 +859,64 @@ def readConfigTpl():
         return yf.returnJson(False, '非法的配置文件路径！')
 
     content = yf.readFile(filepath)
+    if content is False:
+        # readFile 失败时回的是 False：旧写法把它当内容回给前端（页面显示 "false"）
+        return yf.returnJson(False, '配置文件不存在!')
     return yf.returnJson(True, 'ok', content)
 
 
 def readConfigLogTpl():
     args = getArgs()
-    data = checkArgs(args, ['file'])
+    data = checkArgs(args, ['file', 'line'])
     if not data[0]:
         return data[1]
     file_log = args['file']
-    line_log = args['line']
+    line_log = parseLineCount(args['line'])
+    if line_log is None:
+        return yf.returnJson(False, '参数格式错误!')
     if not checkSafeFile(file_log):
         return yf.returnJson(False, '非法的配置文件路径！')
 
-    with open(file_log, "r") as fr:
-        infos = fr.readlines()
+    content = yf.readFile(file_log)
+    if content is False:
+        return yf.returnJson(False, '配置文件不存在!')
 
     stdout_logfile = ''
-    for line in infos:
-        if "stdout_logfile=" in line.strip():
-            stdout_logfile = line.strip().split('=')[1]
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith("stdout_logfile="):
+            stdout_logfile = s.split('=', 1)[1]
 
     if stdout_logfile != '':
-        data = yf.getLastLine(stdout_logfile, int(line_log))
+        data = yf.getLastLine(stdout_logfile, line_log)
         return yf.returnJson(True, 'OK', data)
     return yf.returnJson(False, 'OK', '')
 
 
 def readConfigLogErrorTpl():
     args = getArgs()
-    data = checkArgs(args, ['file'])
+    data = checkArgs(args, ['file', 'line'])
     if not data[0]:
         return data[1]
     file_log = args['file']
-    line_log = args['line']
+    line_log = parseLineCount(args['line'])
+    if line_log is None:
+        return yf.returnJson(False, '参数格式错误!')
     if not checkSafeFile(file_log):
         return yf.returnJson(False, '非法的配置文件路径！')
 
-    with open(file_log, "r") as fr:
-        infos = fr.readlines()
+    content = yf.readFile(file_log)
+    if content is False:
+        return yf.returnJson(False, '配置文件不存在!')
 
     stderr_logfile = ''
-    for line in infos:
-        if "stderr_logfile=" in line.strip():
-            stderr_logfile = line.strip().split('=')[1]
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith("stderr_logfile="):
+            stderr_logfile = s.split('=', 1)[1]
 
     if stderr_logfile != '':
-        data = yf.getLastLine(stderr_logfile, int(line_log))
+        data = yf.getLastLine(stderr_logfile, line_log)
         return yf.returnJson(True, 'OK', data)
     return yf.returnJson(False, 'OK', '')
 
@@ -691,16 +930,24 @@ def supClearLog():
     if not checkSafeFile(file_log):
         return yf.returnJson(False, '非法的配置文件路径！')
 
-    with open(file_log, "r") as fr:
-        infos = fr.readlines()
+    content = yf.readFile(file_log)
+    if content is False:
+        return yf.returnJson(False, '配置文件不存在!')
 
     stdout_logfile = ''
     stderr_logfile = ''
-    for line in infos:
-        if "stdout_logfile=" in line.strip():
-            stdout_logfile = line.strip().split('=')[1]
-        if "stderr_logfile=" in line.strip():
-            stderr_logfile = line.strip().split('=')[1]
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith("stdout_logfile="):
+            stdout_logfile = s.split('=', 1)[1]
+        elif s.startswith("stderr_logfile="):
+            stderr_logfile = s.split('=', 1)[1]
+
+    for path in (stdout_logfile, stderr_logfile):
+        # 写类 sink 必须带沙盒：配置里被改成 stdout_logfile=/etc/shadow 时，
+        # 「清空日志」就是 root 任意文件截断
+        if path and not checkSafeLogPath(path):
+            return yf.returnJson(False, '日志路径不合法!')
 
     # 原生 Python 安全清空文件，彻底杜绝 Shell 命令拼接与命令注入
     try:

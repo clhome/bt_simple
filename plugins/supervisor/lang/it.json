@@ -77,5 +77,16 @@
     "非法的配置文件路径！": "Percorso del file di configurazione non valido!",
     "此处为 {1} 配置文件,若您不了解配置规则,请勿随意修改。": "Questo è il file di configurazione {1}. Se non conosci le regole di configurazione, non modificarlo.",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
-    "]重启失败!": "]Riavvio non riuscito!"
+    "]重启失败!": "]Riavvio non riuscito!",
+    "supervisor 未安装!": "supervisor non è installato!",
+    "supervisor 操作失败!": "Operazione supervisor non riuscita!",
+    "写入配置失败!": "Scrittura della configurazione non riuscita!",
+    "参数格式错误!": "Formato argomento non valido!",
+    "启动用户不存在!": "L'utente di avvio non esiste!",
+    "日志路径不合法!": "Percorso log non valido!",
+    "进程数量不合法!": "Numero di processi non valido!",
+    "配置文件不存在!": "Il file di configurazione non esiste!",
+    "配置内容不合法!": "Contenuto di configurazione non valido!",
+    "优先级参数不合法!": "Priorità non valida!",
+    "请求失败": "Richiesta non riuscita"
 }
