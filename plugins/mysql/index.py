@@ -4296,6 +4296,10 @@ def getSyncMysqlDB(dbname,sign = ''):
         data = conn.field('ip,port,user,pass,mode,cmd').where('ip=?', (sign,)).find()
     else:
         data = conn.field('ip,port,user,pass,mode,cmd').find()
+    if not data:
+        # find() 查不到返回 None；旧实现 data['user'] 直接 TypeError。
+        # 由调用方如实报错，不在这里造一个半残的 ORM 对象。
+        return None
     user = data['user']
     apass = data['pass']
     port = data['port']
@@ -4368,6 +4372,8 @@ def syncDatabaseRepair(version=''):
     local_db = pMysqlDb()
     # 远程数据
     sync_db = getSyncMysqlDB(sync_args_db,sync_args_sign)
+    if sync_db is None:
+        return yf.returnJson(False, '错误同步账户!')
 
     tables = local_db.query('show tables from `%s`' % sync_args_db)
     table_key = "Tables_in_" + sync_args_db
@@ -4714,6 +4720,9 @@ def doFullSyncUser(version=''):
         data = conn.field('ip,port,user,pass,mode,cmd').find()
 
     # print(data)
+    if not data:
+        writeDbSyncStatus({'code': 0, 'msg': '请添加同步账户!', 'progress': 0})
+        return False
     user = data['user']
     apass = data['pass']
     port = data['port']
@@ -4870,6 +4879,9 @@ def doFullSyncSSH(version=''):
             'ip=?', (sync_sign,)).find()
     else:
         data = id_rsa_conn.field('ip,port,db_user,id_rsa').find()
+    if not data:
+        writeDbSyncStatus({'code': 0, 'msg': '请添加同步账户!', 'progress': 0})
+        return 'fail'
 
     SSH_PRIVATE_KEY = "/tmp/mysql_sync_id_rsa.txt"
     id_rsa = data['id_rsa'].replace('\\n', '\n')

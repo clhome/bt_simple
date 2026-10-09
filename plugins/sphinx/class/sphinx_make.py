@@ -266,6 +266,11 @@ index {$DB_NAME}_{$TABLE_NAME}_delta:{$DB_NAME}_{$TABLE_NAME}
 
 	def makeSphinxDbSource(self, db, table, create_sphinx_table = False):
 		db_info = pSqliteDb('databases').field('username,password').where('name=?', (db,)).find()
+		if not db_info:
+			# find() 查不到返回 None；旧实现 db_info['username'] 直接 TypeError。
+			# 调用方是 `conf += self.makeSphinxDbSource(...)`，返回空串最不意外。
+			yf.writeFileLog('[sphinx] 生成数据源配置失败：面板库中找不到数据库记录 %s' % db)
+			return ''
 		port = getDbPort()
 
 		conf = '''

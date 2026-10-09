@@ -657,6 +657,9 @@ class sites(object):
             return yf.returnData(False, 'site.py_msg_9bb5ba')
 
         info = yf.M('domain').field('id,name').where("pid=? AND name=? AND port=?",(site_id, domain, port)).find()
+        if not info:
+            # find() 查不到返回 None；旧实现会一路走到底部 `info['id']` 才 TypeError（HTTP 500）。
+            return yf.returnData(False, 'site.py_msg_66c149')
 
         file = self.getHostConf(site_name)
         conf = yf.readFile(file)

@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
-"""ORM 查询结果参与字符串拼接时必须先有「真值守卫」——全仓棘轮（基线 0）。
+"""ORM 查询结果的**拼接**与**下标/属性访问**都必须先有「真值守卫」——全仓棘轮（基线 0）。
+
+## 两个家族（同一根因：`getField()`/`find()` 查不到行时返回 `None`）
+
+* **家族 1**：把查询结果拿去 `+` 拼接（日志/命令）—— 见 `OrmFieldConcatGuardTest`。
+* **家族 2**：对查询结果做下标/属性访问（`X['k']` / `X.get(k)`）—— 见 `OrmFieldAccessGuardTest`。
+
+两个家族都是**成片的单侧漂移**（不是孤例），且都在已验收模块里留下了真实崩溃点；
+守卫一律按机制扫全仓，而不是钉某几个函数。
 
 ## 为什么要有这条守卫
 
@@ -239,6 +247,181 @@ class OrmFieldConcatGuardTest(unittest.TestCase):
             '    return "y" + plain\n'
         )
         self.assertEqual([], scan_source('fixture_str.py', src))
+
+
+# ---------------------------------------------------------------------------
+# 家族 2：ORM 查询结果的**下标/属性访问**也必须先有真值守卫
+# ---------------------------------------------------------------------------
+
+# 非 49 模块范围（未发布插件），不纳入门禁；其同名问题已记录但不属本目标。
+SKIP_PLUGINS = ('待审核',)
+
+
+def _mentions_name(test, name):
+    """test 表达式里是否出现过 name（不区分真值/否定，仅用于判定「这是守卫表达式」）。"""
+    return any(isinstance(n, ast.Name) and n.id == name for n in ast.walk(test))
+
+
+def _early_guard_line(func, name):
+    """函数内「not X / X is None / isinstance(X, …) 且提前退出」的最早行号。"""
+    best = 10 ** 9
+    for node in ast.walk(func):
+        if not (isinstance(node, ast.If) and _exits(node.body)):
+            continue
+        for n in ast.walk(node.test):
+            if isinstance(n, ast.UnaryOp) and isinstance(n.op, ast.Not) \
+                    and isinstance(n.operand, ast.Name) and n.operand.id == name:
+                best = min(best, node.lineno)
+            if isinstance(n, ast.Compare) and isinstance(n.left, ast.Name) and n.left.id == name \
+                    and any(isinstance(c, ast.Constant) and c.value is None for c in n.comparators):
+                best = min(best, node.lineno)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == 'isinstance' \
+                    and any(isinstance(a, ast.Name) and a.id == name for a in n.args):
+                best = min(best, node.lineno)
+    return best
+
+
+def scan_access_violations(path, src):
+    """返回「ORM 结果被下标/属性访问但无真值守卫」的 (行号, 函数名, 变量)。
+
+    判定：
+    * 访问出现在「提到该变量的 if 测试表达式」里 → 安全（`if res and res.get('id')`）；
+    * 访问出现在「提到该变量的 if 体」里 → 安全（`if res: return res['id']`）；
+    * 之前有「not X / X is None / isinstance」且提前退出的守卫 → 安全。
+    """
+    out = []
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return out
+    for func in ast.walk(tree):
+        if not isinstance(func, ast.FunctionDef):
+            continue
+        names = _orm_assigned_names(func, src)
+        if not names:
+            continue
+        guard_ranges, guard_test_ids = [], {}
+        for node in ast.walk(func):
+            if not isinstance(node, ast.If):
+                continue
+            for name in names:
+                if _mentions_name(node.test, name):
+                    guard_test_ids.setdefault(name, set()).update(
+                        id(n) for n in ast.walk(node.test))
+                    lo = min(getattr(n, 'lineno', node.lineno) for n in node.body)
+                    hi = max(getattr(n, 'end_lineno', getattr(n, 'lineno', node.lineno))
+                             for n in node.body)
+                    guard_ranges.append((name, lo, hi))
+        for node in ast.walk(func):
+            target = None
+            if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) \
+                    and node.value.id in names:
+                target = node.value.id
+            elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) \
+                    and node.value.id in names:
+                target = node.value.id
+            if not target:
+                continue
+            if id(node) in guard_test_ids.get(target, ()) \
+                    or id(node.value) in guard_test_ids.get(target, ()):
+                continue
+            if any(target == g and lo <= node.lineno <= hi for g, lo, hi in guard_ranges):
+                continue
+            if _early_guard_line(func, target) < node.lineno:
+                continue
+            out.append((node.lineno, func.name, target))
+    return sorted(set(out))
+
+
+def scan_workspace_access():
+    out = []
+    for root in SCAN_ROOTS:
+        base = os.path.join(PROJECT_ROOT, root)
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS + SKIP_PLUGINS]
+            for filename in filenames:
+                if not filename.endswith('.py'):
+                    continue
+                full = os.path.join(dirpath, filename)
+                try:
+                    with open(full, encoding='utf-8') as fh:
+                        src = fh.read()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                rel = os.path.relpath(full, PROJECT_ROOT).replace(os.sep, '/')
+                for lineno, func, name in scan_access_violations(full, src):
+                    out.append('%s:%d  %s()  %s 来自 ORM 查询却无真值守卫就被下标/属性访问'
+                               % (rel, lineno, func, name))
+    return sorted(out)
+
+
+class OrmFieldAccessGuardTest(unittest.TestCase):
+
+    def test_05_workspace_has_no_unguarded_access(self):
+        """棘轮：全仓基线 0。
+
+        2026-10-09 实测挖出的真实缺陷（均已修）：
+        * `web/utils/site.py::delDomain` —— `info = …find()` 后一路走到最后 `info['id']` 才 TypeError；
+        * `plugins/{mysql,mariadb}/index.py::getSyncMysqlDB` —— `data['user']`；
+        * 同侧 `doFullSyncUser`（`data['user']`）/`doFullSyncSSH`（`data['id_rsa']`）；
+        * `plugins/sphinx/class/sphinx_make.py::makeSphinxDbSource` —— `db_info['username']`。
+        """
+        problems = scan_workspace_access()
+        self.assertEqual([], problems,
+                         'ORM 查询结果在访问前必须做真值守卫：\n  ' + '\n  '.join(problems))
+
+    def test_06_access_detector_catches_known_bad_fixture(self):
+        bad = (
+            'def delDomain(site_id, domain):\n'
+            '    info = yf.M("domain").field("id,name").where("pid=?", (site_id,)).find()\n'
+            '    thisdb.deleteDomainId(info["id"])\n'
+        )
+        hits = scan_access_violations('fixture_bad.py', bad)
+        self.assertEqual(1, len(hits), '必须命中未判空的下标访问，实际: %r' % (hits,))
+        self.assertEqual('info', hits[0][2])
+
+    def test_07_access_detector_accepts_guarded_fixtures(self):
+        cases = {
+            '提前退出后使用': (
+                'def f(uid):\n'
+                '    row = psdb.where("id=?", (uid,)).find()\n'
+                '    if not row or not row.get("name"):\n'
+                '        return "err"\n'
+                '    return row["name"]\n'
+            ),
+            'isinstance 守卫': (
+                'def f():\n'
+                '    row = yf.M("panel_audit").order("id desc").find()\n'
+                '    if isinstance(row, dict) and row.get("row_hash"):\n'
+                '        return row["row_hash"]\n'
+                '    return ""\n'
+            ),
+            '真值守卫体内使用': (
+                'def f():\n'
+                '    res = yf.M("crontab").where("name=?", (n,)).find()\n'
+                '    if res and res.get("id"):\n'
+                '        return True, res["id"]\n'
+                '    return False\n'
+            ),
+            'if X: 体内属性访问': (
+                'def f(dbname):\n'
+                '    db_info = psdb.where("name=?", (dbname,)).find()\n'
+                '    if db_info:\n'
+                '        return db_info["accept"]\n'
+                '    return "127.0.0.1/32"\n'
+            ),
+        }
+        for label, src in cases.items():
+            self.assertEqual([], scan_access_violations('fixture_ok.py', src),
+                             '合法写法被误报（%s）: %r' % (label, src))
+
+    def test_08_access_detector_ignores_str_find(self):
+        src = (
+            'def f(line):\n'
+            '    idx = line.find("=")\n'
+            '    return line[idx + 1:]\n'
+        )
+        self.assertEqual([], scan_access_violations('fixture_str.py', src))
 
 
 if __name__ == '__main__':
