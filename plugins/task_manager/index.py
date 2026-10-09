@@ -45,6 +45,8 @@ def getArgs():
         else:
             try:
                 tmp = json.loads(args[0])
+                if not isinstance(tmp, dict):
+                    tmp = {}
             except Exception as _e:
                 _log.debug('[task_manager] getArgs 异常已忽略: %s', _e)
                 t_arr = t.split(':', 1)
@@ -55,6 +57,8 @@ def getArgs():
             t_arr = args[i].split(':', 1)
             if len(t_arr) == 2:
                 tmp[t_arr[0]] = t_arr[1]
+    if not isinstance(tmp, dict):
+        tmp = {}
     return tmp
 
 def checkArgs(data, ck=[]):

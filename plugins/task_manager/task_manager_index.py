@@ -75,6 +75,119 @@ def _is_panel_plugin_process(cmdline, panel_marks):
     return any(cmdline.find(m + '/plugins/') != -1 for m in panel_marks)
 
 
+def _is_panel_task_process(cmdline, panel_marks):
+    """cmdline 是否属于面板自身拉起的后台任务进程。
+
+    面板后台任务是 `<面板目录>/task.py`（`web/utils/task.py` 注册的），面板计划任务
+    则以 `<server_dir>/cron/<hash>` 形式被执行。历史判据是
+    `ps aux | grep 'python3 task.py' | grep -v grep | head -n1 | awk '{print $2}'`
+    —— 只能抓到一个 pid、依赖 ps 的输出格式，且会命中「命令行里恰好含该字样」的
+    无关进程。这里改按 /proc/<pid>/cmdline 精确前缀判定。
+    """
+    for m in panel_marks:
+        if m and cmdline.find(m + '/task.py') != -1:
+            return True
+    return cmdline.find('/www/server/cron/') != -1
+
+
+# 进程识别一律直读 /proc（不经 ps/grep 子进程，也不受命令行内容影响）。
+# 单列成模块常量是为了能被测试夹具替换成临时目录。
+_PROC_ROOT = '/proc'
+
+
+def _read_bytes(path):
+    """按字节读文件；失败一律回 b''（/proc 读取会因进程随时退出而失败）。"""
+    try:
+        f = open(path, 'rb')
+        try:
+            return f.read()
+        finally:
+            f.close()
+    except Exception:
+        return b''
+
+
+def _proc_comm(pid):
+    """进程名真值（`/proc/<pid>/comm`）。"""
+    return _read_bytes('{}/{}/comm'.format(_PROC_ROOT, pid)).decode('utf-8', 'replace').strip()
+
+
+def _proc_cmdline(pid):
+    """进程命令行真值（`/proc/<pid>/cmdline` 的空字节分隔形式归一成空格）。"""
+    body = _read_bytes('{}/{}/cmdline'.format(_PROC_ROOT, pid))
+    return body.replace(b'\x00', b' ').decode('utf-8', 'replace').strip()
+
+
+def _proc_ppid(pid):
+    """父进程号；读不到回 -1（不要用 0 冒充 0 号进程）。"""
+    for line in _read_bytes('{}/{}/status'.format(_PROC_ROOT, pid)).decode('utf-8', 'replace').split('\n'):
+        if line.startswith('PPid:'):
+            try:
+                return int(line.split()[1])
+            except (IndexError, ValueError):
+                return -1
+    return -1
+
+
+def _proc_alive(pid):
+    """进程是否存活（按 /proc 目录存在判定，不做 `os.kill(pid,0)` 混淆）。"""
+    return os.path.isdir('{}/{}'.format(_PROC_ROOT, pid))
+
+
+# 不允许从「任务管理器」结束的常驻服务**主进程**（comm 口径 + ppid<=1 即守护进程本体）。
+# 真机实测旧实现可把生产服务直接打掉：结束一个 php-fpm/nginx 子进程时
+# `pkill -9 <名字>` 会按进程名全系统杀，连带打掉整个服务。
+# 子进程（php-fpm worker / openresty worker 等 ppid 不为 1）不在保护名单里 ——
+# 结束单个 worker 不会打断服务（master 会重拉），用户的正常诉求仍然满足。
+PROTECTED_SERVICE_COMM = (
+    'sshd', 'systemd', 'init', 'crond', 'cron', 'mysqld', 'mariadbd',
+    'openresty', 'nginx', 'php-fpm', 'dockerd', 'containerd',
+)
+
+
+def _is_protected_service_comm(comm):
+    """服务主进程的 comm 判据。
+
+    真机实测：源码编译版 php-fpm（`/www/server/php/*`）的 comm 是 `php-fpm`，
+    而发行版包安装的是 `php-fpm8.3` / `php-fpm8.4` —— 精确匹配会漏掉后者，
+    因此 php-fpm 一律按前缀判定。
+    """
+    if not comm:
+        return False
+    if comm in PROTECTED_SERVICE_COMM:
+        return True
+    return comm.startswith('php-fpm')
+
+
+def _as_dict(args):
+    """入口参数归一。
+
+    `/plugins/callback` 用 `json.loads(args)` 解析后**原样**传给目标函数：前端若传
+    `args='[]'`/裸值，入参就是 list/str，历史实现在入口直接 `get['pid']` → TypeError
+    （HTTP 500）。
+    """
+    if isinstance(args, dict):
+        return args
+    return {}
+
+
+def _parse_pid(source):
+    """解析 `{'pid': ...}` → `(pid, '')`；非法入参 → `(0, 如实错误文案)`。
+
+    历史实现是裸 `int(get['pid'])`：`pid=abc`/缺 pid/入参是 list 时抛
+    ValueError/KeyError/TypeError（HTTP 500）。
+    """
+    if not isinstance(source, dict):
+        return 0, '缺少参数[pid]!'
+    try:
+        pid = int(str(source.get('pid', '')).strip())
+    except (TypeError, ValueError):
+        return 0, '进程号不合法!'
+    if pid <= 0:
+        return 0, '进程号不合法!'
+    return pid, ''
+
+
 class mainClass(object):
 
     pids = None
@@ -127,11 +240,15 @@ class mainClass(object):
             tmp = {}
             np_list = np.split()
             if len(np_list) < 5: continue
-            tmp['pid'] = int(np_list[0])
-            tmp['down'] = int(np_list[1])
-            tmp['up'] = int(np_list[2])
-            tmp['down_package'] = int(np_list[3])
-            tmp['up_package'] = int(np_list[4])
+            try:
+                tmp['pid'] = int(np_list[0])
+                tmp['down'] = int(np_list[1])
+                tmp['up'] = int(np_list[2])
+                tmp['down_package'] = int(np_list[3])
+                tmp['up_package'] = int(np_list[4])
+            except ValueError:
+                # /dev/shm/yf_net_process 被写坏/半行时跳过该行，不能让整个进程列表 500
+                continue
             self.__process_net_list[tmp['pid']] = tmp
 
         if time.time() - self.last_net_process_time > 12 or self.last_net_process_time == 0:
@@ -516,10 +633,18 @@ class mainClass(object):
 
     def get_meter_head(self, get=None):
         meter_head_file = getServerDir()+'/meter_head.json'
+        meter_head = None
         if os.path.exists(meter_head_file):
-            self.meter_head = json.loads(yf.readFile(meter_head_file))
-        else:
-            self.meter_head = {
+            # readFile 读不到回 False → json.loads(False) TypeError；文件被截断/写坏同样
+            # 会抛异常 → 整个进程列表接口 500。解析不出来就退回默认值。
+            body = yf.readFile(meter_head_file)
+            if body:
+                try:
+                    meter_head = json.loads(body)
+                except Exception as _e:
+                    _log.debug('[task_manager] get_meter_head 解析失败: %s', _e)
+        if not isinstance(meter_head, dict):
+            meter_head = {
                 'name': True,
                 'pid': True,
                 'cpu_percent': True,
@@ -534,7 +659,8 @@ class mainClass(object):
                 'io_write_bytes': True,
                 'connects': True
             }
-            yf.writeFile(meter_head_file, json.dumps(self.meter_head))
+            yf.writeFile(meter_head_file, json.dumps(meter_head))
+        self.meter_head = meter_head
         return self.meter_head
 
     # 添加进程查找
@@ -578,11 +704,18 @@ class mainClass(object):
     def check_process_net_total(self):
         yf_dir = yf.getPanelDir()
         _pid_file = yf_dir+'/logs/process_network_total.pid'
+        cmd_file = yf_dir+'/plugins/task_manager/process_network_total.py'
         if os.path.exists(_pid_file):
             pid = str(yf.readFile(_pid_file) or '').strip()
-            if pid and os.path.exists('/proc/' + pid): return True
+            # 旧判据只看「pid 是否存活」：pid 文件陈旧时，pid 被复用给无关进程也算运行中
+            # （假阳性）→ 必须同时比对 /proc/<pid>/cmdline 确实是本监控脚本。
+            if pid.isdigit() and _proc_alive(pid) and cmd_file in _proc_cmdline(pid):
+                return True
+            try:
+                os.remove(_pid_file)
+            except Exception as _e:
+                _log.debug('[task_manager] 清理陈旧 pid 文件失败: %s', _e)
 
-        cmd_file = yf_dir+'/plugins/task_manager/process_network_total.py'
         python_bin = self.get_python_bin()
         _cmd = 'nohup {} {} &> /tmp/net.log &'.format(yf.shlexQuote(python_bin), yf.shlexQuote(cmd_file))
         yf.execShell(_cmd)
@@ -651,64 +784,84 @@ class mainClass(object):
 
     # 外部接口，结束进程，pid30以上
     def kill_process(self, get):
-        pid = int(get['pid'])
+        pid, err = _parse_pid(get)
+        if err: return yf.returnData(False, err)
         if pid < 30: return yf.returnData(False, '不能结束系统关键进程!')
-        if not pid in psutil.pids(): return yf.returnData(False, '指定进程不存在!')
+        if not _proc_alive(pid): return yf.returnData(False, '指定进程不存在!')
+        reason = self.kill_block_reason(pid)
+        if reason: return yf.returnData(False, reason)
         if not 'killall' in get:
-            p = psutil.Process(pid)
-            if self.is_panel_process(pid): return yf.returnData(False, '不能结束面板服务进程')
-            p.kill()
+            try:
+                psutil.Process(pid).kill()
+            except Exception as _e:
+                # psutil 报错必须如实回传，不能回「已结束」（进程可能仍活着）
+                return yf.returnData(False, '结束进程失败: ' + str(_e))
             return yf.returnData(True, '进程已结束')
         return self.kill_process_all(pid)
 
-    # 是否为面板进程
+    # 结束前的统一闸门：返回拒绝原因（'' = 放行）。
+    # 真机实测旧实现只挡了「插件自己的 pid」与 `ps aux|grep 'python3 task.py'` 抓到的
+    # 一个 pid：面板 gunicorn 的 master/其它 worker、面板插件子进程、以及所有 pid>=30 的
+    # 常驻服务（sshd/mysqld/openresty/php-fpm 主进程）都直接被 `p.kill()` 打死。
+    def kill_block_reason(self, pid):
+        if pid <= 1 or pid == os.getpid():
+            return '不能结束系统关键进程!'
+        if self.is_panel_process(pid):
+            return '不能结束面板服务进程!'
+        comm = _proc_comm(pid)
+        if _is_protected_service_comm(comm) and _proc_ppid(pid) <= 1:
+            return '不能结束系统服务主进程[' + comm + ']!'
+        return ''
+
+    # 是否为面板自身进程（面板本体 / 面板插件子进程 / 面板后台任务）
     def is_panel_process(self, pid):
         if not self.panel_pid:
             self.panel_pid = os.getpid()
         if pid == self.panel_pid: return True
-        if not self.task_pid:
-            try:
-                self.task_pid = int(yf.execShell("ps aux | grep 'python3 task.py' |grep -v grep|head -n1|awk '{print $2}'")[0])
-            except Exception as _e:
-                _log.debug('[task_manager] is_panel_process 异常已忽略: %s', _e)
-                self.task_pid = -1
-        if pid == self.task_pid: return True
-        return False
+        cmdline = _proc_cmdline(pid)
+        if not cmdline: return False
+        panel_marks = _panel_dir_marks()
+        if _is_panel_process(cmdline, panel_marks): return True
+        if _is_panel_plugin_process(cmdline, panel_marks): return True
+        return _is_panel_task_process(cmdline, panel_marks)
 
-    # 遍历结束pid的子进程 kill_process_all——>引用kill_process_lower
-    def kill_process_lower(self, pid):
-        pids = psutil.pids()
-        for lpid in pids:
-            if lpid < 30: continue
-            if self.is_panel_process(lpid): continue
-            p = psutil.Process(lpid)
-            ppid = p.ppid()
-            if ppid == pid:
-                p.kill()
-                return self.kill_process_lower(lpid)
-        return True
-
-    # 结束进程树 kill_process——>引用kill_process_all
-    def kill_process_all(self, pid):
-        if pid < 30: return yf.returnData(True, '已结束此进程树!')
-        if self.is_panel_process(pid): return yf.returnData(False, '不能结束面板服务进程')
+    # 收集 pid 的全部后代进程号（不含 pid 自己），供「结束进程树」使用。
+    def collect_process_tree(self, pid):
         try:
-            if not pid in psutil.pids(): yf.returnData(True, '已结束此进程树!')
-            p = psutil.Process(pid)
-            ppid = p.ppid()
-            name = p.name()
-            p.kill()
-            yf.execShell('pkill -9 ' + shlex.quote(name))
-            if name.find('php-') != -1:
-                yf.execShell("rm -f /tmp/php-cgi-*.sock")
-            elif name.find('mysql') != -1:
-                yf.execShell("rm -f /tmp/mysql.sock")
-            elif name.find('nginx') != -1:
-                yf.execShell("rm -f /tmp/mysql.sock")
-            self.kill_process_lower(pid)
-            if ppid: return self.kill_process_all(ppid)
+            return [child.pid for child in psutil.Process(pid).children(recursive=True)]
         except Exception as _e:
-            _log.debug('[task_manager] kill_process_all 异常已忽略: %s', _e)
+            _log.debug('[task_manager] collect_process_tree 异常已忽略: %s', _e)
+            return []
+
+    # 结束进程树 kill_process——>引用 collect_process_tree
+    def kill_process_all(self, pid):
+        # 口径：结束以 pid 为根的那一棵子树（pid + 它的后代），**不**向上递归杀父进程
+        # ——旧实现末尾 `kill_process_all(ppid)` 会把 shell/会话/服务父链一路杀上去。
+        if pid < 30: return yf.returnData(False, '不能结束系统关键进程!')
+        reason = self.kill_block_reason(pid)
+        if reason: return yf.returnData(False, reason)
+        if not _proc_alive(pid): return yf.returnData(False, '指定进程不存在!')
+
+        victims = [pid] + self.collect_process_tree(pid)
+        killed = []
+        skipped = []
+        failed = []
+        for v in victims:
+            if v == os.getpid() or self.kill_block_reason(v):
+                skipped.append(str(v))
+                continue
+            try:
+                psutil.Process(v).kill()
+                killed.append(str(v))
+            except Exception as _e:
+                _log.debug('[task_manager] kill_process_all 异常已忽略: %s', _e)
+                failed.append(str(v))
+        if not killed:
+            return yf.returnData(False, '结束进程失败' + ('，已跳过受保护进程: ' + ','.join(skipped) if skipped else ''))
+        if failed or skipped:
+            return yf.returnData(True, '已结束进程树[' + ','.join(killed) + ']'
+                                 + ('，部分进程结束失败: ' + ','.join(failed) if failed else '')
+                                 + ('，已跳过受保护进程: ' + ','.join(skipped) if skipped else ''))
         return yf.returnData(True, '已结束此进程树!')
 
     
@@ -977,7 +1130,8 @@ class mainClass(object):
 
     # 获取进程的详细信息
     def get_process_info(self, args={}):
-        pid = int(args['pid'])
+        pid, err = _parse_pid(args)
+        if err: return yf.returnData(False, err)
         try:
             p = psutil.Process(pid)
             processInfo = {}
@@ -1074,11 +1228,18 @@ class mainClass(object):
         r = yf.execShell("userdel " + shlex.quote(user))
         if r[1].find('process') != -1:
             try:
-                pid = r[1].split()[-1]
-                p = psutil.Process(int(pid))
-                pname = p.name()
-                p.kill()
-                yf.execShell("pkill -9 " + shlex.quote(pname))
+                pid = int(r[1].split()[-1])
+                # 旧实现是 `pkill -9 <进程名>`（按名字全系统杀）：占用者的进程名若是
+                # python3/sshd 这类通用名，会连带杀死无关进程甚至面板自身 → 只结束
+                # 「该 pid + 它的后代」，且面板自身进程一律跳过。
+                if not self.is_panel_process(pid):
+                    for v in [pid] + self.collect_process_tree(pid):
+                        if v == os.getpid() or self.is_panel_process(v):
+                            continue
+                        try:
+                            psutil.Process(v).kill()
+                        except Exception as _e:
+                            _log.debug('[task_manager] remove_user 结束进程异常已忽略: %s', _e)
                 r = yf.execShell("userdel " + shlex.quote(user))
             except Exception as _e:
                 _log.debug('[task_manager] remove_user 异常已忽略: %s', _e)
@@ -1366,6 +1527,11 @@ class mainClass(object):
             return yf.returnData(False,'缺少参数');
 
         serviceName = get['serviceName']
+        # 服务名会拼进 `service <名> stop`、`/etc/init.d/<名>` 与 `os.remove()`：
+        # 真机实测旧实现可传 `../../../tmp/x`，使 os.path.exists('/etc/init.d/../../../tmp/x')
+        # 为真并真的删除白名单外的任意文件（面 4：任意文件删除）。
+        if not isinstance(serviceName, str) or not re.match(r'^[A-Za-z0-9][A-Za-z0-9_.@:+-]*$', serviceName):
+            return yf.returnData(False, '服务名不合法!')
         if serviceName == 'yf': return yf.returnData(False, '不能通过面板结束面板服务!')
         systemctl_user_path = '/usr/lib/systemd/system/'
         if os.path.exists(systemctl_user_path + serviceName + '.service'):  
@@ -1398,6 +1564,13 @@ class mainClass(object):
 
         runlevel = get['runlevel']
         serviceName = get['serviceName']
+        # runlevel/serviceName 会被拼进 `/etc/rc<N>.d/` 目录名并对其中文件做 shutil.move：
+        # 真机实测旧实现可传 `runlevel='0/../../etc/init.d'` 把 /etc/init.d 下的真实脚本
+        # 改名（面 4：任意文件重命名）。运行级别只允许 1-5 的单个数字。
+        if not isinstance(runlevel, str) or not re.match(r'^[1-5]$', runlevel):
+            return yf.returnData(False, '运行级别参数不合法!')
+        if not isinstance(serviceName, str) or not re.match(r'^[A-Za-z0-9][A-Za-z0-9_.@:+-]*$', serviceName):
+            return yf.returnData(False, '服务名不合法!')
         if runlevel == '0' or runlevel == '6': 
             return yf.returnData(False,'为安全考虑,不能通过面板直接修改此运行级别')
 
@@ -1485,6 +1658,10 @@ class mainClass(object):
 
     # 数转周
     def toWeek(self, num):
+        try:
+            num = int(num)
+        except (TypeError, ValueError):
+            return ''
         if num > 6: return ''
         wheres = {
             0: '日',
@@ -1501,6 +1678,9 @@ class mainClass(object):
     def decode_cron_cycle(self, tmp):
         if not tmp[4]: tmp[4] = '*'
         if tmp[4] != '*':
+            # cron 允许 `MON`/`1-5` 这类非纯数字的星期字段：裸 int() 会 ValueError
+            # → 整个计划任务列表 500（真机实测 `0 3 * * MON /bin/true` 触发）。
+            if not str(tmp[4]).lstrip('+-').isdigit(): return None
             cycle = '每周' + self.toWeek(int(tmp[4])) + '的' + tmp[1] + '时' + tmp[0] + '分'
         elif tmp[2] != '*':
             if tmp[2].find('*') == -1:
@@ -1546,7 +1726,8 @@ class mainClass(object):
         cronList = []
         if not os.path.exists(filename):
             return cronList
-        tmpList = yf.readFile(filename).split("\n")
+        # readFile 读不到回 False → False.split() AttributeError（整个列表 500）
+        tmpList = (yf.readFile(filename) or '').split("\n")
         for c in tmpList:
             c = c.strip()
             if c.startswith('#'): continue
@@ -1589,19 +1770,37 @@ class mainClass(object):
     # 外部接口，删除计划任务
     def remove_cron(self, get):
         if not 'index' in get:
+            return yf.returnData(False, '参数不存在[index]!') 
+
+        try:
+            index = int(str(get['index']).strip())
+        except (TypeError, ValueError):
             return yf.returnData(False, '参数不存在[index]!')
 
-        index = int(get['index'])
+        # 索引必须落在解析出的任务表内：旧实现是 `if index > len(cronList) + 1` 且
+        # 越界时重建一份内容相同的表并回「删除成功!」（假成功），index 为非数字则
+        # 裸 int() 抛 ValueError（HTTP 500）。
         cronList = self.get_cron_list({})
-        if index > len(cronList) + 1: return yf.returnData(False, '指定任务不存在!')
-        toCron = []
-        for i in range(len(cronList)):
-            if i == index: continue
-            toCron.append(cronList[i]['command'])
-        cronStr = "\n".join(toCron) + "\n\n"
+        if index < 0 or index >= len(cronList):
+            return yf.returnData(False, '指定任务不存在!')
+        target = cronList[index]['command']
+
+        # 旧实现把整个 crontab 用「解析后的任务列表」重写：注释行、解析不了的行
+        # （如 `@reboot`、`* * * * MON`）会被静默丢弃。改成只删目标那一行，其余原样保留。
         filename = self.get_cron_file()
-        yf.writeFile(filename, cronStr)
-        yf.execShell("chmod 600 " + filename)
+        body = yf.readFile(filename) or ''
+        lines = body.split('\n')
+        removed = False
+        toCron = []
+        for line in lines:
+            if not removed and line.strip() == target:
+                removed = True
+                continue
+            toCron.append(line)
+        if not removed:
+            return yf.returnData(False, '指定任务不存在!')
+        yf.writeFile(filename, '\n'.join(toCron))
+        yf.execShell("chmod 600 " + yf.shlexQuote(filename))
         self.crondReload()
         return yf.returnData(True, '删除成功!')
 
@@ -1609,10 +1808,31 @@ class mainClass(object):
     def pkill_session(self, get= {}):
         if not 'pts' in get:
             return yf.returnData(False, '缺少参数!')
-        yf.execShell("pkill -kill -t " + shlex.quote(get['pts']))
-        return yf.returnData(True, '已强行结束会话[' + get['pts'] + ']')
+        pts = get['pts']
+        # pts 直接拼进 `pkill -kill -t <pts>`：必须限定为 who 输出的终端名形态
+        # （pts/0、tty1 …），否则会打进无关的 -t 参数/额外选项。
+        if not isinstance(pts, str) or not re.match(r'^[A-Za-z0-9/._:-]{1,32}$', pts):
+            return yf.returnData(False, '会话参数不合法!')
+        yf.execShell("pkill -kill -t " + yf.shlexQuote(pts))
+        return yf.returnData(True, '已强行结束会话[' + pts + ']')
 
     # 获取当前会话
+    # 查询会话   get_who——>引用 search_who
+    def search_who(self, data, search):
+        # 历史实现里 get_who 的搜索分支引用了一个**不存在**的方法（只写了调用方），
+        # 而触发条件是 `hasattr(get, 'search')`（dict 恒为 False）→ 分支从未执行、
+        # 缺陷被掩盖；一旦搜索条件真正生效就是 AttributeError（HTTP 500）。
+        try:
+            ldata = []
+            for i in data:
+                if search in i['user'] or search in i['pts'] or search in i['ip'] \
+                        or search in i['date']:
+                    ldata.append(i)
+            return ldata
+        except Exception as _e:
+            _log.debug('[task_manager] search_who 异常已忽略: %s', _e)
+            return data
+
     def get_who(self, get = {}):
         whoTmp = yf.execShell('who')[0]
         tmpList = whoTmp.split("\n")
@@ -1629,9 +1849,9 @@ class mainClass(object):
                 whoInfo['date'] = tmp[2] + ' ' + tmp[3] + ' ' + tmp[4]
                 whoInfo['ip'] = tmp[5].replace('(', '').replace(')', '')
             whoList.append(whoInfo)
-        if hasattr(get, 'search'):
-            if get.search != '':
-                whoList = self.search_who(whoList, get.search)
+        # get 是 dict：`hasattr(get, 'search')` 恒为 False，搜索框对会话列表从来不生效。
+        if isinstance(get, dict) and get.get('search', '') != '':
+            whoList = self.search_who(whoList, get['search'])
         return whoList
 
     def test_cpu(self):
@@ -1649,58 +1869,58 @@ class mainClass(object):
 
 
 def get_network_list(args = {}):
-    return mainClass.instance().get_network_list(args)
+    return mainClass.instance().get_network_list(_as_dict(args))
 
 def get_process_list(args = {}):
     try:
-        return mainClass.instance().get_process_list(args)
+        return mainClass.instance().get_process_list(_as_dict(args))
     except Exception as e:
         return str(e)
     
 
 def kill_process(args = {}):
-    return mainClass.instance().kill_process(args)
+    return mainClass.instance().kill_process(_as_dict(args))
 
 def kill_process_all(args = {}):
-    if not 'pid' in args:
-            return yf.returnData(False, '缺少参数!')
-    return mainClass.instance().kill_process_all(int(args['pid']))
+    pid, err = _parse_pid(args)
+    if err: return yf.returnData(False, err)
+    return mainClass.instance().kill_process_all(pid)
 
 def set_meter_head(args = {}):
-    return mainClass.instance().set_meter_head(args)
+    return mainClass.instance().set_meter_head(_as_dict(args))
 
 def remove_service(args = {}):
-    return mainClass.instance().remove_service(args)
+    return mainClass.instance().remove_service(_as_dict(args))
 
 def set_runlevel_state(args = {}):
-    return mainClass.instance().set_runlevel_state(args)
+    return mainClass.instance().set_runlevel_state(_as_dict(args))
 
 def get_service_list(args = {}):
-    return mainClass.instance().get_service_list(args)
+    return mainClass.instance().get_service_list(_as_dict(args))
 
 def get_run_list(args = {}):
-    return mainClass.instance().get_run_list(args)
+    return mainClass.instance().get_run_list(_as_dict(args))
 
 def get_cron_list(args = {}):
-    return mainClass.instance().get_cron_list(args)
+    return mainClass.instance().get_cron_list(_as_dict(args))
 
 def remove_cron(args = {}):
-    return mainClass.instance().remove_cron(args)
+    return mainClass.instance().remove_cron(_as_dict(args))
 
 def pkill_session(args = {}):
-    return mainClass.instance().pkill_session(args)
+    return mainClass.instance().pkill_session(_as_dict(args))
 
 def get_who(args = {}):
-    return mainClass.instance().get_who(args)
+    return mainClass.instance().get_who(_as_dict(args))
 
 def get_process_info(args = {}):
-    return mainClass.instance().get_process_info(args)
+    return mainClass.instance().get_process_info(_as_dict(args))
 
 def get_user_list(args = {}):
-    return mainClass.instance().get_user_list(args)
+    return mainClass.instance().get_user_list(_as_dict(args))
 
 def remove_user(args = {}):
-    return mainClass.instance().remove_user(args)
+    return mainClass.instance().remove_user(_as_dict(args))
 
 # if __name__ == "__main__":
     # print(mc_instance.get_process_list())

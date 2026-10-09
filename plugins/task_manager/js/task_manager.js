@@ -20,6 +20,37 @@ function tmTransStatus(status) {
     if (status === 'sleeping' || status === '睡眠') return pt('睡眠');
     return status;
 }
+
+// 进程名/cmdline/用户名/计划任务命令/终端名等字段全部来自系统，同一台机器上的
+// 任何用户都能把它们伪装成 HTML（例如 `exec -a '<img src=x onerror=alert(1)>' sleep 300`），
+// 而下面这些表格是拼字符串塞进 .html() 的 → 必须转义。
+function tmEsc(v) {
+    if (v === undefined || v === null) return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 拼进行内 onclick 的字符串实参（路径/终端名/服务名）：用 JS 字符串转义（\x27 等）而
+// 不是 HTML 实体 —— 实体在属性解析时会被还原成真引号，依旧能提前闭合 onclick 里的单引号。
+function tmJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
+// 请求失败（网络中断 / 500 / 会话过期）必须关掉 loading 遮罩，否则页面永久卡死。
+function tmReqFail(xhr) {
+    if (window.layer) {
+        layer.closeAll('loading');
+        layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status ? xhr.status : ''), { icon: 0 });
+    }
+}
   
 function tmPostCallback(method, args, callback, version='1.0'){
     var req_data = {};
@@ -38,7 +69,7 @@ function tmPostCallback(method, args, callback, version='1.0'){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(tmReqFail); 
 }
 
 var tab_name = 'p_list';
@@ -480,14 +511,14 @@ function createProcessTable(getboday, data) {
         tbody_tr += '<tr ' + selected + selected_one + ' onclick="click_process_tr(event,' + realProcess[i].pid + ',' + realProcess[i].fpid + ')" >\
 			<td class="td-pid" style="' + (data?(data.meter_head.ps ? '' : 'display:none;'):'') + '">\
 				' + colp + '\
-				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="' + pt('名称：') + tmTransPs(realProcess[i].ps) + '\nname: ' + realProcess[i].name + '\nexe: ' + realProcess[i].exe + '"\
+				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="' + pt('名称：') + tmTransPs(realProcess[i].ps) + '\nname: ' + tmEsc(realProcess[i].name) + '\nexe: ' + tmEsc(realProcess[i].exe) + '"\
 				class="btlink ' + isProcessChild + '" onclick="get_process_info(' + realProcess[i].pid + ')">\
 					' + processName + '\
 					' + childNums + '\
 			</td>\
 			<td style="' + (data?(data.meter_head.pid ? '' : 'display:none;'):'') + '">' + realProcess[i].pid + '</td>\
 			<td style="' + (data?(data.meter_head.threads ? '' : 'display:none;'):'') + '">' + realProcess[i].threads + '</td>\
-			<td style="' + (data?(data.meter_head.user ? '' : 'display:none;'):'') + '" title="' + realProcess[i].user + '"><span style="width:80px;" class="size_ellipsis">' + realProcess[i].user + '</span></td>\
+			<td style="' + (data?(data.meter_head.user ? '' : 'display:none;'):'') + '" title="' + tmEsc(realProcess[i].user) + '"><span style="width:80px;" class="size_ellipsis">' + tmEsc(realProcess[i].user) + '</span></td>\
 			<td style="' + (data?(data.meter_head.cpu_percent ? '' : 'display:none;'):'') + '">' + realProcess[i].cpu_percent + '%</td>\
             <td style="' + (data?(data.meter_head.memory_used ? '' : 'display:none;'):'') + '">' + toSize(realProcess[i].memory_used).replace(' ', '') + '</td>\
             '+tbody_td+'\
@@ -512,7 +543,6 @@ function get_resource_list() {
     }
     var reverse = 'True'
     $.post(url, function (data) {
-      console.log(data);
       realProcess = []
       originProcess = []
       var list = data.process_list
@@ -548,7 +578,7 @@ function get_resource_list() {
         <tbody>' + tbody_tr + '</tbody>';
         $('#taskResourceTable').html(tbody);
         $(".table-cont").css("height", "220px");
-    })
+    }).fail(tmReqFail)
 
     $("#load_average").html('')
 }
@@ -562,9 +592,9 @@ function get_cron_list() {
         var rdata = rdata.data;
         var tbody_tr = '';
         for (var i = 0; i < rdata.length; i++) {
-            tbody_tr += '<tr title=\'' + rdata[i].command + '\'>\
-						<td>' + rdata[i].cycle + '</td>\
-						<td><a class="btlink" onclick="online_edit_file(\'' + rdata[i].exe + '\')">' + rdata[i].exe + '</a></td>\
+            tbody_tr += '<tr title=\'' + tmEsc(rdata[i].command) + '\'>\
+						<td>' + tmEsc(rdata[i].cycle) + '</td>\
+						<td><a class="btlink" onclick="online_edit_file(\'' + tmJsArg(rdata[i].exe) + '\')">' + tmEsc(rdata[i].exe) + '</a></td>\
 						<td style="text-wrap:wrap;">' + tmTransPs(rdata[i].ps) + '</td>\
 						<td><a class="btlink" onclick="remove_cron(' + i + ')">' + pt('删除') + '</a></td>\
 					</tr>';
@@ -616,10 +646,10 @@ function get_network_list(rflush) {
         for (var i = 0; i < rdata.list.length; i++) {
             tbody_tr += "<tr>"
               + "<td>" + rdata.list[i].type + "</td>"
-              + "<td>" + rdata.list[i].laddr[0] + ":" + rdata.list[i].laddr[1] + "</td>"
-              + "<td>" + (rdata.list[i].raddr.length > 1 ? "<a style='color:blue;' title='" + pt('屏蔽此IP') + "' href=\"javascript:dropAddress('" + rdata.list[i].raddr[0] + "');\">" + rdata.list[i].raddr[0] + "</a>:" + rdata.list[i].raddr[1] : 'NONE') + "</td>"
-              + "<td>" + rdata.list[i].status + "</td>"
-              + "<td>" + rdata.list[i].process + "</td>"
+              + "<td>" + tmEsc(rdata.list[i].laddr[0]) + ":" + tmEsc(rdata.list[i].laddr[1]) + "</td>"
+              + "<td>" + (rdata.list[i].raddr.length > 1 ? "<a style='color:blue;' title='" + pt('屏蔽此IP') + "' href=\"javascript:dropAddress('" + tmJsArg(rdata.list[i].raddr[0]) + "');\">" + tmEsc(rdata.list[i].raddr[0]) + "</a>:" + rdata.list[i].raddr[1] : 'NONE') + "</td>"
+              + "<td>" + tmEsc(rdata.list[i].status) + "</td>"
+              + "<td>" + tmEsc(rdata.list[i].process) + "</td>"
               + "<td>" + rdata.list[i].pid + "</td>"
               + "</tr>";
         }
@@ -682,11 +712,11 @@ function get_who_list() {
         var tbody_tr = '';
         for (var i = 0; i < rdata.length; i++) {
             tbody_tr += '<tr>\
-				<td>' + rdata[i].user + '</td>\
-				<td>' + rdata[i].pts + '</td>\
-				<td>' + rdata[i].ip + '</td>\
-				<td>' + rdata[i].date + '</td>\
-				<td><a class="btlink" onclick="pkill_session(\'' + rdata[i].pts + '\')">' + pt('强制断开') + '</a></td>\
+				<td>' + tmEsc(rdata[i].user) + '</td>\
+				<td>' + tmEsc(rdata[i].pts) + '</td>\
+				<td>' + tmEsc(rdata[i].ip) + '</td>\
+				<td>' + tmEsc(rdata[i].date) + '</td>\
+				<td><a class="btlink" onclick="pkill_session(\'' + tmJsArg(rdata[i].pts) + '\')">' + pt('强制断开') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
@@ -733,12 +763,12 @@ function get_run_list() {
         var tbody_tr = '';
         for (var i = 0; i < rdata.run_list.length; i++) {
             tbody_tr += '<tr>\
-				<td>' + rdata.run_list[i].name + '</td>\
-				<td>' + rdata.run_list[i].srcfile + '</td>\
+				<td>' + tmEsc(rdata.run_list[i].name) + '</td>\
+				<td>' + tmEsc(rdata.run_list[i].srcfile) + '</td>\
 				<td>' + toSize(rdata.run_list[i].size) + '</td>\
 				<td>' + rdata.run_list[i].access + '</td>\
 				<td style="text-wrap:wrap;">' + tmTransPs(rdata.run_list[i].ps) + '</td>\
-				<td><a class="btlink" onclick="online_edit_file(\'' + rdata.run_list[i].srcfile + '\')">' + pt('编辑') + '</a></td>\
+				<td><a class="btlink" onclick="online_edit_file(\'' + tmJsArg(rdata.run_list[i].srcfile) + '\')">' + pt('编辑') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
@@ -791,16 +821,16 @@ function get_service_list() {
         var tbody_tr = '';
         for (var i = 0; i < rdata.serviceList.length; i++) {
         tbody_tr += '<tr>\
-				<td>' + rdata.serviceList[i].name + '</td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(0,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_0 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(1,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_1 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(2,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_2 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(3,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_3 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(4,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_4 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(5,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_5 + '</a></td>\
-				<td><a style="cursor:pointer" onclick="set_runlevel_state(6,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_6 + '</a></td>\
+				<td>' + tmEsc(rdata.serviceList[i].name) + '</td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(0,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_0 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(1,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_1 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(2,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_2 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(3,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_3 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(4,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_4 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(5,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_5 + '</a></td>\
+				<td><a style="cursor:pointer" onclick="set_runlevel_state(6,\'' + tmJsArg(rdata.serviceList[i].name) + '\')">' + rdata.serviceList[i].runlevel_6 + '</a></td>\
 				<td style="text-wrap:wrap;">' + tmTransPs(rdata.serviceList[i].ps) + '</td>\
-				<td><a class="btlink" onclick="remove_service(\'' + rdata.serviceList[i].name + '\')">' + pt('删除') + '</a></td>\
+				<td><a class="btlink" onclick="remove_service(\'' + tmEsc(rdata.serviceList[i].name) + '\')">' + pt('删除') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
@@ -835,14 +865,14 @@ function get_user_list() {
         var tbody_tr = '';
         for (var i = 0; i < rdata.length; i++) {
             tbody_tr += '<tr>\
-					<td>' + rdata[i].username + '</td>\
-					<td>' + rdata[i].home + '</td>\
-					<td>' + rdata[i].group + '</td>\
+					<td>' + tmEsc(rdata[i].username) + '</td>\
+					<td>' + tmEsc(rdata[i].home) + '</td>\
+					<td>' + tmEsc(rdata[i].group) + '</td>\
 					<td>' + rdata[i].uid + '</td>\
 					<td>' + rdata[i].gid + '</td>\
-					<td>' + rdata[i].login_shell + '</td>\
+					<td>' + tmEsc(rdata[i].login_shell) + '</td>\
 					<td style="text-wrap:wrap;">' + tmTransPs(rdata[i].ps) + '</td>\
-					<td><a class="btlink" onclick="userdel(\'' + rdata[i].username + '\')">' + pt('删除') + '</a></td>\
+					<td><a class="btlink" onclick="userdel(\'' + tmJsArg(rdata[i].username) + '\')">' + pt('删除') + '</a></td>\
 				</tr>';
         }
         var tbody = '<thead>\
@@ -1111,7 +1141,7 @@ function dropAddress(address) {
         $.post('/firewall/add_drop_address', 'type=address&protocol=tcp&port=' + address + '&ps=' + encodeURIComponent(pt('手动屏蔽')), function (rdata) {
             layer.close(loadT);
             layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
-        });
+        }, 'json').fail(tmReqFail);
     });
 }
 
