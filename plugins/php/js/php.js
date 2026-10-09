@@ -1,6 +1,26 @@
 var api = YfPlugin.createApi('php');
 var pt = YfI18n.createPluginTranslator('php');
 
+// HTML 转义：php.ini / FPM 状态里的值经面板文件编辑器可被写入任意字符，
+// 直接拼进弹窗 HTML 会成为存储型 XSS（与 A09/A11 同族）
+function phpEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    // 正则里的引号写成 \x22/\x27 转义：旧版前端「引号配对」静态扫描器会把
+    // /\"/g 这类正则里的引号当成字符串开头，导致后续代码全部误判（已踩过）
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// 内层 status 守卫：后端业务错误时 data.data 不是可解析 JSON，
+// 旧写法直接 JSON.parse 会抛异常（弹窗空白、无任何提示）
+function phpInner(data) {
+    try {
+        return JSON.parse(data.data);
+    } catch (e) {
+        return { status: false, msg: data.msg };
+    }
+}
+
 
 function phpPostCallback(method, version, args,callback){
     var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
@@ -28,19 +48,27 @@ function phpPostCallback(method, version, args,callback){
         if(typeof(callback) == 'function'){
             callback(data);
         }
-    },'json'); 
+    },'json').fail(function(xhr){
+        // 失败必须关遮罩，否则 loading 永久卡死
+        layer.close(loadT);
+        layer.msg(pt('请求失败') + ': ' + xhr.status, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+    }); 
 }
 
 
 //配置修改
 function phpSetConfig(version) {
     api.post('get_php_conf', version,'',function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
+        if (!rdata || !rdata.length) {
+            layer.msg((rdata && rdata.msg) || data.msg, { icon: 0, time: 2000 });
+            return;
+        }
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
             var w = '100';
             if (rdata[i].name == 'error_reporting') w = '240';
-            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + rdata[i].name + '" value="' + rdata[i].value + '" type="text" >';
+            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + phpEsc(rdata[i].name) + '" value="' + phpEsc(rdata[i].value) + '" type="text" >';
             switch (rdata[i].type) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
@@ -53,7 +81,7 @@ function phpSetConfig(version) {
                     ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>' + pt('开启') + '</option><option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>';
                     break;
             }
-            mlist += '<div class="conf_item"><span class="conf_name">' + rdata[i].name + '</span>' + ibody + '<span class="conf_tips">' + pt(rdata[i].ps) + '</span></div>';
+            mlist += '<div class="conf_item"><span class="conf_name">' + phpEsc(rdata[i].name) + '</span>' + ibody + '<span class="conf_tips">' + pt(rdata[i].ps) + '</span></div>';
         }
         var phpCon = '<div class="conf_p">\
                         ' + mlist + '\
@@ -79,7 +107,7 @@ function resetPhpConf(version) {
         var loadT = layer.msg(pt('正在还原默认配置...'), { icon: 16, time: 0, shade: 0.3 });
         api.post('reset_php_conf', version, {}, function(ret_data) {
             layer.close(loadT);
-            var rdata = JSON.parse(ret_data.data);
+            var rdata = phpInner(ret_data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if (rdata.status) {
                 phpSetConfig(version);
@@ -112,7 +140,7 @@ function submitConf(version) {
     };
 
     api.post('submit_php_conf', version, data, function(ret_data){
-        var rdata = JSON.parse(ret_data.data);
+        var rdata = phpInner(ret_data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -121,16 +149,16 @@ function submitConf(version) {
 //php超时限制
 function phpCommonFunc(version){
     api.post('get_limit_conf', version, '', function(ret_data){
-        var rdata = JSON.parse(ret_data.data);
+        var rdata = phpInner(ret_data);
         var con = '<p class="conf_p">\
             <span>' + pt('超时限制') + '</span>\
-            <input class="phpTimeLimit bt-input-text mr5" type="number" value="' + rdata['maxTime'] + '">, 秒\
+            <input class="phpTimeLimit bt-input-text mr5" type="number" value="' + phpEsc(rdata['maxTime']) + '">, 秒\
             <button class="btn btn-success btn-sm" onclick="setPHPMaxTime(\'' + version + '\')" style="margin-left:20px">' + pt('保存') + '</button>\
             </p>';
 
         con += '<p class="conf_p">\
             <span>' + pt('上传限制') + '</span>\
-            <input class="phpUploadLimit bt-input-text mr5" type="number" value="' + rdata['max']+'" name="max">,MB\
+            <input class="phpUploadLimit bt-input-text mr5" type="number" value="' + phpEsc(rdata['max']) +'" name="max">,MB\
             <button class="btn btn-success btn-sm" onclick="setPHPMaxSize(\''+ version+'\')" style="margin-left:20px">' + pt('保存') + '</button>\
         </p>';
 
@@ -149,7 +177,7 @@ function phpCommonFunc(version){
 function setPHPMaxTime(version) {
     var max = $(".phpTimeLimit").val();
     api.post('set_max_time',version,{'time':max},function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
         showMsg(rdata.msg,function(){
             phpCommonFunc(version);
         },{ icon: rdata.status ? 1 : 2 });
@@ -166,7 +194,7 @@ function setPHPMaxSize(version) {
     }
 
     api.post('set_max_size',version,{'max':max},function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -263,19 +291,29 @@ function phpFpmConfigFile(version, func, pool = 'www'){
                 $("#textBody").text(editor.getValue());
                 pluginConfigSave(fileName);
             });
-        },'json');
+        },'json').fail(function(xhr){
+            layer.close(loadT2);
+            layer.msg(pt('请求失败') + ': ' + xhr.status, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+        });
 
         $('select[name="pool"]').on('change', function(){
             var pool = $(this).val();
             phpFpmConfigFile(version, func, pool);
         });
-    },'json');
+    },'json').fail(function(xhr){
+        layer.close(loadT);
+        layer.msg(pt('请求失败') + ': ' + xhr.status, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+    });
 }
 
 function getFpmConfig(version, pool = 'www'){
     api.post('get_fpm_conf', version, {'pool':pool}, function(data){
         // console.log(data);
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
+        if (!rdata || rdata.status === false) {
+            layer.msg((rdata && rdata.msg) || data.msg, { icon: 0, time: 2000 });
+            return;
+        }
         // console.log(rdata);
         var limitList = "<option value='0'>" + pt('自定义') + "</option>" +
             "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">" + pt('2并发') + "</option>" +
@@ -301,10 +339,10 @@ function getFpmConfig(version, pool = 'www'){
             "<p class='line'><span class='span_tit'>" + pt('应用池[pool]：') + "</span><select class='bt-input-text' name='pool'>" + poolHtml + "</select></p>" +
             "<p class='line'><span class='span_tit'>" + pt('并发方案：') + "</span><select class='bt-input-text' name='limit'>" + limitList + "</select></p>" +
             "<p class='line'><span class='span_tit'>" + pt('运行模式：') + "</span><select class='bt-input-text' name='pm'>" + pmList + "</select><span class='c9'>" + pt('*PHP-FPM运行模式') + "</span></p>" +
-            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>" + pt('*允许创建的最大子进程数') + "</span></p>" +
-            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>" + pt('*起始进程数（服务启动后初始进程数量）') + "</span></p>" +
-            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>" + pt('*最小空闲进程数（清理空闲进程后的保留数量）') + "</span></p>" +
-            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>" + pt('*最大空闲进程数（当空闲进程达到此值时清理）') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + phpEsc(rdata.max_children) + "' /><span class='c9'>" + pt('*允许创建的最大子进程数') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + phpEsc(rdata.start_servers) + "' />  <span class='c9'>" + pt('*起始进程数（服务启动后初始进程数量）') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + phpEsc(rdata.min_spare_servers) + "' />   <span class='c9'>" + pt('*最小空闲进程数（清理空闲进程后的保留数量）') + "</span></p>" +
+            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + phpEsc(rdata.max_spare_servers) + "' />   <span class='c9'>" + pt('*最大空闲进程数（当空闲进程达到此值时清理）') + "</span></p>" +
             "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>" + pt('保存') + "</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>" + pt('一键调优') + "</button></div>" +
             "</div>";
 
@@ -434,7 +472,7 @@ function setFpmConfig(version){
         pool:pool,
     };
     api.post('set_fpm_conf', version, data, function(ret_data){
-        var rdata = JSON.parse(ret_data.data);
+        var rdata = phpInner(ret_data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -442,7 +480,7 @@ function setFpmConfig(version){
 
 function getFpmStatus(version, pool = 'www'){
     api.post('get_fpm_status', version, {'pool':pool}, function(ret_data){
-        var tmp_data = JSON.parse(ret_data.data);
+        var tmp_data = phpInner(ret_data);
         if(!tmp_data.status){
             layer.msg(tmp_data.msg, { icon: tmp_data.status ? 1 : 2 });
             return;
@@ -475,19 +513,19 @@ function getFpmStatus(version, pool = 'www'){
                         </select>\
                     </p>\
                     <table class='table table-hover table-bordered get_fpm_status' style='margin:0;padding:0'>\
-                        <tr><th>" + pt('应用池(pool)') + "</th><td>" + rdata.pool + "</td></tr>\
+                        <tr><th>" + pt('应用池(pool)') + "</th><td>" + phpEsc(rdata.pool) + "</td></tr>\
                         <tr><th>" + pt('进程管理方式(process manager)') + "</th><td>" + php_fpm_status + "</td></tr>\
-                        <tr><th>" + pt('启动日期(start time)') + "</th><td>" + rdata['start time'] + "</td></tr>\
-                        <tr><th>" + pt('请求数(accepted conn)') + "</th><td>" + rdata['accepted conn'] + "</td></tr>\
-                        <tr><th>" + pt('请求队列(listen queue)') + "</th><td>" + rdata['listen queue'] + "</td></tr>\
-                        <tr><th>" + pt('最大等待队列(max listen queue)') + "</th><td>" + rdata['max listen queue'] + "</td></tr>\
-                        <tr><th>" + pt('socket队列长度(listen queue len)') + "</th><td>" + rdata['listen queue len'] + "</td></tr>\
-                        <tr><th>" + pt('空闲进程数量(idle processes)') + "</th><td>" + rdata['idle processes'] + "</td></tr>\
-                        <tr><th>" + pt('活跃进程数量(active processes)') + "</th><td>" + rdata['active processes'] + "</td></tr>\
-                        <tr><th>" + pt('总进程数量(total processes)') + "</th><td>" + rdata['total processes'] + "</td></tr>\
-                        <tr><th>" + pt('最大活跃进程数量(max active processes)') + "</th><td>" + rdata['max active processes'] + "</td></tr>\
-                        <tr><th>" + pt('到达进程上限次数(max children reached)') + "</th><td>" + rdata['max children reached'] + "</td></tr>\
-                        <tr><th>" + pt('慢请求数量(slow requests)') + "</th><td>" + rdata['slow requests'] + "</td></tr>\
+                        <tr><th>" + pt('启动日期(start time)') + "</th><td>" + phpEsc(rdata['start time']) + "</td></tr>\
+                        <tr><th>" + pt('请求数(accepted conn)') + "</th><td>" + phpEsc(rdata['accepted conn']) + "</td></tr>\
+                        <tr><th>" + pt('请求队列(listen queue)') + "</th><td>" + phpEsc(rdata['listen queue']) + "</td></tr>\
+                        <tr><th>" + pt('最大等待队列(max listen queue)') + "</th><td>" + phpEsc(rdata['max listen queue']) + "</td></tr>\
+                        <tr><th>" + pt('socket队列长度(listen queue len)') + "</th><td>" + phpEsc(rdata['listen queue len']) + "</td></tr>\
+                        <tr><th>" + pt('空闲进程数量(idle processes)') + "</th><td>" + phpEsc(rdata['idle processes']) + "</td></tr>\
+                        <tr><th>" + pt('活跃进程数量(active processes)') + "</th><td>" + phpEsc(rdata['active processes']) + "</td></tr>\
+                        <tr><th>" + pt('总进程数量(total processes)') + "</th><td>" + phpEsc(rdata['total processes']) + "</td></tr>\
+                        <tr><th>" + pt('最大活跃进程数量(max active processes)') + "</th><td>" + phpEsc(rdata['max active processes']) + "</td></tr>\
+                        <tr><th>" + pt('到达进程上限次数(max children reached)') + "</th><td>" + phpEsc(rdata['max children reached']) + "</td></tr>\
+                        <tr><th>" + pt('慢请求数量(slow requests)') + "</th><td>" + phpEsc(rdata['slow requests']) + "</td></tr>\
                     </table>\
                 </div>";
         $(".soft-man-con").html(con);
@@ -504,7 +542,7 @@ function getFpmStatus(version, pool = 'www'){
 
 function getSessionConfig(version){
     api.post('get_session_conf', version, '', function(ret_data){
-        var rdata = JSON.parse(ret_data.data);
+        var rdata = phpInner(ret_data);
         if(!rdata.status){
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             return;
@@ -517,12 +555,12 @@ function getSessionConfig(version){
             "<option value='memcached' " + (rdata.save_handler == "memcached" ? 'selected' : '') + ">memcached</option>";
 
 
-        var info = rdata.save_path.split(":");
+        var info = String(rdata.save_path || '').split(":");
         var con = "<div class='conf_p'>" +
             "<p class='line'><span class='span_tit'>" + pt('存储模式：') + "</span><select class='bt-input-text' name='save_handler' style='width:240px;'>" + cacheList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('IP地址：') + "</span><input class='bt-input-text' type='text' name='ip' style='width:240px;' value='"+ info[0] +"' /></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('端口：') + "</span><input class='bt-input-text' type='text' name='port' style='width:240px;' value='"+rdata.port+"' /></p>" +
-            "<p class='line'><span class='span_tit'>" + pt('密码：') + "</span><input class='bt-input-text' type='text' name='passwd' style='width:240px;' value='"+rdata.passwd+"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('IP地址：') + "</span><input class='bt-input-text' type='text' name='ip' style='width:240px;' value='"+ phpEsc(info[0]) +"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('端口：') + "</span><input class='bt-input-text' type='text' name='port' style='width:240px;' value='"+phpEsc(rdata.port)+"' /></p>" +
+            "<p class='line'><span class='span_tit'>" + pt('密码：') + "</span><input class='bt-input-text' type='text' name='passwd' style='width:240px;' value='"+phpEsc(rdata.passwd)+"' /></p>" +
             "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>" + pt('保存') + "</button></div></p>" +
             "</div>\
             <ul class='help-info-text c7'>\
@@ -595,7 +633,7 @@ function getSessionConfig(version){
 
         //load session stats
         api.post('get_session_count', version, '', function(ret_data){
-            var rdata = JSON.parse(ret_data.data);
+            var rdata = phpInner(ret_data);
             if(!rdata.status){
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 return;
@@ -605,8 +643,8 @@ function getSessionConfig(version){
             var html_var = "<div class='clear_title' style='padding-bottom:15px;'>" + pt('清理Session文件') + "</div>\
                 <div class='clear_conter'>\
                     <div class='session_clear_list'>\
-                        <div class='line'><span>" + pt('总Session文件数量') + "</span><span>"+rdata.total+"</span></div>\
-                        <div class='line'><span>" + pt('可清理的Session文件数量') + "</span><span>"+rdata.oldfile+"</span></div>\
+                        <div class='line'><span>" + pt('总Session文件数量') + "</span><span>"+phpEsc(rdata.total)+"</span></div>\
+                        <div class='line'><span>" + pt('可清理的Session文件数量') + "</span><span>"+phpEsc(rdata.oldfile)+"</span></div>\
                     </div>\
                 <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>" + pt('清理session文件') + "</button>";
 
@@ -615,7 +653,7 @@ function getSessionConfig(version){
 
             $('#clean_func').on('click', function(){
                 api.post('clean_session_old', version, '', function(ret_data){
-                    var rdata = JSON.parse(ret_data.data);
+                    var rdata = phpInner(ret_data);
                     showMsg(rdata.msg,function(){
                         getSessionConfig(version);
                     },{ icon: rdata.status ? 1 : 2 });
@@ -638,7 +676,7 @@ function setSessionConfig(version){
         save_handler:save_handler,
     };
     api.post('set_session_conf', version, data, function(ret_data){
-        var rdata = JSON.parse(ret_data.data);
+        var rdata = phpInner(ret_data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -647,12 +685,16 @@ function setSessionConfig(version){
 //禁用函数
 function disableFunc(version) {
     api.post('get_disable_func', version,'',function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
+        if (typeof rdata.disable_functions !== 'string') {
+            layer.msg((rdata && rdata.msg) || data.msg, { icon: 0, time: 2000 });
+            return;
+        }
         var disable_functions = rdata.disable_functions.split(',');
         var dbody = ''
         for (var i = 0; i < disable_functions.length; i++) {
             if (disable_functions[i] == '') continue;
-            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">" + pt('删除') + "</a></td></tr>";
+            dbody += "<tr><td>" + phpEsc(disable_functions[i]) + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">" + pt('删除') + "</a></td></tr>";
         }
 
         var con = "<div class='dirBinding' style='display:flex;align-items:center;'>" +
@@ -686,7 +728,7 @@ function resetDisableFunc(version) {
         var loadT = layer.msg(pt('正在还原默认禁用函数...'), { icon: 16, time: 0, shade: 0.3 });
         api.post('reset_disable_func', version, {}, function(ret_data) {
             layer.close(loadT);
-            var rdata = JSON.parse(ret_data.data);
+            var rdata = phpInner(ret_data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if (rdata.status) {
                 disableFunc(version);
@@ -724,7 +766,7 @@ function setDisableFunc(version, act, fs) {
     };
 
     api.post('set_disable_func', version,data,function(data){
-        var rdata = JSON.parse(data.data);
+        var rdata = phpInner(data);
         showMsg(rdata.status ? msg : rdata.msg, function(){
             disableFunc(version);
         } ,{ icon: rdata.status ? 1 : 2 });        
@@ -756,7 +798,7 @@ function getPHPInfo_old(version) {
 function getPHPInfo(version) {
     phpPostCallback('get_php_info', version, {}, function(data){
         if (!data.status){
-            layer.msg(rdata.msg, { icon: 2 });
+            layer.msg((data && data.msg) || 'ERROR', { icon: 2 });
             return;
         }
 
@@ -787,6 +829,10 @@ function phpLibConfig(version){
         }
 
         var libs = rdata.data;
+        if (!libs || !libs.length) {
+            layer.msg(rdata.msg || 'ERROR', { icon: 0, time: 2000 });
+            return;
+        }
         var body = '';
         var opt = '';
 
@@ -806,9 +852,9 @@ function phpLibConfig(version){
             }
 
             body += '<tr>' +
-                '<td>' + libs[i].name + '</td>' +
-                '<td>' + libs[i].type + '</td>' +
-                '<td>' + libs[i].msg + '</td>' +
+                '<td>' + phpEsc(libs[i].name) + '</td>' +
+                '<td>' + phpEsc(libs[i].type) + '</td>' +
+                '<td>' + phpEsc(libs[i].msg) + '</td>' +
                 '<td><span class="ico-' + (libs[i].status ? 'start' : 'stop') + ' glyphicon glyphicon-' + (libs[i].status ? 'ok' : 'remove') + '"></span></td>' +
                 '<td style="text-align: right;">' + opt + '</td>' +
                 '</tr>';
@@ -847,7 +893,7 @@ function installPHPLib(version, name, title, pathinfo) {
         var data = "name=" + name + "&version=" + version + "&type=1";
 
         api.post('install_lib', version, data, function(data){
-            var rdata = JSON.parse(data.data);
+            var rdata = phpInner(data);
             // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             showMsg(rdata.msg, function(){
                 getTaskCount();
@@ -864,7 +910,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         api.post('uninstall_lib', version, data, function(data){
-            var rdata = JSON.parse(data.data);
+            var rdata = phpInner(data);
             // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             showMsg(rdata.msg, function(){
                 getTaskCount();
@@ -878,7 +924,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
 function tunePhpConfig(version) {
     layer.confirm(msgTpl(pt('您确定要对 PHP-{1} 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？'),[version]), { icon: 3, closeBtn: 2 }, function() {
         api.post('tune_php_config', version, '', function(data){
-            var rdata = JSON.parse(data.data);
+            var rdata = phpInner(data);
             showMsg(rdata.msg, function(){
                 getFpmConfig(version);
             },{ icon: rdata.status ? 1 : 2 });
