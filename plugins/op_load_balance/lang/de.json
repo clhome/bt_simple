@@ -62,5 +62,21 @@
     "共{1}条": "{1} insgesamt",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
     "访问节点[%s]失败": "Zugriff auf den Knoten [%s] fehlgeschlagen",
-    "轮询[默认]": "Polling [Standard]"
+    "轮询[默认]": "Polling [Standard]",
+    "参数格式错误!": "Ungültiges Parameterformat!",
+    "负载不存在!": "Die Last existiert nicht!",
+    "节点调度不合法": "Ungültiger Knoten-Scheduling-Algorithmus",
+    "节点健康检查参数不合法": "Ungültiger Parameter für die Knoten-Zustandsprüfung",
+    "节点参数格式不合法": "Ungültiges Format der Knotenparameter",
+    "节点状态不合法": "Ungültiger Knotenstatus",
+    "节点权重不合法": "Ungültige Knotengewichtung",
+    "节点失败次数不合法": "Ungültige Anzahl der Knotenfehler",
+    "节点恢复时间不合法": "Ungültige Wiederherstellungszeit des Knotens",
+    "站点创建失败,负载未添加": "Website konnte nicht erstellt werden, Last wurde nicht hinzugefügt",
+    "负载配置生成失败": "Konfiguration der Last konnte nicht erstellt werden",
+    "删除成功": "Erfolgreich gelöscht",
+    "删除失败": "Löschen fehlgeschlagen",
+    "节点健康状态获取失败": "Knoten-Zustand konnte nicht abgerufen werden",
+    "访问节点失败,参数不合法": "Zugriff auf den Knoten fehlgeschlagen, ungültige Parameter",
+    "日志路径不合法": "Ungültiger Protokollpfad"
 }

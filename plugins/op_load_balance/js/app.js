@@ -1,8 +1,26 @@
 var api = YfPlugin.createApi('op_load_balance');
 var pt = YfI18n.createPluginTranslator('op_load_balance');
 
+// HTML 上下文转义：域名/负载名/节点字段都会被原样存进 cfg.json 并在列表与编辑框回显，
+// 不转义就是存储型 XSS（面板管理员可见）。
+function lbEscape(v){
+    if (v === undefined || v === null){ return ''; }
+    if (typeof entitiesEncode === 'function'){ return entitiesEncode(v); }
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-async 
+// 后端业务结果被面板包了一层（{status,msg,data:'<内层 JSON>'}）：
+// 内层 status 不判就会把业务错误当成功继续渲染，data 为 undefined 时还会 TypeError。
+function lbInner(rdata){
+    var d = rdata && rdata.data;
+    if (typeof d === 'string'){
+        try { d = JSON.parse(d); } catch (e) { d = null; }
+    }
+    if (!d || typeof d !== 'object'){
+        d = {status: !!(rdata && rdata.status), msg: (rdata && rdata.msg) || '', data: null};
+    }
+    return d;
+}
 
 function addNode(){
     layer.open({
@@ -80,17 +98,17 @@ function addNode(){
             var max_fails = $('input[name="max_fails"]').val();
             var fail_timeout = $('input[name="fail_timeout"]').val();
 
-            api.post('check_url', {ip:ip,port:port,path:path},function(rdata){             
-                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+            api.post('check_url', {ip:ip,port:port,path:path},function(rdata){
+                var rdata = lbInner(rdata);
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
                         layer.close(index);
                         $('#nodecon .nulltr').hide();
 
                         var tbody = '<tr>';
-                        tbody +='<td>'+ip+'</td>';
-                        tbody +='<td>'+port+'</td>';
-                        tbody +='<td>'+path+'</td>';
+                        tbody +='<td>'+lbEscape(ip)+'</td>';
+                        tbody +='<td>'+lbEscape(port)+'</td>';
+                        tbody +='<td>'+lbEscape(path)+'</td>';
 
                         tbody +="<td><select name='state'>";
                         var state_option_list = {
@@ -107,9 +125,9 @@ function addNode(){
                         }
                         tbody +="</select></td>";
 
-                        tbody +='<td><input type="number" name="weight" value="'+weight+'" style="width:50px"></td>';
-                        tbody +='<td><input type="number" name="max_fails" value="'+max_fails+'" style="width:50px"></td>';
-                        tbody +='<td><input type="number" name="fail_timeout" value="'+fail_timeout+'" style="width:50px"></td>';
+                        tbody +='<td><input type="number" name="weight" value="'+lbEscape(weight)+'" style="width:50px"></td>';
+                        tbody +='<td><input type="number" name="max_fails" value="'+lbEscape(max_fails)+'" style="width:50px"></td>';
+                        tbody +='<td><input type="number" name="fail_timeout" value="'+lbEscape(fail_timeout)+'" style="width:50px"></td>';
                         tbody +='<td class="text-right" width="50"><a class="btlink minus delete">' + pt('删除') + '</a></td>';
                         tbody += '</tr>';
                         $('#nodecon').append(tbody);
@@ -258,8 +276,8 @@ function addBalance(){
                 node_list.push(tmp);
             });
             data['node_list'] = node_list;
-            ooPostCallbak('add_load_balance', data, function(rdata){
-                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+            api.post('add_load_balance', data, function(rdata){
+                var rdata = lbInner(rdata);
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -352,9 +370,9 @@ function editBalance(data, row){
             for (var n in  node_list) {
 
                 var tbody = '<tr>';
-                tbody +='<td>'+node_list[n]['ip']+'</td>';
-                tbody +='<td>'+node_list[n]['port']+'</td>';
-                tbody +='<td>'+node_list[n]['path']+'</td>';
+                tbody +='<td>'+lbEscape(node_list[n]['ip'])+'</td>';
+                tbody +='<td>'+lbEscape(node_list[n]['port'])+'</td>';
+                tbody +='<td>'+lbEscape(node_list[n]['path'])+'</td>';
 
                 tbody +="<td><select name='state'>";
                 
@@ -367,9 +385,9 @@ function editBalance(data, row){
                 }
                 tbody +="</select></td>";
 
-                tbody +='<td><input type="number" name="weight" value="'+node_list[n]['weight']+'" style="width:50px"></td>';
-                tbody +='<td><input type="number" name="max_fails" value="'+node_list[n]['max_fails']+'" style="width:50px"></td>';
-                tbody +='<td><input type="number" name="fail_timeout" value="'+node_list[n]['fail_timeout']+'" style="width:50px"></td>';
+                tbody +='<td><input type="number" name="weight" value="'+lbEscape(node_list[n]['weight'])+'" style="width:50px"></td>';
+                tbody +='<td><input type="number" name="max_fails" value="'+lbEscape(node_list[n]['max_fails'])+'" style="width:50px"></td>';
+                tbody +='<td><input type="number" name="fail_timeout" value="'+lbEscape(node_list[n]['fail_timeout'])+'" style="width:50px"></td>';
                 tbody +='<td class="text-right" width="50"><a class="btlink minus delete">' + pt('删除') + '</a></td>';
                 tbody += '</tr>';
                 $('#nodecon').append(tbody);
@@ -422,8 +440,8 @@ function editBalance(data, row){
             });
             data['node_list'] = node_list;
             data['row'] = row;
-            ooPostCallbak('edit_load_balance', data, function(rdata){
-                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+            api.post('edit_load_balance', data, function(rdata){
+                var rdata = lbInner(rdata);
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -435,15 +453,25 @@ function editBalance(data, row){
 
 function loadBalanceListRender(){
     api.post('load_balance_list', {}, function(rdata){
-        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
-        var alist = rdata.data;
+        var rdata = lbInner(rdata);
+        if (!rdata.status){
+            layer.msg(rdata.msg, {icon: 2, time: 2000});
+            return;
+        }
+        var alist = Array.isArray(rdata.data) ? rdata.data : [];
 
         var tbody = '';
         for (var i = 0; i < alist.length; i++) {
+            var nodes = alist[i]['node_list'];
+            if (typeof nodes === 'string'){
+                try { nodes = JSON.parse(nodes); } catch (e) { nodes = []; }
+            }
+            if (!Array.isArray(nodes)){ nodes = []; }
+            alist[i]['node_list'] = nodes;
             tbody += '<tr>';
-            tbody += '<td>'+alist[i]['domain']+'</td>';
-            tbody += '<td>'+alist[i]['upstream_name']+'</td>';
-            tbody += '<td>'+alist[i]['node_list'].length+'</td>';
+            tbody += '<td>'+lbEscape(alist[i]['domain'])+'</td>';
+            tbody += '<td>'+lbEscape(alist[i]['upstream_name'])+'</td>';
+            tbody += '<td>'+nodes.length+'</td>';
             tbody += '<td><a class="btlink log_look" data-row="'+i+'">' + pt('查看') + '</a></td>';
             tbody += '<td><a class="btlink health_status" data-row="'+i+'">' + pt('查看') + '</a></td>';
             tbody += '<td style="text-align: right;"><a class="btlink edit" data-row="'+i+'">' + pt('修改') + '</a> | <a class="btlink delete" data-row="'+i+'">' + pt('删除') + '</a></td>';
@@ -466,14 +494,19 @@ function loadBalanceListRender(){
         $('#nodeTable .health_status').on('click', function(){
             var row = $(this).data('row');
             api.post('get_health_status', {row:row}, function(rdata){
-                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+                var rdata = lbInner(rdata);
+                if (!rdata.status){
+                    layer.msg(rdata.msg, {icon: 2, time: 2000});
+                    return;
+                }
+                var peers = Array.isArray(rdata.data) ? rdata.data : [];
 
                 var tval = '';
-                for (var i = 0; i < rdata.data.length; i++) {
+                for (var i = 0; i < peers.length; i++) {
                     tval += '<tr>';
-                    tval += '<td>'+rdata.data[i]['name']+'</td>';
+                    tval += '<td>'+lbEscape(peers[i]['name'])+'</td>';
 
-                    if (typeof(rdata.data[i]['down']) != 'undefined' && rdata.data[i]['down']){
+                    if (typeof(peers[i]['down']) != 'undefined' && peers[i]['down']){
                         tval += '<td><span style="color:red;">' + pt('不正常') + '</span></td>';
                     } else{
                         tval += '<td><span class="btlink">' + pt('正常') + '</span></td>';
@@ -513,7 +546,7 @@ function loadBalanceListRender(){
         $('#nodeTable .delete').on('click', function(){
             var row = $(this).data('row');
             api.post('load_balance_delete', {row:row}, function(rdata){
-                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
+                var rdata = lbInner(rdata);
                 showMsg(rdata.msg, function(){
                     loadBalanceListRender();
                 },{ icon: rdata.status ? 1 : 2 }, 2000);

@@ -62,5 +62,21 @@
     "共{1}条": "{1} total",
     "缺少必要参数:": "Missing required parameter:",
     "访问节点[%s]失败": "Failed to access node [%s]",
-    "轮询[默认]": "Polling [Default]"
+    "轮询[默认]": "Polling [Default]",
+    "参数格式错误!": "Invalid parameter format!",
+    "负载不存在!": "Load does not exist!",
+    "节点调度不合法": "Invalid node scheduling algorithm",
+    "节点健康检查参数不合法": "Invalid node health check parameter",
+    "节点参数格式不合法": "Invalid node parameter format",
+    "节点状态不合法": "Invalid node state",
+    "节点权重不合法": "Invalid node weight",
+    "节点失败次数不合法": "Invalid node failure count",
+    "节点恢复时间不合法": "Invalid node recovery time",
+    "站点创建失败,负载未添加": "Failed to create the site, the load was not added",
+    "负载配置生成失败": "Failed to generate the load configuration",
+    "删除成功": "Deleted successfully",
+    "删除失败": "Delete failed",
+    "节点健康状态获取失败": "Failed to get the node health status",
+    "访问节点失败,参数不合法": "Failed to access node, invalid parameters",
+    "日志路径不合法": "Invalid log path"
 }

@@ -62,5 +62,21 @@
     "共{1}条": "{1} in totale",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "访问节点[%s]失败": "Accesso al nodo [%s] non riuscito",
-    "轮询[默认]": "Polling [Predefinito]"
+    "轮询[默认]": "Polling [Predefinito]",
+    "参数格式错误!": "Formato del parametro non valido!",
+    "负载不存在!": "Il carico non esiste!",
+    "节点调度不合法": "Algoritmo di scheduling del nodo non valido",
+    "节点健康检查参数不合法": "Parametro di controllo stato del nodo non valido",
+    "节点参数格式不合法": "Formato dei parametri del nodo non valido",
+    "节点状态不合法": "Stato del nodo non valido",
+    "节点权重不合法": "Peso del nodo non valido",
+    "节点失败次数不合法": "Numero di errori del nodo non valido",
+    "节点恢复时间不合法": "Tempo di ripristino del nodo non valido",
+    "站点创建失败,负载未添加": "Creazione del sito non riuscita, il carico non è stato aggiunto",
+    "负载配置生成失败": "Generazione della configurazione del carico non riuscita",
+    "删除成功": "Eliminato con successo",
+    "删除失败": "Eliminazione non riuscita",
+    "节点健康状态获取失败": "Recupero dello stato di salute del nodo non riuscito",
+    "访问节点失败,参数不合法": "Accesso al nodo non riuscito, parametri non validi",
+    "日志路径不合法": "Percorso del log non valido"
 }

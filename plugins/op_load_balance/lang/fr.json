@@ -62,5 +62,21 @@
     "共{1}条": "{1} au total",
     "缺少必要参数:": "Paramètre requis manquant :",
     "访问节点[%s]失败": "Échec de l'accès au nœud [%s]",
-    "轮询[默认]": "Interrogation [Par défaut]"
+    "轮询[默认]": "Interrogation [Par défaut]",
+    "参数格式错误!": "Format de paramètre non valide !",
+    "负载不存在!": "La charge n'existe pas !",
+    "节点调度不合法": "Algorithme de répartition des nœuds non valide",
+    "节点健康检查参数不合法": "Paramètre de contrôle de santé du nœud non valide",
+    "节点参数格式不合法": "Format des paramètres du nœud non valide",
+    "节点状态不合法": "État du nœud non valide",
+    "节点权重不合法": "Poids du nœud non valide",
+    "节点失败次数不合法": "Nombre d'échecs du nœud non valide",
+    "节点恢复时间不合法": "Temps de rétablissement du nœud non valide",
+    "站点创建失败,负载未添加": "Échec de la création du site, la charge n'a pas été ajoutée",
+    "负载配置生成失败": "Échec de la génération de la configuration de la charge",
+    "删除成功": "Supprimé avec succès",
+    "删除失败": "Échec de la suppression",
+    "节点健康状态获取失败": "Échec de l'obtention de l'état de santé du nœud",
+    "访问节点失败,参数不合法": "Échec de l'accès au nœud, paramètres non valides",
+    "日志路径不合法": "Chemin de journal non valide"
 }
