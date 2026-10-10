@@ -77,6 +77,24 @@ def _attr_call_names(node):
     return names
 
 
+def _called_names(node):
+    """node 下所有被调用函数的名字（Name 与 Attribute 都算）。"""
+    names = []
+    for n in ast.walk(node):
+        if isinstance(n, ast.Call):
+            f = n.func
+            if isinstance(f, ast.Name):
+                names.append(f.id)
+            elif isinstance(f, ast.Attribute):
+                names.append(f.attr)
+    return names
+
+
+def _names(node):
+    """node 下所有被引用的变量名（含条件表达式里的）。"""
+    return [n.id for n in ast.walk(node) if isinstance(n, ast.Name)]
+
+
 def _communicate_calls(node):
     for n in ast.walk(node):
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) \
@@ -301,6 +319,39 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
                             % (getattr(call, 'lineno', -1), sorted(allowed), sorted(texts)))
         self.assertGreaterEqual(checked, 8,
                                 '识别到的服务类调用只有 %d 处，用例可能失效了' % checked)
+
+    def test_10_service_commands_refresh_init_script_first(self):
+        """服务类命令必须先刷新 initd，否则升级后第一次 `yf 1` 仍会「无响应」。
+
+        背景：initd 只在面板**成功启动时**重生成。旧版 initd 的后台任务会泄漏
+        调用方管道（见 test_08），因此从旧版升级后的第一次 `yf 1` 跑的还是旧脚本
+        → 调用方读不到 EOF。修法 = 执行服务类命令前先 `init_cmd()` 重生成。
+        """
+        tree = _parse(PANEL_TOOLS)
+        fns = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+        self.assertIn('_refreshInitScript', fns)
+        # 刷新必须复用面板启动时的同一段代码，不能另写一份渲染逻辑
+        self.assertIn('init_cmd', _called_names(fns['_refreshInitScript']),
+                      '_refreshInitScript 没有复用 admin.setup.init_cmd')
+
+        # yfcli 里必须有一处「按 SERVICE_CLI_NUMS 白名单刷新」的分支
+        # （只断言「函数被调用过」会被 uninstall 分支里那一处蒙混）
+        guarded = [n for n in ast.walk(fns['yfcli']) if isinstance(n, ast.If)
+                   and '_refreshInitScript' in _called_names(n)
+                   and 'SERVICE_CLI_NUMS' in _names(n.test)]
+        self.assertTrue(guarded,
+                        '服务类命令前没有「按 SERVICE_CLI_NUMS 白名单刷新 initd」的分支')
+        callers = [n for n in ast.walk(fns['yfcli']) if isinstance(n, ast.Call)
+                   and isinstance(n.func, ast.Name) and n.func.id == '_refreshInitScript']
+        self.assertGreaterEqual(len(callers), 2, '卸载分支也应先刷新 initd')
+
+        assign = next((n for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                       and any(isinstance(t, ast.Name) and t.id == 'SERVICE_CLI_NUMS'
+                               for t in n.targets)), None)
+        self.assertIsNotNone(assign, '缺少 SERVICE_CLI_NUMS 白名单')
+        values = {e.value for e in assign.value.elts if isinstance(e, ast.Constant)}
+        self.assertTrue({1, 2, 3, 4, 6, 9}.issubset(values),
+                        'SERVICE_CLI_NUMS 未覆盖启停类命令：%r' % sorted(values))
 
 
 if __name__ == '__main__':

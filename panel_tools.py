@@ -65,6 +65,31 @@ def _panel_python(panel_dir=None):
     return sys.executable or 'python3'
 
 
+#: 会真正调起 `/etc/rc.d/init.d/yf` 的命令编号（执行前必须先刷新服务脚本）
+SERVICE_CLI_NUMS = (1, 2, 3, 4, 6, 9, 20, 23, 24)
+
+
+def _refreshInitScript():
+    """把 /etc/rc.d/init.d/yf 刷新为「当前版本模板渲染出来的」服务脚本。
+
+    为什么必须做（真机故障，2026-10-10）：服务脚本只在**面板成功启动时**由
+    `setup.init() → init_cmd()` 重生成。从旧版升级后第一次执行 `yf 1` / `bs 1`
+    时，跑的还是**旧 initd**：旧版的 `cd X && cmd >> log 2>&1 &` 会留下一个继承了
+    调用方 stdout/stderr 的孤儿子 shell，调用方永远读不到 EOF —— 表现为
+    「yf 1 无响应，只能 Ctrl+C」，用户会以为面板根本起不来。
+    先刷新再重启，这个一次性窗口就不存在了。
+
+    复用 `admin.setup.init_cmd`（面板启动时走的同一段代码），不另写一份渲染逻辑。
+    失败不阻断：写不了（只读盘/权限不足）就继续用现有脚本，行为与修复前一致。
+    """
+    try:
+        from admin.setup.init_cmd import init_cmd
+        if not init_cmd():
+            yf.writeFileLog('[panel_tools] 刷新服务脚本失败，继续使用现有脚本: %s' % INIT_CMD)
+    except Exception as e:
+        yf.writeFileLog('[panel_tools] 刷新服务脚本异常: %s' % e)
+
+
 def yf_input_cmd(msg):
     if sys.version_info[0] == 2:
         in_val = raw_input(msg)
@@ -150,6 +175,7 @@ def yfcli(yf_input=0):
         200, 201, 202
     ]
     if yf_input == "uninstall":
+        _refreshInitScript()
         uninstall_script = panel_dir + "/scripts/uninstall.sh"
         if os.path.exists(uninstall_script):
             yf.safeExecShell(['bash', uninstall_script], timeout=UNINSTALL_TIMEOUT)
@@ -170,6 +196,10 @@ def yfcli(yf_input=0):
             print("未知命令: " + str(yf_input))
             yf.safeExecShell([INIT_CMD, 'list'])
         exit()
+
+    # 启停类命令会用到服务脚本：先刷新，避开「升级后第一次 yf 1 无响应」的窗口
+    if yf_input in SERVICE_CLI_NUMS:
+        _refreshInitScript()
 
     if yf_input == 1:
         yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)

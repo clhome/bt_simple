@@ -170,6 +170,12 @@
 - [x] D4（P1，「面板无法启动」的直接成因）执行原语未建独立会话：`subprocess.Popen` 让子进程
   留在调用方进程组，用户在终端按 **Ctrl+C 的 SIGINT 会打进正在执行的 `yf restart` 脚本**
   （stop 已执行、start 未执行）→ 面板停在停止态。用户贴出的两次 KeyboardInterrupt 即此。
+- [x] D5（P1，**升级窗口**，用户部署后反馈「还是无法重启、`yf 1` 无响应」时定位到）
+  initd **只在面板成功启动时**由 `setup.init() → init_cmd()` 重生成。从旧版升级后
+  **第一次** `yf 1` 跑的还是磁盘上的**旧 initd**（旧版后台任务泄漏管道，即 D2）→
+  调用方读不到 EOF → 「无响应，只能 Ctrl+C」；而 D4 修复后 Ctrl+C 不会打断脚本，
+  重启得以完成、initd 被重生成 → **第二次开始才正常**。用户无法得知「要跑第二次」。
+  真机复现：把旧 initd 装回（md5 `9eb1dee5…`、新形态 0 次）后跑 `yf 1` → 复现无响应。
 
 ### 6.2 修复
 
@@ -187,25 +193,32 @@
 - [x] `panel_tools.py`：新增 `SERVICE_TIMEOUT=120`（启停类）与 `UNINSTALL_TIMEOUT=600`（卸载），
   给 8 处服务类 init.d 调用显式传超时。**刻意不调大 SERVICE_TIMEOUT**：一旦输出管道被外部持有，
   调用方要等满该值才返回（有界但体验差），120s 已覆盖 init.d 自身 30s 端口等待上限。
+- [x] `panel_tools.py`（堵 D5 升级窗口）：新增 `SERVICE_CLI_NUMS = (1,2,3,4,6,9,20,23,24)` 与
+  `_refreshInitScript()` —— 启停类命令（含 `uninstall`）执行**前**先调 `admin.setup.init_cmd()`
+  把 initd 重生成为当前版本模板的渲染结果。**复用面板启动时走的同一段代码**（不另写一份
+  渲染逻辑，也不新增第二处模板读取）；写失败只记日志不阻断（行为与修复前一致）。
 
 ### 6.3 验证记录
 
 | 项目 | 命令 | 结果 |
 |------|------|------|
-| 回归守卫 | `python -m unittest testsuite.test_exec_timeout_hardening` | **9/9 通过**（Windows 1 skip）|
-| 变异自证 | `python test/_exec_timeout_mutation.py` | **MUTATIONS=14 RED=14 GREEN=0 APPLY_FAILED=0** |
-| 全量门禁 | `python testsuite/run_all.py` | **239 模块 / 2922 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 回归守卫 | `python -m unittest testsuite.test_exec_timeout_hardening` | **10/10 通过**（Windows 1 skip）|
+| 变异自证 | `python test/_exec_timeout_mutation.py` | **MUTATIONS=16 RED=16 GREEN=0 APPLY_FAILED=0** |
+| 全量门禁 | `python testsuite/run_all.py` | **239 模块 / 2923 用例 / 0 隔离 / 4 静态门禁 全绿** |
 | 真机行为 | 部署后 `/www/server/yufeng_panel/bin/python3` 跑行为探针 | 死锁场景 **6.01s 有界返回**（修复前永久挂起）；killpg 整组回收**零残留**；`execShell`/`execShellRc` 各 1.00s 返回 |
-| 真机守卫 | 真机 `-m unittest testsuite.test_exec_timeout_hardening` | **9/9 全绿，0 skip**（POSIX 路径全开）|
-| 真机端到端 | `yf 1`（= `bs 1`，用户原始命令） | **rc=0 / elapsed=11s**；`panel_http=200`；`panel_task.py` 存活且 **PPID=1**（不再有持管道的 bash 父进程）|
+| 真机守卫 | 真机 `-m unittest testsuite.test_exec_timeout_hardening` | **10/10 全绿，0 skip**（POSIX 路径全开）|
+| 真机端到端 | `yf 1`（= `bs 1`，用户原始命令） | **rc=0 / 10~11s**；`panel_http=200`；`panel_task.py` 存活且 **PPID=1**（不再有持管道的 bash 父进程）|
+| **真机升级窗口** | 装回旧 initd（`9eb1dee5…`，新形态 0 次）后跑**第一次** `yf 1` | **rc=0 / 15s**（修复前 = 无响应直到 Ctrl+C）；重启后 initd 已自动刷新为新版（新形态 1 次）；面板 200、panel_task PPID=1 |
 | 真机 Ctrl+C | 对 panel_tools 所在**进程组**发 SIGINT | initd 脚本 pgid=596818 ≠ 调用方 596816 → 脚本未被打断，**面板仍 200、panel_task 存活** |
 | 文件一致性 | 部署前 / 部署后逐一 md5 | 部署前真机 3 文件 == 本地 HEAD（`ea07a126…`/`bce7da46…`/`f6f7e580…`）；部署后 == 本地（`1a248cf4…`/`b92ec3c4…`/`33ae28e1…`）；真机 `py_compile` OK、`bash -n` OK |
 
 ### 6.4 残留（明确记录）
 
-- 首次从**旧版 init.d** 升级时，历史遗留的孤儿子 shell 仍会持有那一次调用的管道 →
-  那一次 `yf 1` 会等到 `SERVICE_TIMEOUT`(120s) 才返回（有界，不再死锁）。
-  真机上已通过「第二次 restart 杀掉旧 panel_task.py」自然清除，此后稳定 11s。
+- ~~首次从**旧版 init.d** 升级时，历史遗留的孤儿子 shell 仍会持有那一次调用的管道 →
+  那一次 `yf 1` 会等到 `SERVICE_TIMEOUT`(120s) 才返回~~ → **已由 D5 修复堵住**
+  （启停类命令前先 `init_cmd()` 刷新 initd），真机以「装回旧 initd + 第一次 `yf 1`」实测 15s。
+  仍存在的理论窗口：若**其它**命令（非启停类）的子孙进程长期持有调用方管道，调用方会等满
+  该命令的 timeout（有界，不再死锁）。本轮只排查到 initd 这一处泄漏源。
 - `web/utils/system/main.py:491` 的 `subprocess.run(timeout=...)` 不在此列：CPython 内部
   POSIX 分支用 `process.wait()` 收尾，不会无界等待，无需改。
 - 回滚网 `/root/yf_probe_backup_RESTART_FIX/`（yf__init__.py / panel_tools.py / yf.tpl /
