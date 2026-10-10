@@ -178,9 +178,9 @@ def yfcli(yf_input=0):
         _refreshInitScript()
         uninstall_script = panel_dir + "/scripts/uninstall.sh"
         if os.path.exists(uninstall_script):
-            yf.safeExecShell(['bash', uninstall_script], timeout=UNINSTALL_TIMEOUT)
+            yf.safeExecShell(['bash', uninstall_script], timeout=UNINSTALL_TIMEOUT, echo=True)
         else:
-            yf.safeExecShell([INIT_CMD, 'uninstall'], timeout=UNINSTALL_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'uninstall'], timeout=UNINSTALL_TIMEOUT, echo=True)
         return
 
     if yf_input == "migrate_restore":
@@ -194,7 +194,7 @@ def yfcli(yf_input=0):
         else:
             print(raw_tip)
             print("未知命令: " + str(yf_input))
-            yf.safeExecShell([INIT_CMD, 'list'])
+            yf.safeExecShell([INIT_CMD, 'list'], echo=True)
         exit()
 
     # 启停类命令会用到服务脚本：先刷新，避开「升级后第一次 yf 1 无响应」的窗口
@@ -202,13 +202,13 @@ def yfcli(yf_input=0):
         _refreshInitScript()
 
     if yf_input == 1:
-        yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
+        yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
     elif yf_input == 2:
-        yf.safeExecShell([INIT_CMD, 'stop'], timeout=SERVICE_TIMEOUT)
+        yf.safeExecShell([INIT_CMD, 'stop'], timeout=SERVICE_TIMEOUT, echo=True)
     elif yf_input == 3:
-        yf.safeExecShell([INIT_CMD, 'start'], timeout=SERVICE_TIMEOUT)
+        yf.safeExecShell([INIT_CMD, 'start'], timeout=SERVICE_TIMEOUT, echo=True)
     elif yf_input == 4:
-        yf.safeExecShell([INIT_CMD, 'reload'], timeout=SERVICE_TIMEOUT)
+        yf.safeExecShell([INIT_CMD, 'reload'], timeout=SERVICE_TIMEOUT, echo=True)
     elif yf_input == 5:
         in_ip = yf_input_cmd("请输入设置的面板IP：")
         in_ip = in_ip.strip()
@@ -226,8 +226,8 @@ def yfcli(yf_input=0):
             YfFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
             panel_port = panel_dir + '/data/port.pl'
             yf.writeFile(panel_port, in_port)
-            yf.safeExecShell([INIT_CMD, 'restart_panel'], timeout=SERVICE_TIMEOUT)
-            yf.safeExecShell([INIT_CMD, 'default'], timeout=SERVICE_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'restart_panel'], timeout=SERVICE_TIMEOUT, echo=True)
+            yf.safeExecShell([INIT_CMD, 'default'], timeout=SERVICE_TIMEOUT, echo=True)
         else:
             yf.echoInfo("端口范围在0-65536之间")
         return
@@ -243,10 +243,10 @@ def yfcli(yf_input=0):
         # 杀死所有任务进程
         # 多级管道必须经 shell；命令全为字面量，无变量进入 shell
         os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")  # 保留 os.system：常量管道，无外部输入
-        yf.safeExecShell([INIT_CMD, 'restart_task'], timeout=SERVICE_TIMEOUT)
+        yf.safeExecShell([INIT_CMD, 'restart_task'], timeout=SERVICE_TIMEOUT, echo=True)
         yf.echoInfo("后台任务已强制终止并重启!")
     elif yf_input == 10:
-        yf.safeExecShell([INIT_CMD, 'default'])
+        yf.safeExecShell([INIT_CMD, 'default'], echo=True)
     elif yf_input == 11:
         import random
         try:
@@ -273,7 +273,7 @@ def yfcli(yf_input=0):
         input_user = yf_input_cmd("请输入新的面板用户名(>=5位)：")
         set_panel_username(input_user.strip())
     elif yf_input == 13:
-        yf.safeExecShell(['tail', '-100', panel_dir + '/logs/panel_error.log'])
+        yf.safeExecShell(['tail', '-100', panel_dir + '/logs/panel_error.log'], echo=True)
     elif yf_input == 14:
         admin_close = thisdb.getOption('admin_close')
         if admin_close == 'no':
@@ -293,13 +293,13 @@ def yfcli(yf_input=0):
         if basic_auth['open']:
             basic_auth['open'] = False
             thisdb.setOption('basic_auth', json.dumps(basic_auth))
-            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
             yf.echoInfo("关闭basic_auth成功")
     elif yf_input == 21:
         panel_domain = thisdb.getOption('panel_domain', default='')
         if panel_domain != '':
             thisdb.setOption('panel_domain', '')
-            yf.safeExecShell([INIT_CMD, 'unbind_domain'])
+            yf.safeExecShell([INIT_CMD, 'unbind_domain'], echo=True)
             yf.echoInfo("解除域名绑定成功")
         else:
             yf.echoInfo("面板未绑定域名!")
@@ -308,13 +308,13 @@ def yfcli(yf_input=0):
         if panel_ssl['open']:
             panel_ssl['open'] = False
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl))
-            yf.safeExecShell([INIT_CMD, 'unbind_ssl'])
+            yf.safeExecShell([INIT_CMD, 'unbind_ssl'], echo=True)
             yf.echoInfo("解除面板SSL绑定成功")
     elif yf_input == 23:
         listen_ipv6 = panel_dir + '/data/ipv6.pl'
         if not os.path.exists(listen_ipv6):
             yf.writeFile(listen_ipv6, 'True')
-            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
             yf.echoInfo("开启IPv6支持了")
         else:
             yf.echoInfo("已开启IPv6支持!")
@@ -324,7 +324,7 @@ def yfcli(yf_input=0):
             yf.echoInfo("已关闭IPv6支持!")
         else:
             os.remove(listen_ipv6)
-            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
             yf.echoInfo("关闭IPv6支持了")
     elif yf_input == 25:
         open_ssh_port()
@@ -343,13 +343,13 @@ def yfcli(yf_input=0):
         find_cmd =  yf.execShell(cmd)
         if find_cmd[0].strip() != '':
             run_cmd = True
-            yf.safeExecShell(['ufw', 'status'])
+            yf.safeExecShell(['ufw', 'status'], echo=True)
 
         cmd = 'which firewall-cmd'
         find_cmd =  yf.execShell(cmd)
         if find_cmd[0].strip() != '':
             run_cmd = True
-            yf.safeExecShell(['firewall-cmd', '--list-all'])
+            yf.safeExecShell(['firewall-cmd', '--list-all'], echo=True)
         if not run_cmd:
             yf.echoInfo("未检测到防火墙!")
     elif yf_input == 28:

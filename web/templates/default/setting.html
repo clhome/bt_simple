@@ -516,6 +516,7 @@
 	</ul>
 	<div style="text-align: center; margin-top: 15px;">
 		<button type="button" class="btn btn-success btn-sm" onclick="saveMenuConfig()" data-i18n="config.save_menu_config">{{ t('config.save_menu_config', '保存菜单配置') }}</button>
+		<button type="button" class="btn btn-default btn-sm" style="margin-left: 10px;" onclick="resetMenuConfig()" data-i18n="config.reset">{{ t('config.reset', '重置默认') }}</button>
 	</div>
 </div>
 
@@ -597,7 +598,30 @@ function saveMenuConfig() {
 				window.location.reload();
 			}, 1000);
 		}
-	}, 'json');
+	}, 'json').fail(function() {
+		layer.close(loadT);
+		layer.msg((lan && lan.public && lan.public.CONNECT_ERR) || '网络连接超时', { icon: 2 });
+	});
+}
+
+function resetMenuConfig() {
+	var tip = (lan && lan.config && lan.config.reset) ? (lan.config.reset + '?') : '确定要恢复默认菜单设置吗？';
+	layer.confirm(tip, {title: (lan && lan.public && lan.public.msg_title) || '提示', icon: 3}, function(index) {
+		layer.close(index);
+		var loadT = layer.msg((lan && lan.config && lan.config.config_save) || '{{ t("config.config_save", "正在保存配置...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
+		$.post('/setting/reset_menu_config', {}, function(rdata) {
+			layer.close(loadT);
+			layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+			if (rdata.status) {
+				setTimeout(function(){
+					window.location.reload();
+				}, 1000);
+			}
+		}, 'json').fail(function() {
+			layer.close(loadT);
+			layer.msg((lan && lan.public && lan.public.CONNECT_ERR) || '网络连接超时', { icon: 2 });
+		});
+	});
 }
 
 function migrateDatabase() {

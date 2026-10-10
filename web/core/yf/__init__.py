@@ -130,7 +130,7 @@ def _reapTimedOutSub(sub, cmd_desc):
         return (b'', b'')
 
 
-def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
+def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None, echo=False):
     """
     安全的命令执行（规避命令注入）
     :param cmd_list: 命令列表，如 ['ls', '-l', '/']
@@ -139,6 +139,7 @@ def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
     :param stdin_data: 需要从标准输入喂给子进程的数据（str 或 bytes）。
         **口令等敏感数据必须走这里，绝不能塞进 cmd_list** —— argv 对同机任意用户可见
         （`ps -eo args` / `/proc/<pid>/cmdline`），stdin 不会落进命令行。
+    :param echo: 是否将输出实时直通控制台终端（前台 CLI 运维场景使用，零缓冲流式回显）
     :return: (stdout, stderr) 都是 string 类型
     """
     try:
@@ -147,18 +148,23 @@ def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
 
         payload = stdin_data.encode('utf-8') if isinstance(stdin_data, str) else stdin_data
 
+        # 当 echo 为 True 时直通终端控制台，便于交互式命令实时回显打点进度
+        stdout_target = None if echo else subprocess.PIPE
+        stderr_target = None if echo else subprocess.PIPE
+        stdin_target = subprocess.PIPE if (payload is not None or not echo) else None
+
         # 不使用 shell=True，直接调用
-        sub = subprocess.Popen(cmd_list, cwd=cwd, stdin=subprocess.PIPE,
-                               shell=False, bufsize=4096, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, **_newProcessGroupKwargs())
+        sub = subprocess.Popen(cmd_list, cwd=cwd, stdin=stdin_target,
+                               shell=False, bufsize=4096, stdout=stdout_target,
+                               stderr=stderr_target, **_newProcessGroupKwargs())
         try:
             data = sub.communicate(input=payload, timeout=timeout)
         except subprocess.TimeoutExpired:
             data = _reapTimedOutSub(sub, str(cmd_list))
             raise Exception("Timeout：%s" % str(cmd_list))
             
-        success = data[0]
-        error = data[1]
+        success = data[0] if data and data[0] is not None else ""
+        error = data[1] if data and data[1] is not None else ""
         
         if isinstance(success, bytes):
             try:

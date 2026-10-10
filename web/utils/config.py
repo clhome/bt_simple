@@ -81,8 +81,22 @@ def getAssetVersion(rel_path):
     _asset_version_cache[rel_path] = (token, now)
     return token
 
+DEFAULT_MENU = [
+    {"id": "memuA", "name": "首页", "class": "menu_home", "url": "/", "show": True},
+    {"id": "memuAsite", "name": "网站", "class": "menu_web", "url": "/site/index", "show": True},
+    {"id": "memuAfiles", "name": "文件", "class": "menu_folder", "url": "/files/index", "show": True},
+    {"id": "memuAfirewall", "name": "安全", "class": "menu_firewall", "url": "/firewall/index", "show": True},
+    {"id": "memuAcrontab", "name": "计划任务", "class": "menu_day", "url": "/crontab/index", "show": True},
+    {"id": "memuAmonitor", "name": "监控", "class": "menu_control", "url": "/monitor/index", "show": True},
+    {"id": "memuAlogs", "name": "日志", "class": "menu_logs", "url": "/logs/index", "show": True},
+    {"id": "memuAsoft", "name": "软件管理", "class": "menu_soft", "url": "/soft/index", "show": True},
+    {"id": "memuAsetting", "name": "面板设置", "class": "menu_set", "url": "/setting/index", "show": True}
+]
+DEFAULT_MENU_IDS = [m["id"] for m in DEFAULT_MENU]
+
+
 def _filter_menu_items(items):
-    """只保留可渲染的菜单条目(dict + 非空 str id + 可选字段类型正确)。
+    """只保留可渲染且安全的菜单条目(dict + 非空 str id + 可选字段类型正确 + URL安全)。
 
     为什么需要:menu.json 由 `/setting/save_menu_config` 写入,layout.html 会用
     `t('menu.' + item.id, item.name)` 拼 key。一条缺 `id` / 非 str id 的条目
@@ -105,8 +119,12 @@ def _filter_menu_items(items):
         if klass is not None and not isinstance(klass, str):
             continue
         url = item.get('url')
-        if url is not None and not isinstance(url, str):
-            continue
+        if url is not None:
+            if not isinstance(url, str):
+                continue
+            clean_url = url.strip().lower()
+            if clean_url.startswith(('javascript:', 'vbscript:', 'data:')):
+                continue
         show = item.get('show')
         if show is not None and not isinstance(show, bool):
             continue
@@ -122,26 +140,34 @@ def get_menu_config():
     panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     menu_file = panel_dir + '/data/menu.json'
     if not os.path.exists(menu_file):
-        default_menu = [
-            {"id": "memuA", "name": "首页", "class": "menu_home", "url": "/", "show": True},
-            {"id": "memuAsite", "name": "网站", "class": "menu_web", "url": "/site/index", "show": True},
-            {"id": "memuAfiles", "name": "文件", "class": "menu_folder", "url": "/files/index", "show": True},
-            {"id": "memuAfirewall", "name": "安全", "class": "menu_firewall", "url": "/firewall/index", "show": True},
-            {"id": "memuAcrontab", "name": "计划任务", "class": "menu_day", "url": "/crontab/index", "show": True},
-            {"id": "memuAmonitor", "name": "监控", "class": "menu_control", "url": "/monitor/index", "show": True},
-            {"id": "memuAlogs", "name": "日志", "class": "menu_logs", "url": "/logs/index", "show": True},
-            {"id": "memuAsoft", "name": "软件管理", "class": "menu_soft", "url": "/soft/index", "show": True},
-            {"id": "memuAsetting", "name": "面板设置", "class": "menu_set", "url": "/setting/index", "show": True}
-        ]
+        default_menu = [dict(m) for m in DEFAULT_MENU]
         yf.writeFile(menu_file, json.dumps(default_menu))
         _menu_cache = default_menu
     else:
         try:
             content = yf.readFile(menu_file)
-            _menu_cache = _filter_menu_items(json.loads(content))
+            parsed = json.loads(content)
+            clean = _filter_menu_items(parsed)
+            # 容灾兜底保护：若过滤后为空，或所有条目均不包含任何核心内置菜单，回退到默认菜单
+            known_ids = set(m.get('id') for m in clean)
+            if not clean or not any(cid in known_ids for cid in DEFAULT_MENU_IDS):
+                clean = [dict(m) for m in DEFAULT_MENU]
+            _menu_cache = clean
         except Exception as e:
-            _menu_cache = []
+            _menu_cache = [dict(m) for m in DEFAULT_MENU]
     
+    return _menu_cache
+
+
+def reset_menu_config():
+    """将菜单配置重置为系统默认配置并刷新缓存"""
+    global _menu_cache
+    panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    menu_file = panel_dir + '/data/menu.json'
+    default_menu = [dict(m) for m in DEFAULT_MENU]
+    yf.writeFile(menu_file, json.dumps(default_menu))
+    _menu_cache = default_menu
+    clearGlobalVarCache()
     return _menu_cache
 
 def getUnauthStatus(

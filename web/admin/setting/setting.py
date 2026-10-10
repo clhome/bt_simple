@@ -522,6 +522,12 @@ def save_menu_config():
         if len(valid) != len(menus) or not valid:
             return yf.returnData(False, 'setting.py_msg_e6c1aa')
 
+        # 核心菜单完整性校验: 必须包含系统全部内置菜单ID, 不允许恶意剔除核心项或随意伪造ID
+        default_ids = set(getattr(utils_config, 'DEFAULT_MENU_IDS', []))
+        submitted_ids = set(item.get('id') for item in valid)
+        if default_ids and not default_ids.issubset(submitted_ids):
+            return yf.returnData(False, 'setting.py_msg_e6c1aa')
+
         panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         menu_file = panel_dir + '/data/menu.json'
         yf.writeFile(menu_file, json.dumps(valid))
@@ -530,6 +536,16 @@ def save_menu_config():
         utils_config._menu_cache = valid
         utils_config.clearGlobalVarCache()
         
+        return yf.returnData(True, 'setting.py_msg_a087ab')
+    except Exception as e:
+        return yf.returnData(False, 'admin.py_msg_2cf3ac', None, str(e))
+
+# 重置菜单配置为默认
+@blueprint.route('/reset_menu_config', endpoint='reset_menu_config', methods=['POST'])
+@panel_login_required
+def reset_menu_config():
+    try:
+        utils_config.reset_menu_config()
         return yf.returnData(True, 'setting.py_msg_a087ab')
     except Exception as e:
         return yf.returnData(False, 'admin.py_msg_2cf3ac', None, str(e))

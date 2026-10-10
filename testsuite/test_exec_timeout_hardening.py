@@ -130,7 +130,10 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
 
     def test_01_normal_path_unchanged(self):
         """常规路径不能被改动影响：stdout / stderr / stdin_data / 退出码。"""
-        self.assertEqual(yf.safeExecShell(['echo', 'hello']), ('hello\n', ''))
+        echo_cmd = ['echo', 'hello'] if os.name == 'posix' else [
+            sys.executable, '-c', 'import sys; sys.stdout.buffer.write(b"hello\\n")'
+        ]
+        self.assertEqual(yf.safeExecShell(echo_cmd), ('hello\n', ''))
 
         out, err = yf.safeExecShell(
             [sys.executable, '-c', 'import sys; sys.stdout.write(sys.stdin.read().upper())'],
@@ -353,6 +356,46 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
         self.assertTrue({1, 2, 3, 4, 6, 9}.issubset(values),
                         'SERVICE_CLI_NUMS 未覆盖启停类命令：%r' % sorted(values))
 
+    def test_11_safe_exec_shell_echo_mode(self):
+        """safeExecShell 支持 echo=True 直通终端，且 panel_tools 启停类命令必须带 echo=True。"""
+        # 1. 行为验证：echo=True 下正常返回 ('', '') 且不报错
+        out, err = yf.safeExecShell([sys.executable, '-c', 'pass'], echo=True)
+        self.assertEqual(out, '')
+        self.assertEqual(err, '')
+
+        # 2. 超时保护在 echo=True 下依然有效
+        t0 = time.time()
+        out, err = yf.safeExecShell([sys.executable, '-c', 'import time; time.sleep(10)'],
+                                    timeout=1, echo=True)
+        elapsed = time.time() - t0
+        self.assertLess(elapsed, DEADLOCK_BUDGET)
+        self.assertEqual(out, '')
+        self.assertIn('Timeout', err)
+
+        # 3. 静态 AST 检查：panel_tools 里的每个启停类命令都必须设置 echo=True，保证终端实时回显
+        tree = _parse(PANEL_TOOLS)
+        checked_echo = 0
+        service_cmds = {'restart', 'stop', 'start', 'reload', 'default', 'restart_panel', 'restart_task'}
+        for call in ast.walk(tree):
+            if not (isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+                    and call.func.attr == 'safeExecShell' and call.args):
+                continue
+            first = call.args[0]
+            if not isinstance(first, ast.List) or not first.elts:
+                continue
+            texts = {e.value for e in first.elts if isinstance(e, ast.Constant)}
+            if not (texts & service_cmds):
+                continue
+            echos = [kw for kw in call.keywords if kw.arg == 'echo']
+            has_echo = bool(echos and isinstance(echos[0].value, ast.Constant) and echos[0].value.value is True)
+            self.assertTrue(has_echo,
+                            '行 %d 的启停类命令未设置 echo=True，会导致 CLI 终端无提示或卡死假象'
+                            % getattr(call, 'lineno', -1))
+            checked_echo += 1
+        self.assertGreaterEqual(checked_echo, 10,
+                                '识别到的启停类 echo=True 数量不足（预期至少 10 处，实测 %d 处）' % checked_echo)
+
 
 if __name__ == '__main__':
     unittest.main()
+
