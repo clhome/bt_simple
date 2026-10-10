@@ -38,6 +38,7 @@
     "警告": "Warning",
     "设为默认": "Set as Default",
     "设置系统级默认全局JAVA_HOME": "Set system-level default global JAVA_HOME",
+    "请求失败": "Request failed",
     "请输入JDK路径": "Please enter JDK path",
     "面板安装": "Panel Installed"
 }

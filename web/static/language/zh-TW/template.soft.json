@@ -397,7 +397,13 @@
     "add_custom_title": "新增自訂JDK",
     "path_label": "JDK路徑：",
     "custom_tip": "提示: 請手動輸入 java 可執行檔案的完整路徑。",
-    "please_input_path": "請輸入JDK路徑"
+    "please_input_path": "請輸入JDK路徑",
+    "invalid_version": "JDK 版本號不合法",
+    "invalid_url": "下載位址不合法，僅允許受信任鏡像的 http(s) tar.gz",
+    "uninstall_failed": "卸載失敗，請檢查目錄佔用與權限",
+    "set_default_failed": "設定系統預設JDK失敗",
+    "save_failed": "儲存JDK設定失敗",
+    "install_script_failed": "安裝指令碼寫入失敗，請檢查磁碟空間與權限"
   },
   "python_yf": {
     "uv_not_found": "未檢測到 uv 環境，請先安裝 uv",

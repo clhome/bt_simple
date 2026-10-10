@@ -96,6 +96,18 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
 resetPluginWinWidth(800);
 resetPluginWinHeight(520);
 
+    // 回显值（JDK 路径/版本/下载地址）来自服务端，直接拼进 innerHTML 与行内 onclick
+    // 时，含 ' / " / < 的值可逃出属性并注入 HTML/JS。jdkEsc 做 HTML 转义，
+    // jdkJsArg 先做 JS 字符串转义再做 HTML 属性转义（onclick="f('...')" 双重上下文）。
+    function jdkEsc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function jdkJsArg(s) {
+        return jdkEsc(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n'));
+    }
+
     var jdk_manager = {
         plugin_name: 'jdk',
         init: function () {
@@ -136,7 +148,11 @@ resetPluginWinHeight(520);
                 if (typeof callback == 'function') {
                     callback(rdata);
                 }
-            }, 'json');
+            }, 'json').fail(function (xhr) {
+                // 缺 .fail() 时 500 会让 loading 遮罩永久卡死
+                layer.close(loadT);
+                layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status), { icon: 0, time: 3000, shade: [0.3, '#000'] });
+            });
         },
         render_table: function () {
             var _that = this;
@@ -150,11 +166,12 @@ resetPluginWinHeight(520);
                     else if (row.type === '用户自定义') typeText = (window.lan && lan.jdk && lan.jdk.type_custom) || t('jdk.type_custom', '用户自定义');
                     else if (row.type === '系统预装') typeText = (window.lan && lan.jdk && lan.jdk.type_sys) || t('jdk.type_sys', '系统预装');
 
-                    var nameHtml = '<span>' + row.name + '</span><span class="jdk-type"> (' + typeText + ')</span>';
+                    var nameHtml = '<span>' + jdkEsc(row.name) + '</span><span class="jdk-type"> (' + jdkEsc(typeText) + ')</span>';
                     if (row.is_default) {
                         nameHtml += '<span class="jdk-default-badge">' + pt('系统默认') + '</span>';
                     }
-                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + pt('点击打开目录') + '" onclick="openPath(\'' + row.path.substring(0, row.path.lastIndexOf('/')) + '\')">' + row.path + '</a>' : '-';
+                    var rowDir = row.path ? row.path.substring(0, row.path.lastIndexOf('/')) : '';
+                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + jdkEsc(pt('点击打开目录')) + '" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
                     
                     var opsHtml = '';
                     // 设为默认
@@ -162,22 +179,22 @@ resetPluginWinHeight(520);
                         if (row.is_default) {
                             opsHtml += '<span style="color:#999; margin-right:10px;">' + pt('已是默认') + '</span>';
                         } else {
-                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + row.path + '\', \'' + row.name + '\')">' + pt('设为默认') + '</a>';
+                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('设为默认') + '</a>';
                         }
                     }
                     
                     // 安装/卸载
                     if (row.operation == 1) {
-                        opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + pt('卸载') + '</a>';
+                        opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.type) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('卸载') + '</a>';
                     } else if (row.operation == 0) {
-                        opsHtml += '<a class="bt_success" style="cursor: pointer;" onclick="jdk_manager.install(\'' + row.name + '\', \'' + row.download_url + '\')">' + pt('安装') + '</a>';
+                        opsHtml += '<a class="bt_success" style="cursor: pointer;" onclick="jdk_manager.install(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('安装') + '</a>';
                     } else if (row.operation == 3) {
                         opsHtml += '<span style="color:#e6a23c">' + pt('正在安装...') + '</span>';
                     } else if (row.operation == 2) {
                         if (row.type === '系统预装') {
                             opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
                         } else {
-                            opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + pt('移除记录') + '</a>';
+                            opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.type) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('移除记录') + '</a>';
                         }
                     } else if (row.operation == 4) {
                         opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
@@ -214,7 +231,7 @@ resetPluginWinHeight(520);
         set_default: function(path, name) {
             var _that = this;
             var confirmMsg = (window.lan && lan.jdk && lan.jdk.set_default_confirm) || t('jdk.set_default_confirm', '确认将【{1}】设为全局系统默认 JDK 吗？<br>这会修改 /etc/profile.d/java.sh 环境变量配置。');
-            confirmMsg = confirmMsg.replace('{1}', name);
+            confirmMsg = confirmMsg.replace('{1}', jdkEsc(name));
             layer.confirm(confirmMsg, { icon: 3, title: (window.lan && lan.public && lan.public.warning) || t('public.warning', '警告') }, function (index) {
                 layer.close(index);
                 _that.send('set_default_jdk', { path: path }, function (res) {
@@ -228,7 +245,7 @@ resetPluginWinHeight(520);
             var isUninstall = (type === '面板安装');
             var msg = isUninstall ? pt('卸载') : pt('移除');
             var warning = isUninstall ? pt('此操作将会删除该 JDK 目录下的所有文件，请确保该 JDK 未被业务占用！') : pt('仅移除面板记录，不删除文件。');
-            var confirmTitle = ((window.lan && lan.jdk && lan.jdk.confirm_action) || t('jdk.confirm_action', '是否{1}【{2}】？<br><span style="color: red">{3}</span>')).replace('{1}', msg).replace('{2}', name).replace('{3}', warning);
+            var confirmTitle = ((window.lan && lan.jdk && lan.jdk.confirm_action) || t('jdk.confirm_action', '是否{1}【{2}】？<br><span style="color: red">{3}</span>')).replace('{1}', jdkEsc(msg)).replace('{2}', jdkEsc(name)).replace('{3}', jdkEsc(warning));
             layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.warning) || t('public.warning', '警告') }, function (index) {
                 layer.close(index);
                 _that.send('uninstall_jdk', { path: path, type: type }, function (res) {
@@ -239,7 +256,7 @@ resetPluginWinHeight(520);
         },
         install: function(version, url) {
             var _that = this;
-            var confirmTitle = pt('确认安装【{1}】？').replace('{1}', version) + '<br>' + pt('将从国内镜像源后台下载并解压。');
+            var confirmTitle = pt('确认安装【{1}】？').replace('{1}', jdkEsc(version)) + '<br>' + pt('将从国内镜像源后台下载并解压。');
             layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.tip) || t('public.tip', '提示') }, function (index) {
                 layer.close(index);
                 _that.send('install_jdk', { version: version, download_url: url }, function (res) {

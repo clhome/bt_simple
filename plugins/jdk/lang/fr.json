@@ -38,6 +38,7 @@
     "警告": "Avertissement",
     "设为默认": "Définir par défaut",
     "设置系统级默认全局JAVA_HOME": "Définir JAVA_HOME global par défaut au niveau du système",
+    "请求失败": "Échec de la requête",
     "请输入JDK路径": "Veuillez saisir le chemin du JDK",
     "面板安装": "Installé par le panneau"
 }

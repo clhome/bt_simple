@@ -397,7 +397,13 @@
     "add_custom_title": "Aggiungi JDK personalizzato",
     "path_label": "Percorso JDK:",
     "custom_tip": "Suggerimento: inserisci manualmente il percorso completo dell'eseguibile java.",
-    "please_input_path": "Inserisci il percorso del JDK"
+    "please_input_path": "Inserisci il percorso del JDK",
+    "invalid_version": "Versione JDK non valida",
+    "invalid_url": "URL di download non valido (solo http(s) .tar.gz da mirror attendibili)",
+    "uninstall_failed": "Disinstallazione non riuscita, controlla utilizzo e permessi",
+    "set_default_failed": "Impossibile impostare il JDK predefinito",
+    "save_failed": "Impossibile salvare la configurazione JDK",
+    "install_script_failed": "Impossibile scrivere lo script di installazione"
   },
   "python_yf": {
     "uv_not_found": "Ambiente uv non rilevato, installa prima uv",

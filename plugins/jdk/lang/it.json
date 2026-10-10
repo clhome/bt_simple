@@ -38,6 +38,7 @@
     "警告": "Avviso",
     "设为默认": "Imposta come predefinito",
     "设置系统级默认全局JAVA_HOME": "Impostazione del valore predefinito globale di JAVA_HOME a livello di sistema",
+    "请求失败": "Richiesta non riuscita",
     "请输入JDK路径": "Inserisci il percorso del JDK",
     "面板安装": "Installato da pannello"
 }

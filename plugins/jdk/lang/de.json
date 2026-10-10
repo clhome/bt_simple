@@ -38,6 +38,7 @@
     "警告": "Warnung",
     "设为默认": "Als Standard festlegen",
     "设置系统级默认全局JAVA_HOME": "Festlegen der systemweiten Standard-JAVA_HOME-Variable",
+    "请求失败": "Anfrage fehlgeschlagen",
     "请输入JDK路径": "Bitte geben Sie den JDK-Pfad ein",
     "面板安装": "Panel-installiert"
 }

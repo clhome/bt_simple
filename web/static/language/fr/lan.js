@@ -5340,7 +5340,13 @@ var lan = {
 			"add_custom_title": "Ajouter un JDK personnalisé",
 			"path_label": "Chemin JDK :",
 			"custom_tip": "Astuce : Veuillez saisir manuellement le chemin complet de l'exécutable java.",
-			"please_input_path": "Veuillez saisir le chemin du JDK"
+			"please_input_path": "Veuillez saisir le chemin du JDK",
+			"invalid_version": "Version JDK invalide",
+			"invalid_url": "URL de téléchargement invalide (uniquement http(s) .tar.gz d'un miroir approuvé)",
+			"uninstall_failed": "Échec de la désinstallation, vérifiez l'occupation et les permissions",
+			"set_default_failed": "Échec de la définition du JDK par défaut",
+			"save_failed": "Échec de l'enregistrement de la configuration JDK",
+			"install_script_failed": "Échec de l'écriture du script d'installation"
 		},
 
 	"python_yf": {

@@ -397,7 +397,13 @@
     "add_custom_title": "添加自定义JDK",
     "path_label": "JDK路径：",
     "custom_tip": "提示: 请手动输入 java 可执行文件的完整路径。",
-    "please_input_path": "请输入JDK路径"
+    "please_input_path": "请输入JDK路径",
+    "invalid_version": "JDK 版本号不合法",
+    "invalid_url": "下载地址不合法，仅允许受信任镜像的 http(s) tar.gz",
+    "uninstall_failed": "卸载失败，请检查目录占用与权限",
+    "set_default_failed": "设置系统默认JDK失败",
+    "save_failed": "保存JDK配置失败",
+    "install_script_failed": "安装脚本写入失败，请检查磁盘空间与权限"
   },
   "python_yf": {
     "uv_not_found": "未检测到 uv 环境，请先安装 uv",

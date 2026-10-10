@@ -5340,7 +5340,13 @@ var lan = {
 			"add_custom_title": "Add Custom JDK",
 			"path_label": "JDK Path:",
 			"custom_tip": "Tip: Please manually enter the full path to the java executable.",
-			"please_input_path": "Please enter JDK path"
+			"please_input_path": "Please enter JDK path",
+			"invalid_version": "Invalid JDK version",
+			"invalid_url": "Invalid download URL (only http(s) .tar.gz from trusted mirrors)",
+			"uninstall_failed": "Uninstall failed, check directory usage and permissions",
+			"set_default_failed": "Failed to set default JDK",
+			"save_failed": "Failed to save JDK config",
+			"install_script_failed": "Failed to write install script"
 		},
 
 	"python_yf": {

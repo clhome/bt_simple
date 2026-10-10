@@ -3690,7 +3690,13 @@
     "add_custom_title": "Benutzerdefiniertes JDK hinzufügen",
     "path_label": "JDK-Pfad:",
     "custom_tip": "Hinweis: Bitte geben Sie den vollständigen Pfad zur ausführbaren Java-Datei manuell ein.",
-    "please_input_path": "Bitte geben Sie den JDK-Pfad ein"
+    "please_input_path": "Bitte geben Sie den JDK-Pfad ein",
+    "invalid_version": "Ungültige JDK-Version",
+    "invalid_url": "Ungültige Download-URL (nur http(s) .tar.gz von vertrauenswürdigen Mirrors)",
+    "uninstall_failed": "Deinstallation fehlgeschlagen, Nutzung und Rechte prüfen",
+    "set_default_failed": "Standard-JDK konnte nicht gesetzt werden",
+    "save_failed": "JDK-Konfiguration konnte nicht gespeichert werden",
+    "install_script_failed": "Installationsskript konnte nicht geschrieben werden"
   },
   "python_yf": {
     "uv_not_found": "uv-Umgebung nicht gefunden, bitte installieren Sie zuerst uv",
