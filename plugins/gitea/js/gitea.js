@@ -1,6 +1,30 @@
 var api = YfPlugin.createApi('gitea');
 var pt = YfI18n.createPluginTranslator('gitea');
 
+// HTML 转义：用户/项目/文件名、邮箱、配置值都来自服务端（Gitea 数据库/仓库目录/app.ini），
+// 直接拼进 .html() 即存储型 XSS（与 A09/A11 同族）。
+// 正则里的引号写成 \x22/\x27：旧版前端「引号配对」静态扫描器会把 /\"/g 里的引号
+// 当成字符串开头，导致后续代码全部误判（php.js/rsyncd.js 已踩过）。
+function gtEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// onclick 参数转义：属性值先过 HTML 实体解码再交给 JS，&#39; 会被解码回 ' 而逃逸，
+// 因此必须用 \xNN 形式（同 task_manager tmJsArg / rsyncd rsJsArg）。
+function gtJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
 
 
 function giteaService(){
@@ -13,9 +37,11 @@ function giteaService(){
             api.post('get_access_url', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 if(rdata.status){
+                    var lan = gtEsc(rdata.data.lan);
+                    var wan = gtEsc(rdata.data.wan);
                     var html = '<div style="margin-top:20px; padding:15px; border:1px solid #ddd; border-radius:4px; width:450px;">\
-                        <p style="margin-bottom:10px;">' + pt('内网访问地址：') + '<a href="'+rdata.data.lan+'" target="_blank" class="btlink">'+rdata.data.lan+'</a></p>\
-                        <p style="margin-bottom:0px;">' + pt('外网访问地址：') + '<a href="'+rdata.data.wan+'" target="_blank" class="btlink">'+rdata.data.wan+'</a></p>\
+                        <p style="margin-bottom:10px;">' + pt('内网访问地址：') + '<a href="'+lan+'" target="_blank" class="btlink">'+lan+'</a></p>\
+                        <p style="margin-bottom:0px;">' + pt('外网访问地址：') + '<a href="'+wan+'" target="_blank" class="btlink">'+wan+'</a></p>\
                     </div>';
                     $(".soft-man-con").append(html);
                 }
@@ -38,12 +64,14 @@ function gogsSetConfig(){
         for (var i = 0; i < rdata.length; i++) {
             var w = '140';
             if (rdata[i].name == 'error_reporting') w = '250';
-            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + rdata[i].name + '" value="' + rdata[i].value + '" type="text" >';
+            var cfgName = gtEsc(rdata[i].name);
+            var cfgVal = gtEsc(rdata[i].value);
+            var ibody = '<input style="width: ' + w + 'px;" class="bt-input-text mr5" name="' + cfgName + '" value="' + cfgVal + '" type="text" >';
             switch (rdata[i].type) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
+                    ibody = '<select class="bt-input-text mr5" name="' + cfgName + '" style="width: ' + w + 'px;">\
                         <option value="1" ' + selected_1 + '>' + pt('开启') + '</option>\
                         <option value="0" ' + selected_0 + '>' + pt('关闭') + '</option>\
                         </select>';
@@ -51,19 +79,19 @@ function gogsSetConfig(){
                 case 1:
                     var selected_1 = (rdata[i].value == 'On') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'Off') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
+                    ibody = '<select class="bt-input-text mr5" name="' + cfgName + '" style="width: ' + w + 'px;">\
                         <option value="On" ' + selected_1 + '>' + pt('开启') + '</option>\
                         <option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
                 case 2:
                     var selected_1 = (rdata[i].value == 'true') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'false') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
+                    ibody = '<select class="bt-input-text mr5" name="' + cfgName + '" style="width: ' + w + 'px;">\
                         <option value="true" ' + selected_1 + '>' + pt('开启') + '</option>\
                         <option value="false" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
             }
-            mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + pt(rdata[i].ps) + '</font></p>'
+            mlist += '<p><span>' + cfgName + '</span>' + ibody + ', <font>' + pt(rdata[i].ps) + '</font></p>'
         }
         var html = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
@@ -109,8 +137,8 @@ function gogsEdit(){
         var rdata = JSON.parse(data.data);
         var edit = '<p class="status">' + pt('通用的手动编辑:') + '</p>';
         edit +='<div class="sfm-opt">\
-                <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+rdata['post_receive']+'\');">post-receive.tpl</button>\
-                <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+rdata['commit']+'\');">commit.tpl</button>\
+                <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+gtJsArg(rdata['post_receive'])+'\');">post-receive.tpl</button>\
+                <button class="btn btn-default btn-sm" onclick="onlineEditFile(0,\''+gtJsArg(rdata['commit'])+'\');">commit.tpl</button>\
             </div>'; 
         $(".soft-man-con").html(edit);
     });
@@ -141,12 +169,13 @@ function giteaUserList(page, search) {
         content = '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="' + pt('查找用户名') + '" id="find_user" style="height: 28px; border-radius: 3px;width: 435px;">';
         content += '<button class="btn btn-success btn-sm find_user" >' + pt('查找') + '</button></div>';
 
+        var rootUrl = gtEsc(rdata['data']['root_url']);
         content += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         content += '<thead><tr>';
         content += '<th>' + pt('序号') + '</th>';
         content += '<th>' + pt('用户或组织') + '</th>';
         content += '<th>' + pt('邮件地址') + '</th>';
-        content += '<th>' + pt('操作(') + '<a href="'+rdata['data']['root_url']+'" class="btlink" target="_blank">' + pt('WEB管理') + '</a>)</th>';
+        content += '<th>' + pt('操作(') + '<a href="'+rootUrl+'" class="btlink" target="_blank">' + pt('WEB管理') + '</a>)</th>';
         content += '</tr></thead>';
 
         content += '<tbody>';
@@ -154,10 +183,10 @@ function giteaUserList(page, search) {
         ulist = rdata['data']['data'];
         for (i in ulist){
 
-            var email = ulist[i]["email"] == '' ? pt('无') : ulist[i]["email"];
-            var user_url = rdata['data']['root_url'] + ulist[i]["name"];
-            content += '<tr><td>'+ulist[i]["id"]+'</td>'+
-                '<td>'+ulist[i]["name"]+'</td>'+
+            var email = ulist[i]["email"] == '' ? pt('无') : gtEsc(ulist[i]["email"]);
+            var user_url = rootUrl + gtEsc(ulist[i]["name"]);
+            content += '<tr><td>'+gtEsc(ulist[i]["id"])+'</td>'+
+                '<td>'+gtEsc(ulist[i]["name"])+'</td>'+
                 '<td>'+email+'</td>'+
                 '<td><a class="btlink" target="_blank" href="'+user_url+'">' + pt('项目管理') + '</a></td>'+
                 '</tr>';
@@ -184,7 +213,7 @@ function giteaUserList(page, search) {
 function userProjectList(user, search){
     var loadOpen = layer.open({
         type: 1,
-        title: msgTpl(pt('用户({1})项目列表'), [user]),
+        title: msgTpl(pt('用户({1})项目列表'), [gtEsc(user)]),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                     <div>\
@@ -233,14 +262,15 @@ function userProjectListPost(user, search){
 
         var list = '';
         // console.log(rdata);
+        var rootUrl = gtEsc(rdata['data']['root_url']);
         var project_list = rdata['data']['data'];
         for (i in project_list) {
             var name = project_list[i]['name'];
             list += '<tr>\
-                    <td>'+name+'</td>\
+                    <td>'+gtEsc(name)+'</td>\
                     <td>\
-                        <a class="btlink" target="_blank" href="'+rdata['data']['root_url']+user+'/'+name+'">' + pt('源码') + '</a> | \
-                        <a class="btlink" onclick="projectScript(\''+user+'\',\''+name+'\','+project_list[i]['has_hook']+');">' + pt('脚本') + '</a>\
+                        <a class="btlink" target="_blank" href="'+rootUrl+gtEsc(user)+'/'+gtEsc(name)+'">' + pt('源码') + '</a> | \
+                        <a class="btlink" onclick="projectScript(\''+gtJsArg(user)+'\',\''+gtJsArg(name)+'\','+project_list[i]['has_hook']+');">' + pt('脚本') + '</a>\
                     </td>\
                 </tr>';
         }
@@ -267,7 +297,7 @@ function projectScript(user, name,has_hook){
 
     var loadOpen = layer.open({
         type: 1,
-        title: msgTpl(pt('[{1}][{2}]脚本设置'), [user, name]),
+        title: msgTpl(pt('[{1}][{2}]脚本设置'), [gtEsc(user), gtEsc(name)]),
         area: '240px',
         content:'<div class="change-default pd20">'+html+'</div>',
         success:function(layero,index) {
@@ -374,17 +404,18 @@ function gogsRepoListPage(page, search){
                 option += '<a class="btlink edit" data-index="'+i+'">' + pt('编辑') + '</a>' + ' | ';
                 option += '<a class="btlink debug" data-index="'+i+'">' + pt('日志') + '</a>' + ' | ';
                 option += '<a class="btlink run" data-index="'+i+'">' + pt('手动') + '</a>' + ' | ';
-                option += '<a class="btlink scripts" data-index="'+i+'" onclick="projectScriptSelf(\''+ulist[i]["name"]+'\',\''+ulist[i]["repo"]+'\')" >' + pt('自定义') + '</a>';
+                option += '<a class="btlink scripts" data-index="'+i+'" onclick="projectScriptSelf(\''+gtJsArg(ulist[i]["name"])+'\',\''+gtJsArg(ulist[i]["repo"])+'\')" >' + pt('自定义') + '</a>';
             } else{
                 option += '<a data-index="'+i+'" class="btlink load">' + pt('加载脚本') + '</a>';
             }
 
 
-            body += '<tr><td>'+ulist[i]["id"]+'</td>'+
-                '<td class="overflow_hide" style="width:70px;">' + ulist[i]["name"]+'</td>'+
-                '<td class="overflow_hide" style="width:70px;display: inline-block;">' + ulist[i]["repo"]+'</td>'+
+            var repoRoot = gtEsc(rdata['data']['root_url']);
+            body += '<tr><td>'+gtEsc(ulist[i]["id"])+'</td>'+
+                '<td class="overflow_hide" style="width:70px;">' + gtEsc(ulist[i]["name"])+'</td>'+
+                '<td class="overflow_hide" style="width:70px;display: inline-block;">' + gtEsc(ulist[i]["repo"])+'</td>'+
                 '<td>' +
-                    '<a class="btlink" target="_blank" href="'+rdata['data']['root_url']+ulist[i]["name"]+'/'+ulist[i]["repo"]+'">' + pt('源码') + '</a>' + ' | ' +
+                    '<a class="btlink" target="_blank" href="'+repoRoot+gtEsc(ulist[i]["name"])+'/'+gtEsc(ulist[i]["repo"])+'">' + pt('源码') + '</a>' + ' | ' +
                     option + 
                 '</td>' +
                 '</tr>';
@@ -527,7 +558,7 @@ function projectScriptSelfRender(user, name){
                 }
 
                 body += '<tr>'+
-                '<td>' + data[i]["name"]+'</td>'+
+                '<td>' + gtEsc(data[i]["name"])+'</td>'+
                 '<td>' + b_status + '</td>'+
                 '<td>' +
                     '<a class="btlink del" data-index="'+i+'" target="_blank">' + pt('删除') + '</a>' + ' | ' +
@@ -623,7 +654,7 @@ function projectScriptSelfRender(user, name){
                 btn: [pt('设置'), pt('关闭')],
                 content: '<div class="bt-form pd20">\
                             <div class="line">\
-                                <input type="text" class="bt-input-text" name="Name" id="newFileName" value="'+file+'" placeholder="' + pt('文件名') + '" style="width:100%" />\
+                                <input type="text" class="bt-input-text" name="Name" id="newFileName" value="'+gtEsc(file)+'" placeholder="' + pt('文件名') + '" style="width:100%" />\
                             </div>\
                         </div>',
                 success:function(){
@@ -695,7 +726,7 @@ function createScriptFile(type, user, name, file) {
 function projectScriptSelf(user, name){
     layer.open({
         type: 1,
-        title: msgTpl(pt('项目({1}/{2})自定义脚本'), [user, name]),
+        title: msgTpl(pt('项目({1}/{2})自定义脚本'), [gtEsc(user), gtEsc(name)]),
         area: '500px',
         content:"<div class='bt-form pd15'>\
                 <button id='create_script' class='btn btn-success btn-sm' type='button' style='margin-right: 5px;''>" + pt('添加脚本') + "</button>\
@@ -744,7 +775,7 @@ function getRsaPublic(){
         var rdata = JSON.parse(data.data);
         var con = '<div class="tab-con">\
             <div class="myKeyCon ptb15" style="padding: 10px 15px;">\
-                <textarea id="pubKeyText" readonly="readonly" style="margin:0px;width:570px;height:110px;outline:none;border-radius:4px;border:1px solid #ccc;padding:10px;resize:none;" spellcheck="false">'+rdata.pub_key+'</textarea>\
+                <textarea id="pubKeyText" readonly="readonly" style="margin:0px;width:570px;height:110px;outline:none;border-radius:4px;border:1px solid #ccc;padding:10px;resize:none;" spellcheck="false">'+gtEsc(rdata.pub_key)+'</textarea>\
             </div>\
             <ul class="help-info-text c7 pull-left" style="padding: 0 15px 10px;">\
                 <li>' + pt('💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。') + '</li>\

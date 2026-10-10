@@ -5,6 +5,7 @@ import time
 import os
 import sys
 import re
+import json
 import subprocess
 
 web_dir = os.getcwd() + "/web"
@@ -46,21 +47,92 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':', 1)
-        if len(t) > 1:
-            tmp[t[0]] = t[1]
+        val = args[0].strip()
+        # 前端（YfPlugin.parseArgs）把参数序列化成 JSON 字符串，由 utils/plugin.py::run()
+        # 作为**单个** argv 传入。旧实现只按 `k:v` 切第一段 → JSON 被整体塞进
+        # tmp['"page"']，于是**所有带参接口恒回「缺少必要参数」**
+        # （真机实测 /plugins/run user_project_list '{"name":"x"}' → 缺少参数name）。
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                data = json.loads(val)
+                if isinstance(data, dict):
+                    return data
+            except Exception as e:
+                _log.debug('[gitea] getArgs JSON 解析失败: %s', e)
+        t = val.strip('{').strip('}')
+        if t.strip() == '':
+            tmp = {}
         else:
-            tmp[t[0]] = ''
+            t = t.split(':', 1)
+            if len(t) == 2:
+                tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':', 1)
-            if len(t) > 1:
-                tmp[t[0]] = t[1]
-            else:
-                tmp[t[0]] = ''
+            if len(t) == 2:
+                tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
 
     return tmp
+
+
+# ---------------------------------------------------------------------------
+# 用户名 / 项目名白名单
+#
+# user 与 name 都会被拼进服务器路径 `<ROOT>/<user>/<name>.git`（随后 makeDirs /
+# writeFile / chmod / chown / deleteFile），也会进入 shell 命令。它们必须是
+# **单一目录段**：允许 Gitea 合法命名（字母/数字/下划线/中划线/点），显式拒绝
+# `.`、`..`、`/`、绝对路径、空格、控制字符与任何 shell 元字符。
+# 旧实现只做存在性检查，真机实测 `user=../../tmp/yf_probe_D10/trav` 可在任意
+# 目录以 root 建目录写脚本、`user=a;touch /tmp/yf_probe_D10/PWNED;#` 可直接
+# 执行命令（root RCE）。
+# ---------------------------------------------------------------------------
+_OWNER_RE = re.compile(r'^[A-Za-z0-9_\-][A-Za-z0-9_.\-]{0,38}$')
+_REPO_RE = re.compile(r'^[A-Za-z0-9_\-][A-Za-z0-9_.\-]{0,99}$')
+
+
+def validOwner(value):
+    v = str(value if value is not None else '').strip()
+    if v in ('.', '..') or not _OWNER_RE.match(v):
+        return None
+    return v
+
+
+def validRepo(value):
+    v = str(value if value is not None else '').strip()
+    if v in ('.', '..') or not _REPO_RE.match(v):
+        return None
+    return v
+
+
+def ownerRepoOrError(args):
+    """校验 user/name；返回 (user, repo, err)，err 非空时前两项为 None。"""
+    user = validOwner(args.get('user'))
+    repo = validRepo(args.get('name'))
+    if not user or not repo:
+        return None, None, yf.returnJson(False, '非法的用户名或项目名!')
+    return user, repo, None
+
+
+def repoRootOrError():
+    """仓库根目录（app.ini 的 ROOT）；未安装初始化时返回 (None, 错误信封)。"""
+    root = getRootPath()
+    if not root:
+        return None, yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
+    return root, None
+
+
+def pageArgs(args):
+    """解析 page/page_size；非法返回 (None, None, 错误信封)。"""
+    try:
+        page = int(str(args.get('page', '1')).strip())
+        page_size = int(str(args.get('page_size', '10')).strip())
+    except Exception:
+        return None, None, yf.returnJson(False, '分页参数不合法!')
+    if page < 1 or page_size < 1:
+        return None, None, yf.returnJson(False, '分页参数不合法!')
+    if page_size > 500:
+        page_size = 500
+    return page, page_size, None
 
 
 def safe_search_value(value):
@@ -86,6 +158,55 @@ def checkArgs(data, ck=[]):
         if not ck[i] in data:
             return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
     return (True, yf.returnJson(True, 'ok'))
+
+
+def isInstalled():
+    """是否已安装：以安装目录下的 gitea 二进制为准（info.json 的 checks/path）。"""
+    return os.path.exists(getServerDir() + '/gitea')
+
+
+def getGiteaBin():
+    return getServerDir() + '/gitea'
+
+
+def getGiteaPids():
+    """精确找出 gitea 主进程：`comm == 'gitea'` 且可执行文件就是安装目录下的 gitea。
+
+    旧实现 `ps -ef|grep gitea|grep -v grep|grep -v python` 是**子串匹配**：真机实测
+    服务已 `systemctl stop` 后，一个无关进程 `exec -a yf-gitea-decoy sleep 300`
+    就让 status() 假报 start。这里只认「进程名 + 可执行文件路径」双判据，零 fork。
+    """
+    bin_path = os.path.realpath(getGiteaBin())
+    pids = []
+    try:
+        names = os.listdir(_PROC_ROOT)
+    except Exception as e:
+        _log.debug('[gitea] 读取 %s 失败: %s', _PROC_ROOT, e)
+        return pids
+    for name in names:
+        if not name.isdigit():
+            continue
+        try:
+            with open(os.path.join(_PROC_ROOT, name, 'comm'), 'r') as fp:
+                comm = fp.read().strip()
+        except Exception:
+            continue
+        if comm != 'gitea':
+            continue
+        try:
+            exe = os.path.realpath(os.path.join(_PROC_ROOT, name, 'exe'))
+        except Exception:
+            exe = ''
+        if exe == bin_path:
+            pids.append(name)
+    return pids
+
+
+_UNIT_ENABLED_STATES = ('enabled', 'enabled-runtime', 'alias', 'static', 'indirect', 'generated')
+
+# /proc 根路径。写成模块常量只为让「进程精确判据」能在非 Linux 环境（开发机/CI）
+# 用夹具目录真跑（同 task_manager 的 _PROC_ROOT）。
+_PROC_ROOT = '/proc'
 
 
 def getInitdConfTpl():
@@ -114,11 +235,11 @@ def getConfTpl():
 
 
 def status():
-    data = yf.execShell(
-        "ps -ef|grep " + getPluginName() + " |grep -v grep | grep -v python | awk '{print $2}'")
-    if data[0] == '':
-        return 'stop'
-    return 'start'
+    # 精确判据：安装目录下的 gitea 二进制进程（comm + exe 双匹配），零 fork。
+    # 未安装 / 未运行 / 只有同名诱饵进程时一律如实回 stop。
+    if getGiteaPids():
+        return 'start'
+    return 'stop'
 
 
 def getHomeDir():
@@ -158,25 +279,31 @@ def contentReplace(content):
 
 def initDreplace():
 
+    # 未安装不造任何产物（旧版会建目录/写 init 脚本/写 systemd unit，
+    # unit 的 ExecStart 指向不存在的二进制）。
+    if not isInstalled():
+        return ''
+
     file_tpl = getInitdConfTpl()
     service_path = yf.getServerDir()
 
     git_dir = yf.getServerDir() + '/git'
     if not os.path.exists(git_dir):
         yf.makeDirs(git_dir)
-        yf.execShell('chown -R www:www ' + git_dir)
+        yf.execShell('chown -R www:www ' + yf.shlexQuote(git_dir))
 
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
-        os.mkdir(initD_path)
+        yf.makeDirs(initD_path)
     file_bin = initD_path + '/' + getPluginName()
 
     if not os.path.exists(file_bin):
         content = yf.readFile(file_tpl)
-        content = contentReplace(content)
-        yf.writeFile(file_bin, content)
-        yf.execShell('chmod +x ' + file_bin)
+        if content:
+            content = contentReplace(content)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + yf.shlexQuote(file_bin))
 
     # systemd
     systemDir = yf.systemdCfgDir()
@@ -185,13 +312,14 @@ def initDreplace():
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         service_path = yf.getServerDir()
         se_content = yf.readFile(systemServiceTpl)
-        se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        yf.writeFile(systemService, se_content)
-        yf.execShell('systemctl daemon-reload')
+        if se_content:
+            se_content = se_content.replace('{$SERVER_PATH}', service_path)
+            yf.writeFile(systemService, se_content)
+            yf.execShell('systemctl daemon-reload')
 
     log_path = getServerDir() + '/log'
     if not os.path.exists(log_path):
-        os.mkdir(log_path)
+        yf.makeDirs(log_path)
 
     return file_bin
 
@@ -250,7 +378,7 @@ def getRootPath():
     tmp = re.search(rep, content)
     if not tmp:
         return ''
-    return tmp.groups()[0]
+    return tmp.groups()[0].strip()
 
 
 def getAccessUrl():
@@ -283,8 +411,13 @@ def getDbConfValue():
         return {}
 
     content = yf.readFile(conf)
+    if not content:
+        return {}
     rep_scope = r"\[database\](.*?)\["
     tmp = re.findall(rep_scope, content, re.S)
+    if not tmp:
+        # app.ini 无 [database] 段（损坏/未初始化完成）：旧实现 tmp[0] 直接 IndexError
+        return {}
 
     rep = '(\\w*)\\s*=\\s*(.*)'
     tmp = re.findall(rep, tmp[0])
@@ -297,7 +430,17 @@ def getDbConfValue():
 
 
 def pMysqlDb(conf):
+    for k in ('HOST', 'USER', 'NAME'):
+        if not conf.get(k):
+            _log.debug('[gitea] app.ini [database] 缺少 %s', k)
+            return None
+    if not conf.get('PASSWD') and not conf.get('PASSWORD'):
+        _log.debug('[gitea] app.ini [database] 缺少口令字段')
+        return None
     host = conf['HOST'].split(':')
+    if len(host) < 2 or not host[1].strip().isdigit():
+        _log.debug('[gitea] app.ini [database] HOST 格式异常: %r', conf['HOST'])
+        return None
     # pymysql
     db = yf.getMyORM()
     # MySQLdb |
@@ -322,6 +465,10 @@ def pSqliteDb(conf):
     import db
     psDb = db.Sql()
 
+    if not conf.get('PATH'):
+        _log.debug('[gitea] app.ini [database] 缺少 PATH')
+        return None
+
     # 默认
     gsdir = getServerDir() + '/data'
     dbname = 'gitea'
@@ -330,6 +477,9 @@ def pSqliteDb(conf):
         pass
     else:
         path = conf['PATH'].split('/')
+        if len(path) < 2:
+            _log.debug('[gitea] app.ini [database] PATH 格式异常: %r', conf['PATH'])
+            return None
         gsdir = getServerDir() + '/' + path[0]
         dbname = path[1].split('.')[0]
 
@@ -350,18 +500,28 @@ def getGiteaDbType(conf):
 
 
 def pQuery(sql):
+    """执行查询；数据库类型不受支持/配置读不到时返回 None（调用方如实报错）。
+
+    旧实现在这里 `print(...)` 后 `exit(0)` —— 插件子进程以**退出码 0** 结束、
+    且 stdout 不是 JSON，真机实测 `get_total_statistics` 回「仅支持mysql|sqlite3配置」
+    而面板侧因 JSON 解析失败报错（假成功 + 非契约输出）。
+    """
     conf = getDbConfValue()
     gtype = getGiteaDbType(conf)
     if gtype == 'sqlite3':
         db = pSqliteDb(conf)
+        if db is None:
+            return None
         data = db.query(sql, []).fetchall()
         return data
     elif gtype == 'mysql':
         db = pMysqlDb(conf)
+        if db is None:
+            return None
         return db.query(sql)
 
-    print("仅支持mysql|sqlite3配置")
-    exit(0)
+    _log.debug('[gitea] 不支持的数据库类型: %s', gtype)
+    return None
 
 
 def isSqlError(mysqlMsg):
@@ -388,12 +548,29 @@ def isSqlError(mysqlMsg):
 
 
 def appOp(method):
+    if not isInstalled():
+        # 未安装：不造 unit/init 脚本、不调 systemctl，如实报失败
+        _log.debug('[gitea] %s 被拒：未安装', method)
+        return 'fail'
+
     file = initDreplace()
 
     if not yf.isAppleSystem():
-        data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
-        if data[1] == '':
-            return 'ok'
+        rc, out, err = yf.execShellRc('systemctl ' + method + ' ' + getPluginName(), timeout=120)
+        if rc != 0:
+            # 旧实现只看 stderr 是否为空：systemctl 失败但输出在 stdout 时会被吞成成功
+            _log.debug('[gitea] systemctl %s 失败: %s', method, (err or out).strip())
+            return 'fail'
+        # 启/停/重启后回读真实进程，杜绝「命令返回 0 但服务没起来」的假成功
+        if method in ('start', 'restart', 'reload'):
+            want = 'start'
+        else:
+            want = 'stop'
+        for _ in range(10):
+            if status() == want:
+                return 'ok'
+            time.sleep(0.5)
+        _log.debug('[gitea] %s 后状态未就绪', method)
         return 'fail'
 
     data = yf.execShell(__SR + file + ' ' + method)
@@ -422,18 +599,32 @@ def initdStatus():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    shell_cmd = 'systemctl status gitea | grep loaded | grep "enabled;"'
-    data = yf.execShell(shell_cmd)
-    if data[0] == '':
+    if not isInstalled():
         return 'fail'
-    return 'ok'
+
+    # `systemctl status | grep loaded | grep "enabled;"` 依赖人类可读输出：
+    # SysV 生成的单元显示 `generated`（无 `enabled;`）→ 已启用被误判 fail；
+    # 改用 `is-enabled` 的退出码 + 状态白名单。
+    rc, out, _err = yf.execShellRc(['systemctl', 'is-enabled', getPluginName()], shell=False, timeout=15)
+    if rc != 0:
+        return 'fail'
+    if (out or '').strip() in _UNIT_ENABLED_STATES:
+        return 'ok'
+    return 'fail'
 
 
 def initdInstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    yf.execShell('systemctl enable gitea')
+    if not isInstalled():
+        return 'fail'
+
+    # 旧实现无条件回 ok：单元不存在 / systemctl 失败时也报「已开启」
+    rc, out, err = yf.execShellRc(['systemctl', 'enable', getPluginName()], shell=False, timeout=30)
+    if rc != 0:
+        _log.debug('[gitea] enable 失败: %s', (err or out).strip())
+        return 'fail'
     return 'ok'
 
 
@@ -441,7 +632,13 @@ def initdUinstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    yf.execShell('systemctl disable gitea')
+    if not isInstalled():
+        return 'fail'
+
+    rc, out, err = yf.execShellRc(['systemctl', 'disable', getPluginName()], shell=False, timeout=30)
+    if rc != 0:
+        _log.debug('[gitea] disable 失败: %s', (err or out).strip())
+        return 'fail'
     return 'ok'
 
 
@@ -481,6 +678,8 @@ def getGogsConf():
         {'name': 'SHOW_FOOTER_TEMPLATE_LOAD_TIME', 'type': 2, 'ps': 'Gitea模板加载时间'},
     ]
     conf = yf.readFile(conf)
+    if not conf:
+        return yf.returnJson(False, '配置文件读取失败!')
     result = []
 
     for g in gets:
@@ -510,13 +709,27 @@ def submitGogsConf():
             'SHOW_FOOTER_TEMPLATE_LOAD_TIME']
     args = getArgs()
     filename = getConf()
+    if not os.path.exists(filename):
+        return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
     conf = yf.readFile(filename)
+    if not conf:
+        return yf.returnJson(False, '配置文件读取失败!')
+
+    # 值会直接写回 app.ini。拒绝换行/回车：否则可通过值注入新的配置行/段
+    # （如 `false\n[server]\nROOT_URL = http://evil`）。同时用 lambda 做替换，
+    # 避免 re.sub 把值里的 `\1` / `\g<0>` 当反向引用解析。
     for g in gets:
         if g in args:
+            val = args[g]
+            if not isinstance(val, str):
+                val = str(val)
+            if '\n' in val or '\r' in val:
+                return yf.returnJson(False, '配置值不合法!')
             rep = g + '\\s*=\\s*(.*)'
-            val = g + ' = ' + args[g]
-            conf = re.sub(rep, val, conf)
-    yf.writeFile(filename, conf)
+            line = g + ' = ' + val
+            conf = re.sub(rep, lambda _m, _v=line: _v, conf)
+    if not yf.writeFile(filename, conf):
+        return yf.returnJson(False, '配置文件读取失败!')
     restart()
     return yf.returnJson(True, '设置成功')
 
@@ -546,8 +759,9 @@ def userList():
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    page, page_size, err = pageArgs(args)
+    if err:
+        return err
     search = ''
     if 'search' in args:
         search = safe_search_value(args['search'])
@@ -564,6 +778,8 @@ def userList():
 
     start = (page - 1) * page_size
     list_count = pQuery('select count(id) as num from user' + user_where1)
+    if not list_count:
+        return yf.returnJson(False, '仅支持mysql|sqlite3配置')
     count = list_count[0]["num"]
     list_data = pQuery(
         'select id,name,email from user ' + user_where2 + ' order by id desc limit ' + str(start) + ',' + str(page_size))
@@ -579,12 +795,15 @@ def userList():
 def checkRepoListIsHasScript(data):
     path = getRootPath()
     for x in range(len(data)):
-        name = data[x]['name'] + '/' + data[x]['repo'] + '.git'
-        path_tmp = path + '/' + name + '/custom_hooks/commit'
+        # 名字来自 Gitea 数据库，同样只当单段路径用；非法就当作无脚本
+        user = validOwner(data[x]['name'])
+        repo = validRepo(data[x]['repo'])
+        data[x]['has_hook'] = False
+        if not path or not user or not repo:
+            continue
+        path_tmp = path + '/' + user + '/' + repo + '.git/custom_hooks/commit'
         if os.path.exists(path_tmp):
             data[x]['has_hook'] = True
-        else:
-            data[x]['has_hook'] = False
     return data
 
 
@@ -606,8 +825,9 @@ def repoList():
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    page, page_size, err = pageArgs(args)
+    if err:
+        return err
     search = ''
     if 'search' in args:
         search = safe_search_value(args['search'])
@@ -625,6 +845,8 @@ def repoList():
     start = (page - 1) * page_size
     list_count = pQuery(
         'select count(id) as num from repository' + repo_where1)
+    if not list_count:
+        return yf.returnJson(False, '仅支持mysql|sqlite3配置')
     count = list_count[0]["num"]
     sql = 'select r.id,r.owner_id,r.name as repo, u.name from repository r left join user u on r.owner_id=u.id ' + repo_where2 + ' order by r.id desc limit ' + \
         str(start) + ',' + str(page_size)
@@ -643,10 +865,18 @@ def repoList():
 
 
 def getAllUserProject(user, search=''):
-    path = getRootPath() + '/' + user
+    root, err = repoRootOrError()
+    if err:
+        return []
+    path = root + '/' + user
     dlist = []
     if os.path.exists(path):
-        for filename in os.listdir(path):
+        try:
+            names = os.listdir(path)
+        except Exception as e:
+            _log.debug('[gitea] 读取项目目录失败: %s', e)
+            return dlist
+        for filename in names:
             tmp = {}
             filePath = path + '/' + filename
             if os.path.isdir(filePath):
@@ -661,7 +891,8 @@ def getAllUserProject(user, search=''):
 
 
 def checkProjectListIsHasScript(user, data):
-    path = getRootPath() + '/' + user
+    root = getRootPath()
+    path = root + '/' + user
     for x in range(len(data)):
         name = data[x]['name'] + '.git'
         path_tmp = path + '/' + name + '/hooks/post-receive.d/post-receive'
@@ -675,31 +906,34 @@ def checkProjectListIsHasScript(user, data):
 def userProjectList():
     import math
     args = getArgs()
-    # print args
-
-    page = 1
-    page_size = 5
-    search = ''
 
     if not 'name' in args:
         return yf.returnJson(False, '缺少参数name')
-    if 'page' in args:
-        page = int(args['page'])
 
-    if 'page_size' in args:
-        page_size = int(args['page_size'])
+    user = validOwner(args['name'])
+    if not user:
+        return yf.returnJson(False, '非法的用户名或项目名!')
 
+    root, err = repoRootOrError()
+    if err:
+        return err
+
+    page, page_size, err = pageArgs({'page': args.get('page', '1'),
+                                     'page_size': args.get('page_size', '5')})
+    if err:
+        return err
+    search = ''
     if 'search' in args:
-        search = args['search']
+        search = str(args['search'])
 
     data = {}
 
-    ulist = getAllUserProject(args['name'])
+    ulist = getAllUserProject(user, search)
     dlist_sum = len(ulist)
 
     start = (page - 1) * page_size
     ret_data = ulist[start:start + page_size]
-    ret_data = checkProjectListIsHasScript(args['name'], ret_data)
+    ret_data = checkProjectListIsHasScript(user, ret_data)
 
     data['root_url'] = getRootUrl()
     data['data'] = ret_data
@@ -713,16 +947,14 @@ def userProjectList():
 def projectScriptEdit():
     args = getArgs()
 
-    if not 'user' in args:
-        return yf.returnJson(True, 'username missing')
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
 
-    if not 'name' in args:
-        return yf.returnJson(True, 'project name missing')
-
-    user = args['user']
-    name = args['name'] + '.git'
-    post_receive = getRootPath() + '/' + user + '/' + name + \
-        '/custom_hooks/commit'
+    post_receive = root + '/' + user + '/' + repo + '.git/custom_hooks/commit'
     if os.path.exists(post_receive):
         return yf.returnJson(True, 'OK', {'path': post_receive})
     else:
@@ -735,22 +967,31 @@ def projectScriptLoad():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return '非法的用户名或项目名!'
+    root, err = repoRootOrError()
+    if err:
+        return '请先安装初始化!'
 
-    path = getRootPath() + '/' + user + '/' + name
+    path = root + '/' + user + '/' + repo + '.git'
     post_receive_tpl = getPluginDir() + '/hook/post-receive.tpl'
     post_receive = path + '/hooks/post-receive.d/post-receive'
 
     if not os.path.exists(path + '/custom_hooks'):
         yf.makeDirs(path + '/custom_hooks')
-        yf.execShell('chown -R www:www ' + path + '/custom_hooks')
+        yf.execShell('chown -R www:www ' + yf.shlexQuote(path + '/custom_hooks'))
 
     pct_content = yf.readFile(post_receive_tpl)
+    if not pct_content:
+        # readFile 失败返回 False（不是空串），旧实现直接 .replace() → AttributeError
+        return '模板文件读取失败!'
     pct_content = pct_content.replace('{$PATH}', path + '/custom_hooks')
-    yf.writeFile(post_receive, pct_content)
-    yf.execShell('chmod 777 ' + post_receive)
-    yf.execShell('chown -R www:www ' + post_receive)
+    if not yf.writeFile(post_receive, pct_content):
+        return '脚本写入失败!'
+    # 755：该脚本在 git push 时以 www 身份执行，777 等于任何本地用户都能改写它（本地提权）
+    yf.execShell('chmod 755 ' + yf.shlexQuote(post_receive))
+    yf.execShell('chown -R www:www ' + yf.shlexQuote(post_receive))
 
     commit_tpl = getPluginDir() + '/hook/commit.tpl'
     commit = path + '/custom_hooks/commit'
@@ -758,16 +999,19 @@ def projectScriptLoad():
     codeDir = yf.getFatherDir() + '/git'
 
     cc_content = yf.readFile(commit_tpl)
+    if not cc_content:
+        return '模板文件读取失败!'
 
-    gitPath = getRootPath()
+    gitPath = root
     cc_content = cc_content.replace('{$GITROOTURL}', gitPath)
     cc_content = cc_content.replace('{$CODE_DIR}', codeDir)
     cc_content = cc_content.replace('{$USERNAME}', user)
-    cc_content = cc_content.replace('{$PROJECT}', args['name'])
+    cc_content = cc_content.replace('{$PROJECT}', repo)
     cc_content = cc_content.replace('{$WEB_ROOT}', yf.getWwwDir())
-    yf.writeFile(commit, cc_content)
-    yf.execShell('chmod 777 ' + commit)
-    yf.execShell('chown -R www:www ' + commit)
+    if not yf.writeFile(commit, cc_content):
+        return '脚本写入失败!'
+    yf.execShell('chmod 755 ' + yf.shlexQuote(commit))
+    yf.execShell('chown -R www:www ' + yf.shlexQuote(commit))
 
     return 'ok'
 
@@ -778,15 +1022,17 @@ def projectScriptUnload():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return '非法的用户名或项目名!'
+    root, err = repoRootOrError()
+    if err:
+        return '请先安装初始化!'
 
-    post_receive = getRootPath() + '/' + user + '/' + name + \
-        '/hooks/post-receive.d/post-receive'
+    post_receive = root + '/' + user + '/' + repo + '.git/hooks/post-receive.d/post-receive'
     yf.deleteFile(post_receive)
 
-    commit = getRootPath() + '/' + user + '/' + name + \
-        '/custom_hooks/commit'
+    commit = root + '/' + user + '/' + repo + '.git/custom_hooks/commit'
     yf.deleteFile(commit)
     return 'ok'
 
@@ -797,10 +1043,14 @@ def projectScriptDebug():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    commit_log = getRootPath() + '/' + user + '/' + name + \
-        '/custom_hooks/sh.log'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
+
+    commit_log = root + '/' + user + '/' + repo + '.git/custom_hooks/sh.log'
 
     data = {}
     if os.path.exists(commit_log):
@@ -819,16 +1069,20 @@ def projectScriptRun():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
 
-    path = getRootPath() + '/' + user + '/' + name
+    path = root + '/' + user + '/' + repo + '.git'
     commit_sh = path + '/custom_hooks/commit'
     commit_log = path + '/custom_hooks/sh.log'
     if not os.path.exists(commit_sh):
         return yf.returnJson(False, '脚本文件不存在!')
 
-    repo_dir = yf.getServerDir()+'/git/'+ args['name']
+    repo_dir = yf.getServerDir() + '/git/' + repo
 
     try:
         with open(commit_log, 'w') as err_log:
@@ -845,21 +1099,24 @@ def projectScriptSelf():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
 
-    custom_hooks = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_hooks = root + '/' + user + '/' + repo + '.git/custom_hooks'
 
     self_path = custom_hooks + '/self'
     if not os.path.exists(self_path):
-        os.mkdir(self_path)
-        yf.execShell("chown -R www:www " + self_path)
+        yf.makeDirs(self_path)
+        yf.execShell("chown -R www:www " + yf.shlexQuote(self_path))
 
     self_logs_path = custom_hooks + '/self_logs'
     if not os.path.exists(self_logs_path):
-        os.mkdir(self_logs_path)
-        yf.execShell("chown -R www:www " + self_logs_path)
+        yf.makeDirs(self_logs_path)
+        yf.execShell("chown -R www:www " + yf.shlexQuote(self_logs_path))
 
     self_hook_file = custom_hooks + '/self_hook.sh'
     self_hook_exist = False
@@ -881,7 +1138,6 @@ def projectScriptSelf():
                 dlist.append(tmp)
 
     dlist_sum = len(dlist)
-    # print(dlist)
     rdata = {}
     rdata['data'] = dlist
     rdata['self_hook'] = self_hook_exist
@@ -897,8 +1153,12 @@ def projectScriptSelf_Create():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     file = safe_file_name(args['file'])
     if not file:
         return yf.returnJson(False, '非法的文件名!')
@@ -906,18 +1166,18 @@ def projectScriptSelf_Create():
     if not file.endswith('.sh'):
         file = file + '.sh'
 
-    self_path = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks/self'
+    self_path = root + '/' + user + '/' + repo + '.git/custom_hooks/self'
 
     if not os.path.exists(self_path):
-        os.makedirs(self_path)
+        yf.makeDirs(self_path)
 
     abs_file = self_path + '/' + file
     if os.path.exists(abs_file):
         return yf.returnJson(False, '脚本已经存在!')
 
-    yf.writeFile(abs_file, "#!/bin/bash\necho `date +'%Y-%m-%d %H:%M:%S'`\n")
-    yf.execShell('chown -R www:www ' + abs_file)
+    if not yf.writeFile(abs_file, "#!/bin/bash\necho `date +'%Y-%m-%d %H:%M:%S'`\n"):
+        return yf.returnJson(False, '脚本写入失败!')
+    yf.execShell('chown -R www:www ' + yf.shlexQuote(abs_file))
     rdata = {}
     rdata['abs_file'] = abs_file
     return yf.returnJson(True, '创建文件成功!', rdata)
@@ -929,14 +1189,17 @@ def projectScriptSelf_Del():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     file = safe_file_name(args['file'])
     if not file:
         return yf.returnJson(False, '非法的文件名!')
 
-    custom_hooks = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_hooks = root + '/' + user + '/' + repo + '.git/custom_hooks'
     self_path = custom_hooks + '/self'
 
     abs_file = self_path + '/' + file
@@ -959,17 +1222,20 @@ def projectScriptSelf_Logs():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     file = safe_file_name(args['file'])
     if not file:
         return yf.returnJson(False, '非法的文件名!')
 
-    self_path = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks/self_logs'
+    self_path = root + '/' + user + '/' + repo + '.git/custom_hooks/self_logs'
 
     if not os.path.exists(self_path):
-        os.makedirs(self_path)
+        yf.makeDirs(self_path)
 
     logs_file = self_path + '/' + file + '.log'
     if os.path.exists(logs_file):
@@ -986,14 +1252,17 @@ def projectScriptSelf_Run():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     file = safe_file_name(args['file'])
     if not file:
         return yf.returnJson(False, '非法的文件名!')
 
-    custom_hooks = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_hooks = root + '/' + user + '/' + repo + '.git/custom_hooks'
     self_path = custom_hooks + '/self/' + file
     self_logs_path = custom_hooks + '/self_logs/' + file + '.log'
 
@@ -1001,9 +1270,9 @@ def projectScriptSelf_Run():
     if not os.path.exists(self_path):
         return yf.returnJson(False, '脚本文件不存在!')
 
-    shell = "sh -x " + self_path + " 2>" + self_logs_path + ' &'
+    shell = "sh -x " + yf.shlexQuote(self_path) + " 2>" + yf.shlexQuote(self_logs_path) + ' &'
     yf.execShell(shell)
-    yf.execShell("chown -R www:www " + self_logs_path)
+    yf.execShell("chown -R www:www " + yf.shlexQuote(self_logs_path))
     return yf.returnJson(True, '执行成功!')
 
 
@@ -1013,8 +1282,12 @@ def projectScriptSelf_Rename():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     o_file = safe_file_name(args['o_file'])
     n_file = safe_file_name(args['n_file'])
     if not o_file or not n_file:
@@ -1025,12 +1298,11 @@ def projectScriptSelf_Rename():
     if not n_file.endswith('.sh'):
         n_file = n_file + '.sh'
 
-    custom_hooks = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_hooks = root + '/' + user + '/' + repo + '.git/custom_hooks'
     self_path = custom_hooks + '/self'
 
     if not os.path.exists(self_path):
-        os.makedirs(self_path)
+        yf.makeDirs(self_path)
 
     o_file_abs = self_path + '/' + o_file
     if not os.path.exists(o_file_abs):
@@ -1053,12 +1325,15 @@ def projectScriptSelf_Enable():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
-    enable = args['enable']
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
+    enable = str(args['enable'])
 
-    custom_path = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_path = root + '/' + user + '/' + repo + '.git/custom_hooks'
 
     # 替换commit配置
     commit_path = custom_path + '/commit'
@@ -1068,25 +1343,39 @@ def projectScriptSelf_Enable():
     self_hook_tpl = getPluginDir() + '/hook/self_hook.tpl'
 
     if enable == '1':
+        # 先读 commit（缺了就失败）再落任何产物：否则写入 self_hook.sh 之后才发现
+        # commit 不存在，会留下一个“半成品”文件。
+        commit_content = yf.readFile(commit_path)
+        if not commit_content:
+            # readFile 失败返回 False（不是空串），旧实现 False += str → TypeError
+            return yf.returnJson(False, '请先加载脚本!')
+
         content = yf.readFile(self_hook_tpl)
+        if not content:
+            return yf.returnJson(False, '模板文件读取失败!')
         content = content.replace('{$HOOK_DIR}', custom_path + '/self')
         content = content.replace(
             '{$HOOK_LOGS_DIR}', custom_path + '/self_logs')
-        yf.writeFile(self_file, content)
-        yf.execShell("chmod 777 " + self_file)
-        yf.execShell("chown -R www:www " + self_file)
+        if not yf.writeFile(self_file, content):
+            return yf.returnJson(False, '脚本写入失败!')
+        # 755：该脚本在 git push 时以 www 身份执行，777 = 任意本地用户可改写（本地提权）
+        yf.execShell("chmod 755 " + yf.shlexQuote(self_file))
+        yf.execShell("chown -R www:www " + yf.shlexQuote(self_file))
 
-        commit_content = yf.readFile(commit_path)
         commit_content += "\n\n" + "bash " + self_file + " " + note
-        yf.writeFile(commit_path, commit_content)
+        if not yf.writeFile(commit_path, commit_content):
+            return yf.returnJson(False, '脚本写入失败!')
 
         return yf.returnJson(True, '开启成功!')
     else:
         commit_content = yf.readFile(commit_path)
+        if not commit_content:
+            return yf.returnJson(False, '请先加载脚本!')
         rep = ".*" + note
         commit_content = re.sub(rep, '', commit_content, re.M)
         commit_content = commit_content.strip()
-        yf.writeFile(commit_path, commit_content)
+        if not yf.writeFile(commit_path, commit_content):
+            return yf.returnJson(False, '脚本写入失败!')
         if os.path.exists(self_file):
             os.remove(self_file)
         return yf.returnJson(True, '关闭成功!')
@@ -1098,19 +1387,22 @@ def projectScriptSelf_Status():
     if not data[0]:
         return data[1]
 
-    user = safe_search_value(args['user'])
-    name = safe_search_value(args['name']) + '.git'
+    user, repo, err = ownerRepoOrError(args)
+    if err:
+        return err
+    root, err = repoRootOrError()
+    if err:
+        return err
     file = safe_file_name(args['file'])
-    status = args['status']
+    status = str(args['status'])
     if not file:
         return yf.returnJson(False, '非法的文件名!')
 
-    custom_hooks = getRootPath() + '/' + user + '/' + \
-        name + '/custom_hooks'
+    custom_hooks = root + '/' + user + '/' + repo + '.git/custom_hooks'
     self_path = custom_hooks + '/self'
 
     if not os.path.exists(self_path):
-        os.makedirs(self_path)
+        yf.makeDirs(self_path)
 
     # 日志也删除
     log_file = custom_hooks + '/self_logs/' + file + '.log'
@@ -1165,11 +1457,18 @@ def getTotalStatistics():
     st = status()
     data = {}
     if st.strip() == 'start':
+        conf = getConf()
+        if not os.path.exists(conf):
+            return yf.returnJson(False, "请先安装初始化，默认地址: http://" + yf.getLocalIp() + ":3000")
         list_count = pQuery('select count(id) as num from repository')
+        if not list_count:
+            return yf.returnJson(False, '仅支持mysql|sqlite3配置')
         count = list_count[0]["num"]
         data['status'] = True
         data['count'] = count
-        data['ver'] = yf.readFile(getServerDir() + '/version.pl').strip()
+        ver = yf.readFile(getServerDir() + '/version.pl')
+        # readFile 失败返回 False（不是空串），旧实现 False.strip() → AttributeError
+        data['ver'] = ver.strip() if isinstance(ver, str) else ''
         return yf.returnJson(True, 'ok', data)
 
     data['status'] = False

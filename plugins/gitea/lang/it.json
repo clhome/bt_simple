@@ -110,5 +110,13 @@
     "💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。": "💡 Suggerimento: la chiave pubblica può essere aggiunta direttamente all'elenco delle chiavi SSH di Gitea, per consentire il trasferimento di codice tra il server e il repository Git senza bisogno di inserire la password.",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "请先安装初始化，默认地址:": "Installare e inizializzare prima, indirizzo predefinito:",
-    "[{1}][{2}]脚本设置": "[{1}][{2}] Impostazioni script"
+    "[{1}][{2}]脚本设置": "[{1}][{2}] Impostazioni script",
+    "非法的用户名或项目名!": "Nome utente o progetto non valido!",
+    "模板文件读取失败!": "Impossibile leggere il file modello!",
+    "脚本写入失败!": "Scrittura dello script non riuscita!",
+    "配置文件读取失败!": "Impossibile leggere il file di configurazione!",
+    "分页参数不合法!": "Parametro di paginazione non valido!",
+    "请先加载脚本!": "Carica prima lo script!",
+    "配置值不合法!": "Valore di configurazione non valido!",
+    "请先安装初始化!": "Installa e inizializza prima!"
 }

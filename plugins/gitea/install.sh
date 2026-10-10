@@ -11,7 +11,16 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
 fi
 
-VERSION=1.26.1
+# 版本号由面板传入（`bash install.sh install <version>`）。旧实现直接写死 1.26.1，
+# 于是在面板里选 1.17.2/1.18.5/1.22.1/1.24.3 实际都会装成 1.26.1（版本参数被静默忽略）。
+VERSION=$2
+if [ -z "${VERSION}" ];then
+	VERSION=1.26.1
+fi
+# 版本号会拼进下载 URL 与文件名：只允许数字与点，阻断路径/命令注入
+case "${VERSION}" in
+	*[!0-9.]*|'') echo "invalid version: ${VERSION}"; exit 1;;
+esac
 URL_DOWNLOAD=https://github.com/go-gitea/gitea/releases/download
 
 sysName=`uname`
@@ -67,6 +76,10 @@ Install_App()
 	yf_download $serverPath/source/gitea/$file_xz $URL
 
 	cd $serverPath/source/gitea && xz -k -d $file_xz
+	if [ ! -f $file ];then
+		echo "download failed: $file"
+		exit 1
+	fi
 	if [ -f $file ];then
 		mkdir -p $serverPath/gitea
 		mv $serverPath/source/gitea/$file $serverPath/gitea/gitea
@@ -78,6 +91,12 @@ Install_App()
 		echo $VERSION > $serverPath/gitea/version.pl
 		cd ${rootPath} && python3 plugins/gitea/index.py start
 		cd ${rootPath} && python3 plugins/gitea/index.py initd_install
+	fi
+
+	# 旧实现无条件 echo 'install success'：下载/解压失败时也报成功（假成功）
+	if [ ! -x $serverPath/gitea/gitea ];then
+		echo "install failed: $serverPath/gitea/gitea missing"
+		exit 1
 	fi
 
 	echo 'install success'
@@ -97,12 +116,20 @@ Uninstall_App()
 	fi
 
 	rm -rf $serverPath/gitea
+	if [ -d $serverPath/gitea ];then
+		echo "uninstall failed: $serverPath/gitea still exists"
+		exit 1
+	fi
 	echo 'uninstall success'
 }
 
 action=$1
-if [ "${1}" == 'install' ];then
+if [ "${action}" == 'install' ];then
 	Install_App
-else
+elif [ "${action}" == 'uninstall' ];then
 	Uninstall_App
+else
+	# 旧实现 else 兜底：无参/拼错参数也会执行卸载并 rm -rf 安装目录
+	echo "usage: $0 {install|uninstall} [version]"
+	exit 1
 fi
