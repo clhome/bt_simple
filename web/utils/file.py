@@ -522,7 +522,10 @@ def copyFile(src_file, dst_file):
         return yf.returnData(False, 'file.py_msg_72a3a6')
 
 def setFileAccept(filename):
-    import pwd as _pwd
+    try:
+        import pwd as _pwd
+    except ImportError:
+        return
     try:
         if not os.path.exists(filename):
             return

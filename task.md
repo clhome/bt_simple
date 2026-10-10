@@ -1,23 +1,28 @@
-# 任务清单：修复菜单显示异常与菜单配置系统加固
+# 任务清单：御风面板全模块功能性测试套件构建与执行
 
-> **问题来源**：真机（202.107.245.93）左侧菜单仅显示单个字母 `n`，原有的 9 个系统核心菜单（首页、网站、文件、安全、计划任务、监控、日志、软件管理、面板设置）全部消失。
-> **根本原因**：此前模块测试脚本向 `/setting/save_menu_config` 写入了测试数据 `[{"id":"x","name":"n","class":"c","url":"/","show":true}]`，未还原真机 `data/menu.json` 与内存缓存，暴露出菜单存储缺乏合法性校验、URL未防 XSS、缺乏容灾兜底与恢复机制的问题。
+> **目标**：在 `testsuite/Functional Testing/` 目录下构建覆盖项目全部层级与模块的功能性测试套件（Functional Testing），全面验证每个模块的业务设计要求，执行并输出完整测试报告。
 
 ## 任务拆解与进度
 
-- [ ] **Task 1: 真机数据即时恢复与验证**
-  - [ ] 备份并恢复真机 `/www/server/yufeng_panel/data/menu.json` 为 9 个标准内置菜单。
-  - [ ] 重载真机面板进程并清空缓存，确认真机前端菜单显示恢复正常。
-- [ ] **Task 2: 后端菜单校验与容灾兜底加固 (`web/utils/config.py`)**
-  - [ ] 定义系统默认内置菜单常量与合法 ID 集合。
-  - [ ] `_filter_menu_items` 增加 URL 安全性检查（禁止 `javascript:` 伪协议，确保相对路径/合法格式）。
-  - [ ] `get_menu_config` 增加容灾兜底保护：当读取结果为空或核心菜单缺失时，自动回退/补齐默认菜单，防止页面只剩残缺项。
-  - [ ] 新增 `reset_menu_config()` 函数支持一键重置为系统默认菜单。
-- [ ] **Task 3: 控制器层与前端设置加固 (`setting.py` / `setting.html`)**
-  - [ ] `save_menu_config` 增加严格校验：拒绝恶意剔除核心菜单、拒绝非法 URL。
-  - [ ] 新增 `/setting/reset_menu_config` API 端点。
-  - [ ] 在 `setting.html` 菜单管理弹窗中增加「恢复默认」按钮与调用逻辑。
-- [ ] **Task 4: 测试套件回归与全量验证**
-  - [ ] 编写专门的自动化测试用例覆盖非法菜单拦截、URL 防注入与容灾降级。
-  - [ ] 执行 `python testsuite/run_all.py` 确保 100% 测试通过、零回归。
-  - [ ] 同步更新真机代码并复验真机菜单管理全流程。
+- [ ] **Task 1: 测试套件基础设施与仿真支持 (`ft_common.py`)**
+  - [ ] 封装跨平台沙箱运行环境（隔离数据目录、虚拟面板 DB、临时 serverDir）。
+  - [ ] 提供底层系统命令与 I/O 调用的可控仿真桩（捕获入参、模拟返回、验证业务流）。
+- [ ] **Task 2: 独立系统守护与 CLI 核心功能测试 (`ft_daemons_and_cli.py`)**
+  - [ ] `panel_task.py`：测试任务队列出入队、任务执行状态流转、并发锁抢占与取消处理。
+  - [ ] `panel_tools.py`：测试命令行重置密码、修改访问端口、查看/修改安全入口、急救自检。
+- [ ] **Task 3: Web Admin 核心控制台 13 大模块功能测试 (`ft_admin_web_core.py`)**
+  - [ ] 网站管理 (`site`)：站点生命周期、虚拟主机配置生成与解析、伪静态、反代规则。
+  - [ ] 文件管理 (`files`)：文件读写、权限修改模型、解压缩、回收站机制。
+  - [ ] 设置与菜单 (`setting/config`)：菜单容灾与合法性校验、安全入口、端口变更。
+  - [ ] 计划任务 (`crontab`)：Cron 周期解析、任务脚本组装与更新。
+  - [ ] 防火墙 (`firewall`)：端口与 IP 放行/拦截规则组装。
+  - [ ] 监控与仪表盘 (`monitor/dashboard`)：性能采样计算、时间范围聚合、系统资源读取。
+  - [ ] 软件商店、系统管理、日志、任务、安装、插件路由完整业务逻辑。
+- [ ] **Task 4: 36 大生态插件业务功能测试套件**
+  - [ ] 数据库插件 (`ft_plugins_databases.py`)：覆盖 MySQL, MariaDB, Redis, Valkey, PostgreSQL, MongoDB, DataQuery 等配置生成、管理命令、备份恢复逻辑。
+  - [ ] Web与运行环境插件 (`ft_plugins_web_runtime.py`)：覆盖 OpenResty, Apache, PHP, PHP-FPM, OP-WAF, OP-LoadBalance, Varnish 等服务控制与规则装配。
+  - [ ] 系统运维与容器插件 (`ft_plugins_system_ops.py`)：覆盖 Docker, Clean, Fail2ban, Supervisor, Systemd, TaskManager, Swap, LinuxSysOpt 等任务编排。
+- [ ] **Task 5: 功能测试统一执行器与执行报告生成**
+  - [ ] 编写统一测试驱动器 `run_all_ft.py`，支持多套件执行、结果统计与明细捕获。
+  - [ ] 批量执行所有功能测试，分析执行结果与断言。
+  - [ ] 输出最终完整执行报告到 `testsuite/Functional Testing/20261010_ft_execution_report.md`。

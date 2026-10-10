@@ -57,8 +57,8 @@ def getDate():
 def getDateFromNow(tf_format="%Y-%m-%d %H:%M:%S", time_zone="Asia/Shanghai"):
     # 取格式时间
     import time
-    os.environ['TZ'] = time_zone
-    time.tzset()
+    if hasattr(time, 'tzset'):
+        time.tzset()
     return time.strftime(tf_format, time.localtime())
 
 

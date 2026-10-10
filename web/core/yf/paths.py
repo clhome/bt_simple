@@ -107,10 +107,13 @@ def setBackupDir(bdir):
 
 def getPanelPort():
     port_file = getPanelDir()+'/data/port.pl'
-    port = readFile(port_file).strip()
-    if not port:
+    port = readFile(port_file)
+    if not port or isinstance(port, bool):
         return 7200
-    return int(port)
+    try:
+        return int(str(port).strip())
+    except (ValueError, TypeError):
+        return 7200
 
 
 def getSqitePrefix():
