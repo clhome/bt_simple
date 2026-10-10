@@ -111,5 +111,15 @@
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "Um Daten von anderen Servern auf den lokalen Server zu synchronisieren, erstellen Sie in der Empfangskonfiguration eine „Empfangsaufgabe“",
     "缺少必要参数:": "Fehlender erforderlicher Parameter:",
     "删除成功!": "Erfolgreich gelöscht!",
-    "{1}发送任务": "{1} Sendevorgang"
+    "{1}发送任务": "{1} Sendevorgang",
+    "路径格式不合法！": "Ungültiges Pfadformat!",
+    "参数格式不合法！": "Ungültiges Parameterformat!",
+    "密码格式不合法！": "Ungültiges Passwortformat!",
+    "IP格式不合法！": "Ungültiges IP-Format!",
+    "同步任务不存在！": "Sync-Aufgabe nicht gefunden!",
+    "密码文件读取失败！": "Passwortdatei konnte nicht gelesen werden!",
+    "写入密码文件失败！": "Passwortdatei konnte nicht geschrieben werden!",
+    "写入配置失败，已回滚！": "Konfiguration konnte nicht geschrieben werden, zurückgerollt!",
+    "写入配置失败！": "Konfiguration konnte nicht geschrieben werden!",
+    "配置文件读取失败！": "Konfiguration konnte nicht gelesen werden!"
 }

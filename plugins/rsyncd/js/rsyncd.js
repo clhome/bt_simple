@@ -1,6 +1,30 @@
 var api = YfPlugin.createApi('rsyncd');
 var pt = YfI18n.createPluginTranslator('rsyncd');
 
+// HTML 转义：接收/发送任务里的 path/comment/ip/排除规则都是用户可控文本，
+// 直接拼进 .html() 即存储型 XSS（与 A09/A11 同族）。
+// 正则里的引号写成 \x22/\x27：旧版前端「引号配对」静态扫描器会把 /\"/g 里的引号
+// 当成字符串开头，导致后续代码全部误判（php.js 已踩过）。
+function rsEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// onclick 参数转义：属性值先过 HTML 实体解码再交给 JS，&#39; 会被解码回 ' 而逃逸，
+// 因此必须用 \xNN 形式（同 task_manager tmJsArg）。
+function rsJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
 
 ///////////////// ----------------- 发送配置 ---------------- //////////////
 
@@ -82,13 +106,13 @@ function createSendTask(name = ''){
                 <div class='line'>\
                     <span class='tname'>" + pt('服务器IP') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='text' name='ip' placeholder='" + pt('请输入接收服务器IP') + "' value='"+data["ip"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='text' name='ip' placeholder='" + pt('请输入接收服务器IP') + "' value='"+rsEsc(data["ip"])+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>" + pt('同步目录') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='" + pt('请选择同步目录') + "' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
+                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+rsEsc(data["path"])+"' placeholder='" + pt('请选择同步目录') + "' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
                         <span data-toggle='tooltip' data-placement='top' title='【同步目录】若不以/结尾，则表示将数据同步到二级目录，一般情况下目录路径请以/结尾' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
@@ -115,15 +139,15 @@ function createSendTask(name = ''){
                             <option value='minute-n' "+period_minute_n+">" + pt('N分钟') + "</option>\
                         </select>\
                         <div class='plan_hms pull-left mr20 bt-input-text hour'>\
-                            <span><input class='bt-input-text' type='number' name='hour' value='"+data["hour"]+"' maxlength='2' max='23' min='0'></span>\
+                            <span><input class='bt-input-text' type='number' name='hour' value='"+rsEsc(data["hour"])+"' maxlength='2' max='23' min='0'></span>\
                             <span class='name'>" + pt('小时') + "</span>\
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute'>\
-                            <span><input class='bt-input-text' type='number' name='minute' value='"+data["minute"]+"' maxlength='2' max='59' min='0'></span>\
+                            <span><input class='bt-input-text' type='number' name='minute' value='"+rsEsc(data["minute"])+"' maxlength='2' max='59' min='0'></span>\
                             <span class='name'>" + pt('分钟') + "</span>\
                         </div>\
                         <div class='plan_hms pull-left mr20 bt-input-text minute-n' style='display:none;'>\
-                            <span><input class='bt-input-text' type='number' name='minute-n' value='"+data["minute-n"]+"' maxlength='2' max='59' min='0'></span>\
+                            <span><input class='bt-input-text' type='number' name='minute-n' value='"+rsEsc(data["minute-n"])+"' maxlength='2' max='59' min='0'></span>\
                             <span class='name'>" + pt('分钟') + "</span>\
                         </div>\
                     </div>\
@@ -131,9 +155,9 @@ function createSendTask(name = ''){
                 <div class='line'>\
                     <span class='tname'>" + pt('限速') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='number' name='bwlimit' min='0'  value='"+bwlimit+"' style='width:100px' /> KB\
+                        <input class='bt-input-text' type='number' name='bwlimit' min='0'  value='"+rsEsc(bwlimit)+"' style='width:100px' /> KB\
                         <span data-toggle='tooltip' data-placement='top' title='【限速】限制数据同步任务的速度，防止因同步数据导致带宽跑高' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
-                        <span style='margin-left: 29px;margin-right: 10px;'>" + pt('延迟') + "</span><input class='bt-input-text' min='0' type='number' name='delay'  value='"+delay+"' style='width:100px' /> 秒\
+                        <span style='margin-left: 29px;margin-right: 10px;'>" + pt('延迟') + "</span><input class='bt-input-text' min='0' type='number' name='delay'  value='"+rsEsc(delay)+"' style='width:100px' /> 秒\
                         <span data-toggle='tooltip' data-placement='top' title='【延迟】在延迟时间周期内仅记录不同步，到达周期后一次性同步数据，以节省开销' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
@@ -155,25 +179,25 @@ function createSendTask(name = ''){
                 <div class='line conn-key'>\
                     <span class='tname'>" + pt('接收密钥') + "</span>\
                     <div class='info-r c4'>\
-                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='" + pt('此密钥为 接收配置[接收账号] 的密钥') + "'>"+data['secret_key']+"</textarea>\
+                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='" + pt('此密钥为 接收配置[接收账号] 的密钥') + "'>"+rsEsc(data['secret_key'])+"</textarea>\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
                     <span class='tname'>" + pt('用户名') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='text' name='u_user' min='0'  value='"+data["name"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='text' name='u_user' min='0'  value='"+rsEsc(data["name"])+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
                     <span class='tname'>" + pt('密码') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='text' name='u_pass' min='0'  value='"+data["password"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='text' name='u_pass' min='0'  value='"+rsEsc(data["password"])+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
                     <span class='tname'>" + pt('端口') + "</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='number' name='u_port' min='0'  value='"+data["rsync"]["port"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='number' name='u_port' min='0'  value='"+rsEsc(data["rsync"]["port"])+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <ul class=\"help-info-text c7\">\
@@ -396,7 +420,7 @@ function lsyncdExclude(name){
 
             var list=''
             for (var i = 0; i < res.length; i++) {
-                list += '<tr><td>'+ res[i] +'</td><td><a href="javascript:;" data-type='+ mName +' class="delList">' + pt('删除') + '</a></td></tr>';
+                list += '<tr><td>'+ rsEsc(res[i]) +'</td><td><a href="javascript:;" data-type="'+ rsEsc(mName) +'" class="delList">' + pt('删除') + '</a></td></tr>';
             }
             $('.lsyncd_exclude .BlockList tbody').empty().append(list);
         });
@@ -452,7 +476,7 @@ function lsyncdExclude(name){
 
             var list=''
             for (var i = 0; i < res.length; i++) {
-                list += '<tr><td>'+ res[i] +'</td><td><a href="javascript:;" data-type='+ name +' class="delList">' + pt('删除') + '</a></td></tr>';
+                list += '<tr><td>'+ rsEsc(res[i]) +'</td><td><a href="javascript:;" data-type="'+ rsEsc(name) +'" class="delList">' + pt('删除') + '</a></td></tr>';
             }
             $('.lsyncd_exclude .BlockList tbody').empty().append(list);
         });
@@ -509,17 +533,17 @@ function lsyncdSend(){
             }
 
             con += '<tr>'+
-                '<td>' + list[i]['name']+'</td>' +
-                '<td><a class="btlink overflow_hide" style="width:40px;" onclick="openPath(\''+list[i]['path']+'\')">' + list[i]['path']+'</a></td>' +
-                '<td>' + list[i]['ip']+":"+list[i]['name']+'</td>' +
+                '<td>' + rsEsc(list[i]['name']) + '</td>' +
+                '<td><a class="btlink overflow_hide" style="width:40px;" onclick="openPath(\''+rsJsArg(list[i]['path'])+'\')">' + rsEsc(list[i]['path']) + '</a></td>' +
+                '<td>' + rsEsc(list[i]['ip']) + ":" + rsEsc(list[i]['name']) + '</td>' +
                 '<td>' + mode+'</td>' +
                 '<td>' + period +'</td>' +
                 '<td>\
-                    <a class="btlink" onclick="lsyncdRun(\''+list[i]['name']+'\')">' + pt('同步') + '</a>\
-                    | <a class="btlink" onclick="lsyncdLog(\''+list[i]['name']+'\')">' + pt('手动日志') + '</a>\
-                    | <a class="btlink" onclick="lsyncdExclude(\''+list[i]['name']+'\')">' + pt('过滤器') + '</a>\
-                    | <a class="btlink" onclick="createSendTask(\''+list[i]['name']+'\')">' + pt('编辑') + '</a>\
-                    | <a class="btlink" onclick="lsyncdDelete(\''+list[i]['name']+'\')">' + pt('删除') + '</a>\
+                    <a class="btlink" onclick="lsyncdRun(\''+rsJsArg(list[i]['name'])+'\')">' + pt('同步') + '</a>\
+                    | <a class="btlink" onclick="lsyncdLog(\''+rsJsArg(list[i]['name'])+'\')">' + pt('手动日志') + '</a>\
+                    | <a class="btlink" onclick="lsyncdExclude(\''+rsJsArg(list[i]['name'])+'\')">' + pt('过滤器') + '</a>\
+                    | <a class="btlink" onclick="createSendTask(\''+rsJsArg(list[i]['name'])+'\')">' + pt('编辑') + '</a>\
+                    | <a class="btlink" onclick="lsyncdDelete(\''+rsJsArg(list[i]['name'])+'\')">' + pt('删除') + '</a>\
                 </td>\
                 </tr>';
         }
@@ -579,14 +603,14 @@ function rsyncdReceive(){
         //<a class="btlink" onclick="modReceive(\''+list[i]['name']+'\')">' + pt('编辑') + '</a>
         for (var i = 0; i < list.length; i++) {
             con += '<tr>'+
-                '<td>' + list[i]['name']+'</td>' +
-                '<td><a class="btlink overflow_hide" onclick="openPath(\''+list[i]['path']+'\')">' + list[i]['path']+'</a></td>' +
-                '<td>' + list[i]['comment']+'</td>' +
+                '<td>' + rsEsc(list[i]['name']) + '</td>' +
+                '<td><a class="btlink overflow_hide" onclick="openPath(\''+rsJsArg(list[i]['path'])+'\')">' + rsEsc(list[i]['path']) + '</a></td>' +
+                '<td>' + rsEsc(list[i]['comment']) + '</td>' +
                 '<td>\
-                    <a class="btlink" onclick="cmdRecCmd(\''+list[i]['name']+'\')">' + pt('命令') + '</a>\
-                	| <a class="btlink" onclick="cmdRecSecretKey(\''+list[i]['name']+'\')">' + pt('密钥') + '</a>\
-                    | <a class="btlink" onclick="addReceive(\''+list[i]['name']+'\')">' + pt('编辑') + '</a>\
-                	| <a class="btlink" onclick="delReceive(\''+list[i]['name']+'\')">' + pt('删除') + '</a></td>\
+                    <a class="btlink" onclick="cmdRecCmd(\''+rsJsArg(list[i]['name'])+'\')">' + pt('命令') + '</a>\
+                	| <a class="btlink" onclick="cmdRecSecretKey(\''+rsJsArg(list[i]['name'])+'\')">' + pt('密钥') + '</a>\
+                    | <a class="btlink" onclick="addReceive(\''+rsJsArg(list[i]['name'])+'\')">' + pt('编辑') + '</a>\
+                	| <a class="btlink" onclick="delReceive(\''+rsJsArg(list[i]['name'])+'\')">' + pt('删除') + '</a></td>\
                 </tr>';
         }
 
@@ -617,27 +641,27 @@ function addReceive(name = ""){
                 <div class='line'>\
                     <span class='tname'>" + pt('项目名') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='" + pt('项目名') + "' style='width:200px' "+readonly+"/>\
+                        <input id='name' value='"+rsEsc(data["name"])+"' class='bt-input-text' type='text' name='name' placeholder='" + pt('项目名') + "' style='width:200px' "+readonly+"/>\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>" + pt('密钥') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='MyPassword' value='"+data["pwd"]+"' class='bt-input-text' type='text' name='pwd' placeholder='" + pt('密钥') + "' style='width:200px'/>\
+                        <input id='MyPassword' value='"+rsEsc(data["pwd"])+"' class='bt-input-text' type='text' name='pwd' placeholder='" + pt('密钥') + "' style='width:200px'/>\
                         <span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>" + pt('同步到') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='inputPath' value='"+data["path"]+"' class='bt-input-text' type='text' name='path' placeholder='/' style='width:200px'/>\
+                        <input id='inputPath' value='"+rsEsc(data["path"])+"' class='bt-input-text' type='text' name='path' placeholder='/' style='width:200px'/>\
                         <span class='glyphicon glyphicon-folder-open cursor' onclick=\"changePath('inputPath')\"></span>\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>" + pt('备注') + "</span>\
                     <div class='info-r c4'>\
-                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='" + pt('备注') + "' style='width:200px'/>\
+                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+rsEsc(data["comment"])+"' placeholder='" + pt('备注') + "' style='width:200px'/>\
                     </div>\
                 </div>\
             </div>",
@@ -686,7 +710,7 @@ function cmdRecSecretKey(name){
 	        type: 1,
 	        title:  pt('接收密钥'),
 	        area: '400px',
-	        content:"<div class='bt-form pd20 pb70 c6'><textarea class='form-control' rows='6' readonly='readonly'>"+rdata.data+"</textarea></div>"
+	        content:"<div class='bt-form pd20 pb70 c6'><textarea class='form-control' rows='6' readonly='readonly'>"+rsEsc(rdata.data)+"</textarea></div>"
     	});
     });
 }
@@ -700,7 +724,7 @@ function cmdRecCmd(name){
             type: 1,
             title:  pt('接收命令例子'),
             area: '400px',
-            content:"<div class='bt-form pd20 pb70 c6'>"+rdata.data+"</div>"
+            content:"<div class='bt-form pd20 pb70 c6' style='white-space:pre-wrap;word-break:break-all;'>"+rsEsc(rdata.data)+"</div>"
         });
     });
 }

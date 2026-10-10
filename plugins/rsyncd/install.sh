@@ -87,8 +87,13 @@ Uninstall_rsyncd()
 }
 
 action=$1
-if [ "${1}" == 'install' ];then
+if [ "${action}" == 'install' ];then
 	Install_rsyncd
-else
+elif [ "${action}" == 'uninstall' ];then
+	# 旧版是 else 兜底：任何非法/缺失参数（含无参）都会执行卸载，
+	# 直接 rm -rf 安装目录。面板只会传 install / uninstall，这里显式分支。
 	Uninstall_rsyncd
+else
+	echo "Usage: $0 {install|uninstall}"
+	exit 1
 fi

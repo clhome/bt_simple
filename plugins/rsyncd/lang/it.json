@@ -111,5 +111,15 @@
     "如需将其他服务器数据同步到本地服务器，请在接受配置中 \"创建接收任务\"": "Per sincronizzare i dati da altri server al server locale, crea un'\"attività di ricezione\" nella configurazione di ricezione",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "删除成功!": "Eliminazione riuscita!",
-    "{1}发送任务": "{1} Attività di invio"
+    "{1}发送任务": "{1} Attività di invio",
+    "路径格式不合法！": "Formato del percorso non valido!",
+    "参数格式不合法！": "Formato del parametro non valido!",
+    "密码格式不合法！": "Formato della password non valido!",
+    "IP格式不合法！": "Formato IP non valido!",
+    "同步任务不存在！": "Attività di sincronizzazione non trovata!",
+    "密码文件读取失败！": "Lettura del file password non riuscita!",
+    "写入密码文件失败！": "Scrittura del file password non riuscita!",
+    "写入配置失败，已回滚！": "Scrittura della configurazione non riuscita, ripristinata!",
+    "写入配置失败！": "Scrittura della configurazione non riuscita!",
+    "配置文件读取失败！": "Lettura della configurazione non riuscita!"
 }
