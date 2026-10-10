@@ -40,10 +40,21 @@
     "系统环境": "System environment",
     "系统自带或其他外部环境，为防止系统崩溃，禁止卸载": "To prevent the system from crashing, uninstallation is prohibited if it comes with the system or other external environment.",
     "衢州御风科技有限公司出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
-    "该版本下有关联的虚拟环境({len(venvs)}个)，为了安全禁止卸载": "There are associated virtual environments ({len(venvs)}) under this version. Uninstallation is prohibited for safety reasons.",
+    "该版本下有关联的虚拟环境({1}个)，为了安全禁止卸载": "Associated venvs ({1}), uninstall forbidden",
     "请输入虚拟环境路径": "Please enter the path to the virtual environment",
     "请选择或输入您的项目根目录": "Please select or enter your project root directory",
     "路径:": "path:",
     "已创建虚拟环境 ({1})": "Virtual environment created ({1})",
-    "(标识: {1})": "(ID: {1})"
+    "(标识: {1})": "(ID: {1})",
+    "请求失败，请稍后重试": "Request failed, retry",
+    "版本标识不合法，已拒绝": "Invalid version, rejected",
+    "目录路径不合法，已拒绝": "Invalid path, rejected",
+    "该 Python 为系统或外部环境，禁止卸载": "System Python, uninstall forbidden",
+    "该路径不是虚拟环境目录，未删除": "Not a venv dir, not deleted",
+    "该版本未安装，无法卸载": "Version not installed",
+    "获取 Python 列表失败: ": "Failed to get Python list: ",
+    "操作超时，请稍后重试": "Operation timed out, please retry later",
+    "未能确认安装结果: ": "Could not confirm installation result: ",
+    "未能确认卸载结果: ": "Could not confirm uninstallation result: ",
+    "删除失败: ": "Deletion failed: "
 }

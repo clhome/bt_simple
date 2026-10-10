@@ -40,10 +40,21 @@
     "系统环境": "Systemumgebung",
     "系统自带或其他外部环境，为防止系统崩溃，禁止卸载": "Um Systemabstürze zu vermeiden, ist die Deinstallation in der systemeigenen Umgebung oder in anderen externen Umgebungen untersagt.",
     "衢州御风科技有限公司出品": "Präsentiert von Quzhou Yufeng Technology Co., Ltd.",
-    "该版本下有关联的虚拟环境({len(venvs)}个)，为了安全禁止卸载": "In dieser Version sind {len(venvs)} virtuelle Umgebungen verknüpft; aus Sicherheitsgründen ist deren Deinstallation untersagt.",
+    "该版本下有关联的虚拟环境({1}个)，为了安全禁止卸载": "Verknüpfte venvs ({1}), Deinstallation gesperrt",
     "请输入虚拟环境路径": "Bitte geben Sie den Pfad zur virtuellen Umgebung ein.",
     "请选择或输入您的项目根目录": "Bitte wählen Sie das Stammverzeichnis Ihres Projekts aus oder geben Sie es ein.",
     "路径:": "Pfad:",
     "已创建虚拟环境 ({1})": "Virtuelle Umgebung erstellt ({1})",
-    "(标识: {1})": "(Kennung: {1})"
+    "(标识: {1})": "(Kennung: {1})",
+    "请求失败，请稍后重试": "Anfrage fehlgeschlagen, erneut versuchen",
+    "版本标识不合法，已拒绝": "Ungültige Version",
+    "目录路径不合法，已拒绝": "Ungültiger Pfad",
+    "该 Python 为系统或外部环境，禁止卸载": "System-Python, Deinstallation gesperrt",
+    "该路径不是虚拟环境目录，未删除": "Kein venv-Verzeichnis, nicht gelöscht",
+    "该版本未安装，无法卸载": "Version nicht installiert",
+    "获取 Python 列表失败: ": "Python-Liste konnte nicht abgerufen werden: ",
+    "操作超时，请稍后重试": "Zeitüberschreitung, bitte später erneut versuchen",
+    "未能确认安装结果: ": "Installationsergebnis konnte nicht bestätigt werden: ",
+    "未能确认卸载结果: ": "Deinstallationsergebnis konnte nicht bestätigt werden: ",
+    "删除失败: ": "Löschen fehlgeschlagen: "
 }

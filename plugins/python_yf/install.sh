@@ -11,15 +11,19 @@ Install_python_yf()
 	echo "开始安装 御风Python管理器..."
 	mkdir -p ${install_path}
 	
-	# 检查uv是否已安装
+	# 检查 uv 是否已安装（存在但不可执行同样视为未装好，否则面板会拿到一个假的「已安装」）
 	if [ ! -f "$HOME/.local/bin/uv" ]; then
 		echo "正在安装 uv 核心组件..."
 		curl -LsSf https://astral.sh/uv/install.sh | sh
-		if [ $? -ne 0 ]; then
+		if [ $? -ne 0 ] || [ ! -x "$HOME/.local/bin/uv" ]; then
 			echo "uv 安装失败，请检查网络！"
 			rm -rf ${install_path}
 			exit 1
 		fi
+	elif [ ! -x "$HOME/.local/bin/uv" ]; then
+		echo "uv 组件存在但不可执行，请重新安装！"
+		rm -rf ${install_path}
+		exit 1
 	else
 		echo "uv 核心组件已存在。"
 	fi

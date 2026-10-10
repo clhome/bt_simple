@@ -40,10 +40,21 @@
     "系统环境": "Ambiente di sistema",
     "系统自带或其他外部环境，为防止系统崩溃，禁止卸载": "Sia nell'ambiente di sistema predefinito che in altri ambienti esterni, per evitare il crash del sistema, è vietato disinstallarlo",
     "衢州御风科技有限公司出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
-    "该版本下有关联的虚拟环境({len(venvs)}个)，为了安全禁止卸载": "In questa versione sono presenti ambienti virtuali associati ({len(venvs)}), la cui disinstallazione è vietata per motivi di sicurezza",
+    "该版本下有关联的虚拟环境({1}个)，为了安全禁止卸载": "venv associati ({1}), rimozione vietata",
     "请输入虚拟环境路径": "Inserisci il percorso dell'ambiente virtuale",
     "请选择或输入您的项目根目录": "Seleziona o inserisci la directory principale del tuo progetto",
     "路径:": "Percorso:",
     "已创建虚拟环境 ({1})": "Ambiente virtuale creato ({1})",
-    "(标识: {1})": "(Identificatore: {1})"
+    "(标识: {1})": "(Identificatore: {1})",
+    "请求失败，请稍后重试": "Richiesta non riuscita, riprova",
+    "版本标识不合法，已拒绝": "Versione non valida, rifiutata",
+    "目录路径不合法，已拒绝": "Percorso non valido, rifiutato",
+    "该 Python 为系统或外部环境，禁止卸载": "Python di sistema, rimozione vietata",
+    "该路径不是虚拟环境目录，未删除": "Non è una dir venv, non eliminata",
+    "该版本未安装，无法卸载": "Versione non installata",
+    "获取 Python 列表失败: ": "Recupero elenco Python non riuscito: ",
+    "操作超时，请稍后重试": "Operazione scaduta, riprova più tardi",
+    "未能确认安装结果: ": "Impossibile confermare l'esito dell'installazione: ",
+    "未能确认卸载结果: ": "Impossibile confermare l'esito della disinstallazione: ",
+    "删除失败: ": "Eliminazione non riuscita: "
 }

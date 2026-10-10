@@ -100,6 +100,19 @@ resetPluginWinHeight(620);
 
 if(typeof resetPluginWinWidth === 'function'){  }
 
+// 转义回显值：venv 路径/版本标识来自后端数据（路径由用户输入落库），直接拼进
+// innerHTML / 行内 onclick 会形成存储型 XSS。
+function pyEsc(v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+}
+
+// 行内 onclick 的字符串实参：JSON 转义（引号/反斜杠/换行）+ HTML 转义（属性解析会还原实体）
+function pyJsArg(v) {
+    return pyEsc(JSON.stringify(String(v === null || v === undefined ? '' : v)));
+}
+
 var py_yf = {
     plugin_name: 'python_yf',
     cache_data: null,
@@ -111,10 +124,14 @@ var py_yf = {
         });
     },
     
-    request: function(func, args, callback) {
+    request: function(func, args, callback, mask) {
         var loadT = layer.msg(pt('正在处理,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
-        $.post('/plugins/run', {name: this.plugin_name, func: func, args: JSON.stringify(args)}, function(res){
+        var closeMask = function() {
             layer.close(loadT);
+            if(mask !== undefined && mask !== null) layer.close(mask);
+        };
+        $.post('/plugins/run', {name: this.plugin_name, func: func, args: JSON.stringify(args)}, function(res){
+            closeMask();
             if(typeof(res) === 'string') {
                 try { res = JSON.parse(res); } catch(e) {}
             }
@@ -125,6 +142,10 @@ var py_yf = {
             }
             
             if(callback) callback(script_res);
+        }).fail(function(){
+            // HTTP 非 200 / 请求失败也必须关遮罩，否则 loading 永久卡死界面
+            closeMask();
+            layer.msg(pt('请求失败，请稍后重试'), {icon:2, time:3000});
         });
     },
     
@@ -132,7 +153,7 @@ var py_yf = {
         var _this = this;
         this.request('get_python_list', {}, function(res){
             if(!res.status) {
-                layer.msg(res.msg, {icon:2, time:3000});
+                layer.msg(pyEsc(res.msg), {icon:2, time:3000});
                 return;
             }
             _this.cache_data = res.data;
@@ -155,13 +176,13 @@ var py_yf = {
             for(var i=0; i<list.length; i++) {
                 var item = list[i];
                 var btn_html = '<div style="float:right; margin-top: -2px;">';
-                btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.create_venv_dialog(\'' + item.name + '\')">创建虚拟环境</button>';
-                // 仅允许卸载 uv 目录下的 Python，保护系统自带环境
-                if(item.path.indexOf('/uv/python') !== -1 || item.path.indexOf('.local/share/uv') !== -1) {
+                btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.create_venv_dialog(' + pyJsArg(item.name) + ')">创建虚拟环境</button>';
+                // 只有 uv 管理的解释器（item.managed）才允许卸载，保护系统自带环境
+                if(item.managed) {
                     if(item.venvs && item.venvs.length > 0) {
                         btn_html += '<button class="btn btn-default btn-sm" style="margin-left:10px;" disabled title="' + pt('存在关联的虚拟环境，为了安全禁止卸载') + '">卸载</button>';
                     } else {
-                        btn_html += '<button class="btn btn-danger btn-sm" style="margin-left:10px;" onclick="py_yf.uninstall(\'' + item.name + '\')">卸载</button>';
+                        btn_html += '<button class="btn btn-danger btn-sm" style="margin-left:10px;" onclick="py_yf.uninstall(' + pyJsArg(item.name) + ')">卸载</button>';
                     }
                 } else {
                     btn_html += '<button class="btn btn-default btn-sm" style="margin-left:10px;" disabled title="' + pt('系统自带或其他外部环境，为防止系统崩溃，禁止卸载') + '">系统环境</button>';
@@ -180,9 +201,9 @@ var py_yf = {
                         var copy_cmd = "cd " + p_path + " && source " + v_name + "/bin/activate";
                         venv_info += '<div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">' +
                                      '<div><span class="glyphicon glyphicon-link" style="color:#aaa;margin-right:5px;font-size:11px;"></span>' + 
-                                     '<a href="javascript:;" onclick="openPath(\'' + v_path + '\')" class="btlink" style="background:#f9f9f9;padding:2px 5px;border-radius:4px;" title="' + pt('打开目录') + '">' + v_path + '</a></div>' +
-                                     '<div><a href="javascript:;" onclick="copyPass(\'' + copy_cmd + '\')" style="color:#20a53a; margin-right:10px; cursor:pointer;" title="' + pt('复制应用虚拟环境的命令') + '">应用环境命令</a>' +
-                                     '<a href="javascript:;" onclick="py_yf.remove_venv(\'' + item.name + '\', \'' + v_path + '\')" style="color:#d9534f; cursor:pointer;" title="' + pt('删除该虚拟环境') + '">删除</a></div>' +
+                                     '<a href="javascript:;" onclick="openPath(' + pyJsArg(v_path) + ')" class="btlink" style="background:#f9f9f9;padding:2px 5px;border-radius:4px;" title="' + pt('打开目录') + '">' + pyEsc(v_path) + '</a></div>' +
+                                     '<div><a href="javascript:;" onclick="copyPass(' + pyJsArg(copy_cmd) + ')" style="color:#20a53a; margin-right:10px; cursor:pointer;" title="' + pt('复制应用虚拟环境的命令') + '">应用环境命令</a>' +
+                                     '<a href="javascript:;" onclick="py_yf.remove_venv(' + pyJsArg(item.name) + ', ' + pyJsArg(v_path) + ')" style="color:#d9534f; cursor:pointer;" title="' + pt('删除该虚拟环境') + '">删除</a></div>' +
                                      '</div>';
                     }
                     venv_info += '</div>';
@@ -190,8 +211,8 @@ var py_yf = {
                 
                 html += '<div class="py-version-card">' +
                         btn_html +
-                        '<h3>' + item.version + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">' + msgTpl(pt('(标识: {1})'), [item.name]) + '</span></h3>' +
-                        '<p style="margin-top:8px;">路径: <span style="background:#f5f5f5;padding:2px 5px;border-radius:4px;user-select:all;">' + item.path + '</span></p>' +
+                        '<h3>' + pyEsc(item.version) + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">' + msgTpl(pt('(标识: {1})'), [pyEsc(item.name)]) + '</span></h3>' +
+                        '<p style="margin-top:8px;">路径: <span style="background:#f5f5f5;padding:2px 5px;border-radius:4px;user-select:all;">' + pyEsc(item.path) + '</span></p>' +
                         venv_info + 
                         '</div>';
             }
@@ -212,23 +233,23 @@ var py_yf = {
                 
                 var btn_html = '<div style="float:right; margin-top: -2px;">';
                 if(is_installed) {
-                    if(item.path.indexOf('/uv/python') !== -1 || item.path.indexOf('.local/share/uv') !== -1) {
+                    if(item.managed) {
                         if(item.venvs && item.venvs.length > 0) {
                             btn_html += '<button class="btn btn-default btn-sm" disabled title="' + pt('存在关联的虚拟环境，为了安全禁止卸载') + '">卸载</button>';
                         } else {
-                            btn_html += '<button class="btn btn-danger btn-sm" onclick="py_yf.uninstall(\'' + item.name + '\')">卸载</button>';
+                            btn_html += '<button class="btn btn-danger btn-sm" onclick="py_yf.uninstall(' + pyJsArg(item.name) + ')">卸载</button>';
                         }
                     } else {
                         btn_html += '<button class="btn btn-default btn-sm" disabled title="' + pt('系统环境') + '">已安装</button>';
                     }
                 } else {
-                    btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.install(\'' + item.name + '\')">一键安装</button>';
+                    btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.install(' + pyJsArg(item.name) + ')">一键安装</button>';
                 }
                 btn_html += '</div>';
                 
                 html += '<div class="py-version-card" style="padding:15px;">' +
                         btn_html +
-                        '<h3 style="margin:0;">' + item.version + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">' + msgTpl(pt('(标识: {1})'), [item.name]) + '</span></h3>' +
+                        '<h3 style="margin:0;">' + pyEsc(item.version) + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">' + msgTpl(pt('(标识: {1})'), [pyEsc(item.name)]) + '</span></h3>' +
                         '</div>';
             }
         }
@@ -237,10 +258,10 @@ var py_yf = {
     
     install: function(version_name) {
         var _this = this;
-        layer.confirm(pt('确定要安装 [') + version_name + '] 吗？安装过程可能需要几十秒时间，请耐心等待。', {title: pt('安装 Python'), icon:3}, function(index){
+        layer.confirm(pt('确定要安装 [') + pyEsc(version_name) + '] 吗？安装过程可能需要几十秒时间，请耐心等待。', {title: pt('安装 Python'), icon:3}, function(index){
             layer.close(index);
             _this.request('install_python', {version: version_name}, function(res){
-                layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
+                layer.msg(pyEsc(res.msg), {icon: res.status ? 1 : 2, time: 3000});
                 if(res.status) {
                     _this.get_list(); // 刷新列表
                 }
@@ -250,10 +271,10 @@ var py_yf = {
     
     uninstall: function(version_name) {
         var _this = this;
-        layer.confirm(pt('确定要卸载 [') + version_name + '] 吗？', {title: pt('卸载 Python'), icon:3}, function(index){
+        layer.confirm(pt('确定要卸载 [') + pyEsc(version_name) + '] 吗？', {title: pt('卸载 Python'), icon:3}, function(index){
             layer.close(index);
             _this.request('uninstall_python', {version: version_name}, function(res){
-                layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
+                layer.msg(pyEsc(res.msg), {icon: res.status ? 1 : 2, time: 3000});
                 if(res.status) {
                     _this.get_list();
                 }
@@ -263,16 +284,15 @@ var py_yf = {
     
     remove_venv: function(version_name, path) {
         var _this = this;
-        layer.confirm(pt('确定要删除虚拟环境目录 [') + path + '] 吗？此操作将不可恢复！', {title: pt('删除虚拟环境'), icon:3}, function(index){
+        layer.confirm(pt('确定要删除虚拟环境目录 [') + pyEsc(path) + '] 吗？此操作将不可恢复！', {title: pt('删除虚拟环境'), icon:3}, function(index){
             layer.close(index);
             var loadT = layer.msg(pt('正在删除,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
             _this.request('remove_venv', {version: version_name, path: path}, function(res){
-                layer.close(loadT);
-                layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
+                layer.msg(pyEsc(res.msg), {icon: res.status ? 1 : 2, time: 3000});
                 if(res.status) {
                     _this.get_list();
                 }
-            });
+            }, loadT);
         });
     },
     
@@ -289,7 +309,7 @@ var py_yf = {
         
         layer.open({
             type: 1,
-            title: pt('创建 [') + version_name + '] 的虚拟环境',
+            title: pt('创建 [') + pyEsc(version_name) + '] 的虚拟环境',
             area: '500px',
             content: html,
             btn: [pt('创建'), pt('取消')],
@@ -299,13 +319,12 @@ var py_yf = {
                 
                 var loadT = layer.msg(pt('正在创建虚拟环境,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
                 _this.request('create_venv', {version: version_name, path: path}, function(res){
-                    layer.close(loadT);
-                    layer.msg(res.msg, {icon: res.status?1:2});
+                    layer.msg(pyEsc(res.msg), {icon: res.status?1:2});
                     if(res.status) {
                         layer.close(index);
                         _this.get_list();
                     }
-                });
+                }, loadT);
             }
         });
     }
