@@ -45,7 +45,10 @@ yf_start_panel()
     isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
     if [ "$isStart" == '' ];then
         echo -e "starting yf-panel... \c"
-        cd ${PANEL_DIR}/web &&  gunicorn -c setting.py app:app
+        # 同上：子 shell 自身先重定向再 exec，不把调用方的管道交给面板进程
+        # （gunicorn 自身会 daemonize 并接管日志，这里只是兜底，防止配置改动
+        #   为前台运行时把调用方挂死）。
+        ( cd ${PANEL_DIR}/web && exec gunicorn -c setting.py app:app ) </dev/null >> ${PANEL_DIR}/logs/panel_error.log 2>&1
         port=$(cat ${PANEL_DIR}/data/port.pl)
         isStart=""
         n=0
@@ -83,7 +86,11 @@ yf_start_task()
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
         echo -e "starting yf-tasks... \c"
-        cd ${PANEL_DIR} && python3 panel_task.py >> ${PANEL_DIR}/logs/panel_task.log 2>&1 &
+        # 必须让「子 shell 自身」先重定向再 exec，不能只重定向被执行的命令：
+        # `cd X && cmd >> log 2>&1 &` 会留下一个继承了调用方 stdout/stderr 的子 shell，
+        # 它的存活期与 cmd 一样长 —— 调用方（panel_tools.py 用管道读输出）永远等不到
+        # EOF，必然超时（真机故障：`yf 1` / `bs 1` 卡死 30 秒后死锁）。
+        ( cd ${PANEL_DIR} && exec python3 panel_task.py ) >> ${PANEL_DIR}/logs/panel_task.log 2>&1 </dev/null &
         sleep 0.3
         isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
         if [ "$isStart" == '' ];then

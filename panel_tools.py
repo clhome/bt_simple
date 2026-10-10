@@ -39,6 +39,17 @@ if yf.isAppleSystem():
 
 INIT_CMD = INIT_DIR + "/yf"
 
+#: 启停类命令（start/stop/restart/reload/restart_panel/restart_task）的调用超时。
+# 这些命令要真正启停进程并等端口就绪：真机实测 `restart` 本体约 12s，而 init.d 脚本
+# 内部的端口等待上限是 30s —— 用 safeExecShell 的默认 30s 会把「启动慢」误判成超时，
+# 而且超时分支拿不到脚本的输出（用户只看到一句 Timeout，看不到真实报错）。
+# 也不要为了「更保险」把它调得很大：万一命令输出管道被外部进程持有，
+# 调用方要等满这个值才会返回（有界，但交互式 `yf 1` 等 5 分钟体验很差）。
+SERVICE_TIMEOUT = 120
+
+#: 卸载脚本要停服务/删文件/卸依赖，耗时不确定，单独给更宽的余量。
+UNINSTALL_TIMEOUT = 600
+
 
 def _panel_python(panel_dir=None):
     """返回面板 venv 内的 Python 解释器（探测不到时回退到当前解释器）。
@@ -141,9 +152,9 @@ def yfcli(yf_input=0):
     if yf_input == "uninstall":
         uninstall_script = panel_dir + "/scripts/uninstall.sh"
         if os.path.exists(uninstall_script):
-            yf.safeExecShell(['bash', uninstall_script])
+            yf.safeExecShell(['bash', uninstall_script], timeout=UNINSTALL_TIMEOUT)
         else:
-            yf.safeExecShell([INIT_CMD, 'uninstall'])
+            yf.safeExecShell([INIT_CMD, 'uninstall'], timeout=UNINSTALL_TIMEOUT)
         return
 
     if yf_input == "migrate_restore":
@@ -161,13 +172,13 @@ def yfcli(yf_input=0):
         exit()
 
     if yf_input == 1:
-        yf.safeExecShell([INIT_CMD, 'restart'])
+        yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
     elif yf_input == 2:
-        yf.safeExecShell([INIT_CMD, 'stop'])
+        yf.safeExecShell([INIT_CMD, 'stop'], timeout=SERVICE_TIMEOUT)
     elif yf_input == 3:
-        yf.safeExecShell([INIT_CMD, 'start'])
+        yf.safeExecShell([INIT_CMD, 'start'], timeout=SERVICE_TIMEOUT)
     elif yf_input == 4:
-        yf.safeExecShell([INIT_CMD, 'reload'])
+        yf.safeExecShell([INIT_CMD, 'reload'], timeout=SERVICE_TIMEOUT)
     elif yf_input == 5:
         in_ip = yf_input_cmd("请输入设置的面板IP：")
         in_ip = in_ip.strip()
@@ -185,8 +196,8 @@ def yfcli(yf_input=0):
             YfFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
             panel_port = panel_dir + '/data/port.pl'
             yf.writeFile(panel_port, in_port)
-            yf.safeExecShell([INIT_CMD, 'restart_panel'])
-            yf.safeExecShell([INIT_CMD, 'default'])
+            yf.safeExecShell([INIT_CMD, 'restart_panel'], timeout=SERVICE_TIMEOUT)
+            yf.safeExecShell([INIT_CMD, 'default'], timeout=SERVICE_TIMEOUT)
         else:
             yf.echoInfo("端口范围在0-65536之间")
         return
@@ -202,7 +213,7 @@ def yfcli(yf_input=0):
         # 杀死所有任务进程
         # 多级管道必须经 shell；命令全为字面量，无变量进入 shell
         os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")  # 保留 os.system：常量管道，无外部输入
-        yf.safeExecShell([INIT_CMD, 'restart_task'])
+        yf.safeExecShell([INIT_CMD, 'restart_task'], timeout=SERVICE_TIMEOUT)
         yf.echoInfo("后台任务已强制终止并重启!")
     elif yf_input == 10:
         yf.safeExecShell([INIT_CMD, 'default'])
@@ -252,7 +263,7 @@ def yfcli(yf_input=0):
         if basic_auth['open']:
             basic_auth['open'] = False
             thisdb.setOption('basic_auth', json.dumps(basic_auth))
-            yf.safeExecShell([INIT_CMD, 'restart'])
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
             yf.echoInfo("关闭basic_auth成功")
     elif yf_input == 21:
         panel_domain = thisdb.getOption('panel_domain', default='')
@@ -273,7 +284,7 @@ def yfcli(yf_input=0):
         listen_ipv6 = panel_dir + '/data/ipv6.pl'
         if not os.path.exists(listen_ipv6):
             yf.writeFile(listen_ipv6, 'True')
-            yf.safeExecShell([INIT_CMD, 'restart'])
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
             yf.echoInfo("开启IPv6支持了")
         else:
             yf.echoInfo("已开启IPv6支持!")
@@ -283,7 +294,7 @@ def yfcli(yf_input=0):
             yf.echoInfo("已关闭IPv6支持!")
         else:
             os.remove(listen_ipv6)
-            yf.safeExecShell([INIT_CMD, 'restart'])
+            yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT)
             yf.echoInfo("关闭IPv6支持了")
     elif yf_input == 25:
         open_ssh_port()

@@ -146,3 +146,71 @@
   - 证据：① **49/49 全打勾**（A13/B10/C12/D11/E3；无空勾、无缺条；`PYTHONIOENCODING=utf-8 python test/_summary_table.py` → 「49/49 已打勾」+ **338 个去重修复文件** + 按模块残留清单，退出码 0）。② **全量门禁** `python testsuite/run_all.py` = **238 模块 / 2913 用例 / 0 隔离 / 4 静态门禁 全绿**（本 goal 开测基线 216/2120 → 逐模块只增不减，无回归）。③ **真机零遗留**：`/root/yf_probe*`（58 项，含 1.1G 的 D02 swap 回滚网）与 `/tmp/yf_probe*`、`/tmp/yf_*.log` 全删（根分区 15G→14G）；`docker volume ls` 由 **43→1**（42 个本轮孤儿匿名卷删除，仅留 pg-test1 在用的 1 个，`named=0`），`docker ps -a` 只有生产容器 `pg-test1`、`docker images` 只有 `postgres:18.4-bookworm`；面板库 `app=0 / temp_login=0 / tasks=54 / sites=1 / crontab=5 / firewall=10 / users=1 / option=20`（与各轮基线逐项一致；`logs=241`/`panel_audit=314` 因 append-only 设计按预期增长）；MySQL 生产库 `test1/cc2/dianbiao` 完好、无 `yftest*` 库；`/etc/systemd/system`、`/etc/init.d`、`/www/server/cron`(5 项)、`/www/backup`、`/www/recycle_bin`、firewalld 端口、`/usr/bin/java`、`/etc/profile.d/java.sh` 均无本轮残留；root crontab 6 行不变；面板 HTTP **200**、mysql/php83/openresty active、swap 完好。④ **`test/` 一次性探针清理**：按「mtime ≥ 2026-09-29（本 goal 期）且未被 `task.md`/`testsuite` 引用且非基建/非变异自证证据」精确判据（先干跑列举、复核后再删），删除 **145 个**一次性探针（`_probe_*`/`_dbg_*`/`_d0X_*`/`_e0X_*`/`tmp_*` 等），保留 **87 个**（`machine.py`、`MODULE_TEST_BRIEF.md`、`.machine.env`、`_pre_scan.py`、`_summary_table.py`、`_wf_*.js` 基建 + `*mutation_probe*.py`/`_d0X_mutation.py`/`_mutate_e01.py` 变异自证证据）；更早轮次（i18n 工具链等）的 473 个历史文件非本轮产物未动。⑤ **汇总表** `test/_summary_table.md` 已按 49/49 重新生成（模块/结论/修复文件数/残留条数 + 338 个修复文件去重清单 + 按模块残留清单）。⑥ `git status --short` 仅含 `task.md` 的有意改动（S02 打勾 + A06 分节格式补齐 `。修复：`→`。| 修复：`，纯格式、内容未改）。
 
 
+## 6. 面板重启卡死 / 「御风面板无法启动」修复（2026-10-10）
+
+> 来源：用户真机 `bs 1` / `yf 1` 重启面板时**永久卡死**（`safeExecShell` 报 30s 超时后
+> 转入无超时的 `communicate()`，只能 Ctrl+C 退出），且面板被留在停止态 → 报「面板无法启动」。
+> 纪律：改动仅限工作区内（真机部署经用户逐次授权）；每步跑 `python testsuite/run_all.py`。
+
+### 6.1 问题定性（全部真机复现，非推测）
+
+- [x] D1（P0）`safeExecShell` 超时后**死锁**：`except subprocess.TimeoutExpired` 里
+  `sub.kill()` 之后调用**不带 timeout** 的 `communicate()` —— 只要 stdout/stderr 管道还被
+  别的进程持有，就永远等不到 EOF。`execShell` / `execShellRc` 三个原语同病。
+  真机实证：`Popen(['/etc/rc.d/init.d/yf','restart'], stdout=PIPE)` → 30s TimeoutExpired
+  → kill 后 `communicate()` 再阻塞 >10s（`test/machine.py` 探针 diag6/diag7/diag8）。
+- [x] D2（P0，真正让 `yf 1` **必然**卡死的原因）init.d 的后台任务**泄漏调用方管道**：
+  `cd ${PANEL_DIR} && python3 panel_task.py >> log 2>&1 &` 只重定向了「被执行的命令」，
+  承载它的子 shell 仍继承调用方的 stdout/stderr，而它的存活期与 panel_task.py 一样长。
+  实证：`ps -eo pid,ppid,stat,wchan,cmd` 见到 **PPID=1 的孤儿 bash** 在 `do_wait` 等
+  `python3 panel_task.py`；主脚本 12s 就退出，管道却一直不关 → 调用方必然撞上 30s 超时
+  再撞上 D1 的死锁。
+- [x] D3（P1）超时值过紧：`restart` 本体真机实测 **12.2s**，init.d 内部端口等待上限 30s，
+  而 `panel_tools.py` 用 safeExecShell 的默认 30s。
+- [x] D4（P1，「面板无法启动」的直接成因）执行原语未建独立会话：`subprocess.Popen` 让子进程
+  留在调用方进程组，用户在终端按 **Ctrl+C 的 SIGINT 会打进正在执行的 `yf restart` 脚本**
+  （stop 已执行、start 未执行）→ 面板停在停止态。用户贴出的两次 KeyboardInterrupt 即此。
+
+### 6.2 修复
+
+- [x] `web/core/yf/__init__.py`：新增 `_TIMEOUT_REAP_SECONDS`(5) / `_newProcessGroupKwargs()` /
+  `_reapTimedOutSub()`；`safeExecShell`/`execShell`/`execShellRc` 三处 Popen 一律
+  `**_newProcessGroupKwargs()`（POSIX 下 `start_new_session=True`），超时分支改走
+  `_reapTimedOutSub()`：**整组 SIGKILL** → 带超时收尾 → 仍超时则关句柄放弃读取，
+  **绝不无限等待**。Windows 不关句柄（实测 `stream.close()` 会等读取线程拿到 EOF，
+  把超时又变回无界等待 14s+），交给 daemon 读取线程自行收尾。
+- [x] `scripts/init.d/yf.tpl`：后台任务改「子 shell 自身先重定向再 exec」——
+  `( cd ${PANEL_DIR} && exec python3 panel_task.py ) >> .../panel_task.log 2>&1 </dev/null &`；
+  gunicorn 启动同样包成 `( ... ) </dev/null >> .../panel_error.log 2>&1`（兜底：若配置改为
+  前台运行也不会挂死调用方）。该模板由 `setup.init() → init_cmd()` 在**每次面板启动时重新生成**
+  `/etc/rc.d/init.d/yf`，因此无需单独分发。
+- [x] `panel_tools.py`：新增 `SERVICE_TIMEOUT=120`（启停类）与 `UNINSTALL_TIMEOUT=600`（卸载），
+  给 8 处服务类 init.d 调用显式传超时。**刻意不调大 SERVICE_TIMEOUT**：一旦输出管道被外部持有，
+  调用方要等满该值才返回（有界但体验差），120s 已覆盖 init.d 自身 30s 端口等待上限。
+
+### 6.3 验证记录
+
+| 项目 | 命令 | 结果 |
+|------|------|------|
+| 回归守卫 | `python -m unittest testsuite.test_exec_timeout_hardening` | **9/9 通过**（Windows 1 skip）|
+| 变异自证 | `python test/_exec_timeout_mutation.py` | **MUTATIONS=14 RED=14 GREEN=0 APPLY_FAILED=0** |
+| 全量门禁 | `python testsuite/run_all.py` | **239 模块 / 2922 用例 / 0 隔离 / 4 静态门禁 全绿** |
+| 真机行为 | 部署后 `/www/server/yufeng_panel/bin/python3` 跑行为探针 | 死锁场景 **6.01s 有界返回**（修复前永久挂起）；killpg 整组回收**零残留**；`execShell`/`execShellRc` 各 1.00s 返回 |
+| 真机守卫 | 真机 `-m unittest testsuite.test_exec_timeout_hardening` | **9/9 全绿，0 skip**（POSIX 路径全开）|
+| 真机端到端 | `yf 1`（= `bs 1`，用户原始命令） | **rc=0 / elapsed=11s**；`panel_http=200`；`panel_task.py` 存活且 **PPID=1**（不再有持管道的 bash 父进程）|
+| 真机 Ctrl+C | 对 panel_tools 所在**进程组**发 SIGINT | initd 脚本 pgid=596818 ≠ 调用方 596816 → 脚本未被打断，**面板仍 200、panel_task 存活** |
+| 文件一致性 | 部署前 / 部署后逐一 md5 | 部署前真机 3 文件 == 本地 HEAD（`ea07a126…`/`bce7da46…`/`f6f7e580…`）；部署后 == 本地（`1a248cf4…`/`b92ec3c4…`/`33ae28e1…`）；真机 `py_compile` OK、`bash -n` OK |
+
+### 6.4 残留（明确记录）
+
+- 首次从**旧版 init.d** 升级时，历史遗留的孤儿子 shell 仍会持有那一次调用的管道 →
+  那一次 `yf 1` 会等到 `SERVICE_TIMEOUT`(120s) 才返回（有界，不再死锁）。
+  真机上已通过「第二次 restart 杀掉旧 panel_task.py」自然清除，此后稳定 11s。
+- `web/utils/system/main.py:491` 的 `subprocess.run(timeout=...)` 不在此列：CPython 内部
+  POSIX 分支用 `process.wait()` 收尾，不会无界等待，无需改。
+- 回滚网 `/root/yf_probe_backup_RESTART_FIX/`（yf__init__.py / panel_tools.py / yf.tpl /
+  initd_yf / initd_init.d_yf 五个部署前原件）按惯例保留，待后续收口统一决定去留。
+- 真机 `/www/server/yufeng_panel/testsuite/` 下临时推入的守卫文件已在复验后删除，
+  部署面严格等于本轮 3 个修复文件 + 面板自愈重生成的 `/etc/rc.d/init.d/yf`、`/etc/init.d/yf`。
+
+

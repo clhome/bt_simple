@@ -41,6 +41,9 @@ import hmac
 import shlex
 
 
+import signal
+
+
 import datetime
 
 
@@ -64,6 +67,68 @@ from random import Random
 
 _log = logging.getLogger('yf.core')
 
+#: 超时后回收子进程的最长等待（秒）。
+#
+# 为什么必须是有界值（真机故障，勿改回无参数的 communicate()）：
+# 管道可能被「孙子进程」继续持有 —— 例如 init.d 脚本里的 `cd X && cmd >> log 2>&1 &`
+# 会留下一个继承调用方 stdout/stderr 的子 shell，它的存活期与 cmd 一样长。
+# 此时即使 kill 掉直接子进程，读管道也永远等不到 EOF，无参数的 communicate()
+# 会**永久阻塞**（现场：`yf 1` / `bs 1` 重启面板时卡死，Ctrl+C 才退出）。
+_TIMEOUT_REAP_SECONDS = 5
+
+
+def _newProcessGroupKwargs():
+    """POSIX 下让子进程独立成组/会话（Windows 不传该参数）。
+
+    两个作用，都对应真机故障：
+    1. 超时可 `killpg` 整组回收，不会留下持有 stdout/stderr 管道的孤儿进程；
+    2. 交互式调用方（终端里的 `yf` / `bs`）被 Ctrl+C 时，SIGINT 不会打进被执行
+       的服务脚本 —— 否则「重启面板」会停在中途（stop 已执行、start 未执行），
+       面板留在停止态，表现为「面板无法启动」。
+    """
+    return {'start_new_session': True} if os.name == 'posix' else {}
+
+
+def _reapTimedOutSub(sub, cmd_desc):
+    """超时后回收子进程，并保证**有界**返回 (stdout_bytes, stderr_bytes)。
+
+    先整组 SIGKILL（连同可能持有管道的孙子进程），再带超时地收尾；
+    收尾仍超时说明管道被外部进程持有，直接关闭句柄放弃读取，绝不无限等待。
+    """
+    killed = False
+    if os.name == 'posix':
+        try:
+            os.killpg(os.getpgid(sub.pid), signal.SIGKILL)
+            killed = True
+        except Exception as _e:
+            _log.debug('[yf] killpg 失败，回退单进程 kill: %s', _e)
+    if not killed:
+        try:
+            sub.kill()
+        except Exception as _e:
+            _log.debug('[yf] kill 失败: %s', _e)
+
+    try:
+        return sub.communicate(timeout=_TIMEOUT_REAP_SECONDS)
+    except subprocess.TimeoutExpired:
+        # 管道被 killpg 也够不到的进程持有（如自行 setsid 的孙子进程）。
+        # POSIX：关掉读端可立即解除阻塞；Windows：close() 会等读取线程拿到 EOF
+        # （实测把超时又变回无界等待 14s+），因此只在 POSIX 关，Windows 交给
+        # daemon 读取线程自行收尾。
+        if os.name == 'posix':
+            for stream in (sub.stdin, sub.stdout, sub.stderr):
+                try:
+                    if stream is not None:
+                        stream.close()
+                except Exception as _e:
+                    _log.debug('[yf] 关闭超时子进程的管道失败: %s', _e)
+        try:
+            sub.wait(timeout=_TIMEOUT_REAP_SECONDS)
+        except Exception as _e:
+            _log.debug('[yf] 等待超时子进程退出失败: %s', _e)
+        _log.warning('[yf] 命令超时且子进程未能回收（管道被外部进程持有）: %s', cmd_desc)
+        return (b'', b'')
+
 
 def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
     """
@@ -84,12 +149,12 @@ def safeExecShell(cmd_list, cwd=None, timeout=30, stdin_data=None):
 
         # 不使用 shell=True，直接调用
         sub = subprocess.Popen(cmd_list, cwd=cwd, stdin=subprocess.PIPE,
-                               shell=False, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                               shell=False, bufsize=4096, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, **_newProcessGroupKwargs())
         try:
             data = sub.communicate(input=payload, timeout=timeout)
         except subprocess.TimeoutExpired:
-            sub.kill()
-            data = sub.communicate()
+            data = _reapTimedOutSub(sub, str(cmd_list))
             raise Exception("Timeout：%s" % str(cmd_list))
             
         success = data[0]
@@ -156,13 +221,13 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     # B602 豁免：execShell 是面板「执行 shell 命令」的核心原语，shell 由调用方决定；
     # 调用点集中在受控路径（常量 / 白名单校验后的参数），此处不改为 shell=False。
     sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,
-                           shell=shell, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec B602  # execShell 为面板执行 shell 的核心原语
+                           shell=shell, bufsize=4096, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, **_newProcessGroupKwargs())  # nosec B602  # execShell 为面板执行 shell 的核心原语
 
     try:
         data = sub.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        sub.kill()
-        data = sub.communicate()
+        data = _reapTimedOutSub(sub, str(cmdstring))
         raise Exception("Timeout：%s" % cmdstring)
 
     data = data
@@ -206,12 +271,11 @@ def execShellRc(cmdstring, cwd=None, timeout=None, shell=True):
     try:
         sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,
                                shell=shell, bufsize=4096, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)  # nosec B602
+                               stderr=subprocess.PIPE, **_newProcessGroupKwargs())  # nosec B602
         try:
             data = sub.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            sub.kill()
-            sub.communicate()
+            _reapTimedOutSub(sub, str(cmdstring))
             return (-1, '', 'Timeout：%s' % cmdstring)
         rc = sub.returncode
     except Exception as e:
