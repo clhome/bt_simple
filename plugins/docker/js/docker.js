@@ -1,6 +1,30 @@
 var api = YfPlugin.createApi('docker');
 var pt = YfI18n.createPluginTranslator('docker');
 
+// HTML 转义：容器名/镜像名/挂载路径/IP 池/仓库信息都来自用户输入或 docker 输出，
+// 直接拼进 .html() 即存储型 XSS（与 A09/A11 同族）。
+// 正则里的引号写成 \x22/\x27：旧版前端「引号配对」静态扫描器会把 /\"/g 里的引号
+// 当成字符串开头，导致后续代码全部误判（php.js/rsyncd.js 已踩过）。
+function dockerEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// onclick 参数转义：属性值先过 HTML 实体解码再交给 JS，&#39; 会被解码回 ' 而逃逸，
+// 因此必须用 \xNN 形式（同 task_manager tmJsArg / gitea gtJsArg）。
+function dockerJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
 var _dockerConReqId = 0;
 var _dockerImageReqId = 0;
 
@@ -172,20 +196,20 @@ function dockerConListRender(isRefresh) {
             }
 
             var op = '';
-            op += '<a href="javascript:;" onclick="conDetails(\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('详情') + '</a> | ';
-            op += '<a href="javascript:;" onclick="execCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('终端') + '</a> | ';
-            op += '<a href="javascript:;" onclick="logsCon(\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('日志') + '</a> | ';
-            op += '<a href="javascript:;" onclick="deleteCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('删除') + '</a>';
+            op += '<a href="javascript:;" onclick="conDetails(\'' + dockerJsArg(rlist[i]['Id']) + '\')" class="btlink">' + pt('详情') + '</a> | ';
+            op += '<a href="javascript:;" onclick="execCon(\'' + dockerJsArg(rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('终端') + '</a> | ';
+            op += '<a href="javascript:;" onclick="logsCon(\'' + dockerJsArg(rlist[i]['Id']) + '\')" class="btlink">' + pt('日志') + '</a> | ';
+            op += '<a href="javascript:;" onclick="deleteCon(\'' + dockerJsArg(rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + (rlist[i]['Name'] ? rlist[i]['Name'].substring(1) : '-') + '</td>';
-            list += '<td>' + (rlist[i]['Config'] ? rlist[i]['Config']['Image'] : '-') + '</td>';
-            list += '<td>' + getFormatTime(rlist[i]['Created']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['Name'] ? rlist[i]['Name'].substring(1) : '-') + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['Config'] ? rlist[i]['Config']['Image'] : '-') + '</td>';
+            list += '<td>' + dockerEsc(getFormatTime(rlist[i]['Created'])) + '</td>';
 
             if (docker_status == 'start') {
-                list += '<td style="cursor:pointer;" align="center" onclick="stopCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
+                list += '<td style="cursor:pointer;" align="center" onclick="stopCon(\'' + dockerJsArg(rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
             } else {
-                list += '<td style="cursor:pointer;" align="center" onclick="startCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
+                list += '<td style="cursor:pointer;" align="center" onclick="startCon(\'' + dockerJsArg(rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
             }
             list += '<td class="text-right">' + op + '</td>';
             list += '</tr>';
@@ -291,6 +315,13 @@ function createConTemplate() {
                                 <span class="dc-un"></span>\
                                 <span class="docker-cpu-percent" style="margin-left: 15px; width: 40px; color: #666; font-weight: bold;">100%</span>\
                                 <i class="help" style="margin-left: 10px;">' + pt('docker占用cpu资源上限') + '</i>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                            <span class="tname">' + pt('特权模式') + '</span>\
+                            <div class="info-r c4" style="display: flex; align-items: center; height: 30px;">\
+                                <input class="docker-privileged" type="checkbox" style="margin-right: 8px;">\
+                                <i class="help">' + pt('特权模式说明') + '</i>\
                             </div>\
                         </div>\
                         <div class="line">\
@@ -415,10 +446,14 @@ function createConTemplate() {
                 }
 
                 //遍历目录映射
-                volumes['/sys/fs/cgroup'] = {
-                    'bind': '/sys/fs/cgroup',
-                    'mode': 'rw'
-                };
+                // cgroup 挂载只对特权容器有意义（且真机验证该挂载必需）：
+                // 旧实现无条件拼这条，普通容器也会被塞入宿主机 /sys/fs/cgroup。
+                if ($('.docker-privileged').is(':checked')) {
+                    volumes['/sys/fs/cgroup'] = {
+                        'bind': '/sys/fs/cgroup',
+                        'mode': 'rw'
+                    };
+                }
                 for (var i = 0; i < portval2.length; i++) {
                     if (portval2[i].children[0].innerText.replace(/\s/g, ' ') == pt('当前未添加目录映射')) {
                         continue;
@@ -441,6 +476,7 @@ function createConTemplate() {
                     cpu_shares: $('.docker-cpu').val(),
                     command: command,
                     entrypoint: entrypoint,
+                    privileged: $('.docker-privileged').is(':checked') ? '1' : '0',
                     name: $('.docker-name').val().trim()
                 }
 
@@ -571,11 +607,11 @@ function dockerImageListRender(isRefresh) {
             var tag = repoTags.indexOf(':') !== -1 ? repoTags.split(':')[1] : '-';
 
             var op = '';
-            op += '<a href="javascript:;" onclick="deleteImages(\'' + repoTags + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('删除') + '</a>';
+            op += '<a href="javascript:;" onclick="deleteImages(\'' + dockerJsArg(repoTags) + '\',\'' + dockerJsArg(rlist[i]['Id']) + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + repoTags + '</td>';
-            list += '<td>' + tag + '</td>';
+            list += '<td>' + dockerEsc(repoTags) + '</td>';
+            list += '<td>' + dockerEsc(tag) + '</td>';
             list += '<td>' + toSize(rlist[i]['Size']) + '</td>';
             list += '<td>' + (rlist[i]['DiskUsage'] ? rlist[i]['DiskUsage'] : (rlist[i]['VirtualSize'] ? toSize(rlist[i]['VirtualSize']) : toSize(rlist[i]['Size']))) + '</td>';
             list += '<td>' + getFormatTime(rlist[i]['Created']) + '</td>';
@@ -787,7 +823,11 @@ function dockerDeleteFile(fileName) {
             showMsg(rdata.msg, function() {
                 dockerImageOutputRender();
             }, { icon: rdata.status ? 1 : 2 });
-        }, 'json');
+        }, 'json').fail(function(xhr) {
+            // 缺 .fail() 时 500 会让 loading 遮罩永久卡死
+            layer.closeAll('loading');
+            layer.msg(pt('请求失败') + ': ' + xhr.status, { icon: 2 });
+        });
     });
 }
 
@@ -849,11 +889,11 @@ function uploadImageFiles(upload_dir) {
     var image_layer = layer.open({
         type: 1,
         closeBtn: 1,
-        title: pt("上传导入镜像包[") + upload_dir + '] ' + pt('(支持 .tar, .tar.gz, .tgz)'),
+        title: pt("上传导入镜像包[") + dockerEsc(upload_dir) + '] ' + pt('(支持 .tar, .tar.gz, .tgz)'),
         area: ['500px', '300px'],
         shadeClose: false,
         content: '<div class="fileUploadDiv">\
-                <input type="hidden" id="input-val" value="' + upload_dir + '" />\
+                <input type="hidden" id="input-val" value="' + dockerEsc(upload_dir) + '" />\
                 <input type="file" id="file_input" accept=".tar,.tar.gz,.tgz" multiple="true" autocomplete="off" />\
                 <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
                 <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
@@ -901,9 +941,9 @@ function dockerImagePick() {
                     version, reg = new RegExp('((?<=:)[0-9A-z/.-]*)$');
                 version = versionData.match(reg) || ['latest'];
                 var tagName = imageList[i].RepoTags || '';
-                _tbody += "<tr><td><input data-name='" + tagName + "' type='checkbox' name='images'></td>\
-                        <td><span class='max_span' title='" + tagName + "'>" + tagName + "</span></td>\
-                        <td>" + version[0] + "</td>\
+                _tbody += "<tr><td><input data-name='" + dockerEsc(tagName) + "' type='checkbox' name='images'></td>\
+                        <td><span class='max_span' title='" + dockerEsc(tagName) + "'>" + dockerEsc(tagName) + "</span></td>\
+                        <td>" + dockerEsc(version[0]) + "</td>\
                         <td>" + toSize(imageList[i].Size) + "</td></tr>";
             }
             if (!_tbody) {
@@ -1040,12 +1080,12 @@ function dockerIpListRender() {
         for (var i = 0; i < rlist.length; i++) {
 
             var op = '';
-            op += '<a href="javascript:;" onclick="deleteIpList(\'' + rlist[i]['address'] + '\')" class="btlink">' + pt('删除') + '</a>';
+            op += '<a href="javascript:;" onclick="deleteIpList(\'' + dockerJsArg(rlist[i]['address']) + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + rlist[i]['address'] + '</td>';
-            list += '<td>' + rlist[i]['netmask'] + '</td>';
-            list += '<td>' + rlist[i]['gateway'] + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['address']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['netmask']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['gateway']) + '</td>';
             list += '<td class="text-right">' + op + '</td>';
             list += '</tr>';
         }
@@ -1198,11 +1238,11 @@ function repoListRender() {
         for (var i = 0; i < rlist.length; i++) {
 
             list += '<tr>';
-            list += '<td>' + rlist[i]['hub_name'] + '</td>';
-            list += '<td>' + rlist[i]['repository_name'] + '</td>';
-            list += '<td>' + rlist[i]['namespace'] + '</td>';
-            list += '<td>' + rlist[i]['registry'] + '</td>';
-            list += '<td class="text-right"><a href="javascript:;" onclick="delRepo(\'' + rlist[i]['registry'] + '\')" class="btlink">' + pt('删除') + '</a></td>';
+            list += '<td>' + dockerEsc(rlist[i]['hub_name']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['repository_name']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['namespace']) + '</td>';
+            list += '<td>' + dockerEsc(rlist[i]['registry']) + '</td>';
+            list += '<td class="text-right"><a href="javascript:;" onclick="delRepo(\'' + dockerJsArg(rlist[i]['registry']) + '\')" class="btlink">' + pt('删除') + '</a></td>';
             list += '</tr>';
         }
 
@@ -1273,7 +1313,7 @@ function dockerAccelerator() {
         window.default_docker_mirrors_str = default_mirrors.join('\n');
 
         var con = '<div style="padding: 10px 15px;">' +
-            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="' + pt('每行输入一个加速器 URL，例如：') + '\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
+            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="' + dockerEsc(pt('每行输入一个加速器 URL，例如：')) + '\nhttps://docker.1ms.run">' + dockerEsc(mirrors_str) + '</textarea>' +
             '<div style="text-align:right; margin-bottom:5px;">' +
             '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">' + pt('还原默认') + '</button>' +
             '</div>' +
@@ -1401,7 +1441,7 @@ function conDetails(id) {
                 for (var j = 0; j < ports[cPort].length; j++) {
                     var hostIp = ports[cPort][j].HostIp || '0.0.0.0';
                     var hostPort = ports[cPort][j].HostPort;
-                    portsHtml += '<li><span class="glyphicon glyphicon-transfer" style="color:#20a53a; margin-right:5px;"></span>' + hostIp + ':' + hostPort + ' ➔ ' + cPort + '</li>';
+                    portsHtml += '<li><span class="glyphicon glyphicon-transfer" style="color:#20a53a; margin-right:5px;"></span>' + dockerEsc(hostIp) + ':' + dockerEsc(hostPort) + ' ➔ ' + dockerEsc(cPort) + '</li>';
                 }
             }
         }
@@ -1413,7 +1453,7 @@ function conDetails(id) {
     if (con.Mounts && con.Mounts.length > 0) {
         for (var k = 0; k < con.Mounts.length; k++) {
             var m = con.Mounts[k];
-            mountsHtml += '<li><span class="glyphicon glyphicon-folder-open" style="color:#e6a23c; margin-right:5px;"></span>' + m.Source + ' <br><span style="padding-left:19px;color:#999;">➔ ' + m.Destination + '</span></li>';
+            mountsHtml += '<li><span class="glyphicon glyphicon-folder-open" style="color:#e6a23c; margin-right:5px;"></span>' + dockerEsc(m.Source) + ' <br><span style="padding-left:19px;color:#999;">➔ ' + dockerEsc(m.Destination) + '</span></li>';
         }
     }
     if (!mountsHtml) mountsHtml = '<li style="color:#999;">' + pt('无目录挂载') + '</li>';
@@ -1423,7 +1463,7 @@ function conDetails(id) {
     if (con.NetworkSettings && con.NetworkSettings.Networks) {
         for (var netName in con.NetworkSettings.Networks) {
             var ip = con.NetworkSettings.Networks[netName].IPAddress;
-            if (ip) ipStr += ip + ' (' + netName + ') ';
+            if (ip) ipStr += dockerEsc(ip) + ' (' + dockerEsc(netName) + ') ';
         }
     }
     if (!ipStr) ipStr = pt('无分配IP');
@@ -1437,15 +1477,18 @@ function conDetails(id) {
     var entryStr = (con.Config.Entrypoint && con.Config.Entrypoint.length > 0) ? con.Config.Entrypoint.join(' ') : '';
     var fullCmd = (entryStr + ' ' + cmdStr).trim();
     if (!fullCmd) fullCmd = pt('无');
+    // 容器命令/入口是用户完全可控的字符串（`docker run <img> <任意 argv>`），
+    // 旧实现原样拼进详情弹窗的 innerHTML = 存储型 XSS。
+    var fullCmdEsc = dockerEsc(fullCmd);
     
     var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
         '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
         '<table class="con-detail-table">' +
-        '<tr><th>' + pt('容器 ID') + '</th><td>' + con.Id.substring(0, 12) + '<br><span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
-        '<tr><th>' + pt('容器名称') + '</th><td>' + con.Name.substring(1) + '</td></tr>' +
-        '<tr><th>' + pt('所属镜像') + '</th><td>' + con.Config.Image + '</td></tr>' +
+        '<tr><th>' + pt('容器 ID') + '</th><td>' + dockerEsc(con.Id.substring(0, 12)) + '<br><span style="color:#999;font-size:12px;">(' + dockerEsc(con.Id) + ')</span></td></tr>' +
+        '<tr><th>' + pt('容器名称') + '</th><td>' + dockerEsc(con.Name.substring(1)) + '</td></tr>' +
+        '<tr><th>' + pt('所属镜像') + '</th><td>' + dockerEsc(con.Config.Image) + '</td></tr>' +
         '<tr><th>' + pt('IP 地址') + '</th><td>' + ipStr + '</td></tr>' +
-        '<tr><th>' + pt('入口命令') + '</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmd + '</div></td></tr>' +
+        '<tr><th>' + pt('入口命令') + '</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmdEsc + '</div></td></tr>' +
         '<tr><th>' + pt('资源限制') + '</th><td>' +
             '<span class="label label-success" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px; margin-right:15px;"><i class="glyphicon glyphicon-tasks" style="margin-right:5px;"></i>' + pt('内存限制:') + ' ' + memStr + '</span>' +
             '<span class="label label-info" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px;"><i class="glyphicon glyphicon-dashboard" style="margin-right:5px;"></i>' + pt('CPU配额:') + ' ' + cpuStr + '</span>' +
@@ -1457,7 +1500,7 @@ function conDetails(id) {
 
     layer.open({
         type: 1,
-        title: pt('容器详情 [') + con.Name.substring(1) + ']',
+        title: pt('容器详情 [') + dockerEsc(con.Name.substring(1)) + ']',
         area: ['600px', '850px'],
         closeBtn: 1,
         shadeClose: false,
@@ -1504,20 +1547,20 @@ function dockerDirRender() {
             var d = rdata.data;
             var tbody = '<tr>\
                 <td>' + pt('Docker根目录') + '</td>\
-                <td>' + d.docker_root + '</td>\
+                <td>' + dockerEsc(d.docker_root) + '</td>\
                 <td>' + pt('总览') + '</td>\
                 <td>-</td>\
             </tr>\
             <tr>\
                 <td>' + pt('容器存储目录') + '</td>\
-                <td>' + d.docker_root + '/containers</td>\
-                <td>' + d.container_size + '</td>\
+                <td>' + dockerEsc(d.docker_root) + '/containers</td>\
+                <td>' + dockerEsc(d.container_size) + '</td>\
                 <td>-</td>\
             </tr>\
             <tr>\
                 <td>' + pt('镜像存储目录') + '</td>\
-                <td>' + d.docker_root + '/image</td>\
-                <td>' + d.image_size + '</td>\
+                <td>' + dockerEsc(d.docker_root) + '/image</td>\
+                <td>' + dockerEsc(d.image_size) + '</td>\
                 <td>-</td>\
             </tr>';
             $("#docker_dir_list").html(tbody);

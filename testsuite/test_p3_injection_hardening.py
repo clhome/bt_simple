@@ -126,7 +126,11 @@ class TestInjectionHardening(unittest.TestCase):
     def test_07_no_eval_in_plugin_entrypoints(self):
         docker_src = _read(os.path.join(root_dir, 'plugins', 'docker', 'index.py'))
         self.assertNotIn('ports=eval(', docker_src, 'Docker 插件不得对 ports 使用 eval')
-        self.assertIn('ast.literal_eval(ports)', docker_src)
+        # E02：ports 的解析已抽到 validatePorts（仍用 ast.literal_eval，只允许字面量容器），
+        # 这里同时钉住「助手内部用 literal_eval」与「dockerCreateCon 必须调用它」，
+        # 避免绕回 json.loads/裸 eval。
+        self.assertIn('ast.literal_eval(text)', docker_src)
+        self.assertIn("validatePorts(args['ports'])", docker_src)
 
         webssh_src = _read(os.path.join(root_dir, 'plugins', 'webssh', 'index.py'))
         self.assertNotIn('eval("classApp."', webssh_src, 'webssh 不得使用 eval 反射')

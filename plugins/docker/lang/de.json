@@ -243,5 +243,19 @@
     "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Nicht unterstütztes Dateiformat; nur .tar-, .tar.gz- und .tgz-Image-Archive werden unterstützt",
     "成功登录!": "Anmeldung erfolgreich!",
     "端口 [{1}] 已在映射列表中!": "Port [{1}] ist bereits in der Zuordnungsliste!",
-    "目录 [{1}] 已在映射列表中!": "Verzeichnis [{1}] ist bereits in der Zuordnungsliste!"
+    "目录 [{1}] 已在映射列表中!": "Verzeichnis [{1}] ist bereits in der Zuordnungsliste!",
+    "请求失败": "Anfrage fehlgeschlagen",
+    "容器名称不合法，仅允许字母、数字、下划线、点和短横线": "Ungültiger Containername",
+    "内存配额不合法": "Ungültiges Speicherlimit",
+    "镜像名称不合法": "Ungültiger Imagename",
+    "目录映射参数不合法": "Ungültige Mount-Einstellung",
+    "不允许映射宿主机敏感目录:": "Host-Verzeichnis nicht erlaubt:",
+    "不允许映射到容器根目录": "Mount nach / nicht erlaubt",
+    "IP地址池数据已损坏，请先删除 iplist.json": "IP-Pool beschädigt, iplist.json löschen",
+    "镜像加速器地址不合法": "Ungültige Mirror-URL",
+    "不安全的目录路径:": "Unsicherer Verzeichnispfad:",
+    "添加失败!": "Hinzufügen fehlgeschlagen",
+    "特权模式": "Privilegiert",
+    "特权模式说明": "Gewährt volle Host-Rechte; nur für vertrauenswürdige Images. Standard: aus.",
+    "IP地址不合法": "Ungültige IP-Adresse"
 }

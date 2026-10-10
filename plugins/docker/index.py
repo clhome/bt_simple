@@ -8,6 +8,8 @@ import re
 import ast
 import json
 import shlex
+import subprocess
+import posixpath
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -29,6 +31,245 @@ except Exception as e:
 app_debug = False
 if yf.isAppleSystem():
     app_debug = True
+
+
+#: 容器名白名单（与 docker 自身的容器名规则一致）：首字符字母数字，
+#: 其后字母数字/下划线/点/短横线。真机实测旧实现把 `name` 原样交给 docker API，
+#: 空名/含引号的名字要到 docker 报错才知道；且这个名字会被 `docker_exec` 拼进
+#: 交给 webssh 的命令行，必须在这里一次挡住。
+CONTAINER_NAME_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$')
+
+#: 容器端口/协议白名单（协议可省略，与 docker-py 的 convert_port_bindings 一致：默认 tcp）
+CONTAINER_PORT_RE = re.compile(r'^([0-9]{1,5})(/(tcp|udp))?$')
+#: 镜像加速器地址白名单（写入 /etc/docker/daemon.json 的 registry-mirrors）
+MIRROR_URL_RE = re.compile(r'^https?://[A-Za-z0-9._:\-]{1,200}(/[A-Za-z0-9._\-/]{0,100})?$')
+
+#: 镜像引用白名单：registry[:port]/path[:tag][@digest]。
+#: 禁止空白/引号/分号/反引号/`$()` 与前导 `-`（后者会被 docker CLI 当选项解释）。
+IMAGE_REF_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9._:/@-]{0,254}$')
+#: 宿主机绑定地址（端口映射）：只允许 IPv4/IPv6 字面量的字符集，
+#: 拒空白/引号/HTML/`$()` 等一切可注入字符（该值最终进 PortBindings JSON）
+HOST_IP_RE = re.compile(r'^[0-9a-fA-F:.]{1,45}$')
+
+#: 禁止映射进容器的宿主机目录（含其子目录）。
+#: 真机实测（2026-10-10）：旧实现 `volumes=json.loads(volumes)` 无任何校验，
+#: `{"/": {"bind": "/host", "mode": "rw"}}` 直接建出容器，容器内
+#: `cat /host/etc/shadow` 读到了宿主机 root 口令哈希；叠加硬编码的
+#: `privileged=True` 即为宿主机 root 接管。
+FORBIDDEN_MOUNT_SOURCES = (
+    '/', '/etc', '/root', '/boot', '/bin', '/sbin', '/lib', '/lib32', '/lib64',
+    '/libx32', '/usr', '/proc', '/sys', '/dev', '/run', '/var/run',
+    '/var/lib/docker', '/www/server',
+)
+#: 唯一例外：前端为特权容器固定拼的 cgroup 挂载（真机验证该挂载本身必需），
+#: 其余 /sys 下路径一律拒绝。
+ALLOWED_MOUNT_SOURCES = ('/sys/fs/cgroup',)
+
+#: 端口映射里允许的容器内挂载目标禁止为容器根目录
+MOUNT_MODE_RE = re.compile(r'^(rw|ro)$')
+
+
+def toInt(val, default=None, lo=None, hi=None):
+    """前端数字参数安全转换：非法/越界一律返回 default，绝不抛 ValueError。"""
+    try:
+        v = int(str(val).strip())
+    except Exception:
+        return default
+    if lo is not None and v < lo:
+        return default
+    if hi is not None and v > hi:
+        return default
+    return v
+
+
+def readJsonFile(path, default):
+    """读取 JSON 配置：文件缺失 / `yf.readFile` 返回 False / 内容损坏 / 类型不符
+    一律降级为 default。旧实现直接 `json.loads(yf.readFile(p))`，真机实测
+    iplist.json 损坏时三个接口（get/del/add）全部 JSONDecodeError traceback。"""
+    if not os.path.exists(path):
+        return default
+    content = yf.readFile(path)
+    if not content:
+        return default
+    try:
+        data = json.loads(content)
+    except Exception:
+        return default
+    return data
+
+
+def isTruthy(val):
+    """前端复选框/字符串布尔：只认白名单真值，其余一律 False。"""
+    return str(val if val is not None else '').strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def normMountPath(path):
+    """按 POSIX 语义规范化挂载路径。
+
+    必须用 posixpath 而不是 os.path：插件只在 Linux/macOS 上跑，
+    而 os.path.normpath 在 Windows 上会把 `/etc` 变成 `\\etc`，
+    黑名单对比全部失效（本地 CI 与真机行为不一致）。
+    """
+    return posixpath.normpath(str(path).replace('\\', '/'))
+
+
+def forbiddenMountSource(source):
+    """返回拒绝原因；None 表示放行。source 为宿主机绝对路径。"""
+    if not isinstance(source, str):
+        return '路径不是字符串'
+    source = source.strip()
+    if not source:
+        return '路径为空'
+    normalized = normMountPath(source)
+    # 面板目录必须先判：Windows 开发机上它是 `F:/...`，不以 `/` 开头，
+    # 若先走「非绝对路径 = 命名卷」分支就永远不会命中。
+    panel_dir = normMountPath(yf.getPanelDir())
+    if normalized == panel_dir or normalized.startswith(panel_dir + '/'):
+        return panel_dir
+    if not source.startswith('/'):
+        # docker 里非绝对路径是「命名卷」，不是宿主机目录，放行
+        return None
+    if normalized in ALLOWED_MOUNT_SOURCES:
+        return None
+    if normalized.endswith('docker.sock'):
+        return '禁止挂载 docker 套接字'
+    for item in FORBIDDEN_MOUNT_SOURCES:
+        if item == '/':
+            # 根目录只按等值判定：`'/'.startswith('/')` 会把所有绝对路径都判成根
+            if normalized == '/':
+                return '/'
+            continue
+        if normalized == item or normalized.startswith(item + '/'):
+            return item
+    return None
+
+
+def validateMounts(raw):
+    """校验目录映射，返回 (volumes, err)。
+
+    **docker-py 的 volumes 字典语义：键 = 宿主机路径，`bind` = 容器内路径**
+    （真机 `docker inspect` 实证：`{"/etc": {"bind": "/hostetc"}}` 得到
+    `Source=/etc, Destination=/hostetc`；前端也是把「服务器目录」当键、
+    「容器目录」当 bind）。因此黑名单必须卡在**键**上。
+    另外 docker-py 7.2 的 `containers.run(volumes=...)` 只支持 dict 形态，
+    值给字符串会 `AttributeError: 'str' object has no attribute 'get'`（未捕获 → 500）。
+    """
+    if isinstance(raw, str):
+        text = raw.strip()
+        if not text:
+            return ({}, None)
+        try:
+            volumes = json.loads(text)
+        except Exception:
+            return (None, '目录映射参数不合法')
+    elif isinstance(raw, dict):
+        volumes = raw
+    else:
+        return (None, '目录映射参数不合法')
+
+    if not isinstance(volumes, dict):
+        return (None, '目录映射参数不合法')
+
+    result = {}
+    for host_path, spec in volumes.items():
+        if not isinstance(host_path, str) or not host_path.startswith('/') or len(host_path) > 255:
+            return (None, '目录映射参数不合法')
+        if not isinstance(spec, dict):
+            return (None, '目录映射参数不合法')
+        target = spec.get('bind')
+        mode = str(spec.get('mode', 'rw')).strip().lower()
+        if not MOUNT_MODE_RE.match(mode):
+            return (None, '目录映射参数不合法')
+        if not isinstance(target, str) or not target.startswith('/'):
+            return (None, '目录映射参数不合法')
+        if normMountPath(target) == '/':
+            return (None, '不允许映射到容器根目录')
+        reason = forbiddenMountSource(host_path)
+        if reason:
+            return (None, '不允许映射宿主机敏感目录: ' + host_path)
+        result[host_path] = {'bind': target, 'mode': mode}
+    return (result, None)
+
+
+def validatePorts(raw):
+    """校验端口映射，返回 (ports, host_ports, err)。
+
+    ports 形如 `{"5432/tcp": ["0.0.0.0", 15432]}`（前端形态，真机验证该形态
+    能被 docker-py 正确解析成 HostIp/HostPort）。host_ports 供防火墙放行使用。
+    """
+    if isinstance(raw, str):
+        text = raw.strip()
+        if not text:
+            return ({}, [], None)
+        try:
+            ports = ast.literal_eval(text)
+        except Exception:
+            return (None, None, '端口设置值范围无效，范围 [1-65535]')
+    elif isinstance(raw, (dict, list, tuple)):
+        ports = raw
+    else:
+        return (None, None, '端口设置值范围无效，范围 [1-65535]')
+
+    if not isinstance(ports, dict):
+        return (None, None, '端口设置值范围无效，范围 [1-65535]')
+
+    result = {}
+    host_ports = []
+    for cport, spec in ports.items():
+        m = CONTAINER_PORT_RE.match(str(cport).strip().lower())
+        if not m:
+            return (None, None, '端口设置值范围无效，范围 [1-65535]')
+        if not (1 <= int(m.group(1)) <= 65535):
+            return (None, None, '端口设置值范围无效，范围 [1-65535]')
+        protocol = m.group(3) or 'tcp'
+        if isinstance(spec, (list, tuple)):
+            if len(spec) != 2:
+                return (None, None, '端口设置值范围无效，范围 [1-65535]')
+            host_ip, host_port = spec[0], spec[1]
+        else:
+            host_ip, host_port = '0.0.0.0', spec
+        host_port = toInt(host_port, None, 1, 65535)
+        if host_port is None:
+            return (None, None, '端口设置值范围无效，范围 [1-65535]')
+        host_ip = str(host_ip if host_ip is not None else '').strip() or '0.0.0.0'
+        if host_ip not in ('0.0.0.0', '::') and not HOST_IP_RE.match(host_ip):
+            return (None, None, '端口设置值范围无效，范围 [1-65535]')
+        key = '%d/%s' % (int(m.group(1)), protocol)
+        # 必须是 tuple：docker-py 的 convert_port_bindings 对 list 会按「多个绑定」
+        # 逐个展开（真机实测报 `invalid port specification: "0.0.0.0"`），
+        # 对 2 元 tuple 才按 (HostIp, HostPort) 解析。
+        result[key] = (host_ip, host_port)
+        host_ports.append(str(host_port))
+    return (result, host_ports, None)
+
+
+#: Docker 数据目录（daemon.json 的 data-root / migrate 目标）禁止落点：
+#: 这些位置被写坏会让 docker 起不来或直接覆盖系统目录。
+FORBIDDEN_DATA_ROOTS = (
+    '/', '/etc', '/root', '/boot', '/bin', '/sbin', '/lib', '/lib32', '/lib64',
+    '/libx32', '/usr', '/proc', '/sys', '/dev', '/run', '/var/run', '/www/server',
+)
+
+
+def invalidDataRoot(path):
+    """返回拒绝原因；None 表示放行。要求绝对路径且不在系统目录内。"""
+    if not isinstance(path, str) or not path.strip():
+        return '路径为空'
+    path = path.strip()
+    if not path.startswith('/'):
+        return '不是绝对路径'
+    normalized = normMountPath(path)
+    if normalized == '/':
+        return '/'
+    for item in FORBIDDEN_DATA_ROOTS:
+        if item == '/':
+            continue
+        if normalized == item or normalized.startswith(item + '/'):
+            return item
+    panel_dir = normMountPath(yf.getPanelDir())
+    if normalized == panel_dir or normalized.startswith(panel_dir + '/'):
+        return panel_dir
+    return None
 
 
 def getDClient():
@@ -70,29 +311,46 @@ def getInitDTpl():
 
 
 def getArgs():
-    args = sys.argv[2:]
-    tmp = {}
-    args_len = len(args)
+    """取前端参数。
 
-    if args_len == 1:
+    面板 `utils/plugin.py::run()` 把前端 args 作为**一个** argv 传进来
+    （`/plugins/run` 的 args 字段 = JSON.stringify({...})）；`/plugins/run` 允许
+    带 `version`，此时 argv 末尾才是 JSON。旧实现只看 `args_len == 1`，
+    带 version 的调用会退化成 `k:v` 切分（键变成 `"1.0"`，所有带参接口恒回
+    「缺少必要参数」）；且 `json.loads('null')`/`'123'` 会得到 None/int，
+    随后 `checkArgs` 的 `'name' in None` 直接 TypeError 500。
+    """
+    argv = sys.argv[2:]
+    # 1. 先逆序找完整的 JSON 字典（覆盖 version + args 两段形态）
+    for arg in reversed(argv):
+        text = str(arg).strip()
+        if not (text.startswith('{') and text.endswith('}')):
+            continue
         try:
-            tmp = json.loads(args[0])
+            parsed = json.loads(text)
         except Exception as _e:
             _log.debug('[docker] getArgs 异常已忽略: %s', _e)
-            t = args[0].strip('{').strip('}')
-            if t.strip() == '':
-                tmp = []
-            else:
-                t = t.split(':', 1)
-                tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':', 1)
-            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+
+    # 2. 降级：兼容旧 `k:v` / `k=v` 形态
+    tmp = {}
+    for arg in argv:
+        text = str(arg).strip().strip('{').strip('}')
+        if not text:
+            continue
+        sep = '=' if ('=' in text and (':' not in text or text.index('=') < text.index(':'))) else ':'
+        if sep not in text:
+            continue
+        k, v = text.split(sep, 1)
+        tmp[k.strip().strip('"').strip("'")] = v.strip().strip('"').strip("'")
     return tmp
 
 
 def checkArgs(data, ck=[]):
+    if not isinstance(data, dict):
+        return (False, yf.returnJson(False, '缺少必要参数: ' + ','.join(ck)))
     for i in range(len(ck)):
         if not ck[i] in data:
             return (False, yf.returnJson(False, '缺少必要参数: ' + ck[i]))
@@ -114,14 +372,19 @@ def initDreplace():
 
 
 def dockerOp(method):
-    file = initDreplace()
+    if yf.isAppleSystem():
+        return 'fail'
 
-    if not yf.isAppleSystem():
-        data = yf.execShell('systemctl ' + method + ' docker')
-        if data[1] == '':
-            return 'ok'
-        return data[1]
-    return 'fail'
+    # 列表化 + 白名单：method 只可能是调用方写死的四个动作，
+    # 不再把参数拼进 shell（同族 SHELL_concat 面）。
+    if method not in ('start', 'stop', 'restart', 'reload'):
+        return 'fail'
+    rc, out, err = yf.execShellRc(['systemctl', method, getPluginName()],
+                                  shell=False, timeout=300)
+    if rc == 0:
+        return 'ok'
+    # 旧实现以「stderr 为空」当成功：systemctl 失败时 stderr 可能为空 → 假成功
+    return (err or out or 'fail').strip() or 'fail'
 
 
 def start():
@@ -145,28 +408,36 @@ def initdStatus():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    shell_cmd = 'systemctl status ' + \
-        getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = yf.execShell(shell_cmd)
-    if data[0] == '':
-        return 'fail'
-    return 'ok'
+    # `systemctl status | grep loaded | grep "enabled;"` 依赖人类可读输出，
+    # 改 is-enabled 退出码 + 已启用态白名单（同 D09/D10/D11）。
+    rc, out, _err = yf.execShellRc(['systemctl', 'is-enabled', getPluginName()],
+                                   shell=False, timeout=30)
+    if rc == 0:
+        return 'ok'
+    return 'ok' if (out or '').strip() in ('enabled', 'enabled-runtime',
+                                           'static', 'indirect', 'generated', 'alias') else 'fail'
 
 
 def initdInstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    yf.execShell('systemctl enable ' + getPluginName())
-    return 'ok'
+    rc, out, err = yf.execShellRc(['systemctl', 'enable', getPluginName()],
+                                  shell=False, timeout=60)
+    if rc == 0:
+        return 'ok'
+    return (err or out or 'fail').strip() or 'fail'
 
 
 def initdUinstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    yf.execShell('systemctl disable ' + getPluginName())
-    return 'ok'
+    rc, out, err = yf.execShellRc(['systemctl', 'disable', getPluginName()],
+                                  shell=False, timeout=60)
+    if rc == 0:
+        return 'ok'
+    return (err or out or 'fail').strip() or 'fail'
 
 # UTC时间转换为时间戳
 
@@ -214,7 +485,7 @@ def dockerRemoveCon():
     if not data[0]:
         return data[1]
 
-    Hostname = args['Hostname']
+    Hostname = str(args['Hostname']).strip()
 
     c = getDClient()
     try:
@@ -223,12 +494,17 @@ def dockerRemoveCon():
             path_list = conFind.attrs['GraphDriver'][
                 'Data']['LowerDir'].split(':')
             for i in path_list:
-                yf.execShell('chattr -R -i %s' % i)
+                # 列表化：路径来自 docker 自身，含空格/特殊字符时不得被 shell 二次解释
+                yf.execShellRc(['chattr', '-R', '-i', i], shell=False, timeout=30)
         except Exception as _e:
             _log.debug('[docker] dockerRemoveCon 异常已忽略: %s', _e)
-        conFind.remove(force=True)
+        # v=True：连带删除镜像声明的匿名卷。真机实测旧实现（不传 v）下
+        # `docker volume ls` 累积了 42 个 ACTIVE=0 的孤儿卷（42.82MB 可回收）。
+        conFind.remove(force=True, v=True)
         return yf.returnJson(True, '成功删除!')
     except docker.errors.APIError as ex:
+        return yf.returnJson(False, '删除失败!' + str(ex))
+    except Exception as ex:
         return yf.returnJson(False, '删除失败!' + str(ex))
 
 
@@ -239,7 +515,7 @@ def dockerLogCon():
     if not data[0]:
         return data[1]
 
-    Hostname = args['Hostname']
+    Hostname = str(args['Hostname']).strip()
 
     c = getDClient()
     try:
@@ -261,7 +537,7 @@ def dockerRunCon():
     if not data[0]:
         return data[1]
 
-    Hostname = args['Hostname']
+    Hostname = str(args['Hostname']).strip()
     c = getDClient()
     try:
         conFind = c.containers.get(Hostname)
@@ -270,6 +546,8 @@ def dockerRunCon():
         conFind.start()
         return yf.returnJson(True, '启动成功!')
     except docker.errors.APIError as ex:
+        return yf.returnJson(False, '启动失败!' + str(ex))
+    except Exception as ex:
         return yf.returnJson(False, '启动失败!' + str(ex))
 
 
@@ -280,7 +558,7 @@ def dockerStopCon():
     if not data[0]:
         return data[1]
 
-    Hostname = args['Hostname']
+    Hostname = str(args['Hostname']).strip()
     c = getDClient()
     try:
         conFind = c.containers.get(Hostname)
@@ -289,6 +567,8 @@ def dockerStopCon():
         conFind.stop()
         return yf.returnJson(True, '停止成功!')
     except docker.errors.APIError as ex:
+        return yf.returnJson(False, '停止失败!' + str(ex))
+    except Exception as ex:
         return yf.returnJson(False, '停止失败!' + str(ex))
 
 
@@ -299,18 +579,26 @@ def dockerExec():
     if not data[0]:
         return data[1]
 
-    Hostname = args['Hostname']
+    Hostname = str(args['Hostname']).strip()
 
     debug_path = 'data/debug.pl'
     if os.path.exists(debug_path):
         return yf.returnJson(False, '开发模式不能进入!')
 
+    # 容器名白名单：该返回值会被前端直接送进 webssh 的命令行
+    # （`clear && docker container exec -it <name> /bin/sh`），
+    # 真机实测旧实现下 Hostname=`a'; touch /root/PWNED; #` 原样回到响应里。
+    if not CONTAINER_NAME_RE.match(Hostname):
+        return yf.returnJson(False, '容器名称不合法，仅允许字母、数字、下划线、点和短横线')
+
     c = getDClient()
     try:
         conFind = c.containers.get(Hostname)
-        cmd = 'docker container exec -it %s /bin/sh' % Hostname
+        cmd = 'docker container exec -it %s /bin/sh' % yf.shlexQuote(Hostname)
         return yf.returnJson(True, cmd)
     except docker.errors.APIError as ex:
+        return yf.returnJson(False, '连接失败!')
+    except Exception as ex:
         return yf.returnJson(False, '连接失败!')
 
 
@@ -373,8 +661,11 @@ def docker_pull_with_mirror():
     if not data[0]:
         return data[1]
 
-    original_images = args['images'].strip()
-    mirrors_str = args['mirrors'].strip()
+    original_images = str(args['images']).strip()
+    mirrors_str = str(args['mirrors']).strip()
+
+    if not IMAGE_REF_RE.match(original_images):
+        return yf.returnJson(False, '镜像名称不合法')
 
     if ':' not in original_images:
         original_images = original_images + ':latest'
@@ -384,8 +675,10 @@ def docker_pull_with_mirror():
 
     script_path = yf.getPluginDir() + '/docker/pull_task.py'
 
-    # 构造执行字符串
-    execstr = "cd " + yf.getPluginDir() + "/docker && python pull_task.py " + shlex.quote(original_images) + " " + shlex.quote(mirrors_str)
+    # 用面板自己的解释器（sys.executable）：真机实测 Debian 12 只有 python3，
+    # 旧实现写死的 `python` 不存在 → 拉取任务 100% 「command not found」失败。
+    execstr = "cd " + yf.getPluginDir() + "/docker && " + shlex.quote(sys.executable) + \
+        " " + shlex.quote(script_path) + " " + shlex.quote(original_images) + " " + shlex.quote(mirrors_str)
 
     # 将拉取任务加入系统的后台任务队列（消息盒子）
     yf.M('tasks').add('name,type,status,add_time,start,end,cmd',
@@ -405,7 +698,9 @@ def dockerPull():
     if not data[0]:
         return data[1]
 
-    images = args['images']
+    images = str(args['images']).strip()
+    if not IMAGE_REF_RE.match(images):
+        return yf.returnJson(False, '镜像名称不合法')
     if ':' in images:
         pass
     else:
@@ -431,6 +726,10 @@ def dockerPull():
 def dockerPlulPath(path):
     if not path and path == '':
         return yf.returnJson(False, 'Invalid address')
+
+    path = str(path).strip()
+    if not IMAGE_REF_RE.match(path):
+        return yf.returnJson(False, '镜像名称不合法')
 
     ret = yf.execShell('docker image pull %s' % shlex.quote(path))
     stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
@@ -472,7 +771,7 @@ def dockerPullPrivateNew():
         return yf.getJson(check)
 
     my_repo = repoList()
-    if not my_repo:
+    if not isinstance(my_repo, dict) or not my_repo.get('data'):
         return yf.returnJson(False, '未登录任何私人存储库，请登录然后拉取')
     return dockerPlulPath(path)
 
@@ -507,7 +806,9 @@ def dockerRemoveImage():
             c.images.remove(imageId)
             return yf.returnJson(True, '成功删除!')
         except docker.errors.APIError as ex:
-            return yf.returnJson(False, '删除失败, 当前镜像正在使用!')
+            return yf.returnJson(False, '删除失败, 当前镜像正在使用! ' + str(ex))
+        except Exception as ex:
+            return yf.returnJson(False, '删除失败, 当前镜像正在使用! ' + str(ex))
 
 
 def getImageListFunc(dbname=''):
@@ -644,10 +945,11 @@ def dockerImagePickLoad():
     if not file_path:
         return yf.returnJson(False, '缺少文件路径参数')
 
-    bkDir = os.path.abspath(yf.getFatherDir() + '/backup/docker')
-    abs_file = os.path.abspath(file_path)
+    bkDir = os.path.realpath(os.path.abspath(yf.getFatherDir() + '/backup/docker'))
+    abs_file = os.path.realpath(os.path.abspath(file_path))
 
     # 路径安全检查：防止路径遍历，限制在 backup/docker 目录下
+    # （realpath 而非 abspath：目录内放一个指向 /etc/shadow 的软链就能绕过 abspath 判定）
     try:
         common = os.path.commonpath([abs_file, bkDir])
         if common != bkDir:
@@ -695,26 +997,43 @@ def dockerImagePickLoad():
 
 
 def dockerLoginCheck(user_name, user_pass, registry):
-    # 登陆验证
-    cmd = 'docker login -u=%s -p %s %s' % (shlex.quote(user_name), shlex.quote(user_pass), shlex.quote(registry))
-    # print(cmd)
-    login_test = yf.execShell(cmd)
-    # print(login_test)
-    ret = 'required$|Error'
-    ret2 = re.findall(ret, login_test[-1])
-    if len(ret2) == 0:
-        return True
-    else:
+    # 登陆验证。口令只走 stdin（--password-stdin）：旧实现把 `-p <口令>` 拼进命令行，
+    # 口令会出现在宿主机 `ps` 输出里（本机任何用户可见），docker CLI 自身也会告警。
+    cmd = ['docker', 'login', '--username', str(user_name), '--password-stdin']
+    registry = str(registry or '').strip()
+    if registry:
+        cmd.append(registry)
+    try:
+        proc = subprocess.run(cmd, input=str(user_pass), capture_output=True,
+                              text=True, timeout=60)
+    except Exception as _e:
+        _log.debug('[docker] dockerLoginCheck 异常已忽略: %s', _e)
         return False
+    return proc.returncode == 0
+
+
+def loadIpList(ipConf):
+    """返回 (iplist, err)；文件缺失视为空池，损坏/类型不对返回可翻译信封。
+
+    损坏时不得静默覆盖：旧实现把损坏文件当空列表后写回，用户原有 IP 池被清空。
+    """
+    data = readJsonFile(ipConf, None)
+    if data is None:
+        if os.path.exists(ipConf):
+            return (None, yf.returnJson(False, 'IP地址池数据已损坏，请先删除 iplist.json'))
+        return ([], None)
+    if not isinstance(data, list):
+        return (None, yf.returnJson(False, 'IP地址池数据已损坏，请先删除 iplist.json'))
+    return ([i for i in data if isinstance(i, dict)], None)
 
 
 def getDockerIpListData():
     # 取IP列表
     path = getServerDir()
     ipConf = path + '/iplist.json'
-    if not os.path.exists(ipConf):
+    iplist, err = loadIpList(ipConf)
+    if err:
         return []
-    iplist = json.loads(yf.readFile(ipConf))
     return iplist
 
 
@@ -732,18 +1051,21 @@ def dockerAddIP():
 
     path = getServerDir()
     ipConf = path + '/iplist.json'
-    if not os.path.exists(ipConf):
-        iplist = []
-        yf.writeFile(ipConf, json.dumps(iplist))
+    iplist, err = loadIpList(ipConf)
+    if err:
+        return err
 
-    iplist = json.loads(yf.readFile(ipConf))
-    ipInfo = {
-        'address': args['address'],
-        'netmask': args['netmask'],
-        'gateway': args['gateway'],
-    }
+    ipInfo = {}
+    for field in ('address', 'netmask', 'gateway'):
+        value = str(args[field]).strip()
+        # 该值会被拼进端口映射的绑定地址（dockerCreateCon），也是前端表格的回显源：
+        # 旧实现任意字符串（含 `<img src=x onerror=...>`）都存进 iplist.json。
+        if not value or not HOST_IP_RE.match(value):
+            return yf.returnJson(False, 'IP地址不合法')
+        ipInfo[field] = value
     iplist.append(ipInfo)
-    yf.writeFile(ipConf, json.dumps(iplist))
+    if not yf.writeFile(ipConf, json.dumps(iplist)):
+        return yf.returnJson(False, '添加失败!')
     return yf.returnJson(True, '添加成功!')
 
 
@@ -756,15 +1078,18 @@ def dockerDelIP():
 
     path = getServerDir()
     ipConf = path + '/iplist.json'
-    if not os.path.exists(ipConf):
+    iplist, err = loadIpList(ipConf)
+    if err:
+        return err
+    if not iplist:
         return yf.returnJson(False, '指定的IP不存在。！')
-    iplist = json.loads(yf.readFile(ipConf))
     newList = []
     for ipInfo in iplist:
-        if ipInfo['address'] == args['address']:
+        if ipInfo.get('address') == args['address']:
             continue
         newList.append(ipInfo)
-    yf.writeFile(ipConf, json.dumps(newList))
+    if not yf.writeFile(ipConf, json.dumps(newList)):
+        return yf.returnJson(False, '删除失败!')
     return yf.returnJson(True, '成功删除!')
 
 
@@ -779,10 +1104,9 @@ def getDockerCreateInfo():
 
 
 def __release_port(port):
-    from collections import namedtuple
     try:
         from utils.firewall import Firewall as YfFirewall
-        YfFirewall.instance().addAcceptPort(port, 'docker', 'port')
+        YfFirewall.instance().addAcceptPort(str(port), 'docker', 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)
@@ -794,23 +1118,31 @@ def dockerPortCheck():
     if not data[0]:
         return data[1]
 
-    port = args['port']
-    is_ok = IsPortExists(port)
-    if is_ok:
+    port = str(args['port']).strip()
+    # 前端传的是「地址:端口」（地址为 `*` 表示 0.0.0.0）；旧实现把整串当端口号
+    # 丢给 socket.connect → getaddrinfo 直接报错 → 恒回「未被占用」，
+    # 冲突检测形同虚设（默认的 0.0.0.0 走 `*` 分支，100% 命中这个缺陷）。
+    if ':' in port:
+        port = port.rsplit(':', 1)[1].strip()
+    if not re.match(r'^[0-9]{1,5}$', port) or not (1 <= int(port) <= 65535):
+        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
+
+    if IsPortExists(port):
         return yf.returnJson(True, 'ok')
     return yf.returnJson(False, 'fail')
 
 
 def IsPortExists(port):
-    # 判断端口是否被占用
-    ret = __check_dst_port(ip='localhost', port=port)
-    ret2 = __check_dst_port(ip='0.0.0.0', port=port)
-    if ret:
-        return ret
-    if not ret and ret2:
-        return ret2
-    if not ret and not ret2:
+    # 判断端口是否被占用（任一地址上监听即视为占用）。
+    # 必须转成 int：socket.connect 在 Windows 上不接受数字字符串端口
+    # （Linux 上恰好能过），同一份代码两个平台行为不一致。
+    port = toInt(port, None, 1, 65535)
+    if port is None:
         return False
+    for ip in ('0.0.0.0', '127.0.0.1'):
+        if __check_dst_port(ip=ip, port=port):
+            return True
+    return False
 
 
 def __check_dst_port(ip, port, timeout=3):
@@ -835,37 +1167,48 @@ def dockerCreateCon():
     if not data[0]:
         return data[1]
 
-    name = args['name'].strip()
+    name = str(args['name']).strip()
+    if not CONTAINER_NAME_RE.match(name):
+        return yf.returnJson(False, '容器名称不合法，仅允许字母、数字、下划线、点和短横线')
 
-    environments = args['environments']
-    environments = environments.strip().split()
+    environments = str(args['environments']).strip().split()
 
     command = args['command'] if args['command'] != '' else None
     entrypoint = args['entrypoint'] if args['entrypoint'] != '' else None
-    image = args['image']
-    mem_limit = args['mem_limit']
-    ports = args['ports']
-    ports = ports.replace('[', '(').replace(']', ')')
-    volumes = args['volumes']
 
-    # 安全：修复原 eval(ports) 的任意代码执行漏洞（ports 完全来自前端请求），
-    # 改用 ast.literal_eval 仅允许字面量容器（dict/list/tuple）。
+    image = str(args['image']).strip()
+    if not IMAGE_REF_RE.match(image):
+        return yf.returnJson(False, '镜像名称不合法')
+
+    mem_limit = toInt(args['mem_limit'], None, 1, 1048576)
+    if mem_limit is None:
+        return yf.returnJson(False, '内存配额不合法')
+
+    cpu_shares = toInt(args.get('cpu_shares', 100), None, 1, 100)
+    if cpu_shares is None:
+        # 旧实现是裸 int()：`cpu_shares=abc` 真机实测 ValueError 直接冒到前端
+        return yf.returnJson(False, 'CPU配额设置值范围应为 [1-100]!')
+
+    # 安全：原 eval(ports) 的任意代码执行已改 ast.literal_eval；
+    # 本次再补齐「每个映射的合法性」校验（容器端口/协议/宿主端口/绑定地址）。
+    ports_parsed, host_ports, err = validatePorts(args['ports'])
+    if err:
+        return yf.returnJson(False, err)
+
+    volumes_parsed, err = validateMounts(args['volumes'])
+    if err:
+        return yf.returnJson(False, err)
+
+    # 特权容器默认关闭（旧实现硬编码 privileged=True，用户无法选择，
+    # 且叠加未校验的卷挂载 = 宿主机 root 接管）。需要时由前端显式传 privileged。
+    privileged = isTruthy(args.get('privileged', ''))
+
     try:
-        ports_parsed = ast.literal_eval(ports)
-    except Exception:
-        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
-    if not isinstance(ports_parsed, (dict, list, tuple)):
-        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
-
-    # if __name__ == "__main__":
-    #     print(args)
-    try:
-
         c = getDClient()
         conObject = c.containers.run(
             name=name,
             image=image,
-            mem_limit=mem_limit + 'M',
+            mem_limit=str(mem_limit) + 'M',
             ports=ports_parsed,
             auto_remove=False,
             command=command,
@@ -873,17 +1216,26 @@ def dockerCreateCon():
             stdin_open=True,
             tty=True,
             entrypoint=entrypoint,
-            privileged=True,
-            volumes=json.loads(volumes),
-            cpu_shares=int(args.get('cpu_shares', 100)),
+            privileged=privileged,
+            volumes=volumes_parsed,
+            cpu_shares=cpu_shares,
             environment=environments
         )
         if conObject:
-            __release_port(ports)
+            # 映射到宿主机的端口逐个放行：旧实现把整个 ports 字典字符串
+            # 传给 __release_port，firewall 侧 parsePortSpec 直接判非法 →
+            # 规则一条也没下发（真机实测 addAcceptPort 返回 False），
+            # 容器起了但端口对外不通。
+            for host_port in host_ports:
+                __release_port(host_port)
             return yf.returnJson(True, '创建成功!')
 
         return yf.returnJson(False, '创建失败!')
     except docker.errors.APIError as ex:
+        return yf.returnJson(False, '创建失败!' + str(ex))
+    except Exception as ex:
+        # docker-py 自身对非法参数会抛 ValueError/AttributeError
+        # （如 volumes 值给字符串）——旧实现只 catch APIError，直接 500 traceback
         return yf.returnJson(False, '创建失败!' + str(ex))
 
 
@@ -907,15 +1259,15 @@ def dockerLogin():
     path = getServerDir()
     if ret_status:
         user_file = path + '/user.json'
-        user_info = yf.readFile(user_file)
-        if not user_info:
-            user_info = []
-        else:
-            user_info = json.loads(user_info)
+        user_info = readJsonFile(user_file, [])
+        if not isinstance(user_info, list):
+            return yf.returnJson(False, '登录失败!')
 
         ret = {}
         ret['user_name'] = user_name
-        ret['user_pass'] = user_pass
+        # 口令不回存：该字段在整个插件里没有任何读取方（docker 自身的凭据在
+        # ~/.docker/config.json），旧实现把明文口令写进 data/docker/user.json。
+        ret['user_pass'] = ''
         ret['registry'] = registry
         ret['hub_name'] = hub_name
         ret['namespace'] = namespace
@@ -923,7 +1275,8 @@ def dockerLogin():
         if not registry:
             ret['registry'] = "docker.io"
         user_info.append(ret)
-        yf.writeFile(user_file, json.dumps(user_info))
+        if not yf.writeFile(user_file, json.dumps(user_info)):
+            return yf.returnJson(False, '登录失败!')
         return yf.returnJson(True, '成功登录!')
     return yf.returnJson(False, '登录失败!')
 
@@ -932,14 +1285,16 @@ def dockerLogin():
 def delete_user_info(registry):
     path = getServerDir()
     user_file = path + '/user.json'
-    user_info = yf.readFile(user_file)
-    if user_info:
-        user_info = json.loads(user_info)
-        for i in range(len(user_info)):
-            if registry in user_info[i].values():
-                del(user_info[i])
-                yf.writeFile(user_file, json.dumps(user_info))
-                return True
+    user_info = readJsonFile(user_file, [])
+    if not isinstance(user_info, list):
+        return False
+    # 旧实现边遍历边 del，命中后立即 return：同名多条目只删得掉一条
+    kept = [i for i in user_info
+            if not (isinstance(i, dict) and registry in i.values())]
+    if len(kept) == len(user_info):
+        return False
+    yf.writeFile(user_file, json.dumps(kept))
+    return True
 
 
 def dockerLogout():
@@ -948,19 +1303,21 @@ def dockerLogout():
     if not data[0]:
         return data[1]
 
-    registry = args['registry']
-    if registry == "docker.io":
-        registry = ""
-        login_test = yf.execShell('docker logout %s' % shlex.quote(registry))
-        if registry == "":
-            registry = "docker.io"
-        ret = 'required$|Error'
-        ret2 = re.findall(ret, login_test[-1])
-        delete_user_info(registry)
-        if len(ret2) == 0:
-            return yf.returnJson(True, '退出成功')
-        else:
-            return yf.returnJson(True, '退出失败')
+    registry = str(args['registry']).strip()
+    # 旧实现：非 docker.io 的 registry 直接落到函数末尾返回 None（假成功）；
+    # 且无论 docker logout 成败都回 status=true（失败也报「退出失败」但为绿色）。
+    target = '' if registry in ('docker.io', '') else registry
+    cmd = ['docker', 'logout'] if not target else ['docker', 'logout', target]
+    # execShell 的 shell=False 分支会把 list 交给 shlex.split（TypeError），
+    # 需要列表化调用必须走 execShellRc（真机实测 execShell 会抛 traceback）。
+    rc, out, err = yf.execShellRc(cmd, shell=False, timeout=60)
+    removed = delete_user_info(registry or 'docker.io')
+    # 旧实现无论成败都回 status=true（假成功），且非 docker.io 的 registry 直接
+    # 落到函数末尾返回 None。真机实测 `docker logout` 对未登录的 registry 也回
+    # “Removing login credentials …” 且 rc=0，因此还要看插件自己的记录有没有被删掉。
+    if rc != 0 or not removed:
+        return yf.returnJson(False, '退出失败')
+    return yf.returnJson(True, '退出成功')
 
 
 
@@ -1006,6 +1363,14 @@ def set_accelerator():
         _log.debug('[docker] set_accelerator 异常已忽略: %s', _e)
         return yf.returnJson(False, '参数解析失败，非有效的 JSON 数组')
 
+    # 逐条校验：这些值会写进 /etc/docker/daemon.json 并重启 docker，
+    # 非 URL 内容（如 `</textarea><script>` 或随便一行垃圾）既会写坏守护进程配置
+    # （docker 起不来 = 全机容器宕），又会被 get_accelerator → 前端 textarea 原样回显。
+    for item in mirrors:
+        if not isinstance(item, str) or not MIRROR_URL_RE.match(item.strip()):
+            return yf.returnJson(False, '镜像加速器地址不合法')
+    mirrors = [item.strip() for item in mirrors]
+
     daemon_file = get_daemon_json_path()
     daemon_dir = os.path.dirname(daemon_file)
     if not os.path.exists(daemon_dir):
@@ -1043,16 +1408,18 @@ def repoList():
     repostory_info = []
     user_file = path + '/user.json'
 
-    if os.path.exists(user_file):
-        user_info = yf.readFile(user_file)
-        user_info = json.loads(user_info)
-        for i in user_info:
-            tmp = {}
-            tmp["hub_name"] = i["hub_name"]
-            tmp["registry"] = i["registry"]
-            tmp["namespace"] = i["namespace"]
-            tmp['repository_name'] = i["repository_name"]
-            repostory_info.append(tmp)
+    user_info = readJsonFile(user_file, [])
+    if not isinstance(user_info, list):
+        return yf.returnJson(True, 'ok', repostory_info)
+    for i in user_info:
+        if not isinstance(i, dict):
+            continue
+        tmp = {}
+        tmp["hub_name"] = i.get("hub_name", '')
+        tmp["registry"] = i.get("registry", '')
+        tmp["namespace"] = i.get("namespace", '')
+        tmp['repository_name'] = i.get("repository_name", '')
+        repostory_info.append(tmp)
 
     return yf.returnJson(True, 'ok', repostory_info)
 
@@ -1094,9 +1461,12 @@ def checkDockerMigrateSpace():
     if not data[0]:
         return data[1]
 
-    new_path = args['new_path'].strip()
+    new_path = str(args['new_path']).strip()
     if not new_path:
         return yf.returnJson(False, '新路径不能为空')
+    reason = invalidDataRoot(new_path)
+    if reason:
+        return yf.returnJson(False, '不安全的目录路径: ' + reason)
 
     try:
         cmd_root = "docker info --format '{{.DockerRootDir}}'"
@@ -1150,9 +1520,14 @@ def migrateDockerDir():
     if not data[0]:
         return data[1]
 
-    new_path = args['new_path'].strip()
+    new_path = str(args['new_path']).strip()
     if not new_path:
         return yf.returnJson(False, '新路径不能为空')
+    # 该路径会被 os.makedirs + rsync 写入并写进 daemon.json 的 data-root
+    # （随后重启 docker）：写错位置（/etc、面板目录…）会让 docker 起不来。
+    reason = invalidDataRoot(new_path)
+    if reason:
+        return yf.returnJson(False, '不安全的目录路径: ' + reason)
 
     try:
         # 获取当前根目录

@@ -243,5 +243,19 @@
     "不支持的文件格式，仅支持 .tar, .tar.gz, .tgz 镜像归档文件": "Formato file non supportato; sono supportati solo archivi immagine .tar, .tar.gz e .tgz",
     "成功登录!": "Accesso riuscito!",
     "端口 [{1}] 已在映射列表中!": "La porta [{1}] è già nell'elenco di mappatura!",
-    "目录 [{1}] 已在映射列表中!": "La directory [{1}] è già nell'elenco di mappatura!"
+    "目录 [{1}] 已在映射列表中!": "La directory [{1}] è già nell'elenco di mappatura!",
+    "请求失败": "Richiesta non riuscita",
+    "容器名称不合法，仅允许字母、数字、下划线、点和短横线": "Nome contenitore non valido",
+    "内存配额不合法": "Limite memoria non valido",
+    "镜像名称不合法": "Nome immagine non valido",
+    "目录映射参数不合法": "Mount non valido",
+    "不允许映射宿主机敏感目录:": "Directory host non consentita:",
+    "不允许映射到容器根目录": "Mount su / non consentito",
+    "IP地址池数据已损坏，请先删除 iplist.json": "Pool IP danneggiato, eliminare iplist.json",
+    "镜像加速器地址不合法": "URL mirror non valido",
+    "不安全的目录路径:": "Percorso non sicuro:",
+    "添加失败!": "Aggiunta non riuscita",
+    "特权模式": "Privilegiato",
+    "特权模式说明": "Concede tutti i privilegi host; solo immagini attendibili. Disattivato per impostazione predefinita.",
+    "IP地址不合法": "Indirizzo IP non valido"
 }
