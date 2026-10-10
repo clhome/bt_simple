@@ -99,6 +99,10 @@ Uninstall_App()
 action=$1
 if [ "${1}" == 'install' ];then
 	Install_App
-else
+elif [ "${1}" == 'uninstall' ];then
 	Uninstall_App
+else
+	# 旧实现是 else 兜底：无参数/拼错参数也会走完整卸载
+	echo '参数不合法...'
+	exit 1
 fi

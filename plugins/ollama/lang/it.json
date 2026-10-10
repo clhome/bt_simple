@@ -111,5 +111,13 @@
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;IP-server&gt;:11434/v1",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
     "模型删除成功！": "Modello eliminato con successo!",
-    "获取日志失败：{1}": "Recupero dei log non riuscito: {1}"
+    "获取日志失败：{1}": "Recupero dei log non riuscito: {1}",
+    "未检测到 Ollama，请先安装后再使用！": "Ollama non rilevato, installalo prima!",
+    "监听地址不合法！": "Indirizzo di ascolto non valido!",
+    "存储路径不合法！": "Percorso di archiviazione non valido!",
+    "服务配置文件不可读！": "File di servizio Ollama non leggibile!",
+    "服务文件写入失败！": "Scrittura del file di servizio non riuscita!",
+    "服务配置应用失败，已回滚！": "Configurazione non riuscita, ripristinata!",
+    "模型拉取任务启动失败！": "Avvio del download del modello non riuscito!",
+    "获取服务日志失败！": "Lettura dei log del servizio non riuscita!"
 }

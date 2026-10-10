@@ -1,5 +1,28 @@
 var api = YfPlugin.createApi('ollama');
 var pt = YfI18n.createPluginTranslator('ollama');
+
+// HTML 转义：模型名/ID/大小/配置值来自 ollama 输出与用户输入，直接拼进 innerHTML
+// 即存储型 XSS（旧实现 11 处裸拼接，含 `m.name` 行内 onclick）
+function ollamaEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// 行内 onclick 实参转义：属性值先经 HTML 实体解码，&#39; 会还原成 ' 而逃逸，
+// 因此必须用 \xNN 形式（同 docker dockerJsArg / gitea gtJsArg）。
+function ollamaJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
 var ollama = {
     plugin_name: 'ollama',
     pull_timer: null,
@@ -167,7 +190,7 @@ var ollama = {
         $.post('/plugins/run', data, function (res) {
             layer.close(loadT);
             if (!res.status) {
-                layer.msg(res.msg, { icon: 2, time: 5000 });
+                layer.msg(ollamaEsc(res.msg), { icon: 2, time: 5000 });
                 return;
             }
 
@@ -207,11 +230,11 @@ var ollama = {
                             '</div>' +
                             '<div class="ollama-info-item">' +
                                 '<span class="ollama-info-label">' + pt('内网地址：') + '</span>' +
-                                '<a href="' + info.internal_url + '" target="_blank" class="ollama-info-value ollama-link">' + info.internal_url + '</a>' +
+                                '<a href="' + ollamaEsc(info.internal_url) + '" target="_blank" class="ollama-info-value ollama-link">' + ollamaEsc(info.internal_url) + '</a>' +
                             '</div>' +
                             '<div class="ollama-info-item">' +
                                 '<span class="ollama-info-label">' + pt('外网地址：') + '</span>' +
-                                '<a href="' + info.external_url + '" target="_blank" class="ollama-info-value ollama-link">' + info.external_url + '</a>' +
+                                '<a href="' + ollamaEsc(info.external_url) + '" target="_blank" class="ollama-info-value ollama-link">' + ollamaEsc(info.external_url) + '</a>' +
                             '</div>' +
                         '</div>' +
                     '</div>';
@@ -350,7 +373,7 @@ var ollama = {
             success: function (res) {
                 var container = $('#local_models_list');
                 if (!res.status) {
-                    container.html('<p style="color:#ef4444;font-size:13px;padding:10px 0;"><span class="glyphicon glyphicon-warning-sign"></span> ' + res.msg + '</p>');
+                    container.html('<p style="color:#ef4444;font-size:13px;padding:10px 0;"><span class="glyphicon glyphicon-warning-sign"></span> ' + ollamaEsc(res.msg) + '</p>');
                     return;
                 }
                 
@@ -365,11 +388,11 @@ var ollama = {
                 for (var i = 0; i < models.length; i++) {
                     var m = models[i];
                     listHtml += '<tr>';
-                    listHtml += '  <td style="font-weight:600;">' + m.name + '</td>';
-                    listHtml += '  <td><code style="font-size:11px;">' + m.id + '</code></td>';
-                    listHtml += '  <td>' + m.size + '</td>';
-                    listHtml += '  <td>' + m.modified + '</td>';
-                    listHtml += '  <td style="text-align:right;"><button class="ollama-btn ollama-btn-danger" style="padding:3px 10px;font-size:11px;" onclick="ollama.deleteModel(\'' + m.name + '\')">' + pt('删除') + '</button></td>';
+                    listHtml += '  <td style="font-weight:600;">' + ollamaEsc(m.name) + '</td>';
+                    listHtml += '  <td><code style="font-size:11px;">' + ollamaEsc(m.id) + '</code></td>';
+                    listHtml += '  <td>' + ollamaEsc(m.size) + '</td>';
+                    listHtml += '  <td>' + ollamaEsc(m.modified) + '</td>';
+                    listHtml += '  <td style="text-align:right;"><button class="ollama-btn ollama-btn-danger" style="padding:3px 10px;font-size:11px;" onclick="ollama.deleteModel(\'' + ollamaJsArg(m.name) + '\')">' + pt('删除') + '</button></td>';
                     listHtml += '</tr>';
                 }
                 listHtml += '</tbody></table>';
@@ -399,11 +422,11 @@ var ollama = {
                 for (var i = 0; i < models.length; i++) {
                     var m = models[i];
                     listHtml += '<tr>';
-                    listHtml += '  <td style="font-weight:600;color:#4f46e5;">' + m.name + '</td>';
-                    listHtml += '  <td><code>' + m.id + '</code></td>';
-                    listHtml += '  <td>' + m.size + '</td>';
-                    listHtml += '  <td><span class="label label-success" style="font-size:11px;">' + m.processor + '</span></td>';
-                    listHtml += '  <td>' + m.until + '</td>';
+                    listHtml += '  <td style="font-weight:600;color:#4f46e5;">' + ollamaEsc(m.name) + '</td>';
+                    listHtml += '  <td><code>' + ollamaEsc(m.id) + '</code></td>';
+                    listHtml += '  <td>' + ollamaEsc(m.size) + '</td>';
+                    listHtml += '  <td><span class="label label-success" style="font-size:11px;">' + ollamaEsc(m.processor) + '</span></td>';
+                    listHtml += '  <td>' + ollamaEsc(m.until) + '</td>';
                     listHtml += '</tr>';
                 }
                 listHtml += '</tbody></table>';
@@ -426,7 +449,7 @@ var ollama = {
             data: { 'model_name': model_name },
             success: function (res) {
                 if (!res.status) {
-                    layer.msg(res.msg, { icon: 2 });
+                    layer.msg(ollamaEsc(res.msg), { icon: 2 });
                     return;
                 }
                 
@@ -440,7 +463,7 @@ var ollama = {
         var _this = this;
         
         var modalHtml = '<div style="padding:15px;">' +
-            '<p style="margin-bottom:10px;font-size:13px;font-weight:600;color:#334155;">' + pt('正在拉取模型:') + ' <span style="color:#4f46e5;">' + model_name + '</span> ' + pt('(请勿关闭此窗口直到拉取完成)') + '</p>' +
+            '<p style="margin-bottom:10px;font-size:13px;font-weight:600;color:#334155;">' + pt('正在拉取模型:') + ' <span style="color:#4f46e5;">' + ollamaEsc(model_name) + '</span> ' + pt('(请勿关闭此窗口直到拉取完成)') + '</p>' +
             '<textarea id="pull_log_textarea" class="ollama-textarea" readonly>' + pt('正在加载拉取进度日志...') + '\n' + '</textarea>' +
             '</div>';
 
@@ -480,7 +503,7 @@ var ollama = {
                     if (data.status === 'success') {
                         clearInterval(_this.pull_timer);
                         _this.pull_timer = null;
-                        layer.msg(msgTpl(pt('模型 {1} 下载拉取成功！'), [model_name]), { icon: 1 });
+                        layer.msg(msgTpl(pt('模型 {1} 下载拉取成功！'), [ollamaEsc(model_name)]), { icon: 1 });
                         setTimeout(function () {
                             layer.close(index);
                             _this.refreshModelsList();
@@ -498,7 +521,7 @@ var ollama = {
     deleteModel: function (model_name) {
         var _this = this;
         
-        layer.confirm(pt('确认要彻底删除大模型') + ' <b style="color:#ef4444;">' + model_name + '</b> ' + pt('吗？这会立刻释放其占用的磁盘空间！'), {
+        layer.confirm(pt('确认要彻底删除大模型') + ' <b style="color:#ef4444;">' + ollamaEsc(model_name) + '</b> ' + pt('吗？这会立刻释放其占用的磁盘空间！'), {
             title:  pt('删除确认'),
             icon: 3,
             btn: [pt('确认删除'), pt('取消')]
@@ -509,10 +532,10 @@ var ollama = {
                 data: { 'model_name': model_name },
                 success: function (res) {
                     if (res.status) {
-                        layer.msg(res.msg, { icon: 1 });
+                        layer.msg(ollamaEsc(res.msg), { icon: 1 });
                         _this.refreshModelsList();
                     } else {
-                        layer.msg(res.msg, { icon: 2 });
+                        layer.msg(ollamaEsc(res.msg), { icon: 2 });
                     }
                 }
             });
@@ -528,7 +551,7 @@ var ollama = {
             method: 'get_config',
             success: function (res) {
                 if (!res.status) {
-                    $('.soft-man-con').html('<p style="color:#ef4444;padding:20px;">' + res.msg + '</p>');
+                    $('.soft-man-con').html('<p style="color:#ef4444;padding:20px;">' + ollamaEsc(res.msg) + '</p>');
                     return;
                 }
 
@@ -537,21 +560,21 @@ var ollama = {
                 html += '  <div class="ollama-card">';
                 html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 服务环境变量配置') + '</h4>';
                 html += '    <div style="font-size:12px;color:#64748b;background:#f8fafc;padding:10px 15px;border-radius:6px;margin-bottom:15px;border:1px dashed #cbd5e1;">';
-                html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + (config.service_file || pt('未找到')) + '</code><br/>';
+                html += '      <span class="glyphicon glyphicon-info-sign"></span> ' + pt('系统已自动检索到配置文件:') + ' <code style="font-size:11px;">' + ollamaEsc(config.service_file || pt('未找到')) + '</code><br/>';
                 html += '      ' + pt('配置保存后，插件会自动执行') + ' <code style="font-size:10px;">systemctl daemon-reload</code> ' + pt('与服务重启，使新配置即时生效。');
                 html += '    </div>';
 
                 // Host 配置
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">' + pt('服务绑定 Host & 端口 (OLLAMA_HOST)') + '</label>';
-                html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + config.host + '" placeholder="' + pt('如: 127.0.0.1:11434') + '">';
+                html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + ollamaEsc(config.host) + '" placeholder="' + pt('如: 127.0.0.1:11434') + '">';
                 html += '      <p class="ollama-tip">' + pt('默认绑定') + ' <code style="font-size:11px;">127.0.0.1:11434</code>' + pt('。如果您想允许局域网或公网通过 Open WebUI 或 API 访问它，请更改为') + ' <code style="font-size:11px;">0.0.0.0:11434</code>。</p>';
                 html += '    </div>';
 
                 // Models 路径配置
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">' + pt('大模型存储物理目录 (OLLAMA_MODELS)') + '</label>';
-                html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + config.models_path + '" placeholder="' + pt('如: /usr/share/ollama/.ollama/models') + '">';
+                html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + ollamaEsc(config.models_path) + '" placeholder="' + pt('如: /usr/share/ollama/.ollama/models') + '">';
                 html += '      <p class="ollama-tip">' + pt('大模型文件非常庞大，默认会存放在 root 的 home 盘下。若系统根分区较小，强烈建议修改为挂载了大数据盘的路径（例如') + ' <code style="font-size:11px;">/www/server/ollama/models</code>）。</p>';
                 html += '    </div>';
 
@@ -606,11 +629,11 @@ var ollama = {
             },
             success: function (res) {
                 if (res.status) {
-                    layer.msg(res.msg, { icon: 1 });
+                    layer.msg(ollamaEsc(res.msg), { icon: 1 });
                     // 重刷配置页面
                     setTimeout(function () { _this.config(); }, 1000);
                 } else {
-                    layer.msg(res.msg, { icon: 2 });
+                    layer.msg(ollamaEsc(res.msg), { icon: 2 });
                 }
             }
         });
@@ -642,7 +665,7 @@ var ollama = {
             success: function (res) {
                 var logArea = $('#ollama_log_textarea');
                 if (!res.status) {
-                    logArea.val(msgTpl(pt('获取日志失败：{1}'), [res.msg]));
+                    logArea.val(msgTpl(pt('获取日志失败：{1}'), [ollamaEsc(res.msg)]));
                     return;
                 }
                 

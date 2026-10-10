@@ -111,5 +111,13 @@
     "http://&lt;服务器IP&gt;:11434/v1": "http://&lt;server-IP&gt;:11434/v1",
     "缺少必要参数:": "Missing required parameter:",
     "模型删除成功！": "Model deleted successfully!",
-    "获取日志失败：{1}": "Failed to get logs: {1}"
+    "获取日志失败：{1}": "Failed to get logs: {1}",
+    "未检测到 Ollama，请先安装后再使用！": "Ollama not detected, please install it first!",
+    "监听地址不合法！": "Invalid listen address!",
+    "存储路径不合法！": "Invalid storage path!",
+    "服务配置文件不可读！": "Ollama service file is not readable!",
+    "服务文件写入失败！": "Failed to write service file!",
+    "服务配置应用失败，已回滚！": "Failed to apply config, rolled back!",
+    "模型拉取任务启动失败！": "Failed to start model pull task!",
+    "获取服务日志失败！": "Failed to get service logs!"
 }
