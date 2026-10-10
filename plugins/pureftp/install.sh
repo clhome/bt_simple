@@ -14,8 +14,22 @@ fi
 sysName=`uname`
 echo "use system: ${sysName}"
 
+# 版本号由面板传入（`bash install.sh install <version>`），会拼进下载 URL、
+# tar 文件名与 `cd` 目标路径：只允许数字与点，阻断路径/命令注入。
+VER=$2
+case "${VER}" in
+	*[!0-9.]*|'') echo "invalid version: ${VER}"; exit 1;;
+esac
+
 Install_pureftp()
 {
+	# serverPath 由 pwd 推导：从错误目录执行时会退化成 / 甚至空串，
+	# 后面的 rm -rf 与 --prefix 就会指向未限定的目标。
+	if [ -z "${serverPath}" ] || [ "${serverPath}" == '/' ];then
+		echo "invalid server path: ${serverPath}"
+		exit 1
+	fi
+
 	if id ftp &> /dev/null ;then 
 	    echo "ftp UID is `id -u ftp`"
 	    echo "ftp Shell is `grep "^ftp:" /etc/passwd |cut -d':' -f7 `"
@@ -26,7 +40,6 @@ Install_pureftp()
 
 	mkdir -p ${serverPath}/source/pureftp
 
-	VER=$1
 	FILE_PATH=$serverPath/source/pureftp/pure-ftpd-${VER}.tar.gz
 	DOWNLOAD_URL=https://download.pureftpd.org/pub/pure-ftpd/releases/pure-ftpd-${VER}.tar.gz
 
@@ -62,7 +75,7 @@ Install_pureftp()
 		exit 1
 	fi
 
-	echo "${1}" > ${serverPath}/pureftp/version.pl
+	echo "${VER}" > ${serverPath}/pureftp/version.pl
 	echo '安装完成'
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py start
@@ -87,6 +100,13 @@ Install_pureftp()
 
 Uninstall_pureftp()
 {
+	# serverPath 由 pwd 推导：从错误目录执行时它会退化成 / 甚至空串，
+	# 后面的 rm -rf 就会指向未限定的目标。
+	if [ -z "${serverPath}" ] || [ "${serverPath}" == '/' ];then
+		echo "invalid server path: ${serverPath}"
+		exit 1
+	fi
+
 	if [ -f /usr/lib/systemd/system/pureftp.service ];then
 		systemctl stop pureftp
 		systemctl disable pureftp
@@ -99,14 +119,23 @@ Uninstall_pureftp()
 	fi
 
 	rm -rf ${serverPath}/pureftp
+	if [ -d ${serverPath}/pureftp ];then
+		echo "uninstall failed: ${serverPath}/pureftp still exists"
+		exit 1
+	fi
 	userdel ftp
 	groupdel ftp
 	echo '卸载完成'
 }
 
 action=$1
-if [ "${1}" == 'install' ];then
+if [ "${action}" == 'install' ];then
 	Install_pureftp $2
+elif [ "${action}" == 'uninstall' ];then
+	# 旧版是 else 兜底：任何非法/缺失参数（含无参）都会执行卸载，
+	# 直接 rm -rf 安装目录并 userdel ftp。面板只会传 install / uninstall，这里显式分支。
+	Uninstall_pureftp
 else
-	Uninstall_pureftp $2
+	echo "usage: $0 {install|uninstall} [version]"
+	exit 1
 fi

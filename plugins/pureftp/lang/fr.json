@@ -54,5 +54,17 @@
     "默认端口": "Port défaut",
     "（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）": "(Permet le transfert de fichiers et de listes de répertoires en mode passif FTP ; si cette règle n'est pas autorisée, la connexion s'établira mais il sera impossible de lire les répertoires)",
     "（用于 FTP 账号登录与主动模式）": "(Pour la connexion à un compte FTP et le mode actif)",
-    "缺少必要参数:": "Paramètre requis manquant :"
+    "缺少必要参数:": "Paramètre requis manquant :",
+    "用户名不合法!": "Nom d'utilisateur invalide !",
+    "FTP 根目录不合法!": "Racine FTP invalide !",
+    "FTP 密码不合法!": "Mot de passe FTP invalide !",
+    "备注过长!": "Note trop longue !",
+    "参数不合法!": "Paramètre invalide !",
+    "FTP 用户已存在!": "Utilisateur FTP existant !",
+    "状态值不合法!": "Statut invalide !",
+    "端口范围不正确!": "Port invalide !",
+    "操作失败:": "Échec :",
+    "请输入新密码": "Saisir un nouveau mot de passe",
+    "密码不能为空!": "Mot de passe requis !",
+    "请求失败": "Échec de la requête"
 }

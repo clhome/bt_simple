@@ -54,5 +54,17 @@
     "默认端口": "Standardport",
     "（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）": "(Wird für die Übertragung von Dateien und Verzeichnislisten im passiven FTP-Modus verwendet; wird dies nicht zugelassen, wird die Verbindung zwar hergestellt, aber die Verzeichnisse können nicht gelesen werden.)",
     "（用于 FTP 账号登录与主动模式）": "(Für die Anmeldung mit einem FTP-Konto und den aktiven Modus)",
-    "缺少必要参数:": "Fehlender erforderlicher Parameter:"
+    "缺少必要参数:": "Fehlender erforderlicher Parameter:",
+    "用户名不合法!": "Ungültiger Benutzername!",
+    "FTP 根目录不合法!": "Ungültiges FTP-Stammverzeichnis!",
+    "FTP 密码不合法!": "Ungültiges FTP-Passwort!",
+    "备注过长!": "Notiz zu lang!",
+    "参数不合法!": "Ungültiger Parameter!",
+    "FTP 用户已存在!": "FTP-Benutzer existiert!",
+    "状态值不合法!": "Ungültiger Status!",
+    "端口范围不正确!": "Ungültiger Port!",
+    "操作失败:": "Fehlgeschlagen:",
+    "请输入新密码": "Neues Passwort eingeben",
+    "密码不能为空!": "Passwort erforderlich!",
+    "请求失败": "Anfrage fehlgeschlagen"
 }

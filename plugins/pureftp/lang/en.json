@@ -54,5 +54,17 @@
     "默认端口": "Default Port",
     "（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）": "(Used to transfer files and directory listings in FTP passive mode; if not allowed, the connection will succeed but the directory cannot be read.)",
     "（用于 FTP 账号登录与主动模式）": "(For FTP account login and active mode)",
-    "缺少必要参数:": "Missing required parameter:"
+    "缺少必要参数:": "Missing required parameter:",
+    "用户名不合法!": "Invalid username!",
+    "FTP 根目录不合法!": "Invalid FTP root!",
+    "FTP 密码不合法!": "Invalid FTP password!",
+    "备注过长!": "Note too long!",
+    "参数不合法!": "Invalid parameter!",
+    "FTP 用户已存在!": "FTP user exists!",
+    "状态值不合法!": "Invalid status!",
+    "端口范围不正确!": "Invalid port!",
+    "操作失败:": "Failed:",
+    "请输入新密码": "Enter new password",
+    "密码不能为空!": "Password required!",
+    "请求失败": "Request failed"
 }

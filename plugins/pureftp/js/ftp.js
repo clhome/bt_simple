@@ -2,6 +2,42 @@ var api = YfPlugin.createApi('pureftp');
 var pt = YfI18n.createPluginTranslator('pureftp');
 
 
+// HTML 转义：列表/弹窗里回显的用户名、根目录、备注、IP、端口都可能被写入元字符
+function ptEsc(v) {
+    if (v === null || typeof v === 'undefined') return '';
+    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\x22/g, '&quot;').replace(/\x27/g, '&#39;');
+}
+
+// onclick 参数转义：属性值先过 HTML 实体解码再交给 JS，&#39; 会被解码回 ' 而逃逸，
+// 因此必须用 \xNN 形式（同 task_manager tmJsArg / rsyncd rsJsArg / gitea gtJsArg）。
+function ptJsArg(v) {
+    if (v === undefined || v === null) return '';
+    return String(v)
+        .replace(/\\/g, '\\\\')
+        .replace(/\x27/g, '\\x27')
+        .replace(/"/g, '\\x22')
+        .replace(/</g, '\\x3c')
+        .replace(/>/g, '\\x3e')
+        .replace(/&/g, '\\x26')
+        .replace(/[\r\n]/g, ' ');
+}
+
+
+// 插件错误信封解包：后端 returnJson(False, msg) 的 JSON 串会被面板包在 data.data 里，
+// 直接展示会露出一整段 JSON；这里取出可读消息（同 gitea/rsyncd 的做法）。
+function ptErr(resp) {
+    var d = resp && resp.data;
+    if (typeof d === 'string' && d.charAt(0) == '{') {
+        try {
+            var o = JSON.parse(d);
+            if (o && o.msg) return o.msg;
+        } catch (e) {}
+    }
+    return d || (resp && resp.msg) || '';
+}
+
+
 function ftpListFind(){
     var search = $('#ftp_find_user').val();
     if (search==''){
@@ -27,8 +63,8 @@ function ftpList(page, search){
 
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
-        content = '<div class="info-title-tips" style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>' + pt('当前FTP地址为：ftp://')+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
-        content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">' + pt('修改端口') + '</button></div>';
+        content = '<div class="info-title-tips" style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>' + pt('当前FTP地址为：ftp://')+ptEsc(rdata['info']['ip'])+':'+ptEsc(rdata['info']['port'])+'</p>';
+        content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+ptJsArg(rdata['info']['port'])+'\')">' + pt('修改端口') + '</button></div>';
         content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="' + pt('查找用户名') + '" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
         content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">' + pt('查找') + '</button>';
         content += '<button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="addFtp();"><span class="glyphicon glyphicon-plus" style="margin-right: 5px;"></span>' + pt('新增用户') + '</button></div>';
@@ -36,7 +72,6 @@ function ftpList(page, search){
         content += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         content += '<thead><tr>';
         content += '<th style="width:10%;overflow:hidden;">' + pt('用户名') + '</th>';
-        content += '<th style="width:10%;overflow:hidden;">' + pt('密码') + '</th>';
         content += '<th style="width:10%;">' + pt('状态') + '</th>';
         content += '<th>' + pt('根目录') + '</th>';
         content += '<th>' + pt('备注') + '</th>';
@@ -48,17 +83,16 @@ function ftpList(page, search){
         ulist = rdata.data;
         for (i in ulist){
         	// console.log(ulist[i]);
-        	status = '<a href="javascript:;" onclick="ftpStart(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')" <span="" style="color:red">' + pt('已停用') + '<span style="color:red" class="glyphicon glyphicon-pause"></span></a>';
+        	status = '<a href="javascript:;" onclick="ftpStart(\''+ptJsArg(ulist[i]['id'])+'\',\''+ptJsArg(ulist[i]['name'])+'\')" <span="" style="color:red">' + pt('已停用') + '<span style="color:red" class="glyphicon glyphicon-pause"></span></a>';
         	if (ulist[i]['status'] == '1'){
-        		status = '<a href="javascript:;" title="FTP帐户" onclick="ftpStop(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')"><span style="color:#5CB85C">' + pt('已启用') + '</span><span style="color:#5CB85C" class="glyphicon glyphicon-play"></span></a>';
+        		status = '<a href="javascript:;" title="FTP帐户" onclick="ftpStop(\''+ptJsArg(ulist[i]['id'])+'\',\''+ptJsArg(ulist[i]['name'])+'\')"><span style="color:#5CB85C">' + pt('已启用') + '</span><span style="color:#5CB85C" class="glyphicon glyphicon-play"></span></a>';
         	}
-            content += '<tr><td>'+ulist[i]['name']+'</td>'+
-        		'<td>'+ulist[i]['password']+'</td>'+
+            content += '<tr><td>'+ptEsc(ulist[i]['name'])+'</td>'+
         		'<td>'+status+'</td>' +
-        		'<td>'+ulist[i]['path']+'</td>' +
-        		'<td>'+ulist[i]['ps']+'</td>' +
-            	'<td><a class="btlink" onclick="ftpModPwd(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\',\''+ulist[i]['password']+'\')">' + pt('改密') + '</a> | ' +
-            	'<a class="btlink" onclick="ftpDelete(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')">' + pt('删除') + '</a></td></tr>';
+        		'<td>'+ptEsc(ulist[i]['path'])+'</td>' +
+        		'<td>'+ptEsc(ulist[i]['ps'])+'</td>' +
+            	'<td><a class="btlink" onclick="ftpModPwd(\''+ptJsArg(ulist[i]['id'])+'\',\''+ptJsArg(ulist[i]['name'])+'\')">' + pt('改密') + '</a> | ' +
+            	'<a class="btlink" onclick="ftpDelete(\''+ptJsArg(ulist[i]['id'])+'\',\''+ptJsArg(ulist[i]['name'])+'\')">' + pt('删除') + '</a></td></tr>';
         }
 
         content += '</tbody>';
@@ -101,7 +135,7 @@ async function addFtp() {
 					</div>\
 					<div class='line'>\
 					<span class='tname'>" + pt('根目录') + "</span>\
-					<div class='info-r'><input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+defaultPath+"/' placeholder='"+lan.ftp.add_path_title+"'  style='width:330px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span><p class='c9 mt10'>"+lan.ftp.add_path_ps+"</p></div>\
+					<div class='info-r'><input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+ptEsc(defaultPath)+"/' placeholder='"+lan.ftp.add_path_title+"'  style='width:330px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span><p class='c9 mt10'>"+lan.ftp.add_path_ps+"</p></div>\
 					</div>\
                     <div class='line' style='display:none'>\
 					<span class='tname'>" + pt('备注') + "</span>\
@@ -118,7 +152,7 @@ async function addFtp() {
 				if (rdata.data == 'ok'){
 					layer.msg(pt('添加成功!'), {icon: 1,time:3000});
 				} else {
-					layer.msg(rdata.data, {icon: 5,time:3000});
+					layer.msg(ptErr(rdata), {icon: 5,time:3000});
 				}
 
 				setTimeout(function(){ftpList();},2000);
@@ -142,13 +176,17 @@ async function addFtp() {
  * @return {bool}
  */
 function ftpDelete(id,ftp_username){
-	safeMessage(lan.public.del+"["+ftp_username+"]",lan.get('confirm_del',[ftp_username]),function(){
+	safeMessage(lan.public.del+"["+ptEsc(ftp_username)+"]",lan.get('confirm_del',[ftp_username]),function(){
 		layer.msg(lan.public.the_del,{icon:16,time:0,shade: [0.3, '#000']});
-		var data='&id='+id+'&username='+ftp_username;
+		var data='&id='+encodeURIComponent(id)+'&username='+encodeURIComponent(ftp_username);
 
 		api.post('del_ftp', data, function(data){
-			layer.msg(pt('删除成功!'), {icon: 1});
-			ftpList();
+			if (data.data == 'ok'){
+				layer.msg(pt('删除成功!'), {icon: 1});
+				ftpList();
+			} else {
+				layer.msg(ptErr(data), {icon: 2});
+			}
 		})
 	});
 }
@@ -162,7 +200,7 @@ function modFtpPort(type, port){
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
 					<span class='tname'>" + pt('默认端口') + "</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' id='ftpPort' name='ftp_port' style='width:330px' value='"+port+"'/></div>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' id='ftpPort' name='ftp_port' style='width:330px' value='"+ptEsc(port)+"'/></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
 						<button id='ftp_port_close' type='button' class='btn btn-danger btn-sm btn-title'>" + pt('关闭') + "</button>\
@@ -183,7 +221,7 @@ function modFtpPort(type, port){
 			if (data.data == 'ok'){
 				layer.msg(pt('修改成功!'), {icon: 1});
 			} else {
-				layer.msg(data.data, {icon: 2});
+				layer.msg(ptErr(data), {icon: 2});
 			}
 			$('.layui-layer-close1').click();
 		});
@@ -192,7 +230,7 @@ function modFtpPort(type, port){
 }
 
 
-function ftpModPwd(id,name,password){
+function ftpModPwd(id,name){
 	var index = layer.open({
 		type: 1,
 		skin: 'demo-class',
@@ -201,12 +239,12 @@ function ftpModPwd(id,name,password){
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
 					<span class='tname'>" + pt('用户名') + "</span>\
-					<div class='info-r'><input disabled class='bt-input-text mr5' type='text' id='ftpUser' name='ftp_username' style='width:330px' value='"+name+"'/></div>\
+					<div class='info-r'><input disabled class='bt-input-text mr5' type='text' id='ftpUser' name='ftp_username' style='width:330px' value='"+ptEsc(name)+"'/></div>\
 					</div>\
 					\
 					<div class='line'>\
 					<span class='tname'>" + pt('密码') + "</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' placeholder='" + pt('请输入新密码') + "' /><span title='" + pt('随机密码') + "' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
 						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>" + pt('关闭') + "</button>\
@@ -222,11 +260,17 @@ function ftpModPwd(id,name,password){
 
 	$('#ftp_mod_submit').on('click', function(){
 		pwd = $('#MyPassword').val();
-		data='id='+id+'&name='+name+'&password='+pwd
+		if (pwd == ''){
+			layer.msg(pt('密码不能为空!'), {icon: 0,time: 2000});
+			return;
+		}
+		data='id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name)+'&password='+encodeURIComponent(pwd)
 		api.post('mod_ftp', data,function(data){
 			ftpList();
 			if (data.data == 'ok'){
 				layer.msg(pt('修改成功!'), {icon: 1});
+			} else {
+				layer.msg(ptErr(data), {icon: 2});
 			}
 			$('.layui-layer-close1').click();
 		});
@@ -240,13 +284,13 @@ function ftpModPwd(id,name,password){
  * @param {String} username	FTP用户名
  */
 function ftpStop(id, username) {
-	layer.confirm(pt('您真的要停止{1}的FTP吗?').replace('{1}',username), {
+	layer.confirm(pt('您真的要停止{1}的FTP吗?').replace('{1}',ptEsc(username)), {
 		title: pt('FTP帐户'),icon:3,
 		closeBtn:2
 	}, function(index) {
 		if (index > 0) {
 			var loadT = layer.load({shade: true,shadeClose: false});
-			var data='id=' + id + '&username=' + username + '&status=0';
+			var data='id=' + encodeURIComponent(id) + '&username=' + encodeURIComponent(username) + '&status=0';
 			api.post('stop_ftp', data, function(data){
 				layer.close(loadT);
 				if (data.data == 'ok'){
@@ -254,7 +298,7 @@ function ftpStop(id, username) {
 						ftpList();
 					},{icon: 1});
 				} else {
-					layer.msg(data.data, {icon: 2});
+					layer.msg(ptErr(data), {icon: 2});
 				}
 			});
 		}
@@ -269,7 +313,7 @@ function ftpStop(id, username) {
  */
 function ftpStart(id, username) {
 	var loadT = layer.load({shade: true,shadeClose: false});
-	var data='id=' + id + '&username=' + username + '&status=1';
+	var data='id=' + encodeURIComponent(id) + '&username=' + encodeURIComponent(username) + '&status=1';
 	api.post('start_ftp', data, function(data){
 		layer.close(loadT);
 		if (data.data == 'ok'){
@@ -277,7 +321,7 @@ function ftpStart(id, username) {
 				ftpList();
 			},{icon: 1});
 		} else {
-			layer.msg(data.data, {icon: 2});
+			layer.msg(ptErr(data), {icon: 2});
 		}
 		
 	});
@@ -288,8 +332,7 @@ function pureftpService() {
     var _name = "pureftp";
     var loadT = layer.msg(pt("正在获取..."), { icon: 16, time: 0, shade: 0.3 });
     $.post("/plugins/run", {name: "pureftp", func: "get_ftp_list", args: JSON.stringify({page:1, page_size:1000})}, function(rdata) {
-        $.post("/plugins/run", {name: _name, func: "status"}, function(data) {
-            layer.close(loadT);
+        $.post("/plugins/run", {name: _name, func: "status"}, function(data) {            layer.close(loadT);
             var _status = data.data;
             var m_status = pt('当前状态：') + "<span>" + pt('开启') + "</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
             if (_status != "start"){
@@ -307,9 +350,9 @@ function pureftpService() {
                 ftpData = JSON.parse(rdata.data);
             } catch(e) {}
             
-            var innerIp = ftpData.info.ip;
-            var outerIp = ftpData.info.external_ip || window.location.hostname;
-            var port = ftpData.info.port;
+            var innerIp = ptEsc(ftpData.info.ip);
+            var outerIp = ptEsc(ftpData.info.external_ip || window.location.hostname);
+            var port = ptEsc(ftpData.info.port);
             
             var style = `
             <style>
@@ -415,8 +458,8 @@ function pureftpService() {
                 con += '<thead><tr><th width="30%">' + pt('FTP 用户名') + '</th><th>' + pt('绑定根目录') + '</th></tr></thead><tbody>';
                 for (var i = 0; i < ftpData.data.length; i++) {
                     con += '<tr>';
-                    con += '<td><span class="user-badge">' + ftpData.data[i].name + '</span></td>';
-                    con += '<td><span class="path-badge">' + ftpData.data[i].path + '</span></td>';
+                    con += '<td><span class="user-badge">' + ptEsc(ftpData.data[i].name) + '</span></td>';
+                    con += '<td><span class="path-badge">' + ptEsc(ftpData.data[i].path) + '</span></td>';
                     con += '</tr>';
                 }
                 con += '</tbody></table>';
@@ -442,6 +485,13 @@ function pureftpService() {
             if (typeof pluginInitDSwitchRender === 'function') {
                 pluginInitDSwitchRender(_name, '');
             }
-        }, "json");
-    }, "json");
+        }, "json").fail(function(xhr){
+            // 缺 .fail() 时 500 会让 loading 遮罩永久卡死
+            layer.close(loadT);
+            layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status), { icon: 0, time: 3000, shade: [0.3, '#000'] });
+        });
+    }, "json").fail(function(xhr){
+        layer.close(loadT);
+        layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status), { icon: 0, time: 3000, shade: [0.3, '#000'] });
+    });
 }
