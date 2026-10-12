@@ -1189,7 +1189,7 @@ def getOccupyingProcess(path):
                 cmd = ['lsof', path]
                 out = subprocess.run(cmd, capture_output=True, text=True, timeout=2).stdout
             else:
-                out, _ = yf.execShell("lsof '%s' 2>/dev/null" % path.replace("'", "'\\''"))
+                out, _ = yf.execShell("lsof " + yf.shlexQuote(path) + " 2>/dev/null")
             if out:
                 lines = out.strip().split('\n')
                 if len(lines) > 1:
@@ -1200,7 +1200,7 @@ def getOccupyingProcess(path):
             _log.debug('[file] lsof 检测占用失败: %s', _e)
         # 最后回退 fuser
         try:
-            out2, _ = yf.execShell("fuser -v '%s' 2>&1" % path.replace("'", "'\\''"))
+            out2, _ = yf.execShell("fuser -v " + yf.shlexQuote(path) + " 2>&1")
             if out2:
                 for line in out2.strip().split('\n'):
                     parts = line.split()

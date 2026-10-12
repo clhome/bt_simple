@@ -1,0 +1,88 @@
+# P0-1（web 侧）shell 裸拼棘轮基线：只减不增。
+# 由 testsuite/test_shell_concat_ratchet.py --print-baseline 生成。
+# 格式：<相对路径>::<函数名>::<规则>::<表达式>
+# 扫描范围：web/**/*.py + panel_tools.py + panel_task.py
+panel_task.py::execShell::bare_variable::cmdstring
+panel_tools.py::getServerIp::inline_bare_concat::"curl --insecure -{} -sS --connect-timeout 5 -m 60 https://ip.cachecha.com/?format=text".format(version)
+panel_tools.py::open_ssh_port::bare_variable::find_ssh_port_cmd
+panel_tools.py::restore_bt_data::bare_variable::cmd_drop
+panel_tools.py::restore_bt_data::bare_variable::cmd_show
+panel_tools.py::restore_bt_data::bare_variable::cmd_upgrade
+panel_tools.py::yfcli::bare_variable::cmd
+web/admin/setting/setting.py::migrate_restore::bare_variable::cmd
+web/admin/setting/setting.py::migrate_sites::bare_variable::cmd
+web/admin/setup/cleanup.py::cleanup_legacy_plugins::inline_bare_concat::f'chattr -R -i -a "{p}" 2>/dev/null'
+web/admin/setup/init_cmd.py::_install_initd::inline_bare_concat::'chmod +x ' + initd_bin
+web/admin/setup/init_cmd.py::_install_initd::inline_bare_concat::'rm -f %s && ln -sf %s %s' % (link, initd_bin, link)
+web/admin/setup/init_cmd.py::init_cmd::inline_bare_concat::'chmod +x ' + script_bin
+web/admin/setup/init_cmd.py::init_cmd::inline_bare_concat::'rm -f /etc/init.d/bs && ln -sf ' + initd_bin + ' /etc/init.d/bs'
+web/admin/setup/init_cmd.py::init_cmd::inline_bare_concat::'rm -f /etc/rc.d/init.d/bs && ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs'
+web/admin/site/ssl.py::renew_ssl::bare_variable::cmd
+web/admin/site/ssl.py::renew_ssl::bare_variable::cmd_backup
+web/admin/site/ssl_acme.py::get_acme_logs::inline_bare_concat::'touch ' + log_file
+web/admin/site/ssl_let.py::get_let_logs::inline_bare_concat::'touch ' + log_file
+web/core/yf/__init__.py::createRsa::inline_bare_concat::'cat ' + ssh_dir + '/id_rsa.pub >> ' + ssh_dir + '/authorized_keys'
+web/core/yf/__init__.py::createRsa::inline_bare_concat::'chmod 600 ' + ssh_dir + '/authorized_keys'
+web/core/yf/__init__.py::createRsa::inline_bare_concat::'echo y | ssh-keygen -q -t rsa -P "" -f ' + ssh_dir + '/id_rsa'
+web/core/yf/__init__.py::createRsa::inline_bare_concat::'ssh-keygen -q -t rsa -P "" -f ' + ssh_dir + '/id_rsa'
+web/core/yf/__init__.py::createRsa::inline_bare_concat::'touch ' + ssh_dir + '/authorized_keys'
+web/core/yf/__init__.py::execShell::bare_variable::cmdstring_list
+web/core/yf/__init__.py::execShellRc::bare_variable::cmdstring_list
+web/core/yf/__init__.py::opWeb::inline_bare_concat::'systemctl ' + method + ' openresty'
+web/core/yf/__init__.py::opWeb::inline_bare_concat::initd + ' ' + method
+web/core/yf/__init__.py::safeExecShell::bare_variable::cmd_list
+web/core/yf/__init__.py::test_speed_bg::bare_variable::cmd
+web/core/yf/github.py::_try_download::bare_variable::cmd
+web/core/yf/net.py::checkCert::inline_bare_concat::openssl + " x509 -in " + certPath + " -noout -subject"
+web/core/yf/net.py::clearSsh::bare_variable::sh
+web/core/yf/net.py::createLocalSSL::inline_bare_concat::'mkdir -p ' + local_dir
+web/core/yf/net.py::createSshInfo::bare_variable::cmd
+web/core/yf/net.py::createSshInfo::inline_bare_concat::"cat " + ssh_dir + "/id_rsa.pub | awk '{print $3}'"
+web/core/yf/net.py::createSshInfo::inline_bare_concat::'chmod 600 ' + ssh_dir + '/authorized_keys'
+web/core/yf/net.py::getLocalIp::bare_variable::cmd
+web/core/yf/panel.py::_do_reload::inline_bare_concat::initd + ' reload'
+web/core/yf/panel.py::checkHttpdConfig::bare_variable::cmd
+web/core/yf/panel.py::checkWebConfig::bare_variable::cmd
+web/core/yf/panel.py::opLuaMake::inline_bare_concat::'mkdir -p ' + root_dir
+web/core/yf/paths.py::getAcmeDir::bare_variable::cmd
+web/core/yf/shell.py::buildSoftLink::inline_bare_concat::'ln -sf "' + src + '" "' + dst + '"'
+web/core/yf/shell.py::checkBinExist::inline_bare_concat::'which ' + name
+web/core/yf/shell.py::createLinuxUser::inline_bare_concat::"groupadd {}".format(group)
+web/core/yf/shell.py::createLinuxUser::inline_bare_concat::'useradd -s /sbin/nologin -g {} {}'.format(user, group)
+web/core/yf/system.py::getCpuType::bare_variable::cmd
+web/core/yf/system.py::getOsID::bare_variable::cmd
+web/core/yf/system.py::getOsName::bare_variable::cmd
+web/utils/adult_log.py::getAuditLast::bare_variable::cmd
+web/utils/adult_log.py::getAuditLastLog::bare_variable::cmd
+web/utils/adult_log.py::getAuditLogsName::bare_variable::cmd
+web/utils/crontab.py::getShell::inline_bare_concat::'chmod 750 ' + file
+web/utils/crontab.py::writeShell::inline_bare_concat::"chmod 600 '" + file +"' && chown root.root " + file
+web/utils/file.py::getOccupyingProcess::bare_variable::cmd
+web/utils/file.py::uncompress::bare_variable::cmd
+web/utils/file.py::zip::bare_variable::cmd
+web/utils/firewall.py::_run::bare_variable::cmd
+web/utils/firewall.py::getFwStatus::bare_variable::cmd
+web/utils/firewall.py::resetRootSshKey::inline_bare_concat::'chmod 700 ' + ssh_dir
+web/utils/firewall.py::setFw::inline_bare_concat::'systemctl %s iptables.service' % ('start' if want_running else 'stop')
+web/utils/firewall.py::setSshStatus::inline_bare_concat::"/etc/init.d/sshd " + act
+web/utils/firewall.py::setSshStatus::inline_bare_concat::"systemctl " + act + " sshd.service"
+web/utils/firewall.py::setSshStatus::inline_bare_concat::'service ssh ' + act
+web/utils/plugin.py::getVersion::inline_bare_concat::f"{mysql_bin} -V"
+web/utils/plugin.py::getVersion::inline_bare_concat::f"{redis_bin} -v"
+web/utils/plugin.py::run::bare_variable::cmd_list
+web/utils/plugin.py::uninstall::bare_variable::exec_bash
+web/utils/plugin.py::uninstall::bare_variable::tar_cmd
+web/utils/site.py::checkAndAddProxyCachePath::inline_bare_concat::f"chown -R www:www {cache_dir}"
+web/utils/site.py::createAcmeDns::bare_variable::cmd
+web/utils/site.py::createAcmeDnsTypeNone::bare_variable::cmd
+web/utils/site.py::createAcmeFile::bare_variable::cmd
+web/utils/site.py::setCliPhpVersion::inline_bare_concat::"ln -sf %s %s" % (php_bin_src, php_bin)
+web/utils/site.py::setCliPhpVersion::inline_bare_concat::"ln -sf %s %s" % (php_fpm_src, php_fpm)
+web/utils/site.py::setCliPhpVersion::inline_bare_concat::"ln -sf %s %s" % (php_ize_src, php_ize)
+web/utils/site.py::setCliPhpVersion::inline_bare_concat::"ln -sf %s %s" % (php_pear_src, php_pear)
+web/utils/site.py::setCliPhpVersion::inline_bare_concat::"ln -sf %s %s" % (php_pecl_src, php_pecl)
+web/utils/system/main.py::getGpuInfo::bare_variable::cmd
+web/utils/system/update.py::_getServerInfoViaProxy::bare_variable::cmd
+web/utils/system/update.py::backup_panel::bare_variable::cmd
+web/utils/task.py::removeTask::bare_variable::cmd
+web/utils/task.py::removeTaskRecursion::bare_variable::cmd

@@ -849,14 +849,16 @@ fi
                     if not ok:
                         shell = head + "echo 'SSRF blocked: private URL not allowed' && exit 1"
                     else:
-                        safe_url = raw_url.replace("'", "'\\''")
-                        guard_py = yf.getPanelDir() + '/web/utils/urlguard.py'
+                        # URL 会拼进以 root 跑的 shell 脚本：统一走 yf.shlexQuote，
+                        # 不再手工 `replace("'", "'\\''")`（等价但易写错、难审计）。
+                        q_url = yf.shlexQuote(raw_url)
+                        q_guard_py = yf.shlexQuote(yf.getPanelDir() + '/web/utils/urlguard.py')
                         shell = head + (
-                            "RESOLVE_ARG=$(python3 '" + guard_py + "' '" + safe_url + "') || "
+                            "RESOLVE_ARG=$(python3 " + q_guard_py + " " + q_url + ") || "
                             "{ echo 'SSRF blocked: private or unresolvable URL'; exit 1; }\n"
                             "RESOLVE_OPT=''\n"
                             'if [ -n "$RESOLVE_ARG" ]; then RESOLVE_OPT="--resolve $RESOLVE_ARG"; fi\n'
-                            "curl -sS --connect-timeout 10 -m 60 --noproxy '*' $RESOLVE_OPT '" + safe_url + "'"
+                            "curl -sS --connect-timeout 10 -m 60 --noproxy '*' $RESOLVE_OPT " + q_url
                         )
                 else:
                     shell = head + param['sbody'].replace("\r\n", "\n")

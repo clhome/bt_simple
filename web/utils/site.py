@@ -41,6 +41,10 @@ _DOMAIN_RE = re.compile(r"^([\w\-\*]{1,100}\.){1,4}([\w\-]{1,24}|[\w\-]{1,24}\.[
 #: 邮箱：用于拼接 acme 命令串，只允许安全字符
 _EMAIL_RE = re.compile(r'^[A-Za-z0-9_.+@\-]*$')
 
+#: dnsapi 的键会以 `export <key>=<value>` 形式拼进 acme.sh 脚本，必须是合法环境变量名。
+#: 键名由 `/site/set_dnsapi` 写入、可任意构造，故读侧按标识符白名单过滤。
+_DNSAPI_KEY_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+
 
 def safeSiteName(name):
     """站点名/模板名/证书名的统一白名单校验，不合法返回 ''。
@@ -2947,9 +2951,17 @@ location  {from} {\n\
         return yf.returnData(True, 'site.py_msg_ee600b', result)
 
     def getDnsapiExportVar(self, data):
+        """把 dnsapi 键值渲染成 `export <key>=<value>` 行。
+
+        键走标识符白名单（非环境变量名直接丢弃，acme.sh 也用不到），值走
+        `yf.shlexQuote` 单引号引用：原实现是 `export k="v"`，双引号内 `$(...)`
+        与反引号仍会展开，而这段脚本由 acme.sh 以 root 执行 —— 等价 root RCE。
+        """
         def_var = ''
         for k in data:
-            def_var += 'export '+k+'="'+data[k]+'"\n'
+            if not _DNSAPI_KEY_RE.match(str(k)):
+                continue
+            def_var += 'export ' + str(k) + '=' + yf.shlexQuote(str(data[k])) + '\n'
         return def_var
 
     # def getDomainRootName(self, domain):
@@ -3098,10 +3110,10 @@ export PATH
             cmd += self.getDnsapiExportVar(dnsapi_data)
             if wildcard_domain == 'true':
                 top_domain = self.getDomainRootName(d)
-                cmd += 'acme.sh --issue --dns '+str(dnspai)+' -d '+top_domain+' -d "*.'+top_domain+'"'
+                cmd += 'acme.sh --issue --dns '+yf.shlexQuote(str(dnspai))+' -d '+top_domain+' -d "*.'+top_domain+'"'
                 d = top_domain
             else:
-                cmd += 'acme.sh --issue --dns '+str(dnspai)+' -d '+d
+                cmd += 'acme.sh --issue --dns '+yf.shlexQuote(str(dnspai))+' -d '+d
 
             if dns_alias != '':
                 cmd += ' --domain-alias '+str(dns_alias)
