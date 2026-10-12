@@ -4995,7 +4995,8 @@ var lan = {
 			"py_msg_2ca3e3": "The temporary file does not exist. Please upload again!",
 			"py_msg_f1e512": "Installsuccessful!",
 			"py_msg_99993a": "Installfailed!",
-			"py_msg_15c2e0": "Cache cleared"
+			"py_msg_15c2e0": "Cache cleared",
+			"py_msg_6f3a2d": "Confirm the plugin script before installing; re-import to confirm"
 		},
 
 	"system": {

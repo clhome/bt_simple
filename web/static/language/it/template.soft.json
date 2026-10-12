@@ -358,7 +358,8 @@
     "py_msg_2ca3e3": "Il file temporaneo non esiste, ricaricalo!",
     "py_msg_f1e512": "Installazione completata con successo!",
     "py_msg_99993a": "Installazione fallita!",
-    "py_msg_15c2e0": "cache cancellata"
+    "py_msg_15c2e0": "cache cancellata",
+    "py_msg_6f3a2d": "Conferma lo script prima dell'installazione; reimporta il plugin"
   },
   "jdk": {
     "manage": "Gestione JDK",

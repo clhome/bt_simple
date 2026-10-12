@@ -4995,7 +4995,8 @@ var lan = {
 			"py_msg_2ca3e3":"Les fichiers temporaires n'existent pas, veuillez les télécharger à nouveau !",
 			"py_msg_f1e512":"L'installation a réussi !",
 			"py_msg_99993a":"Échec de l'installation !",
-			"py_msg_15c2e0":"Le cache a été vidé"
+			"py_msg_15c2e0":"Le cache a été vidé",
+			"py_msg_6f3a2d":"Confirmez le script avant l'installation ; réimportez le plugin"
 		},
 
 	"system": {

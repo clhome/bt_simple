@@ -517,17 +517,22 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
           version = window['install_hook_' + plugin_name](version);
         }
         var type = $('.fangshi').prop("checked") ? '1' : '0';
-        var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
-        if (install_pre_inspection) {
-          //安装前置检测
-          installPreInspection(plugin_name, version, function () {
-            runInstall(request_args);
-            flySlow('layui-layer-btn0');
-          });
-          return;
-        }
-        runInstall(request_args);
-        flySlow('layui-layer-btn0');
+        installPluginScriptConfirm(plugin_name, function (token) {
+          var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
+          if (token) {
+            request_args += "&confirm_token=" + encodeURIComponent(token);
+          }
+          if (install_pre_inspection) {
+            //安装前置检测
+            installPreInspection(plugin_name, version, function () {
+              runInstall(request_args);
+              flySlow('layui-layer-btn0');
+            });
+            return;
+          }
+          runInstall(request_args);
+          flySlow('layui-layer-btn0');
+        });
       }
     });
   }).fail(function () {
@@ -556,17 +561,22 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
         var plugin_name = info_split[0];
         var version = info_split[1];
         var type = $('.fangshi').prop("checked") ? '1' : '0';
-        var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
-        if (install_pre_inspection) {
-          //安装前置检测
-          installPreInspection(plugin_name, version, function () {
-            runInstall(request_args);
-            flySlow('layui-layer-btn0');
-          });
-          return;
-        }
-        runInstall(request_args);
-        flySlow('layui-layer-btn0');
+        installPluginScriptConfirm(plugin_name, function (token) {
+          var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
+          if (token) {
+            request_args += "&confirm_token=" + encodeURIComponent(token);
+          }
+          if (install_pre_inspection) {
+            //安装前置检测
+            installPreInspection(plugin_name, version, function () {
+              runInstall(request_args);
+              flySlow('layui-layer-btn0');
+            });
+            return;
+          }
+          runInstall(request_args);
+          flySlow('layui-layer-btn0');
+        });
       }
     });
   });
@@ -1011,7 +1021,10 @@ function importPlugin(file) {
                     '<p><b>' + (lan && lan.soft && lan.soft.author || '作者：') + '</b>' + yfSoftText(data.author) + '</p>' +
                     '<p><b>' + (lan && lan.soft && lan.soft.source || '来源：') + '</b>' + (yfSoftUrl(data.home) ? ('<a class="btlink" href="' + yfSoftUrl(data.home) + '" target="_blank">' + yfSoftUrl(data.home) + '</a>') : '-') + '</p>' +
                     '</div>' +
-                    '<ul class="help-info-text c7"><li>' + (lan && lan.soft && lan.soft.third_warn1 || '第三方插件未经官方安全认证，请自行核实插件安全性；') + '</li><li>' + (lan && lan.soft && lan.soft.third_warn2 || '使用第三方插件可能会影响面板稳定性；') + '</li></ul>' +
+                    // 安装前确认：把将被 root 执行的脚本原样展示（yfSoftText 做 HTML 转义）
+                    (data.install_sh ? ('<div class="box"><div class="title">' + yfSoftText(data.shell || 'install.sh') + '</div>' +
+                      '<pre class="yf-plugin-script" style="max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-all;background:#1e1e1e;color:#d4d4d4;padding:10px;border-radius:2px;margin:0;">' + yfSoftText(data.install_sh) + '</pre></div>') : '') +
+                    '<ul class="help-info-text c7"><li>' + (lan && lan.soft && lan.soft.third_warn1 || '第三方插件未经官方安全认证，请自行核实插件安全性；') + '</li><li>' + (lan && lan.soft && lan.soft.third_warn2 || '使用第三方插件可能会影响面板稳定性；') + '</li><li>' + (lan && lan.soft && lan.soft.third_warn3 || '安装时将执行以上脚本（root 权限），安装时需再次确认。') + '</li></ul>' +
                     '<div class="bt-form-submit-btn"><button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">' + (lan && lan.public && lan.public.cancel || '取消') + '</button>' +
                     '<button type="button" class="btn btn-success btn-sm" onclick="importPluginInstall(\'' + yfSoftJsStr(data.name) + '\',\'' + yfSoftJsStr(data.tmp_path) + '\')">' + (lan && lan.soft && lan.soft.confirm_install || '确定安装') + '</button></div>' +
                     '</div>'
@@ -1051,13 +1064,78 @@ function importPluginInstall(plugin_name, tmp_path) {
     });
   });
 }
+// 第三方插件「安装前确认」：展示将被 root 执行的 install.sh + info.json 关键字段，
+// 要求管理员输入插件名二次确认，确认后才带上与包内容绑定的 confirm_token 发起安装。
+// 官方插件（后端 require_confirm=false）不弹此窗，直接 onConfirm('')，安装成功率不变。
+function installPluginScriptConfirm(name, onConfirm) {
+  $.post('/plugins/confirm_preview', {
+    name: name
+  }, function (rdata) {
+    if (rdata.status === false) {
+      layer.msg(rdata.msg, {
+        icon: 2
+      });
+      return;
+    }
+    var info = rdata.data || {};
+    if (!info.require_confirm) {
+      onConfirm('');
+      return;
+    }
+    layer.open({
+      type: 1,
+      area: '640px',
+      title: (lan && lan.soft && t('soft.install_third_party_plugin') || "安装第三方插件包"),
+      closeBtn: 1,
+      shift: 5,
+      shadeClose: false,
+      content: '<div class="install_three_plugin">' +
+        '<div class="box">' +
+        '<div class="title">' + yfSoftText(info.title || name) + '</div>' +
+        '<p><b>' + (lan && lan.soft && lan.soft.version || '版本：') + '</b>' + yfSoftText(info.versions) + '</p>' +
+        '<p><b>' + (lan && lan.soft && lan.soft.desc || '描述：') + '</b>' + yfSoftText(info.ps) + '</p>' +
+        '<p><b>' + (lan && lan.soft && lan.soft.author || '作者：') + '</b>' + yfSoftText(info.author) + '</p>' +
+        '</div>' +
+        '<div class="box">' +
+        '<div class="title">' + yfSoftText(info.shell || 'install.sh') + '</div>' +
+        '<pre class="yf-plugin-script" style="max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-all;background:#1e1e1e;color:#d4d4d4;padding:10px;border-radius:2px;margin:0;">' + yfSoftText(info.install_sh) + '</pre>' +
+        '</div>' +
+        '<ul class="help-info-text c7"><li>' + (lan && lan.soft && lan.soft.third_warn3 || '以上脚本将以 root 权限执行，请确认无误后再安装。') + '</li></ul>' +
+        '<div class="line"><input type="text" id="yf_confirm_plugin_name" class="bt-input-text" style="width:260px;" placeholder="' + (lan && lan.soft && t('soft.please_input') || '请输入') + yfSoftText(name) + '" /></div>' +
+        '<div class="bt-form-submit-btn"><button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">' + (lan && lan.public && lan.public.cancel || '取消') + '</button>' +
+        '<button type="button" class="btn btn-success btn-sm" id="yf_confirm_plugin_btn">' + (lan && lan.soft && lan.soft.confirm_install || '确定安装') + '</button></div>' +
+        '</div>',
+      success: function () {
+        $('#yf_confirm_plugin_btn').on('click', function () {
+          if (String($('#yf_confirm_plugin_name').val()).trim() !== name) {
+            layer.msg(lan && lan.soft && t('soft.the_plugin_name_you') || "输入的插件名称不匹配，操作已取消！", {
+              icon: 2
+            });
+            return;
+          }
+          layer.closeAll();
+          onConfirm(info.confirm_token || '');
+        });
+      }
+    });
+  }, 'json').fail(function () {
+    // 预览接口异常时不得挡住官方插件的既有安装路径：不带凭据继续。
+    // 第三方插件会在后端因缺少凭据被拒（fail-closed），官方插件照常入队。
+    onConfirm('');
+  });
+}
 function softUpdate(name, ver, current_ver) {
   layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
     icon: 3,
     closeBtn: 1
   }, function () {
-    var request_args = "name=" + name + "&version=" + ver + "&type=0&upgrade=1";
-    runInstall(request_args);
+    installPluginScriptConfirm(name, function (token) {
+      var request_args = "name=" + name + "&version=" + ver + "&type=0&upgrade=1";
+      if (token) {
+        request_args += "&confirm_token=" + encodeURIComponent(token);
+      }
+      runInstall(request_args);
+    });
   });
 }
 function refreshPluginList() {

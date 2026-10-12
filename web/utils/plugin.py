@@ -14,6 +14,9 @@ import re
 import json
 import shlex
 import shutil
+import hashlib
+import hmac
+import secrets
 import inspect
 import threading
 import multiprocessing
@@ -109,6 +112,135 @@ def _path_inside(base, target):
         return real_target == real_base or real_target.startswith(real_base + os.sep)
     except Exception:
         return False
+
+
+# ---------------------------------------------------------------------------------
+# 第三方插件包「安装前确认」（轻量信任边界，不建签名体系）
+#   第三方 zip 里的 install.sh 会以 **root** 身份执行。本组函数把「执行什么」变成
+#   管理员可见 + 需显式确认：安装前展示脚本文本，且安装请求必须携带一个**与包内容
+#   强绑定**的确认凭据 confirm_token，否则拒绝安装。
+#   - 凭据 = HMAC(服务端密钥, 插件名 + 包内容哈希)；包内容（含 install.sh/info.json）
+#     一旦变化，旧凭据即失效；
+#   - 只有经第三方 zip 导入通道（inputZipApi）落地的插件才受此约束，面板自带
+#     `plugins/` 目录的官方插件与既有白名单渠道保持原样。
+# ---------------------------------------------------------------------------------
+#: 记录「经第三方 zip 导入」的插件名（服务端记录，包内容无法伪造）
+_PLUGIN_THIRD_PARTY_OPTION = 'plugin_third_party_imports'
+#: 展示给前端的安装脚本文本上限（防超大脚本撑爆响应）
+_PLUGIN_SCRIPT_MAX_CHARS = 20000
+_PLUGIN_CONFIRM_FALLBACK_SECRET = None
+_PLUGIN_CONFIRM_SECRET_LOCK = threading.Lock()
+
+
+def _plugin_confirm_secret():
+    """确认凭据的服务端密钥：优先复用面板持久化的 session 密钥（跨 worker 一致）。"""
+    global _PLUGIN_CONFIRM_FALLBACK_SECRET
+    try:
+        path = yf.getPanelDataDir() + '/secret_key.pl'
+        if os.path.exists(path):
+            key = (yf.readFile(path) or '').strip()
+            if key:
+                return key.encode('utf-8')
+    except Exception as _e:
+        _log.debug('[plugin] 读取面板密钥失败，回退到进程内密钥: %s', _e)
+    # 退化路径（secret_key.pl 不可读/不可写）：进程内随机密钥。重启后旧凭据失效，
+    # 属安全预期的失败方向，但仍可用。
+    if _PLUGIN_CONFIRM_FALLBACK_SECRET is None:
+        with _PLUGIN_CONFIRM_SECRET_LOCK:
+            if _PLUGIN_CONFIRM_FALLBACK_SECRET is None:
+                _PLUGIN_CONFIRM_FALLBACK_SECRET = secrets.token_bytes(32)
+    return _PLUGIN_CONFIRM_FALLBACK_SECRET
+
+
+def _plugin_package_hash(plugin_dir):
+    """插件目录内容的确定性 sha256（相对路径 + 文件字节），用于把凭据绑定到包内容。
+
+    刻意覆盖**整个目录**而非只覆盖 install.sh：包内容（含 info.json 的 shell/路径）
+    任何一处变化都会让旧凭据失效。文件模式/时间戳不参与，保证同一内容得到同一哈希。
+    """
+    h = hashlib.sha256()
+    for root, dirs, files in os.walk(plugin_dir):
+        dirs.sort()
+        for fname in sorted(files):
+            full = os.path.join(root, fname)
+            if os.path.islink(full):
+                continue
+            rel = os.path.relpath(full, plugin_dir).replace('\\', '/')
+            h.update(rel.encode('utf-8'))
+            h.update(b'\x00')
+            try:
+                with open(full, 'rb') as fh:
+                    h.update(fh.read())
+            except OSError:
+                h.update(b'<unreadable>')
+            h.update(b'\x00')
+    return h.hexdigest()
+
+
+def _plugin_confirm_token(name, content_hash):
+    """HMAC 确认凭据：与「插件名 + 包内容哈希」强绑定，只有服务端能签发。"""
+    msg = ('%s:%s' % (name, content_hash)).encode('utf-8')
+    return hmac.new(_plugin_confirm_secret(), msg, hashlib.sha256).hexdigest()
+
+
+def _plugin_script_name(info):
+    """将被 root 执行的脚本名（info.json 的 shell 字段）。
+
+    只接受「插件目录内的普通文件名」：`install.sh` 通过，`../evil.sh` / `/etc/x` 一律
+    拒绝。否则「展示 install.sh、实际执行别的脚本」会让确认环节形同虚设。
+    """
+    name = str((info or {}).get('shell') or 'install.sh').strip()
+    if not name or name in ('.', '..'):
+        return None
+    if os.path.basename(name) != name or '/' in name or '\\' in name:
+        return None
+    return name
+
+
+def _read_plugin_script(plugin_dir, info):
+    """读取将被 root 执行的脚本文本（截断到上限）。
+
+    返回 (脚本名, 文本)；脚本名非法 / 文件不存在 / 是软链时返回 (None, '')。
+    """
+    script = _plugin_script_name(info)
+    if not script:
+        return None, ''
+    path = os.path.join(plugin_dir, script)
+    if not os.path.isfile(path) or os.path.islink(path):
+        return None, ''
+    text = yf.readFile(path) or ''
+    if len(text) > _PLUGIN_SCRIPT_MAX_CHARS:
+        text = text[:_PLUGIN_SCRIPT_MAX_CHARS] + '\n...(truncated)'
+    return script, text
+
+
+def _plugin_is_third_party(name):
+    """该插件是否来自第三方 zip 导入通道（服务端记录，包内容无法伪造）。"""
+    names = thisdb.getOptionByJson(_PLUGIN_THIRD_PARTY_OPTION, default=[])
+    return isinstance(names, list) and name in names
+
+
+def _mark_plugin_third_party(name):
+    """登记「经第三方 zip 导入」的插件名（幂等）。"""
+    names = thisdb.getOptionByJson(_PLUGIN_THIRD_PARTY_OPTION, default=[])
+    if not isinstance(names, list):
+        names = []
+    if name not in names:
+        names.append(name)
+        thisdb.setOption(_PLUGIN_THIRD_PARTY_OPTION, json.dumps(names))
+
+
+def _verify_plugin_confirm_token(name, plugin_dir, token):
+    """校验第三方插件的确认凭据。返回 (是否通过, 原因)。"""
+    token = str(token or '').strip()
+    if not token:
+        return False, 'missing_token'
+    if not os.path.isdir(plugin_dir):
+        return False, 'no_plugin_dir'
+    expected = _plugin_confirm_token(name, _plugin_package_hash(plugin_dir))
+    if not hmac.compare_digest(expected, token):
+        return False, 'token_mismatch'
+    return True, ''
 
 
 class pg_thread(threading.Thread):
@@ -327,6 +459,10 @@ class plugin(object):
                 if not _valid_plugin_name(name) or not _valid_plugin_version(version):
                     yf.writeFileLog('[plugin] 跳过非法推荐安装项: name=%r version=%r' % (name, version))
                     continue
+                # 推荐安装只面向面板自带的官方插件；第三方包必须走「安装前确认」通道
+                if _plugin_is_third_party(name):
+                    yf.writeFileLog('[plugin] 推荐安装跳过第三方插件（需安装前确认）: %s' % name)
+                    continue
                 info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
                 pluginInfo = json.loads(yf.readFile(info_file))
                 self.hookInstall(pluginInfo)
@@ -500,7 +636,8 @@ class plugin(object):
         return False
 
     def install(self, name, version,
-        upgrade = None
+        upgrade = None,
+        confirm_token = ''
     ):
         # 安全：name/version 会拼成插件目录路径与子进程命令（install.sh 以 root 执行），
         # 必须与 /plugins/run 同级做白名单校验，否则 name='../../../../tmp/x' 可执行面板外的任意脚本。
@@ -526,6 +663,16 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_dacbd7', ())
 
         info_data = json.loads(yf.readFile(info_file))
+
+        # 第三方插件包「安装前确认」：必须携带与包内容绑定的有效凭据。
+        # 官方插件（未登记为第三方）不走此门，既有安装成功率不变。
+        if _plugin_is_third_party(name):
+            plugin_dir = os.path.abspath(self.__plugin_dir + '/' + name)
+            ok, reason = _verify_plugin_confirm_token(name, plugin_dir, confirm_token)
+            if not ok:
+                yf.writeFileLog('[plugin] 拒绝未确认的第三方插件安装: name=%s version=%s (%s)'
+                                % (name, version, reason))
+                return yf.returnData(False, 'plugin.py_msg_6f3a2d')
 
         exec_bash = 'cd {0} && bash {1} install {2}'.format(
             yf.shlexQuote(yf.getPluginDir() + '/'+name),
@@ -1589,6 +1736,10 @@ class plugin(object):
             plugin_path = yf.getPluginDir() + '/' + data['name'] + '/info.json'
             data['old_version'] = '0'
             data['tmp_path'] = tmp_path
+            # 安装前确认：把将被 root 执行的 install.sh 文本一并回给前端展示
+            script_name, script_text = _read_plugin_script(tmp_path, data)
+            data['shell'] = script_name or data.get('shell', 'install.sh')
+            data['install_sh'] = script_text
             if os.path.exists(plugin_path):
                 try:
                     old_info = json.loads(yf.readFile(plugin_path))
@@ -1648,12 +1799,69 @@ class plugin(object):
         if p_info:
             try:
                 self.__plugin_list_static_cache = None
-                yf.writeLog('软件管理', '安装第三方插件[%s]' % json.loads(p_info).get('title', plugin_name))
-                return yf.returnData(True, 'plugin.py_msg_f1e512')
+                p_title = json.loads(p_info).get('title', plugin_name)
+                yf.writeLog('软件管理', '安装第三方插件[%s]' % p_title)
+                # 登记为第三方来源，并签发与包内容绑定的确认凭据：
+                # 之后 /plugins/install 必须携带该 token，包内容变化则旧 token 失效。
+                _mark_plugin_third_party(plugin_name)
+                script_name, script_text = _read_plugin_script(plugin_path, json.loads(p_info))
+                confirm_token = ''
+                if script_name:
+                    confirm_token = _plugin_confirm_token(
+                        plugin_name, _plugin_package_hash(plugin_path))
+                return yf.returnData(True, 'plugin.py_msg_f1e512', {
+                    'name': plugin_name,
+                    'shell': script_name or '',
+                    'install_sh': script_text,
+                    'require_confirm': True,
+                    'confirm_token': confirm_token,
+                })
             except Exception as _e:
                 yf.writeFileLog('[plugin] 安装第三方插件失败: %s' % _e)
         yf.removeDir(plugin_path)
         return yf.returnData(False, 'plugin.py_msg_99993a')
+
+    def confirmPreview(self, name):
+        """第三方插件「安装前确认」预览：返回将被 root 执行的 install.sh 与 info.json 关键字段。
+
+        官方插件（面板自带 `plugins/` 目录）返回 require_confirm=False，前端无需额外确认，
+        既有安装成功率不变。第三方插件则返回脚本文本 + 与包内容绑定的 confirm_token。
+        """
+        name = str(name or '').strip()
+        if not _valid_plugin_name(name):
+            return yf.returnData(False, 'plugin.py_msg_2ca3e3')
+
+        if not _plugin_is_third_party(name):
+            return yf.returnData(True, 'OK', {'name': name, 'require_confirm': False})
+
+        plugin_path = os.path.abspath(self.__plugin_dir + '/' + name)
+        info_file = plugin_path + '/info.json'
+        if not os.path.exists(info_file):
+            return yf.returnData(False, 'plugin.py_msg_dacbd7')
+        try:
+            info = json.loads(yf.readFile(info_file))
+        except Exception as _e:
+            yf.writeFileLog('[plugin] 确认预览解析 info.json 失败: %s' % _e)
+            return yf.returnData(False, 'plugin.py_msg_311637')
+
+        script_name, script_text = _read_plugin_script(plugin_path, info)
+        if not script_name:
+            # 无法展示/无法确认的脚本绝不签发凭据（否则「确认」是空壳）
+            yf.writeFileLog('[plugin] 拒绝确认无法解析的安装脚本: %s' % name)
+            return yf.returnData(False, 'plugin.py_msg_6f3a2d')
+
+        return yf.returnData(True, 'OK', {
+            'name': name,
+            'title': info.get('title', name),
+            'versions': info.get('versions', ''),
+            'ps': info.get('ps', ''),
+            'author': info.get('author', ''),
+            'home': info.get('home', ''),
+            'shell': script_name,
+            'install_sh': script_text,
+            'require_confirm': True,
+            'confirm_token': _plugin_confirm_token(name, _plugin_package_hash(plugin_path)),
+        })
 
     # [start|stop|restart|reload|restore...]操作, 精确更新与延迟校准
     def runByCache(self, name, func, version, op_result=True):

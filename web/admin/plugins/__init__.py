@@ -116,17 +116,27 @@ def index_sort():
 def install():
     name = request.form.get('name', '')
     version = request.form.get('version', '')
+    # 第三方插件包必须携带「安装前确认」凭据（与包内容绑定），由 /plugins/confirm_preview 签发
+    confirm_token = request.form.get('confirm_token', '')
 
     upgrade = None
     if 'upgrade' in request.form:
         upgrade = True
 
     pg = YfPlugin.instance()
-    rdata = pg.install(name, version, upgrade=upgrade)
+    rdata = pg.install(name, version, upgrade=upgrade, confirm_token=confirm_token)
     yf.writeAudit('plugin.install', target=name,
                   result='ok' if (isinstance(rdata, dict) and rdata.get('status')) else 'fail',
-                  detail='version=%s upgrade=%s' % (version, bool(upgrade)))
+                  detail='version=%s upgrade=%s confirmed=%s' % (version, bool(upgrade), bool(confirm_token)))
     return rdata
+
+
+# 第三方插件「安装前确认」预览：展示将执行的 install.sh 与 info.json 关键字段，并签发凭据
+@blueprint.route('/confirm_preview', endpoint='confirm_preview', methods=['POST'])
+@panel_login_required
+def confirm_preview():
+    name = request.form.get('name', '')
+    return YfPlugin.instance().confirmPreview(name)
 
 # 插件卸载
 @blueprint.route('/uninstall', endpoint='uninstall', methods=['POST'])
