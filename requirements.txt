@@ -11,6 +11,13 @@
 #   4. WebSocket：保持 gunicorn gthread + async_mode=threading，通过
 #      simple-websocket 让 threading 驱动支持真正的 WebSocket（webssh），
 #      避免切 gevent 后长任务 execShell 阻塞事件循环导致面板整体卡死。
+#   5. 可复现安装：跑 scripts/gen_requirements_lock.sh 生成带哈希的 requirements.lock
+#      （pip-compile --generate-hashes，需联网）。锁文件只作审计 / 可复现用，
+#      安装入口仍以本文件为准（离线 / 大陆网络必须装得上）。
+#   6. 下界收紧（2026-10-12，修测评报告 P0-5）：gunicorn / requests / urllib3 /
+#      pillow / pyyaml 的下界顶到 CVE 修复版，每处行内注释写明 CVE 编号与修复版本；
+#      同时移除全仓零 import 的死依赖 chardet / flask-helper / supervisor。
+#      守卫：testsuite/test_requirements_hardening.py
 # ---------------------------------------------------------------------------------
 
 setuptools>=33.1.1
@@ -49,7 +56,7 @@ gevent-websocket>=0.10.1
 flask-sockets>=0.2.1
 
 # --- 会话 / 缓存 / 认证 -------------------------------------------------------
-flask-helper==0.19
+# 已移除死依赖 flask-helper==0.19（全仓零 import；会话走 Flask 原生签名 Cookie）
 flask-bcrypt==1.0.1
 flask-caching>=1.10.1
 cache==1.0.3
@@ -68,8 +75,12 @@ pymemcache
 redis
 
 # --- 网络 / 加密 --------------------------------------------------------------
-requests>=2.27.1,<3.0.0
-urllib3>=1.21.1,<3.0.0
+# requests 下界 2.32.4：依次修复 CVE-2023-32681（Proxy-Authorization 泄漏，2.31.0 修）、
+# CVE-2024-35195（2.32.0 修）、CVE-2024-47081（2.32.4 修）。
+requests>=2.32.4,<3.0.0  # CVE-2023-32681 / CVE-2024-35195 / CVE-2024-47081，修复版 2.32.4
+# urllib3 下界 2.0.7：修复 CVE-2023-43804（Cookie 泄漏）与 CVE-2023-45803（请求体泄漏）；
+# 1.26.18 亦有修复但 1.x 已 EOL，故直接取 2.x 修复版。
+urllib3>=2.0.7,<3.0.0  # CVE-2023-43804 / CVE-2023-45803，修复版 2.0.7（1.x 已 EOL）
 # pyOpenSSL 26.0.0 写死 cryptography<47，是 cryptography 卡在 46.x（含 4 个 CVE）的直接原因；
 # 26.4.0 允许 cryptography<51，故与 Web 框架同样分档。
 pyOpenSSL>=26.4.0,<27; python_version >= '3.9'
@@ -77,18 +88,25 @@ pyOpenSSL==26.0.0; python_version < '3.9'
 cryptography>=50.0.0,<51; python_version >= '3.9'
 cryptography>=40.0.2; python_version < '3.9'
 paramiko>=3.4.0
-chardet>=4.0.0
+# 已移除死依赖 chardet>=4.0.0（全仓零 import，无高危 CVE，见 test_requirements_hardening.py）
 
 # --- 系统 / 工具 --------------------------------------------------------------
 psutil>=5.9.8
 configparser==5.2.0
-gunicorn>=21.2.0
-supervisor
+# gunicorn 下界 22.0.0：修复 CVE-2024-1135（HTTP 请求走私，CVSS 7.5）与 CVE-2024-6827；
+# 面板 gunicorn 公网直暴露，前置反代会放大请求走私影响。
+gunicorn>=22.0.0  # CVE-2024-1135 / CVE-2024-6827，修复版 22.0.0
+# 已移除死依赖 supervisor（全仓零 import；supervisor 插件在自身 install.sh 内 pip install）
 pytz
-pyyaml
+# pyyaml 下界 5.4：修复 CVE-2020-14343（yaml.load 任意代码执行）；代码内已全部 safe_load。
+pyyaml>=5.4  # CVE-2020-14343，修复版 5.4
 croniter
 tldextract
-pillow
+# pillow 下界 12.3.0：修复 CVE-2025-48379 及 2026 年一批堆越界 / 解压缩炸弹
+# （CVE-2026-25990 / 40192 / 54058~59205），12.3.0 集中修复；验证码功能运行时 import PIL。
+pillow>=12.3.0  # CVE-2025-48379、CVE-2026-25990/40192/54058~59205，修复版 12.3.0
+# zmq==0.0.0：PyPI 占位包（真实实现是 pyzmq），代码全仓零 import；保留此 pin 作为
+# 显式占位（防任何依赖把名字解析到 `zmq` 真名包），不删。
 zmq==0.0.0
 
 # --- 通知 -------------------------------------------------------------------
