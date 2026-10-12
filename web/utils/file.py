@@ -77,7 +77,7 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
     new_name = os.path.join(path, name)
     if os.path.exists(new_name):
         if new_name.find('.user.ini') != -1:
-            yf.execShell("chattr -i " + new_name)
+            yf.safeExecShell(['chattr', '-i', new_name])
         try:
             os.remove(new_name)
         except Exception as _e:
