@@ -3,8 +3,22 @@
 
 name: MW APP MySQL80
 
+# 触发策略（报告 P1 第 9 条：CI 自动化程度低）：保留手动触发，另加 push / PR 自动触发，
+# 但用 paths 收窄到「本插件目录 + 本 workflow 文件」。依据：这个 workflow 的实际动作是
+# `sudo bash scripts/install_dev.sh` 装整套面板，再用 `plugins/mysql/install.sh install 8.0`
+# **真装一次 MySQL 8.0**，属重型集成冒烟（matrix 3 个 OS × 全套安装）。每次提交都跑既慢
+# 又没必要；只有 MySQL 插件本体或本 workflow 自身改动才可能影响它的结论。
+# 守卫：testsuite/test_ci_workflows_hardening.py
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'plugins/mysql/**'
+      - '.github/workflows/python-app-mysql80.yml'
+  pull_request:
+    paths:
+      - 'plugins/mysql/**'
+      - '.github/workflows/python-app-mysql80.yml'
 
 permissions:
   contents: read

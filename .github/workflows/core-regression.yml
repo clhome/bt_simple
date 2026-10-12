@@ -1,0 +1,80 @@
+# 核心回归门禁 —— 每次 push / PR 自动跑仓库唯一的提交门禁
+#
+# 背景（测评报告 P1 第 9 条「CI 自动化程度低」）：
+#   此前 push 时会自动跑的只有 i18n-check.yml 与 security-scan.yml，而
+#   `python-app-mysql{55,56,57,80}.yml` / `python-app-op.yml` / `python-app-php.yml`
+#   全是 workflow_dispatch（手动），且要装整套面板 + MySQL/PHP/OpenResty。
+#   结果是 240+ 测试文件与集成测试**不在每次提交时自动运行**，门禁实际靠本地
+#   自觉执行 `python testsuite/run_all.py`。本 workflow 把「核心回归」搬到每次提交。
+#
+# 为什么是 `run_all.py` 而不是自己拼 `python -m unittest discover`：
+#   `testsuite/run_all.py` 是本仓库**唯一**的提交门禁入口，它除了跑用例还包含
+#   三条「防假绿」护栏 —— ①收集到的用例数必须 > 0（`python -m unittest` 在
+#   收集不到用例时也打印 `Ran 0 tests ... OK` 并返回 0）；②隔离区反向检查
+#   （隔离用例意外转绿即报错）；③4 项静态门禁（i18n 11 项、i18n 检测器自证、
+#   代码质量棘轮、棘轮检测器自证）。绕过它自己 discover 会把这些护栏一起绕过，
+#   而本仓库历史上正栽在「永远全绿」的假门禁上（见 testsuite/run_all.py 头注释）。
+#
+# 环境预期：门禁在**无面板运行环境**（本机 Windows，无 MySQL / 无 nginx / 无面板
+#   服务在跑）下实测全绿，第三方依赖只有 requirements.txt（pyyaml 用于 YAML
+#   结构校验；luaparser / node 缺失时相关用例会自行降级）。若某个模块在
+#   ubuntu-latest 上因缺系统依赖变红，修法是**在本 workflow 里补装依赖**，
+#   绝不允许用 `|| true` / `continue-on-error` 掩盖 —— 守卫
+#   `testsuite/test_ci_workflows_hardening.py` 会直接判红。
+#
+# paths-ignore：只排除与门禁无关的纯文档/开发笔记，**不排除** testsuite/、web/、
+#   plugins/（那正是门禁要盯的代码）。守卫会逐条核对这三条不被忽略。
+
+name: 核心回归门禁
+
+on:
+  push:
+    paths-ignore:
+      - '文档/**'
+      - 'cl_tasks/**'
+      - 'README.md'
+      - 'RELEASE_TEMPLATE.md'
+      - 'cmd.md'
+      - 'compatibility.md'
+      - 'task.md'
+  pull_request:
+    paths-ignore:
+      - '文档/**'
+      - 'cl_tasks/**'
+      - 'README.md'
+      - 'RELEASE_TEMPLATE.md'
+      - 'cmd.md'
+      - 'compatibility.md'
+      - 'task.md'
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: 提交门禁（python testsuite/run_all.py）
+    runs-on: ubuntu-latest
+    # 本机全量门禁耗时以分钟计（253 个模块 + 4 项静态门禁，并行 8）。
+    # GitHub 托管 runner 核数更少，给足预算；超时本身就是「门禁挂了」的信号，
+    # 不用 continue-on-error 之类的开关掩盖。
+    timeout-minutes: 40
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 3.11：与 release.yml / security-scan.yml 保持一致，避免「发布用 3.11、
+      # 门禁用 3.12」时版本相关用例（依赖分档、cryptography 下界）在两边结论不同。
+      - name: 设置 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装运行依赖
+        run: |
+          set -e
+          python -m pip install --upgrade pip
+          python -m pip install --no-cache-dir -r requirements.txt
+
+      # 唯一门禁入口。`-v` 让失败模块打印完整输出（CI 日志里直接能看到断言）。
+      - name: 运行提交门禁（用例 + 4 项静态门禁）
+        run: python testsuite/run_all.py -v
