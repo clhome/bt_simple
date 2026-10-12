@@ -103,6 +103,14 @@ jobs:
           done
           echo "内容自检通过，共 $(echo "$LIST" | wc -l) 个条目"
 
+      - name: 生成 deploy.sh 校验和（供用户安装前核对）
+        run: |
+          set -e
+          # 与 README「安装前校验」小节对应：用户用 `sha256sum deploy.sh` 核对。
+          # 这里对 tag 处的 deploy.sh 生成同样输出格式，且随后会被纳入 SHA256SUMS 签名。
+          sha256sum deploy.sh > dist/deploy.sh.sha256
+          cat dist/deploy.sh.sha256
+
       - name: 写入签名私钥
         env:
           YF_RELEASE_KEY: ${{ secrets.YF_RELEASE_KEY }}
@@ -146,5 +154,6 @@ jobs:
             dist/yf-panel-${{ steps.ver.outputs.ver }}.tar.gz
             dist/SHA256SUMS
             dist/SHA256SUMS.minisig
+            dist/deploy.sh.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

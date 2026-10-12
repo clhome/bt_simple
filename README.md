@@ -259,6 +259,28 @@ curl https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy
 curl https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
 ```
 
+#### 🔐 安装前校验（强烈建议）
+
+`deploy.sh` 以 **root** 身份执行，请先核对它的 sha256 再运行，避免下载链路被替换：
+
+```bash
+# 1) 只下载、不执行
+curl -fsSLo deploy.sh https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh
+# 2) 计算本地 sha256
+sha256sum deploy.sh
+# 3) 与 Release 附件 deploy.sh.sha256 里的期望值逐字符比对，一致后再执行
+bash deploy.sh
+```
+
+期望值来源：本项目每个 Release 都附带 `deploy.sh.sha256`（由发布工作流在打 tag 时生成，
+并与 `SHA256SUMS` / 签名一同发布）。请到**与你要安装版本一致的 Release 页面**下载该文件核对，
+不要信任任何第三方镜像给出的哈希。
+
+> 安装流程本身也已 fail-closed：`deploy.sh` 会优先下载**已签名**的发布包并做 Ed25519 验签；
+> 验签失败或发布公钥缺失时会**中止安装**，不再回退未验签代码。
+> 仅在确知无签名包的环境下，才可用 `YF_REQUIRE_SIGNATURE=0 bash deploy.sh` 显式关闭校验
+> （该决定会记入 `/var/log/bt_simple_deploy.log`）。
+
 #### 宝塔面板 (BT.CN) 平滑迁移与数据无缝接管 🚀
 
 我们对宝塔面板的用户做了最大程度的兼容，确保迁移过程不仅安全、纯净，而且能够瞬间无缝拉起原宝塔环境中的所有核心数据库和应用数据：

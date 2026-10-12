@@ -366,14 +366,16 @@ else
     YF_PUBKEY_PLACEHOLDER=0
 fi
 
-# 签名强制开关。
-#   0（默认）= 放行：优先用已签名发布包，失败则回退 git clone 并醒目告警。
-#   1        = fail-closed：验签失败就中止安装，不回退。
-# 待首个签名 Release 在真机验证通过后，再把默认值改为 1（上线节奏安排，见 task.md）。
-YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-0}"
+# 签名强制开关（供应链可信 P0-4：全量 fail-closed）。
+#   1（默认）= fail-closed：发布包验签失败 / 公钥缺失时**中止安装**，绝不回退未验签代码。
+#   0        = 显式关闭（存在供应链风险）：验签失败才回退 git clone，并在安装日志留痕。
+# 只有显式 `YF_REQUIRE_SIGNATURE=0 bash deploy.sh` 才允许回退；默认路径不再放行未验签代码。
+YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-1}"
 
 # 引导期代理列表 —— 与 scripts/github_download.sh 的 _GH_PROXY_LIST 严格一致
 # （testsuite/test_deploy_bootstrap.py 有漂移守卫用例，两处必须同步增删）
+# 这些节点均为无隶属关系的第三方，仅作**传输加速**；关键产物（发布包 /
+# SHA256SUMS / acme.sh）下载后必须 Ed25519 验签或 sha256 校验，不得直接信任。
 YF_BOOTSTRAP_PROXY_LIST=(
     ""
     "https://gh-proxy.com/"
@@ -385,6 +387,12 @@ YF_BOOTSTRAP_PROXY_LIST=(
 
 # 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。
 # 注意：只下载、不执行；下载物必须验签通过才会被解压。
+#
+# 关于 `-k` / `--no-check-certificate`（P0-4）：刻意保留，理由与兜底如下 ——
+#   * 理由：部分老系统（CentOS 6 系、未更新 ca-certificates 的容器）根 CA 缺失，
+#     严格校验会让引导期直接下不动包；这里放宽的只是**传输层 TLS**。
+#   * 兜底：本函数下载的每个产物随后都会做 Ed25519 验签（发布包/SHA256SUMS）
+#     或 sha256 校验（acme.sh），故传输被劫持也无法注入可执行代码。
 yf_bootstrap_download() {
     local out="$1" url="$2" timeout="${3:-60}"
     local prefix final
@@ -396,8 +404,10 @@ yf_bootstrap_download() {
         fi
         rm -f "$out" 2>/dev/null
         if command -v curl >/dev/null 2>&1; then
+            # -k：见上方说明——老系统 CA 缺失兼容；产物随后由 Ed25519 验签/sha256 兜底
             curl -sSLf -k --connect-timeout 5 -m "$timeout" -o "$out" "$final" 2>/dev/null
         else
+            # --no-check-certificate：同上，TLS 放宽由后续 Ed25519 验签/sha256 兜底
             wget --no-check-certificate -q -O "$out" --timeout="$timeout" --tries=1 "$final" 2>/dev/null
         fi
         if [ -s "$out" ]; then
@@ -666,54 +676,83 @@ get_latest_release_tag() {
     echo "$latest_tag"
 }
 
+# acme.sh 固定版本 + 发布物校验（供应链可信 P0-4）。
+#   固定到具体 tag 的官方源码包，下载后必须先 sha256 校验通过才执行安装；
+#   校验和为空或校验失败一律**拒绝执行**（fail-closed），不再有「下载脚本后直接管道执行」的安装方式。
+#   升级步骤：改 YF_ACME_VERSION 后，用
+#     curl -sSLf -o acme.tar.gz https://github.com/acmesh-official/acme.sh/archive/refs/tags/<ver>.tar.gz
+#     sha256sum acme.tar.gz
+#   重新计算并同步 YF_ACME_SHA256（下表为 2026-10 实测值，如官方重打包则需更新）。
+YF_ACME_VERSION="${YF_ACME_VERSION:-3.1.6}"
+YF_ACME_SHA256="${YF_ACME_SHA256:-0d3f9000ac44a6331314742a88c475f79134e24fc991997883652adc59efc486}"
+
+# 计算文件 sha256（优先 sha256sum，退化 shasum/openssl，覆盖精简系统与 macOS）
+yf_sha256_file() {
+    local f="$1"
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$f" 2>/dev/null | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$f" 2>/dev/null | awk '{print $1}'
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "$f" 2>/dev/null | awk '{print $NF}'
+    else
+        echo ""
+    fi
+}
+
 install_acme() {
     if [ -d /root/.acme.sh ]; then
         return 0
     fi
-    log_info "安装 acme.sh ..."
+    log_info "安装 acme.sh（固定版本 v${YF_ACME_VERSION}，sha256 校验后执行）..."
+    local acme_url="https://github.com/acmesh-official/acme.sh/archive/refs/tags/${YF_ACME_VERSION}.tar.gz"
+    local acme_tar="$YF_TMP_DIR/acme.sh-${YF_ACME_VERSION}.tar.gz"
+
+    # 下载（直连 + 代理加速）：优先统一网络库，其次引导下载器；只下载、不执行。
     local acme_downloaded=false
     if type github_download >/dev/null 2>&1; then
         log_info "正在使用统一网络库下载 acme.sh ..."
-        if github_download "$YF_TMP_DIR/acme.sh.tar.gz" "https://github.com/acmesh-official/acme.sh/archive/master.tar.gz" 30; then
-            mkdir -p "$YF_TMP_DIR/acme-src"
-            tar -zxf "$YF_TMP_DIR/acme.sh.tar.gz" -C "$YF_TMP_DIR/acme-src" --strip-components=1
-            cd "$YF_TMP_DIR/acme-src" && ./acme.sh --install -m my@example.com 2>/dev/null
-            cd - >/dev/null
-            rm -rf "$YF_TMP_DIR/acme-src" "$YF_TMP_DIR/acme.sh.tar.gz"
-            acme_downloaded=true
-        fi
+        github_download "$acme_tar" "$acme_url" 30 && acme_downloaded=true
+    fi
+    if [ "$acme_downloaded" = "false" ]; then
+        yf_bootstrap_download "$acme_tar" "$acme_url" 60 && acme_downloaded=true
+    fi
+    if [ "$acme_downloaded" = "false" ]; then
+        log_error "acme.sh 下载失败（固定版本 v${YF_ACME_VERSION}）。"
+        log_error "  请检查网络/代理，或手动安装 acme.sh 后重试。"
+        return 1
     fi
 
-    if [ "$acme_downloaded" = "false" ]; then
-        if check_china; then
-            local best_proxy=""
-            if type _gh_get_best_proxy >/dev/null 2>&1; then
-                _gh_get_best_proxy >/dev/null
-                best_proxy="$_GH_BEST_PROXY"
-            fi
-            if [ "$best_proxy" = "direct" ]; then
-                best_proxy=""
-            elif [ -z "$best_proxy" ]; then
-                best_proxy="https://gh-proxy.com/"
-            fi
-            
-            local acme_url="https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh"
-            local acme_download_url
-            if type _gh_proxy_url >/dev/null 2>&1; then
-                acme_download_url=$(_gh_proxy_url "$best_proxy" "$acme_url")
-            else
-                acme_download_url="${best_proxy}${acme_url}"
-            fi
-            
-            curl -sSL "$acme_download_url" | sh -s -- --install-online -m my@example.com 2>/dev/null
-        else
-            curl -fsSL https://get.acme.sh | bash 2>/dev/null
-        fi
+    # 校验：哈希未配置或校验失败一律拒绝执行（fail-closed）。
+    if [ -z "$YF_ACME_SHA256" ]; then
+        log_error "未配置 acme.sh 校验和（YF_ACME_SHA256 为空），拒绝执行未校验的安装包。"
+        log_error "  请显式设置 YF_ACME_SHA256=<sha256>，或手动安装 acme.sh。"
+        rm -f "$acme_tar"
+        return 1
     fi
+    local acme_actual
+    acme_actual=$(yf_sha256_file "$acme_tar")
+    if [ "$acme_actual" != "$YF_ACME_SHA256" ]; then
+        log_error "acme.sh sha256 校验失败：期望 ${YF_ACME_SHA256}，实际 ${acme_actual:-<读取失败>}。"
+        log_error "  已拒绝执行该安装包（供应链 fail-closed）。"
+        rm -f "$acme_tar"
+        return 1
+    fi
+    log_info "acme.sh sha256 校验通过，开始安装..."
+
+    mkdir -p "$YF_TMP_DIR/acme-src"
+    if ! tar -zxf "$acme_tar" -C "$YF_TMP_DIR/acme-src" --strip-components=1 2>/dev/null; then
+        log_error "acme.sh 解压失败，已中止安装。"
+        rm -rf "$YF_TMP_DIR/acme-src" "$acme_tar"
+        return 1
+    fi
+    ( cd "$YF_TMP_DIR/acme-src" && ./acme.sh --install -m my@example.com 2>/dev/null )
+    rm -rf "$YF_TMP_DIR/acme-src" "$acme_tar"
 
     if [ -d /root/.acme.sh ]; then
         /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     fi
+    return 0
 }
 
 check_root() {
@@ -1367,18 +1406,24 @@ download_code() {
         return 0
     fi
 
-    # ---- 回退决策 ----
-    if [ "$signed_rc" = "2" ]; then
-        log_info "发布公钥尚未配置，本次跳过签名校验（不影响安装）。"
-    fi
+    # ---- 回退决策（供应链 P0-4：默认 fail-closed，绝不静默回退未验签代码）----
     if [ "$YF_REQUIRE_SIGNATURE" = "1" ]; then
-        log_error "发布包验签失败，已中止安装（YF_REQUIRE_SIGNATURE=1，fail-closed）。"
+        if [ "$signed_rc" = "2" ]; then
+            log_error "发布公钥尚未配置（占位符），无法验证发布包签名。"
+        else
+            log_error "发布包验签失败。"
+        fi
+        log_error "已按 fail-closed 策略中止安装（YF_REQUIRE_SIGNATURE 默认为 1）。"
         log_error "  常见原因：该版本尚未发布签名包 / 网络与代理异常 / 签名文件缺失。"
+        log_error "  如确需在无签名包的环境安装，可显式关闭校验（存在供应链风险）："
+        log_error "      YF_REQUIRE_SIGNATURE=0 bash deploy.sh ..."
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SECURITY] 发布包验签未通过(signed_rc=$signed_rc)，按 fail-closed 中止安装" >> $LOG_FILE
         exit 1
     fi
-    log_warn "未能使用「已签名发布包」，回退到 git clone（未验签，存在供应链风险）。"
+    log_warn "YF_REQUIRE_SIGNATURE=0（用户显式关闭校验），回退到 git clone（未验签，存在供应链风险）。"
     log_warn "  原因通常是：该版本尚未发布签名包 / 网络与代理异常 / 签名文件缺失。"
-    log_warn "  如需启用强制验签：YF_REQUIRE_SIGNATURE=1 bash deploy.sh ..."
+    log_warn "  如需恢复强制验签：YF_REQUIRE_SIGNATURE=1 bash deploy.sh ..."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SECURITY] 用户显式设置 YF_REQUIRE_SIGNATURE=0，回退未验签 git clone（signed_rc=$signed_rc）" >> $LOG_FILE
 
     local download_url=$(get_github_url ${GIT_REPO})
     local clone_ret=0

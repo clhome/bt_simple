@@ -308,13 +308,14 @@ class DeployBootstrapGuardTest(unittest.TestCase):
         self.assertEqual(leak, [],
                          '发布公钥/校验器不应出现在插件目录（第三方下载不走本项目验签）：%r' % leak)
 
-    def test_09_signed_path_is_wired_and_permissive_by_default(self):
-        """签名路径必须真的被调用，且当前默认放行（不阻断升级）。
+    def test_09_signed_path_is_wired_and_fail_closed_by_default(self):
+        """签名路径必须真的被调用，且默认 fail-closed（P0-4 全量收紧）。
 
-        用户口径（2026-09-28）：先默认放行，待首个签名 Release 真机验证后再翻转为 fail-closed。
+        用户口径（2026-10，测评报告 P0-4）：签名默认值由 0 翻转为 1 —— 验签失败即中止，
+        不再静默回退未验签代码；只有显式 `YF_REQUIRE_SIGNATURE=0` 才允许回退。
         本用例同时防止两件事：
           (a) 签名代码变成「写了但从不调用」的死代码；
-          (b) 有人未经宣布就把默认改成 1（会阻断所有人的升级）。
+          (b) 有人把默认值悄悄改回 0（重新打开 fail-open 供应链缺口）。
         """
         text = _read(DEPLOY)
 
@@ -323,15 +324,15 @@ class DeployBootstrapGuardTest(unittest.TestCase):
         self.assertEqual(len(calls), 2,
                          'yf_fetch_signed_release 应恰好 1 处定义 + 1 处调用，实际 %d 处' % len(calls))
 
-        # (b) 默认放行
-        self.assertIn('YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-0}"', text,
-                      '签名强制开关的默认值被改了：翻转为 fail-closed 前需确认已有签名 Release 落地')
+        # (b) 默认 fail-closed
+        self.assertIn('YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-1}"', text,
+                      '签名强制开关必须默认 fail-closed（默认值 1）')
         self.assertIn('回退到 git clone（未验签，存在供应链风险）', text,
                       '回退路径必须保留醒目告警，不能静默降级')
-        self.assertIn('YF_REQUIRE_SIGNATURE=1 bash deploy.sh', text,
-                      '回退时必须给用户开启强制验签的明确指引')
+        self.assertIn('YF_REQUIRE_SIGNATURE=0 bash deploy.sh', text,
+                      'fail-closed 中止时必须给出显式关闭校验的手动绕过指引')
 
-        # 公钥未配置时必须在 test_10 单独校验（= 跳过而非失败）
+        # 公钥未配置（return 2）时的返回值语义见 test_10；调用方默认按 fail-closed 中止。
 
     def test_10_placeholder_pubkey_semantics(self):
         """占位符必须是「跳过」语义（2），不得是「失败」语义（1）。"""
