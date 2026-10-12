@@ -25,9 +25,12 @@
                        反引号**仍会展开**。这是 dnsapi 注入的根因（`getDnsapiExportVar`），
                        基线必须为空 —— 任何一次回退都会变红。
 
-扫描范围：`web/` + `panel_tools.py` + `panel_task.py`（与 P0-1 收口范围一致；
-`plugins/` 另开一轮，避免跨模块返工）。刻意**排除** `testsuite/`、`test/`，
-否则守卫自己的夹具会被自己命中。
+扫描范围（两侧各一份基线，由 `SCAN_SCOPES` 驱动，守卫同时覆盖）：
+  * web 侧：`web/` + `panel_tools.py` + `panel_task.py` -> `scripts/shell_concat_baseline.txt`
+  * plugins 侧：`plugins/`（跳过 `plugins/待审核/` 与 `文档/待审核插件/`，
+    那批判定当前不可达，由 p2-miscsec 统一加文档警示）
+    -> `scripts/shell_concat_baseline_plugins.txt`
+刻意**排除** `testsuite/`、`test/`，否则守卫自己的夹具会被自己命中。
 """
 import ast
 import os
@@ -47,13 +50,28 @@ import core.yf as real_yf  # noqa: E402
 ROOT = project_dir
 SITE_PY = os.path.join(WEB_DIR, 'utils', 'site.py')
 FILE_PY = os.path.join(WEB_DIR, 'utils', 'file.py')
-#: 棘轮基线放在 `scripts/`，与 `scripts/code_quality_baseline.json` 保持一致
+MYSQL_PY = os.path.join(project_dir, 'plugins', 'mysql', 'index.py')
+MARIADB_PY = os.path.join(project_dir, 'plugins', 'mariadb', 'index.py')
+#: 棘轮基线放在 `scripts/`，与 `scripts/code_quality_baseline.json` 保持一致。
+#: 两侧各一份（web 侧 / plugins 侧），由 `SCAN_SCOPES` 分别驱动。
 BASELINE_FILE = os.path.join(project_dir, 'scripts', 'shell_concat_baseline.txt')
+PLUGINS_BASELINE_FILE = os.path.join(project_dir, 'scripts',
+                                     'shell_concat_baseline_plugins.txt')
 
 SCAN_DIRS = ['web']
 SCAN_ROOT_FILES = ['panel_tools.py', 'panel_task.py']
 EXCLUDE_DIRS = {'__pycache__', 'node_modules', 'test', 'testsuite', '参考', '文档',
                 'cl_tasks', '.git', 'data', 'logs', 'tmp', '.workbuddy-ai'}
+#: `plugins/待审核/` 与 `文档/待审核插件/` 判定当前不可达（未安装），本轮不扫描、不登记。
+PLUGINS_EXCLUDE_DIRS = EXCLUDE_DIRS | {'待审核'}
+
+#: 扫描范围 = (名称, 扫描目录, 根文件, 额外排除目录, 基线文件)。
+SCAN_SCOPES = (
+    {'name': 'web', 'dirs': SCAN_DIRS, 'root_files': SCAN_ROOT_FILES,
+     'exclude': EXCLUDE_DIRS, 'baseline': BASELINE_FILE},
+    {'name': 'plugins', 'dirs': ['plugins'], 'root_files': [],
+     'exclude': PLUGINS_EXCLUDE_DIRS, 'baseline': PLUGINS_BASELINE_FILE},
+)
 
 SHELL_ATTRS = {'execShell', 'execShellRc', 'safeExecShell'}
 SUBPROCESS_ATTRS = {'Popen', 'run', 'call', 'check_output', 'check_call'}
@@ -77,17 +95,20 @@ def _read(path):
         return fh.read().replace(chr(13) + chr(10), chr(10))
 
 
-def _iter_py_files():
-    for base in SCAN_DIRS:
+def _iter_py_files(dirs=None, root_files=None, exclude=None):
+    dirs = SCAN_DIRS if dirs is None else dirs
+    root_files = SCAN_ROOT_FILES if root_files is None else root_files
+    exclude = EXCLUDE_DIRS if exclude is None else exclude
+    for base in dirs:
         abs_base = os.path.join(ROOT, base)
         if not os.path.isdir(abs_base):
             continue
-        for root, dirs, files in os.walk(abs_base):
-            dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+        for root, subdirs, files in os.walk(abs_base):
+            subdirs[:] = [d for d in subdirs if d not in exclude]
             for fn in sorted(files):
                 if fn.endswith('.py'):
                     yield os.path.join(root, fn)
-    for fn in SCAN_ROOT_FILES:
+    for fn in root_files:
         p = os.path.join(ROOT, fn)
         if os.path.isfile(p):
             yield p
@@ -272,9 +293,9 @@ def analyze_source(rel, src):
     return out
 
 
-def collect_violations():
+def collect_violations(dirs=None, root_files=None, exclude=None):
     all_v = {}
-    for path in _iter_py_files():
+    for path in _iter_py_files(dirs, root_files, exclude):
         rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
         try:
             all_v.update(analyze_source(rel, _read(path)))
@@ -283,14 +304,19 @@ def collect_violations():
     return all_v
 
 
-def load_baseline():
+def _scope_violations(scope):
+    return collect_violations(scope['dirs'], scope['root_files'], scope['exclude'])
+
+
+def load_baseline(path=None):
     """读取基线指纹集合（纯文本，一行一个；`#` 开头为注释）。
 
     刻意不用 JSON：指纹里会原样出现引号/反斜杠，纯文本省掉一层转义，
     人工复核与 diff 都更直观。
     """
+    path = BASELINE_FILE if path is None else path
     out = set()
-    with open(BASELINE_FILE, encoding='utf-8') as fh:
+    with open(path, encoding='utf-8') as fh:
         for line in fh:
             line = line.rstrip('\n')
             if not line.strip() or line.lstrip().startswith('#'):
@@ -393,35 +419,44 @@ class TestRuleEngineSelfTest(unittest.TestCase):
 class TestShellConcatRatchet(unittest.TestCase):
 
     def test_10_no_new_violations(self):
-        known = load_baseline()
-        current = collect_violations()
-        new = sorted(set(current) - known)
-        self.assertEqual([], new, '发现 %d 处**新增** shell 裸拼（棘轮只减不增）：%s'
-                         % (len(new), new))
+        for scope in SCAN_SCOPES:
+            known = load_baseline(scope['baseline'])
+            current = _scope_violations(scope)
+            new = sorted(set(current) - known)
+            self.assertEqual([], new, '[%s] 发现 %d 处**新增** shell 裸拼（棘轮只减不增）：%s'
+                             % (scope['name'], len(new), new))
 
     def test_11_dnsapi_export_rule_baseline_empty(self):
         """`export k="v"` 形态必须零残留（dnsapi 注入的根因）。"""
-        current = collect_violations()
-        hits = {k: v for k, v in current.items() if v['rule'] == 'export_doublequote'}
-        self.assertEqual({}, hits, '仍有 export 双引号插值：%s' % hits)
-        self.assertEqual([], [k for k in load_baseline()
-                              if '::export_doublequote::' in k],
-                         '基线里不允许登记 export_doublequote')
+        for scope in SCAN_SCOPES:
+            current = _scope_violations(scope)
+            hits = {k: v for k, v in current.items() if v['rule'] == 'export_doublequote'}
+            self.assertEqual({}, hits, '[%s] 仍有 export 双引号插值：%s' % (scope['name'], hits))
+            self.assertEqual([], [k for k in load_baseline(scope['baseline'])
+                                  if '::export_doublequote::' in k],
+                             '[%s] 基线里不允许登记 export_doublequote' % scope['name'])
 
     def test_12_scan_scope_covered(self):
         """防止「扫描器坏了所以永远绿」：必须真的扫到已知文件与已知点。"""
-        current = collect_violations()
-        self.assertGreater(len(current), 30, '扫到的违规数异常偏少，疑似扫描失效：%d'
-                           % len(current))
-        files = {k.split('::')[0] for k in current}
-        for must in ('web/utils/site.py', 'web/utils/file.py', 'panel_tools.py'):
-            self.assertIn(must, files, '扫描范围漏了 %s' % must)
+        must = {
+            'web': ('web/utils/site.py', 'web/utils/file.py', 'panel_tools.py'),
+            'plugins': ('plugins/mysql/index.py', 'plugins/mariadb/index.py',
+                        'plugins/redis/index.py'),
+        }
+        for scope in SCAN_SCOPES:
+            current = _scope_violations(scope)
+            self.assertGreater(len(current), 30, '[%s] 扫到的违规数异常偏少，疑似扫描失效：%d'
+                               % (scope['name'], len(current)))
+            files = {k.split('::')[0] for k in current}
+            for f in must[scope['name']]:
+                self.assertIn(f, files, '[%s] 扫描范围漏了 %s' % (scope['name'], f))
 
     def test_13_baseline_matches_current_rule_set(self):
-        for key in load_baseline():
-            rule = key.split('::')[2]
-            self.assertIn(rule, ('inline_bare_concat', 'bare_variable'),
-                          '基线含未知规则：%s' % key)
+        for scope in SCAN_SCOPES:
+            for key in load_baseline(scope['baseline']):
+                rule = key.split('::')[2]
+                self.assertIn(rule, ('inline_bare_concat', 'bare_variable'),
+                              '[%s] 基线含未知规则：%s' % (scope['name'], key))
 
 
 # ---------------------------------------------------------------------------
@@ -558,14 +593,120 @@ class TestManualQuoteConvergence(unittest.TestCase):
         self.assertEqual([], hits, 'getOccupyingProcess 又出现裸拼：%s' % hits)
 
 
+# ---------------------------------------------------------------------------
+# 定点守卫（plugins 侧）：`drop user ...@'<hostname>'` 回退即红
+# ---------------------------------------------------------------------------
+def _find_func(tree, name):
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+            return node
+    return None
+
+
+class TestPluginsHostnameQuoteFix(unittest.TestCase):
+    """mysql/mariadb 的 `drop user ...@'<hostname>'` 必须过 shell 引用 + SQL 转义。
+
+    hostname 来自 `hostname` 命令输出，旧实现裸拼进 `-e "drop user ''@'<hostname>'"`：
+    双引号内 `"`/`$()`/反引号仍会展开 → root 命令注入。这里只做 AST 定点断言
+    （棘轮只看 shell 调用首参，看不到 `drop_hostname` 内部的构造过程，所以必须另设守卫）。
+    """
+    #: (文件, 含 drop user 拼接的函数)
+    TARGETS = (
+        (MYSQL_PY, ('initMysqlPwd', 'initMysql8Pwd')),
+        (MARIADB_PY, ('initMariaDbPwd',)),
+    )
+
+    def test_40_hostname_not_bare_in_string_expr(self):
+        offenders = []
+        for path, _funcs in self.TARGETS:
+            tree = ast.parse(_read(path))
+            for node in _outermost_string_exprs(tree):
+                if not any(isinstance(n, ast.Name) and n.id == 'hostname'
+                           for n in ast.walk(node)):
+                    continue
+                quoted = _quote_wrapped_ids(node)
+                if any(isinstance(n, ast.Name) and n.id == 'hostname'
+                       and id(n) not in quoted for n in ast.walk(node)):
+                    offenders.append('%s:%d' % (os.path.relpath(path, ROOT), node.lineno))
+        self.assertEqual([], offenders,
+                         'hostname 又裸拼进字符串表达式（应 shlexQuote/SQL 转义）：%s' % offenders)
+
+    def test_41_drop_user_cmd_is_shell_quoted(self):
+        """`drop_hostname`/`drop_root_hostname` 的构造必须含 yf.shlexQuote。"""
+        bad = []
+        for path, funcs in self.TARGETS:
+            tree = ast.parse(_read(path))
+            rel = os.path.relpath(path, ROOT)
+            for fname in funcs:
+                func = _find_func(tree, fname)
+                self.assertIsNotNone(func, '%s 结构变了：缺 %s' % (rel, fname))
+                for n in ast.walk(func):
+                    if not isinstance(n, ast.Assign):
+                        continue
+                    tgt = [t.id for t in n.targets if isinstance(t, ast.Name)]
+                    if not any(t in ('drop_hostname', 'drop_root_hostname') for t in tgt):
+                        continue
+                    if not _expr_has_quote(n.value):
+                        bad.append('%s::%s:%d' % (rel, fname, n.lineno))
+        self.assertEqual([], bad, 'drop user 命令未过 yf.shlexQuote：%s' % bad)
+
+    def test_42_no_outer_doublequote_sql_arg(self):
+        """旧形态特征：`-e "drop user ...` —— 不允许再把 SQL 塞进双引号参数（注释行不计）。"""
+        needle = '-e ' + _DQUOTE + 'drop user '
+        offenders = []
+        for p, _f in self.TARGETS:
+            code = '\n'.join(line for line in _read(p).splitlines()
+                             if not line.lstrip().startswith('#'))
+            if needle in code:
+                offenders.append(os.path.relpath(p, ROOT))
+        self.assertEqual([], offenders,
+                         '仍有双引号包裹的 drop user 参数（hostname 可逃逸）：%s' % offenders)
+
+    def test_43_hostname_sql_escaped(self):
+        """hostname 进 SQL 前必须 `replace("'", "''")`（否则单引号可破 SQL）。"""
+        bad = []
+        for path, funcs in self.TARGETS:
+            tree = ast.parse(_read(path))
+            rel = os.path.relpath(path, ROOT)
+            for fname in funcs:
+                func = _find_func(tree, fname)
+                self.assertIsNotNone(func, '%s 结构变了：缺 %s' % (rel, fname))
+                ok = False
+                for n in ast.walk(func):
+                    if not (isinstance(n, ast.Assign) and any(
+                            isinstance(t, ast.Name) and t.id == 'sql_hostname'
+                            for t in n.targets)):
+                        continue
+                    v = n.value
+                    if (isinstance(v, ast.Call) and isinstance(v.func, ast.Attribute)
+                            and v.func.attr == 'replace' and len(v.args) == 2
+                            and all(isinstance(x, ast.Constant) for x in v.args)
+                            and v.args[0].value == "'" and v.args[1].value == "''"):
+                        ok = True
+                if not ok:
+                    bad.append('%s::%s' % (rel, fname))
+        self.assertEqual([], bad, 'hostname 未做 SQL 层单引号转义：%s' % bad)
+
+
 if __name__ == '__main__':
-    # 生成/刷新基线：`python testsuite/test_shell_concat_ratchet.py --print-baseline`
-    if '--print-baseline' in sys.argv:
-        print('# P0-1（web 侧）shell 裸拼棘轮基线：只减不增。')
-        print('# 由 testsuite/test_shell_concat_ratchet.py --print-baseline 生成。')
-        print('# 格式：<相对路径>::<函数名>::<规则>::<表达式>')
-        print('# 扫描范围：web/**/*.py + panel_tools.py + panel_task.py')
-        for fp in sorted(collect_violations()):
-            print(fp)
+    # 生成/刷新基线：`python testsuite/test_shell_concat_ratchet.py --print-baseline [web|plugins]`
+    if '--print-baseline' in sys.argv or '--write-baseline' in sys.argv:
+        flag = '--print-baseline' if '--print-baseline' in sys.argv else '--write-baseline'
+        idx = sys.argv.index(flag)
+        rest = [a for a in sys.argv[idx + 1:] if not a.startswith('-')]
+        scope_name = rest[0] if rest else 'web'
+        scope = {s['name']: s for s in SCAN_SCOPES}[scope_name]
+        lines = [
+            '# P0-1（%s 侧）shell 裸拼棘轮基线：只减不增。' % scope_name,
+            '# 由 testsuite/test_shell_concat_ratchet.py %s %s 生成。' % (flag, scope_name),
+            '# 格式：<相对路径>::<函数名>::<规则>::<表达式>',
+        ]
+        lines.extend(sorted(_scope_violations(scope)))
+        if flag == '--write-baseline':
+            with open(scope['baseline'], 'w', encoding='utf-8', newline='\n') as fh:
+                fh.write('\n'.join(lines) + '\n')
+            print('wrote %d lines -> %s' % (len(lines), scope['baseline']))
+        else:
+            print('\n'.join(lines))
         sys.exit(0)
     unittest.main()

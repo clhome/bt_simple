@@ -1,0 +1,325 @@
+# P0-1（plugins 侧）shell 裸拼棘轮基线：只减不增。
+# 由 testsuite/test_shell_concat_ratchet.py --write-baseline plugins 生成。
+# 格式：<相对路径>::<函数名>::<规则>::<表达式>
+plugins/apache/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/apache/index.py::initdInstall::inline_bare_concat::'chmod +x ' + initd_bin
+plugins/apache/index.py::initdStatus::bare_variable::shell_cmd
+plugins/apache/index.py::op_submit_init_restart::inline_bare_concat::file + ' restart'
+plugins/apache/index.py::restyOp::bare_variable::check
+plugins/apache/index.py::restyOp::inline_bare_concat::'service httpd '+method
+plugins/apache/index.py::restyOp::inline_bare_concat::'systemctl ' + method + ' httpd'
+plugins/apache/index.py::restyOp::inline_bare_concat::file + ' ' + method
+plugins/apache/index.py::restyOp_restart::bare_variable::check
+plugins/apache/index.py::status::bare_variable::cmd
+plugins/clean/clean_executor.py::execute_clean::bare_variable::cmd
+plugins/data_query/sql_postgresql.py::run_install::bare_variable::cmd
+plugins/docker/index.py::checkDockerMigrateSpace::bare_variable::cmd_df
+plugins/docker/index.py::checkDockerMigrateSpace::bare_variable::cmd_du
+plugins/docker/index.py::checkDockerMigrateSpace::bare_variable::cmd_root
+plugins/docker/index.py::dockerImagePickLoad::bare_variable::cmd
+plugins/docker/index.py::dockerImagePickSave::bare_variable::cmd
+plugins/docker/index.py::dockerLoginCheck::bare_variable::cmd
+plugins/docker/index.py::dockerLogout::bare_variable::cmd
+plugins/docker/index.py::getDockerDirInfo::bare_variable::cmd_df
+plugins/docker/index.py::getDockerDirInfo::bare_variable::cmd_root
+plugins/docker/index.py::migrateDockerDir::bare_variable::cmd_df
+plugins/docker/index.py::migrateDockerDir::bare_variable::cmd_du
+plugins/docker/index.py::migrateDockerDir::bare_variable::cmd_root
+plugins/docker/index.py::migrateDockerDir::bare_variable::sync_cmd
+plugins/docker/pull_task.py::main::bare_variable::cmd
+plugins/fail2ban/index.py::call_plugin_cli::bare_variable::cmd
+plugins/fail2ban/index.py::f2bOp::inline_bare_concat::'systemctl ' + method + ' ' + getPluginName()
+plugins/fail2ban/index.py::f2bOp::inline_bare_concat::file + ' ' + method
+plugins/fail2ban/index.py::f2b_client::bare_variable::cmd
+plugins/fail2ban/index.py::initdStatus::bare_variable::shell_cmd
+plugins/gitea/index.py::appOp::inline_bare_concat::'systemctl ' + method + ' ' + getPluginName()
+plugins/gitea/index.py::appOp::inline_bare_concat::__SR + file + ' ' + method
+plugins/gitea/index.py::getRsaPublic::bare_variable::cmd
+plugins/gitea/index.py::getRsaPublic::inline_bare_concat::"chmod 700 " + ssh_dir
+plugins/gitea/index.py::getRsaPublic::inline_bare_concat::"chown -R www:www " + ssh_dir
+plugins/gitea/index.py::projectScriptSelf_Run::bare_variable::shell
+plugins/mariadb/index.py::<module>::bare_variable::cmd
+plugins/mariadb/index.py::binLog::inline_bare_concat::'rm -f ' + path + '/mysql-bin.*'
+plugins/mariadb/index.py::doFullSyncSSH::bare_variable::cmd
+plugins/mariadb/index.py::doFullSyncSSH::inline_bare_concat::"chmod 600 " + SSH_PRIVATE_KEY
+plugins/mariadb/index.py::doFullSyncUser::bare_variable::dump_sql_data
+plugins/mariadb/index.py::doFullSyncUser::bare_variable::my_import_cmd
+plugins/mariadb/index.py::doFullSyncUser::inline_bare_concat::'ps -ef | grep mariadb| grep '+ bak_file +' | grep -v grep'
+plugins/mariadb/index.py::dumpMysqlData::bare_variable::cmd
+plugins/mariadb/index.py::fullSync::bare_variable::cmd
+plugins/mariadb/index.py::getMariadbPid::bare_variable::ps_cmd
+plugins/mariadb/index.py::getMariadbPid::inline_bare_concat::f"pgrep -f '{proc}'"
+plugins/mariadb/index.py::importDbBackup::bare_variable::cmd
+plugins/mariadb/index.py::importDbExternal::bare_variable::cmd
+plugins/mariadb/index.py::importDbExternalProgressBar::bare_variable::mysql_cmd
+plugins/mariadb/index.py::importDbExternalProgressBar::bare_variable::pv_cmd
+plugins/mariadb/index.py::initDreplace::inline_bare_concat::"chown -R mysql:mysql " + mysql_tmp
+plugins/mariadb/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/mariadb/index.py::initMariaDbPwd::bare_variable::cmd_pass
+plugins/mariadb/index.py::initMariaDbPwd::bare_variable::drop_empty_user
+plugins/mariadb/index.py::initMariaDbPwd::bare_variable::drop_hostname
+plugins/mariadb/index.py::initMariaDbPwd::bare_variable::drop_root_hostname
+plugins/mariadb/index.py::initMariaDbPwd::bare_variable::drop_test_db
+plugins/mariadb/index.py::initMysqlData::bare_variable::cmd
+plugins/mariadb/index.py::initMysqlData::inline_bare_concat::'chmod -R 755 ' + serverdir + '/data'
+plugins/mariadb/index.py::initMysqlData::inline_bare_concat::'chown -R mysql:mysql ' + serverdir + '/data'
+plugins/mariadb/index.py::initSlaveStatusSSH::inline_bare_concat::"chmod 600 " + SSH_PRIVATE_KEY
+plugins/mariadb/index.py::initdStatus::bare_variable::shell_cmd
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chmod 400 mysql.pem'
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chmod 444 mysql.pub'
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chown mysql:mysql mysql.pem'
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chown mysql:mysql mysql.pub'
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && openssl genrsa -out mysql.pem 1024'
+plugins/mariadb/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && openssl rsa -in mysql.pem -pubout -out mysql.pub'
+plugins/mariadb/index.py::myOp::bare_variable::cmd_init_start
+plugins/mariadb/index.py::myOp::bare_variable::cmd_init_stop
+plugins/mariadb/index.py::myOp::inline_bare_concat::'systemctl ' + method + ' mariadb'
+plugins/mariadb/index.py::resetDbRootPwd::bare_variable::cmd_pass
+plugins/mariadb/index.py::setDbBackup::bare_variable::cmd
+plugins/mariadb/index.py::syncDatabaseRepair::inline_bare_concat::"echo 'ok' > "+table_check_file
+plugins/mariadb/index.py::syncDatabaseRepairLog::bare_variable::cmd_list
+plugins/mariadb/index.py::upgradeSelfHealing::inline_bare_concat::'chmod 750 ' + ddir
+plugins/mariadb/index.py::upgradeSelfHealing::inline_bare_concat::'chown -R mysql:mysql ' + ddir
+plugins/mariadb/index_mariadb.py::<module>::bare_variable::cmd
+plugins/mariadb/index_mariadb.py::binLogListLook::bare_variable::cmd
+plugins/mariadb/index_mariadb.py::binLogListLookDecode::bare_variable::cmd
+plugins/mariadb/index_mariadb.py::binLogListTraceBinLog::bare_variable::cmd
+plugins/mariadb/index_mariadb.py::binLogListTraceRelay::bare_variable::cmd
+plugins/mariadb/scripts/tools.py::<module>::bare_variable::cmd
+plugins/mongodb/index.py::importDbBackup::bare_variable::cmd
+plugins/mongodb/index.py::importDbExternal::bare_variable::cmd
+plugins/mongodb/index.py::initDreplace::inline_bare_concat::"chmod 400 "+mg_key
+plugins/mongodb/index.py::initDreplace::inline_bare_concat::"openssl rand -base64 756 >> "+mg_key
+plugins/mongodb/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/mongodb/index.py::initDreplace::inline_bare_concat::f"cp -f {bt_conf} {dst_conf}"
+plugins/mongodb/index.py::initdStatus::bare_variable::shell_cmd
+plugins/mongodb/index.py::installPreInspection::bare_variable::cmd
+plugins/mongodb/index.py::mgOp::inline_bare_concat::'systemctl ' + method + ' ' + getPluginName()
+plugins/mongodb/index.py::mgOp::inline_bare_concat::file + ' ' + method
+plugins/mongodb/index.py::status::bare_variable::status_cmd
+plugins/mongodb/scripts/backup.py::backupDatabase::bare_variable::cmd
+plugins/mysql/index.py::<module>::bare_variable::cmd
+plugins/mysql/index.py::adjust_password_policy::inline_bare_concat::serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.length=4;\""
+plugins/mysql/index.py::adjust_password_policy::inline_bare_concat::serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.policy=LOW;\""
+plugins/mysql/index.py::binLog::inline_bare_concat::'rm -f ' + path + '/binlog.*'
+plugins/mysql/index.py::binLog::inline_bare_concat::'rm -f ' + path + '/mysql-bin.*'
+plugins/mysql/index.py::doFullSyncSSH::bare_variable::cmd
+plugins/mysql/index.py::doFullSyncSSH::inline_bare_concat::"chmod 600 " + SSH_PRIVATE_KEY
+plugins/mysql/index.py::doFullSyncUser::bare_variable::dump_sql_data
+plugins/mysql/index.py::doFullSyncUser::bare_variable::my_import_cmd
+plugins/mysql/index.py::doFullSyncUser::inline_bare_concat::'ps -ef | grep mysql| grep '+ bak_file +' | grep -v grep'
+plugins/mysql/index.py::dumpMysqlData::bare_variable::cmd
+plugins/mysql/index.py::fullSync::bare_variable::cmd
+plugins/mysql/index.py::getMysqldPid::bare_variable::ps_cmd
+plugins/mysql/index.py::importDbBackup::bare_variable::cmd
+plugins/mysql/index.py::importDbBackup::bare_variable::mysql_cmd
+plugins/mysql/index.py::importDbBackupProgressBar::bare_variable::cmd
+plugins/mysql/index.py::importDbBackupProgressBar::bare_variable::mysql_cmd_progress_bar
+plugins/mysql/index.py::importDbExternal::bare_variable::cmd
+plugins/mysql/index.py::importDbExternalProgressBar::bare_variable::cmd
+plugins/mysql/index.py::importDbExternalProgressBar::bare_variable::mysql_cmd_progress_bar
+plugins/mysql/index.py::initDreplace::inline_bare_concat::"chmod 750 " + tmp_dir
+plugins/mysql/index.py::initDreplace::inline_bare_concat::"chown -R mysql:mysql " + tmp_dir
+plugins/mysql/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/mysql/index.py::initMysql57Data::bare_variable::cmd
+plugins/mysql/index.py::initMysql57Data::inline_bare_concat::'chown -R mysql:mysql ' + datadir
+plugins/mysql/index.py::initMysql8Data::bare_variable::cmd
+plugins/mysql/index.py::initMysql8Data::inline_bare_concat::'chown -R mysql:mysql ' + datadir
+plugins/mysql/index.py::initMysql8Pwd::bare_variable::cmd_pass
+plugins/mysql/index.py::initMysql8Pwd::bare_variable::drop_hostname
+plugins/mysql/index.py::initMysql8Pwd::bare_variable::drop_root_hostname
+plugins/mysql/index.py::initMysql8Pwd::bare_variable::drop_test_db
+plugins/mysql/index.py::initMysqlData::bare_variable::cmd
+plugins/mysql/index.py::initMysqlPwd::bare_variable::cmd_pass
+plugins/mysql/index.py::initMysqlPwd::bare_variable::drop_empty_user
+plugins/mysql/index.py::initMysqlPwd::bare_variable::drop_hostname
+plugins/mysql/index.py::initMysqlPwd::bare_variable::drop_root_hostname
+plugins/mysql/index.py::initMysqlPwd::bare_variable::drop_test_db
+plugins/mysql/index.py::initSlaveStatusSSH::inline_bare_concat::"chmod 600 " + SSH_PRIVATE_KEY
+plugins/mysql/index.py::initdInstall::inline_bare_concat::'chmod +x ' + initd_bin
+plugins/mysql/index.py::initdStatus::bare_variable::shell_cmd
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chmod 400 mysql.pem'
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chmod 444 mysql.pub'
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chown mysql:mysql mysql.pem'
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && chown mysql:mysql mysql.pub'
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && openssl genrsa -out mysql.pem 1024'
+plugins/mysql/index.py::makeInitRsaKey::inline_bare_concat::'cd ' + datadir + ' && openssl rsa -in mysql.pem -pubout -out mysql.pub'
+plugins/mysql/index.py::my8cmd::bare_variable::cmd_init_start
+plugins/mysql/index.py::my8cmd::bare_variable::cmd_init_stop
+plugins/mysql/index.py::my8cmd::inline_bare_concat::'systemctl ' + method + ' mysql'
+plugins/mysql/index.py::myOp::inline_bare_concat::'service ' + getPluginName() + ' ' + method
+plugins/mysql/index.py::myOp::inline_bare_concat::'systemctl ' + method + ' mysql'
+plugins/mysql/index.py::myPass::inline_bare_concat::"sed -i '/password=/d' {}".format(conf_file)
+plugins/mysql/index.py::myPass::inline_bare_concat::"sed -i '/user=root/d' {}".format(conf_file)
+plugins/mysql/index.py::resetDbRootPwd::bare_variable::cmd_pass
+plugins/mysql/index.py::setDbBackup::bare_variable::cmd
+plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd
+plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_clear_root
+plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_mod_root
+plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_msafe
+plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_newpass
+plugins/mysql/index.py::syncDatabaseRepair::inline_bare_concat::"echo 'ok' > "+table_check_file
+plugins/mysql/index.py::upgradeSelfHealing::inline_bare_concat::'chmod 750 ' + ddir
+plugins/mysql/index.py::upgradeSelfHealing::inline_bare_concat::'chown -R mysql:mysql ' + ddir
+plugins/mysql/index_mysql.py::<module>::bare_variable::cmd
+plugins/mysql/index_mysql.py::binLogListLook::bare_variable::cmd
+plugins/mysql/index_mysql.py::binLogListLookDecode::bare_variable::cmd
+plugins/mysql/index_mysql.py::binLogListTraceBinLog::bare_variable::cmd
+plugins/mysql/index_mysql.py::binLogListTraceRelay::bare_variable::cmd
+plugins/mysql/scripts/tools.py::<module>::bare_variable::cmd
+plugins/mysql/scripts/tools.py::getServerIp::inline_bare_concat::"curl -{} -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text".format(version)
+plugins/ollama/index.py::oaOp::inline_bare_concat::file + ' ' + method
+plugins/ollama/index.py::status::bare_variable::cmd
+plugins/op_waf/index.py::callF2bCli::bare_variable::cmd
+plugins/op_waf/tool_task.py::getCpuUsed::bare_variable::cmd
+plugins/openresty/index.py::confReplace::inline_bare_concat::'cp -rf ' + src_resty_dir + ' ' + dst_resty_dir
+plugins/openresty/index.py::directoryPermissionSelfHeal::inline_bare_concat::f"chmod -R 755 {d}"
+plugins/openresty/index.py::directoryPermissionSelfHeal::inline_bare_concat::f"chmod -R 755 {wwwlogs_dir}"
+plugins/openresty/index.py::directoryPermissionSelfHeal::inline_bare_concat::f"chown -R {user}:{user_group} {d}"
+plugins/openresty/index.py::directoryPermissionSelfHeal::inline_bare_concat::f"chown -R {user}:{user_group} {wwwlogs_dir}"
+plugins/openresty/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/openresty/index.py::initDreplace::inline_bare_concat::'echo %s|sudo -S %s' % (safe_pwd, cmd_mod)
+plugins/openresty/index.py::initDreplace::inline_bare_concat::'echo %s|sudo -S %s' % (safe_pwd, cmd_own)
+plugins/openresty/index.py::initDreplace::inline_bare_concat::'echo %s|sudo -S %s' % (safe_pwd, cmd_s)
+plugins/openresty/index.py::initdInstall::inline_bare_concat::'chmod +x ' + initd_bin
+plugins/openresty/index.py::op_submit_init_restart::inline_bare_concat::file + ' restart'
+plugins/openresty/index.py::restyOp::bare_variable::check
+plugins/openresty/index.py::restyOp::inline_bare_concat::'service openresty ' + method
+plugins/openresty/index.py::restyOp::inline_bare_concat::'systemctl ' + method + ' openresty'
+plugins/openresty/index.py::restyOp::inline_bare_concat::f"kill -9 {pid}"
+plugins/openresty/index.py::restyOp::inline_bare_concat::file + ' ' + method
+plugins/openresty/index.py::restyOp_restart::bare_variable::check
+plugins/openresty/index.py::status::inline_bare_concat::'kill -0 %d' % pid
+plugins/pg_docker/index.py::_compose::inline_bare_concat::['docker', 'compose'] + list(args)
+plugins/pg_docker/index.py::check_pg_image::bare_variable::cmd
+plugins/pgadmin/index.py::pgOp::inline_bare_concat::'service' + getPluginName() + ' ' + method
+plugins/pgadmin/index.py::pgOp::inline_bare_concat::'systemctl ' + method+ ' ' + getPluginName()
+plugins/php-apt/index.py::_intShell::bare_variable::cmd
+plugins/php-apt/index.py::getLibConf::inline_bare_concat::'cat /etc/php/' + version + '/fpm/conf.d/*' + " | grep -v '^;' |tr -s '\n'"
+plugins/php-apt/index.py::initdInstall::inline_bare_concat::'systemctl enable php' + version + '-fpm'
+plugins/php-apt/index.py::initdStatus::bare_variable::shell_cmd
+plugins/php-apt/index.py::initdUinstall::inline_bare_concat::'systemctl disable php' + version + '-fpm'
+plugins/php-apt/index.py::phpFpmWwwReplace::inline_bare_concat::'mv ' + service_php_fpmwww + ' ' + service_php_fpmwww + '.bak'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v g
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'chmod 755 {run_php}'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'chown -R www-data:www-data {run_php} 2>/dev/null || chown -R www:www {run_php} 2>/dev/null'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'service {service_name} {method} 2>/dev/null'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'systemctl reload {service_name}'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'systemctl reset-failed {service_name} 2>/dev/null'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'systemctl stop {service_name} 2>/dev/null'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'systemctl {method} {service_name}'
+plugins/php-apt/index.py::phpOp::inline_bare_concat::f'tail -n 6 {fpm_log_path}'
+plugins/php-apt/index.py::setSessionConf::inline_bare_concat::'cat /etc/php/' + version + '/fpm/conf.d/*' + " | grep -v '^;' |tr -s '\n'"
+plugins/php-apt/index.py::status::bare_variable::cmd
+plugins/php-apt/index.py::status::inline_bare_concat::f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{version}/|\\({version}\\)|php-fpm{version})' | grep -v g
+plugins/php-apt/index.py::tunePhpConfig::inline_bare_concat::"systemctl restart " + service_name
+plugins/php-apt/index.py::uninstallLib::bare_variable::execstr
+plugins/php-apt/index.py::upgradeSelfHealing::inline_bare_concat::f"ps aux | grep 'php-fpm: master process' | grep -E '(/etc/php/{ver}/|\\({ver}\\)|php-fpm{ver})' | grep -v grep"
+plugins/php-apt/index.py::upgradeSelfHealing::inline_bare_concat::f'chmod 755 {run_php}'
+plugins/php-apt/index.py::upgradeSelfHealing::inline_bare_concat::f'chown -R www-data:www-data {run_php} 2>/dev/null || chown -R www:www {run_php} 2>/dev/null'
+plugins/php-apt/index.py::upgradeSelfHealing::inline_bare_concat::f'systemctl reset-failed {service_name} 2>/dev/null'
+plugins/php-yum/index.py::_count_old::bare_variable::cmd
+plugins/php-yum/index.py::cleanSessionOld::bare_variable::cmd
+plugins/php-yum/index.py::ensureRuntimeDirs::inline_bare_concat::f"chown -R www:www /var/opt/remi/php{version}/run /var/opt/remi/php{version}/log /var/opt/remi/php{version}/session 2>/d
+plugins/php-yum/index.py::getLibConf::bare_variable::cmd
+plugins/php-yum/index.py::initdInstall::inline_bare_concat::'systemctl enable php%s-php-fpm' % version
+plugins/php-yum/index.py::initdStatus::inline_bare_concat::'systemctl is-enabled php%s-php-fpm' % version
+plugins/php-yum/index.py::initdUinstall::inline_bare_concat::'systemctl disable php%s-php-fpm' % version
+plugins/php-yum/index.py::installPreInspection::bare_variable::cmd
+plugins/php-yum/index.py::phpOp::bare_variable::cmd
+plugins/php-yum/index.py::phpOp::inline_bare_concat::f"journalctl -u {service_name} -n 15 --no-pager"
+plugins/php-yum/index.py::phpOp::inline_bare_concat::f"systemctl reset-failed {service_name}"
+plugins/php-yum/index.py::setSessionConf::inline_bare_concat::'cat /etc/opt/remi/php' + version + "/php.d/* | grep -v '^;' |tr -s '\n'"
+plugins/php-yum/index.py::status::bare_variable::cmd_active
+plugins/php-yum/index.py::tunePhpConfig::inline_bare_concat::"systemctl restart " + service_name
+plugins/php-yum/index.py::uninstallLib::bare_variable::execstr
+plugins/php-yum/index.py::upgradeSelfHealing::inline_bare_concat::f"systemctl reset-failed {service_name}"
+plugins/php/index.py::_intShell::bare_variable::cmd
+plugins/php/index.py::initdInstall::inline_bare_concat::'systemctl enable php' + version
+plugins/php/index.py::initdStatus::inline_bare_concat::'systemctl is-enabled php' + version
+plugins/php/index.py::initdUinstall::inline_bare_concat::'systemctl disable php' + version
+plugins/php/index.py::phpOp::bare_variable::direct_cmd
+plugins/php/index.py::phpOp::inline_bare_concat::'service php' + version + ' ' + method
+plugins/php/index.py::phpOp::inline_bare_concat::f'systemctl reload php{version} 2>/dev/null || {yf.shlexQuote(file)} reload'
+plugins/php/index.py::phpOp::inline_bare_concat::f'systemctl reset-failed php{version} 2>/dev/null'
+plugins/php/index.py::phpOp::inline_bare_concat::f'systemctl stop php{version} 2>/dev/null'
+plugins/php/index.py::phpOp::inline_bare_concat::f'systemctl {method} php{version}'
+plugins/php/index.py::phpOp::inline_bare_concat::f'{yf.shlexQuote(file)} {method}'
+plugins/php/index.py::phpOp::inline_bare_concat::yf.shlexQuote(file) + ' ' + method
+plugins/php/index.py::status_progress::bare_variable::cmd
+plugins/php/index.py::tunePhpConfig::inline_bare_concat::"systemctl restart " + service_name
+plugins/php/index.py::tunePhpConfig::inline_bare_concat::'service php' + version + ' restart'
+plugins/php/index.py::uninstallLib::bare_variable::execstr
+plugins/php/index.py::upgradeSelfHealing::inline_bare_concat::f'chmod 777 {session_path} {upload_path}'
+plugins/php/index.py::upgradeSelfHealing::inline_bare_concat::f'chown -R www:www {session_path} {upload_path}'
+plugins/php/index.py::upgradeSelfHealing::inline_bare_concat::f'systemctl reset-failed php{ver} 2>/dev/null'
+plugins/php/index_php.py::status_progress::bare_variable::cmd
+plugins/phpmyadmin/index.py::start::bare_variable::cmd
+plugins/phpmyadmin/index.py::start::inline_bare_concat::"chown -R www:www " + tmp
+plugins/postgresql/index.py::<module>::bare_variable::cmd
+plugins/postgresql/index.py::_pgDumpToFile::bare_variable::cmd
+plugins/postgresql/index.py::importDbBackup::bare_variable::cmd
+plugins/postgresql/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/postgresql/index.py::initPgData::bare_variable::cmd
+plugins/postgresql/index.py::initPgPwd::bare_variable::cmd_pass
+plugins/postgresql/index.py::initdStatus::bare_variable::shell_cmd
+plugins/postgresql/index.py::pgOp::bare_variable::cmd_init_start
+plugins/postgresql/index.py::pgOp::bare_variable::cmd_init_stop
+plugins/postgresql/index.py::pgOp::inline_bare_concat::'systemctl ' + method + ' postgresql'
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep SigQ|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmData|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmExe|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmHWM|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmLck|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmLib|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmPTE|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmRSS|awk -F: '{print $2}' ''' % (result['pid'])
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmStk|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat /proc/%s/status|grep VmSwap|awk -F: '{print $2}' ''' % (result['pid'].strip())
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat {}/postmaster.pid |sed -n 1p '''.format(data_dir)
+plugins/postgresql/index.py::runInfo::inline_bare_concat::'''cat {}/postmaster.pid |sed -n 3p '''.format(data_dir)
+plugins/pureftp/index.py::purePwRun::bare_variable::cmd
+plugins/python_yf/index.py::_run_uv::bare_variable::cmd
+plugins/redis/index.py::detectAndFixVersion::inline_bare_concat::b + ' -v'
+plugins/redis/index.py::execRedisCommand::bare_variable::argv
+plugins/redis/index.py::getRedisPid::bare_variable::cmd
+plugins/redis/index.py::getRunLog::inline_bare_concat::f"journalctl -u {svc} --no-pager -n 100"
+plugins/redis/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/redis/index.py::initDreplace::inline_bare_concat::'chmod 755 ' + dataLog
+plugins/redis/index.py::initdInstall::inline_bare_concat::'chmod +x ' + initd_bin
+plugins/redis/index.py::initdStatus::bare_variable::shell_cmd
+plugins/redis/index.py::redisOp::inline_bare_concat::'service ' + getPluginName() + ' ' + method
+plugins/redis/index.py::redisOp::inline_bare_concat::'systemctl ' + method + ' ' + getPluginName()
+plugins/redis/index.py::redisOp::inline_bare_concat::file + ' ' + method
+plugins/redis/index.py::runLog::bare_variable::cmd
+plugins/redis/index.py::status::bare_variable::cmd
+plugins/rsyncd/index.py::lsyncdRun::bare_variable::cmd
+plugins/rsyncd/index.py::rsyncOp::inline_bare_concat::yf.shlexQuote(file) + ' ' + method
+plugins/sphinx/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/sphinx/index.py::rebuild::bare_variable::cmd
+plugins/sphinx/index.py::sphOp::inline_bare_concat::file + ' ' + method
+plugins/sphinx/index.py::updateAll::bare_variable::cmd_index
+plugins/sphinx/index.py::updateDelta::bare_variable::cmd_index
+plugins/sphinx/index.py::updateDelta::bare_variable::cmd_index_merge
+plugins/supervisor/index.py::findSupBin::inline_bare_concat::'. ' + yf.shlexQuote(activate_file) + ' && command -v ' + name
+plugins/supervisor/index.py::findSupBin::inline_bare_concat::'command -v ' + name
+plugins/supervisor/index.py::getSupList::bare_variable::cmd
+plugins/supervisor/index.py::getUserListData::bare_variable::cmd
+plugins/supervisor/index.py::initDreplace::bare_variable::cmd
+plugins/supervisor/index.py::startJob::bare_variable::cmd
+plugins/swap/index.py::changeSwap::bare_variable::cmd
+plugins/swap/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/swap/index.py::initdStatus::bare_variable::shell_cmd
+plugins/swap/index.py::swapOp::inline_bare_concat::'systemctl ' + method + ' swap'
+plugins/swap/index.py::swapOp::inline_bare_concat::file + ' ' + method
+plugins/task_manager/process_network_total.py::<module>::bare_variable::pip_cmd
+plugins/task_manager/task_manager_index.py::check_process_net_total::bare_variable::_cmd
+plugins/task_manager/task_manager_index.py::set_runlevel_state::inline_bare_concat::'systemctl ' + action + ' ' + shlex.quote(serviceName) + '.service'
+plugins/valkey/index.py::initDreplace::inline_bare_concat::'chmod +x ' + file_bin
+plugins/valkey/index.py::initdInstall::inline_bare_concat::'chmod +x ' + initd_bin
+plugins/valkey/index.py::initdStatus::bare_variable::shell_cmd
+plugins/valkey/index.py::restart::inline_bare_concat::"echo '' > " + log_file
+plugins/valkey/index.py::valkeyCli::inline_bare_concat::getRedisCmd() + list(args)
+plugins/valkey/index.py::wkOp::inline_bare_concat::'service ' + getPluginName() + ' ' + method
+plugins/valkey/index.py::wkOp::inline_bare_concat::'systemctl ' + method + ' ' + getPluginName()
+plugins/valkey/index.py::wkOp::inline_bare_concat::file + ' ' + method

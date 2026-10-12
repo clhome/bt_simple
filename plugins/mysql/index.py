@@ -819,14 +819,21 @@ def initMysqlPwd(version='5.7'):
     yf.execShell(drop_test_db)
 
     # 删除冗余账户
+    # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
+    # 旧实现把 hostname 裸拼进 `-e "drop user ''@'<hostname>'"`：双引号内 `"`/`$()`/反引号
+    # 会逃逸成 root 命令注入。这里 SQL 层转义单引号，整条 `-e` 参数再走 yf.shlexQuote
+    # （不再用外层双引号包裹，否则单引号引用在双引号内不生效）。
     hostname = yf.execShell('hostname')[0].strip()
     if hostname != 'localhost':
+        sql_hostname = hostname.replace("'", "''")
         drop_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
+            myconf + ' -uroot -p"' + pwd + '" -e ' + \
+            yf.shlexQuote("drop user ''@'" + sql_hostname + "'")
         yf.execShell(drop_hostname)
 
         drop_root_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
+            myconf + ' -uroot -p"' + pwd + '" -e ' + \
+            yf.shlexQuote("drop user 'root'@'" + sql_hostname + "'")
         yf.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
@@ -878,14 +885,20 @@ def initMysql8Pwd():
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
     # 删除冗余账户
+    # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
+    # 旧实现把 hostname 裸拼进 `-e "drop user ''@'<hostname>'"`：双引号内 `"`/`$()`/反引号
+    # 会逃逸成 root 命令注入。这里 SQL 层转义单引号，整条 `-e` 参数再走 yf.shlexQuote。
     hostname = yf.execShell('hostname')[0].strip()
     if hostname != 'localhost':
+        sql_hostname = hostname.replace("'", "''")
         drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
+            myconf + ' -uroot -p"' + pwd + '" -e ' + \
+            yf.shlexQuote("drop user ''@'" + sql_hostname + "'")
         yf.execShell(drop_hostname)
 
         drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
+            myconf + ' -uroot -p"' + pwd + '" -e ' + \
+            yf.shlexQuote("drop user 'root'@'" + sql_hostname + "'")
         yf.execShell(drop_root_hostname)
 
     return True
