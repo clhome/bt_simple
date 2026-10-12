@@ -29,6 +29,12 @@ _log = logging.getLogger('yf.site')
 #: （不限制非 ASCII：面板支持 IDN 站点，中文目录/文件名在 Linux 上是合法的。）
 _SITE_NAME_BAD_RE = re.compile(r'[/\\\x00-\x1f\x7f]')
 
+#: 同一个名字还会被**直接拼进 shell 命令**（acme.sh 续签 `--renew -d <name>`、
+#: chown/chmod 的站点路径等）。命令注入的载荷不必含空白或斜杠也成立
+#: （`x;id`、`` x`id` ``、`x|id`、`x$(id)`），所以 shell 元字符必须一并拒绝。
+#: `*` 刻意放行：泛域名站点名形如 `*.test.com`，命令侧由 `yf.shlexQuote` 兜底。
+_SITE_NAME_SHELL_RE = re.compile(r"[;|&$`()<>{}\'\"]")
+
 #: 域名（与 addDomain 的历史正则保持一致，另允许泛域名前缀）
 _DOMAIN_RE = re.compile(r"^([\w\-\*]{1,100}\.){1,4}([\w\-]{1,24}|[\w\-]{1,24}\.[\w\-]{1,24})$")
 
@@ -41,11 +47,16 @@ def safeSiteName(name):
 
     真实踩坑：`get_host_conf`、`set_rewrite_tpl`、`remove_cert` 等入口都把用户给的
     名字直接拼进路径，`../../` 可读写/删除配置目录之外的任意文件。
+
+    同一个名字也进了 shell 命令（如 `renew_ssl` 的 acme.sh 续签），故 `;` `|` `&`
+    `$` 反引号、括号、重定向与引号一并拒绝 —— 校验只此一处，别在调用点各写一份。
     """
     name = str(name or '').strip()
     if not name or len(name) > 100 or '..' in name:
         return ''
     if _SITE_NAME_BAD_RE.search(name):
+        return ''
+    if _SITE_NAME_SHELL_RE.search(name):
         return ''
     if any(ch.isspace() for ch in name):
         return ''

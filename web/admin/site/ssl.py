@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as YfSites
+from utils.site import sites as YfSites, safeSiteName
 import core.yf as yf
 import thisdb
 
@@ -115,7 +115,12 @@ def close_to_https():
 @blueprint.route('/renew_ssl', endpoint='renew_ssl', methods=['POST'])
 @panel_login_required
 def renew_ssl():
-    site_name = request.form.get('site_name', '')
+    # 站点名会拼进 acme.sh 命令（--renew -d <name>）与证书/ssl 目录路径，
+    # 必须先过统一白名单：非法名（shell 元字符 / `..` / 空白 / 超长）直接拒绝，
+    # 不进入任何 execShell。ssl_type 在本函数内不参与命令与路径拼接，故不校验。
+    site_name = safeSiteName(request.form.get('site_name', ''))
+    if not site_name:
+        return yf.returnData(False, 'site.py_msg_dbd9b9')
     ssl_type = request.form.get('ssl_type', '')
     
     acme_dir = yf.getAcmeDir()
@@ -154,7 +159,7 @@ def renew_ssl():
                     yf.writeFile(acme_conf, conf_content)
 
         # 2. 执行常规续签命令
-        cmd = f"{acme_dir}/acme.sh --renew -d {site_name} --force >> {log_file} 2>&1"
+        cmd = f"{acme_dir}/acme.sh --renew -d {yf.shlexQuote(site_name)} --force >> {yf.shlexQuote(log_file)} 2>&1"
         yf.execShell(cmd)
         
         # 检查是否续签成功（即证书文件生成了且修改时间被更新）
@@ -164,7 +169,7 @@ def renew_ssl():
         # 3. 如果第一轮续签失败（比如 ZeroSSL 超时失败），自动使用 Let's Encrypt 进行后备强制重试以实现自愈
         if not is_success:
             yf.writeFile(log_file, "常规续签失败，自动尝试使用 Let's Encrypt 进行后备强制重试...\n")
-            cmd_backup = f"{acme_dir}/acme.sh --renew -d {site_name} --force --server letsencrypt >> {log_file} 2>&1"
+            cmd_backup = f"{acme_dir}/acme.sh --renew -d {yf.shlexQuote(site_name)} --force --server letsencrypt >> {yf.shlexQuote(log_file)} 2>&1"
             yf.execShell(cmd_backup)
             
             if os.path.exists(src_cert) and (old_mtime == 0 or os.path.getmtime(src_cert) > old_mtime):
@@ -192,7 +197,7 @@ def renew_ssl():
         
     yf.buildSoftLink(src_cert, dst_cert, True)
     yf.buildSoftLink(src_key, dst_key, True)
-    yf.execShell('echo "acme" > "' + dst_path + '/README"')
+    yf.writeFile(dst_path + '/README', 'acme')
     
     # 应用 SSL 配置并重启 Web
     YfSites.instance().setSslConf(site_name)
