@@ -13,15 +13,20 @@
    safeSyncPass`；`setMyDbPos` 两端都过 `safeDatadir` 且非法即 return。
 3. **拼接侧双保险**：`setMyDbPos`/`fullSync`/`doFullSyncUser` 的 `execShell` 参数里
    必须出现 `yf.shlexQuote`，且 `-p'<pass>'` 这种可被单引号突破的写法不得复活。
+   **口令是唯一例外**：用户裁定（P0-1④ follow-up）放宽为「可打印字符 + 强制引用」，
+   写入侧只挡控制字符，安全性完全由拼接侧的单引号包裹承担 —— 故 `test_17` 会把
+   恶意口令真拼进 dump 命令，用 `shlex.split` 断言它仍只是一个 `-p<pass>` 词元。
 4. **对称**：同一组载荷在两端得到完全相同的结果；两端 `safe_check_args` 调用点数量相等。
-5. **行为**：恶意载荷（`;`、`$()`、反引号、`|`、`&&`、换行、单引号突破）被拒，
-   合法值（IPv4/IPv6、正常路径/账号）仍放行。
+5. **行为**：库名/同步标识/用户名/ip/端口/datadir 的恶意载荷（`;`、`$()`、反引号、`|`、
+   `&&`、换行、单引号突破）被拒；口令只拒控制字符（NUL/换行/回车/制表符/DEL）与空串/
+   超长，含引号/`$`/反引号/空白的口令被**接受**但必须被单引号正确包裹。
 
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
 import ast
 import os
 import re
+import shlex
 import sys
 import unittest
 
@@ -62,8 +67,15 @@ PORT_OK = ['3306', 3306, '1', '65535']
 USER_BAD = ['u;id', 'u$(id)', 'u`id`', 'u|id', 'u x', "u'x", 'u"x', 'u\nx', '']
 USER_OK = ['syncuser', 'repl_user-1', 'repl@host']
 
-PASS_BAD = ["p'w", 'p$(id)', 'p`id`', 'p|x', 'p&&x', 'p\nx', 'p x', '']
-PASS_OK = ['p@ss-W0rd', 'Abc123', 'a.b-c+d%:,']
+#: 口令口径（用户裁定 P0-1④ follow-up）：只拒控制字符与空/超长；引号/`$`/反引号/
+#: 空白/shell 元字符一律放行 —— 安全性由拼接侧 `yf.shlexQuote` 承担。
+PASS_BAD = ['p\nx', 'p\rx', 'p\tx', 'p\x00x', 'p\x7fx', 'p\x1bx', 'a' * 129, '']
+PASS_OK = ["p'w", 'p$(id)', 'p`id`', 'p|x', 'p&&x', 'p x', 'p;id', 'p$!#*()', 'p"w',
+           'p\\w', 'p>id', 'p<id', 'p@ss-W0rd', 'Abc123', 'a.b-c+d%:,', 'a' * 128]
+
+#: 拼进 mysqldump/mariadb-dump 命令行的恶意口令（单引号突破 + 命令注入）
+HOSTILE_PASS = ["p'w", "'; touch /tmp/pwned; #", 'p$(id)', 'p`id`', 'p|x', 'p&&x',
+                'p x', 'p$!#*()', 'p"w', 'p\\w']
 
 
 def _read(path):
@@ -117,6 +129,38 @@ def _load_safe_check_args(path):
     return ns['safe_check_args']
 
 
+def _dump_command(path, pass_value):
+    """取出插件 `doFullSyncUser` 里 `dump_sql_data = ...` 的拼接表达式，用给定口令求值。
+
+    直接求值而不是只做 AST 检查：只有真把恶意口令拼进命令行，才能用 `shlex.split`
+    看出「shell 会不会把口令拆成额外词元」。
+    """
+    tree = ast.parse(_read(path))
+    fn = _find_func(tree, 'doFullSyncUser')
+    assert fn is not None, '%s 缺少 doFullSyncUser' % path
+    assign = None
+    for node in ast.walk(fn):
+        if (isinstance(node, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == 'dump_sql_data'
+                        for t in node.targets)):
+            assign = node
+    assert assign is not None, '%s.doFullSyncUser 缺少 dump_sql_data 拼接' % path
+    ns = {
+        'yf': yf,
+        'getServerDir': lambda: '/www/server/mysql',
+        'dmp_option': '--opt',
+        'ssl_mode': '--ssl-mode=DISABLED',
+        'sync_db': 'demo1',
+        'bak_file': '/tmp/bak.sql',
+        'ip': '10.0.0.2',
+        'port': '3306',
+        'user': 'repl_user',
+        'apass': pass_value,
+    }
+    expr = ast.Expression(body=assign.value)
+    return eval(compile(ast.fix_missing_locations(expr), path, 'eval'), ns)
+
+
 class SharedValidatorTest(unittest.TestCase):
     """一、公共白名单实现本身的行为（两端共用，故一处通过即两端通过）。"""
 
@@ -148,20 +192,48 @@ class SharedValidatorTest(unittest.TestCase):
             self.assertIsNotNone(yf.safeSyncPort(value), 'port 误伤：%r' % value)
         self.assertEqual(3306, yf.safeSyncPort('3306'))
 
-    def test_06_user_pass_charset(self):
+    def test_06_user_strict_pass_control_chars_only(self):
+        # 用户名口径**不放宽**：仍拒引号/空白/shell 元字符
         for payload in USER_BAD:
             self.assertEqual('', yf.safeSyncUser(payload), 'user 未拦：%r' % payload)
-        for payload in PASS_BAD:
-            self.assertEqual('', yf.safeSyncPass(payload), 'pass 未拦：%r' % payload)
         for value in USER_OK:
             self.assertNotEqual('', yf.safeSyncUser(value), 'user 误伤：%r' % value)
+        # 口令只拒控制字符/空/超长（用户裁定 P0-1④ follow-up）
+        for payload in PASS_BAD:
+            self.assertEqual('', yf.safeSyncPass(payload), 'pass 未拦：%r' % payload)
         for value in PASS_OK:
-            self.assertNotEqual('', yf.safeSyncPass(value), 'pass 误伤：%r' % value)
+            self.assertEqual(value, yf.safeSyncPass(value), 'pass 误伤：%r' % value)
 
-    def test_07_single_quote_breakout_is_rejected(self):
-        # 报告原文：`-p'<pass>'` 的单引号可被 pass 内的 `'` 突破
-        self.assertEqual('', yf.safeSyncPass("x' -oProxyCommand=id #"))
-        self.assertEqual('', yf.safeSyncPass("';id;'"))
+    def test_07_quote_and_metachar_passwords_are_accepted(self):
+        # 报告原文里的载荷：`-p'<pass>'` 的突破靠拼接侧 shlexQuote，不再靠拒字符
+        for value in ("x' -oProxyCommand=id #", "';id;'", "p'w", 'p$(id)', 'p`id`',
+                      'p;id', 'p|x', 'p&&x', 'p x', 'p$!#'):
+            self.assertEqual(value, yf.safeSyncPass(value), '口令被误拒：%r' % value)
+
+    def test_08_pass_rejects_control_chars_and_length_overflow(self):
+        # 防 `$` 锚定漏网：结尾换行/回车/NUL/制表符/DEL 必须仍被拒
+        for payload in PASS_BAD:
+            self.assertEqual('', yf.safeSyncPass(payload), '口令未拦：%r' % payload)
+        self.assertEqual('', yf.safeSyncPass('abc\n'), '结尾换行漏网（`$` 锚定写法）')
+        self.assertEqual('', yf.safeSyncPass('abc\r\n'))
+        self.assertEqual('', yf.safeSyncPass('abc\x00'))
+        self.assertEqual('a' * 128, yf.safeSyncPass('a' * 128))
+        self.assertEqual('', yf.safeSyncPass('a' * 129))
+
+    def test_09_pass_regex_is_fullmatch_not_dollar(self):
+        """口令正则不得改用 `$` 锚定（`$` 会在结尾换行前匹配）。"""
+        tree = ast.parse(_read(VALIDATE_SRC))
+        pattern = None
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Assign)
+                    and any(isinstance(t, ast.Name) and t.id == '_SYNC_PASS_RE'
+                            for t in node.targets)):
+                pattern = node.value.args[0].value
+        self.assertIsNotNone(pattern, '未找到 _SYNC_PASS_RE')
+        self.assertNotIn('$', pattern, '口令正则不得用 `$` 锚定：%r' % pattern)
+        fn = _find_func(tree, 'safeSyncPass')
+        self.assertTrue(_calls(fn, 'fullmatch'),
+                        'safeSyncPass 必须用 fullmatch 锚定整串：%s' % VALIDATE_SRC)
 
 
 class PluginSymmetryTest(unittest.TestCase):
@@ -254,6 +326,31 @@ class PluginSymmetryTest(unittest.TestCase):
                 self.assertEqual(
                     yf.dbSafeCheckArgs(**{kw: payload}), mysql_check(**{kw: payload}),
                     'mysql 结果与公共实现不一致：%s=%r' % (kw, payload))
+
+    def test_17_dump_command_quotes_hostile_passwords(self):
+        """口令口径放宽后，安全性全靠拼接侧单引号包裹 —— 真拼一遍验证。
+
+        对每条恶意口令取出 `dump_sql_data` 的拼接结果，用 `shlex.split` 看 shell
+        分词：必须仍然只有一个 `-p<pass>` 词元、总词元数与普通口令一致。
+        """
+        for label, path in (('mysql', MYSQL_SRC), ('mariadb', MARIADB_SRC)):
+            baseline = shlex.split(_dump_command(path, 'plainpw'))
+            for payload in HOSTILE_PASS:
+                cmd = _dump_command(path, payload)
+                try:
+                    tokens = shlex.split(cmd)
+                except ValueError as exc:
+                    self.fail('%s 恶意口令破坏了引号配对（%s）：%r → %r'
+                              % (label, exc, payload, cmd))
+                self.assertIn(yf.shlexQuote(payload), cmd,
+                              '%s 拼接侧未走 shlexQuote：%r' % (label, payload))
+                self.assertIn('-p' + payload, tokens,
+                              '%s 口令未被单引号包裹：%r → %r' % (label, payload, cmd))
+                self.assertEqual(len(baseline), len(tokens),
+                                 '%s 恶意口令改变了命令词元数（注入成功）：%r → %r'
+                                 % (label, payload, tokens))
+                self.assertNotIn('touch', tokens,
+                                 '%s 恶意口令突破了引号：%r → %r' % (label, payload, tokens))
 
 
 class SharedModuleIsSingleSourceTest(unittest.TestCase):
