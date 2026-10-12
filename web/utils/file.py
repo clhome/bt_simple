@@ -709,22 +709,22 @@ def zip(sfile, dfile, stype, path):
     if sfile.find(',') == -1:
         q_sfile = yf.shlexQuote(sfile)
         if stype == 'zip':
-            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
                 return yf.returnData(False, 'file.py_msg_c2cd54')
-            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'tar_gz':
-            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'xz':
             cmd = "cd " + q_path + " && tar -cJf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1"
-            yf.execShell(cmd)
+            yf.execShell(cmd, timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
                 return yf.returnData(False, 'file.py_msg_4ba9f0')
-            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'bz2':
-            yf.execShell("cd " + q_path + " && tar -cjvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -cjvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         else:
             return yf.returnData(False, 'file.py_msg_05b0c9')
         yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
@@ -740,19 +740,19 @@ def zip(sfile, dfile, stype, path):
         sfiles_str = ' '.join(sfiles)
 
         if stype == 'zip':
-            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
                 return yf.returnData(False, 'file.py_msg_c2cd54')
-            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'tar_gz':
-            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'xz':
-            yf.execShell("cd " + q_path + " && tar -cJf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -cJf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
                 return yf.returnData(False, 'file.py_msg_4ba9f0')
-            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1", timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         else:
             return yf.returnData(False, 'file.py_msg_05b0c9')
         yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))

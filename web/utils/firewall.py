@@ -378,23 +378,23 @@ class Firewall(object):
 
     def reload(self):
         if self.__isUfw:
-            yf.execShell('/usr/sbin/ufw reload')
+            yf.execShell('/usr/sbin/ufw reload', timeout=yf.EXEC_SERVICE_TIMEOUT)
             return
         elif self.__isIptables:
             yf.execShell('service iptables save')
-            yf.execShell('service iptables restart')
+            yf.execShell('service iptables restart', timeout=yf.EXEC_SERVICE_TIMEOUT)
         elif self.__isFirewalld:
-            yf.execShell('firewall-cmd --reload')
+            yf.execShell('firewall-cmd --reload', timeout=yf.EXEC_SERVICE_TIMEOUT)
         else:
             pass
 
     def reloadSshd(self):
         if os.path.exists('/usr/bin/apt-get'):
-            yf.execShell('service ssh restart')
-            yf.execShell('systemctl restart ssh')
+            yf.execShell('service ssh restart', timeout=yf.EXEC_SERVICE_TIMEOUT)
+            yf.execShell('systemctl restart ssh', timeout=yf.EXEC_SERVICE_TIMEOUT)
         else:
-            yf.execShell("systemctl restart sshd.service")
-            yf.execShell("/etc/init.d/sshd restart")
+            yf.execShell("systemctl restart sshd.service", timeout=yf.EXEC_SERVICE_TIMEOUT)
+            yf.execShell("/etc/init.d/sshd restart", timeout=yf.EXEC_SERVICE_TIMEOUT)
         return True
 
     def __clear_sshd_config_d(self, keyword):
@@ -589,18 +589,18 @@ class Firewall(object):
         if self.__isIptables:
             # 旧实现调用 self.setFwIptables(status)，而该方法在移植时并不存在 ——
             # 这条分支只会抛 AttributeError 把接口打成 500（本机为 firewalld，无法实测）
-            yf.execShell('systemctl %s iptables.service' % ('start' if want_running else 'stop'))
+            yf.execShell('systemctl %s iptables.service' % ('start' if want_running else 'stop'), timeout=yf.EXEC_SERVICE_TIMEOUT)
         elif self.__isUfw:
             if want_running:
-                yf.execShell("echo 'y'| ufw enable")
+                yf.execShell("echo 'y'| ufw enable", timeout=yf.EXEC_SERVICE_TIMEOUT)
             else:
-                yf.execShell('/usr/sbin/ufw disable')
+                yf.execShell('/usr/sbin/ufw disable', timeout=yf.EXEC_SERVICE_TIMEOUT)
         elif self.__isFirewalld:
             if want_running:
-                yf.execShell('systemctl start firewalld.service')
+                yf.execShell('systemctl start firewalld.service', timeout=yf.EXEC_SERVICE_TIMEOUT)
                 yf.execShell('systemctl enable firewalld.service')
             else:
-                yf.execShell('systemctl stop firewalld.service')
+                yf.execShell('systemctl stop firewalld.service', timeout=yf.EXEC_SERVICE_TIMEOUT)
                 yf.execShell('systemctl disable firewalld.service')
         else:
             # 未识别到防火墙后端（开发机等）：维持原行为，只回成功、不做系统改动
@@ -859,7 +859,7 @@ class Firewall(object):
             act = 'start'
 
         if os.path.exists('/usr/bin/apt-get'):
-            yf.execShell('service ssh ' + act)
+            yf.execShell('service ssh ' + act, timeout=yf.EXEC_SERVICE_TIMEOUT)
             if yf.isSupportSystemctl():
                 if status == '0':
                     yf.execShell('systemctl enable ssh')
@@ -872,13 +872,13 @@ class Firewall(object):
                 return yf.returnData(True, msg)
             
             if yf.isSupportSystemctl():
-                yf.execShell("systemctl " + act + " sshd.service")
+                yf.execShell("systemctl " + act + " sshd.service", timeout=yf.EXEC_SERVICE_TIMEOUT)
                 if status == '0':
                     yf.execShell('systemctl enable sshd.service')
                 else:
                     yf.execShell('systemctl disable sshd.service')
             else:
-                yf.execShell("/etc/init.d/sshd " + act)
+                yf.execShell("/etc/init.d/sshd " + act, timeout=yf.EXEC_SERVICE_TIMEOUT)
 
         if status == '1':
             yf.execShell("pkill -9 -f sshd")

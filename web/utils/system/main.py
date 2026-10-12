@@ -14,6 +14,7 @@ import sys
 import re
 import time
 import math
+import copy
 import psutil
 
 import core.yf as yf
@@ -21,7 +22,7 @@ import logging
 
 _log = logging.getLogger('yf.system')
 
-from threading import Thread
+from threading import Lock, Thread
 from time import sleep
 
 def yf_async(f):
@@ -166,6 +167,55 @@ def getSystemVersion():
 
         arch_ver = yf.execShell("arch")
         return version[0].strip() + " (" + arch_ver[0].strip() + ")"
+
+
+# ---------------------------------------------------------------------------
+# /system/system_total 的「系统身份」静态字段缓存（报告 P2-10a）
+# ---------------------------------------------------------------------------
+# 为什么需要：getSystemVersion() 每次调用都派生多个 shell（`cat /etc/*-release |
+# grep | awk`、`arch`，freebsd 下还有 `sysctl`），而首页 index.js 的 getInfo()
+# 高频轮询 /system/system_total —— 每次请求都白跑一遍完全静态的发行版信息。
+# TTL 取 1.5s，与同文件 /network 的 _network_cache 对齐，避免首页 + messageBox
+# 双轮询在同一秒内重复派生。
+#
+# 只缓存静态字段：system（发行版字符串）与 cpuNum（逻辑核数）。实时字段
+# （CPU 使用率 / 内存 / 运行时长）留在 system_total 里每次实时采集，不进缓存。
+#
+# 并发安全：加锁 + 双检。gthread 下多路轮询可能同时穿透 1.5s 窗口，双检保证
+# 只有一路真正派生 shell，其余命中刚写入的缓存。
+# 失效路径：1.5s TTL 自动过期；需要立即刷新（如发行版升级后）调用
+# clearSystemStaticCache()。返回深拷贝，避免调用方就地修改污染缓存。
+_SYSTEM_STATIC_CACHE_TTL = 1.5
+_system_static_cache = None
+_system_static_cache_time = 0.0
+_system_static_cache_lock = Lock()
+
+
+def clearSystemStaticCache():
+    """显式失效路径：清空静态缓存，下一次调用立即重新派生。"""
+    global _system_static_cache, _system_static_cache_time
+    with _system_static_cache_lock:
+        _system_static_cache = None
+        _system_static_cache_time = 0.0
+
+
+def getSystemStaticInfo():
+    """返回 system_total 中可缓存的静态字段（1.5s TTL），见上方说明。"""
+    global _system_static_cache, _system_static_cache_time
+    now = time.time()
+    cached = _system_static_cache
+    if cached is not None and (now - _system_static_cache_time) < _SYSTEM_STATIC_CACHE_TTL:
+        return copy.deepcopy(cached)
+    with _system_static_cache_lock:
+        now = time.time()
+        cached = _system_static_cache
+        if cached is not None and (now - _system_static_cache_time) < _SYSTEM_STATIC_CACHE_TTL:
+            return copy.deepcopy(cached)
+        data = {'system': getSystemVersion(), 'cpuNum': psutil.cpu_count()}
+        _system_static_cache = data
+        _system_static_cache_time = now
+        return copy.deepcopy(data)
+
 
 def getBootTimeDetail():
     """取系统启动时间详细数值 (days, hours, min)"""

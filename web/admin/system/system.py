@@ -31,14 +31,17 @@ blueprint = Blueprint('system', __name__, url_prefix='/system', template_folder=
 @blueprint.route('/system_total', endpoint='system_total', methods=['GET','POST'])
 @panel_login_required
 def system_total():
+    # 实时字段：每次请求重新采集（CPU 使用率/内存/运行时长随秒变化，不能缓存）
     data = sys.getMemInfo()
     cpu = sys.getCpuInfo(interval=None)
-    data['cpuNum'] = cpu[1]
     data['cpuRealUsed'] = cpu[0]
     data['time'] = sys.getBootTime()
     days, hours, min_val = sys.getBootTimeDetail()
     data['boot_time'] = {'days': days, 'hours': hours, 'min': min_val}
-    data['system'] = sys.getSystemVersion()
+    # 静态字段：走 1.5s TTL 缓存（getSystemVersion 每次派生多个 shell，首页高频轮询）
+    static = sys.getSystemStaticInfo()
+    data['cpuNum'] = static['cpuNum']
+    data['system'] = static['system']
     data['version'] = '0.0.1'
     return yf.getJson(data)
 

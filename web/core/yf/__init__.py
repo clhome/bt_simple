@@ -77,6 +77,25 @@ _log = logging.getLogger('yf.core')
 _TIMEOUT_REAP_SECONDS = 5
 
 
+# ---------------------------------------------------------------------------
+# 命令执行超时（报告 P2-10b）
+# ---------------------------------------------------------------------------
+# execShell / execShellRc 的默认 timeout 由 None 改为有限值：默认 None 时，任何一个
+# 卡住的命令都会永久占死一个 gunicorn gthread 工作线程（线程池有限，耗尽即面板整体无响应）。
+#
+# 为什么取 60s：本仓库的调用点绝大多数是本地快命令（pgrep / systemctl status /
+# chmod / chown / cat 等，亚秒级返回），60s 有充裕余量；同时不至于把「真卡住」
+# 的命令拖得太久。真正可能跑很久的调用点（网络下载/安装、证书签发、归档/备份、
+# 服务启停）一律**显式**传更大的 timeout，见下面三个常量。
+EXEC_DEFAULT_TIMEOUT = 60
+#: 服务启停/重载：数据库崩溃恢复、AOF 重载等可能 >60s（与 panel_tools.SERVICE_TIMEOUT 同口径）。
+EXEC_SERVICE_TIMEOUT = 120
+#: 网络下载/安装/证书签发类。
+EXEC_DOWNLOAD_TIMEOUT = 600
+#: 归档/备份/解包等重 IO 类。
+EXEC_ARCHIVE_TIMEOUT = 1800
+
+
 def _newProcessGroupKwargs():
     """POSIX 下让子进程独立成组/会话（Windows 不传该参数）。
 
@@ -216,7 +235,7 @@ def fixCrlf(file_path):
     return False
 
 
-def execShell(cmdstring, cwd=None, timeout=None, shell=True):
+def execShell(cmdstring, cwd=None, timeout=EXEC_DEFAULT_TIMEOUT, shell=True):
     if shell and isinstance(cmdstring, str):
         cmdstring = sanitizeCmdScripts(cmdstring, cwd=cwd)
 
@@ -261,7 +280,7 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     return (success, error)
 
 
-def execShellRc(cmdstring, cwd=None, timeout=None, shell=True):
+def execShellRc(cmdstring, cwd=None, timeout=EXEC_DEFAULT_TIMEOUT, shell=True):
     """与 execShell 同样的执行语义，但额外返回子进程退出码：(rc, stdout, stderr)。
 
     为什么需要：execShell 的 (out, err) 契约无法区分「脚本失败」与「脚本无输出」，
@@ -1059,7 +1078,7 @@ def opWeb(method):
     # systemd
     systemd = systemdCfgDir() + '/openresty.service'
     if os.path.exists(systemd):
-        execShell('systemctl ' + method + ' openresty')
+        execShell('systemctl ' + method + ' openresty', timeout=EXEC_SERVICE_TIMEOUT)
         return True
 
 
@@ -1074,7 +1093,7 @@ def opWeb(method):
     # initd
     initd = getServerDir() + '/openresty/init.d/openresty'
     if os.path.exists(initd):
-        execShell(initd + ' ' + method)
+        execShell(initd + ' ' + method, timeout=EXEC_SERVICE_TIMEOUT)
         return True
 
     return False

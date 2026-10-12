@@ -714,7 +714,7 @@ def dockerPull():
         else:
             return yf.returnJson(False, '拉取失败，请检查镜像名称或是否需要登录docker进行下载')
     except Exception as e:
-        ret = yf.execShell('docker image pull %s' % shlex.quote(images))
+        ret = yf.execShell('docker image pull %s' % shlex.quote(images), timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
         stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
         if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
             err_msg = stderr_out if stderr_out else str(e)
@@ -731,7 +731,7 @@ def dockerPlulPath(path):
     if not IMAGE_REF_RE.match(path):
         return yf.returnJson(False, '镜像名称不合法')
 
-    ret = yf.execShell('docker image pull %s' % shlex.quote(path))
+    ret = yf.execShell('docker image pull %s' % shlex.quote(path), timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
     stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
     if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
         return yf.returnJson(False, '拉取失败: ' + stderr_out)
@@ -1574,11 +1574,11 @@ def migrateDockerDir():
         # 检查并安装 rsync
         check_rsync = yf.execShell('which rsync')
         if not check_rsync[0].strip():
-            yf.execShell('yum install -y rsync || apt-get install -y rsync')
+            yf.execShell('yum install -y rsync || apt-get install -y rsync', timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
 
         # 同步数据
         sync_cmd = 'rsync -a %s/ %s/' % (shlex.quote(docker_root), shlex.quote(new_path))
-        out, err = yf.execShell(sync_cmd)
+        out, err = yf.execShell(sync_cmd, timeout=yf.EXEC_ARCHIVE_TIMEOUT)
         if err and err.strip():
             # 有时可能只是无害的警告，或者rsync未找到
             if "未找到命令" in err or "command not found" in err:

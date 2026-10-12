@@ -512,7 +512,7 @@ def startPHPVersion(version):
         # system
         phpService = yf.systemdCfgDir() + '/php' + version + '.service'
         if os.path.exists(phpService):
-            yf.execShell(["systemctl", "restart", "php" + version], shell=False)
+            yf.execShell(["systemctl", "restart", "php" + version], shell=False, timeout=yf.EXEC_SERVICE_TIMEOUT)
             if checkPHPVersion(version):
                 return True
 
@@ -531,7 +531,7 @@ def startPHPVersion(version):
             return False
 
         # 尝试重载服务
-        yf.execShell([fpm, 'reload'], shell=False)
+        yf.execShell([fpm, 'reload'], shell=False, timeout=yf.EXEC_SERVICE_TIMEOUT)
         if checkPHPVersion(version):
             return True
         # 尝试重启服务
@@ -550,7 +550,7 @@ def startPHPVersion(version):
                 except Exception as _e:
                     _log.debug('[panel_task] 清理 PHP-FPM 临时文件失败: %s -> %s', temp_file, _e)
                     
-        yf.execShell([fpm, 'start'], shell=False)
+        yf.execShell([fpm, 'start'], shell=False, timeout=yf.EXEC_SERVICE_TIMEOUT)
         if checkPHPVersion(version):
             return True
 

@@ -38,7 +38,7 @@ def get_timezone_list():
 def sync_date():
     if yf.isAppleSystem():
         return yf.returnData(True, 'setting.py_msg_05608e')
-    data = yf.execShell('ntpdate -s time.nist.gov')
+    data = yf.execShell('ntpdate -s time.nist.gov', timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
     if data[0] == '':
         return yf.returnData(True, 'setting.py_msg_10a198')
     return yf.returnData(False, 'admin.py_msg_c642d5', None, data[0])

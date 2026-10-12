@@ -190,7 +190,7 @@ class setting(object):
         acme_dir = yf.getAcmeDir()
         if not os.path.exists(acme_dir):
             try:
-                yf.execShell("curl -fsSL https://get.acme.sh | sh")
+                yf.execShell("curl -fsSL https://get.acme.sh | sh", timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
             except Exception as _e:
                 yf.writeFileLog('[setting] 安装 acme.sh 失败: %s' % _e)
         if not os.path.exists(acme_dir):

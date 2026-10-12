@@ -966,11 +966,11 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         # Debian 的 /etc/init.d/cron reload 是安全的 no-op（cron 自动重读 spool）。
         try:
             if os.path.exists('/etc/init.d/crond'):
-                yf.execShell('/etc/init.d/crond reload')
+                yf.execShell('/etc/init.d/crond reload', timeout=yf.EXEC_SERVICE_TIMEOUT)
             elif os.path.exists('/etc/init.d/cron'):
-                yf.execShell('/etc/init.d/cron reload')
+                yf.execShell('/etc/init.d/cron reload', timeout=yf.EXEC_SERVICE_TIMEOUT)
             else:
-                yf.execShell('systemctl reload crond')
+                yf.execShell('systemctl reload crond', timeout=yf.EXEC_SERVICE_TIMEOUT)
         except Exception as _e:
             yf.writeFileLog('[crontab] 重载 cron 失败（任务仍会由 cron 自动重读）: %s' % _e)
 

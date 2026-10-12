@@ -88,7 +88,7 @@ def cleanup_legacy_plugins():
             yf.execShell(f'chattr -R -i -a "{p}" 2>/dev/null')
 
     # 3. 停止服务并禁止开机自启
-    yf.execShell("systemctl stop system_safe 2>/dev/null")
+    yf.execShell("systemctl stop system_safe 2>/dev/null", timeout=yf.EXEC_SERVICE_TIMEOUT)
     yf.execShell("systemctl disable system_safe 2>/dev/null")
 
     # 4. 强制终止残留的后台监控守护进程

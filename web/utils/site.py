@@ -2899,7 +2899,8 @@ location  {from} {\n\
 
         cmd = 'export ACCOUNT_EMAIL=' + email + ' && ' + cmd + ' >> ' + log_file
         # print(cmd)
-        result = yf.execShell(cmd)
+        # 证书签发走网络（DNS/CA 交互），可能远超默认 60s
+        result = yf.execShell(cmd, timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
 
         # 开启代理
         self.openProxyByOpen(site_name)
@@ -3045,7 +3046,7 @@ export PATH
                 old_mtime = os.path.getmtime(src_cert)
 
             # print(cmd)
-            result = yf.execShell(cmd)
+            result = yf.execShell(cmd, timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
             # print(result)
 
             # 重新获取路径，因为如果是首次申请，acme.sh 可能会生成 _ecc 目录
@@ -3138,7 +3139,7 @@ export PATH
                 old_mtime = os.path.getmtime(src_cert)
 
             # print(cmd)
-            result = yf.execShell(cmd)
+            result = yf.execShell(cmd, timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
             # print(result)
             
             # 重新获取路径，因为如果是首次申请，acme.sh 可能会生成 _ecc 目录
@@ -3222,7 +3223,7 @@ export PATH
         acme_dir = yf.getAcmeDir()
         if not os.path.exists(acme_dir):
             try:
-                yf.execShell("curl -fsSL https://get.acme.sh | sh")
+                yf.execShell("curl -fsSL https://get.acme.sh | sh", timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
             except Exception as _e:
                 yf.writeFileLog('[site] 安装 acme.sh 失败: %s' % _e)
         if not os.path.exists(acme_dir):

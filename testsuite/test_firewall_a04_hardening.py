@@ -57,6 +57,12 @@ def _read(path):
 class StubYf(object):
     """``core.yf`` 的替身：只提供 Firewall 用到的接口，记录调用。"""
 
+    #: 生产 `core.yf` 的超时常量（firewall 显式传 timeout= 时会读它们）
+    EXEC_DEFAULT_TIMEOUT = 60
+    EXEC_SERVICE_TIMEOUT = 120
+    EXEC_DOWNLOAD_TIMEOUT = 600
+    EXEC_ARCHIVE_TIMEOUT = 1800
+
     def __init__(self):
         self.shell_calls = []
         #: 改动系统防火墙的命令的返回（stdout, stderr）

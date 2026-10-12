@@ -160,7 +160,7 @@ def renew_ssl():
 
         # 2. 执行常规续签命令
         cmd = f"{acme_dir}/acme.sh --renew -d {yf.shlexQuote(site_name)} --force >> {yf.shlexQuote(log_file)} 2>&1"
-        yf.execShell(cmd)
+        yf.execShell(cmd, timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
         
         # 检查是否续签成功（即证书文件生成了且修改时间被更新）
         if os.path.exists(src_cert) and (old_mtime == 0 or os.path.getmtime(src_cert) > old_mtime):
@@ -170,7 +170,7 @@ def renew_ssl():
         if not is_success:
             yf.writeFile(log_file, "常规续签失败，自动尝试使用 Let's Encrypt 进行后备强制重试...\n")
             cmd_backup = f"{acme_dir}/acme.sh --renew -d {yf.shlexQuote(site_name)} --force --server letsencrypt >> {yf.shlexQuote(log_file)} 2>&1"
-            yf.execShell(cmd_backup)
+            yf.execShell(cmd_backup, timeout=yf.EXEC_DOWNLOAD_TIMEOUT)
             
             if os.path.exists(src_cert) and (old_mtime == 0 or os.path.getmtime(src_cert) > old_mtime):
                 is_success = True

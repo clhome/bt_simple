@@ -66,7 +66,7 @@ class TestP0DeepSecurity(unittest.TestCase):
         executed_cmds = []
         orig_exec = yf.execShell
 
-        def mock_exec(cmd):
+        def mock_exec(cmd, *args, **kwargs):
             executed_cmds.append(cmd)
             return ('0', '')
 

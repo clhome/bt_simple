@@ -116,6 +116,12 @@ class _Recorder:
 class _FakeYf:
     """只实现 renew_ssl 用到的那几个 yf 函数；shell 一律记账，绝不真执行。"""
 
+    #: 生产 `core.yf` 的超时常量（renew_ssl 显式传 timeout= 时会读它们）
+    EXEC_DEFAULT_TIMEOUT = 60
+    EXEC_SERVICE_TIMEOUT = 120
+    EXEC_DOWNLOAD_TIMEOUT = 600
+    EXEC_ARCHIVE_TIMEOUT = 1800
+
     def __init__(self, rec, tmp):
         self.rec = rec
         self.tmp = tmp

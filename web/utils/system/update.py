@@ -175,7 +175,7 @@ def backup_panel():
     
     # 备份 web, panel_task.py, panel_tools.py 等核心文件，以及重要的安全配置文件
     cmd = f"cd {panel_dir} && tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt data/.crypt_salt 2>/dev/null || tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt"
-    yf.execShell(cmd)
+    yf.execShell(cmd, timeout=yf.EXEC_ARCHIVE_TIMEOUT)
     
     if os.path.exists(backup_file):
         return True, f"备份成功: {backup_file}"

@@ -223,7 +223,7 @@ def isInstalledWeb():
 def _do_reload():
     systemd = systemdCfgDir() + '/openresty.service'
     if os.path.exists(systemd):
-        execShell('systemctl reload openresty')
+        execShell('systemctl reload openresty', timeout=EXEC_SERVICE_TIMEOUT)
         return True
     sys_initd = '/etc/init.d/openresty'
     if os.path.exists(sys_initd):
@@ -231,7 +231,7 @@ def _do_reload():
         return True
     initd = getServerDir() + '/openresty/init.d/openresty'
     if os.path.exists(initd):
-        execShell(initd + ' reload')
+        execShell(initd + ' reload', timeout=EXEC_SERVICE_TIMEOUT)
         return True
     return False
 

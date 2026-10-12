@@ -597,7 +597,7 @@ class plugin(object):
                         parent_dir = os.path.dirname(real_install_path)
                         base_name = os.path.basename(real_install_path)
                         tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
-                        yf.execShell(tar_cmd)
+                        yf.execShell(tar_cmd, timeout=yf.EXEC_ARCHIVE_TIMEOUT)
                     except Exception as bex:
                         yf.writeFileLog("卸载前打包备份失败: " + yf.getTracebackInfo())
 
