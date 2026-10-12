@@ -34,6 +34,12 @@
 8. **§四 延伸收尾**：`safeIdentifier` 允许 `-`（MySQL 库名 `my-db` 合法，收紧会误拒，
    `test_40`）；`drop user '<u>'@'<h>'` 无法参数化，拼进 SQL 的用户名/Host 必须先过
    `_DB_USER_IDENT_RE` 白名单或 `_dropUserTargets`（`test_52`）。
+9. **第三轮收尾**：`setDbMasterAccess` 的 `access`(host) 与 `setDbAccess` 同口径，拼进
+   反引号标识符前先过 `_DB_USER_IDENT_RE`（`test_53`）；口令不再手写 `\'` 转义，
+   CREATE/ALTER USER、SET PASSWORD、GRANT ... IDENTIFIED BY 一律走 ORM 参数化
+   （`test_54`/`test_56`）—— 因为本仓 ORM 经 pymysql 做客户端 `%` 插值，SQL 文本里
+   残留的 host 通配符 `%` 后紧跟反引号会直接 ValueError，所以账号/host 也一并参数化；
+   白名单放行 `%`/IP/域名、拦下引号/反引号/空白/`;`/`|`（`test_55`）。
 
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
@@ -200,6 +206,49 @@ def _params_expr(call):
         if kw.arg == 'params':
             return kw.value
     return None
+
+
+def _assigned_names(fn):
+    """函数体内被赋值的变量名（用于断言不再出现 `safe_pwd` 这种手写转义变量）。"""
+    out = set()
+    for n in ast.walk(fn):
+        if isinstance(n, ast.Assign):
+            for t in n.targets:
+                if isinstance(t, ast.Name):
+                    out.add(t.id)
+    return out
+
+
+def _load_db_user_ident_re(path):
+    """取出插件里的 `_DB_USER_IDENT_RE` 正则（账号/Host 白名单，两端各一份字面量）。"""
+    tree = ast.parse(_read(path))
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == '_DB_USER_IDENT_RE'
+                        for t in node.targets)):
+            return re.compile(node.value.args[0].value)
+    raise AssertionError('%s 缺少 _DB_USER_IDENT_RE' % path)
+
+
+#: 口令-bearing SQL 汇点：(函数名 → 承载口令的变量名)
+_PWD_SINK_FUNCS = {
+    'mysql': {
+        '__createUser': 'password',
+        'setUserPwd': 'newpassword',
+        'setDbAccess': 'password',
+        'setDbMasterAccess': 'password',
+        'addMasterRepSlaveUser': 'password',
+        'updateMasterRepSlaveUser': 'password',
+    },
+    'mariadb': {
+        '__createUser': 'password',
+        'setUserPwd': 'newpassword',
+        'setDbAccess': 'password',
+        'setDbMasterAccess': 'password',
+        'addMasterRepSlaveUser': 'password',
+        'updateMasterRepSlaveUser': 'password',
+    },
+}
 
 
 class _QueryRecorder(object):
@@ -776,6 +825,90 @@ class UserControllableSqlSinkTest(unittest.TestCase):
                     set(), unsafe,
                     '%s.%s:%d 的 drop user 拼进未校验变量：%r'
                     % (label, fn_name, call.lineno, unsafe))
+
+
+class PasswordParameterizationTest(unittest.TestCase):
+    """六、口令不再手写 `\'` 转义（P0-sqli-mysql 第三轮）。
+
+    本仓 ORM 经 pymysql 做客户端 `%` 插值（`cursor.execute(sql, params)` → `sql % args`），
+    所以 SQL 文本里只要残留一个 `%`（host 通配符 `%`），后面紧跟反引号就会触发
+    ValueError —— 故口令汇点把账号/host/口令一并参数化，SQL 文本里不留任何裸值。
+
+    注：`test_54` 里口令汇点的函数名/变量名以 `_PWD_SINK_FUNCS` 为准；新增口令字面量
+    汇点时必须同步登记，否则漏修会被“两端对称 + 逐点判定”的门禁放过。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.files = (
+            ('mysql', MYSQL_SRC, ast.parse(_read(MYSQL_SRC))),
+            ('mariadb', MARIADB_SRC, ast.parse(_read(MARIADB_SRC))),
+        )
+
+    def test_53_set_db_master_access_validates_hosts(self):
+        """(A) setDbMasterAccess 的 access(host) 进 `user`@`host` 反引号标识符
+        （GRANT 语句无法参数化）→ 必须先过 `_DB_USER_IDENT_RE`，与 setDbAccess 同口径。"""
+        for label, path, tree in self.files:
+            fn = _find_func(tree, 'setDbMasterAccess')
+            self.assertIsNotNone(fn, '%s 缺少 setDbMasterAccess' % label)
+            guards = [c for c in _calls(fn, 'match')
+                      if isinstance(c.func, ast.Attribute)
+                      and isinstance(c.func.value, ast.Name)
+                      and c.func.value.id == '_DB_USER_IDENT_RE'
+                      and c.args and isinstance(c.args[0], ast.Name)
+                      and c.args[0].id == 'a']
+            self.assertTrue(guards,
+                            '%s.setDbMasterAccess 必须对目标 host 变量 a 做白名单校验' % label)
+
+    def test_54_password_sinks_are_parameterized(self):
+        """(B) 口令不得再手写 `\'` 转义：CREATE/ALTER USER、SET PASSWORD、
+        GRANT ... IDENTIFIED BY 一律走 ORM 参数化（execute/query 的第二参数），
+        且口令变量不得出现在任何 SQL 字符串拼接表达式里。"""
+        for label, path, tree in self.files:
+            for fn_name, pwd_var in _PWD_SINK_FUNCS[label].items():
+                fn = _find_func(tree, fn_name)
+                self.assertIsNotNone(fn, '%s 缺少 %s' % (label, fn_name))
+                self.assertNotIn('safe_pwd', _assigned_names(fn),
+                                 '%s.%s 不得再手写口令转义变量 safe_pwd' % (label, fn_name))
+                pwd_param_calls = []
+                for c in _query_calls(fn):
+                    params = _params_expr(c)
+                    if params is not None and pwd_var in {
+                            n.id for n in ast.walk(params) if isinstance(n, ast.Name)}:
+                        pwd_param_calls.append(c)
+                self.assertTrue(
+                    pwd_param_calls,
+                    '%s.%s 的 %s 必须作为 execute/query 的 params 传递'
+                    % (label, fn_name, pwd_var))
+                for c in _query_calls(fn):
+                    self.assertNotIn(
+                        pwd_var, _sql_text_names(c),
+                        '%s.%s 把口令 %s 拼进了 SQL 文本' % (label, fn_name, pwd_var))
+                for n in ast.walk(fn):
+                    if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Add):
+                        names = {x.id for x in ast.walk(n) if isinstance(x, ast.Name)}
+                        self.assertNotIn(
+                            pwd_var, names,
+                            '%s.%s 把口令 %s 拼接进 SQL 字符串' % (label, fn_name, pwd_var))
+
+    def test_55_db_user_ident_whitelist_allows_hosts(self):
+        """账号/Host 白名单必须放行 `%`/localhost/IP/域名，拦下引号/反引号/空白/`;`/`|`。"""
+        for label, path in (('mysql', MYSQL_SRC), ('mariadb', MARIADB_SRC)):
+            rx = _load_db_user_ident_re(path)
+            for good in ['%', 'localhost', '127.0.0.1', '::1', 'db.example.com',
+                         'my-host', '192.168.1.%', 'repl_user']:
+                self.assertTrue(rx.match(good),
+                                '%s _DB_USER_IDENT_RE 误拒合法 host：%r' % (label, good))
+            for bad in ["x'", 'x`', 'x y', 'x;id', 'x|id', 'x\\y', 'x\ny', 'x$(id)', '']:
+                self.assertFalse(rx.match(bad),
+                                 '%s _DB_USER_IDENT_RE 未拦：%r' % (label, bad))
+
+    def test_56_no_hand_rolled_quote_escape_remains(self):
+        """两插件不得再出现手写单引号转义（`replace("'", "\\\\'")`）。"""
+        needle = r'''replace("'", "\\'")'''
+        for label, path in (('mysql', MYSQL_SRC), ('mariadb', MARIADB_SRC)):
+            self.assertNotIn(needle, _read(path),
+                             '%s/index.py 仍存在手写单引号转义' % label)
 
 
 if __name__ == '__main__':

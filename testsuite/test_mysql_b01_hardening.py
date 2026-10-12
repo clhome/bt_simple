@@ -204,7 +204,13 @@ class MysqlB01Test(unittest.TestCase):
                 req = [e.value for e in c.args[1].elts if isinstance(e, ast.Constant)]
         self.assertIsNotNone(req, 'setUserPwd 必须有 checkArgs 参数表')
         self.assertIn('id', req, "setUserPwd 必须把 id 纳入 checkArgs（否则缺参 KeyError）")
-        self.assertIn('safe_pwd', _assigned_names(fn), 'setUserPwd 必须转义密码字面量')
+        # 口令改走 ORM 参数化（pymysql 按 SQL 语义转义），不得再手写 `\'` 拼接
+        self.assertNotIn('safe_pwd', _assigned_names(fn),
+                         'setUserPwd 不得再手写口令转义（应走 execute(sql, params)）')
+        self.assertTrue(
+            [c for c in _calls(fn, 'execute') if len(c.args) > 1
+             and 'newpassword' in ast.dump(c.args[1])],
+            'setUserPwd 的口令必须作为 execute() 的 params 传递')
         guards = [c for c in _calls(fn, 'match')
                   if isinstance(c.func, ast.Attribute)
                   and isinstance(c.func.value, ast.Name)
@@ -281,12 +287,16 @@ class MysqlB01Test(unittest.TestCase):
                          'getSlaveName 不得直接引用全局 version（import 时 NameError）')
         self.assertTrue(_calls(fn, 'get'), 'getSlaveName 必须用 globals().get("version") 兜底')
 
-    # ---- 12. 主从同步账户密码转义 --------------------------------------------
+    # ---- 12. 主从同步账户口令参数化 ----------------------------------------
     def test_13_replication_user_password_escaped(self):
         for name in ('addMasterRepSlaveUser', 'updateMasterRepSlaveUser'):
             fn = self._fn(name)
-            self.assertIn('safe_pwd', _assigned_names(fn),
-                          '%s 必须转义密码字面量' % name)
+            self.assertNotIn('safe_pwd', _assigned_names(fn),
+                             '%s 不得再手写口令转义（应走 execute(sql, params)）' % name)
+            self.assertTrue(
+                [c for c in _calls(fn, 'execute') if len(c.args) > 1
+                 and 'password' in ast.dump(c.args[1])],
+                '%s 的口令必须作为 execute() 的 params 传递' % name)
 
     # ---- 13. setDbAccess host 白名单 -----------------------------------------
     def test_14_set_db_access_validates_hosts(self):

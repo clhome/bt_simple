@@ -391,6 +391,7 @@
   "备份文件不存在!": "Backup file not found!",
   "删除失败:": "Delete failed:",
   "访问地址不合法!": "Invalid access address!",
+  "访问地址不合法:": "Invalid access address:",
   "数据库编码不合法!": "Invalid database encoding!",
   "获取数据库用户失败!": "Failed to get DB user!",
   "权限类型不合法!": "Invalid permission type!",

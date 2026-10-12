@@ -391,6 +391,7 @@
   "备份文件不存在!": "Fichier de sauvegarde introuvable !",
   "删除失败:": "Échec de la suppression :",
   "访问地址不合法!": "Adresse d'accès invalide !",
+  "访问地址不合法:": "Adresse d'accès invalide :",
   "数据库编码不合法!": "Encodage de base invalide !",
   "获取数据库用户失败!": "Échec de récupération de l'utilisateur !",
   "权限类型不合法!": "Type de permission invalide !",

@@ -101,9 +101,16 @@ class TestMysqlSetDbAccess(unittest.TestCase):
         # 应该删除了旧的非 localhost 用户
         self.assertTrue(any("drop user 'root'@'127.0.0.1'" in sql for sql in executed_sqls))
 
-        # 应该针对 % 创建了用户并授予了 *.* WITH GRANT OPTION
-        self.assertTrue(any("CREATE USER IF NOT EXISTS `root`@`%`" in sql for sql in executed_sqls))
-        self.assertTrue(any("GRANT ALL PRIVILEGES ON *.* TO `root`@`%` WITH GRANT OPTION" in sql for sql in executed_sqls))
+        # 口令/账号走 ORM 参数化：CREATE USER 里只留 %s 占位；GRANT 仍用反引号标识符
+        self.assertTrue(any("CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s" in sql
+                            for sql in executed_sqls))
+        create_calls = [c for c in mock_pdb.execute.call_args_list
+                        if 'CREATE USER IF NOT EXISTS' in c[0][0]]
+        self.assertTrue(create_calls, "未找到 CREATE USER 调用")
+        self.assertIn('root', create_calls[0][0][1])
+        self.assertIn('%', create_calls[0][0][1])
+        self.assertTrue(any("GRANT ALL PRIVILEGES ON *.* TO `root`@`%` WITH GRANT OPTION" in sql
+                            for sql in executed_sqls))
 
     @patch('index.pSqliteDb')
     @patch('index.pMysqlDb')

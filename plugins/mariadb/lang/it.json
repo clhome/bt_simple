@@ -391,6 +391,7 @@
   "备份文件不存在!": "File di backup non trovato!",
   "删除失败:": "Eliminazione non riuscita:",
   "访问地址不合法!": "Indirizzo di accesso non valido!",
+  "访问地址不合法:": "Indirizzo di accesso non valido:",
   "数据库编码不合法!": "Codifica database non valida!",
   "获取数据库用户失败!": "Recupero utente DB non riuscito!",
   "权限类型不合法!": "Tipo di permesso non valido!",

@@ -1321,14 +1321,17 @@ def __createUser(dbname, username, password, address):
 
     is_root = (username == 'root' or dbname == '*')
     db_target = '*.*' if is_root else ('`' + dbname + '`.*')
-    safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
+    # 口令走 ORM 参数化（pymysql 按 SQL 语义转义），不再手写 `\'`。
+    # 账号名/host 一并参数化：本仓 ORM 经 pymysql 做客户端 `%` 插值，SQL 文本里只要
+    # 残留一个 `%`（host 通配符）就会让 `%\`` 触发 ValueError，故不留裸 `%`。
     # 1. 创建或更新 localhost 用户
     r_local = pdb.execute(
-        "CREATE USER IF NOT EXISTS `%s`@`localhost` IDENTIFIED BY '%s'" % (username, safe_pwd))
+        "CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s",
+        (username, 'localhost', password))
     if isSqlError(r_local) is not None or isinstance(r_local, Exception):
         pdb.execute(
-            "ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, safe_pwd))
+            "ALTER USER %s@%s IDENTIFIED BY %s", (username, 'localhost', password))
 
     grant_local = "grant all privileges on %s to `%s`@`localhost`" % (db_target, username)
     if is_root:
@@ -1341,10 +1344,10 @@ def __createUser(dbname, username, password, address):
         if not a or a == 'localhost':
             continue
         r_host = pdb.execute(
-            "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+            "CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s", (username, a, password))
         if isSqlError(r_host) is not None or isinstance(r_host, Exception):
             pdb.execute(
-                "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+                "ALTER USER %s@%s IDENTIFIED BY %s", (username, a, password))
         grant_host = "grant all privileges on %s to `%s`@`%s`" % (db_target, username, a)
         if is_root:
             grant_host += " with grant option"
@@ -2348,8 +2351,6 @@ def setUserPwd(version=''):
         return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, '用户名不合法',)))
     if not re.match(r"^[0-9]+$", uid):
         return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, '参数不合法',)))
-    # 密码进单引号字符串字面量：转义反斜杠与单引号（历史缺陷：密码含 ' 可注入）
-    safe_pwd = str(newpassword).replace('\\', '\\\\').replace("'", "\\'")
 
     try:
         pdb = pMysqlDb()
@@ -2367,14 +2368,14 @@ def setUserPwd(version=''):
             if not isinstance(accept, (list, tuple)):
                 accept = []
             pdb.execute("update mysql.user set authentication_string='' where User=%s", (username,))
-            pdb.execute("ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (username, safe_pwd))
+            pdb.execute("ALTER USER %s@%s IDENTIFIED BY %s", (username, 'localhost', newpassword))
             for my_host in accept:
                 host = my_host["Host"] if isinstance(my_host, dict) else my_host[0]
                 if not _DB_USER_IDENT_RE.match(str(host)):
                     continue
-                pdb.execute("ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, host, safe_pwd))
+                pdb.execute("ALTER USER %s@%s IDENTIFIED BY %s", (username, host, newpassword))
         else:
-            pdb.execute("update mysql.user set Password=password('" + safe_pwd + "') where User='" + username + "'")
+            pdb.execute("update mysql.user set Password=password(%s) where User=%s", (newpassword, username))
 
         pdb.execute("flush privileges")
         psdb.where("id=?", (uid,)).setField('password', newpassword)
@@ -2702,8 +2703,6 @@ def setDbAccess():
             if not password:
                 return yf.returnJson(False, '数据库用户密码为空，请先修改或重置密码: ' + name)
 
-        safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
-
         # 查询已有非 localhost 的 Host
         # 用户名来自用户入参（或 sqlite databases 表）：走 ORM 参数化，禁止拼进 SQL 文本
         users = pdb.query("select Host from mysql.user where User=%s AND Host!='localhost'",
@@ -2739,17 +2738,17 @@ def setDbAccess():
 
         db_target = '*.*' if is_root else ('`' + dbname + '`.*')
 
-        # 为每个 host 创建用户并授权
+        # 为每个 host 创建用户并授权（口令/账号走 ORM 参数化，不手写 `\'`）
         for a in target_hosts:
             r_create = pdb.execute(
-                "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+                "CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s", (name, a, password))
             if checkSqlExec(r_create) is not None:
                 r_alt = pdb.execute(
-                    "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+                    "ALTER USER %s@%s IDENTIFIED BY %s", (name, a, password))
                 if checkSqlExec(r_alt) is not None:
                     # 兼容老版本 MySQL 5.5/5.6
                     pdb.execute(
-                        "GRANT USAGE ON *.* TO `%s`@`%s` IDENTIFIED BY '%s'" % (name, a, safe_pwd))
+                        "GRANT USAGE ON *.* TO %s@%s IDENTIFIED BY %s", (name, a, password))
 
             if is_root:
                 grant_sql = "GRANT ALL PRIVILEGES ON *.* TO `%s`@`%s` WITH GRANT OPTION" % (name, a)
@@ -2770,10 +2769,10 @@ def setDbAccess():
         # 对非 root 用户，同时确保 localhost 正常授权
         if not is_root:
             r_local = pdb.execute(
-                "CREATE USER IF NOT EXISTS `%s`@`localhost` IDENTIFIED BY '%s'" % (name, safe_pwd))
+                "CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s", (name, 'localhost', password))
             if checkSqlExec(r_local) is not None:
                 pdb.execute(
-                    "ALTER USER `%s`@`localhost` IDENTIFIED BY '%s'" % (name, safe_pwd))
+                    "ALTER USER %s@%s IDENTIFIED BY %s", (name, 'localhost', password))
             pdb.execute("REVOKE ALL PRIVILEGES ON " + db_target + " FROM `" + name + "`@`localhost`")
             if rw == 'rw':
                 pdb.execute("GRANT SELECT, INSERT, UPDATE, DELETE ON %s TO `%s`@`localhost`" % (db_target, name))
@@ -3236,8 +3235,6 @@ def setDbMasterAccess():
         if not password:
             return yf.returnJson(False, '主从复制用户密码为空: ' + username)
 
-        safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
-
         # 用户名来自用户入参：走 ORM 参数化，禁止拼进 SQL 文本
         users = pdb.query("select Host from mysql.user where User=%s AND Host!='localhost'",
                           (username,))
@@ -3256,10 +3253,15 @@ def setDbMasterAccess():
                     continue
                 pdb.execute("drop user '" + username + "'@'" + h + "'")
 
+        # host 会被拼进 `user`@`host` 反引号标识符（GRANT 语句无法参数化）→ 白名单
         target_hosts = []
         for a in access.split(','):
             a = a.strip()
-            if a and a not in target_hosts:
+            if not a:
+                continue
+            if not _DB_USER_IDENT_RE.match(a):
+                return yf.returnJson(False, '访问地址不合法: ' + a)
+            if a not in target_hosts:
                 target_hosts.append(a)
 
         if not target_hosts:
@@ -3267,10 +3269,10 @@ def setDbMasterAccess():
 
         for a in target_hosts:
             r_create = pdb.execute(
-                "CREATE USER IF NOT EXISTS `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+                "CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s", (username, a, password))
             if checkSqlExec(r_create) is not None:
                 pdb.execute(
-                    "ALTER USER `%s`@`%s` IDENTIFIED BY '%s'" % (username, a, safe_pwd))
+                    "ALTER USER %s@%s IDENTIFIED BY %s", (username, a, password))
             r_grant = pdb.execute(
                 "grant all privileges on *.* to `%s`@`%s` with grant option" % (username, a))
             err_grant = checkSqlExec(r_grant)
@@ -3553,9 +3555,6 @@ def addMasterRepSlaveUser(version=''):
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
 
-    # 密码进单引号字符串字面量（无法参数化），先转义反斜杠与单引号
-    safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
-
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
 
@@ -3566,18 +3565,17 @@ def addMasterRepSlaveUser(version=''):
 
     mdb8 = getMdb8Ver()
     if yf.inArray(mdb8,version):
-        sql = "CREATE USER '" + username + \
-            "'  IDENTIFIED WITH "+auth_policy+" BY '" + safe_pwd + "';"
-        pdb.execute(sql)
-        sql = "grant replication slave on *.* to '" + username + "'@'%';"
-        result = pdb.execute(sql)
+        # 口令/账号走 ORM 参数化（不手写 `\'`）；`'%%'` 是 host 通配符经 pymysql 插值后的形态
+        sql = "CREATE USER %s  IDENTIFIED WITH " + auth_policy + " BY %s;"
+        pdb.execute(sql, (username, password))
+        sql = "grant replication slave on *.* to %s@'%%';"
+        result = pdb.execute(sql, (username,))
         isError = isSqlError(result)
         if isError != None:
             return isError
     else:
-        sql = "grant replication SLAVE ON *.* TO  '" + username + \
-            "'@'%' identified by '" + safe_pwd + "';"
-        result = pdb.execute(sql)
+        sql = "grant replication SLAVE ON *.* TO  %s@'%%' identified by %s;"
+        result = pdb.execute(sql, (username, password))
         isError = isSqlError(result)
         if isError != None:
             return isError
@@ -3706,14 +3704,14 @@ def updateMasterRepSlaveUser(version=''):
     username = str(args['username'])
     if not _DB_USER_IDENT_RE.match(username):
         return yf.returnJson(False, '用户名不合法!')
-    safe_pwd = str(args['password']).replace('\\', '\\\\').replace("'", "\\'")
+    password = args['password']
 
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
     pdb.execute("drop user '" + username + "'@'%'")
 
-    pdb.execute("GRANT REPLICATION SLAVE ON *.* TO  '" +
-                username + "'@'%' identified by '" + safe_pwd + "'")
+    pdb.execute("GRANT REPLICATION SLAVE ON *.* TO  %s@'%%' identified by %s",
+                (username, password))
 
     psdb.where("username=?", (args['username'],)).save(
         'password', args['password'])

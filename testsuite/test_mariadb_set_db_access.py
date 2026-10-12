@@ -82,11 +82,15 @@ class TestMariaDbSetDbAccess(unittest.TestCase):
 
         # 必须包裹反引号 `my-app-db`.*
         self.assertTrue(any("`my-app-db`.*" in sql for sql in executed_sqls), "未找到反引号包裹的库名授权语句")
-        # 必须转义密码
-        self.assertTrue(any("Pass\\'Word\\\\123" in sql for sql in executed_sqls), "密码未正确转义")
-        # 必须使用 CREATE USER IF NOT EXISTS
-        self.assertTrue(any("CREATE USER IF NOT EXISTS `app-user`@`localhost`" in sql for sql in executed_sqls))
-        self.assertTrue(any("CREATE USER IF NOT EXISTS `app-user`@`192.168.1.50`" in sql for sql in executed_sqls))
+        # CREATE USER 的账号/host/口令走 ORM 参数化（不再手写 `\'` 转义）
+        create_calls = [c for c in mock_pdb.execute.call_args_list
+                        if 'CREATE USER IF NOT EXISTS' in c[0][0]]
+        self.assertTrue(create_calls, "未找到 CREATE USER IF NOT EXISTS 语句")
+        self.assertTrue(any("CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s" in c[0][0]
+                            for c in create_calls))
+        params = [c[0][1] for c in create_calls]
+        self.assertIn(('app-user', 'localhost', 'Pass\'Word\\123'), params)
+        self.assertTrue(any(p[0] == 'app-user' and p[1] == '192.168.1.50' for p in params))
 
     @patch('index.pSqliteDb')
     @patch('index.pMysqlDb')
@@ -125,9 +129,16 @@ class TestMariaDbSetDbAccess(unittest.TestCase):
         # 应该删除了旧的非 localhost 用户
         self.assertTrue(any("drop user 'root'@'127.0.0.1'" in sql for sql in executed_sqls))
 
-        # 应该针对 % 创建了用户并授予了 *.* WITH GRANT OPTION
-        self.assertTrue(any("CREATE USER IF NOT EXISTS `root`@`%`" in sql for sql in executed_sqls))
-        self.assertTrue(any("GRANT ALL PRIVILEGES ON *.* TO `root`@`%` WITH GRANT OPTION" in sql for sql in executed_sqls))
+        # 口令/账号走 ORM 参数化：CREATE USER 里只留 %s 占位；GRANT 仍用反引号标识符
+        self.assertTrue(any("CREATE USER IF NOT EXISTS %s@%s IDENTIFIED BY %s" in sql
+                            for sql in executed_sqls))
+        create_calls = [c for c in mock_pdb.execute.call_args_list
+                        if 'CREATE USER IF NOT EXISTS' in c[0][0]]
+        self.assertTrue(create_calls, "未找到 CREATE USER 调用")
+        self.assertIn('root', create_calls[0][0][1])
+        self.assertIn('%', create_calls[0][0][1])
+        self.assertTrue(any("GRANT ALL PRIVILEGES ON *.* TO `root`@`%` WITH GRANT OPTION" in sql
+                            for sql in executed_sqls))
 
     @patch('index.pSqliteDb')
     @patch('index.pMysqlDb')

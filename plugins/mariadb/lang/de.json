@@ -391,6 +391,7 @@
   "备份文件不存在!": "Sicherungsdatei nicht gefunden!",
   "删除失败:": "Löschen fehlgeschlagen:",
   "访问地址不合法!": "Ungültige Zugriffsadresse!",
+  "访问地址不合法:": "Ungültige Zugriffsadresse:",
   "数据库编码不合法!": "Ungültige Datenbankkodierung!",
   "获取数据库用户失败!": "DB-Benutzer laden fehlgeschlagen!",
   "权限类型不合法!": "Ungültiger Berechtigungstyp!",
