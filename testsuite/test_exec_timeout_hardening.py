@@ -280,7 +280,11 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
                       'gunicorn 启动未用子 shell + exec 隔离调用方管道')
 
     def test_09_panel_tools_service_commands_use_service_timeout(self):
-        """服务类 init.d 命令必须显式传超时（默认 30s 会把慢启动误判成超时）。"""
+        """服务类命令必须显式传超时（默认 30s 会把慢启动误判成超时）。
+
+        覆盖两种形态：`[INIT_CMD, <启停>]`（面板自身服务）与
+        `['systemctl', <启停>, <unit>]`（宝塔 MySQL 接管流程里的启停）。
+        """
         tree = _parse(PANEL_TOOLS)
         consts = {}
         for node in ast.walk(tree):
@@ -299,6 +303,8 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
         allowed = {'SERVICE_TIMEOUT', 'UNINSTALL_TIMEOUT'}
         service_cmds = {'restart', 'stop', 'start', 'reload',
                         'restart_panel', 'restart_task', 'uninstall'}
+        #: systemctl 的启停动词（`is-active` 这类状态查询不算启停，无需长超时）
+        systemctl_cmds = {'restart', 'stop', 'start', 'reload'}
         checked = 0
         for call in ast.walk(tree):
             if not (isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
@@ -312,7 +318,10 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
             is_init_cmd = isinstance(head, ast.Name) and head.id == 'INIT_CMD'
             # ['bash', uninstall_script] 也是服务类命令（卸载脚本可能跑很久）
             is_uninstall = 'bash' in texts
-            if not (is_uninstall or (is_init_cmd and (texts & service_cmds))):
+            # ['systemctl', 'start'|'stop'|..., unit]：宝塔 MySQL 接管流程
+            is_systemctl_service = 'systemctl' in texts and bool(texts & systemctl_cmds)
+            if not (is_uninstall or (is_init_cmd and (texts & service_cmds))
+                    or is_systemctl_service):
                 continue
             checked += 1
             names = [kw.value.id for kw in call.keywords
@@ -320,8 +329,9 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
             self.assertTrue(names and names[0] in allowed,
                             '行 %d 的服务类命令 timeout 不是 %r 之一：%r'
                             % (getattr(call, 'lineno', -1), sorted(allowed), sorted(texts)))
-        self.assertGreaterEqual(checked, 8,
-                                '识别到的服务类调用只有 %d 处，用例可能失效了' % checked)
+        self.assertGreaterEqual(checked, 15,
+                                '识别到的服务类调用只有 %d 处（INIT_CMD 11 处 + systemctl 4 处），'
+                                '用例可能失效了' % checked)
 
     def test_10_service_commands_refresh_init_script_first(self):
         """服务类命令必须先刷新 initd，否则升级后第一次 `yf 1` 仍会「无响应」。
@@ -394,6 +404,57 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
             checked_echo += 1
         self.assertGreaterEqual(checked_echo, 10,
                                 '识别到的启停类 echo=True 数量不足（预期至少 10 处，实测 %d 处）' % checked_echo)
+
+    def test_12_mysql_takeover_aborts_when_stop_fails(self):
+        """AST：接管流程 stop 之后必须以「实际运行状态」复核，仍在运行则中止。
+
+        为什么不能用单条 `systemctl stop` 的返回码：mysql / mysqld 两个 systemd 单元
+        通常只装一个，另一个必然 "Unit not found" 假失败。停不干净还继续 `cp -rf`
+        会把正在使用的数据目录直接覆盖掉，因此必须**状态复核 + 中止**。
+        """
+        tree = _parse(PANEL_TOOLS)
+
+        def shell_texts(call):
+            """safeExecShell/execShell 调用里的字面量参数集合（非列表参数返回 None）。"""
+            if not (isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+                    and call.func.attr in ('safeExecShell', 'execShell') and call.args):
+                return None
+            first = call.args[0]
+            if not isinstance(first, ast.List):
+                return None
+            return {e.value for e in first.elts if isinstance(e, ast.Constant)}
+
+        def is_state_probe(call):
+            """`systemctl is-active <unit>` / `pgrep ...` 这类「实际运行状态」探测。"""
+            texts = shell_texts(call)
+            if not texts:
+                return False
+            return 'pgrep' in texts or ('systemctl' in texts and 'is-active' in texts)
+
+        fns = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+        self.assertIn('restore_bt_data', fns, '宝塔数据接管函数 restore_bt_data 不见了')
+        fn = fns['restore_bt_data']
+
+        stop_lines = [n.lineno for n in ast.walk(fn)
+                      if (shell_texts(n) or set()) >= {'systemctl', 'stop'}]
+        self.assertTrue(stop_lines, '接管流程里找不到 systemctl stop 调用')
+        last_stop = max(stop_lines)
+
+        probe_lines = [n.lineno for n in ast.walk(fn)
+                       if is_state_probe(n) and n.lineno > last_stop]
+        self.assertTrue(probe_lines,
+                        'stop（行 %d）之后没有 is-active/pgrep 状态复核：'
+                        '单条 stop 的返回码判不出「是否真的停了」' % last_stop)
+
+        aborts = []
+        for n in ast.walk(fn):
+            if not isinstance(n, ast.If) or n.lineno < min(probe_lines):
+                continue
+            if any(isinstance(b, (ast.Return, ast.Raise)) for b in ast.walk(n)):
+                aborts.append(n.lineno)
+        self.assertTrue(aborts,
+                        '状态复核（行 %r）之后没有「仍在运行则中止」的分支（return/raise）：'
+                        'MySQL 停不干净时会继续 cp -rf 覆盖数据目录' % sorted(probe_lines))
 
 
 if __name__ == '__main__':

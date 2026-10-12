@@ -665,9 +665,29 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                 return
 
             print("  正在停止 MySQL 服务...")
-            yf.safeExecShell(['systemctl', 'stop', 'mysql'])
-            yf.safeExecShell(['systemctl', 'stop', 'mysqld'])
-            
+            yf.safeExecShell(['systemctl', 'stop', 'mysql'], timeout=SERVICE_TIMEOUT, echo=True)
+            yf.safeExecShell(['systemctl', 'stop', 'mysqld'], timeout=SERVICE_TIMEOUT, echo=True)
+
+            # 停服务后以「实际运行状态」复核，而不是单条 stop 的返回码：
+            # mysql / mysqld 两个 systemd 单元通常只存在一个，另一个必然报
+            # "Unit not found"，把返回码当失败判据只会误报。
+            mysql_running = False
+            for unit in ('mysql', 'mysqld'):
+                state, _err = yf.safeExecShell(['systemctl', 'is-active', unit],
+                                               timeout=SERVICE_TIMEOUT)
+                if state.strip() not in ('', 'inactive', 'failed', 'unknown'):
+                    mysql_running = True
+            if not mysql_running:
+                # systemctl 不可用（非 systemd 环境）时直接看进程
+                procs, _err = yf.safeExecShell(['pgrep', '-x', 'mysqld'],
+                                               timeout=SERVICE_TIMEOUT)
+                mysql_running = bool(procs.strip())
+            if mysql_running:
+                print("  ❌ 致命错误：MySQL 服务未能停止，仍在运行！")
+                print("  ⚠️  继续复制数据目录会覆盖正在使用的数据文件，已中止接管。")
+                print("  💡 解决方法：请先手动执行 systemctl stop mysql，再重新执行本命令。")
+                return
+
             new_data_dir = new_mysql_dir + "/data"
             if os.path.exists(new_data_dir):
                 backup_new_data = new_mysql_dir + "/data_orig_bak"
@@ -684,8 +704,16 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
             yf.safeExecShell(['chmod', '-R', '700', new_data_dir])
             
             print("  正在启动 MySQL 服务并升级检查...")
-            yf.safeExecShell(['systemctl', 'start', 'mysql'])
-            yf.safeExecShell(['systemctl', 'start', 'mysqld'])
+            # echo=True 时 systemctl 自身的报错已实时直通终端；safeExecShell 返回的
+            # err 只在超时/异常（进程已被回收，终端看不到原因）时有内容，显式打出来。
+            _out, _err = yf.safeExecShell(['systemctl', 'start', 'mysql'],
+                                          timeout=SERVICE_TIMEOUT, echo=True)
+            if _err.strip():
+                print("  ❌ 启动 mysql 出错: " + _err.strip())
+            _out, _err = yf.safeExecShell(['systemctl', 'start', 'mysqld'],
+                                          timeout=SERVICE_TIMEOUT, echo=True)
+            if _err.strip():
+                print("  ❌ 启动 mysqld 出错: " + _err.strip())
             time.sleep(2)
             
             print("  正在修复 MySQL root 密码与面板同步...")
