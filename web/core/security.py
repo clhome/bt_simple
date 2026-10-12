@@ -20,7 +20,8 @@
 策略（OR 语义，刻意保守）：
     非安全方法（POST/PUT/PATCH/DELETE）只要满足以下**任一**条件即放行：
       a. 带 `App-Id` 头 —— 走 App-Secret 的 API 鉴权，不属于浏览器 CSRF 模型；
-      b. 命中豁免路径（`/hook` 自带 access_key 鉴权、`/.well-known/` 是 ACME 挑战）；
+      b. 命中豁免路径（`/hook` 自带 access_key 鉴权、`/.well-known/` 是 ACME 挑战、
+         `POST */quick_login` 是跨面板快捷登录，凭据在 body 现验 + 一次性 nonce）；
       c. 双提交 Token 正确；
       d. Referer 或 Origin 的 host 与本机一致。
     四者都不满足 -> 拒绝。
@@ -42,6 +43,11 @@ CSRF_EXEMPT_PATHS = ('/hook',)
 #: 豁免前缀（ACME 挑战等）
 CSRF_EXEMPT_PREFIXES = ('/.well-known/',)
 
+#: 跨面板快捷登录端点后缀（仅 POST）。源面板→目标面板天然跨源，拿不到目标的
+#: 会话 CSRF token；该端点凭据在 body 里现验 + 一次性 nonce + 统一限流，且旧实现
+#: `GET ?login=` 本就属 CSRF 豁免（安全方法），故豁免不扩大暴露面。
+CSRF_EXEMPT_POST_SUFFIX = '/quick_login'
+
 
 def netloc_of(url_str):
     """取 URL 的 host:port（容忍缺 scheme 的写法）。"""
@@ -55,10 +61,16 @@ def netloc_of(url_str):
         return ''
 
 
-def _is_exempt_path(path):
+def _is_exempt_path(path, method=None):
     if path in CSRF_EXEMPT_PATHS:
         return True
-    return any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES)
+    if any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
+        return True
+    # 跨面板快捷登录：**只**豁免 POST 且路径恰以 /quick_login 结尾。
+    # 用精确后缀而非 `in`/前缀，避免把 /quick_login_evil、/x/quick_login/extra 一起放进来。
+    if (method or '').upper() == 'POST' and path.endswith(CSRF_EXEMPT_POST_SUFFIX):
+        return True
+    return False
 
 
 def csrf_decision(method, path, host, referer='', origin='',
@@ -72,7 +84,7 @@ def csrf_decision(method, path, host, referer='', origin='',
         return True, 'safe-method'
     if has_app_id:
         return True, 'api-header-auth'
-    if _is_exempt_path(path or ''):
+    if _is_exempt_path(path or '', method):
         return True, 'exempt-path'
 
     token_ok = False

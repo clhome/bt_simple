@@ -99,6 +99,37 @@ class CsrfDecisionTest(unittest.TestCase):
             self.assertTrue(allowed, path)
             self.assertEqual(reason, 'exempt-path')
 
+    def test_09a_quick_login_post_is_exempt(self):
+        """跨面板快捷登录：源→目标天然跨源，POST /<安全入口>/quick_login 必须放行。"""
+        for path in ('/quick_login', '/secret/quick_login', '/panel-7200/quick_login'):
+            allowed, reason = self._decide(path=path)
+            self.assertTrue(allowed, path)
+            self.assertEqual(reason, 'exempt-path', path)
+
+    def test_09b_quick_login_exemption_requires_post(self):
+        """豁免必须精确到 POST：其它不安全方法不得搭便车。"""
+        for method in ('PUT', 'PATCH', 'DELETE'):
+            allowed, reason = self._decide(method=method, path='/secret/quick_login')
+            self.assertFalse(allowed, method)
+            self.assertEqual(reason, 'no-proof', method)
+        # GET 是安全方法，直接放行（与豁免无关，不得记成 exempt-path）
+        allowed, reason = self._decide(method='GET', path='/xxx/quick_login')
+        self.assertTrue(allowed)
+        self.assertEqual(reason, 'safe-method')
+
+    def test_09c_quick_login_exemption_is_not_a_prefix_match(self):
+        """近似路径不得被一起豁免（避免前缀/`in` 匹配放行 /quick_login_evil 等）。"""
+        for path in ('/quick_login_evil', '/xxx/quick_login/extra', '/secret/quick_loginx'):
+            allowed, reason = self._decide(path=path)
+            self.assertFalse(allowed, path)
+            self.assertEqual(reason, 'no-proof', path)
+
+    def test_09d_plain_login_post_still_guarded(self):
+        """豁免没有误伤登录页：普通 POST /login 仍受 CSRF 保护。"""
+        allowed, reason = self._decide(path='/login')
+        self.assertFalse(allowed)
+        self.assertEqual(reason, 'no-proof')
+
     def test_10_token_compare_is_constant_time_and_strict(self):
         """必须是全等比较：前缀/大小写不同都不能放过。"""
         for bad in ('to', 'tok ', 'TOK', 'tokx', ''):

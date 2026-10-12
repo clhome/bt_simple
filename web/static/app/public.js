@@ -1862,6 +1862,34 @@ function listOrder(skey, type, obj) {
   }
 }
 
+//向关联面板提交快捷登录：口令只进 POST body（URL 不含凭据），
+//nonce 由源面板现签，目标面板记为一次性、短时效（防重放）
+function quickLoginPanel(action, fields) {
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = action;
+  form.target = '_blank';
+  form.style.display = 'none';
+  for (var name in fields) {
+    if (!Object.prototype.hasOwnProperty.call(fields, name)) {
+      continue;
+    }
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = fields[name];
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+  // 提交是异步排队执行的，立即摘除可能取消导航，延迟清理
+  setTimeout(function () {
+    if (form.parentNode) {
+      form.parentNode.removeChild(form);
+    }
+  }, 1000);
+}
+
 //获取关联列表
 function getPanelList() {
   var con = '';
@@ -1882,13 +1910,14 @@ function getPanelList() {
     }).on('mouseleave', function () {
       $(this).css("opacity", ".6");
     }).on('click', function () {
-      // 服务端按需现签登录串：浏览器不再持有明文口令，避免 DOM/页面缓存泄露
+      // 服务端按需现签登录参数：口令只在提交给目标面板的 POST body 里，
+      // 浏览器 URL / 访问日志不再出现凭据（旧机制把 base64(口令) 拼进安全入口 URL）
       var panel_id = $(this).attr("data-id");
       $.post("/setting/get_panel_login", {
         id: panel_id
       }, function (res) {
         if (res && res.status && res.data && res.data.url) {
-          window.open(res.data.url);
+          quickLoginPanel(res.data.url, res.data.fields || {});
         } else {
           layer.msg((res && res.msg) || t('public.ERROR'), {
             icon: 2

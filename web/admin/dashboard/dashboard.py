@@ -11,7 +11,6 @@
 
 import io
 import time
-import base64
 import json
 import os
 import sys
@@ -27,9 +26,10 @@ from flask import request,g
 
 from admin.common import isLogined
 from admin.user_login_check import panel_login_required
-from admin import cache,session
+from admin import cache
 
 import core.yf as yf
+import core.quick_login_nonce as quick_login_nonce
 import thisdb
 
 
@@ -40,65 +40,18 @@ def index():
     name = thisdb.getOption('template', default='default')
     return render_template('%s/index.html' % name)
 
+#: 快捷登录签发时间戳的容许窗口（毫秒，双边界），与 core.quick_login_nonce.NONCE_TTL 对齐。
+QUICK_LOGIN_TTL_MS = 60 * 1000
+
+
 # 安全路径
+#
+# 注意：旧的 `?login=base64(json{password})` 快捷登录机制**已废弃**：
+#   * 明文口令进 URL → 落访问日志 / 浏览器历史 / Referer；
+#   * 该分支只校验口令，不校验二步验证（2FA 旁路）。
+# 现在改为 POST /<安全入口>/quick_login（口令只在 body，见下）。
 @blueprint.route('/<path>',endpoint='admin_safe_path',methods=['GET'])
 def admin_safe_path(path):
-    login = request.args.get('login', '')
-    if login != '':
-        client_ip = yf.getClientIp()
-
-        # 与正常登录共享封禁/失败计数，堵住“快捷登录旁路”被用作无限爆破入口。
-        try:
-            from .login import (_is_banned, _register_login_failure,
-                               _reset_login_failure, _password_matches)
-        except Exception:
-            _is_banned = _register_login_failure = _reset_login_failure = _password_matches = None
-
-        if _is_banned is not None and _is_banned(client_ip):
-            return redirect('/')
-
-        try:
-            # print(login)
-            login_str = base64.b64decode(login)
-            login_str = login_str.decode('utf-8')
-            data = json.loads(login_str)
-
-            time_now = time.time() * 1000
-            time_diff = time_now - float(data['time'])
-
-            # 防止时钟回拨/未来时间戳绕过新鲜度校验
-            if time_diff > 2000 or time_diff < -2000:
-                return redirect('/')
-
-            info = thisdb.getUserByName(data['username'])
-            if info is None or _password_matches is None \
-                    or not _password_matches(info, data.get('password', '')):
-                if _register_login_failure is not None:
-                    _register_login_failure(client_ip)
-                return redirect('/')
-
-            if _reset_login_failure is not None:
-                _reset_login_failure(client_ip)
-
-            # 先清空旧会话，防止会话固定（session fixation）
-            session.clear()
-            session['login'] = True
-            session['username'] = info['name']
-            session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
-
-            thisdb.updateUserLoginTime(client_ip)
-            yf.writeLog('用户登录', '用户[{1}]通过安全入口快捷登录成功, 登录IP:{2}', (info['name'], client_ip))
-            return redirect('/')
-        except Exception as e:
-            if _register_login_failure is not None:
-                try:
-                    _register_login_failure(client_ip)
-                except Exception as e:
-                    # 登录失败计数落库失败会削弱暴力破解防护，必须可见
-                    yf.writeFileLog('[dashboard] 记录登录失败次数失败: %s' % e)
-            pass
-        
-
     db_path = thisdb.getOption('admin_path', default='')
     name = thisdb.getOption('template', default='default')
     if isLogined():
@@ -110,6 +63,56 @@ def admin_safe_path(path):
     if unauthorized_status == '0':
         return render_template('%s/path.html' % name)
     return Response(status=int(unauthorized_status))
+
+# 安全入口快捷登录（POST）：口令只在 body，nonce 一次性 + 短时效。
+# 与 do_login / verify_login 共用同一套限流、口令校验与二步验证流程。
+@blueprint.route('/<path>/quick_login', endpoint='quick_login', methods=['POST'])
+def quick_login(path):
+    db_path = thisdb.getOption('admin_path', default='')
+    # 安全入口未设置 / 路径不匹配：按「无此入口」处理，不泄露入口是否存在
+    if db_path == '' or db_path != path:
+        return redirect('/')
+
+    client_ip = yf.getClientIp()
+
+    # 复用 login.py 的登录校验/限流助手（与 do_login 同口径），避免成为爆破旁路
+    from .login import (_is_banned, _register_login_failure,
+                        _reset_login_failure, _password_matches, _login_success)
+
+    username = request.form.get('username', '').strip()
+    if _is_banned(client_ip, username):
+        return redirect('/')
+
+    nonce = request.form.get('nonce', '').strip()
+    password = request.form.get('password', '')
+    try:
+        stamp_ms = float(request.form.get('time', 0) or 0)
+    except (TypeError, ValueError):
+        stamp_ms = 0
+
+    # 时效校验（双边界，防时钟回拨/未来时间戳） + 一次性 nonce（用后即焚，防重放）
+    now_ms = time.time() * 1000
+    if stamp_ms <= 0 or abs(now_ms - stamp_ms) > QUICK_LOGIN_TTL_MS:
+        return redirect('/')
+    if not quick_login_nonce.burn(nonce):
+        return redirect('/')
+
+    info = thisdb.getUserByName(username)
+    if info is None or not _password_matches(info, password):
+        _register_login_failure(client_ip, username)
+        return redirect('/')
+
+    _reset_login_failure(client_ip, username)
+
+    # 二步验证强制：开启后绝不直接落登录态，回到安全入口登录页，
+    # 走与 do_login 相同的 TOTP 第二步（verify_login），不能成为 2FA 旁路。
+    two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open': False})
+    if two_step_verification.get('open'):
+        return redirect('/' + db_path)
+
+    _login_success(info, client_ip)
+    yf.writeLog('用户登录', '用户[{1}]通过安全入口快捷登录成功, 登录IP:{2}', (info['name'], client_ip))
+    return redirect('/')
 
 # 获取最近登录记录 (支持专业精致微表格展示)
 def parse_ip_type_info(ip):

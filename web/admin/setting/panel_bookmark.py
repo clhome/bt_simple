@@ -10,10 +10,8 @@
 # ---------------------------------------------------------------------------------
 
 import re
-import json
 import os
 import time
-import base64
 
 from flask import Blueprint, render_template
 from flask import request
@@ -30,9 +28,10 @@ from .setting import blueprint
 import thisdb
 
 # ---------------------------------------------------------------------------------
-# 关联面板书签：密码落库加密（面板 Salt + Fernet），接口不再回传明文密码。
-# 快捷登录所需的登录串由服务端按需现签（/setting/get_panel_login），浏览器 DOM
-# 中不再驻留明文口令。历史明文行在读取时兼容透传，并在下次保存时自动升级为密文。
+# 关联面板书签：密码落库加密（面板 Salt + Fernet），列表接口不回传密码。
+# 快捷登录参数由服务端按需现签（/setting/get_panel_login），浏览器 DOM 中不驻留
+# 明文口令；口令只在提交给目标面板的 POST body 里，URL 不含凭据。历史明文行在
+# 读取时兼容透传，并在下次保存时自动升级为密文。
 # ---------------------------------------------------------------------------------
 _PB_CRYPT_KEY = 'panel_bookmark'
 _PB_URL_RE = re.compile(r'^https?://[^\s/]+', re.I)
@@ -92,7 +91,19 @@ def get_panel_list():
     return yf.returnData(True, 'ok!', data)
 
 
-# 按需现签关联面板的快捷登录串（服务端解密后再组 URL，前端不持有明文口令）
+# 目标面板的快捷登录端点：/<安全入口>/quick_login（见 dashboard.py::quick_login）
+def _quick_login_url(base):
+    url = str(base).strip()
+    # 丢掉 base 自带的查询串/锚点，避免拼出畸形地址
+    for sep in ('#', '?'):
+        if sep in url:
+            url = url.split(sep, 1)[0]
+    return url.rstrip('/') + '/quick_login'
+
+
+# 按需现签关联面板的快捷登录参数（服务端解密后再交给前端，前端不持有明文口令）
+# 口令只出现在隐藏表单的 POST body 里，URL 不含任何凭据（旧机制把 base64(口令)
+# 拼进 `?login=`，会进访问日志/浏览器历史）。
 @blueprint.route('/get_panel_login', endpoint='get_panel_login', methods=['POST'])
 @panel_login_required
 def get_panel_login():
@@ -101,16 +112,18 @@ def get_panel_login():
     if not row or not row.get('url') or not _valid_panel_url(row.get('url')):
         return yf.returnData(False, 'setting.py_msg_785f90')
 
-    payload = {
-        'rand': yf.getRandomString(8),
+    # nonce 由源面板随机生成，目标面板记为「一次性、短时效」（防重放）；
+    # 两套安装只共享口令、不共享密钥，目标面板无法验签，nonce 仅作防重放标识。
+    fields = {
+        'nonce': yf.getRandomString(32),
         'username': row.get('username', ''),
         'password': _dec_pwd(row.get('password', '')),
         'time': int(time.time() * 1000),
     }
-    login_args = base64.b64encode(
-        json.dumps(payload).encode('utf-8')).decode('utf-8')
-    sep = '&' if '?' in row['url'] else '?'
-    return yf.returnData(True, 'ok!', {'url': row['url'] + sep + 'login=' + login_args})
+    return yf.returnData(True, 'ok!', {
+        'url': _quick_login_url(row.get('url')),
+        'fields': fields,
+    })
 
 
 # 删除面板书签
