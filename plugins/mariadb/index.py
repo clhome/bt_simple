@@ -89,6 +89,13 @@ def checkArgs(data, ck=[]):
     return (True, yf.returnJson(True, 'ok'))
 
 
+def safe_check_args(db_name=None, sign_val=None, username=None):
+    # 与 mysql 插件同名同口径，统一委托给 yf.dbSafeCheckArgs。
+    # 本文件历史上整文件 0 处白名单（测评报告 P0-1③「修了一半」），收敛到 yf 一处实现后
+    # 两端不可能再单侧漂移。
+    return yf.dbSafeCheckArgs(db_name=db_name, sign_val=sign_val, username=username)
+
+
 def getBackupDir():
     bk_path = yf.getBackupDir() + "/database/mariadb"
     if not os.path.isdir(bk_path):
@@ -979,19 +986,24 @@ def setMyDbPos():
         return data[1]
 
     s_datadir = getMyDbPos()
-    t_datadir = args['datadir']
+    t_datadir = yf.safeDatadir(args['datadir'])
+    if not t_datadir:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     if t_datadir == s_datadir:
         return yf.returnJson(False, '与当前存储目录相同，无法迁移文件!')
 
     if not os.path.exists(t_datadir):
         yf.makeDirs(t_datadir)
 
+    # 拼接侧双保险：datadir 已过白名单，仍逐段 shlexQuote，`/*` 保持未引用以维持 glob
+    q_s_datadir = yf.shlexQuote(s_datadir)
+    q_t_datadir = yf.shlexQuote(t_datadir)
     stop()
-    yf.execShell('cp -rf ' + s_datadir + '/* ' + t_datadir + '/')
-    yf.execShell('chown -R mysql mysql ' + t_datadir)
-    yf.execShell('chmod -R 755 ' + t_datadir)
-    yf.execShell('rm -f ' + t_datadir + '/*.pid')
-    yf.execShell('rm -f ' + t_datadir + '/*.err')
+    yf.execShell('cp -rf ' + q_s_datadir + '/* ' + q_t_datadir + '/')
+    yf.execShell('chown -R mysql mysql ' + q_t_datadir)
+    yf.execShell('chmod -R 755 ' + q_t_datadir)
+    yf.execShell('rm -f ' + q_t_datadir + '/*.pid')
+    yf.execShell('rm -f ' + q_t_datadir + '/*.err')
 
     path = getServerDir()
     myfile = path + '/etc/my.cnf'
@@ -3332,16 +3344,24 @@ def addSlaveSyncUser(version=''):
     ip = args['ip']
     if ip == "":
         return yf.returnJson(True, 'ok')
+    ip = yf.safeSyncIp(ip)
+    if not ip:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     data = checkArgs(args, ['port', 'user', 'pass', 'mode'])
     if not data[0]:
         return data[1]
 
     cmd = args['cmd']
-    port = args['port']
-    user = args['user']
-    apass = args['pass']
+    # 写入侧白名单：端口 1–65535、用户名/口令限字符集（拒引号/空白/shell 元字符）。
+    # 触发侧（doFullSyncUser 的 mariadb-dump）另有 shlexQuote 双保险。
+    port = yf.safeSyncPort(args['port'])
+    user = yf.safeSyncUser(args['user'])
+    apass = yf.safeSyncPass(args['pass'])
     mode = args['mode']
+    if not (port and user and apass):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+    port = str(port)
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
 
     conn = pSqliteDb('slave_sync_user')
@@ -3876,10 +3896,8 @@ def syncDatabaseRepairLog(version=''):
     sync_args_sign = args['sign']
     op = args['op']
 
-    if not re.match(r"^[\w\.-]+$", sync_args_db):
-        return yf.returnJson(False, '数据库名称不合法!')
-    if not re.match(r"^[\w\.-]+$", sync_args_sign):
-        return yf.returnJson(False, '签名不合法!')
+    if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     tmp_log = syncDatabaseRepairTempFile()
     json_args = json.dumps({"db": sync_args_db, "sign": sync_args_sign})
@@ -3920,7 +3938,9 @@ def syncDatabaseRepair(version=''):
 
     sync_args_db = args['db']
     sync_args_sign = args['sign']
-    
+    if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+
     # 本地数据
     local_db = pMysqlDb()
     # 远程数据
@@ -4158,6 +4178,8 @@ def fullSync(version=''):
     data = checkArgs(args, ['db', 'begin'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args.get('sign')):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sign = ''
     if 'sign' in args:
@@ -4165,9 +4187,11 @@ def fullSync(version=''):
 
     status_file = asyncTmpfile()
     if args['begin'] == '1':
-        cmd = 'cd ' + yf.getPanelDir() + ' && python3 ' + \
-            getPluginDir() + \
-            '/index.py do_full_sync {"db":"' + args['db'] + '","sign":"' + sign + '"} &'
+        # 拼接侧双保险：db/sign 已过白名单，仍逐段 shlexQuote（子进程 getArgs 按 JSON 解析）
+        payload = json.dumps({'db': args['db'], 'sign': sign})
+        cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && python3 ' + \
+            yf.shlexQuote(getPluginDir() + '/index.py') + ' do_full_sync ' + \
+            yf.shlexQuote(payload) + ' &'
         # print(cmd)
         yf.execShell(cmd)
         return json.dumps({'code': 0, 'msg': '同步数据中!', 'progress': 0})
@@ -4198,6 +4222,8 @@ def fullSyncCmd():
 
     db = args['db']
     sign = args['sign']
+    if not safe_check_args(db_name=db, sign_val=sign):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + ' && source bin/activate && python3 ' + \
         yf.shlexQuote(yf.getPanelDir() + '/plugins/mariadb/index.py') + ' do_full_sync ' + \
@@ -4206,6 +4232,11 @@ def fullSyncCmd():
 
 # python3 plugins/mariadb/index.py do_full_sync {"db":"demo1","sign":"","beigin":"1"}
 def doFullSync(version=''):
+    args = getArgs()
+    db = args.get('db')
+    sign = args.get('sign')
+    if not safe_check_args(db_name=db, sign_val=sign):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
         return yf.returnJson(False, '需要先设置同步配置')
@@ -4228,6 +4259,8 @@ def doFullSyncUser(version=''):
     data = checkArgs(args, ['db', 'sign'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     time_all_s = time.time()
     sync_db = args['db']
@@ -4246,10 +4279,14 @@ def doFullSyncUser(version=''):
     if not data:
         writeDbSyncStatus({'code': 0, 'msg': '请添加同步账户!', 'progress': 0})
         return False
-    user = data['user']
-    apass = data['pass']
-    port = data['port']
-    ip = data['ip']
+    # 触发侧再校验一次：库里的值可能是加固前的写入侧存进去的，不能只信写入侧
+    user = yf.safeSyncUser(data['user'])
+    apass = yf.safeSyncPass(data['pass'])
+    port = yf.safeSyncPort(data['port'])
+    ip = yf.safeSyncIp(data['ip'])
+    if not (user and apass and port and ip):
+        writeDbSyncStatus({'code': 0, 'msg': '同步账户配置非法，请重新添加!', 'progress': 0})
+        return False
 
     bak_file = '/tmp/tmp.sql'
     if os.path.exists(bak_file):
@@ -4275,8 +4312,9 @@ def doFullSyncUser(version=''):
         dmp_option += " --master-data=1 --apply-slave-statements --include-master-host-port "
 
         # https://mariadb.com/kb/zh-cn/mariadb-dump/
-        dump_sql_data = getServerDir() + "/bin/mariadb-dump " + dmp_option + " -f --default-character-set=utf8 --single-transaction --compress -q -h" + ip + " -P" + \
-            port + " -u" + user + " -p'" + apass + "' " + sync_db + ">" + bak_file
+        dump_sql_data = getServerDir() + "/bin/mariadb-dump " + dmp_option + " -f --default-character-set=utf8 --single-transaction --compress -q -h" + \
+            yf.shlexQuote(ip) + " -P" + yf.shlexQuote(port) + " -u" + yf.shlexQuote(user) + " -p" + \
+            yf.shlexQuote(apass) + " " + sync_db + ">" + yf.shlexQuote(bak_file)
         print(dump_sql_data)
         yf.execShell(dump_sql_data)
 
@@ -4338,6 +4376,8 @@ def doFullSyncSSH(version=''):
     data = checkArgs(args, ['db', 'sign'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     db = pMysqlDb()
 

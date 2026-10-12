@@ -1257,3 +1257,5 @@ from . import panel
 from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMessage, emailNotifyTest, getFpmAddress, getFpmConfFile, getMyORM, getNotifyData, getOpVer, getWebStatus, initNotifyConfig, isInstalledWeb, isRestart, notifyMessage, opLuaInitAccessFile, opLuaInitFile, opLuaInitWorkerFile, opLuaMake, opLuaMakeAll, panelCmd, requestFcgiPHP, restartPanel, restartTask, restartWeb, tgbotNotifyChatID, tgbotNotifyHttpPost, tgbotNotifyMessage, tgbotNotifyObject, tgbotNotifyTest, triggerTask, wakePanelTask, writeNotify
 from . import system
 from .system import checkDomainPanel, fileNameCheck, getCertName, getCpuType, getObjectByJson, getOsID, getOsName, getPage, getPageObject, getStaticJson, getSystemDeviceTemperature, isChina, isDocker, isSupportHttp3, isVhostHasReuseport, isYufengPanel
+from . import validate
+from .validate import dbSafeCheckArgs, safeDatadir, safeSyncIp, safeSyncPass, safeSyncPort, safeSyncUser
