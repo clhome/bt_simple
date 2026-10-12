@@ -2431,8 +2431,8 @@ def addDb():
         return yf.returnJson(False, '数据库用户名不合法!')
     if dbname in checks or len(dbname) < 1:
         return yf.returnJson(False, '数据库名称不合法!')
-    for _a in address.split(','):
-        if _a and not _DB_USER_IDENT_RE.match(_a):
+    for a in address.split(','):
+        if a and not _DB_USER_IDENT_RE.match(a):
             return yf.returnJson(False, '访问地址不合法!')
 
     if len(password) < 1:
@@ -2712,10 +2712,16 @@ def setDbAccess():
         if err is not None:
             return err
 
+        # `name` 会被拼进 drop user / CREATE USER 的标识符（无法参数化）→ 拼前白名单
+        if not _DB_USER_IDENT_RE.match(name):
+            return yf.returnJson(False, '数据库用户名不合法!')
+
         if isinstance(users, list):
             for us in users:
-                h = us.get("Host") if isinstance(us, dict) else us[0]
-                pdb.execute("drop user '" + name + "'@'" + str(h) + "'")
+                h = str(us.get("Host") if isinstance(us, dict) else us[0])
+                if not _DB_USER_IDENT_RE.match(h):
+                    continue
+                pdb.execute("drop user '" + name + "'@'" + h + "'")
 
         # 解析目标 host 列表（host 会被拼进 `user`@`host` 反引号标识符，必须白名单）
         target_hosts = []
@@ -3239,10 +3245,16 @@ def setDbMasterAccess():
         if err is not None:
             return err
 
+        # `username` 会被拼进 drop user / CREATE USER 的标识符（无法参数化）→ 拼前白名单
+        if not _DB_USER_IDENT_RE.match(username):
+            return yf.returnJson(False, '用户名不合法!')
+
         if isinstance(users, list):
             for us in users:
-                h = us.get("Host") if isinstance(us, dict) else us[0]
-                pdb.execute("drop user '" + username + "'@'" + str(h) + "'")
+                h = str(us.get("Host") if isinstance(us, dict) else us[0])
+                if not _DB_USER_IDENT_RE.match(h):
+                    continue
+                pdb.execute("drop user '" + username + "'@'" + h + "'")
 
         target_hosts = []
         for a in access.split(','):

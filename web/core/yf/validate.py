@@ -29,9 +29,10 @@ _DATADIR_RE = re.compile(r'^/[A-Za-z0-9_./-]{1,200}$')
 _SYNC_USER_RE = re.compile(r'^[A-Za-z0-9_@.\-]{1,64}$')
 
 #: SQL 标识符 / 复制渠道名 / 同步 sign（`FOR CHANNEL 'x'`、`SLAVE 'x'`）：
-#: 这些位置无法参数化，只能靠白名单。用户裁定（父 agent §四 裁决）：字符集收紧到
-#: `[A-Za-z0-9_$]`，**拒绝反引号/点/空格/`-`** —— 反引号包裹前必须先校验。
-_IDENTIFIER_RE = re.compile(r'^[A-Za-z0-9_$]{1,64}$')
+#: 这些位置无法参数化，只能靠白名单。用户裁定（父 agent §四 裁决）：字符集
+#: `[A-Za-z0-9_$-]`，**拒绝反引号/点/空格/引号/`;`/`|`/`$(` 等 shell/SQL 元字符**；
+#: 允许 `-` —— MySQL 库名（`my-db`）合法含 `-`，`addDb` 侧白名单也是 `[\w-]+`。
+_IDENTIFIER_RE = re.compile(r'^[A-Za-z0-9_$-]{1,64}$')
 
 #: 主库 SSH 回传的同步命令：必须是一条 CHANGE MASTER TO / CHANGE REPLICATION SOURCE TO
 _REPLICATION_CMD_RE = re.compile(
@@ -51,8 +52,9 @@ _SYNC_PASS_RE = re.compile(r'[^\x00-\x1f\x7f]{1,128}')
 def safeIdentifier(value):
     """SQL 标识符（反引号包裹的库名）/ 复制渠道名 / 同步 sign 白名单；非法返回 ''。
 
-    用户裁定（父 agent §四 裁决）：字符集 `^[A-Za-z0-9_$]{1,64}$`，拒绝反引号/点/空格/
-    `-`。用于**无法参数化**的标识符位置：`show tables from <db>`、
+    用户裁定（父 agent §四 裁决）：字符集 `^[A-Za-z0-9_$-]{1,64}$`，拒绝反引号/点/空格/
+    引号/`;`/`|`/`$(` 等 shell/SQL 元字符，但**允许 `-`**（MySQL 库名合法字符，如 `my-db`；
+    收紧到不含 `-` 会误拒既有合法库名）。用于**无法参数化**的标识符位置：`show tables from <db>`、
     `REPAIR/OPTIMIZE/ALTER TABLE <db>.<t>`、`STOP/START SLAVE ... FOR CHANNEL '<name>'`。
     这些值来自用户入参（`args['name']`/`args['db_name']`/`deleteSlave` 的 `sign`）或
     服务器回显（`SHOW SLAVE STATUS` 的 `Channel_Name`），都不得裸拼进 SQL 文本。

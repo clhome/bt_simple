@@ -31,6 +31,9 @@
    标识符 → `yf.safeIdentifier`（`test_45`/`test_46`）；第 4 类 `show tables from` 的
    库名（复核确认是 `args['name'|'db_name']`，非元数据）→ `yf.safeIdentifier` +
    `table_schema` 参数化（`test_43`/`test_44`）。
+8. **§四 延伸收尾**：`safeIdentifier` 允许 `-`（MySQL 库名 `my-db` 合法，收紧会误拒，
+   `test_40`）；`drop user '<u>'@'<h>'` 无法参数化，拼进 SQL 的用户名/Host 必须先过
+   `_DB_USER_IDENT_RE` 白名单或 `_dropUserTargets`（`test_52`）。
 
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
@@ -534,6 +537,51 @@ def _query_calls(fn):
             and n.func.attr in ('query', 'execute')]
 
 
+def _whitelisted_user_host_names(fn):
+    """函数体里已过白名单的变量名（供 `drop user '<u>'@'<h>'` 拼接点判定）。
+
+    识别两种写法：
+    - `_DB_USER_IDENT_RE.match(x)`（含 `.match(str(x))`）的布尔守卫；
+    - `x = _dropUserTargets(...)`（返回值已是白名单化的 `'u'@'h'` 字面量）。
+    """
+    out = set()
+    for n in ast.walk(fn):
+        if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                and n.func.attr == 'match' and isinstance(n.func.value, ast.Name)
+                and n.func.value.id == '_DB_USER_IDENT_RE' and n.args):
+            arg = n.args[0]
+            if isinstance(arg, ast.Call) and arg.args and isinstance(arg.args[0], ast.Name):
+                arg = arg.args[0]
+            if isinstance(arg, ast.Name):
+                out.add(arg.id)
+        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call):
+            vf = n.value.func
+            vname = (vf.attr if isinstance(vf, ast.Attribute)
+                     else vf.id if isinstance(vf, ast.Name) else '')
+            if vname == '_dropUserTargets':
+                for t in n.targets:
+                    if isinstance(t, ast.Name):
+                        out.add(t.id)
+    return out
+
+
+def _drop_user_sites(tree):
+    """所有 `drop user` SQL 调用点 → (函数名, 调用节点, 该函数已白名单的变量名)。"""
+    sites = []
+    for fn in [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]:
+        safe = _whitelisted_user_host_names(fn)
+        for call in _query_calls(fn):
+            if not call.args:
+                continue
+            try:
+                text = ast.unparse(call.args[0])
+            except Exception:
+                continue
+            if 'drop user' in text.lower():
+                sites.append((fn.name, call, safe))
+    return sites
+
+
 class UserControllableSqlSinkTest(unittest.TestCase):
     """五、§四 证伪延伸：用户可控 SQL 拼接注入（坐标表第 1~4 类）。
 
@@ -557,11 +605,13 @@ class UserControllableSqlSinkTest(unittest.TestCase):
         return fn
 
     def test_40_safe_identifier_whitelist(self):
-        # 用户裁定（父 agent §四）：字符集收紧到 `^[A-Za-z0-9_$]{1,64}$`
+        # 用户裁定（父 agent §四）：字符集 `^[A-Za-z0-9_$-]{1,64}$`
+        # 复核纠错：MySQL 库名允许 `-`（`addDb` 侧白名单 `[\w-]+`），收紧到不含 `-`
+        # 会误拒 `my-db` 这类合法库名 → `-` 必须在白名单内。
         for bad in ["a'b", 'a\\b', 'a%b', 'a;b', "a'--b", 'a b', 'a`b', 'a\nb',
-                    'a#b', 'a/*b', '127.0.0.1', 'repl-1', 'a.b:c', '', None, 1, 'a' * 65]:
+                    'a#b', 'a/*b', '127.0.0.1', 'a.b:c', 'a|b', 'a$(id)', '', None, 1, 'a' * 65]:
             self.assertEqual('', yf.safeIdentifier(bad), 'safeIdentifier 未拦：%r' % (bad,))
-        for good in ['r1', 'channel_1', 'repl$1', 'A1', '_x', 'a' * 64]:
+        for good in ['r1', 'channel_1', 'repl$1', 'A1', '_x', 'a' * 64, 'my-db', 'repl-1']:
             self.assertEqual(good, yf.safeIdentifier(good), 'safeIdentifier 误伤：%r' % good)
 
     def test_41_user_lookup_queries_are_parameterized(self):
@@ -710,6 +760,22 @@ class UserControllableSqlSinkTest(unittest.TestCase):
                          and ((isinstance(n.func, ast.Attribute) and n.func.attr == needed)
                               or (isinstance(n.func, ast.Name) and n.func.id == needed))]
                 self.assertTrue(calls, '%s 未使用 %s（两端不对称）' % (label, needed))
+
+    def test_52_drop_user_targets_are_whitelisted(self):
+        """`drop user '<u>'@'<h>'` 无法参数化：拼进 SQL 的用户名/Host 必须先过白名单。
+
+        逐个拼接点判定：SQL 文本里出现的变量必须来自 `_DB_USER_IDENT_RE.match(...)`
+        守卫或 `_dropUserTargets(...)`；出现任何未校验变量即失败。
+        """
+        for label, path, tree in self.files:
+            sites = _drop_user_sites(tree)
+            self.assertTrue(sites, '%s 未找到 drop user 拼接点' % label)
+            for fn_name, call, safe in sites:
+                unsafe = _sql_text_names(call) - safe
+                self.assertEqual(
+                    set(), unsafe,
+                    '%s.%s:%d 的 drop user 拼进未校验变量：%r'
+                    % (label, fn_name, call.lineno, unsafe))
 
 
 if __name__ == '__main__':
