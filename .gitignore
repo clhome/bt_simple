@@ -207,6 +207,9 @@ plugins/goedge-happy
 # 发布签名私钥：绝不入库（公钥 keys/*.pub 需要入库）
 /keys/*.key
 
+# 性能基准产物：本机自测数据，不入库（脚本与 README 入库）
+/scripts/bench/results/
+
 # 命令崩溃转储（Windows/MSYS 下偶发，属本地产物）
 *.stackdump
 /.pi
