@@ -45,6 +45,13 @@ def check_exists_files():
     dfile = request.form.get('dfile', '')
     filename = request.form.get('filename', '')
     sfile = request.form.get('sfile', '').strip()
+    ok, reason = file.safePath(dfile)
+    if not ok:
+        return yf.returnData(False, reason)
+    if sfile:
+        ok, reason = file.safePath(sfile)
+        if not ok:
+            return yf.returnData(False, reason)
     data = []
     filesx = []
     src_dir = ''
@@ -120,6 +127,9 @@ def zip():
 @panel_login_required
 def file_access():
     filename = request.form.get('filename', '')
+    ok, reason = file.safePath(filename)
+    if not ok:
+        return yf.returnData(False, reason)
     data = file.getAccess(filename)
     data['sys_users'] = file.getSysUserList()
     return data
@@ -189,6 +199,9 @@ def get_dir():
     path = request.form.get('path', '')
     if not os.path.exists(path):
         path = yf.getFatherDir() + '/wwwroot'
+    ok, reason = file.safePath(path)
+    if not ok:
+        return yf.returnData(False, reason)
     search = request.form.get('search', '').strip().lower()
     search_all = request.form.get('all', '').strip().lower()
     page = request.form.get('p', '1').strip().lower()
@@ -329,6 +342,9 @@ def create_dir():
 @panel_login_required
 def get_dir_size():
     path = request.form.get('path', '')
+    ok, reason = file.safePath(path)
+    if not ok:
+        return yf.returnData(False, reason)
     if not os.path.exists(path):
         return yf.returnData(False, '路径不存在')
     size = file.getDirSizeByBash(path)
@@ -383,6 +399,10 @@ def download_file():
     filename = os.path.basename(raw_filename.replace('\\', '/')).strip()
     if not filename or not yf.fileNameCheck(filename):
         return yf.returnData(False, 'file.py_msg_4472a5')
+
+    ok, reason = file.safePath(path, write=True)
+    if not ok:
+        return yf.returnData(False, reason)
 
     try:
         from utils.urlguard import validate_url

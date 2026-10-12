@@ -66,6 +66,8 @@ sys.modules['core.yf'] = mock_core_yf
 
 mock_utils = types.ModuleType('utils')
 mock_utils_file = types.ModuleType('utils.file')
+# files.py 的读/写入口现在都会过 safePath：mock 必须提供（放行）实现
+mock_utils_file.safePath = lambda path, write=False: (True, 'OK')
 sys.modules['utils'] = mock_utils
 sys.modules['utils.file'] = mock_utils_file
 mock_thisdb = types.ModuleType('thisdb')

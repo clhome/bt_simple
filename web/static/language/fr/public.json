@@ -219,6 +219,7 @@
   "DIR_NOT_EXISTS": "Le répertoire indiqué n'existe pas !",
   "DIR_ERR_NOT_EMPTY": "Impossible de supprimer un répertoire non vide !",
   "FILE_DANGER": "Évitez de prendre des risques inutiles",
+  "FILE_SENSITIVE_DIR": "Répertoire de données système/base de données critique : accès refusé!",
   "FILE_CREATE_SUCCESS": "Le fichier a été créé avec succès !",
   "FILE_CREATE_ERR": "Échec de la création du fichier !",
   "DIR_CREATE_SUCCESS": "Le répertoire a été créé avec succès !",

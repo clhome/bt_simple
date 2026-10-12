@@ -219,6 +219,7 @@
   "DIR_NOT_EXISTS": "指定目錄不存在!",
   "DIR_ERR_NOT_EMPTY": "不能刪除非空目錄!",
   "FILE_DANGER": "請不要花樣作死",
+  "FILE_SENSITIVE_DIR": "系統或資料庫關鍵資料目錄,禁止操作!",
   "FILE_CREATE_SUCCESS": "檔案建立成功!",
   "FILE_CREATE_ERR": "檔案建立失敗!",
   "DIR_CREATE_SUCCESS": "目錄建立成功!",

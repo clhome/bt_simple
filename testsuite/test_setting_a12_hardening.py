@@ -374,7 +374,8 @@ def _load_safepath():
     """从 utils/file.py 抽取 safePath 纯函数（避免导入 flask/thisdb）。"""
     src = _read(os.path.join(ROOT, 'web', 'utils', 'file.py'))
     tree = ast.parse(src)
-    want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_PANEL_SENSITIVE_REL'}
+    want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+                   '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
     want_func = {'safePath', '_posix_norm'}
     keep = []
     for node in tree.body:

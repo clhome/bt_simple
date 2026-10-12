@@ -219,6 +219,7 @@
   "DIR_NOT_EXISTS": "The specified directory does not exist!",
   "DIR_ERR_NOT_EMPTY": "You cannot delete a non-empty directory!",
   "FILE_DANGER": "Please don&#x27;t go out of your way to get yourself into trouble.",
+  "FILE_SENSITIVE_DIR": "Critical system or database data directory; operation denied!",
   "FILE_CREATE_SUCCESS": "The file was created successfully!",
   "FILE_CREATE_ERR": "Failed to create the file!",
   "DIR_CREATE_SUCCESS": "The directory was created successfully!",

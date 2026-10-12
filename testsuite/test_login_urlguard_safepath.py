@@ -83,7 +83,8 @@ class TestSafePath(unittest.TestCase):
     def setUpClass(cls):
         src = _read('web/utils/file.py')
         tree = ast.parse(src)
-        want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_PANEL_SENSITIVE_REL'}
+        want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+                       '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
         want_func = {'safePath', '_posix_norm'}
         keep = []
         for node in tree.body:

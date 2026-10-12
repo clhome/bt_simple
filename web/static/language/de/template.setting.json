@@ -1080,6 +1080,7 @@
     "DIR_NOT_EXISTS": "Das angegebene Verzeichnis existiert nicht!",
     "DIR_ERR_NOT_EMPTY": "Ein Verzeichnis, das nicht leer ist, kann nicht gelöscht werden!",
     "FILE_DANGER": "Bitte mach keine dummen Sprünge",
+    "FILE_SENSITIVE_DIR": "Kritisches System-/Datenbankverzeichnis; Zugriff verweigert!",
     "FILE_CREATE_SUCCESS": "Die Datei wurde erfolgreich erstellt!",
     "FILE_CREATE_ERR": "Die Datei konnte nicht erstellt werden!",
     "DIR_CREATE_SUCCESS": "Das Verzeichnis wurde erfolgreich erstellt!",

@@ -4791,6 +4791,7 @@
     "DIR_NOT_EXISTS": "指定目录不存在!",
     "DIR_ERR_NOT_EMPTY": "不能删除非空目录!",
     "FILE_DANGER": "请不要花样作死",
+    "FILE_SENSITIVE_DIR": "系统或数据库关键数据目录,禁止操作!",
     "FILE_CREATE_SUCCESS": "文件创建成功!",
     "FILE_CREATE_ERR": "文件创建失败!",
     "DIR_CREATE_SUCCESS": "目录创建成功!",

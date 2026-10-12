@@ -90,7 +90,8 @@ class TestRecycleBinGuard(unittest.TestCase):
     def setUpClass(cls):
         src = _read(FILE_PY)
         tree = ast.parse(src)
-        want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_PANEL_SENSITIVE_REL'}
+        want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+                       '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
         want_func = {'_posix_norm', 'safePath', '_recycleBinEntry',
                      'delRecycleBin', 'reRecycleBin'}
         keep = []

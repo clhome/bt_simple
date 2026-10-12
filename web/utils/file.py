@@ -949,6 +949,16 @@ _SENSITIVE_EXACT = {
     '/mnt', '/www', '/www/server',
 }
 
+# 数据库与面板自身的关键数据目录：**写/删/下载落盘**（safePath(write=True)）一律拒绝。
+# 刻意只封这些具体子目录，而不是整个 /www/server —— 后者会连 /www/server/php、
+# /www/server/nginx 等正常运维路径一起封死，破坏插件/环境目录管理。
+# 读操作不在此列（浏览目录内容仍放行），所以只对写/删/下载生效。
+_SENSITIVE_DATA_PREFIXES = (
+    '/www/server/data', '/www/server/mysql', '/www/server/mariadb',
+    '/www/server/redis', '/www/server/valkey', '/www/server/pgsql',
+    '/www/server/postgresql', '/www/server/panel', '/www/server/yufeng_panel',
+)
+
 # 面板自身关键资产（相对面板根目录），防止文件管理器被用作自我提权/自毁
 _PANEL_SENSITIVE_REL = (
     '/data/', '/ssl/', '/web/admin/', '/web/core/', '/bin/', '/scripts/',
@@ -1012,6 +1022,15 @@ def safePath(path, write=False):
                 for blocked_rel in _PANEL_SENSITIVE_REL:
                     if rel == blocked_rel.rstrip('/') or rel.startswith(blocked_rel):
                         return False, 'FILE_DANGER'
+
+    # 写/删/下载落盘：数据库与面板关键数据目录整体拒绝（前缀命中）。
+    # 读操作不封，避免把插件目录管理等正常浏览一并挡掉。
+    if write:
+        for target in targets:
+            low = target.rstrip('/') or '/'
+            for blocked in _SENSITIVE_DATA_PREFIXES:
+                if low == blocked or low.startswith(blocked + '/'):
+                    return False, 'FILE_SENSITIVE_DIR'
 
     return True, 'OK'
 

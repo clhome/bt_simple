@@ -219,6 +219,7 @@
   "DIR_NOT_EXISTS": "La directory specificata non esiste!",
   "DIR_ERR_NOT_EMPTY": "Non è possibile eliminare una cartella che contiene file o cartelle!",
   "FILE_DANGER": "Per favore, non fare cose stupide",
+  "FILE_SENSITIVE_DIR": "Directory dati critici di sistema/database: accesso negato!",
   "FILE_CREATE_SUCCESS": "Il file è stato creato con successo!",
   "FILE_CREATE_ERR": "Impossibile creare il file!",
   "DIR_CREATE_SUCCESS": "L'indice è stato creato con successo!",
