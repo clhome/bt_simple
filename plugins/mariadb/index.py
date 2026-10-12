@@ -3781,7 +3781,11 @@ def initSlaveStatusSSH(version=''):
             if not cmd:
                 return yf.returnJson(False, '[主][' + ip + ']:同步命令不合规范，拒绝执行!')
             # print(cmd)
-            db.query(cmd)
+            # db.query 失败时返回 ORMError（SQL 错）或错误文本（连接失败）而不抛异常：
+            # 必须显式判定，否则 CHANGE MASTER 从未生效仍会报「初始化成功!」（假成功）
+            exec_res = db.query(cmd)
+            if isinstance(exec_res, Exception) or isinstance(exec_res, str):
+                return yf.returnJson(False, '[主][' + ip + ']:同步命令执行失败!' + str(exec_res))
             db.query("start slave")
             db.query("start all slaves")
             if os.path.exists(SSH_PRIVATE_KEY):

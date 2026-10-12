@@ -19,6 +19,7 @@
   "Slave[从]配置": "Slave-Konfiguration",
   "[主][": "[Hauptseite][",
   "]:SSH认证配置连接失败!": "]: Die Konfiguration der SSH-Authentifizierung ist fehlgeschlagen!",
+  "同步命令执行失败!": "Synchronisierungsbefehl fehlgeschlagen!",
   "mode的值无效:": "Der Wert von „mode“ ist ungültig:",
   "phpMyAdmin未启动": "phpMyAdmin wurde nicht gestartet",
   "phpMyAdmin未安装!": "phpMyAdmin ist nicht installiert!",

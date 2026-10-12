@@ -44,11 +44,16 @@
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
 import ast
+import importlib
+import io
+import json
 import os
 import re
 import shlex
 import sys
+import types
 import unittest
+from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -58,6 +63,18 @@ for _p in (WEB, ROOT):
         sys.path.insert(0, _p)
 
 import core.yf as yf  # noqa: E402
+
+try:
+    from core.orm import ORMError  # noqa: E402
+except Exception:  # 本机（Windows 工作区）不装 pymysql，core.orm 导入失败
+    class ORMError(Exception):
+        """ORMError 替身：生产代码只做 `isinstance(res, Exception)` 判定。"""
+
+        def __init__(self, message, sql='', params=None, orig=None):
+            super().__init__(message)
+            self.sql = sql
+            self.params = params
+            self.orig = orig
 
 MYSQL_SRC = os.path.join(ROOT, 'plugins', 'mysql', 'index.py')
 MARIADB_SRC = os.path.join(ROOT, 'plugins', 'mariadb', 'index.py')
@@ -798,8 +815,70 @@ class UserControllableSqlSinkTest(unittest.TestCase):
                     "CHANGE MASTER TO MASTER_HOST='1.1.1.1' # x",
                     "CHANGE MASTER TO MASTER_HOST='1.1.1.1' /* x */",
                     "CHANGE MASTER TO MASTER_HOST='1.1.1.1'\nDROP TABLE t",
-                    "SELECT 1", "CHANGE MASTER 'r1' TO MASTER_HOST='1.1.1.1'", '', None, 1]:
+                    "SELECT 1", '', None, 1]:
             self.assertEqual('', yf.safeReplicationCmd(bad), 'safeReplicationCmd 未拦：%r' % (bad,))
+
+    def test_57_mariadb_channel_form_is_allowed(self):
+        """MariaDB 渠道名形态 `CHANGE MASTER 'r1' TO ...`（getDbServerId 生成）必须放行。
+
+        加固前只认 `CHANGE MASTER TO`，而 `getMasterRepSlaveUserCmdSsh` 的正常形态
+        带渠道名（`connection_name = "'r{}' "`）→ 原本可用的路径被改坏
+        （test/recon_ssh_sync.md 的唯一真回归点）。
+        """
+        ok = ("CHANGE MASTER 'r1' TO MASTER_HOST='10.0.0.9', MASTER_PORT=3306, "
+              "MASTER_USER='u', MASTER_PASSWORD='p', MASTER_LOG_FILE='bin.000001',MASTER_LOG_POS=123")
+        self.assertEqual(ok, yf.safeReplicationCmd(ok))
+        ok2 = "CHANGE MASTER 'channel_1' TO MASTER_HOST='1.1.1.1'"
+        self.assertEqual(ok2, yf.safeReplicationCmd(ok2))
+        ok3 = "CHANGE MASTER 'repl-1' TO MASTER_HOST='1.1.1.1'"
+        self.assertEqual(ok3, yf.safeReplicationCmd(ok3))
+
+    def test_58_channel_name_is_identifier_validated(self):
+        """渠道名不得靠 `.*?` 放宽：必须单独过 safeIdentifier。
+
+        `'`/`;`/反引号/空白/空名一律拒绝；带 `;` 的多语句仍被禁止集拦住。
+        """
+        for bad in ["CHANGE MASTER 'r;1' TO MASTER_HOST='1.1.1.1'",
+                    "CHANGE MASTER 'r1; DROP TABLE t' TO MASTER_HOST='1.1.1.1'",
+                    "CHANGE MASTER 'r`1' TO MASTER_HOST='1.1.1.1'",
+                    "CHANGE MASTER 'r 1' TO MASTER_HOST='1.1.1.1'",
+                    "CHANGE MASTER '' TO MASTER_HOST='1.1.1.1'",
+                    "CHANGE MASTER 'r1' TO MASTER_HOST='1.1.1.1'; DROP TABLE t"]:
+            self.assertEqual('', yf.safeReplicationCmd(bad), '渠道名未拦：%r' % (bad,))
+
+    def test_59_mysql_has_clean_ssh_cmd_builder(self):
+        """mysql 必须有 getMasterRepSlaveUserCmdSsh，且 initSlaveStatusSSH 走它。
+
+        mariadb 2024-07-14 就补了 `get_master_rep_slave_user_cmd_ssh`，mysql 侧缺失
+        → SSH 初始化一直取含 `<br/><hr/>` 的展示串，`db.query` 必然语法错误。
+        展示串（`getMasterRepSlaveUserCmd`）保留给前端，但不得再被 init 路径执行。
+        """
+        tree = ast.parse(_read(MYSQL_SRC))
+        clean = _find_func(tree, 'getMasterRepSlaveUserCmdSsh')
+        self.assertIsNotNone(clean, 'mysql 缺少 getMasterRepSlaveUserCmdSsh')
+        # 干净串不得含展示标签 / 多语句分隔符（排除函数 docstring，它按惯例引用了标签）
+        body = list(clean.body)
+        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+            body = body[1:]
+        clean_text = ''.join(
+            n.value for stmt in body for n in ast.walk(stmt)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str))
+        for token in ('<br/>', '<hr/>', ';'):
+            self.assertNotIn(token, clean_text,
+                             'mysql.getMasterRepSlaveUserCmdSsh 含展示/分隔符：%r' % token)
+        # initSlaveStatusSSH 必须调 CLI 的干净串入口
+        init_fn = self._fn(tree, 'initSlaveStatusSSH')
+        self.assertTrue(
+            any('get_master_rep_slave_user_cmd_ssh' in s for s in _string_consts(init_fn)),
+            'mysql.initSlaveStatusSSH 未取 get_master_rep_slave_user_cmd_ssh（仍在用展示串）')
+        # mariadb 侧同样保持（防止回退）
+        mt = ast.parse(_read(MARIADB_SRC))
+        self.assertIsNotNone(_find_func(mt, 'getMasterRepSlaveUserCmdSsh'),
+                             'mariadb 缺少 getMasterRepSlaveUserCmdSsh')
+        self.assertTrue(
+            any('get_master_rep_slave_user_cmd_ssh' in s
+                for s in _string_consts(self._fn(mt, 'initSlaveStatusSSH'))),
+            'mariadb.initSlaveStatusSSH 未取 get_master_rep_slave_user_cmd_ssh')
 
     def test_48_both_plugins_use_the_same_validators(self):
         """两端同口径：同一组校验函数在两侧都被引用。"""
@@ -909,6 +988,127 @@ class PasswordParameterizationTest(unittest.TestCase):
         for label, path in (('mysql', MYSQL_SRC), ('mariadb', MARIADB_SRC)):
             self.assertNotIn(needle, _read(path),
                              '%s/index.py 仍存在手写单引号转义' % label)
+
+
+class _SshStubORM(object):
+    """SSH 初始化路径的 ORM 桩：只把 CHANGE MASTER/REPLICATION 语句回传指定结果。"""
+
+    def __init__(self, change_master_result):
+        self.change_master_result = change_master_result
+        self.executed = []
+
+    def query(self, sql, params=None):
+        self.executed.append(sql)
+        up = sql.upper()
+        if 'CHANGE MASTER' in up or 'CHANGE REPLICATION' in up:
+            return self.change_master_result
+        return []
+
+    def execute(self, sql, params=None):
+        self.executed.append(sql)
+        return 1
+
+
+class _SshStubConn(object):
+    """`slave_id_rsa` sqlite 桩：只提供一条 SSH 配置。"""
+
+    def __init__(self, row):
+        self.row = row
+
+    def field(self, _f):
+        return self
+
+    def select(self):
+        return [self.row]
+
+    def where(self, *a, **k):
+        return self
+
+    def setField(self, *a, **k):
+        return self
+
+
+class SshSyncNoFalseSuccessTest(unittest.TestCase):
+    """七、SSH 初始化路径不得再「假成功」：`db.query(cmd)` 失败必须回报失败。
+
+    本仓 ORM 的 `query()` 失败时返回 ORMError（SQL 错）或错误文本（连接失败），
+    **从不抛异常**；SSH 路径历史上丢弃返回值，于是 CHANGE MASTER 从未生效仍报
+    「初始化成功!」（test/recon_ssh_sync.md §4 的假成功）。本用例用桩 ORM +
+    桩 paramiko 真跑 `initSlaveStatusSSH`，断言失败时 status=False 且不再出现成功文案。
+    """
+
+    MASTER_CMD = ("CHANGE MASTER TO MASTER_HOST='10.0.0.9', MASTER_PORT=3306, "
+                  "MASTER_USER='repl_user', MASTER_PASSWORD='p', "
+                  "MASTER_LOG_FILE='bin.000001',MASTER_LOG_POS=123")
+
+    def _import_plugin(self, modname):
+        """导入插件模块并把 cwd 还原（插件模块级会 `os.chdir(web)`）。"""
+        cwd = os.getcwd()
+        try:
+            os.chdir(ROOT)
+            return importlib.import_module(modname)
+        finally:
+            os.chdir(cwd)
+
+    def _fake_paramiko(self, master_cmd):
+        payload = yf.returnJson(True, 'ok!', {
+            'cmd': master_cmd,
+            'info': {'username': 'repl_user', 'password': 'p'},
+            'mode': 'classic',
+        }).encode('utf-8')
+
+        class _FakeSSH(object):
+            def set_missing_host_key_policy(self, *a):
+                pass
+
+            def connect(self, **kw):
+                pass
+
+            def exec_command(self, cmd):
+                return None, io.BytesIO(payload), io.BytesIO(b'')
+
+            def close(self):
+                pass
+
+        mod = types.ModuleType('paramiko')
+        mod.util = types.SimpleNamespace(log_to_file=lambda *a, **k: None)
+        mod.SSHClient = _FakeSSH
+        mod.AutoAddPolicy = lambda *a, **k: object()
+        mod.RSAKey = types.SimpleNamespace(from_private_key_file=lambda *a, **k: object())
+        return mod
+
+    def _run_mysql_init_ssh(self, change_master_result):
+        mod = self._import_plugin('plugins.mysql.index')
+        orm = _SshStubORM(change_master_result)
+        conn = _SshStubConn({'ip': '10.0.0.9', 'port': '22',
+                             'id_rsa': 'KEY', 'db_user': 'repl_user'})
+        paramiko_stub = self._fake_paramiko(self.MASTER_CMD)
+        with patch.object(mod, 'getSlaveName', return_value='slave'), \
+                patch.object(mod, 'pMysqlDb', return_value=orm), \
+                patch.object(mod, 'pSqliteDb', return_value=conn), \
+                patch.object(mod, 'recognizeDbMode', return_value='classic'), \
+                patch.object(mod, 'getSPluginDir', return_value='/panel/plugins/mysql'), \
+                patch.object(mod.yf, 'getPanelDir', return_value='/panel'), \
+                patch.object(mod.yf, 'writeFile', return_value=True), \
+                patch.object(mod.yf, 'execShell', return_value=('', '')), \
+                patch.object(mod.yf, 'removeDir', return_value=True), \
+                patch.dict(sys.modules, {'paramiko': paramiko_stub}):
+            return orm, json.loads(mod.initSlaveStatusSSH())
+
+    def test_60_query_failure_is_reported_not_success(self):
+        """mock 返回 ORMError：必须回报失败，绝不能报「初始化成功!」。"""
+        orm, res = self._run_mysql_init_ssh(ORMError('query 执行失败: SQL syntax error'))
+        self.assertTrue(any('CHANGE MASTER' in s.upper() for s in orm.executed),
+                        'initSlaveStatusSSH 未执行回传的 CHANGE MASTER 命令')
+        self.assertFalse(res['status'], 'db.query 失败仍报成功：%r' % (res,))
+        self.assertNotIn('初始化成功', res['msg'], 'db.query 失败仍报「初始化成功!」：%r' % (res,))
+        self.assertIn('同步命令执行失败', res['msg'], '失败文案未使用新键：%r' % (res,))
+
+    def test_61_success_path_still_reports_success(self):
+        """正向对照：db.query 成功（返回 []) 时仍报「初始化成功!」。"""
+        orm, res = self._run_mysql_init_ssh([])
+        self.assertTrue(res['status'], '成功路径被误判为失败：%r' % (res,))
+        self.assertIn('初始化成功', res['msg'], '成功文案丢失：%r' % (res,))
 
 
 if __name__ == '__main__':

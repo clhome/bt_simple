@@ -19,6 +19,7 @@
   "Slave[从]配置": "Slave Configuration",
   "[主][": "[Main][",
   "]:SSH认证配置连接失败!": "]:SSH authentication configuration connection failed!",
+  "同步命令执行失败!": "Sync command failed!",
   "mode的值无效:": "Invalid value for \"mode\":",
   "phpMyAdmin未启动": "phpMyAdmin is not started",
   "phpMyAdmin未安装!": "phpMyAdmin is not installed!",

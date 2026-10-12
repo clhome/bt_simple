@@ -19,6 +19,7 @@
  "Slave[从]配置": "Slave[從]設定",
  "[主][": "[主][",
  "]:SSH认证配置连接失败!": "]:SSH認證配置連線失敗!",
+ "同步命令执行失败!": "同步命令執行失敗!",
  "mode的值无效:": "mode的值無效:",
  "phpMyAdmin未启动": "phpMyAdmin未啟動",
  "phpMyAdmin未安装!": "phpMyAdmin未安裝!",

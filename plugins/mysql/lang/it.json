@@ -19,6 +19,7 @@
   "Slave[从]配置": "Configurazione dello slave",
   "[主][": "[Principale][",
   "]:SSH认证配置连接失败!": "]: Configurazione dell'autenticazione SSH: connessione non riuscita!",
+  "同步命令执行失败!": "Comando di sincronizzazione non riuscito!",
   "mode的值无效:": "Il valore di \"mode\" non è valido:",
   "phpMyAdmin未启动": "phpMyAdmin non si avvia",
   "phpMyAdmin未安装!": "phpMyAdmin non è installato!",

@@ -3666,6 +3666,71 @@ def getMasterRepSlaveUserCmd(version):
     return yf.returnJson(True, 'ok!', data)
 
 
+def getMasterRepSlaveUserCmdSsh(version):
+    """SSH 初始化专用：返回**单条干净**的同步命令（无 `<br/><hr/>` 展示标签）。
+
+    与 mariadb 同名函数语义一致。`getMasterRepSlaveUserCmd` 的返回串是给前端
+    「挑一条复制」用的展示串（含 `<br/><hr/>`），直接 `db.query` 必然 SQL 语法
+    错误且静默假成功（见 test/recon_ssh_sync.md）；SSH 路径必须取这里的干净串。
+    """
+    args = getArgs()
+    data = checkArgs(args, ['username', 'db'])
+    if not data[0]:
+        return data[1]
+
+    psdb = pSqliteDb('master_replication_user')
+    f = 'username,password'
+    username = args['username']
+    if username == '':
+        count = psdb.count()
+        if count == 0:
+            return yf.returnJson(False, '请添加同步账户!')
+
+        clist = psdb.field(f).limit('1').order('id desc').select()
+    else:
+        clist = psdb.field(f).where("username=?", (username,)).limit(
+            '1').order('id desc').select()
+
+    if len(clist) == 0:
+        return yf.returnJson(False, '错误同步账户!')
+
+    ip = yf.getLocalIp()
+    port = getMyPort()
+    db = pMysqlDb()
+
+    cmd_status = "show master status"
+    if pk_version.parse(version) > pk_version.parse("8.0"):
+        cmd_status = "SHOW BINARY LOG STATUS"
+    mstatus = db.query(cmd_status)
+    if len(mstatus) == 0:
+        return yf.returnJson(False, '未开启!')
+
+    mode = recognizeDbMode()
+
+    sid = getDbServerId()
+    channel_name = ""
+    if sid != '':
+        channel_name = " for channel 'r{}'".format(sid)
+
+    mdb8 = getMdb8Ver()
+    if not yf.inArray(mdb8, version):
+        sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
+            clist[0]['username'] + "', MASTER_PASSWORD='" + clist[0]['password'] + \
+            "', MASTER_LOG_FILE='" + mstatus[0]["File"] + "',MASTER_LOG_POS=" + \
+            str(mstatus[0]["Position"]) + channel_name
+    else:
+        sql = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='" + ip + "', SOURCE_PORT=" + port + ", SOURCE_USER='" + \
+            clist[0]['username'] + "', SOURCE_PASSWORD='" + clist[0]['password'] + \
+            "', SOURCE_LOG_FILE='" + mstatus[0]["File"] + "',SOURCE_LOG_POS=" + \
+            str(mstatus[0]["Position"]) + channel_name
+
+    data = {}
+    data['cmd'] = sql
+    data["info"] = clist[0]
+    data['mode'] = mode
+    return yf.returnJson(True, 'ok!', data)
+
+
 def delMasterRepSlaveUser(version=''):
     args = getArgs()
     data = checkArgs(args, ['username'])
@@ -4185,7 +4250,7 @@ def initSlaveStatusSSH(version=''):
             cmd = 'cd ' + yf.shlexQuote(yf.getPanelDir()) + \
                 ' && source bin/activate && python3 ' + \
                 yf.shlexQuote(getSPluginDir() + '/index.py') + \
-                ' get_master_rep_slave_user_cmd ' + \
+                ' get_master_rep_slave_user_cmd_ssh ' + \
                 yf.shlexQuote(json.dumps({'username': db_user, 'db': ''}))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             result = stdout.read()
@@ -4226,7 +4291,11 @@ def initSlaveStatusSSH(version=''):
             cmd = yf.safeReplicationCmd(cmd)
             if not cmd:
                 return yf.returnJson(False, '[主][' + ip + ']:同步命令不合规范，拒绝执行!')
-            db.query(cmd)
+            # db.query 失败时返回 ORMError（SQL 错）或错误文本（连接失败）而不抛异常：
+            # 必须显式判定，否则 CHANGE MASTER 从未生效仍会报「初始化成功!」（假成功）
+            exec_res = db.query(cmd)
+            if isinstance(exec_res, Exception) or isinstance(exec_res, str):
+                return yf.returnJson(False, '[主][' + ip + ']:同步命令执行失败!' + str(exec_res))
             ssh.close()
             if os.path.exists(SSH_PRIVATE_KEY):
                 yf.removeDir(SSH_PRIVATE_KEY)
@@ -5051,7 +5120,10 @@ def doFullSyncSSH(version=''):
         writeDbSyncStatus({'code': 0, 'msg': '同步命令不合规范，拒绝执行!', 'progress': 0})
         return 'fail'
 
-    db.query(cmd)
+    exec_res = db.query(cmd)
+    if isinstance(exec_res, Exception) or isinstance(exec_res, str):
+        writeDbSyncStatus({'code': 0, 'msg': '同步命令执行失败!' + str(exec_res), 'progress': 0})
+        return 'fail'
     uinfo = cmd_data['data']['info']
     ps = uinfo['username'] + "|" + uinfo['password']
     id_rsa_conn.where('ip=?', (ip,)).setField('ps', ps)
@@ -5521,6 +5593,8 @@ if __name__ == "__main__":
         print(delMasterRepSlaveUser(version))
     elif func == 'update_master_rep_slave_user':
         print(updateMasterRepSlaveUser(version))
+    elif func == 'get_master_rep_slave_user_cmd_ssh':
+        print(getMasterRepSlaveUserCmdSsh(version))
     elif func == 'get_master_rep_slave_user_cmd':
         print(getMasterRepSlaveUserCmd(version))
     elif func == 'get_slave_list':

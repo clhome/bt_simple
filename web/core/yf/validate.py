@@ -34,9 +34,13 @@ _SYNC_USER_RE = re.compile(r'^[A-Za-z0-9_@.\-]{1,64}$')
 #: 允许 `-` —— MySQL 库名（`my-db`）合法含 `-`，`addDb` 侧白名单也是 `[\w-]+`。
 _IDENTIFIER_RE = re.compile(r'^[A-Za-z0-9_$-]{1,64}$')
 
-#: 主库 SSH 回传的同步命令：必须是一条 CHANGE MASTER TO / CHANGE REPLICATION SOURCE TO
+#: 主库 SSH 回传的同步命令：必须是一条 CHANGE MASTER TO / CHANGE REPLICATION SOURCE TO。
+#: MariaDB 允许渠道名形态 `CHANGE MASTER 'r1' TO ...`（渠道名由 `getDbServerId()` 生成，
+#: 见 `plugins/mariadb/index.py::getMasterRepSlaveUserCmdSsh`）。渠道名单独捕获后交给
+#: `safeIdentifier` 校验 —— 绝不用 `.*?` 把 `MASTER` 与 `TO` 之间放宽了事。
 _REPLICATION_CMD_RE = re.compile(
-    r'^(?:CHANGE\s+MASTER\s+TO|CHANGE\s+REPLICATION\s+SOURCE\s+TO)\b', re.I)
+    r"^(?:CHANGE\s+MASTER\s+(?:'(?P<channel>[^']*)'\s+)?TO"
+    r"|CHANGE\s+REPLICATION\s+SOURCE\s+TO)\b", re.I)
 
 #: 同步命令里禁止出现的形态：多语句分隔符 / 注释符 / 换行
 _REPLICATION_CMD_FORBIDDEN = (';', '--', '#', '/*', '*/', '\n', '\r')
@@ -69,13 +73,18 @@ def safeReplicationCmd(cmd):
 
     该命令会被从库直接 `db.query(cmd)` 执行，而其中的用户名/口令来自主库的
     `master_replication_user`（用户可控）。这里只放行**单条**
-    `CHANGE MASTER TO` / `CHANGE REPLICATION SOURCE TO`，并拒绝含多语句分隔符 `;`、
-    注释符 `--`/`#`/`/*`/`*/` 或换行的形态；校验不过一律 fail closed。
+    `CHANGE MASTER TO` / `CHANGE REPLICATION SOURCE TO`，以及 MariaDB 的渠道名形态
+    `CHANGE MASTER '<channel>' TO ...`；渠道名必须再经 `safeIdentifier` 校验，并拒绝含
+    多语句分隔符 `;`、注释符 `--`/`#`/`/*`/`*/` 或换行的形态；校验不过一律 fail closed。
     """
     if not isinstance(cmd, str):
         return ''
     c = cmd.strip()
-    if not _REPLICATION_CMD_RE.match(c):
+    m = _REPLICATION_CMD_RE.match(c)
+    if not m:
+        return ''
+    channel = m.groupdict().get('channel')
+    if channel is not None and not safeIdentifier(channel):
         return ''
     for token in _REPLICATION_CMD_FORBIDDEN:
         if token in c:
