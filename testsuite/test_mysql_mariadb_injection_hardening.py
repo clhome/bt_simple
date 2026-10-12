@@ -20,6 +20,10 @@
 5. **行为**：库名/同步标识/用户名/ip/端口/datadir 的恶意载荷（`;`、`$()`、反引号、`|`、
    `&&`、换行、单引号突破）被拒；口令只拒控制字符（NUL/换行/回车/制表符/DEL）与空串/
    超长，含引号/`$`/反引号/空白的口令被**接受**但必须被单引号正确包裹。
+6. **SQL 汇点**（P0-1④ 延伸）：口令不再被白名单保证「无引号」，`doFullSyncUser` 里
+   `stop/start ... user='{}' password='{}'`（含主库回传的 `uinfo` 凭据）的 SQL 字面量
+   必须改走 ORM 参数化（`db.query(sql, params)`），由 pymysql 按 SQL 语义转义
+   （`test_30`/`test_31`）。
 
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
@@ -159,6 +163,44 @@ def _dump_command(path, pass_value):
     }
     expr = ast.Expression(body=assign.value)
     return eval(compile(ast.fix_missing_locations(expr), path, 'eval'), ns)
+
+
+def _credential_query_calls(path):
+    """把同步账号凭据（`apass` / `uinfo`）送进 SQL 的 `db.query(...)` 调用点。
+
+    `uinfo` 是主库 SSH 回传的 `{'username','password'}`，与 `apass` 同一数据流。
+    """
+    tree = ast.parse(_read(path))
+    out = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == 'query'):
+            continue
+        names = {n.id for n in ast.walk(node) if isinstance(n, ast.Name)}
+        if names & {'apass', 'uinfo'}:
+            out.append(node)
+    return out
+
+
+def _params_expr(call):
+    """`db.query(sql, params)` 的 params 表达式（位置参或关键字参）。"""
+    if len(call.args) > 1:
+        return call.args[1]
+    for kw in call.keywords:
+        if kw.arg == 'params':
+            return kw.value
+    return None
+
+
+class _QueryRecorder(object):
+    """记录 `db.query(sql, params)` 的桩，替掉真 ORM（本机不装 pymysql）。"""
+
+    def __init__(self):
+        self.calls = []
+
+    def query(self, sql, params=None):
+        self.calls.append((sql, params))
+        return []
 
 
 class SharedValidatorTest(unittest.TestCase):
@@ -351,6 +393,50 @@ class PluginSymmetryTest(unittest.TestCase):
                                  % (label, payload, tokens))
                 self.assertNotIn('touch', tokens,
                                  '%s 恶意口令突破了引号：%r → %r' % (label, payload, tokens))
+
+
+class SyncAccountSqlLiteralTest(unittest.TestCase):
+    """四、P0-1④ 延伸：口令口径放宽后，mysql 的 STOP/START SLAVE SQL 字面量不得再拼字符串。
+
+    `doFullSyncUser` 里 `stop/start ... user='{}' password='{}'` 过去靠「口令不含引号」
+    的白名单兜底；口径放宽后必须改成 ORM 参数化（`web/core/orm.py::query(sql, params)`
+    → `cursor.execute(sql, params)`，由 pymysql 按 SQL 语义转义，不手写 `\\'`）。
+    同一数据流的 `uinfo`（主库回传的同步账号凭据）同样不得拼进 SQL 文本。
+    """
+
+    def test_30_credentials_reach_sql_as_params_not_sql_text(self):
+        calls = _credential_query_calls(MYSQL_SRC)
+        self.assertEqual(3, len(calls),
+                         '把同步账号凭据送进 SQL 的 db.query 调用点应恰为 3 处（stop/start/uinfo）')
+        for call in calls:
+            sql_names = {n.id for n in ast.walk(call.args[0]) if isinstance(n, ast.Name)}
+            self.assertEqual(set(), sql_names & {'apass', 'uinfo'},
+                             'mysql/index.py:%d 仍把凭据拼进 SQL 文本' % call.lineno)
+            params = _params_expr(call)
+            self.assertIsNotNone(params, 'mysql/index.py:%d 缺参数化 params' % call.lineno)
+            params_names = {n.id for n in ast.walk(params) if isinstance(n, ast.Name)}
+            self.assertTrue(params_names & {'apass', 'uinfo'},
+                            'mysql/index.py:%d 的 params 未携带凭据' % call.lineno)
+
+    def test_31_hostile_pass_never_lands_in_sql_text(self):
+        calls = _credential_query_calls(MYSQL_SRC)
+        payloads = HOSTILE_PASS + ['p\\w', 'p%p_p', "a'b", 'p_%s%', 'p"; DROP TABLE x; --']
+        for payload in payloads:
+            for call in calls:
+                recorder = _QueryRecorder()
+                ns = {'db': recorder, 'slave_name': 'replica', 'user': 'repl_user',
+                      'apass': payload,
+                      'uinfo': {'username': 'repl_user', 'password': payload}}
+                eval(compile(ast.fix_missing_locations(ast.Expression(body=call)),
+                             MYSQL_SRC, 'eval'), ns)
+                self.assertEqual(1, len(recorder.calls),
+                                 'mysql/index.py:%d 未调用 db.query' % call.lineno)
+                sql, params = recorder.calls[0]
+                self.assertNotIn(payload, sql, '口令被拼进 SQL 文本：%r' % sql)
+                self.assertNotIn('repl_user', sql, '用户名被拼进 SQL 文本：%r' % sql)
+                self.assertIn(payload, tuple(params), '口令未按参数传递：%r' % (params,))
+                self.assertEqual(2, sql.count('%s'),
+                                 'SQL 占位符数量与参数不符（pymysql mogrify 会报错）：%r' % sql)
 
 
 class SharedModuleIsSingleSourceTest(unittest.TestCase):

@@ -4757,7 +4757,8 @@ def doFullSyncUser(version=''):
 
     mdb8 = getMdb8Ver()
     if yf.inArray(mdb8,version):
-        db.query("stop {} user='{}' password='{}';".format(slave_name,user, apass))
+        # 口令口径已放宽（P0-1④，可含 `'`）：SQL 字面量必须走 ORM 参数化，不得拼进 SQL 文本
+        db.query("stop {} user=%s password=%s;".format(slave_name), (user, apass))
     else:
         db.query("stop "+slave_name)
         
@@ -4855,7 +4856,8 @@ def doFullSyncUser(version=''):
     # print(r)
 
     if yf.inArray(mdb8,version):
-        db.query("start replica user='{}' password='{}';".format(user, apass))
+        # 同上：参数化而不是 format 进 SQL 文本（口令可含引号/反斜杠/百分号）
+        db.query("start replica user=%s password=%s;", (user, apass))
     else:
         db.query("start "+slave_name)
 
@@ -5007,7 +5009,8 @@ def doFullSyncSSH(version=''):
     
     mdb8 = getMdb8Ver()
     if yf.inArray(mdb8,version):
-        db.query("start slave user='{}' password='{}';".format(uinfo['username'], uinfo['password']))
+        # 同步账号凭据（来自主库的 info）同样走参数化，不拼进 SQL 文本
+        db.query("start slave user=%s password=%s;", (uinfo['username'], uinfo['password']))
     else:
         db.query("start slave")
     
