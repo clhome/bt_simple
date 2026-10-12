@@ -322,6 +322,38 @@ class TestRouteGuards(unittest.TestCase):
         self.assertIsNot(r.get('status'), False, '正常目录被误拒: %r' % (r,))
         self.assertIn('count', r)
 
+    def test_11b_get_dir_allows_root(self):
+        """正对照：文件管理器「根目录」入口 getFiles('/') 只读列举必须放行。
+
+        P0-3 之二给 get_dir 加 safePath 后把 '/' 一并拒了（safePath 把根视为敏感），
+        面包屑根节点打不开。本用例钉住那个特例：去掉它即变红。
+        """
+        os_shim = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: True))
+        fn = _load_route('get_dir', self.file, _Req({'path': '/'}), os_shim=os_shim)
+        r = fn()
+        self.assertIsNot(r.get('status'), False, '根目录被误拒: %r' % (r,))
+        self.assertIn('count', r)
+
+    def test_11c_get_dir_root_exception_does_not_leak(self):
+        """`/` 特例不得外溢：/etc、/root/.ssh 仍按 safePath 结果拒绝。"""
+        os_shim = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: True))
+        for p in ('/etc', '/root/.ssh'):
+            fn = _load_route('get_dir', self.file, _Req({'path': p}), os_shim=os_shim)
+            self._reject(fn(), 'FILE_DANGER')
+
+    def test_11d_get_dir_follows_safepath_for_data_dir(self):
+        """`/www/server/mysql` 读模式 safePath 放行 -> get_dir 仍放行（未误伤）。"""
+        ok, _reason = self.ns['safePath']('/www/server/mysql')
+        self.assertTrue(ok, '前置：safePath 读模式应放行 /www/server/mysql')
+        os_shim = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: True))
+        fn = _load_route('get_dir', self.file,
+                         _Req({'path': '/www/server/mysql'}), os_shim=os_shim)
+        r = fn()
+        self.assertIsNot(r.get('status'), False, 'get_dir 未跟随 safePath 结果: %r' % (r,))
+
     # ---- check_exists_files ----
 
     def test_12_check_exists_rejects_etc(self):
