@@ -301,6 +301,26 @@ def isVaildIp(ip):
             return False
 
 
+def createPanelSslContext(certfile=None, keyfile=None, ciphers=None):
+    """构造面板 HTTPS 监听用的 SSLContext，显式锁定最低 TLS 1.2。
+
+    交给 gunicorn 的 `ssl_context` 配置项直接使用（gunicorn>=20.1），因此最低
+    版本由本函数掌控，而不是依赖 gunicorn 自身的默认协商（可能退到 TLS 1.0/1.1）。
+    刻意不 import gunicorn，便于单测直接断言 `minimum_version`。
+
+    certfile/keyfile 传空时只构造「策略」不加载证书（供测试断言策略用）。
+    """
+    import ssl
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    context.options |= ssl.OP_NO_COMPRESSION
+    if ciphers:
+        context.set_ciphers(ciphers)
+    if certfile and keyfile:
+        context.load_cert_chain(certfile, keyfile)
+    return context
+
+
 def createLocalSSL():
     pdir = getPanelDir()
     local_dir = pdir+'/ssl/local'

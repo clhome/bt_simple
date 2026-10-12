@@ -268,6 +268,16 @@ def requestAfter(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+    # 面板 SSL 开启时才下发 HSTS（30 天）。HTTP 访问不下发，避免把用户
+    # 锁在「强制 https 但证书不可用」的不可访问状态里。
+    try:
+        _panel_ssl = thisdb.getOptionByJson('panel_ssl', default={'open': False})
+        _panel_ssl_on = isinstance(_panel_ssl, dict) and bool(_panel_ssl.get('open'))
+    except Exception:
+        _panel_ssl_on = False
+    if _panel_ssl_on:
+        response.headers['Strict-Transport-Security'] = 'max-age=2592000'
     
     # 静态资源开启强缓存
     if request.path.startswith('/static/'):

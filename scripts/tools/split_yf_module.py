@@ -97,7 +97,7 @@ MODULE_FUNCS = {
         '_insecure_ssl_context', '_get_http_pool', '_pool_request', 'HttpGet', 'HttpGet2',
         'HttpPost', 'httpPost', 'getHost', 'getClientIp', 'getLocalIp', 'getHostAddr',
         'checkIp', 'isIpAddr', 'isVaildIpV4', 'isVaildIpV6', 'isVaildIp', 'getHostPort',
-        'setHostPort', 'getSslCrt', 'createLocalSSL', 'getSSHPort', 'getSSHStatus',
+        'setHostPort', 'getSslCrt', 'createLocalSSL', 'createPanelSslContext', 'getSSHPort', 'getSSHStatus',
         'connectSsh', 'createSshInfo', 'clearSsh', 'checkCert',
     ],
     'textutil': [

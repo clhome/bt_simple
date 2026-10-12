@@ -83,7 +83,10 @@ if panel_ssl_data['open']:
             certfile = panel_cert
             keyfile  = panel_private
             ciphers = 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
-            # ssl_version = 5 # TLSv1.2
+            # 显式锁定最低 TLS 1.2：gunicorn 的 `ssl_context`（>=20.1，本仓下界 22.0.0）
+            # 直接使用该 SSLContext，不再依赖已被 gunicorn 22 移除的 `ssl_version`。
+            # certfile/keyfile/ciphers 仍保留，供不支持 ssl_context 的旧 gunicorn 兜底。
+            ssl_context = yf.createPanelSslContext(certfile, keyfile, ciphers)
             http2 = True
 
 

@@ -574,7 +574,14 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + t('soft.uninstall_warning1') + yfSoftText(name) + t('soft.uninstall_warning2') + "</div><div class='line' style='margin-bottom: 0px;'><span style='display: block; margin-bottom: 10px;'>" + t('soft.uninstall_warning3') + " <b>" + yfSoftText(name) + "</b> " + t('soft.uninstall_warning4') + "</span><input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 200px;' placeholder='" + t('soft.please_input') + "' /></div></div>";
+  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + t('soft.uninstall_warning1') + yfSoftText(name) + t('soft.uninstall_warning2') + "</div><div class='line' style='margin-bottom: 0px;'><span style='display: block; margin-bottom: 10px;'>" + t('soft.uninstall_warning3') + " <b>" + yfSoftText(name) + "</b> " + t('soft.uninstall_warning4') + "</span><input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 200px;' placeholder='" + t('soft.please_input') + "' /></div>" +
+    "<div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>" +
+    "<label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>" +
+    "<input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />" +
+    t('soft.uninstall_backup_tip', '卸载前将数据打包备份到 /www/backup (.tar.gz)') +
+    "</label>" +
+    "</div>" +
+    "</div>";
   layer.open({
     type: 1,
     title: lan && lan.soft && t('soft.confirm_forced_deletion_high') || "",
@@ -676,7 +683,7 @@ function runUninstallVersion(name, title, version) {
     "</div>" +
     "<div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>" +
     "<label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>" +
-    "<input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />" +
+    "<input type='checkbox' id='normal_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />" +
     backupTip +
     "</label>" +
     "</div>" +
