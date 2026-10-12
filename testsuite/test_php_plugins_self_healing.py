@@ -12,6 +12,65 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'web'))
 
 
+#: 被测的 php 系插件（版本文件都落在 plugins/<name>/plugin_version.pl）。
+SELF_HEALING_PLUGINS = ('php', 'php-apt', 'php-yum')
+
+
+def load_plugin_module(plugin_name):
+    """按路径加载 plugins/<plugin_name>/index.py，返回模块对象。"""
+    path = os.path.join(PROJECT_ROOT, 'plugins', plugin_name, 'index.py')
+    alias = plugin_name.replace('-', '_') + '_index'
+    spec = importlib.util.spec_from_file_location(alias, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def run_version_self_healing(module, plugin_name):
+    """在临时副本里跑一遍「1.0 → 2.0」版本自愈，返回观测结果字典。
+
+    插件的版本文件落点是 `getPluginDir() + '/plugin_version.pl'`，而 getPluginDir()
+    是模块级函数（调用时从模块 globals 解析）——因此把 `module.getPluginDir` /
+    `module.getServerDir` 整体指向 tempfile 副本，自愈的写操作就只落在副本里，
+    仓库 `plugins/<plugin_name>/` 逐字节不动。
+
+    旧写法直接写仓库文件：php-apt 的仓库版本是 1.0，每跑一次门禁就被自愈写成 2.0，
+    把工作区改脏、污染 git status 与提交核对（本函数即为修复）。
+
+    返回 {'res', 'observed', 'res2', 'observed2'}：
+      res / observed   首次 checkPluginUpgrade 的 JSON 与副本版本文件内容
+      res2 / observed2 再次 checkPluginUpgrade 的 JSON 与副本版本文件内容
+    """
+    tmp_root = tempfile.mkdtemp(prefix='yufeng_plugin_iso_')
+    copy_dir = os.path.join(tmp_root, plugin_name)
+    shutil.copytree(os.path.join(PROJECT_ROOT, 'plugins', plugin_name), copy_dir,
+                    ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    server_dir = os.path.join(tmp_root, 'server', plugin_name)
+    os.makedirs(server_dir, exist_ok=True)
+
+    orig_plugin_dir = module.getPluginDir
+    orig_server_dir = module.getServerDir
+    module.getPluginDir = lambda: copy_dir
+    module.getServerDir = lambda: server_dir
+    try:
+        ver_file = module.getPluginVersionFile()
+        with open(ver_file, 'w', encoding='utf-8') as f:
+            f.write('1.0')
+
+        res = json.loads(module.checkPluginUpgrade())
+        with open(ver_file, 'r', encoding='utf-8') as f:
+            observed = f.read().strip()
+
+        res2 = json.loads(module.checkPluginUpgrade())
+        with open(ver_file, 'r', encoding='utf-8') as f:
+            observed2 = f.read().strip()
+        return {'res': res, 'observed': observed, 'res2': res2, 'observed2': observed2}
+    finally:
+        module.getPluginDir = orig_plugin_dir
+        module.getServerDir = orig_server_dir
+        shutil.rmtree(tmp_root, ignore_errors=True)
+
+
 class TestPhpPluginsSelfHealing(unittest.TestCase):
 
     def test_01_install_sh_syntax_clean(self):
@@ -38,85 +97,51 @@ class TestPhpPluginsSelfHealing(unittest.TestCase):
         self.assertIn('Restart=on-failure', content)
 
     def test_03_php_version_compare_and_self_healing(self):
-        """测试 3: 验证 php 源码版的版本比较与单次自愈机制"""
-        php_index_path = os.path.join(PROJECT_ROOT, 'plugins', 'php', 'index.py')
-        spec = importlib.util.spec_from_file_location("php_index", php_index_path)
-        php_mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(php_mod)
+        """测试 3: 验证 php 源码版的版本比较与单次自愈机制（写操作隔离在临时副本）"""
+        php_mod = load_plugin_module('php')
 
         # 验证对比逻辑
         self.assertEqual(php_mod._compare_version('1.0', '2.0'), -1)
         self.assertEqual(php_mod._compare_version('2.0', '2.0'), 0)
         self.assertEqual(php_mod._compare_version('2.1', '2.0'), 1)
 
-        # 模拟旧版本
-        ver_file = php_mod.getPluginVersionFile()
-        with open(ver_file, 'w', encoding='utf-8') as f:
-            f.write('1.0')
-        
-        # 执行升级检查，应触发自愈并更新版本号为 2.0
-        res = json.loads(php_mod.checkPluginUpgrade())
-        self.assertTrue(res['status'])
-        
-        with open(ver_file, 'r', encoding='utf-8') as f:
-            cur_ver = f.read().strip()
-        self.assertEqual(cur_ver, '2.0')
+        # 执行升级检查，应触发自愈并更新版本号为 2.0（只写临时副本，不动仓库）
+        r = run_version_self_healing(php_mod, 'php')
+        self.assertTrue(r['res']['status'])
+        self.assertEqual(r['observed'], '2.0')
 
         # 再次执行升级检查，应立即放行
-        res2 = json.loads(php_mod.checkPluginUpgrade())
-        self.assertTrue(res2['status'])
-        self.assertTrue('最新版本' in res2['msg'] or 'up to date' in res2['msg'])
+        self.assertTrue(r['res2']['status'])
+        self.assertTrue('最新版本' in r['res2']['msg'] or 'up to date' in r['res2']['msg'])
 
     def test_04_php_apt_version_compare_and_self_healing(self):
-        """测试 4: 验证 php-apt 的版本比较与单次自愈机制"""
-        apt_index_path = os.path.join(PROJECT_ROOT, 'plugins', 'php-apt', 'index.py')
-        spec = importlib.util.spec_from_file_location("php_apt_index", apt_index_path)
-        apt_mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(apt_mod)
+        """测试 4: 验证 php-apt 的版本比较与单次自愈机制（写操作隔离在临时副本）"""
+        apt_mod = load_plugin_module('php-apt')
 
         self.assertEqual(apt_mod.formatVersion('74'), '7.4')
         self.assertEqual(apt_mod.formatVersion('8.1'), '8.1')
 
-        ver_file = apt_mod.getPluginVersionFile()
-        with open(ver_file, 'w', encoding='utf-8') as f:
-            f.write('1.0')
+        r = run_version_self_healing(apt_mod, 'php-apt')
+        self.assertTrue(r['res']['status'])
+        self.assertEqual(r['observed'], '2.0')
 
-        res = json.loads(apt_mod.checkPluginUpgrade())
-        self.assertTrue(res['status'])
-
-        with open(ver_file, 'r', encoding='utf-8') as f:
-            cur_ver = f.read().strip()
-        self.assertEqual(cur_ver, '2.0')
-
-        res2 = json.loads(apt_mod.checkPluginUpgrade())
-        self.assertTrue(res2['status'])
-        self.assertTrue('最新版本' in res2['msg'] or 'up to date' in res2['msg'])
+        self.assertTrue(r['res2']['status'])
+        self.assertTrue('最新版本' in r['res2']['msg'] or 'up to date' in r['res2']['msg'])
 
 
     def test_05_php_yum_version_compare_and_self_healing(self):
-        """测试 5: 验证 php-yum 的版本比较与单次自愈机制"""
-        yum_index_path = os.path.join(PROJECT_ROOT, 'plugins', 'php-yum', 'index.py')
-        spec = importlib.util.spec_from_file_location("php_yum_index", yum_index_path)
-        yum_mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(yum_mod)
+        """测试 5: 验证 php-yum 的版本比较与单次自愈机制（写操作隔离在临时副本）"""
+        yum_mod = load_plugin_module('php-yum')
 
         self.assertEqual(yum_mod.formatVersion('7.4'), '74')
         self.assertEqual(yum_mod.formatVersion('80'), '80')
 
-        ver_file = yum_mod.getPluginVersionFile()
-        with open(ver_file, 'w', encoding='utf-8') as f:
-            f.write('1.0')
+        r = run_version_self_healing(yum_mod, 'php-yum')
+        self.assertTrue(r['res']['status'])
+        self.assertEqual(r['observed'], '2.0')
 
-        res = json.loads(yum_mod.checkPluginUpgrade())
-        self.assertTrue(res['status'])
-
-        with open(ver_file, 'r', encoding='utf-8') as f:
-            cur_ver = f.read().strip()
-        self.assertEqual(cur_ver, '2.0')
-
-        res2 = json.loads(yum_mod.checkPluginUpgrade())
-        self.assertTrue(res2['status'])
-        self.assertIn('up to date', res2['msg'])
+        self.assertTrue(r['res2']['status'])
+        self.assertIn('up to date', r['res2']['msg'])
 
     def test_06_orphan_socket_and_pid_clean(self):
         """测试 6: 验证死锁 PID 清理功能（模拟僵尸 PID 文件）"""
