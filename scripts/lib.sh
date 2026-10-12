@@ -226,17 +226,28 @@ pip3 install --upgrade setuptools wheel -i $PIPSRC
 
 
 # 安装 requirements.txt 中的依赖项
+#
+# 两个源都失败时必须 exit 1（报告 P1-6）：本脚本刻意不开 `set -e`（中间有大量
+# 「允许失败」的探测命令，如 `cat /etc/*-release`、`bash getos.sh`、brew 安装），
+# 但依赖装不上就必须让退出码非 0，否则调用方（scripts/install/*.sh）会把
+# 「依赖缺失、面板起不来」当成安装成功。
 if [ "$LOCAL_ADDR" != "common" ]; then
     echo "正在使用国内加速源安装 Python 依赖..."
     if ! cd /www/server/yufeng_panel || ! pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC; then
         echo "警告: 加速源安装失败，正在尝试使用官方源..."
-        pip3 install -r /www/server/yufeng_panel/requirements.txt
+        if ! pip3 install -r /www/server/yufeng_panel/requirements.txt; then
+            echo "错误: Python 依赖安装失败（加速源与官方源均失败），中止安装！"
+            exit 1
+        fi
     fi
 else
     echo "正在使用官方源安装 Python 依赖..."
     if ! cd /www/server/yufeng_panel || ! pip3 install -r /www/server/yufeng_panel/requirements.txt; then
         echo "警告: 官方源安装失败，正在尝试使用国内加速源..."
-        pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
+        if ! pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC; then
+            echo "错误: Python 依赖安装失败（官方源与加速源均失败），中止安装！"
+            exit 1
+        fi
     fi
 fi
 
@@ -251,7 +262,11 @@ NEW_P_VER=${P_VER_D}.${P_VER_M}
 
 if [ -f /www/server/yufeng_panel/version/r${NEW_P_VER}.txt ];then
     echo "cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/version/r${NEW_P_VER}.txt"
-    cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/version/r${NEW_P_VER}.txt -i $PIPSRC
+    # 版本专属依赖（老 Python 的锁版本）装不上同样必须中止，理由同上
+    if ! cd /www/server/yufeng_panel || ! pip3 install -r /www/server/yufeng_panel/version/r${NEW_P_VER}.txt -i $PIPSRC; then
+        echo "错误: 版本专属依赖 (version/r${NEW_P_VER}.txt) 安装失败，中止安装！"
+        exit 1
+    fi
 fi
 
 echo "lib ok!"

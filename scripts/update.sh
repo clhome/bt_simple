@@ -27,6 +27,58 @@ if [ ${_os} != "Darwin" ] && [ ! -d /www/server/yufeng_panel/logs ]; then
 fi
 
 LOG_FILE=/var/log/yf-update.log
+
+# =========================================================================
+# 升级前备份（报告 P1-6）
+#
+# 命名与 deploy.sh::backup_mdserver_web() 完全一致（/www/backup/yufeng_panel-<时间戳>.tar.gz），
+# 这样 `deploy.sh rollback` 能直接发现并使用本次更新前的备份回滚。
+# 备份失败一律中止更新：宁可停在旧版本，也不要出现「代码换了但没有回滚点」。
+# =========================================================================
+BACKUP_DIR=/www/backup
+
+die() {
+	echo -e "\033[31m[ERROR]\033[0m $1" >&2
+	exit "${2:-1}"
+}
+
+function backup_before_update() {
+	local ts backup_file
+	ts=$(date +%Y%m%d%H%M%S)
+	backup_file="${BACKUP_DIR}/yufeng_panel-${ts}.tar.gz"
+
+	if [ ! -d /www/server/yufeng_panel ]; then
+		echo "未找到 /www/server/yufeng_panel（面板未安装？），无法备份，中止更新"
+		return 1
+	fi
+
+	if ! mkdir -p "${BACKUP_DIR}"; then
+		echo "备份目录创建失败: ${BACKUP_DIR}"
+		return 1
+	fi
+
+	echo "正在备份当前面板到 ${backup_file} ..."
+	# 排除项与 deploy.sh 保持一致：bin/lib/lib64/include 是可重建的虚拟环境，体积大
+	if ! tar -czf "${backup_file}" \
+		--exclude='yufeng_panel/bin' \
+		--exclude='yufeng_panel/lib' \
+		--exclude='yufeng_panel/lib64' \
+		--exclude='yufeng_panel/include' \
+		-C /www/server yufeng_panel 2>/dev/null; then
+		echo "备份失败: ${backup_file}"
+		return 1
+	fi
+
+	# tar 返回 0 但文件为空同样是失败（磁盘满等），不能留下无用的回滚点
+	if [ ! -s "${backup_file}" ]; then
+		echo "备份文件为空: ${backup_file}"
+		return 1
+	fi
+
+	echo "备份完成: ${backup_file}"
+	return 0
+}
+
 {
 
 HTTP_PREFIX="https://"
@@ -264,6 +316,11 @@ echo "LOCAL:${LOCAL_ADDR}"
 CP_CMD=/usr/bin/cp
 if [ -f /bin/cp ];then
         CP_CMD=/bin/cp
+fi
+
+# 升级前必须完成备份；备份失败即中止，不得继续覆盖代码
+if ! backup_before_update; then
+	die "升级前备份失败，已中止更新！" 1
 fi
 
 echo "update bt_simple code start"

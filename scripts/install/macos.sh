@@ -39,7 +39,8 @@ if [ ! -d $DEV/server/mdserver-web ]; then
 fi
 
 if [ ! -d $DEV/server/lib ]; then
-	cd $DEV/server/mdserver-web/scripts && bash lib.sh
+	# lib.sh 装不上 Python 依赖会 exit 1；不显式退出的话后续命令会把退出码变回 0
+	cd $DEV/server/mdserver-web/scripts && bash lib.sh || exit 1
 fi  
 
 chmod 755 $DEV/server/mdserver-web/data

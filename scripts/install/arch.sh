@@ -109,5 +109,6 @@ if [ ! -f /usr/sbin/firewalld ];then
 fi
 
 
-cd /www/server/yufeng_panel/scripts && bash lib.sh
+# lib.sh 装不上 Python 依赖会 exit 1；不显式退出的话最后一行 chmod 会把退出码变回 0
+cd /www/server/yufeng_panel/scripts && bash lib.sh || exit 1
 chmod 755 /www/server/yufeng_panel/data

@@ -26,17 +26,75 @@ if [ -f /www/server/yufeng_panel/tools.py ];then
 fi
 
 LOG_FILE=/var/log/yf-install.log
+
+# =========================================================================
+# 严格模式与失败语义（报告 P1-6）
+#
+# 1) 放在变量初始化**之后**：`set -u` 若在初始化期生效，会把「本可为空」的
+#    变量（$cn、$INPUT 等）误判成致命错误。
+# 2) `set -e` + ERR trap 保证中间步骤（下载 / 依赖安装 / 启动服务）失败时
+#    立即中止，不会再走到结尾打印 "Install completed" 这种假成功。
+# 3) 已知允许失败的语句逐条显式 `|| true`，理由写在该行上方。
+# =========================================================================
+die() {
+	local _code=${2:-1}
+	echo -e "${ERROR} $1" >&2
+	echo -e "${ERROR} 安装日志: ${LOG_FILE}" >&2
+	exit "$_code"
+}
+
+# 系统资源预检（口径对齐 deploy.sh::check_system_resources()）：
+#   内存 < 450MB → 拒绝；根分区(/)或 /www 剩余 ≤ 400MB → 拒绝。
+# YF_FAKE_MEM_MB / YF_FAKE_DISK_MB 覆盖读到的值，让守卫用例能构造失败路径
+# （testsuite/test_install_scripts_hardening.py）；生产环境不会设置这两个变量。
+function check_system_resources() {
+	local mem_total root_disk_space www_disk_space
+
+	mem_total="${YF_FAKE_MEM_MB:-$(free -m 2>/dev/null | grep Mem | awk '{print $2}' || true)}"
+	if [ -z "$mem_total" ]; then
+		# free 不可用（极简容器 / macOS）时无法判断，放行而不是误杀
+		echo -e "${WARN} 无法读取内存信息，跳过内存预检"
+	elif [ "$mem_total" -lt 450 ]; then
+		echo -e "${ERROR} 当前服务器内存为: ${mem_total}MB"
+		echo -e "${ERROR} 检测到当前服务器内存小于450MB，无法继续安装面板！"
+		return 1
+	fi
+
+	root_disk_space="${YF_FAKE_DISK_MB:-$(df -m 2>/dev/null | grep '/$' | awk '{print $4}' || true)}"
+	if [ -n "$root_disk_space" ] && [ "$root_disk_space" -le 400 ]; then
+		echo -e "${ERROR} 系统盘(/)剩余空间不足400M，无法继续安装！"
+		return 1
+	fi
+
+	www_disk_space="${YF_FAKE_DISK_MB:-$(df -m 2>/dev/null | grep '/www$' | awk '{print $4}' || true)}"
+	if [ -n "$www_disk_space" ] && [ "$www_disk_space" -le 400 ]; then
+		echo -e "${ERROR} /www盘剩余空间不足400M，无法继续安装！"
+		return 1
+	fi
+
+	echo -e "${SUCCESS} 系统资源检查通过"
+	return 0
+}
+
+set -euo pipefail
+trap 'die "安装失败（退出码 $?），安装未完成！" $?' ERR
+
 {
 
 HTTP_PREFIX="https://"
 LOCAL_ADDR=common
-cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
+# 地区探测是尽力而为：网络不可达时 $cn 为空即可，不能因它中止安装
+cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"" || true)
+# 原条件里的 `|| [ "$?" == "0" ]` 取到的是前一个 [ ] 的退出码（恒为 1），是死分支；
+# 严格模式下 `|| true` 会把 $? 变成 0，若保留该分支就会把「探测失败」误判成「在中国」
+if [ ! -z "$cn" ] ;then
 	LOCAL_ADDR=cn
 fi
 
 # 代理清单单一真源：scripts/proxies.list（作用域 ui / both）
-_yf_proxy_list_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/proxies.list"
+# `${BASH_SOURCE[0]:-}` + `|| true`：`curl ... | bash` 方式执行时 BASH_SOURCE 为空，
+# set -u 下会直接报 unbound variable；取不到目录只退化成「找不到代理清单」
+_yf_proxy_list_file="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" 2>/dev/null && pwd || true)/proxies.list"
 
 if [ "$LOCAL_ADDR" != "common" ];then
 	declare -A PROXY_URL
@@ -168,7 +226,9 @@ function ChooseProxyURL(){
     echo -e '#####################################################'
     CHOICE_A=$(echo -e "\n${BOLD}└─ 请输入你想使用的代理地址 (直接回车将自动测速选择) [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
 
-    read -p "${CHOICE_A}" INPUT
+    # 非交互执行（无 tty / curl|bash）时 read 直接 EOF 返回非 0：
+    # 按「未输入」处理并走下面的自动测速，不能因它中止安装
+    read -p "${CHOICE_A}" INPUT || INPUT=""
     # echo $INPUT
     if [ "$INPUT" == "" ];then
         AutoChooseProxyURL
@@ -204,10 +264,9 @@ if [ "$LOCAL_ADDR" != "common" ];then
 		DOMAIN=`echo $DOMAIN | sed 's|/||g'`
 		# 自动选择逻辑已经包含了测速，如果是手动选择则保持原有的 ping 检查
 		if [ "$INPUT" != "" ]; then
-			ping -c 3 $DOMAIN > /dev/null 2>&1
-			if [ "$?" != "0" ];then
-				echo "无效代理地址:${DOMAIN}"
-				exit
+			# 手动选的代理不可达属于致命错误（原来 bare `exit` 以 0 退出 = 假成功）
+			if ! ping -c 3 $DOMAIN > /dev/null 2>&1; then
+				die "无效代理地址:${DOMAIN}" 1
 			fi
 		fi
 	fi
@@ -271,17 +330,28 @@ fi
 
 if [ "$EUID" -ne 0 ] && [ "$OSNAME" != "macos" ];then 
 	echo "Please run as root!"
- 	exit
+	exit 1
 fi
 
 echo "LOCAL:${LOCAL_ADDR}"
 echo "OSNAME:${OSNAME}"
 
+# 系统资源预检：口径与 deploy.sh::check_system_resources() 一致。放在真正开始安装之前，
+# 避免装到一半才发现内存/磁盘不够。
+if ! check_system_resources; then
+	die "系统资源不足，无法继续安装面板！" 1
+fi
+
 if [ $OSNAME != "macos" ];then
-	if id www &> /dev/null ;then 
-	    echo ""
+	# 幂等：重复执行本脚本时组/用户已存在，直接跳过，不再让 groupadd/useradd 报错后继续
+	if getent group www >/dev/null 2>&1 || grep -q '^www:' /etc/group 2>/dev/null; then
+		echo -e "${WARN} 用户组 www 已存在，跳过创建"
 	else
-	    groupadd www
+		groupadd www
+	fi
+	if id -u www >/dev/null 2>&1; then
+		echo -e "${WARN} 用户 www 已存在，跳过创建"
+	else
 		useradd -g www -s /usr/sbin/nologin www
 	fi
 
@@ -316,7 +386,8 @@ if [ $OSNAME != "macos" ];then
 	    fi
 	    
 	    if [ -d /root/.acme.sh ];then
-	        /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+	        # 只设置默认 CA：网络不可达时不应中止安装（签发证书时会再设置一次）
+	        /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt || echo -e "${WARN} 设置 acme.sh 默认 CA 失败，跳过"
 	    fi
 	fi
 fi
@@ -334,7 +405,8 @@ if [ "${OSNAME}" == "macos" ];then
 fi
 
 cd /www/server/yufeng_panel && bash cli.sh start
-isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
+# isStart 仅用于排查输出；没匹配到进程时 grep 返回 1，pipefail 下会让赋值非 0 → || true
+isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}' || true`
 n=0
 while [ ! -f /etc/rc.d/init.d/yf ];
 do
@@ -362,10 +434,12 @@ fi
 
 
 endTime=`date +%s`
-((outTime=(${endTime}-${startTime})/60))
+# 耗时不足 1 分钟时 outTime=0，`((...))` 会返回 1；不 || true 的话成功的安装也会被判失败
+((outTime=(${endTime}-${startTime})/60)) || true
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
 } 1> >(tee $LOG_FILE) 2>&1
 
+# 只有上面的安装块整体跑完（没有触发 set -e / ERR trap）才会走到这里打印成功文案
 echo -e "\nInstall completed. If error occurs, please contact us with the log file yf-install.log ."
 echo "安装完毕，如果出现错误，请带上同目录下的安装日志 yf-install.log 联系我们反馈：admin@yftec.top."
