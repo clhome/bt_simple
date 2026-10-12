@@ -308,6 +308,33 @@ bash deploy.sh
 tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/mdserver-web/data
 ```
 
+#### 面板数据库自动备份与恢复
+
+面板自身数据库 `data/panel.db`（站点 / 用户 / 计划任务 / 面板设置都在里面）由任务守护进程
+**每天自动在线备份一次**，保留最近 14 份：
+
+- 备份目录：`/www/backup/panel_db/`（即面板「默认备份目录」设置（`backup_path`）下的 `panel_db` 子目录，
+  与 `site`、`database` 备份同级）；
+- 文件名：`panel_db_YYYYmmdd_HHMMSS.db`，超出的最旧备份自动清理（只删本目录内这一命名模式的文件）；
+- 采用 SQLite 在线备份 API 生成一致性快照，**不是**文件复制（面板库跑在 WAL 模式，
+  直接复制主文件会丢掉尚未落盘的事务）；
+- 手动备份一次：`python3 panel_task.py backup_panel_db`（失败时退出码非 0）。
+
+恢复步骤（**必须停面板后再替换**）：
+
+```bash
+bs stop                                                      # 1. 停面板与任务进程
+cd /www/server/mdserver-web/data                             # 2. 清掉旧库的 WAL/SHM，
+rm -f panel.db-wal panel.db-shm panel.db-journal             #    否则会被回放进新库
+mv panel.db panel.db.broken                                  # 3. 坏库留档（可选但建议）
+cp /www/backup/panel_db/panel_db_20260101_030000.db panel.db # 4. 用备份覆盖
+chown www:www panel.db                                       #    属主保持面板用户
+bs start                                                     # 5. 起面板并核对数据
+```
+
+> 备份文件本身是一致快照，**不要**再搭配 `-wal` 使用；`-wal`/`-shm` 属于被替换掉的旧库，
+> 留着轻则数据回退、重则报 `database disk image is malformed`。
+
 #### 一键回滚 (通过部署脚本)
 
 如果您在迁移后遇到兼容性问题，可以使用部署脚本快速回滚到原有的面板状态：

@@ -616,6 +616,145 @@ def restartPanelService_step():
         yf.panelCmd('restart_panel')
 # --------------------------------------Panel Restart End   --------------------------------------------- #
 
+
+# -------------------------------------- 面板自身库备份 Start ------------------------------------------ #
+# 测评报告 P1 第 7 条：面板自身的 data/panel.db 此前没有任何定时备份 —— 站点/数据库有计划
+# 任务备份（scripts/backup.py，由用户创建的任务触发），deploy.sh 升级前也会打包整个面板目录，
+# 但日常运行中面板库本身没有任何回滚点：误删、写坏、磁盘故障都无处可退。
+#
+# 为什么必须用 SQLite 在线备份 API 而不是文件复制（cp / shutil.copyfile）：
+# 面板库跑在 WAL 模式下（web/core/db.py 的 `PRAGMA journal_mode=WAL`），已提交但尚未
+# checkpoint 的事务**只存在于 panel.db-wal 里**。实测：刚建表并提交的小库，主文件里连表
+# 都没有（内容全在 -wal）。直接复制主库文件得到的是「缺最近事务」的旧快照，恢复后表现为
+# 数据静默丢失；把 -wal/-shm 一起拷又会与主库版本不匹配而损坏。
+# `sqlite3.Connection.backup()` 走 SQLite 自己的页级在线备份协议，不阻塞业务写入，
+# 拿到的必然是一致快照（含 WAL 中已提交的内容）。
+#
+# 备份目录选 `yf.getBackupDir()/panel_db`（默认 /www/backup/panel_db）：
+#   * 与站点备份 `<backup>/site`、数据库备份 `<backup>/database` 同源同盘，沿用用户在面板里
+#     配置的 `backup_path`，一并被运维的 /www/backup 备份与迁移流程覆盖；
+#   * 不放进 `data/`：备份必须与「可能被写坏的库」分开存放，否则磁盘/目录级故障会一起丢。
+#
+# 保留份数取 14：备份按天做（每日一份），14 份 ≈ 两周回滚窗口 —— 面板库通常只有几 MB，
+# 两周的副本成本可以忽略，而「几天后才发现数据不对」是最常见的场景。
+PANEL_DB_BACKUP_KEEP = 14            # 保留最近 14 份（每日一份 ≈ 两周回滚窗口）
+PANEL_DB_BACKUP_INTERVAL = 86400     # 每天备份一次
+PANEL_DB_BACKUP_PREFIX = 'panel_db_'
+PANEL_DB_BACKUP_SUFFIX = '.db'
+
+
+def getPanelDbBackupDir():
+    # 面板自身库的备份目录（用户改了 backup_path 就跟着走）
+    return yf.getBackupDir() + '/panel_db'
+
+
+def cleanupPanelDbBackups(backup_dir, keep):
+    """只清理本模块自己命名的备份，保留最近 keep 份，返回被删除的文件列表。
+
+    **绝不用通配符删别的文件**：先按 `PANEL_DB_BACKUP_PREFIX*PANEL_DB_BACKUP_SUFFIX`
+    精确匹配文件名，再确认匹配到的是普通文件（不是目录/软链），最后按修改时间
+    从新到旧保留 keep 份。`keep` 之外的候选一个都不碰。
+    """
+    removed = []
+    try:
+        names = os.listdir(backup_dir)
+    except OSError as e:
+        _log.warning('[panel_db_backup] 无法列出备份目录 %s: %s', backup_dir, e)
+        return removed
+
+    backups = []
+    for name in names:
+        if not (name.startswith(PANEL_DB_BACKUP_PREFIX) and name.endswith(PANEL_DB_BACKUP_SUFFIX)):
+            continue
+        path = os.path.join(backup_dir, name)
+        if not os.path.isfile(path):
+            continue
+        backups.append((os.path.getmtime(path), path))
+
+    backups.sort(reverse=True)
+    for _mtime, path in backups[keep:]:
+        try:
+            os.remove(path)
+            removed.append(path)
+        except OSError as e:
+            _log.warning('[panel_db_backup] 清理过期备份失败: %s -> %s', path, e)
+    return removed
+
+
+def backupPanelDb(db_file=None, backup_dir=None, keep=None):
+    """在线备份面板自身库，返回 `(是否成功, 备份文件路径 或 失败原因)`。
+
+    默认落点即生产路径（`<面板>/data/panel.db` → `yf.getBackupDir()/panel_db`）；
+    留出覆盖口是为了让用例/排障能在临时目录里验证，不必碰真实面板库。
+
+    本函数**不抛异常**：它跑在通道 1 看门狗线程上，异常抛出去会打断同一轮里其它
+    自愈任务，而且失败信息也不会有任何记录。失败一律以 `(False, 原因)` 返回。
+
+    恢复步骤见 README「面板自身数据库自动备份与恢复」小节，以及本文件末尾注释。
+    """
+    tmp_target = None
+    try:
+        import sqlite3
+
+        if keep is None:
+            keep = PANEL_DB_BACKUP_KEEP
+        keep = int(keep)
+        if keep < 1:
+            keep = 1
+
+        db_file = db_file or (yf.getPanelDataDir() + '/panel.db')
+        backup_dir = backup_dir or getPanelDbBackupDir()
+
+        if not os.path.isfile(db_file):
+            return (False, '面板库不存在: %s' % db_file)
+
+        os.makedirs(backup_dir, exist_ok=True)
+        filename = PANEL_DB_BACKUP_PREFIX + time.strftime('%Y%m%d_%H%M%S') + PANEL_DB_BACKUP_SUFFIX
+        target = os.path.join(backup_dir, filename)
+        tmp_target = target + '.tmp'
+
+        # timeout=30 与面板自身的 PRAGMA busy_timeout 一致：业务写入持锁时等它，
+        # 而不是立刻报 database is locked。
+        src_conn = sqlite3.connect(db_file, timeout=30)
+        try:
+            dst_conn = sqlite3.connect(tmp_target, timeout=30)
+            try:
+                src_conn.backup(dst_conn)
+            finally:
+                dst_conn.close()
+        finally:
+            src_conn.close()
+
+        # 先写临时名再原子改名：中断/崩溃不会在备份目录里留下「半个库」——
+        # 半截备份比没有备份更危险（看起来像备份，真恢复时才炸）。
+        os.replace(tmp_target, target)
+        tmp_target = None
+        cleanupPanelDbBackups(backup_dir, keep)
+        return (True, target)
+    except Exception as e:
+        if tmp_target and os.path.exists(tmp_target):
+            try:
+                os.remove(tmp_target)
+            except OSError as _e:
+                _log.debug('[panel_db_backup] 清理失败残留 %s 失败: %s', tmp_target, _e)
+        return (False, '%s: %s' % (e.__class__.__name__, e))
+
+
+def panelDbBackup_step():
+    # 面板自身库定时在线备份（失败只记日志并返回，绝不影响其它任务）
+    try:
+        ok, detail = backupPanelDb()
+        if ok:
+            _log.info('[panel_db_backup] 备份完成: %s', detail)
+            yf.writeLog('面板数据库备份', '备份完成:' + detail)
+        else:
+            _log.warning('[panel_db_backup] 备份失败: %s', detail)
+            yf.writeLog('面板数据库备份', '备份失败:' + detail)
+    except Exception:
+        print('panelDbBackup:', yf.getTracebackInfo())
+# -------------------------------------- 面板自身库备份 End   ------------------------------------------ #
+
+
 class TaskScheduler:
     def __init__(self):
         self.tasks = []
@@ -665,6 +804,12 @@ def run():
     watchdog_scheduler.add_task(openrestyAutoRestart_step, 86400)
     watchdog_scheduler.add_task(panelPluginStatusCheck_step, 90)
     watchdog_scheduler.add_task(restartPanelService_step, file_check_interval)
+    # 面板自身库备份：与 openrestyAutoRestart_step 同为「每日一次」的长周期任务。
+    # 放在通道 1 是因为 SQLite 在线备份本身很轻（面板库通常几 MB，页级备份毫秒级），
+    # 而通道 2 只执行用户创建的计划任务、不接受内建任务。
+    # TaskScheduler 的首次运行时刻就是启动时刻，因此每次面板任务进程启动都会先落一份
+    # 快照（升级/重启后立刻有回滚点），后续按 PANEL_DB_BACKUP_INTERVAL 节流。
+    watchdog_scheduler.add_task(panelDbBackup_step, PANEL_DB_BACKUP_INTERVAL)
 
     t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
     t_watchdog.daemon = True
@@ -694,8 +839,33 @@ def run():
     finally:
         removePanelTaskPidFile()
 
+# ---------------------------------------------------------------------------------
+# 恢复面板自身库（data/panel.db）—— 备份文件在 `<backup_path>/panel_db/panel_db_<时间戳>.db`
+# ---------------------------------------------------------------------------------
+#   1. 停面板与任务进程：`bs stop`（等价于停掉 gunicorn 与 panel_task.py）。
+#      必须在面板停下的状态下替换，否则运行中的进程会继续往旧库写、并可能用旧连接
+#      覆盖回去。
+#   2. 处理 WAL/SHM：删掉 `data/panel.db-wal` 与 `data/panel.db-shm`（以及 `panel.db-journal`）。
+#      这两个文件属于**被替换掉的旧库**，留着会被 SQLite 当成新库的未提交 WAL 回放，
+#      轻则数据回退到旧状态，重则报 `database disk image is malformed`。备份文件本身
+#      是一致快照，不需要、也不能搭配 -wal 使用。
+#   3. 备份坏库留档（可选但强烈建议）：`mv data/panel.db data/panel.db.broken`。
+#   4. 用备份覆盖：`cp <backup_path>/panel_db/panel_db_<时间戳>.db data/panel.db`，
+#      并确保属主仍是面板用户（`chown www:www data/panel.db`）。
+#   5. 起面板：`bs start`，随后在面板里确认站点/用户/计划任务等数据已回退到备份时刻。
+#
+# 手动触发一次备份：`python3 panel_task.py backup_panel_db`（失败时退出码非 0）。
+# ---------------------------------------------------------------------------------
+
 if __name__ == "__main__":
     from admin import setup
     setup.init()
+
+    # 手动触发入口（运维/排障）：python3 panel_task.py backup_panel_db
+    if len(sys.argv) > 1 and sys.argv[1] == 'backup_panel_db':
+        _ok, _detail = backupPanelDb()
+        print('[panel_db_backup] %s: %s' % ('ok' if _ok else 'failed', _detail))
+        sys.exit(0 if _ok else 1)
+
     run()
     
