@@ -2705,8 +2705,9 @@ def setDbAccess():
         safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
         # 查询已有非 localhost 的 Host
-        users = pdb.query("select Host from mysql.user where User='" +
-                          name + "' AND Host!='localhost'")
+        # 用户名来自用户入参（或 sqlite databases 表）：走 ORM 参数化，禁止拼进 SQL 文本
+        users = pdb.query("select Host from mysql.user where User=%s AND Host!='localhost'",
+                          (name,))
         err = checkSqlExec(users)
         if err is not None:
             return err
@@ -2936,6 +2937,11 @@ def getDbInfo():
         return data[1]
 
     db_name = args['name']
+    # 库名是用户入参：标识符位置（show tables from）无法参数化，先过白名单；
+    # information_schema 查询的 table_schema 走参数化（下方）。
+    db_name = yf.safeIdentifier(db_name)
+    if not db_name:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     pdb = pMysqlDb()
     # print 'show tables from `%s`' % db_name
     tables = pdb.query('show tables from `%s`' % db_name)
@@ -2943,8 +2949,8 @@ def getDbInfo():
         return yf.returnJson(False, '获取表列表失败: ' + str(tables))
 
     ret = {}
-    sql = "select sum(DATA_LENGTH)+sum(INDEX_LENGTH) as sum_size from information_schema.tables  where table_schema='%s'" % db_name
-    data_sum = pdb.query(sql)
+    sql = "select sum(DATA_LENGTH)+sum(INDEX_LENGTH) as sum_size from information_schema.tables  where table_schema=%s"
+    data_sum = pdb.query(sql, (db_name,))
 
     data = 0
     if not isinstance(data_sum, Exception) and len(data_sum) > 0 and data_sum[0]['sum_size'] != None:
@@ -2990,6 +2996,10 @@ def repairTable():
         return data[1]
 
     db_name = args['db_name']
+    # 库名是用户入参：标识符位置无法参数化，先过白名单
+    db_name = yf.safeIdentifier(db_name)
+    if not db_name:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     tables = json.loads(args['tables'])
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
@@ -3024,6 +3034,10 @@ def optTable():
         return data[1]
 
     db_name = args['db_name']
+    # 库名是用户入参：标识符位置无法参数化，先过白名单
+    db_name = yf.safeIdentifier(db_name)
+    if not db_name:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     tables = json.loads(args['tables'])
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
@@ -3063,6 +3077,10 @@ def alterTable():
     if table_type not in ['InnoDB', 'MyISAM']:
         return yf.returnJson(False, "不支持的目标存储引擎类型!")
 
+    # 库名是用户入参：标识符位置无法参数化，先过白名单
+    db_name = yf.safeIdentifier(db_name)
+    if not db_name:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     pdb = pMysqlDb()
     mtable = pdb.query('show tables from `%s`' % db_name)
     err = isSqlError(mtable)
@@ -3214,8 +3232,9 @@ def setDbMasterAccess():
 
         safe_pwd = str(password).replace('\\', '\\\\').replace("'", "\\'")
 
-        users = pdb.query("select Host from mysql.user where User='" +
-                          username + "' AND Host!='localhost'")
+        # 用户名来自用户入参：走 ORM 参数化，禁止拼进 SQL 文本
+        users = pdb.query("select Host from mysql.user where User=%s AND Host!='localhost'",
+                          (username,))
         err = checkSqlExec(users)
         if err is not None:
             return err
@@ -3752,8 +3771,8 @@ def addSlaveSyncUser(version=''):
         return data[1]
 
     cmd = args['cmd']
-    # 写入侧白名单：端口 1–65535、用户名/口令限字符集（拒引号/空白/shell 元字符）。
-    # 触发侧（doFullSyncUser 的 mysqldump）另有 shlexQuote 双保险。
+    # 写入侧白名单：端口 1–65535、用户名限字符集（拒引号/空白/shell 元字符）；
+    # 口令只拒控制字符（用户裁定 P0-1④），安全性由触发侧的 shlexQuote / SQL 参数化承担。
     port = yf.safeSyncPort(args['port'])
     user = yf.safeSyncUser(args['user'])
     apass = yf.safeSyncPass(args['pass'])
@@ -3870,6 +3889,11 @@ def addSlaveSSH(version=''):
     ip = args['ip']
     if ip == "":
         return yf.returnJson(True, 'ok')
+    # 写入侧白名单（与 addSlaveSyncUser 对称）：slave_id_rsa.ip 会被拼进 SSH 命令与
+    # 主库回传的 CHANGE MASTER TO 语句，必须限为合法 IP
+    ip = yf.safeSyncIp(ip)
+    if not ip:
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     data = checkArgs(args, ['port', 'id_rsa', 'db_user'])
     if not data[0]:
@@ -4174,14 +4198,24 @@ def initSlaveStatusSSH(version=''):
             db.query('stop slave')
 
             # 保证同步IP一致
+            # ip 来自 slave_id_rsa（写入侧 addSlaveSSH 无校验），且会被拼进回传的
+            # CHANGE MASTER TO 语句：拼 SQL 前必须白名单（否则 `'` 可从字符串里逃逸）
+            safe_ip = yf.safeSyncIp(ip)
+            if not safe_ip:
+                return yf.returnJson(False, '[主][' + ip + ']:IP不合法，拒绝执行!')
             cmd = cmd_data['data']['cmd']
             if cmd.find('SOURCE_HOST') > -1:
                 cmd = re.sub(r"SOURCE_HOST='(.*?)'",
-                             "SOURCE_HOST='" + ip + "'", cmd, 1)
+                             "SOURCE_HOST='" + safe_ip + "'", cmd, 1)
 
             if cmd.find('MASTER_HOST') > -1:
                 cmd = re.sub(r"MASTER_HOST='(.*?)'",
-                             "MASTER_HOST='" + ip + "'", cmd, 1)
+                             "MASTER_HOST='" + safe_ip + "'", cmd, 1)
+            # 回传命令必须是一条 CHANGE MASTER TO / CHANGE REPLICATION SOURCE TO：
+            # 否则主库侧用户可控的同步凭据可拼出任意 SQL
+            cmd = yf.safeReplicationCmd(cmd)
+            if not cmd:
+                return yf.returnJson(False, '[主][' + ip + ']:同步命令不合规范，拒绝执行!')
             db.query(cmd)
             ssh.close()
             if os.path.exists(SSH_PRIVATE_KEY):
@@ -4201,14 +4235,20 @@ def setSlaveStatus(version=''):
     pdb = pMysqlDb()
 
     slave_name = getSlaveName()
-    dlist = pdb.query(cmd)
+    # 历史缺陷：本函数从未定义 cmd（直接 pdb.query(cmd) → NameError），
+    # 以 mariadb 同函数为参照修正为显式状态查询
+    dlist = pdb.query('show slave status')
     if len(dlist) == 0:
         return yf.returnJson(False, '需要手动添加同步账户或者执行初始化!')
 
     for v in dlist:
-        connection_name = ''
-        if 'Channel_Name' in v:
-            ch_name = v['Channel_Name']
+        cmd = slave_name
+        if 'Channel_Name' in v and v['Channel_Name']:
+            # 渠道名来自服务器回显（SHOW SLAVE STATUS），标识符位置无法参数化：白名单
+            ch_name = yf.safeIdentifier(v['Channel_Name'])
+            if not ch_name:
+                # 复用既有可翻译键：渠道名与「参数」同属非法字符拒绝
+                return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
             cmd = slave_name + " for channel '{}'".format(ch_name)
 
         if (( 'Slave_IO_Running' in v and v["Slave_IO_Running"] == 'Yes') or ('Slave_SQL_Running' in v and v["Slave_SQL_Running"] == 'Yes')):
@@ -4224,11 +4264,16 @@ def deleteSlaveFunc(sign = ''):
     db = pMysqlDb()
     slave_name = getSlaveName()
     if sign !=  '':
-        db.query("stop {} for channel '{}'".format(slave_name,sign))
-        db.query("reset {} all for channel '{}'".format(slave_name, sign))
+        # sign 是用户入参（deleteSlave 的 args['sign']），作为渠道名标识符无法参数化：白名单
+        channel = yf.safeIdentifier(sign)
+        if not channel:
+            return False
+        db.query("stop {} for channel '{}'".format(slave_name,channel))
+        db.query("reset {} all for channel '{}'".format(slave_name, channel))
     else:
         db.query('stop '+slave_name)
         db.query('reset '+slave_name+' all')
+    return True
         
 
 def deleteSlave(version=''):
@@ -4236,7 +4281,8 @@ def deleteSlave(version=''):
     sign = ''
     if 'sign' in args:
         sign = args['sign']
-    deleteSlaveFunc(sign)
+    if not deleteSlaveFunc(sign):
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     return yf.returnJson(True, '删除成功!')
 
 
@@ -4976,13 +5022,24 @@ def doFullSyncSSH(version=''):
 
     cmd = cmd_data['data']['cmd']
     # 保证同步IP一致
+    # ip 来自 slave_id_rsa（写入侧 addSlaveSSH 无校验）：拼进 SQL 前必须白名单
+    safe_ip = yf.safeSyncIp(ip)
+    if not safe_ip:
+        writeDbSyncStatus({'code': 0, 'msg': '同步账户IP不合法，拒绝执行!', 'progress': 0})
+        return 'fail'
     if cmd.find('SOURCE_HOST') > -1:
         cmd = re.sub(r"SOURCE_HOST='(.*?)'",
-                     "SOURCE_HOST='" + ip + "'", cmd, 1)
+                     "SOURCE_HOST='" + safe_ip + "'", cmd, 1)
 
     if cmd.find('MASTER_HOST') > -1:
         cmd = re.sub(r"MASTER_HOST='(.*?)'",
-                     "MASTER_HOST='" + ip + "'", cmd, 1)
+                     "MASTER_HOST='" + safe_ip + "'", cmd, 1)
+
+    # 回传命令必须是一条 CHANGE MASTER TO / CHANGE REPLICATION SOURCE TO
+    cmd = yf.safeReplicationCmd(cmd)
+    if not cmd:
+        writeDbSyncStatus({'code': 0, 'msg': '同步命令不合规范，拒绝执行!', 'progress': 0})
+        return 'fail'
 
     db.query(cmd)
     uinfo = cmd_data['data']['info']

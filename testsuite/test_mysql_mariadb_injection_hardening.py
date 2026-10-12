@@ -24,6 +24,13 @@
    `stop/start ... user='{}' password='{}'`（含主库回传的 `uinfo` 凭据）的 SQL 字面量
    必须改走 ORM 参数化（`db.query(sql, params)`），由 pymysql 按 SQL 语义转义
    （`test_30`/`test_31`）。
+7. **§四 证伪延伸（用户可控 SQL 拼接注入）**：第 1 类 `where User='"+name+"'` → ORM
+   参数化（`test_41`/`test_42`）；第 2 类主库 SSH 回传的 `db.query(cmd)` → 替换进去的
+   `ip` 过 `yf.safeSyncIp`（`test_47`）+ 回传 cmd 过 `yf.safeReplicationCmd` 结构校验
+   （`test_49`），`addSlaveSSH` 写入侧也补白名单（`test_50`）；第 3 类渠道名/`sign`
+   标识符 → `yf.safeIdentifier`（`test_45`/`test_46`）；第 4 类 `show tables from` 的
+   库名（复核确认是 `args['name'|'db_name']`，非元数据）→ `yf.safeIdentifier` +
+   `table_schema` 参数化（`test_43`/`test_44`）。
 
 每条断言都要求「真能失败」，由 `test/p0_db_injection_mutation_probe.py` 逐处回退自证。
 """
@@ -201,6 +208,10 @@ class _QueryRecorder(object):
     def query(self, sql, params=None):
         self.calls.append((sql, params))
         return []
+
+    def execute(self, sql, params=None):
+        self.calls.append((sql, params))
+        return 1
 
 
 class SharedValidatorTest(unittest.TestCase):
@@ -454,6 +465,251 @@ class SharedModuleIsSingleSourceTest(unittest.TestCase):
             fn = _find_func(tree, 'safe_check_args')
             self.assertEqual([], _calls(fn, 'match'),
                              '%s.safe_check_args 又出现了本地正则' % label)
+
+
+#: 白名单校验函数（其结果被赋值给变量的那些）
+_VALIDATORS = {
+    'safeIdentifier', 'safeReplicationCmd', 'safeSyncIp', 'safeSyncPort',
+    'safeSyncUser', 'safeSyncPass', 'safeDatadir', 'dbSafeCheckArgs',
+    'safe_check_args',
+}
+
+#: 恶意载荷（`'`、`\`、`%`、`;`、`--`）——SQL 文本里出现任意一个都说明没走参数化/白名单
+SQL_INJECTION_PAYLOADS = [
+    "x' OR '1'='1", "x' UNION SELECT 1 -- ", 'x\\y', 'x%y', 'x; DROP TABLE t; --',
+    "x'--", "';id;'", 'x`y', 'x\ny',
+]
+
+
+def _validated_vars(fn):
+    """函数体里「由白名单函数赋值得到」的变量名 → 校验函数名。"""
+    out = {}
+    for n in ast.walk(fn):
+        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call):
+            f = n.value.func
+            name = (f.attr if isinstance(f, ast.Attribute)
+                    else f.id if isinstance(f, ast.Name) else '')
+            if name in _VALIDATORS:
+                for t in n.targets:
+                    if isinstance(t, ast.Name):
+                        out[t.id] = name
+    return out
+
+
+def _sql_text_names(call):
+    """调用第一个位置参（SQL 文本）里出现的 Load 变量名。"""
+    if not call.args:
+        return set()
+    return {n.id for n in ast.walk(call.args[0])
+            if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)}
+
+
+def _user_lookup_calls(tree):
+    """`select Host from ... where User=` 的 query/execute 调用点（拼字符串的也算）。"""
+    out = []
+    for n in ast.walk(tree):
+        if not (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                and n.func.attr in ('query', 'execute') and n.args):
+            continue
+        try:
+            text = ast.unparse(n.args[0])
+        except Exception:
+            continue
+        if 'Host from' in text and 'User=' in text:
+            out.append(n)
+    return out
+
+
+def _sub_calls(fn):
+    """函数体里的 `re.sub(...)` 调用。"""
+    return [n for n in ast.walk(fn)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            and n.func.attr == 'sub']
+
+
+def _query_calls(fn):
+    """函数体里的 `.query(...)` / `.execute(...)` 调用。"""
+    return [n for n in ast.walk(fn)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            and n.func.attr in ('query', 'execute')]
+
+
+class UserControllableSqlSinkTest(unittest.TestCase):
+    """五、§四 证伪延伸：用户可控 SQL 拼接注入（坐标表第 1~4 类）。
+
+    第 1 类 `User='" + name + "'`（用户入参）→ ORM 参数化；
+    第 2 类 `db.query(cmd)`（主库 SSH 回传，用户可控入口是 ip）→ safeSyncIp 白名单；
+    第 3 类 `format(cmd)` / `FOR CHANNEL '{}'`（渠道名/sign 标识符）→ safeIdentifier；
+    第 4 类 `show tables from <db>`（复核发现 db_name 实为用户入参，非元数据）→
+    safe_check_args 白名单 + table_schema 参数化。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.files = (
+            ('mysql', MYSQL_SRC, ast.parse(_read(MYSQL_SRC))),
+            ('mariadb', MARIADB_SRC, ast.parse(_read(MARIADB_SRC))),
+        )
+
+    def _fn(self, tree, name):
+        fn = _find_func(tree, name)
+        self.assertIsNotNone(fn, '函数缺失：%s' % name)
+        return fn
+
+    def test_40_safe_identifier_whitelist(self):
+        # 用户裁定（父 agent §四）：字符集收紧到 `^[A-Za-z0-9_$]{1,64}$`
+        for bad in ["a'b", 'a\\b', 'a%b', 'a;b', "a'--b", 'a b', 'a`b', 'a\nb',
+                    'a#b', 'a/*b', '127.0.0.1', 'repl-1', 'a.b:c', '', None, 1, 'a' * 65]:
+            self.assertEqual('', yf.safeIdentifier(bad), 'safeIdentifier 未拦：%r' % (bad,))
+        for good in ['r1', 'channel_1', 'repl$1', 'A1', '_x', 'a' * 64]:
+            self.assertEqual(good, yf.safeIdentifier(good), 'safeIdentifier 误伤：%r' % good)
+
+    def test_41_user_lookup_queries_are_parameterized(self):
+        """所有 `where User=` 查询必须带 %s 参数；SQL 文本里不得出现任何变量。"""
+        for label, path, tree in self.files:
+            calls = _user_lookup_calls(tree)
+            self.assertTrue(calls, '%s 未找到 where User= 查询' % label)
+            for call in calls:
+                names = _sql_text_names(call)
+                self.assertEqual(set(), names,
+                                 '%s/index.py:%d 把变量拼进 where User= 文本：%r'
+                                 % (label, call.lineno, names))
+                params = _params_expr(call)
+                self.assertIsNotNone(params,
+                                     '%s/index.py:%d 缺参数化 params' % (label, call.lineno))
+
+    def test_42_hostile_payloads_never_land_in_sql_text(self):
+        """真把恶意载荷喂进 `where User=` 查询，断言它只出现在 params。"""
+        for label, path, tree in self.files:
+            calls = _user_lookup_calls(tree)
+            for payload in SQL_INJECTION_PAYLOADS:
+                for call in calls:
+                    recorder = _QueryRecorder()
+                    ns = {'pdb': recorder, 'name': payload, 'username': payload}
+                    eval(compile(ast.fix_missing_locations(ast.Expression(body=call)),
+                                 path, 'eval'), ns)
+                    self.assertEqual(1, len(recorder.calls),
+                                     '%s/index.py:%d 未调用 query' % (label, call.lineno))
+                    sql, params = recorder.calls[0]
+                    self.assertNotIn(payload, sql,
+                                     '%s/index.py:%d 载荷进入 SQL 文本：%r' % (label, call.lineno, sql))
+                    self.assertIn(payload, tuple(params),
+                                  '%s/index.py:%d 载荷未按参数传递：%r' % (label, call.lineno, params))
+
+    def test_43_db_name_whitelisted_before_identifier_sql(self):
+        """getDbInfo/repairTable/optTable/alterTable 的库名是用户入参：必须先过白名单。"""
+        for label, path, tree in self.files:
+            for fn_name in ('getDbInfo', 'repairTable', 'optTable', 'alterTable'):
+                fn = self._fn(tree, fn_name)
+                self.assertIn('db_name', _validated_vars(fn),
+                              '%s.%s 的库名未过 yf.safeIdentifier 白名单' % (label, fn_name))
+                self.assertEqual('safeIdentifier', _validated_vars(fn)['db_name'],
+                                 '%s.%s 的库名未过 yf.safeIdentifier' % (label, fn_name))
+
+    def test_44_table_schema_query_is_parameterized(self):
+        for label, path, tree in self.files:
+            fn = self._fn(tree, 'getDbInfo')
+            consts = [c.value for c in ast.walk(fn)
+                      if isinstance(c, ast.Constant) and isinstance(c.value, str)]
+            schema = [c for c in consts if 'table_schema=' in c]
+            self.assertEqual(1, len(schema),
+                             '%s.getDbInfo 未找到唯一的 table_schema SQL 常量：%r' % (label, schema))
+            self.assertIn('%s', schema[0], '%s table_schema 未参数化：%r' % (label, schema[0]))
+            self.assertNotIn("'%s'", schema[0],
+                             '%s table_schema 仍用单引号包裹（可被 `\'` 突破）：%r' % (label, schema[0]))
+            self.assertTrue([c for c in _query_calls(fn) if _params_expr(c) is not None],
+                            '%s.getDbInfo 缺带 params 的查询调用' % label)
+
+    def test_45_channel_identifier_goes_through_safe_identifier(self):
+        """渠道名/sign 是标识符位置（无法参数化）：必须经 yf.safeIdentifier 白名单。"""
+        expectations = {
+            'mysql': [('deleteSlaveFunc', 'channel'), ('setSlaveStatus', 'ch_name')],
+            'mariadb': [('deleteSlave', 'sign'), ('setSlaveStatus', 'connection_name'),
+                        ('doFullSyncUser', 'channel')],
+        }
+        for label, path, tree in self.files:
+            for fn_name, var in expectations[label]:
+                fn = self._fn(tree, fn_name)
+                validated = _validated_vars(fn)
+                self.assertEqual('safeIdentifier', validated.get(var),
+                                 '%s.%s 的 %s 未过 yf.safeIdentifier：%r'
+                                 % (label, fn_name, var, validated))
+
+    def test_46_channel_sql_text_uses_validated_var(self):
+        """拼进 SQL 的渠道标识符只能是白名单后的变量，不得是原始入参。"""
+        for label, path, tree in self.files:
+            fn = self._fn(tree, 'deleteSlaveFunc' if label == 'mysql' else 'deleteSlave')
+            for call in _query_calls(fn):
+                names = _sql_text_names(call)
+                if not names:
+                    continue
+                self.assertNotIn('args', names,
+                                 '%s.%s 把原始入参拼进 SQL：%r' % (label, fn.name, names))
+
+    def test_47_ssh_returned_cmd_ip_is_whitelisted(self):
+        """主库 SSH 回传的 cmd 里替换进去的 ip 来自 slave_id_rsa（写入侧无校验）：
+        拼 SQL 前必须过 yf.safeSyncIp。"""
+        for label, path, tree in self.files:
+            for fn_name in ('initSlaveStatusSSH', 'doFullSyncSSH'):
+                fn = self._fn(tree, fn_name)
+                validated = _validated_vars(fn)
+                self.assertEqual('safeSyncIp', validated.get('safe_ip'),
+                                 '%s.%s 未对 ip 做 safeSyncIp 白名单：%r'
+                                 % (label, fn_name, validated))
+                subs = _sub_calls(fn)
+                self.assertTrue(subs, '%s.%s 未找到 re.sub 替换' % (label, fn_name))
+                for call in subs:
+                    repl = {n.id for n in ast.walk(call.args[1]) if isinstance(n, ast.Name)}
+                    self.assertIn('safe_ip', repl,
+                                  '%s.%s re.sub 未用白名单后的 safe_ip：%r'
+                                  % (label, fn_name, repl))
+                    self.assertNotIn('ip', repl,
+                                     '%s.%s re.sub 仍用未校验的 ip：%r' % (label, fn_name, repl))
+
+    def test_49_ssh_returned_cmd_is_structure_validated(self):
+        """回传 cmd 必须先过 yf.safeReplicationCmd 才 db.query（拒绝多语句/注释/换行）。"""
+        for label, path, tree in self.files:
+            for fn_name in ('initSlaveStatusSSH', 'doFullSyncSSH'):
+                fn = self._fn(tree, fn_name)
+                self.assertEqual('safeReplicationCmd', _validated_vars(fn).get('cmd'),
+                                 '%s.%s 未对回传 cmd 做 safeReplicationCmd 结构校验'
+                                 % (label, fn_name))
+                # 每个 db.query(cmd) 之前必须已经过校验（cmd 已被重新赋值）
+                for call in _query_calls(fn):
+                    if 'cmd' in _sql_text_names(call):
+                        self.assertTrue(_calls(fn, 'safeReplicationCmd'),
+                                        '%s.%s 直接 db.query(cmd) 未过结构校验' % (label, fn_name))
+
+    def test_50_add_slave_ssh_validates_ip_on_write(self):
+        """slave_id_rsa 的写入侧（addSlaveSSH）必须过 safeSyncIp，与 addSlaveSyncUser 对称。"""
+        for label, path, tree in self.files:
+            fn = self._fn(tree, 'addSlaveSSH')
+            self.assertIn('ip', _validated_vars(fn),
+                          '%s.addSlaveSSH 写入侧未过 yf.safeSyncIp' % label)
+            self.assertEqual('safeSyncIp', _validated_vars(fn)['ip'],
+                             '%s.addSlaveSSH 写入侧未过 yf.safeSyncIp' % label)
+
+    def test_51_safe_replication_cmd_structure(self):
+        ok = "CHANGE MASTER TO MASTER_HOST='1.1.1.1', MASTER_USER='u', MASTER_PASSWORD='p'"
+        self.assertEqual(ok, yf.safeReplicationCmd(ok))
+        ok2 = "CHANGE REPLICATION SOURCE TO SOURCE_HOST='1.1.1.1'"
+        self.assertEqual(ok2, yf.safeReplicationCmd(ok2))
+        for bad in ["CHANGE MASTER TO MASTER_HOST='1.1.1.1'; DROP TABLE t",
+                    "CHANGE MASTER TO MASTER_HOST='1.1.1.1' -- x",
+                    "CHANGE MASTER TO MASTER_HOST='1.1.1.1' # x",
+                    "CHANGE MASTER TO MASTER_HOST='1.1.1.1' /* x */",
+                    "CHANGE MASTER TO MASTER_HOST='1.1.1.1'\nDROP TABLE t",
+                    "SELECT 1", "CHANGE MASTER 'r1' TO MASTER_HOST='1.1.1.1'", '', None, 1]:
+            self.assertEqual('', yf.safeReplicationCmd(bad), 'safeReplicationCmd 未拦：%r' % (bad,))
+
+    def test_48_both_plugins_use_the_same_validators(self):
+        """两端同口径：同一组校验函数在两侧都被引用。"""
+        for needed in ('safeIdentifier', 'safeReplicationCmd', 'safeSyncIp'):
+            for label, path, tree in self.files:
+                calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+                         and ((isinstance(n.func, ast.Attribute) and n.func.attr == needed)
+                              or (isinstance(n.func, ast.Name) and n.func.id == needed))]
+                self.assertTrue(calls, '%s 未使用 %s（两端不对称）' % (label, needed))
 
 
 if __name__ == '__main__':

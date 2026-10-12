@@ -1258,4 +1258,4 @@ from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMess
 from . import system
 from .system import checkDomainPanel, fileNameCheck, getCertName, getCpuType, getObjectByJson, getOsID, getOsName, getPage, getPageObject, getStaticJson, getSystemDeviceTemperature, isChina, isDocker, isSupportHttp3, isVhostHasReuseport, isYufengPanel
 from . import validate
-from .validate import dbSafeCheckArgs, safeDatadir, safeSyncIp, safeSyncPass, safeSyncPort, safeSyncUser
+from .validate import dbSafeCheckArgs, safeDatadir, safeIdentifier, safeReplicationCmd, safeSyncIp, safeSyncPass, safeSyncPort, safeSyncUser
