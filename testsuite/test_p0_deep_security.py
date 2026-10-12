@@ -4,6 +4,7 @@ import sys
 import unittest
 import shutil
 import tempfile
+import zipfile
 
 # 设置运行环境
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,7 +57,12 @@ class TestP0DeepSecurity(unittest.TestCase):
         self.assertFalse(res['status'], "应该拦截带分号的非法文件名")
 
     def test_02_archive_quote_safety(self):
-        """验证压缩与解压命令转义的安全性"""
+        """验证压缩与解压命令转义的安全性
+
+        夹具必须是**真 zip**：P0-3① 起 `uncompress` 解压前会校验成员名，
+        内容不是 zip 的文件会被拒（fail closed），拿 dummy 文本文件当 zip 走不到
+        「拼命令」那一步。本用例的断言（命令里必须是 shlexQuote 后的路径）不变。
+        """
         executed_cmds = []
         orig_exec = yf.execShell
 
@@ -69,8 +75,8 @@ class TestP0DeepSecurity(unittest.TestCase):
             # 1. 含有空格和特殊单双引号的文件名进行解压
             sfile = os.path.join(self.test_tmp, "my file's & test.zip")
             dfile = os.path.join(self.test_tmp, "dest's dir")
-            with open(sfile, 'w', encoding='utf-8') as f:
-                f.write('dummy')
+            with zipfile.ZipFile(sfile, 'w') as zf:
+                zf.writestr('ok.txt', 'dummy')
             
             res = file_util.uncompress(sfile, dfile, self.test_tmp)
             self.assertTrue(res['status'])

@@ -14,10 +14,14 @@ try:
     import pwd
 except ImportError:
     pwd = None
+import re
+import stat
 import time
 import shutil
 import json
 import base64
+import tarfile
+import zipfile
 
 import core.yf as yf
 import thisdb
@@ -130,6 +134,267 @@ def mvFile(sfile, dfile):
     except Exception as e:
         return yf.returnData(False, 'utils.py_msg_5647ea', None, str(e))
 
+# ---------------------------------------------------------------------------
+# 压缩包成员名校验（Zip Slip：解压写出目标目录之外）
+# ---------------------------------------------------------------------------
+# unzip/uncompress 走 `unzip` / `tar` / `unrar` / `7z` 解压，参数虽已 shlexQuote
+# （命令注入已堵），但压缩包**成员名**由压缩包作者控制 —— 成员名写成 `../x` 或绝对
+# 路径，解压即可写到目标目录之外（面板以 root 运行）。故解压前先读成员名校验；
+# 读不出成员列表（工具缺失 / 格式不认识 / 输出解析失败）一律拒绝（fail closed）。
+
+#: 成员名里的控制字符（含 NUL）——正常文件名不含，出现即为构造痕迹
+_ARCHIVE_CTRL_RE = re.compile(r'[\x00-\x1f\x7f]')
+#: Windows 盘符前缀（`C:\x`、`C:x`）。UNC（`\\server\share`）与根相对（`\x`）
+#: 经反斜杠归一后分别成为 `//server/share` / `/x`，由「以 `/` 开头」一并拒绝。
+_ARCHIVE_DRIVE_RE = re.compile(r'^[A-Za-z]:')
+#: `7z l -slt` 的记录分隔线（每条成员记录之前一行；压缩包自身那条记录在首个分隔线之前）
+_SEVENZ_RECORD_SEP_RE = re.compile(r'^-{5,}$')
+
+#: 校验失败码 -> 前端提示键。刻意复用已有语言键：全局语言包六语言键集必须一致
+#: （scripts/verify_i18n.py::check_global_key_parity），为一个新提示新增 6 份译文
+#: 属 i18n/产品决策，不在此顺带做。
+_ARCHIVE_REJECT_MSG = {
+    'bin_missing': 'file.py_msg_366e5e',   # 压缩命令不存在，请安装!
+    'list_failed': 'file.py_msg_f43013',   # 解压失败
+}
+
+
+class _ArchiveListError(Exception):
+    """成员列表读不出来（工具缺失 / 格式不认识 / 输出解析失败）：fail closed。"""
+
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+def _archiveRejectMsg(code):
+    """校验失败码 -> 给前端的提示键（未知码统一走 FILE_DANGER）。"""
+    return _ARCHIVE_REJECT_MSG.get(code, 'FILE_DANGER')
+
+
+def _archiveMemberReason(member):
+    """单条成员名的静态合法性检查；返回拒绝码，None 表示静态上合法。"""
+    if not isinstance(member, str) or not member:
+        return 'bad_name'
+    if _ARCHIVE_CTRL_RE.search(member):
+        return 'control_char'
+    norm = member.replace('\\', '/')
+    if norm.startswith('/') or _ARCHIVE_DRIVE_RE.match(norm):
+        return 'absolute_path'
+    parts = [p for p in norm.split('/') if p not in ('', '.')]
+    if not parts:
+        return 'bad_name'
+    if '..' in parts:
+        return 'parent_ref'
+    return None
+
+
+def _archiveJoin(base, member):
+    """把成员名按 POSIX 语义挂到 base 下（反斜杠、空段与 `.` 段已归一）。"""
+    norm = member.replace('\\', '/')
+    return os.path.join(base, *[p for p in norm.split('/') if p not in ('', '.')])
+
+
+def _archivePathInside(path, base):
+    """realpath 之后 path 是否仍在 base 之内（防「dest 下某段是软链」逃逸）。"""
+    try:
+        real_base = os.path.realpath(base)
+        real_path = os.path.realpath(path)
+    except Exception:
+        return False
+    if real_path == real_base:
+        return True
+    return real_path.startswith(real_base.rstrip(os.sep) + os.sep)
+
+
+def safeArchiveMembers(members, dest, symlink_targets=None):
+    """校验压缩包成员名，拒绝任何会写出 `dest` 之外（Zip Slip）的条目。
+
+    返回 `(ok, code)`；ok 为 False 时 code 是拒绝码（`bad_name` / `control_char` /
+    `absolute_path` / `parent_ref` / `outside_dest` / `symlink_absolute` /
+    `symlink_escape` / `symlink_unknown`）。规则（任一命中即整体拒绝）：
+
+      1. 非字符串 / 空名 / 含 NUL 或控制字符；
+      2. 绝对路径、Windows 盘符、UNC（反斜杠按分隔符处理）；
+      3. 任一段为 `..` —— 词法拒绝，即使 realpath 后仍在 dest 内（如 `a/../b`）；
+      4. realpath 后落在 `dest` 之外（覆盖 dest 自身或其子目录是软链的情形）；
+      5. 软链/硬链成员：目标为绝对路径，或解算后落在 `dest` 之外；目标取不到一律拒绝。
+
+    `symlink_targets` 为 {成员名: 链接目标}，zip/tar 能给出该元数据故必传；
+    rar/7z 的列表命令不提供可靠的软链元数据，故不传（见调用点注释）。
+    """
+    if not isinstance(dest, str) or not dest:
+        return False, 'bad_dest'
+    try:
+        base = os.path.realpath(dest)
+    except Exception:
+        return False, 'bad_dest'
+    if not base:
+        return False, 'bad_dest'
+    links = symlink_targets or {}
+    for member in members:
+        code = _archiveMemberReason(member)
+        if code:
+            return False, code
+        resolved = _archiveJoin(base, member)
+        if not _archivePathInside(resolved, base):
+            return False, 'outside_dest'
+        if member in links:
+            target = links[member]
+            if not isinstance(target, str) or not target.strip() \
+                    or _ARCHIVE_CTRL_RE.search(target):
+                return False, 'symlink_unknown'
+            t_norm = target.replace('\\', '/')
+            if t_norm.startswith('/') or _ARCHIVE_DRIVE_RE.match(t_norm):
+                return False, 'symlink_absolute'
+            link_path = _archiveJoin(os.path.dirname(resolved), target)
+            if not _archivePathInside(link_path, base):
+                return False, 'symlink_escape'
+    return True, 'OK'
+
+
+def parseUnrarBareListing(text):
+    """解析 `unrar lb` 输出（裸列表，一行一个成员名）。"""
+    out = []
+    for line in (text or '').split('\n'):
+        name = line.rstrip('\r')
+        if name.strip():
+            out.append(name)
+    return out
+
+
+def parse7zSltListing(text):
+    """解析 `7z l -slt` 输出里的 `Path = ` 成员名。
+
+    输出按 `----------` 分记录：第一条记录是压缩包自身（在首个分隔线之前），跳过。
+    看不到任何分隔线说明输出格式不认识 —— 抛 `_ArchiveListError`（fail closed），
+    否则会把「解析不到成员」误当成「没有成员」而放行。
+    """
+    out = []
+    saw_sep = False
+    for line in (text or '').split('\n'):
+        line = line.rstrip('\r')
+        if _SEVENZ_RECORD_SEP_RE.match(line.strip()):
+            saw_sep = True
+            continue
+        if not saw_sep:
+            continue
+        if line.startswith('Path = '):
+            out.append(line[len('Path = '):])
+    if not saw_sep:
+        raise _ArchiveListError('list_failed')
+    return out
+
+
+def _zipArchiveEntries(sfile):
+    """zip 成员名与软链目标（zip 的软链由 Unix 外部属性位标记，内容是目标路径）。"""
+    members = []
+    links = {}
+    with zipfile.ZipFile(sfile) as zf:
+        for info in zf.infolist():
+            members.append(info.filename)
+            if stat.S_ISLNK((info.external_attr >> 16) & 0xFFFF):
+                if info.file_size > 4096:
+                    # 软链内容就是目标路径，不可能这么长 -> 不可信（也不为此吃内存）
+                    links[info.filename] = None
+                    continue
+                try:
+                    links[info.filename] = zf.read(info).decode('utf-8', 'replace')
+                except Exception:
+                    # 目标读不出来就无法判断指向 -> 用 None 让校验侧拒绝
+                    links[info.filename] = None
+    return members, links
+
+
+def _tarArchiveEntries(sfile):
+    """tar（含 .tar.gz/.tar.xz/.tar.bz2）成员名与软链/硬链目标。"""
+    members = []
+    links = {}
+    with tarfile.open(sfile, 'r:*') as tf:
+        for m in tf.getmembers():
+            members.append(m.name)
+            if m.issym() or m.islnk():
+                links[m.name] = m.linkname
+    return members, links
+
+
+def _rarArchiveEntries(sfile):
+    """rar 成员名（`unrar lb` 裸列表）。
+
+    无标准库可读 rar，只能靠列表命令；`unrar` 缺失或返回非 0 一律拒绝。
+    残留风险：`unrar lb` 不给出软链元数据，故软链成员按普通成员名校验
+    （成员名本身仍受全部静态规则约束）。
+    """
+    if not yf.checkBinExist('unrar'):
+        raise _ArchiveListError('bin_missing')
+    if os.path.basename(sfile).startswith('-'):
+        # 列表命令把 `-` 开头的参数当开关，无法可靠传参 -> 拒绝
+        raise _ArchiveListError('bad_name')
+    rc, out, _err = yf.execShellRc(['unrar', 'lb', sfile], shell=False)
+    if rc != 0:
+        raise _ArchiveListError('list_failed')
+    return parseUnrarBareListing(out), {}
+
+
+def _7zArchiveEntries(sfile):
+    """7z 成员名（`7z l -slt` 的 `Path = ` 记录）。7z 缺失或返回非 0 一律拒绝。
+
+    残留风险同 `_rarArchiveEntries`：-slt 输出不解析软链元数据。
+    """
+    if not yf.checkBinExist('7z'):
+        raise _ArchiveListError('bin_missing')
+    rc, out, _err = yf.execShellRc(['7z', 'l', '-slt', '--', sfile], shell=False)
+    if rc != 0:
+        raise _ArchiveListError('list_failed')
+    return parse7zSltListing(out), {}
+
+
+def _gzOutputEntries(sfile):
+    """gz 是单文件：落盘名固定为去掉 `.gz` 的 basename（gunzip -k 就地落盘）。
+
+    按 basename 校验，配合调用点传入的「压缩包所在目录」作为 dest 确认不越界。
+    """
+    if not sfile.endswith('.gz'):
+        raise _ArchiveListError('bad_name')
+    out_name = os.path.basename(sfile)[:-len('.gz')]
+    if not out_name:
+        raise _ArchiveListError('bad_name')
+    return [out_name], {}
+
+
+def safeArchiveCheck(sfile, dest, kind):
+    """按归档类型读取成员名并校验；返回 (ok, code)。
+
+    kind: `zip` / `tar`（tar.gz、tar.xz、tar.bz2）/ `gz` / `rar` / `7z`。
+    校验只发生在解压之前，故读列表失败必须拒绝（fail closed）——
+    放行等于把「无法校验」当成「没有风险」。
+    """
+    try:
+        if kind == 'zip':
+            members, links = _zipArchiveEntries(sfile)
+        elif kind == 'tar':
+            members, links = _tarArchiveEntries(sfile)
+        elif kind == 'rar':
+            members, links = _rarArchiveEntries(sfile)
+        elif kind == '7z':
+            members, links = _7zArchiveEntries(sfile)
+        elif kind == 'gz':
+            members, links = _gzOutputEntries(sfile)
+        else:
+            return False, 'unknown_kind'
+    except _ArchiveListError as e:
+        _log.warning('文件解压：成员列表读取失败(%s/%s)：%s', kind, sfile, e.code)
+        return False, e.code
+    except Exception as e:
+        _log.warning('文件解压：成员列表读取异常(%s/%s)：%s', kind, sfile, e)
+        return False, 'list_failed'
+
+    ok, code = safeArchiveMembers(members, dest, links)
+    if not ok:
+        _log.warning('文件解压：拒绝越界成员(%s/%s)：%s', kind, sfile, code)
+    return ok, code
+
+
 def unzip(sfile, dfile, stype, path):
     if dfile == '' or dfile == '/':
         return yf.returnData(False, 'file.py_msg_960516')
@@ -150,9 +415,17 @@ def unzip(sfile, dfile, stype, path):
         q_dfile = yf.shlexQuote(dfile)
         q_tmps = yf.shlexQuote(tmps)
         if stype == 'zip':
+            ok, code = safeArchiveCheck(sfile, dfile, 'zip')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             q_sfile = yf.shlexQuote(sfile)
             yf.execShell("cd " + q_path + " && unzip -o -d " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1 &")
         else:
+            # sfile 可为逗号分隔的多个 tar 包：逐个校验成员名，任一越界即整体拒绝
+            for _sf in [sf for sf in sfile.split(',') if sf]:
+                ok, code = safeArchiveCheck(_sf, dfile, 'tar')
+                if not ok:
+                    return yf.returnData(False, _archiveRejectMsg(code))
             sfiles = ' '.join(yf.shlexQuote(sf) for sf in sfile.split(',') if sf)
             yf.execShell("cd " + q_path + " && tar -zxvf " + sfiles + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &")
 
@@ -203,24 +476,46 @@ def uncompress(sfile, dfile, path):
     cmd = "cd " + q_path + " "
     try:
         if extension == 'zip':
+            ok, code = safeArchiveCheck(sfile, dfile, 'zip')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& unzip -o -d " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'tar.gz':
+            ok, code = safeArchiveCheck(sfile, dfile, 'tar')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& tar -zxvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'gz':
+            # gunzip -k 就地落盘（写到压缩包同目录），故校验基准是压缩包所在目录
+            ok, code = safeArchiveCheck(sfile, os.path.dirname(sfile), 'gz')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& gunzip -k " + q_sfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'rar':
+            ok, code = safeArchiveCheck(sfile, dfile, 'rar')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& unrar x " + q_sfile + " " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == '7z':
+            ok, code = safeArchiveCheck(sfile, dfile, '7z')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& 7z x " + q_sfile + " -r -o" + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'xz':
+            ok, code = safeArchiveCheck(sfile, dfile, 'tar')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& tar -Jxvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'bz2':
+            ok, code = safeArchiveCheck(sfile, dfile, 'tar')
+            if not ok:
+                return yf.returnData(False, _archiveRejectMsg(code))
             cmd += "&& tar -xjvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
 
