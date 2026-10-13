@@ -38,7 +38,9 @@ class TestPhpPoolHealingAndUiQuotes(unittest.TestCase):
 
         try:
             fpm_conf = os.path.join(self.etc_dir, 'php-fpm.conf')
-            expected_inc = f"{self.test_dir.replace('\\', '/')}/{self.ver}/etc/php-fpm.d/*.conf"
+            # 先算出正斜杠路径再进 f-string：Python <=3.11 不允许 f-string 表达式里出现反斜杠
+            test_dir_posix = self.test_dir.replace('\\', '/')
+            expected_inc = f"{test_dir_posix}/{self.ver}/etc/php-fpm.d/*.conf"
 
             # 场景 A: 包含被分号注释的 include
             bad_content_commented = (
