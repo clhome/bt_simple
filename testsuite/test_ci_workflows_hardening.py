@@ -126,7 +126,7 @@ CODE_SAMPLES = [
     'requirements.txt',
     '.github/workflows/core-regression.yml',
 ]
-DOC_SAMPLES = ['README.md', '文档/git_skill.md', 'cl_tasks/20261012_1000task.md']
+DOC_SAMPLES = ['README.md', '文档/插件统一开发规范.md', 'cl_tasks/20261012_1000task.md']
 
 
 def _read(rel):
