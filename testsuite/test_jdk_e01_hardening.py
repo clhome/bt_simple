@@ -97,7 +97,11 @@ class JdkE01Test(unittest.TestCase):
         cls.sh = _read(INSTALL_SH)
 
     def setUp(self):
-        self.tmp = tempfile.mkdtemp(prefix='yf_e01_')
+        # 路径**刻意含空格**：本模块断言「安装脚本里的路径必须经 shlexQuote」
+        # （如「不得出现未引用的 rm -rf <路径>」），而 POSIX 上普通路径 shlexQuote
+        # 不加引号 —— 只有含 shell 特殊字符的路径才验得出引用。Windows 因反斜杠
+        # 碰巧带引号，所以这个坑只在 Linux/CI 上暴露。
+        self.tmp = tempfile.mkdtemp(prefix='yf e01 ')
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.server = os.path.join(self.tmp, 'server')
         self.javadir = os.path.join(self.server, 'jdk')

@@ -163,6 +163,13 @@ class Base(unittest.TestCase):
         conf, expect = self.mod._tuning_conf(mem_mb)
         for key, val in expect.items():
             self.stub.files['/proc/sys/' + key.replace('.', '/')] = val + '\n'
+        # THP（透明大页）回读夹具：产品在真实存在 THP sysfs 节点的主机上，写完会用
+        # `readFile` 回读并要求出现 `[never]`。桩里没这个路径 → 只能得到空串，产品
+        # 如实报「实际值 读取失败」→ 用例假红（Windows 因 /sys 不存在而走不到这段，
+        # 所以只在真机 Linux 上暴露）。这里给确定输入。
+        for path in (self.mod.THP_ENABLED, self.mod.THP_DEFRAG):
+            if os.path.exists(path):
+                self.stub.files[path] = 'always madvise [never]'
         return conf, expect
 
     def call_apply(self):

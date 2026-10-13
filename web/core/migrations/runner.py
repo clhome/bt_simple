@@ -71,8 +71,9 @@ def _pragmas():
         from core.resources import get_sqlite_pragmas
         return get_sqlite_pragmas()
     except Exception:
-        return [('journal_mode', 'WAL'), ('synchronous', 'NORMAL'),
-                ('busy_timeout', 30000)]
+        # 与 core.resources.get_sqlite_pragmas() 保持同一口径：不用 WAL / mmap
+        # （WAL 的 -shm 共享内存被重置会让进程 SIGBUS，见该函数 docstring）。
+        return [('synchronous', 'NORMAL'), ('busy_timeout', 30000)]
 
 
 def _timeout():

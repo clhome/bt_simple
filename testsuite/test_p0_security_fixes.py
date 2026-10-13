@@ -56,7 +56,10 @@ class TestP0SecurityFixes(unittest.TestCase):
         escaped_file1 = os.path.abspath(os.path.join(plugin_base, "../../../../etc/passwd"))
         self.assertFalse(escaped_file1.startswith(plugin_base + os.sep))
 
-        escaped_file2 = os.path.abspath(os.path.join(plugin_base, "..\\..\\config.py"))
+        # 非法越界路径：用**本平台的分隔符**模拟。POSIX 上反斜杠不是路径分隔符，
+        # 用 `..\..\config.py` 模拟越界在 Linux 上根本不成立（它会落在插件目录内、
+        # 随后 404），真正的拦阻是 name 参数的白名单校验（见上面的源码断言）。
+        escaped_file2 = os.path.abspath(os.path.join(plugin_base, os.pardir, os.pardir, 'config.py'))
         self.assertFalse(escaped_file2.startswith(plugin_base + os.sep))
 
     def test_03_plugin_callback_eval_abolished(self):

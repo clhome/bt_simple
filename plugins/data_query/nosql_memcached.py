@@ -88,6 +88,11 @@ class nosqlMemcached():
                 connect_timeout=4,
                 timeout=4
             )
+            # 与 nosql_redis（`ping()`）/ nosql_mongodb（`admin.command('ping')`）同口径：
+            # 这里必须**真探活**。PooledClient 是惰性连接，不探活时“服务没起”会拖到
+            # 后续 `stats()`/`get()` 才抛 `ConnectionRefusedError` 裸穿透到前端
+            # （用例 `test_data_query_fix:test_09` 实测：无 memcached 的机器上必现）。
+            self.__DB_CONN.version()
             return self.__DB_CONN
         except pymemcache.exceptions.MemcacheError:
             return False

@@ -366,7 +366,11 @@ class PureftpD11Test(unittest.TestCase):
     def test_15_status_ignores_decoy_process(self):
         # 诱饵：comm == pure-ftpd 但 exe 不在安装目录内 → 必须回 stop
         decoy = os.path.join(self.tmp, 'pure-ftpd')
-        shutil.copyfile('/bin/sleep', decoy) if os.path.exists('/bin/sleep') else None
+        # 必须用 `shutil.copy`（会带上可执行位）——`copyfile` 只拷内容，在 POSIX 上
+        # 拷出来的文件没有 x 位，`Popen` 直接 PermissionError（CI 实测）。
+        if os.path.exists('/bin/sleep'):
+            shutil.copy('/bin/sleep', decoy)
+            os.chmod(decoy, 0o755)
         if not os.path.exists(decoy):
             self.skipTest('无 /bin/sleep')
         import subprocess

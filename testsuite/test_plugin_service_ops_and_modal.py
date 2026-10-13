@@ -181,14 +181,18 @@ class TestPluginServiceOpsAndModal(unittest.TestCase):
                 self.assertTrue(res['status'])
                 self.assertEqual(res['data'], 'ok')
 
-        # 2. 模拟底层抛出严重异常
+        # 2. 模拟底层抛出严重异常：必须脱敏（内部原文不进前端，只回追踪号），
+        #    原文只进面板日志（路由里 `yf.writeLog(...)` 已经写了）。
+        #    注：本断言此前要的是「原文出现在 msg 里」，那是 userSafeError 脱敏改造**之前**
+        #    的旧口径，与 `test_plugin_callback_fix:test_07` 的要求正好相反。
         with app.test_request_context('/plugins/run', method='POST', data={'name': 'op_waf', 'func': 'restart'}):
             session['login'] = True
             with patch.object(YfPlugin, 'run', side_effect=RuntimeError("Subprocess failed unexpectedly")):
                 res = run_view_func()
                 self.assertIsInstance(res, dict)
                 self.assertFalse(res['status'])
-                self.assertIn('Subprocess failed unexpectedly', res['msg'])
+                self.assertNotIn('Subprocess failed unexpectedly', res['msg'])
+                self.assertIn('追踪号', res['msg'])
 
 
 if __name__ == '__main__':

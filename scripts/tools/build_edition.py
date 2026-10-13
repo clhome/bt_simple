@@ -58,7 +58,14 @@ def _git_archive(dest_dir, ref='HEAD'):
     with tarfile.open(tar_path) as tf:
         # filter='data' 会拒绝绝对路径/软链接/设备文件等危险成员，是 tarfile 官方
         # 给出的安全解压入口（Python 3.8.17+/3.9.17+/3.10.12+/3.11.4+ 起可用）。
-        tf.extractall(dest_dir, filter='data')
+        # 但项目声明支持 3.9+，而更早的小版本（如 3.11.2）还没有这个关键字，
+        # 硬传会 `TypeError: extractall() got an unexpected keyword argument 'filter'`
+        # → 社区版构建直接失败（CI 3.11 首跑实测）。故按能力探测决定是否传。
+        # 老解释器退回常规解压：成员来自本仓库自产的 `git archive`，全是仓库内普通文件。
+        if hasattr(tarfile, 'data_filter'):
+            tf.extractall(dest_dir, filter='data')
+        else:
+            tf.extractall(dest_dir)
     os.remove(tar_path)
 
 

@@ -132,7 +132,10 @@ class GiteaD10Test(unittest.TestCase):
         cls.tree = ast.parse(cls.src)
 
     def setUp(self):
-        self.tmp = tempfile.mkdtemp(prefix='yf_d10_')
+        # 路径**刻意含空格**：本模块断言「命令里的路径必须经 shlexQuote」，而 POSIX 上
+        # 普通路径 shlexQuote 并不会加引号 —— 只有含 shell 特殊字符的路径才验得出
+        # 「真的引用了」。Windows 因反斜杠碰巧带引号，所以这个坑只在 Linux/CI 上暴露。
+        self.tmp = tempfile.mkdtemp(prefix='yf d10 ')
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.server = os.path.join(self.tmp, 'server')
         os.makedirs(self.server)

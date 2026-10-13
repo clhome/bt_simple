@@ -502,7 +502,14 @@ class plugin(object):
         if not _valid_plugin_name(tag) or not path:
             return None
         base = os.path.join(self.__plugin_dir, tag)
-        if path[0:1] in ('/', '\\'):
+        # 路径校验统一按 **POSIX 口径**做，并把反斜杠也当分隔符：
+        #   * 绝对路径（`/` 或 `\` 开头）拒绝；
+        #   * 任一 `..` 段拒绝。`..\..\x.html` 在 POSIX 上其实不是穿越（会落到插件目录内
+        #     变成一个怪文件名），但在 Windows 上是；不统一拒绝的话这条守卫在 Linux 上
+        #     形同虚设（用例 `test_plugins_a11_hardening:test_06` 在 CI 实测假红）。
+        #   真实插件包的菜单 path 形如 `static/html/index.html`，不会被误伤（已全量扫过）。
+        norm_path = path.replace('\\', '/')
+        if norm_path.startswith('/') or '..' in norm_path.split('/'):
             return None
         target = os.path.join(base, path)
         if not _path_inside(base, target):

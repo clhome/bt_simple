@@ -15,6 +15,18 @@ from clean_security import (
 )
 from clean_scanner import scan_all_categories, is_archive_or_rotated, is_valid_log_or_cache_file, CATEGORY_CONFIGS
 
+# 本模块会被**先于** `index.py` 导入（用例就是这么导入的），此时 `<panel>/web` 还不在
+# `sys.path` 上，`import core.yf` 会失败并被下面的 except 吞成 `yf = None`。后果不是“功能降级”，
+# 而是**路径分叉**：运行日志与清理历史落到**插件源码目录**（`plugins/clean/*.log`）——
+# 而 `index.runLog()` / `index.get_history()` 读的是 `<serverDir>/clean/`，于是
+# 「执行器写日志 → API 读日志」这条契约失效（用例 `test_clean_plugin_v2` 因此红），
+# 同时把运行产物写进插件目录污染工作区。所以自己按 `__file__` 定位 `<panel>/web`
+# （与 `plugins/task_manager/process_network_total.py` 同一写法，不依赖 cwd）。
+_panel_web_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'web')
+if os.path.isdir(_panel_web_dir) and _panel_web_dir not in sys.path:
+    sys.path.insert(0, _panel_web_dir)
+
 try:
     import core.yf as yf
 except Exception:

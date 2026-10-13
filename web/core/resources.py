@@ -245,18 +245,29 @@ def get_cache_backend():
 
 def get_sqlite_pragmas():
     """
-    SQLite PRAGMA 自适应。
-    cache_size 为负数 KB；mmap 仅高配启用，避免低配页表开销。
+    SQLite PRAGMA 自适应（cache_size 为负数 KB）。
+
+    **刻意不用 WAL、也不开 mmap**，只用 SQLite 默认的 rollback journal。
+    实测依据（2026-10-13，Linux 并发复现）：
+      * WAL 下每条连接都会 mmap `panel.db-shm`（WAL 索引）。该共享内存一旦被
+        重置/截断，持有映射的进程会**当场 SIGBUS 静默死掉**（不是异常，抓不到、
+        不打日志）——门禁用例 `test_concurrent_callbacks`（多线程并发插件回调）
+        在 Linux 多进程并发门禁下稳定复现，故障地址正好落在 `panel.db-shm`
+        映射的起始页；改成 `journal_mode=DELETE` 后 2/2 全绿；换 SQLite 3.51
+        仍复现，已排除版本 bug。
+      * 面板自己的备份/恢复流程会动 `.db-wal` / `.db-shm`，并会 `cp` 覆盖
+        `panel.db` —— 正是 SQLite 官方警告「不要在有连接打开时删除/截断
+        -wal/-shm」的场景（`文档/20261013项目优化.md` 第 7 条已把它列为真机未演练风险）。
+      * `mmap_size` 属同一类风险（文件被截断 → 映射页失效 → SIGBUS），而收益
+        只是省几次 pread，不值得拿进程稳定性换。
+
+    并发写冲突由 `busy_timeout=30000` 兜底（面板库很小、写事务很短）。
     """
     score = _score_for_override()
     cache_kb = -_lerp(2048, 65536, score)
-    pragmas = [('journal_mode', 'WAL'),
-               ('synchronous', 'NORMAL'),
-               ('cache_size', cache_kb),
-               ('busy_timeout', 30000)]
-    if score >= 0.70:
-        pragmas.append(('mmap_size', 268435456))
-    return pragmas
+    return [('synchronous', 'NORMAL'),
+            ('cache_size', cache_kb),
+            ('busy_timeout', 30000)]
 
 
 def get_sqlite_timeout():

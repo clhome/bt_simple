@@ -132,4 +132,4 @@ if [ "${action}" == 'install' ] || [ "${action}" == 'update' ] || [ "${action}" 
 	Install_App
 else
 	Uninstall_App
-fi
+fi

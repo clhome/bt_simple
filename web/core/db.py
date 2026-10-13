@@ -106,7 +106,9 @@ class Sql():
             from core.resources import get_sqlite_pragmas
             pragmas = get_sqlite_pragmas()
         except Exception:
-            pragmas = [('journal_mode', 'WAL'), ('synchronous', 'NORMAL'),
+            # 兜底口径与 core.resources.get_sqlite_pragmas() 保持一致：不用 WAL / mmap
+            # （WAL 的 -shm 共享内存在被重置时会让进程 SIGBUS，见该函数 docstring）。
+            pragmas = [('synchronous', 'NORMAL'),
                        ('cache_size', -8000), ('busy_timeout', 30000)]
         for k, v in pragmas:
             try:

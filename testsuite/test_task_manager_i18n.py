@@ -18,7 +18,9 @@ import re
 import subprocess
 import unittest
 
-BASE_DIR = r"f:\git\gitea20250909\bt_simple"
+# 跨平台红线：仓库根从 __file__ 推导，绝不硬编码某台机器的绝对路径
+# （原写法 `r"f:\git\gitea20250909\bt_simple"` 让本模块在 Linux / CI 上必然找不到文件）
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TM_JS = os.path.join(BASE_DIR, "plugins", "task_manager", "js", "task_manager.js")
 TM_HTML = os.path.join(BASE_DIR, "plugins", "task_manager", "index.html")
 SOFT_JS = os.path.join(BASE_DIR, "web", "static", "app", "soft.js")

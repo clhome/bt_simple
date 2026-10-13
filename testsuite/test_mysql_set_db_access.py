@@ -201,6 +201,7 @@ class TestMysqlSetDbAccess(unittest.TestCase):
         """测试 web.core.orm.ORM 在 SQL 含有 % 通配符时不会因空参数抛出 not enough arguments for format string"""
         try:
             import core.orm as orm_module
+            import pymysql
             from pymysql.cursors import Cursor
         except ImportError:
             return
@@ -215,8 +216,10 @@ class TestMysqlSetDbAccess(unittest.TestCase):
         formatted_sql = real_cursor.mogrify(sql_with_percent, None)
         self.assertEqual(formatted_sql, sql_with_percent)
 
-        # args=() 会触发 TypeError，验证缺陷原型的重现
-        with self.assertRaises(TypeError):
+        # args=() 会触发格式化崩溃（缺陷原型的重现）。异常类型随 PyMySQL 版本而异：
+        # 1.x 抛 TypeError，2.x 抛 pymysql.err.ProgrammingError —— requirements 只钉了下界
+        # `PyMySQL>=1.0.2`，两种都必须容忍，否则用例会跟着依赖版本假红（CI 实测 2.2.8）。
+        with self.assertRaises((TypeError, pymysql.err.ProgrammingError)):
             real_cursor.mogrify(sql_with_percent, ())
 
         # 2. 验证修复后的 ORM.execute 与 ORM.query 对参数的正确处理

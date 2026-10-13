@@ -213,7 +213,11 @@ class _Fixture(object):
     """把 `getServerDir()` / `getPluginDir()` 指到临时目录，真跑插件函数（不碰生产）。"""
 
     def __init__(self):
-        self.root = tempfile.mkdtemp(prefix='c09_fx_')
+        # 路径**刻意含空格**：本模块断言「命令里的路径必须经 shlexQuote」
+        # （如 `mv <src> <dst>` 必须带引号），而 POSIX 上普通路径 shlexQuote 不加引号
+        # —— 只有含 shell 特殊字符的路径才验得出引用。Windows 因反斜杠碰巧带引号，
+        # 所以这个坑只在 Linux/CI 上暴露。
+        self.root = tempfile.mkdtemp(prefix='c09 fx ')
         self.server = os.path.join(self.root, 'remi')
         self.plugin = os.path.join(self.root, 'php-yum')
         self.wwwserver = os.path.join(self.root, 'wwwserver')

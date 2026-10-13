@@ -187,7 +187,13 @@ class TestPluginCallbackFix(unittest.TestCase):
                 sess['login'] = True
                 sess['username'] = 'admin'
 
-            with patch.object(YfPlugin, 'callback', side_effect=RuntimeError("Simulated Critical Error")):
+            # 登录门（`panel_login_required` → `admin.user_login_check.isLogined`）在隔离库里
+            # 找不到 admin 用户（`_isolation` 只灌建表 SQL、不灌用户），会去渲染「安全入口
+            # 校验失败」页；而本用例的极简 Flask app 没注册面板的 `t` 模板全局函数 →
+            # 渲染即 500（jinja UndefinedError），把「回调异常不得 500」这个待测点淹掉。
+            # 所以显式放行登录门（本用例验的是回调异常兜底，不是登录门）。
+            with patch.object(YfPlugin, 'callback', side_effect=RuntimeError("Simulated Critical Error")), \
+                 patch('admin.user_login_check.isLogined', return_value=True):
                 resp = client.post('/plugins/callback', data={
                     'name': 'task_manager',
                     'func': 'get_process_list',

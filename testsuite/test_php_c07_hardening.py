@@ -47,6 +47,7 @@ import io
 import json
 import os
 import re
+import shlex
 import shutil
 import sys
 import tempfile
@@ -929,8 +930,33 @@ class TestLibAndSessionMisc(_FixtureCase):
         out = json.loads(self.fx.call('installLib', VERSION))
         self.assertTrue(out['status'])
         self.assertEqual(len(self.fx.tasks), 1)
-        self.assertIn('install sg11', self.fx.tasks[0]['cmd'])
-        self.assertIn("'", self.fx.tasks[0]['cmd'])   # 路径已 shlexQuote
+        cmd = self.fx.tasks[0]['cmd']
+        self.assertIn('install sg11', cmd)
+        # 断言「精确的引用形态」而不是「必须出现引号」：POSIX 上普通路径 shlexQuote
+        # **本来就不会加引号**，那是正确行为；硬要求引号会假红（Windows 因路径含
+        # 反斜杠碰巧带引号，所以只有 Linux/CI 会暴露）。
+        versions = self.fx.mod.getPluginDir() + '/versions'
+        self.assertIn('cd ' + shlex.quote(versions) + ' && ', cmd)
+        # 反向自证：把插件目录换成含空格的路径，必须真的引用起来（否则守卫假绿）。
+        # 注意：白名单 `getLibNames()` 也读插件目录，换目录后它拿不到 phplib.conf，
+        # 所以直接把白名单固定成 sg11（本用例验的是「引用」而不是白名单）。
+        orig = self.fx.mod.getPluginDir
+        orig_names = self.fx.mod.getLibNames
+        self.fx.mod.getPluginDir = lambda: os.path.join(self.fx.root, 'plug in dir')
+        self.fx.mod.getLibNames = lambda: ['sg11']
+        try:
+            self.fx.tasks[:] = []
+            self.fx.set_args({'name': 'sg11'})
+            out2 = json.loads(self.fx.call('installLib', VERSION))
+            self.assertTrue(out2['status'], out2)
+            # 期望值必须与生产侧拼接方式一致（`getPluginDir() + "/versions"`，
+            # 不能再用 os.path.join —— Windows 上会得到混合分隔符，字符串对不上）
+            spaced = shlex.quote(os.path.join(self.fx.root, 'plug in dir') + '/versions')
+            self.assertIn('cd ' + spaced + ' && ', self.fx.tasks[0]['cmd'])
+            self.assertIn("'", spaced, '夹具前提：含空格路径必须需要引用')
+        finally:
+            self.fx.mod.getPluginDir = orig
+            self.fx.mod.getLibNames = orig_names
 
     def test_73_uninstall_lib_no_such_extension_not_success(self):
         self.fx.rc = (0, 'no such extension\n', '')

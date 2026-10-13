@@ -385,19 +385,32 @@ class PgAdminSecretHandling(unittest.TestCase):
             fp.write('{}')
         if os.name != 'nt':
             os.chmod(cfg, 0o644)
+        # 1) 真实生效：不经 mock 真调一次。原用例把 chmod 全程 mock 掉，同时又断言磁盘上的
+        #    st_mode 变成了 0600 —— 在 POSIX 上这两件事互斥（chmod 被 mock 就根本没执行），
+        #    所以只有 Windows（该断言被 os.name 跳过）能过，Linux/CI 必红。
+        self.assertTrue(self.pg._chmodOwnerOnly(cfg))
+        if os.name != 'nt':
+            self.assertEqual(0o600, stat.S_IMODE(os.stat(cfg).st_mode),
+                             '凭据文件未被真正收紧到 0600')
+        # 2) 调用契约：传的必须是 0600（Windows 下 chmod 不进 st_mode，只能这样验）
+        if os.name != 'nt':
+            os.chmod(cfg, 0o644)
         with mock.patch.object(self.pg.os, 'chmod') as chmod_mock:
             self.pg._chmodOwnerOnly(cfg)
         chmod_mock.assert_called_with(cfg, 0o600)
-        if os.name != 'nt':
-            self.assertEqual(0o600, stat.S_IMODE(os.stat(cfg).st_mode))
 
         state_path = os.path.join(tmp, 'account_state.json')
         with mock.patch.object(self.pg, 'getAccountStatePath', return_value=state_path), \
                 mock.patch.object(self.pg.os, 'chmod') as chmod_mock:
             self.assertTrue(self.pg.saveAccountState({'status': True}))
         chmod_mock.assert_called_with(state_path, 0o600)
+        # 真实生效再验一次：chmod 被 mock 时磁盘上不会真的变，所以要**不经 mock** 重写一遍。
         if os.name != 'nt':
-            self.assertEqual(0o600, stat.S_IMODE(os.stat(state_path).st_mode))
+            os.chmod(state_path, 0o644)
+            with mock.patch.object(self.pg, 'getAccountStatePath', return_value=state_path):
+                self.assertTrue(self.pg.saveAccountState({'status': True}))
+            self.assertEqual(0o600, stat.S_IMODE(os.stat(state_path).st_mode),
+                             '账号状态文件未被真正收紧到 0600')
 
     def test_19_username_rejects_htpasswd_injection(self):
         cfg = {'username': 'u1', 'password': 'p1'}

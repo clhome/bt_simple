@@ -90,25 +90,54 @@ class CleanD03Hardening(unittest.TestCase):
         return p
 
     # ---------------- 面 2：越界/通配拒绝矩阵 ----------------
+    def _assert_ops_refused(self, p):
+        """截断/删除两个破坏性入口都必须拒（这是本用例的**硬契约**，跨平台）。"""
+        t_ok, t_msg = self.ce.truncate_single_file(p)
+        self.assertFalse(t_ok, '越界路径截断未被拒绝: %s -> %s' % (p, t_msg))
+        d_ok, _f, d_msg = self.cs.safe_delete_file(p)
+        self.assertFalse(d_ok, '越界路径删除未被拒绝: %s -> %s' % (p, d_msg))
+
     def test_01_reject_matrix(self):
-        cases = [
+        # 判据是**两层**的，本用例必须分别断言到正确的函数上：
+        #   · `is_safe_path`      —— 白名单 + 字面危险字符 + realpath 软链；
+        #   · `is_forbidden_file` —— 文件类型（.ini/.db/.php/ibdata1…），由破坏性入口
+        #                            与扫描器调用（`is_valid_log_or_cache_file` 内部复用）。
+        # 所以「白名单内但类型受保护」的路径（如 `/www/server/php/83/etc/php.ini`），
+        # `is_safe_path` 放行是**设计如此**；把它算成 is_safe_path 的失败是本用例前身
+        # 写错了判据（而且这些断言在 Windows 上被跳过，所以只在 Linux/CI 上暴露）。
+        outside_whitelist = [
             '../../etc/passwd', '/etc/passwd', '/etc', '/', '/root', '/bin', '/usr',
-            '/www/server/php/83/etc/php.ini', '/www/server/mysql/data/ibdata1',
-            '/www/server/yufeng_panel/data/panel.db', '/www/wwwroot/test1/index.php',
-            '/tmp/../../etc/passwd', '/ETC/passwd', '/tmp/中文/日志.log',
-            '/tmp/' + 'a' * 3000,
+            '/www/wwwroot/test1/index.php',   # 白名单只有 /www/wwwlogs 与 /www/server
+            '/tmp/../../etc/passwd', '/ETC/passwd',
         ]
-        for p in cases:
+        forbidden_type = [
+            '/www/server/php/83/etc/php.ini', '/www/server/mysql/data/ibdata1',
+            '/www/server/yufeng_panel/data/panel.db',
+        ]
+        # 白名单内的**合法日志**路径：is_safe_path 必须放行（拒绝它们属于误伤；长路径也不
+        # 按长度拒 —— Linux PATH_MAX 是 4096），但操作入口仍会因目标不存在/类型不符被拒。
+        allowed_logs = ['/tmp/中文/日志.log', '/tmp/' + 'a' * 3000]
+
+        for p in outside_whitelist:
             ok, _msg = self.cs.is_safe_path(p)
             # Windows 下 /www/... 会被映射到当前盘符（F:/www/...），与本机盘符口径
             # 混淆，因此「绝对生产路径必须被拒」的硬断言只在 POSIX 上执行；
             # 跨平台硬断言放在下面的「操作必须被拒」上。
             if p.startswith('/') and os.name != 'nt':
                 self.assertFalse(ok, '绝对路径未被拒绝: %s' % p)
-            t_ok, t_msg = self.ce.truncate_single_file(p)
-            self.assertFalse(t_ok, '越界路径截断未被拒绝: %s -> %s' % (p, t_msg))
-            d_ok, _f, d_msg = self.cs.safe_delete_file(p)
-            self.assertFalse(d_ok, '越界路径删除未被拒绝: %s -> %s' % (p, d_msg))
+            self._assert_ops_refused(p)
+
+        for p in forbidden_type:
+            forbidden, why = self.cs.is_forbidden_file(p)
+            self.assertTrue(forbidden, '受保护文件类型未被识别: %s (%s)' % (p, why))
+            self._assert_ops_refused(p)
+
+        for p in allowed_logs:
+            if os.name != 'nt':
+                ok, msg = self.cs.is_safe_path(p)
+                self.assertTrue(ok, '白名单内合法日志被误拒: %s (%s)' % (p, msg))
+            self._assert_ops_refused(p)
+
         # 跨平台（含 Windows）必须被拒的越界路径
         outside = os.path.join(os.path.dirname(os.getcwd()), 'yf_d03_outside_check.log')
         for p in (os.path.abspath(os.sep), outside):
@@ -127,9 +156,22 @@ class CleanD03Hardening(unittest.TestCase):
         self.assertFalse(ok, '] 通配字符未被拒绝')
 
     def test_03_symlink_escape(self):
-        # 受害文件必须落在白名单之外（Windows 下白名单含 cwd，故不能放仓库内）
-        outside = tempfile.mkdtemp(prefix='yf_d03_outside_')
+        # 受害文件必须落在**所有白名单目录之外**。生产白名单含 `/tmp`（见
+        # `clean_security.ALLOWED_DIR_PREFIXES`），所以 POSIX 上不能用 mkdtemp() 的
+        # 默认落点 —— 否则 realpath 校验会认为「还在白名单内」，用例前提不成立而假红
+        # （Windows 下白名单含 cwd，所以也不能放仓库内）。
+        base = None
+        if os.name != 'nt' and os.path.isdir('/dev/shm') and os.access('/dev/shm', os.W_OK):
+            base = '/dev/shm'
+        outside = tempfile.mkdtemp(prefix='yf_d03_outside_', dir=base)
         try:
+            # 自证前提：受害目录确实在白名单之外，否则本用例测不出「软链逃逸」
+            norm_outside = self.cs.normalize_path(outside)
+            for allowed in self.cs.ALLOWED_DIR_PREFIXES:
+                norm_allowed = self.cs.normalize_path(allowed)
+                self.assertFalse(
+                    norm_outside == norm_allowed or norm_outside.startswith(norm_allowed + '/'),
+                    '夹具前提不成立：%s 落在白名单 %s 内' % (outside, allowed))
             victim = os.path.join(outside, 'victim.txt')
             with open(victim, 'wb') as fh:
                 fh.write(b'V' * 4096)
