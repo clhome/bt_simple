@@ -140,3 +140,50 @@ root crontab 污染。跨平台（Windows 门禁 + WSL Debian 3.11）双绿。
       静态门禁 4 项全绿（`--static` 单独复跑亦绿）。
 - [x] WSL Debian(py3.11) 复跑新增守卫模块（posix 路径，含 0600 真实 stat 断言）：10/10 绿。
 - [x] 收尾：临时变异脚本 `test/_hygiene_mutation.py` 已删除；`git status` 只有 4 个预期文件。
+
+---
+
+# 追加任务：GitHub Actions 两处门禁报错修复（bandit B202 HIGH + 浏览器 XSS 探针假红）
+
+## 背景
+推送后 GitHub 上两条 workflow 变红：
+1. `security-scan.yml` 的 bandit（`-lll`，仅阻断 HIGH）：
+   `scripts/tools/build_edition.py:68` 报 `B202 tarfile_unsafe_members`（CVE-2007-4559）。
+   根因是上一轮为兼容「3.9.17 之前没有 `data_filter`」的老解释器加的**回退分支**
+   —— `filter='data'` 那条已被 bandit 豁免，回退里的裸 `tf.extractall(dest_dir)` 没有。
+2. `core-regression.yml` 的 `test_safemessage_escape.py::test_07`：
+   对照组（未净化载荷）拿到 `{"pwned":0}` 被判红。这是**探针的时序假设错了**，
+   不是净化器回归 —— 旧对照组的置位靠浏览器自然派发 `img.onerror` / `svg.onload`
+   等异步事件，在 CI 的 `--virtual-time-budget` 下一次都没派发。
+
+## 拆解与验收
+- [x] `build_edition.py` 新增 `_safe_members(tf, dest_dir)`：与 CPython `tarfile.data_filter`
+      的「路径与链接」判据等价（相对路径且解析后仍在 dest_dir 内；只放行普通文件/目录/
+      指向根内的链接；丢弃 `../`、绝对路径、越界链接、设备/管道文件）。理由是
+      `data_filter` 是 3.8.17+/3.9.17+/3.10.12+/3.11.4+ 才有的新 API，而本项目声明 3.9+。
+- [x] 两分支都改成 `extractall(dest_dir, members=_safe_members(...))`，能力探测到
+      `data_filter` 时再叠一层 `filter='data'`。bandit 对 `members=<函数调用>` 的判据是
+      **LOW**（官方文档推荐的写法），不再是 HIGH；本地 `-lll` 复跑 HIGH=0。
+- [x] `gen_xss_browser_probe.js` 重写为**不依赖事件时序**的两层证据：
+      ① 强制派发：注入后遍历 DOM，把每个元素上 `on*` 属性对应的事件显式 dispatch
+         （对照组必然置位）；② DOM 级危险属性计数（`on*` / `javascript: data: vbscript:`
+         协议属性 / `srcdoc` / 可执行 `style`）。结果在注入后**同步**写入标题，
+         定时器只用于补充诊断值 `natural`。
+- [x] 载荷 JSON 内联改为把**所有** `<` 转成 `\u003c`（原做法只转 `</`，而载荷里还有
+      `<!--` 与 `<script>`，会让 HTML 分词器进 script-data-double-escaped 状态）。
+- [x] 探针生成器支持 `YF_PUBLIC_JS`（与 `test_safemessage_sanitize.js` 同口径），
+      便于变异自证；新增 `test_08_browser_mutation_self_proof`：净化器=恒等函数时
+      浏览器级断言必须变红（实测 `pwned:1 / dangerous:20`）。
+- [x] `test_07` 断言升级为：对照组 `dangerous>0` 且 `pwned>0`（探测器 + 执行通道都活）；
+      净化组 `pwned==0` 且 `dangerous==0`（比「没自然执行」更强）。Chrome 空输出重试 ≤3 次，
+      但**不对「取到结果但结果不符」重试**。
+- [x] 新增 `test_edition_layering.test_13_tar_members_whitelist`：合成含 `../evil.txt`、
+      绝对路径、嵌套穿越、FIFO、越界/合法软链的归档，断言白名单结果集 + 真解压后
+      穿越成员未落地（CI bandit 只能看到「用了 members= 函数」，函数对不对要靠本条）。
+- [x] `security-scan.yml` 的 `paths` 补上 `scripts/**.py`（`_SCAN_PATHS` 基线同步）：
+      bandit 本来就扫 `scripts`，触发范围却不含它 —— 那次 B202 就是这么躲过好几次
+      提交、直到同时改了 `web/**` 才暴雷的。扫描范围与触发范围不一致 = 漏扫。
+- [x] 本地复跑：`bandit -r web scripts panel_task.py panel_tools.py -lll` → **HIGH=0**；
+      `python testsuite/run_all.py --jobs 8` → **262 模块 / 3252 test 方法全绿**，静态门禁 4 项全绿。
+- [x] 收尾：临时探针脚本（`test/_probe_vec.*`、`test/_time_chrome.py`、`test/_probe_mutation.py`）
+      与临时产物（`test/_ar`、`test/_dist`、`test/xssprobe`）已删；`git status` 只有 6 个预期文件。

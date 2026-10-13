@@ -51,21 +51,69 @@ def should_exclude(rel_path, edition):
     return False
 
 
+def _safe_members(tf, dest_dir):
+    """显式校验并白名单化 tar 成员，只返回「解压后不会逃出 dest_dir」的那些。
+
+    为什么要自己校验（而不是直接 `extractall`）：`extractall` 会照单全收归档里的
+    成员 —— `../` 穿越、绝对路径、指向归档外的软/硬链接、设备/管道文件都会落地，
+    即 CVE-2007-4559（bandit B202）。
+
+    判据与 CPython 官方 `tarfile.data_filter` 的「路径与链接」部分等价：
+      * 只放行相对路径，且解析后仍落在 dest_dir 内；
+      * 只放行普通文件、目录，以及指向 dest_dir 内的软/硬链接；
+      * 其余（设备/管道/其它特殊类型、越界链接）一律丢弃。
+
+    那为什么不直接用 `data_filter`：它是 3.8.17+/3.9.17+/3.10.12+/3.11.4+ 才有的
+    新 API，而本项目声明支持 3.9+ —— 更早的小版本（如 3.11.2）上
+    `extractall(filter='data')` 会 `TypeError`，社区版构建直接失败（CI 实测）。
+    故这里自行校验：老解释器上以 `members=` 走同一条白名单，新解释器上再叠一层
+    官方 `filter='data'`。
+
+    成员本就来自本仓库自产的 `git archive`（实测只有普通文件与目录），
+    所以这是纵深防御：即便 `--ref` 被指向外来归档，也不会写出 dest_dir。
+    """
+    base = os.path.abspath(dest_dir)
+    kept = []
+    for member in tf.getmembers():
+        name = member.name.replace('\\', '/')
+        if name.startswith('/') or os.path.isabs(member.name):
+            continue
+        parts = [p for p in name.split('/') if p not in ('', '.')]
+        if '..' in parts:
+            continue
+        target = os.path.abspath(os.path.join(base, *parts))
+        if not (target == base or target.startswith(base + os.sep)):
+            continue
+        if member.issym():
+            link = member.linkname.replace('\\', '/')
+            link_abs = os.path.abspath(os.path.join(os.path.dirname(target), link))
+            if link.startswith('/') or not (link_abs == base or
+                                            link_abs.startswith(base + os.sep)):
+                continue
+        elif member.islnk():
+            link = member.linkname.replace('\\', '/')
+            link_abs = os.path.abspath(os.path.join(base, link))
+            if link.startswith('/') or not (link_abs == base or
+                                            link_abs.startswith(base + os.sep)):
+                continue
+        elif not (member.isfile() or member.isdir()):
+            continue
+        kept.append(member)
+    return kept
+
+
 def _git_archive(dest_dir, ref='HEAD'):
     tar_path = os.path.join(dest_dir, '_src.tar')
     subprocess.run(['git', 'archive', '--format=tar', '-o', tar_path, ref],
                    cwd=ROOT, check=True)
     with tarfile.open(tar_path) as tf:
-        # filter='data' 会拒绝绝对路径/软链接/设备文件等危险成员，是 tarfile 官方
-        # 给出的安全解压入口（Python 3.8.17+/3.9.17+/3.10.12+/3.11.4+ 起可用）。
-        # 但项目声明支持 3.9+，而更早的小版本（如 3.11.2）还没有这个关键字，
-        # 硬传会 `TypeError: extractall() got an unexpected keyword argument 'filter'`
-        # → 社区版构建直接失败（CI 3.11 首跑实测）。故按能力探测决定是否传。
-        # 老解释器退回常规解压：成员来自本仓库自产的 `git archive`，全是仓库内普通文件。
+        # 先过自己的白名单；`data_filter` 存在时再叠一层官方校验（两者判据一致）。
+        # 老解释器走 `members=` 分支 —— bandit 视其为「已做成员校验」（B202 低危），
+        # 而不是「照单全收」（高危）。
         if hasattr(tarfile, 'data_filter'):
-            tf.extractall(dest_dir, filter='data')
+            tf.extractall(dest_dir, members=_safe_members(tf, dest_dir), filter='data')
         else:
-            tf.extractall(dest_dir)
+            tf.extractall(dest_dir, members=_safe_members(tf, dest_dir))
     os.remove(tar_path)
 
 

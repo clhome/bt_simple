@@ -75,12 +75,15 @@ _I18N_PATHS = [
 ]
 
 # security-scan.yml 的 paths（基线，逐字抄写；顺序为归一化后的排序结果）
+# `scripts/**.py`：bandit 本来就扫 scripts，触发范围必须跟上，否则漏扫
+# （2026-10-13：`scripts/tools/build_edition.py` 的 B202 HIGH 就是这么躲过好几次提交的）。
 _SCAN_PATHS = [
     '.github/workflows/security-scan.yml',
     'panel_task.py',
     'panel_tools.py',
     'plugins/**/*.py',
     'requirements*.txt',
+    'scripts/**.py',
     'web/**.py',
 ]
 

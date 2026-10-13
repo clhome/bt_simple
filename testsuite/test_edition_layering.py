@@ -13,10 +13,12 @@ I4 的核心主张是「**同一套代码构建两个产物，社区版整目录
 I2 锁死发布说明模板必须含「变更类型 / 升级说明 / 回滚方法 / 发布前自检」四段，
 并把用户强调的两条（代理可用、SQLite 自愈）写进自检清单。
 """
+import io
 import os
 import re
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
 
@@ -96,6 +98,65 @@ class ExcludeLogicTest(unittest.TestCase):
                 fh.write('x')
             self.assertEqual(build_edition._prune(tmp, 'pro'), [])
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'web', 'pro')))
+
+
+class TarMemberWhitelistTest(unittest.TestCase):
+    """`_safe_members` 是构建链上唯一的解压安全边界（bandit B202 / CVE-2007-4559）。
+
+    成员本就来自本仓库自产的 `git archive`，所以这里是纵深防御：即便 `--ref`
+    被指向外来归档，`../` 穿越、绝对路径、越界链接、设备文件也不得落地。
+    （CI 的 bandit 门禁只能看到「用了 members= 函数」，函数对不对得靠本用例。）
+    """
+
+    @staticmethod
+    def _evil_tar(path):
+        def add(tf, name, kind, link=''):
+            info = tarfile.TarInfo(name)
+            info.type = kind
+            info.mode = 0o755
+            if link:
+                info.linkname = link
+            if kind == tarfile.REGTYPE:
+                data = b'x'
+                info.size = len(data)
+                tf.addfile(info, io.BytesIO(data))
+            else:
+                tf.addfile(info)
+
+        with tarfile.open(path, 'w') as tf:
+            add(tf, 'good.txt', tarfile.REGTYPE)
+            add(tf, 'sub', tarfile.DIRTYPE)
+            add(tf, 'sub/deep.txt', tarfile.REGTYPE)
+            add(tf, '../evil.txt', tarfile.REGTYPE)
+            add(tf, '/abs_evil.txt', tarfile.REGTYPE)
+            add(tf, 'a/../../evil2.txt', tarfile.REGTYPE)
+            add(tf, 'fifo', tarfile.FIFOTYPE)
+            add(tf, 'link_out', tarfile.SYMTYPE, '../../evil.txt')
+            add(tf, 'link_in', tarfile.SYMTYPE, 'good.txt')
+
+    def test_13_tar_members_whitelist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tar = os.path.join(tmp, 'evil.tar')
+            self._evil_tar(tar)
+            dest = os.path.join(tmp, 'dest')
+            os.makedirs(dest)
+
+            with tarfile.open(tar) as tf:
+                kept = build_edition._safe_members(tf, dest)
+                self.assertEqual(sorted(m.name for m in kept),
+                                 ['good.txt', 'link_in', 'sub', 'sub/deep.txt'],
+                                 '白名单放行了不该放行的成员，或误删了正常成员')
+
+                # 真解压一次（Windows 下创建软链接需要特权，故跳过链接成员），
+                # 确认穿越成员没有落到 dest 之外
+                tf.extractall(dest, members=[m for m in kept if not m.issym()])
+
+            self.assertTrue(os.path.isfile(os.path.join(dest, 'good.txt')))
+            self.assertTrue(os.path.isfile(os.path.join(dest, 'sub', 'deep.txt')))
+            self.assertFalse(os.path.exists(os.path.join(tmp, 'evil.txt')),
+                             '`../` 穿越成员逃出了解压根目录')
+            self.assertFalse(os.path.exists(os.path.join(tmp, 'evil2.txt')),
+                             '嵌套 `../../` 穿越成员逃出了解压根目录')
 
 
 class CoreMustNotImportProTest(unittest.TestCase):

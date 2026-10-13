@@ -12,6 +12,11 @@ name: 供应链安全扫描
 #   ruff       -> 仅报告（--exit-zero）。规则收紧前不阻断。
 #
 # 首次运行若变红，那是扫描器在干活：按报告 triage 后再合并，不要直接把 job 改成 continue-on-error。
+#
+# 触发范围必须覆盖被扫描的目录：bandit 扫的是 `web scripts panel_task.py panel_tools.py`，
+# 所以 `paths` 里也得有 `scripts/**.py`（2026-10-13 补）。此前缺这一条，导致
+# `scripts/tools/build_edition.py` 的 B202(HIGH) 在多次提交里都没被扫到，
+# 直到某次同时改了 `web/**` 才暴雷 —— 扫描范围与触发范围不一致 = 漏扫。
 
 on:
   push:
@@ -19,6 +24,7 @@ on:
     paths:
       - 'requirements*.txt'
       - 'web/**.py'
+      - 'scripts/**.py'
       - 'plugins/**/*.py'
       - 'panel_task.py'
       - 'panel_tools.py'
@@ -27,6 +33,7 @@ on:
     paths:
       - 'requirements*.txt'
       - 'web/**.py'
+      - 'scripts/**.py'
       - 'plugins/**/*.py'
       - 'panel_task.py'
       - 'panel_tools.py'

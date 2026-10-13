@@ -73,6 +73,11 @@ def find_chrome():
 NODE = find_node()
 
 
+def _snip(s, n=400):
+    """截取 Chrome 输出的片段用于失败信息（别把整页 DOM 打进日志）。"""
+    return (s or '')[:n]
+
+
 class TestSafeMessageEscape(unittest.TestCase):
 
     def setUp(self):
@@ -159,54 +164,126 @@ class TestSafeMessageEscape(unittest.TestCase):
 
     # ---------- 浏览器级验证（最强证据，无 Chrome 时跳过） ----------
 
+    def _gen_probe(self, outdir, public_js=None):
+        """生成浏览器验证页（可选：用变异体替换 public.js）。"""
+        gen = os.path.join(HERE, 'i18n_scripts', 'tools', 'gen_xss_browser_probe.js')
+        env = dict(os.environ)
+        env['YF_PROBE_OUT'] = outdir
+        if public_js:
+            env['YF_PUBLIC_JS'] = public_js
+        return subprocess.run([NODE, gen], cwd=ROOT, capture_output=True,
+                              text=True, encoding='utf-8', errors='replace',
+                              timeout=60, env=env)
+
+    def _chrome_title(self, chrome, page_path):
+        """返回 (页面 <title>, Chrome 原始输出)。
+
+        只对「什么都没取到」重试（headless Chrome 偶发空输出，CI 上见过），
+        **不对「取到了结果但结果不符合预期」重试** —— 那才是要判红的结论。
+        """
+        url = 'file:///' + page_path.replace(os.sep, '/')
+        out = ''
+        for _ in range(3):
+            rr = subprocess.run(
+                [chrome, '--headless=new', '--disable-gpu', '--no-sandbox',
+                 '--virtual-time-budget=3000', '--dump-dom', url],
+                capture_output=True, text=True, encoding='utf-8',
+                errors='replace', timeout=120)
+            out = rr.stdout or ''
+            m = re.search(r'<title>([^<]*)</title>', out)
+            if m:
+                return m.group(1), out
+        return None, out
+
     def test_07_browser_does_not_execute_sanitized_payloads(self):
         """headless Chrome 实测：净化后的载荷不得执行；对照组必须能执行。
 
         字符串断言只能证明「危险子串不在了」，浏览器验证才能证明
         「即便有漏网，浏览器也不执行」。对照组是必须的 —— 若探针本身
         抓不到执行，「净化后未置位」的结论毫无意义。
+
+        两层证据都**不依赖浏览器何时派发事件**（详见 gen_xss_browser_probe.js
+        头注释：旧版靠 img.onerror 等自然派发，在 CI 的
+        `--virtual-time-budget` 下一次都没派发，造成假红）：
+          ① 强制派发：注入后把每个元素上 on* 属性对应的事件显式 dispatch，
+             对照组必然置位（证明「内联处理器会执行」这条通道是活的），
+             净化组根本没有 on* 属性，所以仍是 0；
+          ② DOM 级危险属性计数：对照组必须 > 0（探测器本身在工作），
+             净化组必须 == 0。
         """
         chrome = find_chrome()
         if chrome is None:
             self.skipTest('未找到 Chrome，跳过浏览器级验证')
-        gen = os.path.join(HERE, 'i18n_scripts', 'tools', 'gen_xss_browser_probe.js')
-        if not os.path.isfile(gen):
+        if not os.path.isfile(os.path.join(HERE, 'i18n_scripts', 'tools',
+                                           'gen_xss_browser_probe.js')):
             self.skipTest('缺少生成器 gen_xss_browser_probe.js')
 
         tmpdir = tempfile.mkdtemp(prefix='yf_xss_probe_')
         try:
-            env = dict(os.environ)
-            env['YF_PROBE_OUT'] = tmpdir
-            r = subprocess.run([NODE, gen], cwd=ROOT, capture_output=True,
-                               text=True, encoding='utf-8', errors='replace',
-                               timeout=60, env=env)
+            r = self._gen_probe(tmpdir)
             self.assertEqual(0, r.returncode, '生成验证页失败：' + (r.stderr or ''))
 
-            def title_of(name):
-                url = 'file:///' + os.path.join(tmpdir, name).replace('\\', '/')
-                rr = subprocess.run(
-                    [chrome, '--headless=new', '--disable-gpu', '--no-sandbox',
-                     '--virtual-time-budget=3000', '--dump-dom', url],
-                    capture_output=True, text=True, encoding='utf-8',
-                    errors='replace', timeout=120)
-                m = re.search(r'<title>([^<]*)</title>', rr.stdout or '')
-                return m.group(1) if m else None
+            raw, raw_out = self._chrome_title(
+                chrome, os.path.join(tmpdir, 'xss_browser_probe_raw.html'))
+            self.assertIsNotNone(raw, '对照组标题未取到：' + _snip(raw_out))
+            self.assertNotEqual('pending', raw, '对照组脚本未执行，探针无效：' + _snip(raw_out))
+            raw_data = json.loads(raw)
+            self.assertGreater(raw_data['dangerous'], 0,
+                               '对照组注入后 DOM 里没有任何危险属性 → DOM 级探测器失效：' + raw)
+            self.assertGreater(raw_data['pwned'], 0,
+                               '对照组未发生脚本执行（强制派发也没置位）→ 探针抓不到执行，'
+                               '结论无意义：' + raw)
 
-            raw = title_of('xss_browser_probe_raw.html')
-            self.assertIsNotNone(raw, '对照组标题未取到')
-            self.assertNotEqual('pending', raw, '对照组脚本未执行，探针无效')
-            self.assertGreater(json.loads(raw)['pwned'], 0,
-                               '对照组未发生脚本执行 → 探针抓不到执行，结论无意义')
-
-            san = title_of('xss_browser_probe.html')
-            self.assertIsNotNone(san, '净化页标题未取到')
-            self.assertNotEqual('pending', san, '净化页脚本未执行')
+            san, san_out = self._chrome_title(
+                chrome, os.path.join(tmpdir, 'xss_browser_probe.html'))
+            self.assertIsNotNone(san, '净化页标题未取到：' + _snip(san_out))
+            self.assertNotEqual('pending', san, '净化页脚本未执行：' + _snip(san_out))
             data = json.loads(san)
             self.assertEqual(0, data['pwned'],
                              '净化后的载荷在浏览器中执行了：' + san)
+            self.assertEqual(0, data['dangerous'],
+                             '净化后的 DOM 仍含可执行属性'
+                             '（on* / javascript: 协议 / srcdoc / 可执行 style）：' + san)
             # 同时确认既有 UI 元素确实被渲染出来（不是把内容全转义成文本）
             self.assertGreater(data['strictTags'], 15, '严格档渲染出的元素过少：' + san)
             self.assertGreater(data['extTags'], 15, '宽松档渲染出的元素过少：' + san)
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+    def test_08_browser_mutation_self_proof(self):
+        """变异自证：净化器退化为恒等函数后，浏览器级断言必须变红。
+
+        与 test_02 同口径。新加的判据（DOM 级危险属性计数 + 强制派发）
+        如果写错成「永远为 0 / 永远置不到位」，本用例会直接失败；
+        缺了它，浏览器级断言有可能只是看起来像有保护。
+        """
+        chrome = find_chrome()
+        if chrome is None:
+            self.skipTest('未找到 Chrome，跳过浏览器级验证')
+
+        src = read(PUBLIC_JS)
+        needle = 'function yfMsgSanitize(html, extended) {'
+        self.assertEqual(1, src.count(needle), '未能唯一定位 yfMsgSanitize 定义')
+        mutant = src.replace(
+            needle,
+            needle + " return String(html == null ? '' : html);")
+
+        tmpdir = tempfile.mkdtemp(prefix='yf_xss_probe_mut_')
+        try:
+            mp = os.path.join(tmpdir, 'public_mutated.js')
+            with open(mp, 'w', encoding='utf-8', newline='') as f:
+                f.write(mutant)
+            r = self._gen_probe(tmpdir, public_js=mp)
+            self.assertEqual(0, r.returncode, '生成变异体验证页失败：' + (r.stderr or ''))
+
+            san, out = self._chrome_title(
+                chrome, os.path.join(tmpdir, 'xss_browser_probe.html'))
+            self.assertIsNotNone(san, '变异体净化页标题未取到：' + _snip(out))
+            data = json.loads(san)
+            self.assertGreater(data['dangerous'], 0,
+                               '恒等净化器的产物竟被判「无可执行属性」→ 判据失效：' + san)
+            self.assertGreater(data['pwned'], 0,
+                               '恒等净化器的产物竟未执行 → 判据失效：' + san)
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)
 
