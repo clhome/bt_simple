@@ -110,3 +110,33 @@ CI 的 checkout）+ `requirements.txt` + node 22。
     `test_webstats_c06_hardening:test_61`），故未动。
   - `plugins/data_query/sql_mysql.py` 也 `import core.yf` 且无自举（与 B2 的
     `clean_executor` 同族）；本次无失败证据，未动。
+
+---
+
+# 追加任务：卫生项收尾（cleanup chattr argv 化 + crontab echo 白名单 / chmod 去 shell）
+
+## 目标
+把上轮 `bt_simple_卫生项收尾.patch`（当前 master 未合入、无对应提交）描述的三处
+「靠调用链保证安全」的卫生项落地：不是漏洞，但调用链一旦被改写就是 root 命令注入 /
+root crontab 污染。跨平台（Windows 门禁 + WSL Debian 3.11）双绿。
+
+## 拆解与验收
+- [x] `web/admin/setup/cleanup.py`：system_safe 残留解锁的 2 处 `execShell(f'chattr … "{p}"')`
+      → `yf.safeExecShell(['chattr','-R','-i','-a', p], timeout=yf.EXEC_DEFAULT_TIMEOUT)`；
+      顺带对 config.json 增加 `isinstance(conf, dict)` / paths 元素 / `str + 以 / 开头` 判据。
+- [x] `web/utils/crontab.py`：新增 `_CRON_NAME_RE` + `_cron_safe_name()` 白名单
+      （`^[A-Za-z0-9_.-]{1,64}$`，拒绝 `.`/`..`/空/原始命令/元字符/换行）。
+- [x] `getShell()` 先白名单校验再写回 `param['echo']`，不通过即 `return ''`；
+      `syncToCrond()` 对空脚本名 `return False`（绝不把非法名拼进 root crontab 行）。
+- [x] 两处 chmod 去 shell：`getShell` 落盘改 `os.chmod(file, 0o750)`；
+      `writeShell` 抽出 `_hardenSpoolFile()`（`os.chmod 0600` + `os.chown root:crontab`，
+      回退 root:root），有锁路径与无锁回退路径共用。
+- [x] 新增守卫 `testsuite/test_shell_free_file_ops_hygiene.py`（10 项）；修正
+      `testsuite/test_cleanup_system_safe.py` 里原先只断言「命令里出现 chattr」的弱断言
+      → 改为断言 argv 列表形态 + 禁止再出现在 shell 字符串里。
+- [x] 变异自证：M1~M6（回退 shell 字符串 chmod/chattr、删白名单、删拒绝分支、
+      放宽白名单）逐个改回旧写法 → 6/6 守卫变红，还原后 GREEN。
+- [x] Windows 全量门禁 `python testsuite/run_all.py --jobs 8`：262 模块 / 3250 test 方法全绿，
+      静态门禁 4 项全绿（`--static` 单独复跑亦绿）。
+- [x] WSL Debian(py3.11) 复跑新增守卫模块（posix 路径，含 0600 真实 stat 断言）：10/10 绿。
+- [x] 收尾：临时变异脚本 `test/_hygiene_mutation.py` 已删除；`git status` 只有 4 个预期文件。

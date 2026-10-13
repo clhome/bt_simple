@@ -51,8 +51,9 @@ class TestCleanupSystemSafe(unittest.TestCase):
     @patch('core.yf.isAppleSystem', return_value=False)
     @patch('core.yf.writeLog')
     @patch('core.yf.removeDir')
+    @patch('core.yf.safeExecShell')
     @patch('core.yf.execShell')
-    def test_cleanup_execution_flow(self, mock_exec, mock_rmdir, mock_log, mock_apple):
+    def test_cleanup_execution_flow(self, mock_exec, mock_safe_exec, mock_rmdir, mock_log, mock_apple):
         """测试检测到残留时的完整清理链路"""
         mock_exec.return_value = ('', '')
 
@@ -79,7 +80,18 @@ class TestCleanupSystemSafe(unittest.TestCase):
             self.assertTrue(any('systemctl disable system_safe' in cmd for cmd in executed_cmds))
             self.assertTrue(any('pkill -9 -f' in cmd for cmd in executed_cmds))
             self.assertTrue(any('systemctl daemon-reload' in cmd for cmd in executed_cmds))
-            self.assertTrue(any('chattr' in cmd for cmd in executed_cmds))
+
+            # chattr 解锁必须走 safeExecShell 的 argv 列表，不得拼进 shell 字符串
+            # （p 来自本地残留 config.json，含 $()/反引号时会被 shell 解释）
+            chattr_argv = [c[0][0] for c in mock_safe_exec.call_args_list
+                           if c[0] and c[0][0][:1] == ['chattr']]
+            self.assertTrue(chattr_argv, '没有任何 chattr 走 argv 列表解锁')
+            for argv in chattr_argv:
+                self.assertIsInstance(argv, list)
+                self.assertEqual(argv[:4], ['chattr', '-R', '-i', '-a'])
+                self.assertEqual(len(argv), 5, '路径必须是单个 argv 元素：%r' % (argv,))
+            self.assertFalse(any('chattr' in cmd for cmd in executed_cmds),
+                             'chattr 不得再拼进 shell 字符串')
 
             # 验证目录清理
             self.assertTrue(mock_rmdir.called)

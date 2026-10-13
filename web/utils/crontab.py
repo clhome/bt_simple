@@ -53,8 +53,21 @@ def _validate_to_url(url):
 _CRON_INT_RE = re.compile(r'^\d{1,4}$')
 _CRON_LINE_FIELD_RE = re.compile(r'^(?:\*(?:/\d{1,4})?|\d{1,4}(?:-\d{1,4})?(?:/\d{1,4})?|\d{1,4}(?:,\d{1,4})*)$')
 _PLUGIN_DIR_NAME_RE = re.compile(r'^[A-Za-z0-9_\-]+$')
+# 脚本文件名（DB 的 echo 列）白名单：该值既是 /www/server/cron/<name> 的文件名，
+# 又会被拼进 root crontab 行。历史数据里存在 echo=原始命令（init_cron 恢复
+# 「其它系统任务」时写入），含空格/分号/换行/重定向符就会污染文件名并给 root
+# 追加任意计划任务，因此只接受纯标识符，其余一律拒绝。
+_CRON_NAME_RE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 CRON_CYCLE_TYPES = ('day', 'day-n', 'hour', 'hour-n', 'minute-n', 'week', 'month')
 CRON_TASK_STYPES = ('toShell', 'toFile', 'toUrl', 'rememory', 'logs', 'site', 'path', 'database')
+
+
+def _cron_safe_name(echo):
+    """把 echo 收敛为合法脚本名；不合规（空格/分号/换行/路径分隔符等）返回空串拒绝。"""
+    name = str(echo if echo is not None else '').strip()
+    if name in ('.', '..') or not _CRON_NAME_RE.match(name):
+        return ''
+    return name
 
 
 def _cron_int(value, lo, hi):
@@ -693,6 +706,12 @@ class crontab(object):
             cron_name = yf.md5(yf.md5(str(time.time()) + '_yf'))
         else:
             cron_name = param['echo']
+        # 白名单未通过时必须拒绝：否则 cron_name 会变成 /www/server/cron/<原始命令>
+        # 这样的文件名，并原样拼进 root crontab 行（历史系统任务恢复就是这种数据）。
+        cron_name = _cron_safe_name(cron_name)
+        if not cron_name:
+            yf.writeFileLog('[crontab] 拒绝使用非法任务标识作为脚本名（任务 %s）' % param.get('id', '0'))
+            return ''
         param['echo'] = cron_name
 
         # try:
@@ -885,7 +904,10 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         file = cron_path + '/' + cron_name
         # print(shell)
         yf.writeFile(file, self.checkScript(shell))
-        yf.execShell('chmod 750 ' + file)
+        try:
+            os.chmod(file, 0o750)
+        except Exception as _e:
+            _log.debug('[crontab] 设置任务脚本权限失败: %s', _e)
         return cron_name
 
     # 检查脚本
@@ -895,6 +917,24 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         for k in keys:
             shell = shell.replace(k, '[***]')
         return shell
+
+    # 系统 crontab 文件落盘后的权限收敛（一律走 os.*，不经过 shell 字符串拼接）
+    def _hardenSpoolFile(self, file, mode=0o600):
+        try:
+            os.chmod(file, mode)
+        except Exception as _e:
+            _log.debug('[crontab] 设置 crontab 文件权限失败: %s', _e)
+        try:
+            import pwd as _pwd, grp as _grp
+            uid = _pwd.getpwnam('root').pw_uid
+            try:
+                # 优先 root:crontab，回退 root:root
+                gid = _grp.getgrnam('crontab').gr_gid
+            except Exception:
+                gid = _grp.getgrnam('root').gr_gid
+            os.chown(file, uid, gid)
+        except Exception as _e:
+            _log.debug('[crontab] 设置 crontab 文件属主失败: %s', _e)
 
     # 将Shell脚本写到文件（fcntl 排他锁 + 原子追加，避免并发覆盖）
     def writeShell(self, bash_script):
@@ -929,19 +969,7 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
                 except Exception as _e: _log.debug('[crontab] fsync 失败: %s', _e)
                 fcntl.flock(f, fcntl.LOCK_UN)
             # 权限收敛（不使用 shell 拼接）
-            try:
-                os.chmod(file, 0o600)
-                import pwd as _pwd, grp as _grp
-                try:
-                    # 优先 root:crontab，回退 root:root
-                    uid = _pwd.getpwnam('root').pw_uid
-                    try: gid = _grp.getgrnam('crontab').gr_gid
-                    except Exception: gid = _grp.getgrnam('root').gr_gid
-                    os.chown(file, uid, gid)
-                except Exception as _e:
-                    _log.debug('[crontab] chown crontab 文件失败: %s', _e)
-            except Exception as _e:
-                _log.debug('[crontab] 设置 crontab 文件属主失败: %s', _e)
+            self._hardenSpoolFile(file)
             return yf.returnData(True, 'ok')
         except Exception:
             # 回退旧路径（无锁）
@@ -952,7 +980,7 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
                 content = ''
             content += str(bash_script) + "\n"
             if yf.writeFile(file, content):
-                yf.execShell("chmod 600 '" + file +"' && chown root.root " + file)
+                self._hardenSpoolFile(file)
                 return yf.returnData(True, 'ok')
             return yf.returnData(False, 'crontab.py_msg_77c6a9')
 
@@ -990,6 +1018,9 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         cmd, _ = self.getCrondCycle(info)
         cron_path = yf.getServerDir() + '/cron'
         cron_name = self.getShell(info)
+        if not cron_name:
+            # echo 未过白名单，getShell 拒绝生成脚本：绝不能拼接非法名进 root crontab
+            return False
         cmd += ' ' + cron_path + '/' + cron_name + ' >> ' + cron_path + '/' + cron_name + '.log 2>&1'
         if not _valid_cron_line(cmd):
             # 历史遗留的非法周期（如 type 被写成未知值）绝不能写进系统 crontab：

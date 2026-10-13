@@ -57,12 +57,17 @@ def cleanup_legacy_plugins():
             content = yf.readFile(config_file)
             if content:
                 conf = json.loads(content)
-                for key in conf:
-                    if isinstance(conf[key], dict) and 'paths' in conf[key]:
-                        for item in conf[key]['paths']:
-                            p = item.get('path')
-                            if p and os.path.exists(p):
-                                yf.execShell(f'chattr -R -i -a "{p}" 2>/dev/null')
+                if isinstance(conf, dict):
+                    for key in conf:
+                        item = conf[key]
+                        if not isinstance(item, dict) or 'paths' not in item:
+                            continue
+                        for path_item in item['paths']:
+                            p = path_item.get('path') if isinstance(path_item, dict) else None
+                            # 路径虽来自本地残留配置，但仍必须走 argv 列表：
+                            # 配置里出现 $()/反引号/分号时不能被 shell 解释
+                            if isinstance(p, str) and p.startswith('/') and os.path.exists(p):
+                                yf.safeExecShell(['chattr', '-R', '-i', '-a', p], timeout=yf.EXEC_DEFAULT_TIMEOUT)
         except Exception as e:
             yf.writeFileLog('[cleanup] 解锁被加固路径失败: %s' % e)
 
@@ -85,7 +90,7 @@ def cleanup_legacy_plugins():
     ]
     for p in default_locked_paths:
         if os.path.exists(p):
-            yf.execShell(f'chattr -R -i -a "{p}" 2>/dev/null')
+            yf.safeExecShell(['chattr', '-R', '-i', '-a', p], timeout=yf.EXEC_DEFAULT_TIMEOUT)
 
     # 3. 停止服务并禁止开机自启
     yf.execShell("systemctl stop system_safe 2>/dev/null", timeout=yf.EXEC_SERVICE_TIMEOUT)
