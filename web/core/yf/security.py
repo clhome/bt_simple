@@ -26,7 +26,7 @@ from random import Random
 import functools
 
 
-from . import getAesKey, getTracebackInfo
+from . import _log, getAesKey, getTracebackInfo
 
 
 # ---------------------------------------------------------------------------
@@ -64,6 +64,10 @@ def checkPwd(password, hashed):
         import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except ImportError:
+        # fail-open：bcrypt 缺失时退回 SHA256。绝不能静默 —— 降级会削弱口令存储强度，
+        # 必须留下明确告警（含补救建议），便于运维发现依赖缺失。
+        _log.warning('[yf.security] bcrypt 不可用，口令校验降级为 SHA256 比对'
+                     '（请安装 bcrypt：pip install bcrypt）；本次降级不阻断登录')
         import hashlib
         return hashlib.sha256(password.encode('utf-8')).hexdigest() == hashed
     except Exception as _e:

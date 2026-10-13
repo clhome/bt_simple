@@ -450,7 +450,11 @@ def get_recent_logins():
     })
 
 # 仅针对webhook插件
+#
+# 注意：本路由曾无鉴权（历史上 webhook 插件不存在时不可达）。现统一加登录态校验：
+# 插件若将来重新接入，应自行实现 access_key 校验，不得再依赖本路由开放。
 @blueprint.route("/hook", methods=['POST', 'GET'])
+@panel_login_required
 def webhook():
     # 兼容获取关键数据
     access_key = request.args.get('access_key', '').strip()

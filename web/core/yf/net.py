@@ -354,6 +354,12 @@ def createLocalSSL():
     if len(cert_ca) > 100 and len(private_key) > 100:
         writeFile(local_dir+'/cert.pem', cert_ca, 'wb+')
         writeFile(local_dir+'/private.pem', private_key, 'wb+')
+        # 私钥权限不得依赖进程 umask：显式收紧为 0600（仅属主可读写），
+        # 与 data/secret_key.pl 的既有做法一致。
+        try:
+            os.chmod(local_dir+'/private.pem', 0o600)
+        except OSError as _e:
+            _log.warning('[yf] 面板 SSL 私钥权限收紧失败: %s', _e)
         return True
     return False
 

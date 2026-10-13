@@ -57,6 +57,12 @@ class setting(object):
         yf.writeFile(check_cert_pl, cert_pem)
         if private_key:
             yf.writeFile(keyPath, private_key)
+            # 私钥权限不得依赖进程 umask：显式收紧为 0600（仅属主可读写），
+            # 与 data/secret_key.pl 的既有做法一致。
+            try:
+                os.chmod(keyPath, 0o600)
+            except OSError as _e:
+                yf.writeFileLog('[setting] 面板 SSL 私钥权限收紧失败: %s' % _e)
         if cert_pem:
             yf.writeFile(certPath, cert_pem)
         if not yf.checkCert(check_cert_pl):

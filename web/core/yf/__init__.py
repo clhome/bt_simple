@@ -676,6 +676,10 @@ def hasPwd(password):
         hpw = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hpw.decode('utf-8')
     except ImportError:
+        # fail-open：bcrypt 缺失时退回 SHA256。绝不能静默 —— 新口令将被写成弱哈希，
+        # 必须留下明确告警（含补救建议）。
+        _log.warning('[yf] bcrypt 不可用，口令加密降级为 SHA256（请安装 bcrypt：'
+                     'pip install bcrypt）；降级期间新写入的口令哈希强度不足')
         import hashlib
         return hashlib.sha256(password.encode('utf-8')).hexdigest()
 

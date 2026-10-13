@@ -167,6 +167,11 @@ def login_temp_user(token):
         setErrorNum(skey)
         return "过期"
 
+    # 用后即焚：state==1 表示该 token 已被使用过，有效期内也不得重放
+    if int(tmp_data.get('state') or 0) != 0:
+        setErrorNum(skey)
+        return '验证失败!'
+
     user_data = thisdb.getUserById(1)
     login_addr = yf.getClientIp() + ":" + str(request.environ.get('REMOTE_PORT'))
     yf.writeLog('用户临时登录', "登录成功,帐号:{1},登录IP:{2}",(user_data['name'], login_addr))
