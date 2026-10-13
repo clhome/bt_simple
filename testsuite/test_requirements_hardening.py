@@ -9,7 +9,9 @@
   3. 这些死依赖在全仓（web/ plugins/ scripts/ 等）确实零 import（静态扫描）；
   4. 报告误判为死依赖、实际在用的 pymongo / pymemcache / redis 必须保留；
   5. scripts/gen_requirements_lock.sh 存在、有 shebang、`bash -n` 通过，
-     且 requirements.txt 注释指向它。
+     且 requirements.txt 注释指向它；
+  6. 附录 B P2-12e：Python <3.9 分支 EOL 时间表（2027-06-30）在 requirements.txt
+     与 README.md 双处声明，且声明与 `python_version < '3.9'` 分档共存。
 
 断言「真能失败」：本文件用 requirements.txt 的真实文本做正则解析，不硬编码常量；
 `test/p0_deps_mutation_probe.py` 逐条回退版本下界、把死依赖加回，每条都让本文件变红。
@@ -23,7 +25,14 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 REQ = os.path.join(ROOT, 'requirements.txt')
+README = os.path.join(ROOT, 'README.md')
 LOCK_SCRIPT = os.path.join(ROOT, 'scripts', 'gen_requirements_lock.sh')
+
+#: 附录 B P2-12e：Python <3.9 分支 EOL 时间表（用户裁定日期）。
+EOL_DATE = '2027-06-30'
+EOL_PHRASE = '停止支持'
+#: 声明必须点名、且必须仍保留 `<3.9` 分档的包（小写比较）。
+EOL_BRANCH_PACKAGES = ('flask', 'werkzeug')
 
 #: 包名（小写）→ CVE 修复版下界
 REQUIRED_LOWER_BOUNDS = {
@@ -105,6 +114,25 @@ def _vtuple(version):
     return tuple(int(x) for x in re.findall(r'\d+', version))
 
 
+def _comment_block(text, needle):
+    """返回包含 needle 的连续注释块（前后紧邻的 `#` 行一并纳入），找不到返回 ''。"""
+    lines = text.splitlines()
+    hits = [i for i, line in enumerate(lines) if needle in line]
+    if not hits:
+        return ''
+    start = end = hits[0]
+    while start > 0 and lines[start - 1].strip().startswith('#'):
+        start -= 1
+    while end + 1 < len(lines) and lines[end + 1].strip().startswith('#'):
+        end += 1
+    return '\n'.join(lines[start:end + 1])
+
+
+def _py39_branch_lines(text):
+    """返回带 `python_version < '3.9'` 环境标记的 requirement 行。"""
+    return [l for l in _requirement_lines(text) if "python_version < '3.9'" in l[1]]
+
+
 def _iter_source():
     for base in SCAN_DIRS:
         abs_base = os.path.join(ROOT, base)
@@ -183,6 +211,50 @@ class DeadDependencyImportScanTest(unittest.TestCase):
                         offenders.setdefault(dep, []).append(
                             '%s:%d' % (os.path.relpath(path, ROOT).replace(os.sep, '/'), lineno))
         self.assertEqual(offenders, {}, '死依赖仍有 import：%r' % offenders)
+
+
+class Python39EolTimelineTest(unittest.TestCase):
+    """附录 B P2-12e：Python <3.9 分支 EOL 时间表必须双处声明且与分档共存。
+
+    守卫真能失败：``test/p2_eol_mutation_probe.py`` 逐处回退（删日期 / 删 README
+    声明 / 删分档保留声明），每处都让本类变红。
+    """
+
+    def setUp(self):
+        self.req = _read(REQ)
+        self.readme = _read(README)
+
+    def test_08_requirements_declares_eol_timeline(self):
+        self.assertIn(EOL_DATE, self.req,
+                      'requirements.txt 未声明 Python <3.9 分支 EOL 日期 %s' % EOL_DATE)
+        self.assertIn(EOL_PHRASE, self.req,
+                      'requirements.txt EOL 声明缺少「%s」口径' % EOL_PHRASE)
+        self.assertIn('3.9', self.req, 'requirements.txt EOL 声明未点名 Python 3.9')
+
+    def test_09_readme_declares_eol_timeline(self):
+        self.assertIn(EOL_DATE, self.readme,
+                      'README.md 未声明同一 EOL 日期 %s' % EOL_DATE)
+        self.assertIn(EOL_PHRASE, self.readme,
+                      'README.md EOL 声明缺少「%s」表述' % EOL_PHRASE)
+        self.assertIn('3.9', self.readme, 'README.md EOL 声明未点名 Python 3.9')
+
+    def test_10_eol_declaration_and_branch_coexist(self):
+        # 声明存在（防「只删注释不删分档」）
+        self.assertIn(EOL_DATE, self.req, 'requirements.txt EOL 声明缺失')
+        # 分档仍存在（防「只删分档不删注释」）：声明点名的包必须仍带 <3.9 分支
+        branch = {name for name, _spec, _raw in _py39_branch_lines(self.req)}
+        for pkg in EOL_BRANCH_PACKAGES:
+            self.assertIn(pkg, branch,
+                          "%s 的 `python_version < '3.9'` 分档在 EOL 日期前被提前移除"
+                          '（现存分支 %s）' % (pkg, sorted(branch)))
+
+    def test_11_eol_declaration_names_branch_packages(self):
+        block = _comment_block(self.req, EOL_DATE)
+        self.assertTrue(block, 'requirements.txt 找不到含 %s 的 EOL 注释块' % EOL_DATE)
+        lowered = block.lower()
+        for pkg in EOL_BRANCH_PACKAGES:
+            self.assertIn(pkg, lowered,
+                          'EOL 声明未点名将移除的分档包 %s：%r' % (pkg, block))
 
 
 class LockScriptTest(unittest.TestCase):

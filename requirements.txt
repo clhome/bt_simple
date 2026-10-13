@@ -32,6 +32,11 @@ pip>=22.0.0
 #     >=3.9 走修复版；<3.9 保持旧版（这些系统上游已无修复版本，属「已知残留风险」，
 #     已记录在 task.md；依赖漏洞扫描见 .github/workflows/security-scan.yml）。
 #   注意：依赖漏洞扫描在 CI（Python 3.11）只会解析 >=3.9 分支，因此门禁仍能真正拦住漏洞。
+#   【EOL 时间表】Python <3.9 分支（兼容 CentOS 7 / Debian 10）为过渡兼容保留，
+#     计划于 2027-06-30 停止支持：届时移除全部 `python_version < '3.9'` 分档
+#     （flask / Werkzeug / pyOpenSSL / cryptography 四处）。
+#     依据：CentOS 7 与 Debian 10 上游均已 EOL、依赖链对该分支已无修复版本，
+#     属已知残留风险。守卫：testsuite/test_requirements_hardening.py
 flask>=3.1.3,<4.0.0; python_version >= '3.9'
 flask>=2.0.3,<3.0.0; python_version < '3.9'
 Werkzeug>=3.1.6,<4.0.0; python_version >= '3.9'
@@ -83,6 +88,7 @@ requests>=2.32.4,<3.0.0  # CVE-2023-32681 / CVE-2024-35195 / CVE-2024-47081，�
 urllib3>=2.0.7,<3.0.0  # CVE-2023-43804 / CVE-2023-45803，修复版 2.0.7（1.x 已 EOL）
 # pyOpenSSL 26.0.0 写死 cryptography<47，是 cryptography 卡在 46.x（含 4 个 CVE）的直接原因；
 # 26.4.0 允许 cryptography<51，故与 Web 框架同样分档。
+# 注：<3.9 分支同样受上方「EOL 时间表」约束（2027-06-30 停止支持后一并移除）。
 pyOpenSSL>=26.4.0,<27; python_version >= '3.9'
 pyOpenSSL==26.0.0; python_version < '3.9'
 cryptography>=50.0.0,<51; python_version >= '3.9'

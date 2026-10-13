@@ -201,6 +201,10 @@
 | Ubuntu 16.04 及更早 | `deploy.sh:322` | 显式拒绝（要求 ≥ Ubuntu 16） |
 | 32 位系统 | `deploy.sh:283` | 仅支持 64 位 |
 
+### ⏳ Python <3.9 支持终止时间表
+
+Python <3.9 分支（兼容 CentOS 7 / Debian 10 等仅自带旧版 Python 的系统）为**过渡兼容**保留，计划于 **2027-06-30 停止支持**：届时 `requirements.txt` 中全部 `python_version < '3.9'` 分档（flask / Werkzeug / pyOpenSSL / cryptography）将被移除。依据：CentOS 7 与 Debian 10 上游均已 EOL、依赖链对该分支已无修复版本，属已知残留风险；请仍在使用 **Python <3.9** 的用户在此日期前升级到 **Python ≥3.9**。
+
 ### 🧭 关于适配方式
 
 上述缺口的共同根因是「按版本打补丁」的适配方式（如 `Install_dep_debain13()`、`VERSION_ID == "13"` 等硬编码分支），
