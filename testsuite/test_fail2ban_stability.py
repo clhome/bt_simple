@@ -5,6 +5,7 @@ import unittest
 import json
 import tempfile
 import shutil
+from unittest.mock import patch
 
 # 将项目路径加入搜索路径
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -175,7 +176,14 @@ class TestFail2banStability(unittest.TestCase):
 
         os.path.exists = mock_exists
         try:
-            inst.sync_jail_local(conf)
+            # 「无 mysql 日志」的前提必须由用例自己钉死，绝不能依赖宿主环境：
+            # GitHub ubuntu runner 镜像自带 MySQL，/var/log/mysql/error.log 真的存在，
+            # 于是 pick_logpath 命中真实日志 → backend=auto，用例在 CI 上必红；
+            # 同理，任何装了 MySQL 的 Linux 机器（含真实面板服务器）也会红。
+            # 这里与 test_fail2ban_plugin.TestBackendResolution 保持同一手法：
+            # 只屏蔽「日志探测」这一外部输入，其余分支（systemd 降级判定）走真实代码。
+            with patch.object(f2b_index, 'pick_logpath', return_value=None):
+                inst.sync_jail_local(conf)
         finally:
             os.path.exists = orig_exists
 
