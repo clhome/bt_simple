@@ -154,6 +154,11 @@ class RsyncdD09Test(unittest.TestCase):
         self.rc_calls = []
         self.rc_result = {}
         self._patch_shell()
+        # 属主是环境量：插件对已存在的接收目录读 utils.file.getAccess(path)['chown']，
+        # 非 www 就按设计拒绝擅自 chown。getAccess 走 pwd.getpwuid(真实属主)——Windows
+        # 无 pwd 模块 → 异常回退 chown='www'，Linux 返回运行用户（CI=runner）→ 插件拒绝。
+        # 不固定属主，这些用例只在 Windows「碰巧」通过（CI Linux 必红）。
+        self._stub_get_access('www')
         # 真实 isInstalled() 判据 = install.sh 落下的 version.pl（夹具里就是它）
         self.version_pl = os.path.join(self.server, 'version.pl')
         _write(self.version_pl, '2.0\n')
@@ -163,6 +168,19 @@ class RsyncdD09Test(unittest.TestCase):
         old = getattr(self.mod, name)
         setattr(self.mod, name, value)
         self.addCleanup(setattr, self.mod, name, old)
+
+    def _stub_get_access(self, chown, chmod='755'):
+        """固定属主检查：stub `utils.file.getAccess`（插件内为函数级
+        `import utils.file as utils_file; utils_file.getAccess(path)`）。
+
+        属主来自 pwd.getpwuid(真实属主)，是环境量而非被测逻辑：Windows 回退 www，
+        Linux 返回运行用户。夹具统一按 www（= 通过属主闸）返回，被测的「拒绝/写入/
+        回滚」才与 OS 无关；需要覆盖拒绝分支的用例再显式 stub 成其它属主。
+        """
+        import utils.file as utils_file
+        old = utils_file.getAccess
+        utils_file.getAccess = lambda path: {'chown': chown, 'chmod': chmod}
+        self.addCleanup(setattr, utils_file, 'getAccess', old)
 
     def _patch_shell(self):
         mod = self.mod
@@ -848,6 +866,37 @@ class RsyncdD09Test(unittest.TestCase):
         for rel in ('index.py', 'tool_task.py', 'js/rsyncd.js', 'install.sh'):
             src = _read(os.path.join(PLUGIN_SRC, rel))
             self.assertNotIn('mdserver-web', src, rel)
+
+    # ---------------- 9. 属主闸（拒绝分支，平台无关） ----------------
+    def test_54_add_rec_rejects_foreign_owner_without_writing(self):
+        """路径已存在且属主非 www：按设计拒绝擅自 chown，且不得写配置/secrets。
+
+        属主由 pwd.getpwuid(真实属主) 决定，必须显式 stub 才能稳定覆盖该分支
+        （否则该分支只在 Linux 上被触发，Windows 上被回退的 www 掩盖）。
+        """
+        self._stub_get_access('root')
+        sec = os.path.join(self.server, 'receive', 'owned1', 'auth.db')
+        res = self._add_rec('owned1', self.recv, 'pw1', 'x')
+        self.assertFalse(res['status'], res)
+        self.assertIn('chown -R www:www', res['msg'])
+        self.assertFalse(os.path.exists(self._conf_path()), '被拒的请求不得创建 rsyncd.conf')
+        self.assertFalse(os.path.exists(sec), '被拒的请求不得落 secrets 文件')
+
+    def test_55_lsyncd_add_rejects_foreign_owner_without_writing(self):
+        """lsyncdAdd 同族（index.py:1164-1176）：属主非 www 时同样拒绝且不落库。"""
+        self._send_conf([])
+        before = _read(os.path.join(self.server, 'config.json'))
+        self._stub_get_access('root')
+        args = {'ip': '127.0.0.1', 'conn_type': 'user', 'path': self.send, 'delay': '3',
+                'period': 'day', 'bwlimit': '1024', 'delete': 'true', 'realtime': 'true',
+                'compress': 'true', 'sname': 't1', 'password': 'p', 'port': '18730',
+                'hour': '0', 'minute': '0', 'minute-n': '1'}
+        self._argv('lsyncd_add', json.dumps(args))
+        res = json.loads(self.mod.lsyncdAdd())
+        self.assertFalse(res['status'], res)
+        self.assertIn('chown -R www:www', res['msg'])
+        self.assertEqual([], self.mod.sendListData()['send']['list'], '被拒的任务不得落库')
+        self.assertEqual(before, _read(os.path.join(self.server, 'config.json')))
 
 
 if __name__ == '__main__':
