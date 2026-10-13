@@ -1279,6 +1279,6 @@ from .net import HttpGet, HttpGet2, HttpPost, _insecure_ssl_context, _pool_reque
 from . import panel
 from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMessage, emailNotifyTest, getFpmAddress, getFpmConfFile, getMyORM, getNotifyData, getOpVer, getWebStatus, initNotifyConfig, isInstalledWeb, isRestart, notifyMessage, opLuaInitAccessFile, opLuaInitFile, opLuaInitWorkerFile, opLuaMake, opLuaMakeAll, panelCmd, requestFcgiPHP, restartPanel, restartTask, restartWeb, tgbotNotifyChatID, tgbotNotifyHttpPost, tgbotNotifyMessage, tgbotNotifyObject, tgbotNotifyTest, triggerTask, wakePanelTask, writeNotify
 from . import system
-from .system import checkDomainPanel, fileNameCheck, getCertName, getCpuType, getObjectByJson, getOsID, getOsName, getPage, getPageObject, getStaticJson, getSystemDeviceTemperature, isChina, isDocker, isSupportHttp3, isVhostHasReuseport, isYufengPanel
+from .system import checkDomainPanel, extNetDisabled, fileNameCheck, getCertName, getCpuType, getObjectByJson, getOsID, getOsName, getPage, getPageObject, getStaticJson, getSystemDeviceTemperature, isChina, isDocker, isSupportHttp3, isVhostHasReuseport, isYufengPanel
 from . import validate
 from .validate import dbSafeCheckArgs, safeDatadir, safeIdentifier, safeReplicationCmd, safeSyncIp, safeSyncPass, safeSyncPort, safeSyncUser

@@ -317,6 +317,23 @@ def set_gpu_detect():
     yf.writeLog('面板设置', '关闭英伟达GPU首页检测!')
     return yf.returnData(True, 'setting.py_msg_d0a336')
 
+# 设置第三方外联状态（IP 归属地 / 服务器国内判定等按需外发查询）
+# 安全口径：**默认开启**（与历史行为一致）；关闭后所有功能性第三方外联直接返回
+# 降级结果，不再发出任何外发请求（统一判定入口：core.yf.extNetDisabled）。
+@blueprint.route('/set_ext_net_status', endpoint='set_ext_net_status', methods=['POST'])
+@panel_login_required
+def set_ext_net_status():
+    disable_ext_net = thisdb.getOption('disable_ext_net', default='no')
+    if disable_ext_net == 'no':
+        thisdb.setOption('disable_ext_net', 'yes')
+        utils_config.clearGlobalVarCache()
+        yf.writeLog('面板设置', '关闭第三方外联查询!')
+    else:
+        thisdb.setOption('disable_ext_net', 'no')
+        utils_config.clearGlobalVarCache()
+        yf.writeLog('面板设置', '开启第三方外联查询!')
+    return yf.returnData(True, 'common.set_success')
+
 # 设置面板自动更新状态
 # 安全口径：自动更新**默认关闭**；开启后会在计划任务里新增 `yf update`，
 # 关闭时会立即移除该任务（不必等面板重启）。

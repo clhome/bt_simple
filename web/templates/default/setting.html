@@ -233,6 +233,14 @@
                     <label class='btswitch-btn' for='gpuDetect' onclick="setGpuDetect()"></label>
                 </div>
             </div>
+
+            <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.disable_ext_net_tips" title="{{ t('config.disable_ext_net_tips', '关闭后 IP 归属地、服务器国内判定等第三方外联查询将直接返回降级结果，不再外发') }}">
+                <em data-i18n="config.disable_ext_net">{{ t('config.disable_ext_net', '关闭第三方外联') }}</em>
+                <div class='ssh-item'>
+                    <input class='btswitch btswitch-ios' id='extNetOff' type='checkbox' {% if data['disable_ext_net'] == 'yes' %}checked{% endif %}>
+                    <label class='btswitch-btn' for='extNetOff' onclick="setExtNet()"></label>
+                </div>
+            </div>
         </div>
 
         <!-- 主体设置区域 -->

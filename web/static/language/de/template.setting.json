@@ -47,6 +47,8 @@
     "auto_update_tips": "Monatlich; Rollback bereithalten",
     "gpu_detect": "NVIDIA GPU-Erkennung",
     "gpu_detect_tips": "Erkennt und zeigt NVIDIA-GPU-Informationen auf dem Dashboard an",
+    "disable_ext_net": "Externe Abfragen aus",
+    "disable_ext_net_tips": "IP-Standort und ähnliche externe Abfragen überspringen",
     "tab_basic": "Grundeinstellungen",
     "tab_security": "Sicherheit & Auth",
     "tab_data": "Datenmigration",

@@ -2227,6 +2227,12 @@ def getDropIpList():
         return yf.returnJson(False, str(e), [])
 
 def get_location_from_pconline(ip):
+    # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+    if yf.extNetDisabled():
+        return {
+            "status": "fail",
+            "query": ip
+        }
     try:
         import urllib.request
         import json
@@ -2324,7 +2330,11 @@ def getIpLocationBatch():
         ips = json.loads(ips_json)
         if not isinstance(ips, list):
             return yf.returnJson(False, 'ips must be a JSON array', [])
-        
+
+        # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+        if yf.extNetDisabled():
+            return yf.returnJson(True, 'ok!', [{"query": ip, "status": "fail"} for ip in ips])
+
         import urllib.request
         import time
         
@@ -2355,6 +2365,9 @@ def getIpLocation():
     if not isIpAddr(ip):
         return yf.returnJson(False, 'IP地址格式不正确!')
     api_lang = normalize_ip_api_lang(args.get('lang', ''))
+    # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+    if yf.extNetDisabled():
+        return yf.returnJson(False, '获取归属地失败', [])
     try:
         import urllib.request
         import time

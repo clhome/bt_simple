@@ -728,6 +728,9 @@ def normalize_ip_api_lang(lang):
 
 def ip_location_enabled():
     """归属地查询开关（config.json 的 ip_location 字段，默认开启）"""
+    # 面板级第三方外联总开关优先：关闭时一律不再外发
+    if yf.extNetDisabled():
+        return False
     try:
         raw = yf.readFile(getConfigFile())
         if raw:
@@ -2212,6 +2215,9 @@ class fail2ban_main:
 
     def _fetch_ip_location(self, ips, lang):
         """调用 ip-api 批量接口获取归属地（每批最多 100 个 IP）"""
+        # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+        if yf.extNetDisabled():
+            return [{"query": ip, "status": "fail"} for ip in ips]
         import urllib.request
         out = []
         chunk_size = 100

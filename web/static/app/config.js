@@ -2006,3 +2006,40 @@ function appPage() {
     }
   });
 }
+
+// 设置第三方外联开关（IP 归属地 / 服务器国内判定等按需外发查询）
+function setExtNet() {
+  setTimeout(function () {
+    var isChecked = $("#extNetOff").prop("checked");
+    if (isChecked) {
+      // 关闭外联会影响归属地展示，先让用户确认
+      layer.confirm(lan && lan.config && t('config.disable_ext_net_tips') || "", {
+        icon: 3,
+        title: lan && lan.config && t('config.disable_ext_net') || ""
+      }, function (idx) {
+        layer.close(idx);
+        doSetExtNet();
+      }, function () {
+        $("#extNetOff").prop("checked", false);
+      });
+      return;
+    }
+    doSetExtNet();
+  }, 10);
+}
+function doSetExtNet() {
+  var loadT = layer.msg(lan && lan.config && t('config.configuring_please_wait_2') || "", {
+    icon: 16,
+    time: 0,
+    shade: [0.3, '#000']
+  });
+  $.post('/setting/set_ext_net_status', {}, function (rdata) {
+    layer.close(loadT);
+    layer.msg(rdata.msg, {
+      icon: rdata.status ? 1 : 2
+    });
+    setTimeout(function () {
+      window.location.reload();
+    }, 1500);
+  }, 'json');
+}

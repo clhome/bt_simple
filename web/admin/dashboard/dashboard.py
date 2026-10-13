@@ -136,6 +136,9 @@ def get_location_from_ip_api(ip):
     优先方案：参考 op_waf 防火墙，使用 ip-api.com 接口解析归属地
     全球与国内云服务器均具备极高可用性与响应速度
     """
+    # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+    if yf.extNetDisabled():
+        return None
     try:
         import urllib.request
         import json
@@ -175,6 +178,9 @@ def get_location_from_pconline(ip):
     """
     后备方案：当 ip-api 异常时回退到 pconline 接口
     """
+    # 第三方外联开关：关闭时直接返回降级结果，不发任何外发请求
+    if yf.extNetDisabled():
+        return None
     try:
         import urllib.request
         import json

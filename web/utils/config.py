@@ -272,6 +272,8 @@ def getGlobalVar():
     data['panel_ssl'] = thisdb.getOptionByJson('panel_ssl', default={'open':False})
     data['panel_domain'] = thisdb.getOption('panel_domain', default='')
     data['use_cdn'] = thisdb.getOption('use_cdn', default='no')
+    # 第三方外联总开关：默认 'no'（未禁用），保持历史行为
+    data['disable_ext_net'] = thisdb.getOption('disable_ext_net', default='no')
     # 自动更新：**默认关闭**（安全口径）。开启后由 `init_auto_update()`
     # 在计划任务里新增 `yf update`，关闭时立即移除。
     data['auto_update'] = thisdb.getOption('auto_update', default='no')

@@ -3759,6 +3759,8 @@
     "auto_update_tips": "Monthly update; keep rollback ready",
     "gpu_detect": "NVIDIA GPU Detection",
     "gpu_detect_tips": "Attempt to detect and display NVIDIA GPU stats on dashboard",
+    "disable_ext_net": "Disable external queries",
+    "disable_ext_net_tips": "Skip IP geolocation and similar third-party queries",
     "tab_basic": "Basic Settings",
     "tab_security": "Security & Auth",
     "tab_data": "Data Migration",

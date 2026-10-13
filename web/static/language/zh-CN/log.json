@@ -206,6 +206,8 @@
   "PANEL_UNAUTH_STATUS_CODE": "将未授权响应状态码设置为:{1}:{2}",
   "PANEL_CDN_OPEN": "开启CDN加速!",
   "PANEL_CDN_CLOSE": "关闭CDN加速!",
+  "PANEL_EXT_NET_OPEN": "开启第三方外联查询!",
+  "PANEL_EXT_NET_CLOSE": "关闭第三方外联查询!",
   "PANEL_GPU_OPEN": "开启英伟达GPU首页检测!",
   "PANEL_GPU_CLOSE": "关闭英伟达GPU首页检测!",
   "PANEL_IPV6_OPEN": "开启面板IPv6兼容!",

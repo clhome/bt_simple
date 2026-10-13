@@ -3759,6 +3759,8 @@
     "auto_update_tips": "Mensuel ; rollback à prévoir",
     "gpu_detect": "Détection GPU NVIDIA",
     "gpu_detect_tips": "Tente de détecter et afficher les infos GPU NVIDIA sur le tableau de bord",
+    "disable_ext_net": "Désactiver requêtes externes",
+    "disable_ext_net_tips": "Ignorer la géolocalisation IP et requêtes externes similaires",
     "tab_basic": "Configuration de base",
     "tab_security": "Sécurité et authentification",
     "tab_data": "Migration de données",

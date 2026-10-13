@@ -3759,6 +3759,8 @@
     "auto_update_tips": "開啟後每月自動更新面板，請確認可回滾",
     "gpu_detect": "輝達GPU首頁檢測",
     "gpu_detect_tips": "開啟後首頁將嘗試獲取輝達GPU資訊",
+    "disable_ext_net": "關閉第三方外聯",
+    "disable_ext_net_tips": "關閉後 IP 歸屬地、伺服器國內判定等第三方查詢不再外發，直接返回降級結果",
     "tab_basic": "基礎配置",
     "tab_security": "安全與認證",
     "tab_data": "資料遷移",

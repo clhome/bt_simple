@@ -1951,6 +1951,8 @@ var lan = {
 			"auto_update_tips": "开启后每月自动更新面板，请确认可回滚",
 			"gpu_detect": "英伟达GPU首页检测",
 			"gpu_detect_tips": "开启后首页将尝试获取英伟达GPU信息",
+			"disable_ext_net": "关闭第三方外联",
+			"disable_ext_net_tips": "关闭后 IP 归属地、服务器国内判定等第三方查询不再外发，直接返回降级结果",
 			"tab_basic": "基础配置",
 			"tab_security": "安全与认证",
 			"tab_data": "数据迁移",

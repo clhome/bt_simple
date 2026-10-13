@@ -2227,19 +2227,27 @@ show_panel_info() {
     echo -e "=================================================================="
 
     
-    # 增加了浏览器请求头（User-Agent、Accept 等），防止被 防火墙误判为非法参数
-    local report_res=$(curl -skL -m 10 \
-        -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-        -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-        -H "Accept-Language: zh-CN,zh;q=0.9" \
-        'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
+    # 安装计数（遥测）：向 www.yftec.top 上报一次「你是第 N 位用户」的计数。
+    # 仅发送浏览器请求头，不携带面板或服务器数据（服务端可见请求来源 IP）。
+    # 不需要该外联时：安装/更新前设置环境变量 YF_NO_TELEMETRY=1 即可跳过（默认仍上报）。
+    if [ "${YF_NO_TELEMETRY:-0}" = "1" ] || [ "${YF_NO_TELEMETRY:-0}" = "true" ] || [ "${YF_NO_TELEMETRY:-0}" = "yes" ]; then
+        log_info "已按 YF_NO_TELEMETRY 跳过安装计数上报（不访问 www.yftec.top）"
+    else
+        log_info "安装计数：将向 www.yftec.top 发送一次计数请求（仅浏览器请求头，不含面板数据）；如不需要请设置 YF_NO_TELEMETRY=1"
+        # 增加了浏览器请求头（User-Agent、Accept 等），防止被 防火墙误判为非法参数
+        local report_res=$(curl -skL -m 10 \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+            -H "Accept-Language: zh-CN,zh;q=0.9" \
+            'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
 
-    if [ -n "$report_res" ]; then
-        # 兼容 JSON 格式中 user_number 带引号与不带引号的情况，使用原生文本处理方式以消除全局 python3 的环境依赖
-        local user_number=$(echo "$report_res" | grep -o '"user_number":[^,}]*' | tr -d '" ' | awk -F: '{print $2}' 2>/dev/null)
-        if [ -n "$user_number" ]; then
-            echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心.${PLAIN}"
-            echo -e "=================================================================="
+        if [ -n "$report_res" ]; then
+            # 兼容 JSON 格式中 user_number 带引号与不带引号的情况，使用原生文本处理方式以消除全局 python3 的环境依赖
+            local user_number=$(echo "$report_res" | grep -o '"user_number":[^,}]*' | tr -d '" ' | awk -F: '{print $2}' 2>/dev/null)
+            if [ -n "$user_number" ]; then
+                echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心.${PLAIN}"
+                echo -e "=================================================================="
+            fi
         fi
     fi
 }

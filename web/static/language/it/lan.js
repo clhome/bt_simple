@@ -1951,6 +1951,8 @@ var lan = {
 			"auto_update_tips": "Mensile; rollback pronto",
 			"gpu_detect": "Rilevamento GPU NVIDIA",
 			"gpu_detect_tips": "Rileva e mostra le informazioni sulla GPU NVIDIA nella dashboard",
+			"disable_ext_net": "Disattiva richieste esterne",
+			"disable_ext_net_tips": "Salta geolocalizzazione IP e richieste esterne simili",
 			"tab_basic": "Configurazione di base",
 			"tab_security": "Sicurezza e autenticazione",
 			"tab_data": "Migrazione dati",

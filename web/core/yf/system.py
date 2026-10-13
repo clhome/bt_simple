@@ -80,6 +80,32 @@ def isYufengPanel():
         return False
 
 
+#: 第三方外联总开关对应的面板 option 名（面板设置页可切换）。
+#: 默认 'no' = 未禁用 —— 与历史行为一致：IP 归属地 / 国内判定等仍按需外发。
+EXT_NET_OPTION = 'disable_ext_net'
+
+#: option 里被视作「已禁用外联」的取值（大小写不敏感）
+_EXT_NET_DISABLED_VALUES = ('yes', '1', 'true', 'on')
+
+
+def extNetDisabled():
+    """第三方外联总开关：面板 option `disable_ext_net` 为 yes/1/true/on 时返回 True。
+
+    这是**全仓唯一的判定入口**：所有功能性第三方外联（IP 归属地查询、服务器国内
+    判定等）都必须先过这里，返回 True 时调用方要直接给出降级结果（空 / 本地兜底），
+    不得再发起任何外发请求 —— 每一处各写一份判断就会出现「开关只关掉一部分」的漏网。
+
+    读取失败（面板库未就绪等）时按默认「未禁用」处理，绝不因开关读不到就改变历史行为。
+    """
+    try:
+        import thisdb
+        raw = thisdb.getOption(EXT_NET_OPTION, default='no')
+        return str(raw).strip().lower() in _EXT_NET_DISABLED_VALUES
+    except Exception as _e:
+        _log.debug('[yf] 读取第三方外联开关 disable_ext_net 失败，按默认（未禁用）处理: %s', _e)
+        return False
+
+
 def isChina():
     """
     判断服务器是否在中国境内
@@ -87,7 +113,13 @@ def isChina():
     is_china_file = getPanelDataDir() + '/is_china.pl'
     if os.path.exists(is_china_file):
         return readFile(is_china_file).strip() == 'True'
-    
+
+    # 第三方外联开关：关闭时不得外发，直接按「国内」降级（与两个接口都失败时的
+    # 兜底一致）；刻意不写 is_china.pl，避免关闭期间的降级结果在重新开启后被当成
+    # 真实判定沿用。
+    if extNetDisabled():
+        return True
+
     try:
         import urllib.request
         import json

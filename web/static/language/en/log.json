@@ -206,6 +206,8 @@
   "PANEL_UNAUTH_STATUS_CODE": "Unauthorized response status code set to: {1}: {2}",
   "PANEL_CDN_OPEN": "CDN acceleration enabled!",
   "PANEL_CDN_CLOSE": "CDN acceleration disabled!",
+  "PANEL_EXT_NET_OPEN": "Third-party queries enabled!",
+  "PANEL_EXT_NET_CLOSE": "Third-party queries disabled!",
   "PANEL_GPU_OPEN": "NVIDIA GPU homepage detection enabled!",
   "PANEL_GPU_CLOSE": "NVIDIA GPU homepage detection disabled!",
   "PANEL_IPV6_OPEN": "Panel IPv6 compatibility enabled!",

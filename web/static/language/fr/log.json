@@ -206,6 +206,8 @@
   "PANEL_UNAUTH_STATUS_CODE": "Code d'état de réponse non autorisée défini sur : {1} : {2}",
   "PANEL_CDN_OPEN": "Accélération CDN activée !",
   "PANEL_CDN_CLOSE": "Accélération CDN désactivée !",
+  "PANEL_EXT_NET_OPEN": "Requêtes externes activées !",
+  "PANEL_EXT_NET_CLOSE": "Requêtes externes désactivées !",
   "PANEL_GPU_OPEN": "Détection GPU NVIDIA de la page d'accueil activée !",
   "PANEL_GPU_CLOSE": "Détection GPU NVIDIA de la page d'accueil désactivée !",
   "PANEL_IPV6_OPEN": "Compatibilité IPv6 du panneau activée !",
