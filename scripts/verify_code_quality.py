@@ -25,6 +25,16 @@
     silent_except         `except Exception:` 紧接 `pass` —— 静默失败，线上无法诊断
     print_in_web          `web/` 下的 `print(` —— 生产代码应走 logging
     os_system_count       `os.system(...)` —— 字符串拼接进 shell，命令注入风险
+    writefile_bare_success 裸 `yf.writeFile(...)` 后 6 行内直接 `returnJson(True)`
+
+    writefile_bare_success 是什么：
+        `yf.writeFile` 默认「失败只返回 False，永不抛异常」，所以凭返回值不看的
+        裸调用写完就 `returnJson(True)`，等于「写盘失败 = 界面显示成功」。
+        判据（ast 级）：调用是裸表达式语句（结果被丢弃）+ 未传必须抛异常的
+        `must=True` + 其后 6 行内出现 `returnJson(True, ...)`。
+        正确的写法天然不计入：`if not yf.writeFile(...)` / `bool(yf.writeFile(...))` /
+        `yf.writeFile(..., must=True)`。
+        基线 = 2026 P1-7 整改后的实测值，只减不增（每改一处就把基线调低）。
 
     为什么 os_system_count 不是 0：
         剩下 3 处是「必须经 shell 才能完成」的**纯字面量**调用（多级管道杀进程 / 进程替换 curl /
@@ -66,7 +76,11 @@ RE_BARE_EXCEPT = re.compile(r'^\s*except\s*:\s*(#.*)?$')
 RE_EXCEPT = re.compile(r'^\s*except\b')
 RE_PRINT = re.compile(r'(?<![\w.])print\s*\(')
 RE_OS_SYSTEM = re.compile(r'(?<![\w.])os\.system\s*\(')
-METRICS = ('bare_except', 'silent_except', 'print_in_web', 'os_system_count')
+METRICS = ('bare_except', 'silent_except', 'print_in_web', 'os_system_count',
+           'writefile_bare_success')
+
+#: 裸 writeFile 之后「写后直接报成功」的判定窗口（行）
+WRITEFILE_SUCCESS_WINDOW = 6
 
 
 def _iter_py_files():
@@ -127,6 +141,54 @@ def _collect_web_prints(tree, lines):
     return out
 
 
+def _collect_writefile_bare_success(tree):
+    """收集「裸 yf.writeFile(...) 之后 6 行内直接 returnJson(True)」的位置。
+
+    只认裸表达式语句：只要调用结果被用到（`if not ...` / 赋值 / `bool(...)`），
+    或者显式传了 `must=True`（写失败会抛），都不算 —— 那些写法失败时
+    会如实回失败，不再是「写盘失败 = 界面显示成功」。
+    """
+
+    def _is_writefile_call(node):
+        if not isinstance(node, ast.Call):
+            return False
+        f = node.func
+        return (isinstance(f, ast.Attribute) and f.attr == 'writeFile'
+                and isinstance(f.value, ast.Name) and f.value.id == 'yf')
+
+    def _is_returnjson_true(node):
+        if not isinstance(node, ast.Call):
+            return False
+        f = node.func
+        if not (isinstance(f, ast.Attribute) and f.attr == 'returnJson'):
+            return False
+        return bool(node.args) and isinstance(node.args[0], ast.Constant) \
+            and node.args[0].value is True
+
+    success_lines = sorted(
+        n.lineno for n in ast.walk(tree)
+        if _is_returnjson_true(n))
+
+    out = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Expr):
+            continue
+        call = node.value
+        if not _is_writefile_call(call):
+            continue
+        if any(kw.arg == 'must' for kw in call.keywords):
+            continue   # must=True：写失败会抛异常，不算静默
+        base = getattr(call, 'end_lineno', None) or call.lineno
+        for line in success_lines:
+            if 0 < line - base <= WRITEFILE_SUCCESS_WINDOW:
+                out.append((node.lineno,
+                            'yf.writeFile(...) 后 %d 行内直接 returnJson(True)，未校验写盘结果'
+                            % (line - base)))
+                break
+    out.sort()
+    return out
+
+
 def scan_text(text, path, in_web):
     """扫描单份源码，返回 {metric: [(行号, 片段)]}。
 
@@ -158,6 +220,8 @@ def scan_text(text, path, in_web):
 
     if in_web:
         found['print_in_web'] = _collect_web_prints(tree, lines)
+
+    found['writefile_bare_success'] = _collect_writefile_bare_success(tree)
 
     for metric in found:
         found[metric].sort()
@@ -238,16 +302,25 @@ def self_test():
         "    os.system('ls ' + a)\n"       # 1 处 os.system
         "    os.system('id')\n"           # 1 处 os.system
         "    # os.system('x')\n"          # 注释行不计
+        "    yf.writeFile(p, 'x')\n"     # 1 处裸写盘+报成功
+        "    return yf.returnJson(True, 'ok')\n"
+        "    if not yf.writeFile(p, 'x'):\n"       # 校验过，不计
+        "        return yf.returnJson(False, 'fail')\n"
+        "    yf.writeFile(p, 'x', must=True)\n"    # must=True，不计
+        "    return yf.returnJson(True, 'ok')\n"
+        "    yf.writeFile(p, 'x')\n"     # 隔了 >6 行，不计
+        "    a1 = 1\n    a2 = 2\n    a3 = 3\n    a4 = 4\n    a5 = 5\n    a6 = 6\n"
+        "    return yf.returnJson(True, 'ok')\n"
         "    return d, x\n"
     )
     got = scan_text(fixture, '<fixture>', in_web=True)
     counts = {m: len(got[m]) for m in METRICS}
     expected = {'bare_except': 1, 'silent_except': 1, 'print_in_web': 1,
-                'os_system_count': 2}
+                'os_system_count': 2, 'writefile_bare_success': 1}
     if counts != expected:
         print('[FAIL] 自证失败：期望 %r，实际 %r' % (expected, counts))
         return 1
-    print('[OK] 检测器自证通过（四类均命中，合法写法零误报，两类 print 豁免生效）')
+    print('[OK] 检测器自证通过（五类均命中，合法写法零误报，两类 print 豁免生效）')
     return 0
 
 

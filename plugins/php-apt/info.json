@@ -6,17 +6,13 @@
     "title": "PHP[APT]",
     "coexist": true,
     "versions": [
-        "56",
-        "70",
-        "71",
-        "72",
-        "73",
         "74",
         "80",
         "81",
         "82",
         "83",
-        "84"
+        "84",
+        "85"
     ],
     "install_pre_inspection": true,
     "tip": "soft",

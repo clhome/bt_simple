@@ -862,6 +862,8 @@
     "brand_panel": "Yufeng Panel"
   },
   "public": {
+    "plain_http_warning_title": "Plain HTTP: login cookies can be sniffed",
+    "plain_http_warning_desc": "Please enable HTTPS in Panel Settings as soon as possible; do not use this panel over the public network until then.",
     "config": "Setting up...",
     "detail": "Details",
     "disabled": "Disabled",

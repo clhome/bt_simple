@@ -19,12 +19,19 @@
 
 策略（OR 语义，刻意保守）：
     非安全方法（POST/PUT/PATCH/DELETE）只要满足以下**任一**条件即放行：
-      a. 带 `App-Id` 头 —— 走 App-Secret 的 API 鉴权，不属于浏览器 CSRF 模型；
+      a. `api_verified=True` —— 请求头 `App-Id`/`App-Secret` **真的**通过了 API 凭据鉴权
+         （判定由调用方做，本函数只消费结论；不属于浏览器 CSRF 模型）；
       b. 命中豁免路径（`/hook` 自带 access_key 鉴权、`/.well-known/` 是 ACME 挑战、
          `POST */quick_login` 是跨面板快捷登录，凭据在 body 现验 + 一次性 nonce）；
       c. 双提交 Token 正确；
       d. Referer 或 Origin 的 host 与本机一致。
     四者都不满足 -> 拒绝。
+
+为什么 a 是「鉴权结论」而不是「带头」：
+    这里曾经是「带 `App-Id` 头就放行」，等于任何跨站页面只要自己加上这个头
+    就能绕过整个 CSRF 防护（头是客户端随便填的，不是凭据）。现在只认调用方
+    `api_verified=True` 的结论，参数 `has_app_id` 退化成纯信息（仅用于日志/审计），
+    不再参与任何放行判定。
 
 为什么是 OR 而不是「必须 Token」：
     现状只有 Referer 校验，且「Referer/Origin 都为空即拒绝」会误伤
@@ -74,16 +81,22 @@ def _is_exempt_path(path, method=None):
 
 
 def csrf_decision(method, path, host, referer='', origin='',
-                  token_expected='', token_supplied='', has_app_id=False):
+                  token_expected='', token_supplied='', has_app_id=False,
+                  api_verified=False):
     """判定请求是否通过 CSRF 检查。
 
+    :param api_verified: 请求头凭据是否**真的**通过 API 鉴权（由调用方用
+                         App-Id/App-Secret 现验得出）。只有它为真才豁免。
+    :param has_app_id:   **仅信息用**：请求是否带了 `App-Id` 头。刻意不参与判定，
+                         避免再退回「头存在即放行」的捷径。
     :return: (allowed: bool, reason: str)
     """
     method = (method or 'GET').upper()
     if method not in UNSAFE_METHODS:
         return True, 'safe-method'
-    if has_app_id:
-        return True, 'api-header-auth'
+    if api_verified:
+        # 已通过凭据鉴权：自带身份证明，与 CSRF token 同级的「已证明来者是谁」
+        return True, 'api-authenticated'
     if _is_exempt_path(path or '', method):
         return True, 'exempt-path'
 

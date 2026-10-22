@@ -1,4 +1,9 @@
 {
+    "PHP%s 没有安全基线，不支持一键升级": "PHP %s n'a pas de base de securite, la mise a niveau en un clic n'est pas prise en charge",
+    "未检测到 yum 包 php%s-php-fpm，请确认已通过 YUM(Remi) 渠道安装": "Paquet yum php%s-php-fpm introuvable, verifiez que PHP a ete installe via le canal YUM (Remi)",
+    "PHP%s 的 yum 包 %s 已带渠道回移补丁标记，无需升级": "Le paquet yum de PHP %s (%s) porte deja le marqueur de retroportage, aucune mise a niveau necessaire",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s respecte deja la base (%s >= %s), aucune mise a niveau necessaire",
+    "升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退，手工回退请执行: %s": "Echec de la mise a niveau: %s (code de sortie yum %s), YUM/Remi ne prend pas en charge le retour arriere automatique ; pour revenir manuellement: %s",
     "*PHP-FPM运行模式": "*Mode d'exécution PHP-FPM",
     "*允许创建的最大子进程数": "*Le nombre maximum de processus enfants pouvant être créés",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Nombre maximum de processus inactifs (nettoyer lorsque les processus inactifs atteignent cette valeur)",

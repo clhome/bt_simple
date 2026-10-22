@@ -30,6 +30,9 @@ import thisdb
 
 from .dashboard import blueprint
 
+# P2-2 的明文告警判定（`plain_http_warning.py`，零依赖纯函数）在渲染点内延迟导入，
+# 与 dashboard.py 保持同一种写法，也不给本模块的导入期增加依赖。
+
 
 def getErrorNum(key, limit=None):
     key = yf.md5(key)
@@ -211,7 +214,10 @@ def login():
 
     admin_path = thisdb.getOption('admin_path', default='')
     if admin_path == '':
-        return render_template('%s/login.html' % name)
+        # P2-2：明文 HTTP（且面板 SSL 未开）时，登录页显著提示登录 Cookie 可被嗅探
+        from .plain_http_warning import plain_http_warning_flag
+        return render_template('%s/login.html' % name,
+                               plain_http_warning=plain_http_warning_flag())
     else:
         unauthorized_status = thisdb.getOption('unauthorized_status', default='0')
         if unauthorized_status == '0':

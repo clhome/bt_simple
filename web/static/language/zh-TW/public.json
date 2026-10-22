@@ -1,4 +1,6 @@
 {
+  "plain_http_warning_title": "目前為明文 HTTP，登入 Cookie 可能被竊聽",
+  "plain_http_warning_desc": "請儘快在「面板設定」中啟用 HTTPS；啟用前請勿透過公網使用此面板。",
   "config": "正在設定...",
   "detail": "詳情",
   "disabled": "已關閉",

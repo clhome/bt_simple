@@ -438,6 +438,7 @@
   "(预计 20~60 分钟)": "(circa 20-60 min)",
   "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境。": "Compilazione profondamente ottimizzata in base all'hardware e all'ambiente di sistema del server. Adatto ad ambienti di produzione potenti con requisiti estremi di prestazioni del database.",
   "分页参数不合法!": "Paginazione non valida!",
+  "参数 type 不合法，必须是整数!": "Parametro type non valido, deve essere un numero intero!",
   "端口不合法!": "Porta non valida!",
   "配置文件中未找到端口配置!": "Porta non trovata nella config!",
   "修改端口后服务未就绪:": "Servizio non pronto dopo il cambio porta:",

@@ -158,6 +158,78 @@ def acme_challenge_file(filename):
 _request_check_cache = {}
 _request_check_cache_time = {}
 
+
+def _api_headers_authenticated(app_id, app_secret):
+    """请求头 `App-Id`/`App-Secret` 是否**真的**通过面板 API 凭据鉴权。
+
+    仅用于 CSRF 豁免的前置判定：光「带 App-Id 头」不再算数，必须按 P1-5 已实现的
+    同一套口径真验一遍（panel_api.open → 凭据存在 → status 启用 → 来源 IP 白名单
+    → secret 比对），口径直接复用纯函数 `admin/user_login_check._api_credential_decision`，
+    避免两处判定漂移（一处改了另一处忘了＝漏洞）。
+
+    取值方式与 `panel_login_required` 保持一致：
+    `thisdb.getOptionByJson('panel_api', default={'open': False})` /
+    `thisdb.getAppByAppId(app_id)` / `yf.getClientIp()`。
+
+    **fail-closed**：任何异常（模块导入失败 / 查库失败 / 取 IP 失败）都按「未通过鉴权」
+    处理——只记 warning，既不向上抛（不把请求打成 500），也绝不放行豁免。
+
+    :return: bool —— True 表示凭据真实有效，可为本次请求豁免 CSRF
+    """
+    if not app_id or not app_secret:
+        # 没带齐两个头：完全走原来的 token/referer 分支，浏览器请求行为不变
+        return False
+    try:
+        # 延迟导入：admin/__init__.py 在导入期就注册蓝图，这里不能引入循环依赖
+        from admin.user_login_check import _api_credential_decision
+
+        # 选项缺失时默认关闭（与初始化写入的 {'open': False} 口径一致）
+        panel_api = thisdb.getOptionByJson('panel_api', default={"open": False})
+        open_flag = bool(panel_api.get('open')) if isinstance(panel_api, dict) else False
+
+        info = thisdb.getAppByAppId(app_id) if open_flag else None
+        client_ip = yf.getClientIp()
+        allowed, reason = _api_credential_decision(app_id, app_secret, info, client_ip, open_flag)
+        if allowed:
+            return True
+        # 未通过是常态（错 secret / 停用 / 白名单外），记 debug 即可，避免被扫库刷成日志洪水
+        app.logger.debug('CSRF 豁免未通过 API 鉴权: app_id=%s ip=%s reason=%s',
+                         app_id, client_ip, reason)
+        return False
+    except Exception as exc:
+        # 鉴权链路任何一环出错一律不豁免（fail-closed），但必须留下可检索的痕迹
+        app.logger.warning('CSRF 豁免鉴权校验异常，按未通过处理: %s', exc)
+        return False
+
+
+def _csrf_request_decision(req, csrf_token=''):
+    """按一个请求对象算出 CSRF 判定结果（`app.before_request` 的唯一判定入口）。
+
+    抽成函数是为了能在**不起 Flask** 的用例里直接驱动真实代码，而不是复制一份口径到用例里
+    （复制口径＝用例永远绿、实现退化了也不知道）。
+
+    与改前唯一的差别：豁免条件由「带 App-Id 头」换成「请求头凭据**真的**鉴权通过」
+    （`api_verified`）。token / Referer 的 OR 语义与豁免路径**完全未动**。
+
+    :return: (allowed: bool, reason: str)
+    """
+    from core.security import csrf_decision, extract_supplied_token
+    app_id = req.headers.get('App-Id', '') or ''
+    app_secret = req.headers.get('App-Secret', '') or ''
+    return csrf_decision(
+        method=req.method,
+        path=req.path,
+        host=req.host,
+        referer=req.headers.get('Referer', ''),
+        origin=req.headers.get('Origin', ''),
+        token_expected=csrf_token or '',
+        token_supplied=extract_supplied_token(req.headers, req.form),
+        # has_app_id 仅作信息（审计/日志），不参与判定；放行只看 api_verified
+        has_app_id=bool(app_id),
+        api_verified=_api_headers_authenticated(app_id, app_secret),
+    )
+
+
 def getRequestCheckOption(key, is_json=False, default=None):
     global _request_check_cache, _request_check_cache_time
     import time
@@ -242,22 +314,16 @@ def requestCheck():
     # CSRF 防护：Referer/Origin 校验 + 双提交 Token（两者满足其一即可）
     # 判定逻辑集中在 core/security.py（纯函数，有真值表单测）
     if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
-        from core.security import csrf_decision, extract_supplied_token
-        allowed, reason = csrf_decision(
-            method=request.method,
-            path=request.path,
-            host=request.host,
-            referer=request.headers.get('Referer', ''),
-            origin=request.headers.get('Origin', ''),
-            token_expected=getattr(g, 'csrf_token', '') or '',
-            token_supplied=extract_supplied_token(request.headers, request.form),
-            has_app_id=bool(request.headers.get('App-Id', '')),
-        )
+        allowed, reason = _csrf_request_decision(request, getattr(g, 'csrf_token', '') or '')
         if not allowed:
             return Response('Forbidden', status=403)
         if reason in ('token-only', 'referer-only'):
             # 便于评估「收紧为强制 Token」的时机：这两类不该长期高频出现
             app.logger.debug('CSRF passed by %s: %s %s', reason, request.method, request.path)
+        elif reason == 'api-authenticated':
+            # 凭据鉴权通过才豁免：这条不依赖浏览器会话，审计上要能单独检索
+            app.logger.debug('CSRF exempted by verified API credential: %s %s',
+                             request.method, request.path)
 
 
 @app.after_request

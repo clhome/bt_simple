@@ -20,6 +20,7 @@ row 是公开的 `ROW`)。路由层用 AST 断言 `int(page)`/`int(row)` 一定�
 禁止出现 —— 修好后的正确写法仍是 `max(1, int(page))`,只是被 try 包住)。
 """
 import ast
+import json
 import os
 import re
 import sys
@@ -163,6 +164,428 @@ class GetDirRouteTest(unittest.TestCase):
         fn_src = src.split('def get_dir():', 1)[1].split('\ndef ', 1)[0]
         self.assertIn('max(1, int(page))', fn_src)
         self.assertIn('max(1, int(row))', fn_src)
+
+
+# ---------------------------------------------------------------------------
+# P1-6：插件层（mysql / mariadb / postgresql）的分页参数 / tojs / type 容错
+#
+# 缺陷：postgresql 早有 `_parsePageArgs` 容错范式与 `args.get('tojs', 默认)` 兜底，
+# mysql / mariadb 未跟进——`page=abc` → int() ValueError、负页码 → SQL 报错、
+# 缺 tojs → KeyError、缺/非法 type → KeyError/ValueError，插件直接抛 traceback，
+# 前端拿到非 JSON（等效 500）。
+#
+# 怎么测（为什么不用 import index.py）：`plugins/*/index.py` 顶层会 `os.chdir()`
+# 到 `web/` 并拉起面板运行时（`core.yf` 等），直接 import 既慢又脏。所以这里用
+# `ast` 把被测函数**原样抽出来 exec**（顶层不执行），既测的是真代码，又零副作用；
+# 另用 AST 断言源码里已无裸 `int(args[...])` / 裸 `args['tojs']`。
+#
+# `_parsePageArgs` 为什么仍是三个插件各留一份（而不是抽到 plugins/lib/ 共用）：
+# `plugins/<name>/` 下的每个目录都会被 `test_repo_contract.py::plugin_names()` 当成
+# 一个插件（`EXPECTED_PLUGIN_COUNT == 36`），新增 `plugins/lib/` 会让那条既有契约
+# 断言变红，而红线要求不放宽既有断言；抽到 `web/` 则是改运行时代码结构。因此按
+# 「与 postgresql 同名同签名同语义」各自落一份，并由本用例锁死三份 AST 完全一致
+# （任何单侧重写/漂移都会红），效果等同共用组件。
+# ---------------------------------------------------------------------------
+
+PLUGIN_INDEX = {
+    'mysql': os.path.join(ROOT, 'plugins', 'mysql', 'index.py'),
+    'mariadb': os.path.join(ROOT, 'plugins', 'mariadb', 'index.py'),
+    'postgresql': os.path.join(ROOT, 'plugins', 'postgresql', 'index.py'),
+}
+PLUGIN_JS = {
+    'mysql': os.path.join(ROOT, 'plugins', 'mysql', 'js', 'mysql.js'),
+    'mariadb': os.path.join(ROOT, 'plugins', 'mariadb', 'js', 'mariadb.js'),
+    'postgresql': os.path.join(ROOT, 'plugins', 'postgresql', 'js', 'postgresql.js'),
+}
+
+#: 三插件必须给出**相同**兜底结果的一组非法入参：(说明, args, 额外调参, 期望 (page, size))
+PLUGIN_PAGE_CASES = [
+    ('非数字 page/page_size', {'page': 'abc', 'page_size': 'xyz'}, {}, (1, 10)),
+    ('负页码 / 负每页条数', {'page': '-5', 'page_size': '-1'}, {}, (1, 10)),
+    ('超大 page / page_size', {'page': '999999999', 'page_size': '999999999'}, {},
+     (999999999, 100)),
+    ('缺参（完全没有 page/page_size/tojs）', {}, {}, (1, 10)),
+    ('空串 page / page_size', {'page': '', 'page_size': ''}, {}, (1, 10)),
+    ('None 值', {'page': None, 'page_size': None}, {}, (1, 10)),
+    ('空白串 page_size', {'page': ' 2 ', 'page_size': '   '}, {}, (2, 10)),
+    ('浮点串（不猜截断，回默认）', {'page': '1.5', 'page_size': '2.5'}, {}, (1, 10)),
+    ('def_size=5 时非法值', {'page': 'abc', 'page_size': 'xyz'}, {'def_size': 5}, (1, 5)),
+    ('def_size=5 时缺参', {}, {'def_size': 5}, (1, 5)),
+    ('合法值不受影响', {'page': '3', 'page_size': '5'}, {}, (3, 5)),
+    ('max_size 按调用处封顶', {'page': '1', 'page_size': '500'}, {'max_size': 20}, (1, 20)),
+]
+
+#: 每处 tojs 的上下文默认值（必须按函数各自的前端回调取，不能统一写死一个）
+PLUGIN_TOJS_DEFAULTS = {
+    'mysql': [
+        ('binLogList', 'myBinLogsRender'),
+        ('getSlaveSSHList', 'getSlaveSSHPage'),
+        ('getSlaveSyncUserList', 'getSlaveSyncUserPage'),
+    ],
+    'mariadb': [
+        ('binLogList', 'myBinLogsRender'),
+        ('getSlaveSSHList', 'getSlaveSSHPage'),
+        ('getSlaveSyncUserList', 'getSlaveSyncUserPage'),
+    ],
+    'postgresql': [
+        ('getSlaveSSHList', 'getSlaveSSHPage'),
+    ],
+}
+
+
+def _plugin_src(plugin):
+    with open(PLUGIN_INDEX[plugin], 'r', encoding='utf-8') as fh:
+        return fh.read()
+
+
+def _plugin_fn(plugin, name):
+    """取插件 index.py 的顶层函数节点（不 import 插件：它顶层就 chdir + 拉运行时）。"""
+    for node in ast.parse(_plugin_src(plugin)).body:
+        if isinstance(node, ast.FunctionDef) and node.name == name:
+            return node
+    raise AssertionError('%s/index.py 里找不到 %s()，守卫需同步' % (plugin, name))
+
+
+def _exec_fn(plugin, name, ns):
+    """把插件里的某个函数原样编译进给定的命名空间（等价于只执行这一个 def）。"""
+    node = _plugin_fn(plugin, name)
+    exec(compile(ast.Module(body=[node], type_ignores=[]),
+                 PLUGIN_INDEX[plugin], 'exec'), ns)
+    return ns[name]
+
+
+def _parse_page_args_of(plugin):
+    return _exec_fn(plugin, '_parsePageArgs', {})
+
+
+def _fn_body_dump(func_node):
+    """函数 AST 的规范化指纹：跳过文档串（它随插件名/上下文而变），余下必须一致。"""
+    body = list(func_node.body)
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
+            and isinstance(body[0].value.value, str):
+        body = body[1:]
+    node = ast.FunctionDef(name=func_node.name, args=func_node.args, body=body,
+                           decorator_list=func_node.decorator_list, returns=None,
+                           type_comment=None)
+    return ast.dump(ast.fix_missing_locations(node))
+
+
+def _tojs_default(func_node):
+    """函数体里 `xxx.get('tojs', <默认>)` 的默认值；没有则返回 None。"""
+    for node in ast.walk(func_node):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        if not (isinstance(f, ast.Attribute) and f.attr == 'get'):
+            continue
+        if len(node.args) < 2:
+            continue
+        key = node.args[0]
+        val = node.args[1]
+        if isinstance(key, ast.Constant) and key.value == 'tojs' \
+                and isinstance(val, ast.Constant):
+            return val.value
+    return None
+
+
+class _FakeDb(object):
+    """极简连接替身：只记录调用链，返回空结果集（不连真库）。"""
+
+    def __init__(self, calls):
+        self.calls = calls
+
+    def execute(self, sql, *rest):
+        self.calls.append(('execute', sql))
+        return 'ok'
+
+    def field(self, *cols):
+        self.calls.append(('field', cols))
+        return self
+
+    def where(self, cond, params):
+        self.calls.append(('where', cond, params))
+        return self
+
+    def select(self):
+        self.calls.append(('select',))
+        return []
+
+    def find(self):
+        self.calls.append(('find',))
+        return {}
+
+    def limit(self, value):
+        self.calls.append(('limit', value))
+        return self
+
+    def order(self, *cols):
+        self.calls.append(('order', cols))
+        return self
+
+    def count(self):
+        self.calls.append(('count',))
+        return 0
+
+    def getField(self, name):
+        self.calls.append(('getField', name))
+        return ''
+
+
+class _FakeYf(object):
+    """只替换「会碰 I/O」的入口；returnJson / getJson 用真实现，好断言真实返回形状。"""
+
+    returnJson = staticmethod(yf.returnJson)
+    getJson = staticmethod(yf.getJson)
+
+    def __init__(self):
+        #: 每次 getPage() 收到的分页参数（用来断言 tojs 到底落成了什么）
+        self.page_args = []
+
+    @staticmethod
+    def getInfo(msg, args=()):
+        return msg
+
+    def getPage(self, page_args):
+        # 只需要“有个字符串”：分页 HTML 本体不是本用例的关注点
+        self.page_args.append(dict(page_args))
+        return 'page:%s/%s' % (page_args.get('p'), page_args.get('row'))
+
+
+def _run_get_db_list(plugin, args):
+    """跑真 `getDbList()`（三插件同结构）：DB/运行时全用替身。
+
+    返回 (JSON 字符串, 真正拼给 SQL 的 LIMIT 值)。getDbList 是「裸 int() 时代
+    page=abc 直接 ValueError」的典型现场，而且拼出的 LIMIT 会原样进 SQL。
+    """
+    calls = []
+    ns = {
+        'yf': _FakeYf(),
+        'getArgs': (lambda: dict(args)),
+        'pSqliteDb': (lambda *a: _FakeDb(calls)),
+        'getDbBackupListFunc': (lambda *a: []),
+        'getDbPort': (lambda: '3306'),
+    }
+    _exec_fn(plugin, '_parsePageArgs', ns)
+    fn = _exec_fn(plugin, 'getDbList', ns)
+    out = fn()
+    limits = [c[1] for c in calls if c[0] == 'limit']
+    return out, (limits[0] if limits else None)
+
+
+def _run_list_fn(plugin, name, args):
+    """跑真的列表接口（getSlaveSSHList / getSlaveSyncUserList）：DB/运行时全用替身。
+
+    返回 (JSON 字符串, 交给 yf.getPage 的分页参数列表) —— 后者能直接看出
+    缺 tojs 时到底回退到了哪个前端回调。
+    """
+    calls = []
+    fake = _FakeYf()
+    ns = {
+        'yf': fake,
+        'getArgs': (lambda: dict(args)),
+        'pSqliteDb': (lambda *a: _FakeDb(calls)),
+    }
+    _exec_fn(plugin, '_parsePageArgs', ns)
+    _exec_fn(plugin, 'checkArgs', ns)
+    fn = _exec_fn(plugin, name, ns)
+    return fn(), fake.page_args
+
+
+def _run_sync_to_databases(plugin, args):
+    """跑真 `syncToDatabases()`：只把 DB/运行时替身注入命名空间，函数体一行不改。"""
+    calls = []
+    ns = {
+        'yf': _FakeYf(),
+        'json': json,
+        'getArgs': (lambda: dict(args)),
+        'pMysqlDb': (lambda *a: _FakeDb(calls)),
+        'pSqliteDb': (lambda *a: _FakeDb(calls)),
+        'isSqlError': (lambda r: None),
+        'toDbBase': (lambda *a: 1),
+    }
+    _exec_fn(plugin, 'checkArgs', ns)
+    fn = _exec_fn(plugin, 'syncToDatabases', ns)
+    return fn(), calls
+
+
+class DbPluginPageArgsTest(unittest.TestCase):
+    """三插件：同一组非法分页参数 → 同一份兜底结果，且不抛异常。"""
+
+    def test_14_same_fallback_across_three_plugins(self):
+        fns = dict((p, _parse_page_args_of(p)) for p in PLUGIN_INDEX)
+        for title, args, kwargs, expect in PLUGIN_PAGE_CASES:
+            got = {}
+            for plugin, fn in fns.items():
+                try:
+                    got[plugin] = fn(dict(args), **kwargs)
+                except Exception as ex:  # 兜底函数本身绝不允许抛异常
+                    self.fail('%s 对「%s」抛了 %s: %s' % (plugin, title, type(ex).__name__, ex))
+            self.assertEqual(len(set(got.values())), 1,
+                             '三插件对「%s」的兜底结果不一致：%s' % (title, got))
+            self.assertEqual(got['mysql'], expect, '「%s」兜底结果不符：%s' % (title, got['mysql']))
+
+    def test_15_falls_back_to_default_size_not_zero(self):
+        # 负/零 page_size 若原样进 SQL 会 LIMIT 0 或报错；必须回默认值（不是 1，也不是 0）
+        for plugin in PLUGIN_INDEX:
+            fn = _parse_page_args_of(plugin)
+            self.assertEqual(fn({'page': '1', 'page_size': '0'}), (1, 10),
+                             '%s：page_size=0 必须回默认值' % plugin)
+            self.assertEqual(fn({'page': '0', 'page_size': '5'}), (1, 5),
+                             '%s：page=0 必须夹到 1' % plugin)
+
+    def test_16_parse_page_args_identical_across_plugins(self):
+        # 三份实现必须同签名同语义：函数体 AST 完全一致（任一单侧重写/漂移立即红）；
+        # 文档串不参与比较（它写着各自插件的上下文），签名与穿迫方式参与。
+        dumps = dict((p, _fn_body_dump(_plugin_fn(p, '_parsePageArgs'))) for p in PLUGIN_INDEX)
+        self.assertEqual(dumps['mysql'], dumps['postgresql'],
+                         'mysql 的 _parsePageArgs 与 postgresql 范式已漂移')
+        self.assertEqual(dumps['mariadb'], dumps['postgresql'],
+                         'mariadb 的 _parsePageArgs 与 postgresql 范式已漂移')
+
+    def test_17_no_bare_int_on_args_left(self):
+        # 静态断言：mysql / mariadb 里 `int(args[` 出现次数必须为 0
+        for plugin in ('mysql', 'mariadb'):
+            self.assertEqual(_plugin_src(plugin).count('int(args['), 0,
+                             '%s/index.py 仍有裸 int(args[...])' % plugin)
+        # postgresql 保留原样：AST 层面同样不得有 int(args[...]) 调用（源码里那 2 处
+        # 只是注释/文档串在描述历史缺陷，不是代码）
+        for plugin in PLUGIN_INDEX:
+            tree = ast.parse(_plugin_src(plugin))
+            bad = []
+            for node in ast.walk(tree):
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                        and node.func.id == 'int' and node.args):
+                    arg = node.args[0]
+                    if (isinstance(arg, ast.Subscript) and isinstance(arg.value, ast.Name)
+                            and arg.value.id == 'args'):
+                        bad.append(node.lineno)
+            self.assertEqual(bad, [], '%s/index.py 仍有 int(args[...])：行 %s' % (plugin, bad))
+
+    def test_18_def_size_matches_postgresql_counterpart(self):
+        # getSlaveSSHList 在三个插件里是同一个前端接口，兜底每页条数必须一致（5）
+        for plugin in PLUGIN_INDEX:
+            fn = _plugin_fn(plugin, 'getSlaveSSHList')
+            src = ast.get_source_segment(_plugin_src(plugin), fn)
+            self.assertIn('def_size=5', src,
+                          '%s：getSlaveSSHList 的 _parsePageArgs 应传 def_size=5' % plugin)
+
+    def test_19_tojs_defaults_per_call_site(self):
+        for plugin, expects in PLUGIN_TOJS_DEFAULTS.items():
+            defaults = []
+            for fname, default in expects:
+                got = _tojs_default(_plugin_fn(plugin, fname))
+                self.assertEqual(got, default,
+                                 '%s::%s 的 tojs 默认值应为 %r，实际 %r' % (plugin, fname, default, got))
+                defaults.append(got)
+            # 不能统一写死一个：同一插件内 3 处必须各按上下文取（互不相同）
+            if len(defaults) > 1:
+                self.assertEqual(len(set(defaults)), len(defaults),
+                                 '%s 的多处 tojs 默认值被写成了同一个：%s' % (plugin, defaults))
+
+    def test_20_tojs_default_value_exists_in_frontend_js(self):
+        # 默认值不能是凭空的字符串：它必须是该插件 JS 里真实存在的回调函数名
+        for plugin, expects in PLUGIN_TOJS_DEFAULTS.items():
+            with open(PLUGIN_JS[plugin], 'r', encoding='utf-8') as fh:
+                js = fh.read()
+            for fname, default in expects:
+                self.assertIn('function %s(' % default, js,
+                              '%s::%s 的 tojs 默认值 %r 在 js 里不存在'
+                              % (plugin, fname, default))
+
+    def test_21_no_bare_tojs_subscript(self):
+        # 源码里不得再有裸 args['tojs']（缺参即 KeyError）
+        for plugin in PLUGIN_INDEX:
+            bad = [n.lineno for n in ast.walk(ast.parse(_plugin_src(plugin)))
+                   if isinstance(n, ast.Subscript) and isinstance(n.value, ast.Name)
+                   and n.value.id == 'args' and isinstance(n.slice, ast.Constant)
+                   and n.slice.value == 'tojs']
+            self.assertEqual(bad, [], '%s/index.py 仍有裸 args[\'tojs\']：行 %s' % (plugin, bad))
+
+    def test_22_type_invalid_returns_json_error_not_traceback(self):
+        for plugin in ('mysql', 'mariadb'):
+            for bad in ('abc', '', '1.5', None):
+                args = {'type': bad, 'ids': '[]'}
+                try:
+                    out, _calls = _run_sync_to_databases(plugin, args)
+                except Exception as ex:
+                    self.fail('%s::syncToDatabases(type=%r) 抛了 %s: %s（前端会拿到非 JSON）'
+                              % (plugin, bad, type(ex).__name__, ex))
+                obj = json.loads(out)
+                self.assertIs(obj['status'], False,
+                              '%s::syncToDatabases(type=%r) 应回 JSON 错误：%s' % (plugin, bad, out))
+                self.assertIn('type', obj['msg'],
+                              '%s::syncToDatabases(type=%r) 的错误文案应点名 type：%s'
+                              % (plugin, bad, out))
+
+    def test_23_type_missing_returns_json_error(self):
+        for plugin in ('mysql', 'mariadb'):
+            out, _calls = _run_sync_to_databases(plugin, {'ids': '[]'})
+            obj = json.loads(out)
+            self.assertIs(obj['status'], False, '%s：缺 type 应回 JSON 错误：%s' % (plugin, out))
+            self.assertIn('type', obj['msg'], '%s：缺 type 的错误文案应点名 type：%s' % (plugin, out))
+
+    def test_24_type_legit_values_unchanged(self):
+        # 合法取值语义不变：0 = 同步全部数据库（走 select 全量）；非 0 = 按 ids 同步
+        for plugin in ('mysql', 'mariadb'):
+            out0, calls0 = _run_sync_to_databases(plugin, {'type': '0', 'ids': '[]'})
+            self.assertIs(json.loads(out0)['status'], True, '%s：type=0 应成功：%s' % (plugin, out0))
+            self.assertIn(('select',), calls0, '%s：type=0 应走「查询全部数据库」分支' % plugin)
+            self.assertNotIn('find', [c[0] for c in calls0],
+                             '%s：type=0 不该走按 id 查询分支' % plugin)
+
+            out1, calls1 = _run_sync_to_databases(plugin, {'type': '1', 'ids': '[1,2]'})
+            self.assertIs(json.loads(out1)['status'], True, '%s：type=1 应成功：%s' % (plugin, out1))
+            self.assertNotIn(('select',), calls1, '%s：type=1 不该走全量查询分支' % plugin)
+            self.assertEqual([c[0] for c in calls1].count('find'), 2,
+                             '%s：type=1 应按 ids 逐个 find：%s' % (plugin, calls1))
+
+    def test_25_get_db_list_survives_bad_page_args(self):
+        """真跑三个插件的 `getDbList()`：非法分页参数不得抛异常，且 LIMIT 三插件一致。"""
+        for title, args, kwargs, expect in PLUGIN_PAGE_CASES:
+            if kwargs:
+                # 带 def_size/max_size 的几条测的是「其它接口按调用处传参」的口径，
+                # getDbList 不传这两个参数，故不适用
+                continue
+            limits = {}
+            for plugin in PLUGIN_INDEX:
+                try:
+                    out, limit = _run_get_db_list(plugin, args)
+                except Exception as ex:
+                    self.fail('%s::getDbList 对「%s」抛了 %s: %s'
+                              % (plugin, title, type(ex).__name__, ex))
+                obj = json.loads(out)
+                self.assertIn('data', obj, '%s::getDbList 返回结构变了：%s' % (plugin, out))
+                page, size = expect
+                self.assertEqual(limit, '%d,%d' % ((page - 1) * size, size),
+                                 '%s::getDbList 对「%s」拼出的 LIMIT 不对：%s'
+                                 % (plugin, title, limit))
+                limits[plugin] = limit
+            self.assertEqual(len(set(limits.values())), 1,
+                             '三插件对「%s」的 LIMIT 不一致：%s' % (title, limits))
+
+    def test_26_list_endpoints_tolerate_missing_tojs(self):
+        # 缺 tojs 不得 KeyError：要回退到本接口自己的前端回调（每处上下文不同）
+        cases = [('getSlaveSSHList', 'getSlaveSSHPage'),
+                 ('getSlaveSyncUserList', 'getSlaveSyncUserPage')]
+        for plugin in ('mysql', 'mariadb'):
+            for fname, default in cases:
+                for args in ({'page': '1', 'page_size': '5'},
+                             {'page': 'abc', 'page_size': 'xyz'}):
+                    try:
+                        out, page_args = _run_list_fn(plugin, fname, args)
+                    except Exception as ex:
+                        self.fail('%s::%s 在 tojs 缺参时抛了 %s: %s'
+                                  % (plugin, fname, type(ex).__name__, ex))
+                    self.assertEqual(len(page_args), 1,
+                                     '%s::%s 没有走到 yf.getPage' % (plugin, fname))
+                    self.assertEqual(page_args[0].get('tojs'), default,
+                                     '%s::%s 的 tojs 回退值应为 %r，实际 %r'
+                                     % (plugin, fname, default, page_args[0].get('tojs')))
+                    # 同一请求里的非法 page/page_size 也要一并兜住
+                    self.assertEqual((page_args[0].get('p'), page_args[0].get('row')), (1, 5),
+                                     '%s::%s 非法分页参数未兜底：%s'
+                                     % (plugin, fname, page_args[0]))
+                    self.assertIn('data', json.loads(out))
 
 
 if __name__ == '__main__':

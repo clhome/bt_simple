@@ -31,6 +31,95 @@ sleep 1
 
 LOG_FILE=/var/log/yf-install.log
 
+# =========================================================================
+# 供应链闸门（测评报告 P1-2）：未经验证的远端内容一律拒绝 root 执行
+#
+# 历史上这里有两类「零校验执行」：
+#   1) 从 dev 分支拉源码包 tar，解包后直接覆盖 /www/server；
+#   2) 把官方安装脚本直接管道送进解释器执行。
+# 两类写法同时满足「放宽传输层 TLS 校验」「内容零校验」「以 root 执行」，
+# 等于把整台服务器交给任何能劫持链路或改写分支的人。
+#
+# 现在的口径是**默认拒绝**，并且**刻意不提供**环境变量放过口：能静默跳过就等于没堵。
+#   * 分支快照没有 Ed25519 发布签名可比对 → 拒绝安装，改用 deploy.sh 或带签名发布包；
+#   * 第三方脚本必须哈希校验通过后才执行（见 yf_install_acme_verified）。
+#
+# 注意：CI（`.github/workflows/python-app-*.yml` 里的 sudo bash scripts/install_dev.sh）
+# 是在**已 checkout 的仓库根目录**执行的，走 "$PWD/cli.sh" + "$PWD/scripts" 的本地复制
+# 分支，不会命中这里的网络分支，因此不受影响。
+# =========================================================================
+YF_ACME_VERSION="3.1.6"
+# 升级步骤：改 YF_ACME_VERSION 后重新计算官方 tag 源码包的 sha256，并同步 deploy.sh 中的同名常量
+YF_ACME_SHA256="0d3f9000ac44a6331314742a88c475f79134e24fc991997883652adc59efc486"
+
+# 统一拒绝文案：说明「拒绝什么、为什么、改用哪条路」。调用后直接终止脚本。
+yf_refuse_unverified_source() {
+	echo -e "${ERROR} 拒绝执行未经验证的远端内容：$1" >&2
+	echo -e "${ERROR} 原因：它是**未签名**的分支快照或第三方脚本，没有可校验的 Ed25519 签名／哈希，" >&2
+	echo -e "${ERROR}       以 root 身份执行等于把服务器完全交给链路中间人（供应链 fail-closed）。" >&2
+	echo -e "${ERROR} 请改用下列任一方式安装/升级：" >&2
+	echo -e "${ERROR}   1) bash deploy.sh                  # 下载发布包 → Ed25519 验签 → 解压安装（含回滚）" >&2
+	echo -e "${ERROR}   2) 下载**带签名的发布包**，按发布说明安装" >&2
+	echo -e "${ERROR}   3) 已 clone 仓库时，在仓库根目录执行 bash scripts/install_dev.sh（走本地复制分支，不下载）" >&2
+	exit 1
+}
+
+# 计算文件 sha256（优先 sha256sum，退化 shasum/openssl，覆盖精简系统与 macOS）
+yf_sha256_file() {
+	local _f="$1"
+	if command -v sha256sum >/dev/null 2>&1; then
+		sha256sum "$_f" 2>/dev/null | awk '{print $1}'
+	elif command -v shasum >/dev/null 2>&1; then
+		shasum -a 256 "$_f" 2>/dev/null | awk '{print $1}'
+	elif command -v openssl >/dev/null 2>&1; then
+		openssl dgst -sha256 "$_f" 2>/dev/null | awk '{print $NF}'
+	else
+		echo ""
+	fi
+}
+
+# acme.sh：只下载官方固定 tag 的源码包 → sha256 校验通过 → 才解压执行安装。
+# 校验和缺失 / 读取失败 / 不匹配一律**不执行**（fail-closed）。
+# 返回非 0 不代表安装致命：acme.sh 仅用于自动签发证书，缺失不影响面板本体启动，
+# 用户可在面板内手动安装（调用方只告警）。
+yf_install_acme_verified() {
+	local _tar="/tmp/acme.sh-${YF_ACME_VERSION}.tar.gz"
+	local _src="/tmp/acme.sh-src"
+	local _actual
+
+	echo -e "${WORKING} 安装 acme.sh（固定版本 v${YF_ACME_VERSION}，sha256 校验通过后才执行）..."
+	rm -f "$_tar"
+	# 只下载、不执行；HTTP_PREFIX 为选定的代理前缀（直连时就是 https://）
+	if ! curl -fsSL -m 60 -o "$_tar" "${HTTP_PREFIX}github.com/acmesh-official/acme.sh/archive/refs/tags/${YF_ACME_VERSION}.tar.gz"; then
+		echo -e "${ERROR} acme.sh 下载失败（固定版本 v${YF_ACME_VERSION}），本次不安装 acme.sh" >&2
+		rm -f "$_tar"
+		return 1
+	fi
+
+	_actual=$(yf_sha256_file "$_tar")
+	if [ -z "$YF_ACME_SHA256" ] || [ "$_actual" != "$YF_ACME_SHA256" ]; then
+		echo -e "${ERROR} acme.sh sha256 校验失败，已拒绝执行该安装包（供应链 fail-closed）" >&2
+		echo -e "${ERROR}   期望: ${YF_ACME_SHA256:-<未配置>}" >&2
+		echo -e "${ERROR}   实际: ${_actual:-<读取失败>}" >&2
+		echo -e "${ERROR}   若官方重打包导致变更，请维护者重新计算并同步本文件与 deploy.sh" >&2
+		rm -f "$_tar"
+		return 1
+	fi
+	echo -e "${SUCCESS} acme.sh sha256 校验通过"
+
+	rm -rf "$_src"
+	mkdir -p "$_src"
+	if ! tar -zxf "$_tar" -C "$_src" --strip-components=1 2>/dev/null; then
+		echo -e "${ERROR} acme.sh 解压失败，已中止（未执行其中任何内容）" >&2
+		rm -rf "$_src" "$_tar"
+		return 1
+	fi
+	# 校验通过才执行；安装脚本自身返回非 0 只告警，不影响面板本体
+	( cd "$_src" && ./acme.sh --install ) || echo -e "${WARN} acme.sh 安装脚本返回非 0，已跳过"
+	rm -rf "$_src" "$_tar"
+	return 0
+}
+
 {
 
 HTTP_PREFIX="https://"
@@ -304,26 +393,19 @@ if [ $OSNAME != "macos" ];then
 			echo "Local repository detected, copying files..."
 			cp -r $PWD /www/server/yufeng_panel
 		else
-			echo "downloading ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz"
-			curl --insecure -sSLo /tmp/dev.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz
-			cd /tmp && tar -zxf /tmp/dev.tar.gz
-			mv -f /tmp/bt_simple-dev /www/server/yufeng_panel
-			rm -rf /tmp/dev.tar.gz
-			rm -rf /tmp/bt_simple-dev
+			# 分支快照（未签名）默认拒绝：见 yf_refuse_unverified_source 上方说明
+			yf_refuse_unverified_source "GitHub dev 分支源码包（未签名快照）"
 		fi
 	fi
 
 	# install acme.sh
+	# 原先这里有两处零校验执行（master 分支源码包直接执行、官方安装脚本管道送进解释器），
+	# 两者都已删除：改为固定 tag + sha256 校验通过后才执行，见 yf_install_acme_verified。
 	if [ ! -d /root/.acme.sh ];then
-	    if [ "$LOCAL_ADDR" != "common" ];then
-	        curl -sSL -o /tmp/acme.tar.gz ${HTTP_PREFIX}github.com/acmesh-official/acme.sh/archive/master.tar.gz
-	        tar xvzf /tmp/acme.tar.gz -C /tmp
-	        cd /tmp/acme.sh-master
-	        bash acme.sh install
-	    else
-	    	curl -fsSL https://get.acme.sh | bash
+	    if ! yf_install_acme_verified; then
+	        echo -e "${WARN} acme.sh 未安装（已拒绝未校验内容，不影响面板本体），可在面板内手动安装"
 	    fi
-	    
+
 	    if [ -d /root/.acme.sh ];then
 	        /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
 	    fi
@@ -333,7 +415,13 @@ fi
 echo "use system version: ${OSNAME}"
 
 if [ "${OSNAME}" == "macos" ];then
-	curl --insecure -fsSL ${HTTP_PREFIX}raw.githubusercontent.com/clhome/bt_simple/master/scripts/install/macos.sh | bash
+	# 不再把远端脚本管道送进解释器：改为执行**已落地**的本地副本。
+	# 代码只会来自「本地仓库复制」或「已验签发布包」，路径固定且可审计。
+	if [ -f /www/server/yufeng_panel/scripts/install/macos.sh ]; then
+		bash /www/server/yufeng_panel/scripts/install/macos.sh
+	else
+		yf_refuse_unverified_source "scripts/install/macos.sh（远端脚本，无法校验）"
+	fi
 else
 	cd /www/server/yufeng_panel && bash scripts/install/${OSNAME}.sh
 fi

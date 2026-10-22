@@ -1293,8 +1293,8 @@ def delete_user_info(registry):
             if not (isinstance(i, dict) and registry in i.values())]
     if len(kept) == len(user_info):
         return False
-    yf.writeFile(user_file, json.dumps(kept))
-    return True
+    # 仓库登录信息写丢了一律算失败（否则前端会把「登录不上」归咎于密码错）
+    return bool(yf.writeFile(user_file, json.dumps(kept)))
 
 
 def dockerLogout():
@@ -1395,13 +1395,23 @@ def set_accelerator():
             del data['registry-mirrors']
 
     try:
-        yf.writeFile(daemon_file, json.dumps(data, indent=4))
-        if not yf.isAppleSystem() and os.name != 'nt':
-            yf.execShell('systemctl daemon-reload')
-            yf.execShell('systemctl restart docker')
-        return yf.returnJson(True, '加速器配置已保存并重启 Docker 服务使之生效！')
+        # must=True：daemon.json 是 docker 的启动配置，写不进去却回「已保存并重启」
+        # 等于骗用户（重启后加速器没生效，甚至 daemon 配置还是旧的）。
+        yf.writeFile(daemon_file, json.dumps(data, indent=4), must=True)
     except Exception as e:
         return yf.returnJson(False, '配置保存失败: ' + str(e))
+
+    # 落盘成功后要真的让 dockerd 读到它：daemon-reload 加载单元、restart docker 应用配置。
+    # 这两步的退出码以前完全不看 —— 配置写坏了、docker 起不来，界面依然报「已生效」。
+    if not yf.isAppleSystem() and os.name != 'nt':
+        rc, _out, err = yf.execShellRc(['systemctl', 'daemon-reload'], shell=False, timeout=60)
+        if rc != 0:
+            return yf.returnJson(False, '配置已保存，但 systemctl daemon-reload 失败: ' + str(err).strip())
+        rc, _out, err = yf.execShellRc(['systemctl', 'restart', 'docker'], shell=False, timeout=120)
+        if rc != 0:
+            return yf.returnJson(False, '配置已保存，但重启 Docker 服务失败: ' + str(err).strip())
+    return yf.returnJson(True, '加速器配置已保存并重启 Docker 服务使之生效！')
+
 
 def repoList():
     path = getServerDir()
@@ -1601,7 +1611,9 @@ def migrateDockerDir():
                 _log.debug('[docker] migrateDockerDir 异常已忽略: %s', _e)
 
         data['data-root'] = new_path
-        yf.writeFile(daemon_file, json.dumps(data, indent=4))
+        # must=True：写不进去就让外层 except 接手（以前的裸写会在写失败后继续
+        # start docker 并回「迁移成功！」）
+        yf.writeFile(daemon_file, json.dumps(data, indent=4), must=True)
 
         # 启动docker
         if not yf.isAppleSystem() and os.name != 'nt':

@@ -1,5 +1,22 @@
 {
   "index": {
+    "php_sec_unknown_version": "Versione non riconosciuta",
+    "php_sec_no_auto_rollback": "Gli aggiornamenti APT/YUM non possono essere annullati automaticamente. Continuare?",
+    "php_sec_title": "Baseline di sicurezza PHP",
+    "php_sec_loading": "Verifica delle versioni PHP...",
+    "php_sec_empty": "Nessuna installazione di PHP rilevata",
+    "php_sec_ok": "Tutte le versioni PHP installate rispettano la baseline di sicurezza",
+    "php_sec_alarm": "Rilevate versioni PHP non sicure",
+    "php_sec_need_upgrade": "Inferiore alla baseline di sicurezza, aggiornamento necessario",
+    "php_sec_backport_missing": "Marcatore di backport ufficiale mancante, verificare che la patch sia stata retroportata",
+    "php_sec_backport_unverified": "Il canale non indica patch retroportate, verifica manuale necessaria",
+    "php_sec_no_official_fix": "Questo ramo non ha correzioni di sicurezza ufficiali, non esporlo a Internet",
+    "php_sec_baseline": "Baseline",
+    "php_sec_baseline_date": "Data della tabella di baseline",
+    "php_sec_scan_time": "Ultima scansione",
+    "php_sec_offline": "Offline, tabella di baseline integrata in uso",
+    "php_sec_upgrade": "Aggiorna a una versione sicura",
+    "php_sec_refresh": "Verifica ora",
     "H1": "Dashboard",
     "H2": "Stato del server",
     "V1": "Versione",
@@ -4574,6 +4591,8 @@
     "brand_panel": "Pannello Yufeng"
   },
   "public": {
+    "plain_http_warning_title": "HTTP in chiaro: i cookie di accesso possono essere intercettati",
+    "plain_http_warning_desc": "Attiva HTTPS nelle impostazioni del pannello il prima possibile; fino ad allora non usare questo pannello sulla rete pubblica.",
     "config": "Configurazione in corso...",
     "detail": "Dettagli",
     "disabled": "Disattivato",

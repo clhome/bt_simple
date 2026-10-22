@@ -257,5 +257,7 @@
     "添加失败!": "Échec de l'ajout",
     "特权模式": "Privilégié",
     "特权模式说明": "Accorde tous les privilèges de l'hôte ; images de confiance uniquement. Désactivé par défaut.",
-    "IP地址不合法": "Adresse IP invalide"
+    "IP地址不合法": "Adresse IP invalide",
+    "配置已保存，但 systemctl daemon-reload 失败: ": "Configuration enregistrée, mais systemctl daemon-reload a échoué: ",
+    "配置已保存，但重启 Docker 服务失败: ": "Configuration enregistrée, mais le redémarrage du service Docker a échoué: "
 }

@@ -470,7 +470,8 @@ def setDefaultSite(name):
     name = str(name if name is not None else '').strip()
     if name not in getSiteListData()['list']:
         return yf.returnJson(False, '输入的站点错误!')
-    yf.writeFile(dst_path, name)
+    if not yf.writeFile(dst_path, name):
+        return yf.returnJson(False, '默认站点保存失败')
     return yf.returnJson(True, 'OK')
 
 
@@ -522,8 +523,8 @@ def cleanUserAgentJsonRule():
                     rule[1] = regex.replace("|curl", "")
                     modified = True
         if modified:
-            yf.writeFile(path, json.dumps(rules, ensure_ascii=False))
-            return True
+            # 写不进去就不能回 True（否则调用方会以为规则已清理并继续重编 Lua）
+            return bool(yf.writeFile(path, json.dumps(rules, ensure_ascii=False)))
     except Exception as e:
         print("cleanUserAgentJsonRule error: " + str(e))
     return False
@@ -1017,7 +1018,8 @@ def setBanSync():
     if not isinstance(cobj.get('ban_sync'), dict):
         cobj['ban_sync'] = {}
     cobj['ban_sync']['open'] = want_open
-    yf.writeFile(conf_path, yf.getJson(cobj))
+    if not yf.writeFile(conf_path, yf.getJson(cobj)):
+        return yf.returnJson(False, '联动配置保存失败')
 
     # 1. 只重编 waf_config.lua（避免全量重编 nginx 配置），让 Lua 侧拿到新开关
     try:
@@ -1031,7 +1033,7 @@ def setBanSync():
         try:
             yf.makeDirs(os.path.dirname(spool))
             if not os.path.exists(spool):
-                yf.writeFile(spool, '')
+                yf.writeFile(spool, '', must=True)
         except Exception as e:
             # 创建失败则回滚开关，保持两侧状态一致
             cobj['ban_sync']['open'] = False
@@ -1126,7 +1128,8 @@ def addRule():
     content.append(tmp_k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, '规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', content)
@@ -1156,7 +1159,8 @@ def removeRule():
     content.remove(k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, '规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', content)
@@ -1189,7 +1193,8 @@ def setRuleState():
         content[index][0] = 1
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, '规则状态保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', content)
@@ -1228,7 +1233,8 @@ def modifyRule():
     content[index] = tmp_k
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, '规则修改保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', content)
@@ -1284,7 +1290,8 @@ def addSiteRule():
     content[siteName][siteRule].append(ruleValue)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, '站点规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1334,7 +1341,8 @@ def addIpWhite():
     content.append(data)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IP 白名单保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -1362,7 +1370,8 @@ def removeIpWhite():
     content.remove(k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IP 白名单保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1410,7 +1419,8 @@ def addIpBlack():
     content.append(data)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IP 黑名单保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1439,7 +1449,8 @@ def removeIpBlack():
     content.remove(k)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IP 黑名单保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1464,7 +1475,8 @@ def setIpv6Black():
     content.append(addr)
 
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IPv6 黑名单保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -1490,7 +1502,8 @@ def delIpv6Black():
 
     content.remove(addr)
     cjson = yf.getJson(content)
-    yf.writeFile(fpath, cjson)
+    if not yf.writeFile(fpath, cjson):
+        return yf.returnJson(False, 'IPv6 黑名单保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1525,7 +1538,8 @@ def removeSiteRule():
     content[siteName][siteRule].remove(ruleValue)
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, '站点规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1555,7 +1569,8 @@ def setObjStatus():
     cobj[o]['status'] = status
 
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, '防护对象状态保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
@@ -1588,7 +1603,8 @@ def setRetry():
 
     cobj['retry'] = tmp
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, '重试策略保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', [])
@@ -1622,7 +1638,8 @@ def setSafeVerify():
         cobj['safe_verify']['auto'] = True
 
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, '人机校验配置保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', [])
@@ -1664,7 +1681,8 @@ def setCcConf():
     cobj['cc'] = tmp
 
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, 'CC 防护配置保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', [])
@@ -1682,7 +1700,8 @@ def saveScanRule():
 
     path = getRuleJsonPath('scan_black')
     cjson = yf.getJson(args)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, '扫描防护规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!', [])
@@ -1756,7 +1775,8 @@ def getSiteConfigByName():
         if 'allow_curl' in content[siteName]:
             del content[siteName]['allow_curl']
             cjson = yf.getJson(content)
-            yf.writeFile(path, cjson)
+            if not yf.writeFile(path, cjson):
+                return yf.returnJson(False, '站点配置迁移保存失败')
         retData = content[siteName]
 
     return yf.returnJson(True, 'ok!', retData)
@@ -1777,7 +1797,8 @@ def addSiteCdnHeader():
         content[siteName]['cdn_header'].append(args['cdn_header'])
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, 'CDN 头配置保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '添加成功!')
@@ -1798,7 +1819,8 @@ def removeSiteCdnHeader():
         content[siteName]['cdn_header'].remove(args['cdn_header'])
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, 'CDN 头配置保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '删除成功!')
@@ -1843,7 +1865,8 @@ def importData():
         return yf.returnJson(False, '参数格式错误!')
     try:
         pdata = json.loads(pdata)
-        yf.writeFile(path, json.dumps(pdata))
+        if not yf.writeFile(path, json.dumps(pdata)):
+            return yf.returnJson(False, '规则文件写入失败')
     except Exception:
         pdata = pdata.split("\\n")
         for x in pdata:
@@ -1854,7 +1877,8 @@ def importData():
                 except Exception:
                     return yf.returnJson(False, '规则文件格式错误!')
                 save_data.append(vv[0])
-        yf.writeFile(path, json.dumps(save_data))
+        if not yf.writeFile(path, json.dumps(save_data)):
+            return yf.returnJson(False, '规则导入保存失败')
     # restartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -1978,7 +2002,8 @@ def setObjOpen():
         cobj[o]["open"] = True
 
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, '防护对象开关保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -2017,7 +2042,8 @@ def setSiteObjOpen():
         return yf.returnJson(False, '不存在!')
 
     cjson = yf.getJson(content)
-    yf.writeFile(path, cjson)
+    if not yf.writeFile(path, cjson):
+        return yf.returnJson(False, '站点防护开关保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -2091,7 +2117,8 @@ def areaLimitSwitch():
     else:
         config_contents['area_limit'] = False
 
-    yf.writeFile(path_config, json.dumps(config_contents))
+    if not yf.writeFile(path_config, json.dumps(config_contents)):
+        return yf.returnJson(False, '地区限制开关保存失败')
 
     autoMakeConfig(True, True)
     restart()
@@ -2101,7 +2128,8 @@ def areaLimitSwitch():
 def getAreaLimit():
     conf = getJsonPath('area_limit')
     if not os.path.exists(conf):
-        yf.writeFile(conf, '[]')
+        if not yf.writeFile(conf, '[]'):
+            return yf.returnJson(False, '地区限制规则初始化失败')
 
     d = yf.readFile(conf)
     data = json.loads(d)
@@ -2151,7 +2179,8 @@ def delAreaLimit():
         return yf.returnJson(False, '不存在!')
 
     t_data.remove(data)
-    yf.writeFile(conf, json.dumps(t_data))
+    if not yf.writeFile(conf, json.dumps(t_data)):
+        return yf.returnJson(False, '地区限制规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '删除成功!')
@@ -2203,7 +2232,8 @@ def addAreaLimit():
         return yf.returnJson(False, '已存在!')
 
     t_data.insert(0, data)
-    yf.writeFile(conf, json.dumps(t_data))
+    if not yf.writeFile(conf, json.dumps(t_data)):
+        return yf.returnJson(False, '地区限制规则保存失败')
 
     setConfRestartWeb()
     return yf.returnJson(True, '添加成功!')
@@ -2478,7 +2508,8 @@ def addTrustedProxy():
         cobj["trusted_proxy"].append(ip)
 
     cjson = yf.getJson(cobj)
-    yf.writeFile(conf, cjson)
+    if not yf.writeFile(conf, cjson):
+        return yf.returnJson(False, '可信代理保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '添加成功!')
 
@@ -2505,7 +2536,8 @@ def removeTrustedProxy():
             and index < len(cobj["trusted_proxy"]):
         cobj["trusted_proxy"].pop(index)
         cjson = yf.getJson(cobj)
-        yf.writeFile(conf, cjson)
+        if not yf.writeFile(conf, cjson):
+            return yf.returnJson(False, '可信代理保存失败')
         setConfRestartWeb()
         return yf.returnJson(True, '删除成功!')
     return yf.returnJson(False, '删除失败!')
@@ -2546,7 +2578,8 @@ def setHoneypotPaths():
         }
 
     cobj['honeypot']['paths'] = paths
-    yf.writeFile(conf, json.dumps(cobj))
+    if not yf.writeFile(conf, json.dumps(cobj)):
+        return yf.returnJson(False, '蜜罐路径保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -2650,7 +2683,8 @@ def setSpiderMode():
             "ps": "智能蜘蛛识别与伪造拦截"
         }
     cobj['spider']['mode'] = mode
-    yf.writeFile(conf, json.dumps(cobj))
+    if not yf.writeFile(conf, json.dumps(cobj)):
+        return yf.returnJson(False, '蜘蛛识别模式保存失败')
     setConfRestartWeb()
     return yf.returnJson(True, '设置成功!')
 
@@ -2701,7 +2735,8 @@ def addSpiderIp():
 
     ip_list.append([ip, ps])
     yf.makeDirs(os.path.dirname(rule_path))
-    yf.writeFile(rule_path, json.dumps(ip_list))
+    if not yf.writeFile(rule_path, json.dumps(ip_list)):
+        return yf.returnJson(False, '蜘蛛 IP 规则保存失败')
     autoMakeLuaConfSingle('spider_ip', True)
     setConfRestartWeb()
     return yf.returnJson(True, '添加成功!')
@@ -2725,7 +2760,8 @@ def removeSpiderIp():
         ip_list = json.loads(content)
         if 0 <= index < len(ip_list):
             ip_list.pop(index)
-            yf.writeFile(rule_path, json.dumps(ip_list))
+            if not yf.writeFile(rule_path, json.dumps(ip_list)):
+                return yf.returnJson(False, '蜘蛛 IP 规则保存失败')
             autoMakeLuaConfSingle('spider_ip', True)
             setConfRestartWeb()
             return yf.returnJson(True, '删除成功!')
@@ -2760,7 +2796,8 @@ def syncSpiderIp():
                 existing_ips.add(cr[0])
 
         yf.makeDirs(os.path.dirname(dst_file))
-        yf.writeFile(dst_file, json.dumps(base_rules))
+        if not yf.writeFile(dst_file, json.dumps(base_rules)):
+            return yf.returnJson(False, '蜘蛛 IP 规则同步保存失败')
         autoMakeLuaConfSingle('spider_ip', True)
         setConfRestartWeb()
         return yf.returnJson(True, '同步成功，当前共 ' + str(len(base_rules)) + ' 条权威蜘蛛规则（已保留自定义规则）!')

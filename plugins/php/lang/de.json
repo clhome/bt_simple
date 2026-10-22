@@ -1,4 +1,11 @@
 {
+    "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s hat keine Sicherheitsbasislinie fuer die kompilierte Variante, bitte ueber den APT/YUM-Kanal aktualisieren",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s erfuellt die Basislinie bereits (%s >= %s), kein Upgrade noetig",
+    "投递升级任务失败: %s": "Upgrade-Aufgabe konnte nicht eingereiht werden: %s",
+    "已提交升级任务: %s → %s，请在任务日志查看进度": "Upgrade-Aufgabe eingereiht: %s -> %s, Fortschritt im Aufgabenprotokoll",
+    "缺少安装脚本: %s": "Installationsskript fehlt: %s",
+    "升级前备份旧二进制失败，已取消升级: %s": "Sicherung der alten Binaerdateien fehlgeschlagen, Upgrade abgebrochen: %s",
+    "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Upgrade fehlgeschlagen: %s (Exit-Code des Skripts %s), alte Binaerdateien wiederhergestellt: %s",
     "*PHP-FPM运行模式": "*PHP-FPM-Laufmodus",
     "*允许创建的最大子进程数": "*Die maximale Anzahl an untergeordneten Prozessen, die erstellt werden dürfen",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Maximale Anzahl von Leerlaufprozessen (Aufräumen, wenn Leerlaufprozesse diesen Wert erreichen)",
@@ -188,5 +195,20 @@
     "扩展列表配置文件格式错误!": "Erweiterungsliste ungültig!",
     "扩展名称不合法!": "Ungültiger Erweiterungsname!",
     "未找到该扩展的卸载脚本!": "Deinstallationsskript nicht gefunden!",
-    "请求失败": "Anfrage fehlgeschlagen"
+    "请求失败": "Anfrage fehlgeschlagen",
+    "PHP 应急缓解（临时缓解，非修复）": "PHP-Notfallmilderung (vorübergehende Milderung, keine Fehlerbehebung)",
+    "本开关是 CVE-2026-109618/109619 的临时缓解，不是修复；请尽快升级 PHP 到含官方补丁的版本。": "Dieser Schalter ist eine vorübergehende Milderung für CVE-2026-109618/109619, keine Fehlerbehebung; bitte PHP so bald wie möglich auf eine Version mit offiziellem Patch aktualisieren.",
+    "「不限制内存」档位属临时缓解，仅供压测/临时排障：-1 期间需监控主机内存，否则可能拖垮整台机器。": "Die Stufe \"kein Speicherlimit\" ist eine vorübergehende Entschärfung und nur für Lasttests / vorübergehende Fehlersuche gedacht: Bei -1 muss der Hostspeicher überwacht werden, sonst kann der gesamte Rechner lahmgelegt werden.",
+    "关闭临时缓解会按开启前的原值还原配置（不是恢复默认值）。": "Beim Deaktivieren der vorübergehenden Entschärfung werden die vor dem Einschalten erfassten Werte wiederhergestellt (nicht die Standardwerte).",
+    "已开启 PHP 应急缓解（临时缓解，非修复）: memory_limit = %s": "PHP-Notfallmilderung aktiviert (vorübergehende Milderung, keine Fehlerbehebung): memory_limit = %s",
+    "「不限制内存」档位需二次确认：-1 期间需监控主机内存，否则可能拖垮整台主机": "Die Stufe 'unbegrenzter Speicher' erfordert eine Bestätigung: Überwachen Sie den Host-Speicher, solange -1 aktiv ist, sonst kann der gesamte Host ausfallen",
+    "已关闭 PHP 应急缓解，配置已按开启前的原值还原": "PHP-Notfallmilderung deaktiviert; Konfiguration auf die vor dem Einschalten erfassten Werte zurückgesetzt",
+    "开启应急缓解失败: %s": "Notfallmilderung konnte nicht aktiviert werden: %s",
+    "回滚应急缓解失败: %s": "Zurückrollen der Notfallmilderung fehlgeschlagen: %s",
+    "配置已写入并记录快照，但 php-fpm 重启失败，请手工重启后确认: %s": "Konfiguration geschrieben und Snapshot gespeichert, aber der php-fpm-Neustart ist fehlgeschlagen; bitte manuell neu starten und prüfen: %s",
+    "配置已按原值还原，但 php-fpm 重启失败，请手工重启后确认: %s": "Konfiguration auf die Originalwerte zurückgesetzt, aber der php-fpm-Neustart ist fehlgeschlagen; bitte manuell neu starten und prüfen: %s",
+    "非法档位: %s（只允许 %s）": "Ungültige Stufe: %s (erlaubt sind nur %s)",
+    "没有检测到已安装的 PHP 配置（无需缓解）": "Keine installierte PHP-Konfiguration gefunden (nichts zu mildern)",
+    "读取缓解状态失败: %s": "Milderungsstatus konnte nicht gelesen werden: %s",
+    "缓解模块不可用: %s": "Das Milderungsmodul ist nicht verfügbar: %s"
 }

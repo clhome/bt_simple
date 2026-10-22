@@ -19,6 +19,10 @@ if os.path.exists(web_dir):
 import core.yf as yf
 import logging
 
+# P0-2：安全基线表 + 包版本读取（与编译版/apt 插件共用同一份基线，不许各写一套）
+from core import php_sec_baseline
+from core import php_sec_scan
+
 _log = logging.getLogger('yf.php_yum')
 
 app_debug = False
@@ -50,7 +54,7 @@ PHP_INI_KEY_RULES = {
     'max_input_vars': r'^[0-9]{1,9}$',
     'max_file_uploads': r'^[0-9]{1,6}$',
     'default_socket_timeout': r'^[0-9]{1,6}$',
-    'memory_limit': r'^[0-9]{1,9}[KMG]?$',
+    'memory_limit': r'^(-1|[0-9]{1,9}[KMG]?)$',
     'post_max_size': r'^[0-9]{1,9}[KMG]?$',
     'upload_max_filesize': r'^[0-9]{1,9}[KMG]?$',
     'error_reporting': r'^[0-9A-Za-z_ &~|^!()-]{1,60}$',
@@ -869,6 +873,82 @@ def reload(version):
 def killAllPhp(version):
     yf.execShell('pkill -f php-fpm')
     return 'ok'
+
+
+# ---------------------------------------------------------------------------------
+# P0-2：升级到安全基线（yum / Remi 渠道）
+#
+# 与 apt 同一口径：读**包版本串**（rpm -q），因为 Remi 也把补丁回移在旧上游版本号上。
+# 差异：Remi 模块流下 `yum downgrade` 不可靠，**不做自动回退**——失败时把回退命令
+# 原样交给 UI 并明示「需人工回退」，不能给虚假安全感。
+# ---------------------------------------------------------------------------------
+YUM_UPGRADE_TIMEOUT = 900
+
+
+def submitBaselineUpgrade(version=''):
+    """一键升级入口（前端调用）：yum update + 重启 FPM + 回读断言。"""
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    branch = formatVersion(ver)
+    floor = php_sec_baseline.branch_floor(branch)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有安全基线，不支持一键升级' % ver)
+
+    before_pkg = php_sec_scan.read_package_version('yum', branch)
+    if not before_pkg:
+        return yf.returnJson(False,
+                             '未检测到 yum 包 php%s-php-fpm，请确认已通过 YUM(Remi) 渠道安装' % branch)
+    before, _raw = php_sec_baseline.parse_package_version(before_pkg)
+    if php_sec_baseline.has_backport_marker('yum', before_pkg):
+        return yf.returnJson(True, 'PHP%s 的 yum 包 %s 已带渠道回移补丁标记，无需升级'
+                             % (ver, before_pkg))
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+
+    yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
+    rc, out, errout = yf.execShellRc(php_sec_baseline.build_yum_upgrade_argv(branch),
+                                     shell=False, timeout=YUM_UPGRADE_TIMEOUT)
+    tail = '\n'.join((out or errout or '').splitlines()[-12:])
+
+    after_pkg = php_sec_scan.read_package_version('yum', branch)
+    after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
+    verdict = php_sec_baseline.verify_upgrade(
+        branch, before, after,
+        backport=php_sec_baseline.has_backport_marker('yum', after_pkg))
+
+    if verdict['ok']:
+        try:
+            restart(ver)
+        except Exception as _e:
+            _log.debug('[php-yum] 升级后重启 PHP%s-FPM 异常: %s', ver, _e)
+        dropPhpSecSnapshot()
+        yf.writeLog('PHP安全升级', 'PHP%s(yum) %s' % (ver, verdict['text']))
+        return yf.returnJson(True, verdict['text'], {'before': before_pkg, 'after': after_pkg,
+                                                     'rc': rc, 'log_tail': tail})
+
+    try:
+        restart(ver)
+    except Exception as _e:
+        _log.debug('[php-yum] 升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
+    dropPhpSecSnapshot()
+    manual = php_sec_baseline.build_yum_rollback_argv(branch, before_pkg)
+    msg = '升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退，手工回退请执行: %s' % (
+        verdict['text'], rc, ' '.join(manual) if manual else '（无可用回退命令）')
+    yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级失败: %s' % (ver, msg))
+    return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
+                                      'rollback_argv': manual, 'manual_rollback': True,
+                                      'log_tail': tail})
+
+
+def dropPhpSecSnapshot():
+    """删掉巡检快照，让首页卡片的告警/结论在升级后立即重新计算。"""
+    try:
+        path = yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception as _e:
+        _log.debug('[php-yum] 清理安全巡检快照失败: %s', _e)
 
 
 def initdStatus(version):
@@ -1732,6 +1812,8 @@ if __name__ == "__main__":
         print(reload(version))
     elif func == 'kill_all_php':
         print(killAllPhp(version))
+    elif func == 'submit_baseline_upgrade':
+        print(submitBaselineUpgrade(version))
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':

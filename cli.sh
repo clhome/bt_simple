@@ -41,7 +41,14 @@ yf_start_task()
 yf_start(){
 	# 后台任务
 	yf_start_task
-	
+
+	# 日志轮转配置自愈（整改项 P1-9.2）：面板内自升级不会跑 deploy.sh，
+	# 在这里幂等地下发一遍 /etc/logrotate.d/yf-panel（内容相同则不动文件）。
+	# 非阻断：脚本失败只告警并记日志（日志路径见脚本头部），绝不影响面板启动。
+	if [ -f "${DIR}/scripts/install/logrotate/install.sh" ];then
+		bash "${DIR}/scripts/install/logrotate/install.sh" || echo "[WARN] 日志轮转配置未下发，详见 ${DIR}/logs/logrotate_install.log"
+	fi
+
 	cd ${DIR}/web && gunicorn -c setting.py app:app
 }
 

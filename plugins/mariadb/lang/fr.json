@@ -384,6 +384,7 @@
   "复制用户密码为空!": "Le mot de passe de l'utilisateur de réplication est vide !",
   "{1}日志": "Journal {1}",
   "分页参数不合法!": "Pagination invalide !",
+  "参数 type 不合法，必须是整数!": "Paramètre type invalide, doit être un entier !",
   "端口不合法!": "Port invalide !",
   "配置文件中未找到端口配置!": "Port introuvable dans la config !",
   "修改端口后服务未就绪:": "Service non prêt après changement de port :",

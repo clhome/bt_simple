@@ -84,11 +84,17 @@ def githubDownload(url, save_path, timeout=10, min_size=0):
         return True
 
     def _try_download(download_url):
-        """尝试使用 wget 下载，成功返回 True"""
+        """尝试使用 wget 下载，成功返回 True
+
+        刻意**不**加任何「跳过证书校验」的 wget 选项：下载链路上的 TLS 校验是供应链
+        可信的一环（升级包 / 插件包都经此函数下载），跳验证书就是把完整性交给中间人。
+        证书缺失的环境下下载失败是**期望行为**（fail closed），
+        不要再加「失败就降级成不校验」的兜底。
+        """
         # 先清除可能的空文件
         if os.path.exists(save_path):
             os.remove(save_path)
-        cmd = 'wget --no-check-certificate -O "{}" --timeout={} --tries=1 -q "{}" 2>/dev/null'.format(
+        cmd = 'wget -O "{}" --timeout={} --tries=1 -q "{}" 2>/dev/null'.format(
             save_path, timeout, download_url
         )
         execShell(cmd)

@@ -18,7 +18,8 @@ done
 echo "php${PHP_VER} -- end"
 
 
-PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82 83)
+# P0-1：补齐 85（与 info.json 对齐）；同时补上原本就漏的 84（同一形态的清单漂移）。
+PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82 83 84 85)
 # PHP_VER_LIST=(81)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"

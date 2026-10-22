@@ -1,4 +1,6 @@
 {
+  "plain_http_warning_title": "HTTP in chiaro: i cookie di accesso possono essere intercettati",
+  "plain_http_warning_desc": "Attiva HTTPS nelle impostazioni del pannello il prima possibile; fino ad allora non usare questo pannello sulla rete pubblica.",
   "config": "Configurazione in corso...",
   "detail": "Dettagli",
   "disabled": "Disattivato",

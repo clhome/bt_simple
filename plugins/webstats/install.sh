@@ -61,7 +61,7 @@ Install_App()
 	
 	# luarocks
 	if [ ! -f $serverPath/source/webstats/luarocks-3.5.0.tar.gz ];then
-		wget -nv --no-check-certificate -O $serverPath/source/webstats/luarocks-3.5.0.tar.gz http://luarocks.org/releases/luarocks-3.5.0.tar.gz
+		wget -nv -O $serverPath/source/webstats/luarocks-3.5.0.tar.gz http://luarocks.org/releases/luarocks-3.5.0.tar.gz
 	fi
 
 	if [ ! -d $serverPath/source/webstats/luarocks-3.5.0  ];then
@@ -119,7 +119,8 @@ Install_App()
 	fi
 	pip install $SYS_PIP_OPT geoip2 -i $PIPSRC
 	# if [ ! -f $serverPath/webstats/GeoLite2-City.mmdb ];then
-	# 	wget --no-check-certificate -O $serverPath/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/2022.10.16/GeoLite2-City.mmdb
+	# 	# 历史写法用 wget 跳证书直连，已废弃：改用下方 github_download（默认校验证书）
+	# 	wget -O $serverPath/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/2022.10.16/GeoLite2-City.mmdb
 	# fi
 
 	# 缓存数据

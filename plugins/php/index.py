@@ -21,6 +21,10 @@ if os.path.exists(web_dir):
 import core.yf as yf
 import logging
 
+# P0-2：安全基线表与巡检采集器（全仓唯一一份基线表的消费方，见 web/core/php_sec_baseline.py）
+from core import php_sec_baseline
+from core import php_sec_scan
+
 _log = logging.getLogger('yf.php')
 
 app_debug = False
@@ -55,7 +59,7 @@ PHP_INI_KEY_RULES = {
     'max_input_vars': r'^[0-9]{1,9}$',
     'max_file_uploads': r'^[0-9]{1,6}$',
     'default_socket_timeout': r'^[0-9]{1,6}$',
-    'memory_limit': r'^[0-9]{1,9}[KMG]?$',
+    'memory_limit': r'^(-1|[0-9]{1,9}[KMG]?)$',
     'post_max_size': r'^[0-9]{1,9}[KMG]?$',
     'upload_max_filesize': r'^[0-9]{1,9}[KMG]?$',
     'error_reporting': r'^[0-9A-Za-z_ &~|^!()-]{1,60}$',
@@ -456,8 +460,17 @@ def contentReplace(content, version):
 
 
 def makeOpenrestyConf():
+    # 版本白名单：决定 web_conf/php/conf/enable-php-<NN>.conf 与
+    # web_conf/php/upstream/enable-php-<NN>.conf 是否生成。web/utils/site.py
+    # 的 setPhpVersion() 要求 enable-php-<版本>.conf 存在才允许切站点 PHP 版本，
+    # 所以少一个版本号 = 该版本装好了也「绑不上站点」。
+    # 新增编译版 PHP 时**必须**在这里追加，否则站点侧不可用。
+    # 未安装的版本也会生成 conf（模板替换，成本极低），这是既有设计，勿改。
+    # TODO(P0-4): 52~74 等停止安全维护的老版本后续由 P0-4 统一收紧下架；
+    #             本次 P0-1 只追加 85，不在此处删除任何老版本。
     phpversions = ['00', '52', '53', '54', '55', '56',
-                   '70', '71', '72', '73', '74', '80', '81', '82', '83','84']
+                   '70', '71', '72', '73', '74', '80', '81', '82', '83',
+                   '84', '85']
 
     sdir = yf.getServerDir()
 
@@ -1258,6 +1271,365 @@ def checkPluginUpgrade(version=''):
         return yf.returnJson(True, '大版本迁移升级自愈成功完成。')
     finally:
         _PHP_UPGRADE_CHECKING = False
+
+
+# ---------------------------------------------------------------------------------
+# P0-2：升级到安全基线（编译版）
+#
+# 背景：旧实现只改了 `versions/<NN>/install.sh` 的 `version=`，对「已经装过该分支」
+# 的机器完全无效 —— 升级路径会命中两道大版本判存（源码层 / 安装层），直接报成功。
+# 前置修复完成后，本函数才可能真升级。本函数额外负责「升级前的快照」与
+# 「升级后的回读断言 + 失败回退」：
+#   1. 升级前读出并快照旧版本号，`cp` 一份 bin/ 与 sbin/ 做回退点；
+#   2. 跑该分支的 install.sh install（长耗时，所以只允许由面板任务队列执行）；
+#   3. 回读 `bin/php -v` 断言 >= 基线；
+#   4. 失败则把旧二进制还原回去并尝试拉起 FPM —— 不允许「编译到一半，业务挂在那里」。
+# ---------------------------------------------------------------------------------
+PHP_SEC_ROLLBACK_KEEP = 3       # 回退点保留份数（一份 ≈ 十几 MB，没必要无限堆）
+
+
+def getRuntimeVersion(version):
+    """读已装编译版 PHP 的**完整运行时版本**（bin/php -v / sbin/php-fpm -v）。
+
+    P0-2 的核心问题之一：面板以前只看得见大版本目录名（`82`），看不见 `8.2.30`。
+    进不去 → 回读不到，返回 ''（调用方必须把它当「不达标」，不能当「已达标」）。
+    """
+    ver_dir = getVersionDir(version)
+    for rel in ('bin/php', 'sbin/php-fpm'):
+        exe = os.path.join(ver_dir, *rel.split('/'))
+        if not os.path.isfile(exe):
+            continue
+        rc, out, _err = yf.execShellRc([exe, '-v'], shell=False, timeout=15)
+        if rc != 0:
+            continue
+        ver = php_sec_baseline.parse_php_version_output(out)
+        if ver:
+            return ver
+    return ''
+
+
+def getRuntimeRollbackDir(version):
+    return getServerDir() + '/.rollback/php' + str(version)
+
+
+def backupRuntimeBinary(version):
+    """备份 bin/ 与 sbin/，返回备份目录（无可备份内容时返回 ''）。
+
+    为什么必须备份：`make install` 是**就地覆盖**，编译到一半失败会留下
+    「新头文件 + 旧二进制」的混合树；没有回退点就只能靠用户自己重装。
+    """
+    ver_dir = getVersionDir(version)
+    dest = os.path.join(getRuntimeRollbackDir(version), time.strftime('%Y%m%d_%H%M%S'))
+    copied = []
+    for sub in ('bin', 'sbin'):
+        src = os.path.join(ver_dir, sub)
+        if not os.path.isdir(src):
+            continue
+        os.makedirs(dest, exist_ok=True)
+        shutil.copytree(src, os.path.join(dest, sub), symlinks=True)
+        copied.append(sub)
+    if not copied:
+        return ''
+    _pruneRuntimeRollback(version)
+    return dest
+
+
+def _pruneRuntimeRollback(version):
+    """只留最近 PHP_SEC_ROLLBACK_KEEP 份回退点（失败时算灾难，
+    磁盘被回退点填满也是灾难；P0-2 不引入无界增长）。"""
+    root = getRuntimeRollbackDir(version)
+    try:
+        items = sorted(d for d in os.listdir(root) if d.isdigit())
+    except OSError:
+        return
+    for name in items[:-PHP_SEC_ROLLBACK_KEEP]:
+        shutil.rmtree(os.path.join(root, name), ignore_errors=True)
+
+
+def restoreRuntimeBinary(version, backup_dir):
+    """把备份的 bin/sbin 还原回去，返回还原子目录列表。"""
+    restored = []
+    for sub in ('bin', 'sbin'):
+        src = os.path.join(backup_dir, sub)
+        if not os.path.isdir(src):
+            continue
+        dst = os.path.join(getVersionDir(version), sub)
+        if os.path.isdir(dst):
+            shutil.rmtree(dst, ignore_errors=True)
+        shutil.copytree(src, dst, symlinks=True)
+        restored.append(sub)
+    return restored
+
+
+def dropPhpSecSnapshot():
+    """删掉巡检快照，让首页卡片下次打开时重新巡检（升级完不能还显示旧结论）。"""
+    try:
+        path = yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception as _e:
+        _log.debug('[php] 清理安全巡检快照失败: %s', _e)
+
+
+# ============================================================================
+# P0-3 Run B：应急缓解开关（临时缓解，不是修复）
+#
+# 本组函数的全部作用范围就是「改配置 + 重启 fpm」，**不打补丁**。
+# 真实修复必须等 PHP 上游补丁；缓解开关只是把攻击面/影响面先按住，
+# 因此 UI 文案与返回值里一律只能说「临时缓解」，不许出现「已修复」字样。
+# ============================================================================
+
+
+#: 应急缓解 UI 文案的**兜底字面量**（正常走 core.php_mitigation.COPY）。
+#: 这里再写一份的原因：i18n 死键扫描只在插件目录里找引用，core/ 里的字面量
+#: 扫不到，会被判成「语言包有键但源码无引用」。两处必须逐字符一致，
+#: 由 testsuite/test_php_cve_mitigation.py 的 test_16 守住（漂移即红）。
+MITIGATION_COPY_FALLBACK = {
+    'php_mitigation_title': 'PHP 应急缓解（临时缓解，非修复）',
+    'php_mitigation_tip': '本开关是 CVE-2026-109618/109619 的临时缓解，不是修复；请尽快升级 PHP 到含官方补丁的版本。',
+    'php_mitigation_minus_one_warning': '「不限制内存」档位属临时缓解，仅供压测/临时排障：-1 期间需监控主机内存，否则可能拖垮整台机器。',
+    'php_mitigation_revert_tip': '关闭临时缓解会按开启前的原值还原配置（不是恢复默认值）。',
+}
+
+
+def _mitigationModule():
+    """惰性导入 `core.php_mitigation`（插件顶层不拉这个依赖）。"""
+    from core import php_mitigation
+    return php_mitigation
+
+
+def mitigationTargets():
+    """本机已装版本的 (php.ini, www.conf) 列表（只含真实存在的文件）。
+
+    这里**不做任何自愈**：未安装的版本凭空造配置会在 /www/server/php 下
+    留假版本目录（既有事故模式）。文件不存在就跳过。
+    """
+    pm = _mitigationModule()
+    server_dir = yf.getServerDir() + '/' + getPluginName()
+    return pm.discover_targets(server_php_dir=server_dir,
+                               apt_root='/etc/php', yum_root='/etc/opt/remi')
+
+
+def _parseMitigationArgs(raw):
+    """解析缓解开关的入参 → dict。
+
+    支持两种写法：
+      * `{"tier":"512M","confirm":1}`（前端统一发的 JSON，优先）；
+      * `512M` / `512M:1`（命令行手工调用兼容）。
+    任何畸形入参返回 {}（不抛异常）。
+    """
+    if isinstance(raw, dict):
+        return raw
+    items = raw if isinstance(raw, (list, tuple)) else [raw]
+    for item in items:
+        if isinstance(item, dict):
+            return item
+        text = str(item or '').strip()
+        if not text:
+            continue
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+    # `k:v` 旧写法：拼回一个字符串再解析
+    joined = '&'.join(str(i) for i in items if i is not None)
+    if ':' in joined:
+        out = {}
+        for pair in joined.split('&'):
+            if ':' in pair:
+                k, v = pair.split(':', 1)
+                out[k.strip()] = v.strip()
+        return out
+    if joined.strip():
+        return {'tier': joined.strip()}
+    return {}
+
+
+def _confirmTrue(value):
+    """把各种「真值」写法归一（前端可能发 1 / '1' / true / 'true' / 'on'）。"""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    return str(value or '').strip().lower() in ('1', 'true', 'yes', 'on', 'y')
+
+
+def getMitigationStatus():
+    """读当前缓解状态 + 可选档位（供插件设置页渲染）。"""
+    try:
+        pm = _mitigationModule()
+        snap = pm.read_snapshot()
+        files = snap.get('files') if isinstance(snap, dict) else None
+        return yf.returnJson(True, 'ok', {
+            'enabled': bool(files),
+            'tier': (snap.get('tier') if isinstance(snap, dict) else None),
+            'files': sorted(files.keys()) if isinstance(files, dict) else [],
+            'tiers': list(pm.TIERS),
+            'default': pm.DEFAULT_TIER,
+            'copy': dict(getattr(pm, 'COPY', {})) or dict(MITIGATION_COPY_FALLBACK),
+        })
+    except Exception as e:
+        _log.warning('[php] 读取缓解状态失败: %s', e)
+        return yf.returnJson(False, '读取缓解状态失败: %s' % e)
+
+
+def mitigationSwitch(raw_args=''):
+    """开启「应急缓解」（临时缓解，非修复）。
+
+    `-1`（不限制内存）必须带 `confirm` 二次确认：没确认就直接拒绝，
+    并返回「-1 期间需监控主机内存」的提示（不限制内存能打爆整台主机）。
+    """
+    try:
+        pm = _mitigationModule()
+    except Exception as e:
+        return yf.returnJson(False, '缓解模块不可用: %s' % e)
+
+    data = _parseMitigationArgs(raw_args)
+    tier = data.get('tier', pm.DEFAULT_TIER)
+    ok, normalized = pm.validate_tier(tier)
+    if not ok:
+        # 档位外一律拒绝（含 2048M 这种「看起来合法但不在备选里」的值）
+        return yf.returnJson(False, '非法档位: %s（只允许 %s）'
+                             % (tier, ' / '.join(pm.TIERS)))
+    if pm.tier_requires_confirm(normalized) and not _confirmTrue(data.get('confirm')):
+        # 文案必须写成单个字面量：拆成相邻字符串会让 verify_i18n 的
+        # backend-msg-key 只看到前半句，误判为「语言包查不到键」。
+        return yf.returnJson(False, '「不限制内存」档位需二次确认：-1 期间需监控主机内存，否则可能拖垮整台主机',
+                             {'need_confirm': True, 'tier': normalized})
+
+    targets = mitigationTargets()
+    if not targets:
+        return yf.returnJson(False, '没有检测到已安装的 PHP 配置（无需缓解）')
+
+    res = pm.apply(targets, normalized)
+    if not res.get('ok'):
+        return yf.returnJson(False, '开启应急缓解失败: %s' % '; '.join(res.get('errors') or []), res)
+
+    # 改完配置必须重启 worker 才生效；重启失败要如实上报（不许假装成功）
+    restart = pm.restart_fpm_workers()
+    if not restart.get('ok'):
+        return yf.returnJson(False, '配置已写入并记录快照，但 php-fpm 重启失败，请手工重启后确认: %s'
+                             % '; '.join(restart.get('errors') or []),
+                             {'apply': res, 'restart': restart})
+    yf.writeFileLog('[php] 已开启 PHP 应急缓解（临时缓解，非修复）: tier=%s' % normalized)
+    return yf.returnJson(True, '已开启 PHP 应急缓解（临时缓解，非修复）: memory_limit = %s'
+                         % normalized, {'apply': res, 'restart': restart})
+
+
+def mitigationRevert():
+    """关闭「应急缓解」：按快照还原原值（不是恢复默认 128M），再重启 fpm。"""
+    try:
+        pm = _mitigationModule()
+    except Exception as e:
+        return yf.returnJson(False, '缓解模块不可用: %s' % e)
+    res = pm.revert()
+    if not res.get('ok'):
+        return yf.returnJson(False, '回滚应急缓解失败: %s' % '; '.join(res.get('errors') or []), res)
+    restart = pm.restart_fpm_workers()
+    if not restart.get('ok'):
+        return yf.returnJson(False, '配置已按原值还原，但 php-fpm 重启失败，请手工重启后确认: %s'
+                             % '; '.join(restart.get('errors') or []),
+                             {'revert': res, 'restart': restart})
+    yf.writeFileLog('[php] 已按快照还原 PHP 应急缓解前的原值')
+    return yf.returnJson(True, '已关闭 PHP 应急缓解，配置已按开启前的原值还原',
+                         {'revert': res, 'restart': restart})
+
+
+def submitBaselineUpgrade(version=''):
+    """一键升级入口（前端调用）：只投递任务，不在这里编译。
+
+    编译 PHP 要十几分钟，塞进 /plugins/run 的同步请求必然超时（那里上限 600s）。
+    因此走面板既有的任务队列（TASK_MAX_RUNTIME=7200s，有日志、有状态）。
+    """
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    floor = php_sec_baseline.branch_floor(ver)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级' % ver)
+    if not isInstalled(ver):
+        return yf.returnJson(False, 'PHP版本未安装!')
+    before = getRuntimeVersion(ver)
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+
+    try:
+        import thisdb
+        cmd = 'cd %s && %s %s upgrade_to_baseline %s' % (
+            yf.shlexQuote(yf.getPanelDir()),
+            yf.shlexQuote(sys.executable),
+            yf.shlexQuote(os.path.abspath(__file__)),
+            yf.shlexQuote(ver),
+        )
+        thisdb.addTask(name='PHP%s 升级到安全基线 %s' % (ver, floor), cmd=cmd, status=0)
+        yf.triggerTask()
+    except Exception as e:
+        return yf.returnJson(False, '投递升级任务失败: %s' % e)
+    return yf.returnJson(True, '已提交升级任务: %s → %s，请在任务日志查看进度' % (before or '未知', floor))
+
+
+def upgradeToBaseline(version=''):
+    """执行升级（由面板任务队列拉起）：快照 → 备份 → 重跑安装脚本 → 回读 → 失败回退。"""
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    floor = php_sec_baseline.branch_floor(ver)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级' % ver)
+    if not isInstalled(ver):
+        return yf.returnJson(False, 'PHP版本未安装!')
+
+    before = getRuntimeVersion(ver)
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+
+    install_sh = os.path.join(getPluginDir(), 'versions', ver, 'install.sh')
+    if not os.path.isfile(install_sh):
+        return yf.returnJson(False, '缺少安装脚本: %s' % install_sh)
+
+    try:
+        backup_dir = backupRuntimeBinary(ver)
+    except Exception as e:
+        # 没有回退点就不开工：编译失败会把人架在「装到一半」的状态
+        return yf.returnJson(False, '升级前备份旧二进制失败，已取消升级: %s' % e)
+    yf.writeLog('PHP安全升级', 'PHP%s 升级开始：%s → %s（回退点 %s）'
+                % (ver, before or '未知', floor, backup_dir or '无'))
+
+    rc, out, errout = yf.execShellRc(['bash', install_sh, 'install'],
+                                     cwd=getPluginDir(), shell=False, timeout=7200)
+    tail = '\n'.join((out or '').splitlines()[-12:])
+    after = getRuntimeVersion(ver)
+    verdict = php_sec_baseline.verify_upgrade(ver, before, after)
+
+    if not verdict['ok']:
+        restored = []
+        if backup_dir:
+            try:
+                restored = restoreRuntimeBinary(ver, backup_dir)
+            except Exception as e:
+                yf.writeLog('PHP安全升级', 'PHP%s 回退失败: %s' % (ver, e))
+        # 旧二进制回来之后再拉一次服务：不允许停在「升一半且不服务」的状态
+        try:
+            restart(ver)
+        except Exception as _e:
+            _log.debug('[php] 升级失败后重启 PHP%s 异常: %s', ver, _e)
+        dropPhpSecSnapshot()
+        msg = '升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s' % (
+            verdict['text'], rc, ','.join(restored) or '无备份可还原')
+        yf.writeLog('PHP安全升级', 'PHP%s 升级失败: %s' % (ver, msg))
+        return yf.returnJson(False, msg, {'before': before, 'after': after,
+                                          'rc': rc, 'log_tail': tail})
+
+    try:
+        restart(ver)
+    except Exception as _e:
+        _log.debug('[php] 升级成功后重启 PHP%s 异常: %s', ver, _e)
+    dropPhpSecSnapshot()
+    yf.writeLog('PHP安全升级', 'PHP%s %s' % (ver, verdict['text']))
+    return yf.returnJson(True, verdict['text'], {'before': before, 'after': after,
+                                                 'rc': rc, 'log_tail': tail})
 
 
 def initdStatus(version):
@@ -2267,6 +2639,14 @@ def installPreInspection(version):
     return 'ok'
 
 
+def jsonEnvelopeOk(payload):
+    """`yf.returnJson()` 信封是否代表成功（任务队列以退出码判成败，必须严格）。"""
+    try:
+        return bool(json.loads(payload).get('status'))
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -2277,6 +2657,21 @@ if __name__ == "__main__":
 
     if func == 'tune_all':
         print(tuneAllPhpConfig())
+        exit(0)
+
+    # P0-3 Run B：应急缓解开关（临时缓解，非修复）。
+    # 这两个动作按版本数组遍历已装版本，因此**不需要** version 参考，
+    # 必须放在下面的 `len(sys.argv) < 3` 拦截之前（否则无参调用会被当成缺参）。
+    if func == 'mitigation_switch':
+        print(mitigationSwitch(sys.argv[2:]))
+        exit(0)
+
+    if func == 'mitigation_revert':
+        print(mitigationRevert())
+        exit(0)
+
+    if func == 'mitigation_status':
+        print(getMitigationStatus())
         exit(0)
 
     if func == 'check_plugin_upgrade':
@@ -2312,6 +2707,14 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'check_plugin_upgrade':
         print(checkPluginUpgrade(version))
+    elif func == 'submit_baseline_upgrade':
+        # 前端入口：只投递任务（编译耗时远超 /plugins/run 的 600s 上限）
+        print(submitBaselineUpgrade(version))
+    elif func == 'upgrade_to_baseline':
+        # 任务队列入口：执行升级；失败必须以非零退出码结束，否则任务会被记成成功
+        _r = upgradeToBaseline(version)
+        print(_r)
+        sys.exit(0 if jsonEnvelopeOk(_r) else 1)
     elif func == 'start':
         print(start(version))
     elif func == 'stop':

@@ -384,6 +384,7 @@
   "复制用户密码为空!": "Replication user password is empty!",
   "{1}日志": "{1} Log",
   "分页参数不合法!": "Invalid pagination!",
+  "参数 type 不合法，必须是整数!": "Invalid parameter type, must be an integer!",
   "端口不合法!": "Invalid port!",
   "配置文件中未找到端口配置!": "Port not found in config!",
   "修改端口后服务未就绪:": "Service not ready after port change:",

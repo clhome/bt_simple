@@ -1,5 +1,22 @@
 {
   "index": {
+    "php_sec_unknown_version": "Version not recognised",
+    "php_sec_no_auto_rollback": "APT/YUM upgrades cannot be rolled back automatically. Continue?",
+    "php_sec_title": "PHP Security Baseline",
+    "php_sec_loading": "Checking PHP versions...",
+    "php_sec_empty": "No PHP installation detected",
+    "php_sec_ok": "All installed PHP versions meet the security baseline",
+    "php_sec_alarm": "Insecure PHP versions detected",
+    "php_sec_need_upgrade": "Below the security baseline, upgrade required",
+    "php_sec_backport_missing": "Missing official backport marker, please confirm the patch was backported",
+    "php_sec_backport_unverified": "Channel does not mark a backported patch, manual verification required",
+    "php_sec_no_official_fix": "This branch has no official security fix, do not expose it to the internet",
+    "php_sec_baseline": "Baseline",
+    "php_sec_baseline_date": "Baseline table date",
+    "php_sec_scan_time": "Last scan",
+    "php_sec_offline": "Offline, using the built-in baseline table",
+    "php_sec_upgrade": "Upgrade to a safe version",
+    "php_sec_refresh": "Scan now",
     "H1": "Homepage",
     "H2": "Server Status",
     "V1": "version",
@@ -4574,6 +4591,8 @@
     "brand_panel": "Yufeng Panel"
   },
   "public": {
+    "plain_http_warning_title": "Plain HTTP: login cookies can be sniffed",
+    "plain_http_warning_desc": "Please enable HTTPS in Panel Settings as soon as possible; do not use this panel over the public network until then.",
     "config": "Setting up...",
     "detail": "Details",
     "disabled": "Disabled",

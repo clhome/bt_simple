@@ -13,6 +13,23 @@ var lan = {
 		return msg;
 	},
 	"index": {
+			"php_sec_unknown_version": "Version nicht erkannt",
+			"php_sec_no_auto_rollback": "APT/YUM-Upgrades koennen nicht automatisch zurueckgesetzt werden. Fortfahren?",
+			"php_sec_title": "PHP-Sicherheitsbasislinie",
+			"php_sec_loading": "PHP-Versionen werden geprüft...",
+			"php_sec_empty": "Keine PHP-Installation gefunden",
+			"php_sec_ok": "Alle installierten PHP-Versionen erfüllen die Sicherheitsbasislinie",
+			"php_sec_alarm": "Unsichere PHP-Versionen gefunden",
+			"php_sec_need_upgrade": "Unter der Sicherheitsbasislinie, Aktualisierung erforderlich",
+			"php_sec_backport_missing": "Offizielle Backport-Markierung fehlt, bitte prüfen ob der Patch zurückportiert wurde",
+			"php_sec_backport_unverified": "Der Kanal kennzeichnet keinen zurückportierten Patch, manuelle Prüfung erforderlich",
+			"php_sec_no_official_fix": "Dieser Zweig hat keinen offiziellen Sicherheitsfix, nicht öffentlich betreiben",
+			"php_sec_baseline": "Basislinie",
+			"php_sec_baseline_date": "Datum der Basislinientabelle",
+			"php_sec_scan_time": "Letzte Prüfung",
+			"php_sec_offline": "Offline, integrierte Basislinientabelle wird verwendet",
+			"php_sec_upgrade": "Auf eine sichere Version aktualisieren",
+			"php_sec_refresh": "Jetzt prüfen",
 			"H1": "Startseite",
 			"H2": "Serverstatus",
 			"V1": "Version",
@@ -3883,6 +3900,8 @@ var lan = {
 		},
 
 	"public": {
+			"plain_http_warning_title": "Unverschlüsseltes HTTP: Login-Cookies können mitgelesen werden",
+			"plain_http_warning_desc": "Bitte aktivieren Sie HTTPS in den Panel-Einstellungen so bald wie möglich; nutzen Sie dieses Panel bis dahin nicht über das öffentliche Netz.",
 			"config": "Wird eingerichtet...",
 			"detail": "Details",
 			"disabled": "Deaktiviert",

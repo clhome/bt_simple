@@ -15,6 +15,7 @@
 
 
 import random
+import secrets
 import math
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -73,7 +74,14 @@ class vieCode:
                 self.__str = srcLetter + srcUpper + number
 
         # 构造验证码
-        self.__code = random.sample(self.__str, self.__length)
+        #
+        # 2026-10-22（P2-3）：验证码是阻挡自动化登录的安全材料，不能由模块级
+        # Mersenne Twister 产生。改用 secrets.SystemRandom()：它的 getrandbits() 直通
+        # os.urandom，而 Random.sample 内部靠 _randbelow→getrandbits 取下标，
+        # 所以语义与原 random.sample 完全等价（同样返回 **不重复** 的 length 个字符、
+        # 返回类型仍是 list），只是随机源换成了 CSPRNG。
+        # 其余用 random 的地方是干扰点/颜色/曲线等**纯装饰**，不参与验证，保留不动。
+        self.__code = secrets.SystemRandom().sample(self.__str, self.__length)
 
     def __createImage(self):
         '''创建画布'''

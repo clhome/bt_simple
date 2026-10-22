@@ -3016,3 +3016,211 @@ function refreshIndexSoft(el) {
         }, 400);
     }
 }
+// =====================================================================================
+// P0-2：首页「PHP 安全基线」告警卡片
+//
+// 背景：面板以前只显示 PHP 的**大版本目录名**（82 / 83 / 84），用户看不出自己跑的是
+// 8.2.30 还是 8.2.35；而 CVE-2026-109618/109619 只有 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12
+// 起才修。本卡片把「已装小版本 vs 安全基线」直接摆到首页，并给出一键升级入口。
+//
+// 数据来自 /get_php_security_status（优先读每日巡检快照，见 panel_task.py）。
+// 三态口径（后端已定，前端只呈现）：
+//   empty -> 未检测到 PHP，不告警，只显示空态；
+//   ok    -> 全部达标（apt/yum 渠道按回移补丁标记判，不按上游数字判危）；
+//   alarm -> 有风险，红色危险条 + 逐条升级入口。
+// =====================================================================================
+
+// PHP 安全卡片用到的状态 -> i18n 键
+var PHP_SEC_STATUS_KEYS = {
+    need_upgrade: 'index.php_sec_need_upgrade',
+    backport_missing: 'index.php_sec_backport_missing',
+    backport_unverified: 'index.php_sec_backport_unverified',
+    no_official_fix: 'index.php_sec_no_official_fix',
+    unknown: 'index.php_sec_unknown_version'
+};
+
+function phpSecEscape(s) {
+    if (window.YfI18n && typeof YfI18n.escapeHtml === 'function') {
+        return YfI18n.escapeHtml(s);
+    }
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function phpSecChannelLabel(channel) {
+    if (channel === 'src') return 'compiled';
+    return channel || '';
+}
+
+// 渲染单条 PHP 实例（版本 / 结论 / 基线 / 升级按钮）
+function phpSecRenderItem(item) {
+    var version = phpSecEscape(item.version || '-');
+    var branch = phpSecEscape(item.branch || '');
+    var floor = item.floor ? (t('index.php_sec_baseline', '基线') + ' ' + phpSecEscape(item.floor)) : '';
+    var key = PHP_SEC_STATUS_KEYS[item.status] || '';
+    var statusText = key ? t(key, item.text || '') : '';
+    var color = (item.status === 'ok') ? '#20a53a' : '#ff2020';
+    var html = '<div class="php-sec-item" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px dashed var(--border-color, #edf2f7); font-size:12px;">';
+    html += '<span class="php-sec-branch" style="font-weight:600; min-width:104px;">PHP ' + branch +
+        ' <span class="c9 f11">(' + phpSecEscape(phpSecChannelLabel(item.channel)) + ')</span></span>';
+    html += '<span class="php-sec-version" style="font-family: Consolas, monospace; min-width:76px;">' + version + '</span>';
+    if (statusText) {
+        html += '<span class="php-sec-status" style="color:' + color + ';">' + phpSecEscape(statusText) + '</span>';
+    }
+    if (floor) {
+        html += '<span class="c9 f11">' + floor + '</span>';
+    }
+    if (item.upgrade_hint && item.upgrade_hint !== 'no_fix') {
+        html += '<a class="btlink f11" style="margin-left:auto;" href="javascript:;"' +
+            ' data-php-sec-branch="' + branch + '"' +
+            ' data-php-sec-plugin="' + phpSecEscape(item.plugin || '') + '"' +
+            ' onclick="upgradePhpToBaseline(this)">' +
+            phpSecEscape(t('index.php_sec_upgrade', '升级到安全版本')) + '</a>';
+    } else if (item.upgrade_hint === 'no_fix') {
+        html += '<span class="f11" style="margin-left:auto; color:#ff2020;">' +
+            phpSecEscape(t('index.php_sec_no_official_fix', '该分支无官方安全修复，禁止公网使用')) + '</span>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function phpSecRenderCard(data) {
+    var $card = $('#phpSecCard');
+    var $body = $('#phpSecBody');
+    if (!$card.length || !$body.length) return;
+    if (!data) {
+        $card.hide();
+        return;
+    }
+    var items = data.items || [];
+    var meta = [];
+    if (data.baseline_date) {
+        meta.push(t('index.php_sec_baseline_date', '基线表日期') + ': ' + data.baseline_date);
+    }
+    if (data.offline) {
+        meta.push(t('index.php_sec_offline', '未联网，使用内置基线表'));
+    }
+    if (data.scan_time_text) {
+        meta.push(t('index.php_sec_scan_time', '巡检时间') + ': ' + data.scan_time_text);
+    }
+    $('#phpSecMeta').text(meta.length ? '（' + meta.join(' · ') + '）' : '');
+
+    var html = '';
+    if (data.state === 'empty' || items.length === 0) {
+        // 三态之一：没有任何 PHP -> 不告警，只显示空态
+        html = '<div class="c9 f12" style="padding:4px 0;">' +
+            phpSecEscape(t('index.php_sec_empty', '未检测到已安装的 PHP')) + '</div>';
+    } else if (data.state === 'alarm') {
+        var danger = [];
+        var safe = [];
+        for (var i = 0; i < items.length; i++) {
+            (items[i].alarm ? danger : safe).push(items[i]);
+        }
+        html += '<div class="alert alert-warning" style="background-color:#ffe0e0;border-color:#ffb0b0;color:#ff2020;margin:0 0 6px 0;padding:8px 12px;font-size:12px;">' +
+            phpSecEscape(t('index.php_sec_alarm', '发现存在安全风险的 PHP 版本')) + '</div>';
+        for (var d = 0; d < danger.length; d++) {
+            html += phpSecRenderItem(danger[d]);
+        }
+        for (var s = 0; s < safe.length; s++) {
+            html += phpSecRenderItem(safe[s]);
+        }
+    } else {
+        html += '<div class="f12" style="color:#20a53a;padding:4px 0;">' +
+            phpSecEscape(t('index.php_sec_ok', '全部已装 PHP 均达到安全基线')) + '</div>';
+        for (var k = 0; k < items.length; k++) {
+            html += phpSecRenderItem(items[k]);
+        }
+    }
+    $body.html(html);
+    $card.show();
+}
+
+// 拉取巡检结果并渲染（forceRefresh 只影响前端缓存，后端始终返回最新快照）
+function getPhpSecurityStatus(forceRefresh) {
+    var CACHE_KEY = 'bt_php_sec_status_cache';
+    var TTL = 5 * 60 * 1000;
+    var cached = null;
+    var lastTime = 0;
+    try {
+        var raw = sessionStorage.getItem(CACHE_KEY);
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.data) {
+                cached = parsed.data;
+                lastTime = parsed.t || 0;
+            }
+        }
+    } catch (e) {}
+
+    if (cached) {
+        phpSecRenderCard(cached);
+        if (!forceRefresh && (Date.now() - lastTime < TTL)) return;
+    }
+
+    $.post('/get_php_security_status', {}, function(rdata) {
+        if (!rdata || !rdata.status) {
+            // 接口失败时不要把卡片当成「无风险」隐藏，明确提示失败
+            var msg = (rdata && rdata.msg) ? rdata.msg : 'PHP security baseline scan failed';
+            if (!cached) {
+                $('#phpSecMeta').text('');
+                $('#phpSecBody').html('<div class="c9 f12" style="padding:4px 0;">' +
+                    phpSecEscape(msg) + '</div>');
+                $('#phpSecCard').show();
+            }
+            return;
+        }
+        var data = rdata.data || {};
+        try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: data, t: Date.now() }));
+        } catch (e) {}
+        phpSecRenderCard(data);
+    }, 'json').fail(function() {
+        if (!cached) {
+            $('#phpSecBody').html('<div class="c9 f12" style="padding:4px 0;">' +
+                phpSecEscape(t('public.fetch_fail_retry', '获取失败，请稍后重试')) + '</div>');
+            $('#phpSecCard').show();
+        }
+    });
+}
+
+// 「升级到安全版本」：调用对应插件的一键升级入口
+//   compiled -> plugins/php  submit_baseline_upgrade（投递任务，编译十几分钟，后台跑）
+//   apt/yum  -> php-apt / php-yum 的 submit_baseline_upgrade（同步执行 + 回读断言）
+function upgradePhpToBaseline(el) {
+    var branch = $(el).attr('data-php-sec-branch') || '';
+    var plugin = $(el).attr('data-php-sec-plugin') || '';
+    if (!branch || !plugin) return;
+
+    var doUpgrade = function() {
+        var loadT = layer.msg(t('public.getting', '正在获取中...'), { icon: 16, time: 0, shade: 0.2 });
+        $.post('/plugins/run', { name: plugin, func: 'submit_baseline_upgrade', version: branch }, function(rdata) {
+            if (loadT) layer.close(loadT);
+            var info = null;
+            if (rdata && typeof rdata.data === 'string' && rdata.data.charAt(0) === '{') {
+                try { info = JSON.parse(rdata.data); } catch (e) { info = null; }
+            }
+            var ok = info ? !!info.status : !!(rdata && rdata.status);
+            var msg = (info && info.msg) ? info.msg : ((rdata && rdata.msg) || '');
+            layer.msg(msg || (ok ? 'OK' : 'ERROR'), { icon: ok ? 1 : 0, time: 4000, shade: [0.3, '#000'] });
+            if (ok) {
+                try { sessionStorage.removeItem('bt_php_sec_status_cache'); } catch (e) {}
+                setTimeout(function() { getPhpSecurityStatus(true); }, 1200);
+            }
+        }, 'json').fail(function() {
+            if (loadT) layer.close(loadT);
+            layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 0, time: 2000 });
+        });
+    };
+
+    if (plugin === 'php') {
+        // 编译版：面板会先备份旧二进制，升级失败自动还原
+        layer.confirm(t('index.php_sec_upgrade', '升级到安全版本') + '?',
+            { btn: [t('public.confirm', '确认'), t('public.cancel', '取消')], icon: 0 },
+            function(index) { layer.close(index); doUpgrade(); });
+        return;
+    }
+    // apt/yum：包管理器升级后无法保证回退，必须明示
+    layer.confirm(t('index.php_sec_no_auto_rollback', 'APT/YUM 渠道升级后无法自动回退到旧版本，确认继续？'),
+        { btn: [t('public.confirm', '确认'), t('public.cancel', '取消')], icon: 0 },
+        function(index) { layer.close(index); doUpgrade(); });
+}

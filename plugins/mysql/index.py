@@ -104,6 +104,32 @@ def checkArgs(data, ck=[]):
     return (True, yf.returnJson(True, 'ok'))
 
 
+def _parsePageArgs(args, def_page=1, def_size=10, max_size=100):
+    """分页参数容错（与 plugins/postgresql/index.py 同名同签名同语义）。
+
+    历史缺陷是分页参数直接 int()：page=abc 直接 ValueError traceback（面板 500），
+    负页码拼出的 SQL LIMIT 也非法。非数字/空/None 回退默认值，page<1 夹到 1，
+    size<1 回默认值，size>max_size 封顶（各接口默认值/上限按调用处传参决定）。
+    """
+    def _toInt(v, default):
+        try:
+            if v is None or str(v).strip() == '':
+                return default
+            return int(str(v).strip())
+        except Exception:
+            return default
+
+    page = _toInt(args.get('page'), def_page)
+    size = _toInt(args.get('page_size'), def_size)
+    if page < 1:
+        page = 1
+    if size < 1:
+        size = def_size
+    if size > max_size:
+        size = max_size
+    return page, size
+
+
 def getConf():
     path = getServerDir() + '/etc/my.cnf'
     if not os.path.exists(path):
@@ -614,7 +640,9 @@ def binLogList():
     page_args['count'] = count
     page_args['p'] = page
     page_args['row'] = page_size
-    page_args['tojs'] = args['tojs']
+    # 缺 tojs 时回退到本接口的前端回调（js/mysql.js::myBinLogsRender，它自己就是
+    # `api.post('binlog_list', ...)` 的发起方）；历史上缺参即 KeyError traceback。
+    page_args['tojs'] = args.get('tojs', 'myBinLogsRender')
     data['page'] = yf.getPage(page_args)
     data['data'] = log_bin_l[page_start:page_end]
 
@@ -1570,6 +1598,49 @@ def rootPwd():
         'id=?', (1,)).getField('mysql_root')
 
 
+# 「导入外部 SQL 包」的安全解压组件（plugins/mysql/import_archive.py，mariadb 复用同一份）
+_IMPORT_ARCHIVE_MOD = None
+
+
+def _loadImportArchive():
+    """加载共享的安全解压组件；加载失败返回 None（调用方按 fail-closed 拒绝导入）。
+
+    按文件路径加载而不是 `import plugins.mysql.import_archive`：`plugins` 不是包
+    （无 `__init__.py`），面板又是按脚本路径动态加载插件的，仓库根目录不保证在
+    `sys.path` 里，直接 import 随时可能失败。
+    """
+    global _IMPORT_ARCHIVE_MOD
+    if _IMPORT_ARCHIVE_MOD is not None:
+        return _IMPORT_ARCHIVE_MOD
+    try:
+        import importlib.util
+        plugins_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        mod_path = os.path.join(plugins_dir, 'mysql', 'import_archive.py')
+        spec = importlib.util.spec_from_file_location('bt_import_archive', mod_path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _IMPORT_ARCHIVE_MOD = mod
+    except Exception as e:
+        _log.warning('[mysql] 导入包解压组件加载失败: %s', e)
+        return None
+    return _IMPORT_ARCHIVE_MOD
+
+
+def _safeExtractImportArchive(file_path, import_dir, kind, target_name=''):
+    """校验 + 解压导入包（fail-closed）。返回 (ok, import_sql, msg)。
+
+    校验不通过或组件不可用时一律不解压：返回失败原因，目录外零落盘、目录内无残留。
+    """
+    mod = _loadImportArchive()
+    if mod is None:
+        return False, '', '导入包解压组件加载失败，已拒绝解压（未写入任何文件）'
+    try:
+        return mod.safeExtractImportArchive(file_path, import_dir, kind, target_name)
+    except Exception as e:
+        _log.warning('[mysql] 导入包解压异常(%s): %s', file_path, e)
+        return False, '', '导入包解压异常，已拒绝解压: %s' % e
+
+
 def importDbExternal():
     args = getArgs()
     data = checkArgs(args, ['file', 'name'])
@@ -1602,6 +1673,17 @@ def importDbExternal():
     extract_msg = ""
     start_time = time.time()
 
+    def _rejectLog(reason):
+        """导入包被拒时的结构化日志（不解压、不落地任何文件）。"""
+        return f"==================================================\n" \
+               f"【MySQL 外部数据库导入日志】\n" \
+               f"目标数据库: {name}\n" \
+               f"导入源文件: {file} ({file_size_str})\n" \
+               f"执行时间: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}\n" \
+               f"解压结果: {reason}\n" \
+               f"错误提示: 压缩包成员校验未通过，已拒绝解压，未写入任何文件！\n" \
+               f"=================================================="
+
     if file.find("sql.gz") > -1 or file.endswith('.gz'):
         try:
             import gzip
@@ -1616,40 +1698,20 @@ def importDbExternal():
             extract_msg = "解压 gzip 失败: " + str(e)
 
     elif file.find(".zip") > -1:
-        try:
-            import zipfile
-            target_sql = os.path.join(import_dir, tmpFile)
-            with zipfile.ZipFile(file_path, 'r') as zf:
-                sql_members = [m for m in zf.namelist() if m.lower().endswith('.sql') and not m.startswith('__MACOSX')]
-                if sql_members:
-                    chosen = sql_members[0]
-                    zf.extract(chosen, import_dir)
-                    import_sql = os.path.join(import_dir, chosen)
-                else:
-                    zf.extractall(import_dir)
-                    if os.path.exists(target_sql):
-                        import_sql = target_sql
-            extract_msg = "解压 zip 完成 -> " + (os.path.basename(import_sql) if import_sql else tmpFile)
-        except Exception as e:
-            extract_msg = "解压 zip 失败: " + str(e)
+        # 解压前先过成员名校验（safeArchiveCheck），不过就一个文件都不落地
+        ok, import_sql, extract_msg = _safeExtractImportArchive(
+            file_path, import_dir, 'zip', tmpFile)
+        if not ok:
+            return yf.returnJson(False, extract_msg, {
+                'log': _rejectLog(extract_msg), 'exit_code': 1, 'has_error': True})
 
     elif file.find("tar.gz") > -1 or file.endswith('.tgz'):
-        try:
-            import tarfile
-            target_sql = os.path.join(import_dir, tmpFile)
-            with tarfile.open(file_path, 'r:gz') as tf:
-                sql_members = [m for m in tf.getnames() if m.lower().endswith('.sql') and not m.startswith('._')]
-                if sql_members:
-                    chosen = sql_members[0]
-                    tf.extract(chosen, import_dir)
-                    import_sql = os.path.join(import_dir, chosen)
-                else:
-                    tf.extractall(import_dir)
-                    if os.path.exists(target_sql):
-                        import_sql = target_sql
-            extract_msg = "解压 tar.gz 完成 -> " + (os.path.basename(import_sql) if import_sql else tmpFile)
-        except Exception as e:
-            extract_msg = "解压 tar.gz 失败: " + str(e)
+        # 解压前先过成员名校验（safeArchiveCheck），不过就一个文件都不落地
+        ok, import_sql, extract_msg = _safeExtractImportArchive(
+            file_path, import_dir, 'tar', tmpFile)
+        if not ok:
+            return yf.returnJson(False, extract_msg, {
+                'log': _rejectLog(extract_msg), 'exit_code': 1, 'has_error': True})
 
     elif file.lower().endswith('.sql'):
         import_sql = file_path
@@ -2089,15 +2151,10 @@ def getDbBackupImportList():
 
 def getDbList():
     args = getArgs()
-    page = 1
-    page_size = 10
+    # 分页容错：历史缺陷是分页参数裸 int() → page=abc 直接 ValueError traceback（面板 500）
+    page, page_size = _parsePageArgs(args)
     search = ''
     data = {}
-    if 'page' in args:
-        page = int(args['page'])
-
-    if 'page_size' in args:
-        page_size = int(args['page_size'])
 
     if 'search' in args:
         search = args['search']
@@ -2215,7 +2272,12 @@ def syncToDatabases():
     if isError:
         return isError
 
-    stype = int(args['type'])
+    # type 容错：历史缺陷是 type 裸 int() → type=abc 直接 ValueError traceback（面板 500）。
+    # 非法/缺失一律回规范 JSON 错误，合法取值（0=全部数据库 / 其它=按 ids 同步）语义不变。
+    try:
+        stype = int(str(args['type']).strip())
+    except (TypeError, ValueError):
+        return yf.returnJson(False, '参数 type 不合法，必须是整数!')
     psdb = pSqliteDb('databases')
     n = 0
 
@@ -3311,15 +3373,10 @@ def resetMaster(version=''):
 def getMasterDbList(version=''):
     try:
         args = getArgs()
-        page = 1
-        page_size = 10
+        # 分页容错：历史缺陷是分页参数裸 int() → page=abc 直接 ValueError traceback
+        page, page_size = _parsePageArgs(args)
         search = ''
         data = {}
-        if 'page' in args:
-            page = int(args['page'])
-
-        if 'page_size' in args:
-            page_size = int(args['page_size'])
 
         if 'search' in args:
             search = args['search']
@@ -3504,15 +3561,10 @@ def setMasterStatus(version=''):
 
 def getMasterRepSlaveList(version=''):
     args = getArgs()
-    page = 1
-    page_size = 10
+    # 分页容错：历史缺陷是分页参数裸 int() → page=abc 直接 ValueError traceback
+    page, page_size = _parsePageArgs(args)
     search = ''
     data = {}
-    if 'page' in args:
-        page = int(args['page'])
-
-    if 'page_size' in args:
-        page_size = int(args['page_size'])
 
     if 'search' in args:
         search = args['search']
@@ -3803,8 +3855,9 @@ def getSlaveSSHList(version=''):
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    # 分页容错：历史缺陷是分页参数裸 int() → page=abc 直接 ValueError traceback。
+    # def_size=5 与 postgresql 同接口一致（js/mysql.js::getSlaveSSHPage 也是 page_size=5）。
+    page, page_size = _parsePageArgs(args, def_size=5)
 
     conn = pSqliteDb('slave_id_rsa')
     limit = str((page - 1) * page_size) + ',' + str(page_size)
@@ -3818,7 +3871,8 @@ def getSlaveSSHList(version=''):
     _page['count'] = count
     _page['p'] = page
     _page['row'] = page_size
-    _page['tojs'] = args['tojs']
+    # 缺 tojs 时回退到本接口的前端回调（js/mysql.js::getSlaveSSHPage）
+    _page['tojs'] = args.get('tojs', 'getSlaveSSHPage')
     data['page'] = yf.getPage(_page)
     data['data'] = clist
 
@@ -3904,8 +3958,9 @@ def getSlaveSyncUserList(version=''):
     if not data[0]:
         return data[1]
 
-    page = int(args['page'])
-    page_size = int(args['page_size'])
+    # 分页容错：历史缺陷是分页参数裸 int() → page=abc 直接 ValueError traceback。
+    # def_size=5 与同族的「从库 SSH」列表一致（js/mysql.js::getSlaveSyncUserPage 亦为 5）。
+    page, page_size = _parsePageArgs(args, def_size=5)
 
     conn = pSqliteDb('slave_sync_user')
     limit = str((page - 1) * page_size) + ',' + str(page_size)
@@ -3919,7 +3974,8 @@ def getSlaveSyncUserList(version=''):
     _page['count'] = count
     _page['p'] = page
     _page['row'] = page_size
-    _page['tojs'] = args['tojs']
+    # 缺 tojs 时回退到本接口的前端回调（js/mysql.js::getSlaveSyncUserPage）
+    _page['tojs'] = args.get('tojs', 'getSlaveSyncUserPage')
     data['page'] = yf.getPage(_page)
     data['data'] = clist
 

@@ -740,6 +740,45 @@ def backupPanelDb(db_file=None, backup_dir=None, keep=None):
         return (False, '%s: %s' % (e.__class__.__name__, e))
 
 
+# ---------------------------------------------------------------------------------
+# PHP 运行时安全基线巡检（P0-2）
+#
+# 为什么必须挂在面板任务进程里：面板并不知道「用户装的是 8.2.30 还是 8.2.35」，
+# 而这两个版本里只有一个能抗 CVE-2026-109618/109619。巡检每日跑一次，把结果写成
+# `data/php_sec_scan.json` 快照，首页告警卡片直接读快照（不在页面请求里跑 shell）。
+#
+# 失败只记日志、绝不抛：巡检挂了不影响任何其它任务。
+# 无 PHP 时不告警（空态），离线时用内置基线表并在结果里带上基线表日期。
+# ---------------------------------------------------------------------------------
+PHP_SEC_SCAN_INTERVAL = 86400        # 每天巡检一次
+
+
+def getPhpSecSnapshotFile():
+    # 文件名以核心模块里的常量为准（巡检与告警卡片必须读同一个文件）
+    from core import php_sec_scan
+    return yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
+
+
+def phpSecurityScan_step():
+    try:
+        from core import php_sec_scan
+        data = php_sec_scan.scan(
+            server_php_dir=yf.getServerDir() + '/php',
+            offline=yf.extNetDisabled(),
+        )
+        php_sec_scan.write_snapshot(data, getPhpSecSnapshotFile())
+        if data.get('alarm'):
+            # 告警要进面板日志：页面卡片只在首页可见，日志是可追溯的。
+            _log.warning('[php_sec_scan] %s', data.get('summary'))
+            yf.writeLog('PHP安全巡检', data.get('summary') or '')
+        else:
+            _log.info('[php_sec_scan] %s', data.get('summary'))
+    except Exception:
+        # 巡检失败不得影响其它任务；保留上一次快照（比清空更接近事实）
+        _log.warning('[php_sec_scan] 巡检失败: %s', yf.getTracebackInfo())
+        print('phpSecurityScan:', yf.getTracebackInfo())
+
+
 def panelDbBackup_step():
     # 面板自身库定时在线备份（失败只记日志并返回，绝不影响其它任务）
     try:
@@ -810,6 +849,10 @@ def run():
     # TaskScheduler 的首次运行时刻就是启动时刻，因此每次面板任务进程启动都会先落一份
     # 快照（升级/重启后立刻有回滚点），后续按 PANEL_DB_BACKUP_INTERVAL 节流。
     watchdog_scheduler.add_task(panelDbBackup_step, PANEL_DB_BACKUP_INTERVAL)
+    # PHP 运行时安全基线巡检（P0-2）：每日一次。同为长周期任务，理由同上 ——
+    # 采集本身只读几个版本号（`php -v` / `dpkg-query` / `rpm`，毫秒级），
+    # 但要把结果落快照供首页告警卡片读取，所以放在通道 1 的每日槽位。
+    watchdog_scheduler.add_task(phpSecurityScan_step, PHP_SEC_SCAN_INTERVAL)
 
     t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
     t_watchdog.daemon = True

@@ -119,6 +119,11 @@ function get_cpu_cores() {
 }
 
 # Usage: yf_download <file_path> <url> [timeout]
+#
+# TLS 口径（报告 P1-3）：默认**开启证书校验**。只有显式设置环境变量
+# `YF_INSECURE_DOWNLOAD=1` 时才放宽，且由 github_download.sh 里的
+# `yf_wget_tls_extra_args` 统一追加参数并向 stderr 打 `[WARN]` 告警。
+# 本函数**没有**「校验失败后自动降级重试」的兜底。
 function yf_download() {
     local file=$1
     local url=$2
@@ -168,14 +173,91 @@ function yf_download() {
             local filename=$(basename $url)
             local proxy_url="https://mirrors.ustc.edu.cn/openresty/download/$filename"
             echo "Downloading from mirror: $proxy_url"
-            wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $proxy_url
+            wget $(yf_wget_tls_extra_args "$proxy_url") -O $file --tries=3 --timeout=$timeout $proxy_url
         fi
     fi
 
     if [ ! -f $file ]; then
         echo "Downloading from original: $url"
-        wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $url
+        wget $(yf_wget_tls_extra_args "$url") -O $file --tries=3 --timeout=$timeout $url
     fi
+}
+
+# --------------------------------------------------------------------------- #
+# 下载后完整性校验（报告 P1-3）
+#
+# 背景：以前所有 shell 侧下载都是「下完就用」，只有文件大小 / 是否为 HTML 报错页
+# 这类弱校验（见 github_download.sh::_gh_verify_file）。这类检查挡不住精心构造的
+# 中间人替换包。这里提供一个**可复用**的 sha256 入口，由调用方传入期望值。
+#
+# 为什么只提供机制、不给每个组件预置哈希：哈希必须来自可信发布方（官方 release
+# 页 / 仓库里已有的常量）；凭空编一个值比不校验更糟（会让安装永远失败或让人去
+# 删掉校验）。所以这里只做「你给期望值，我负责 fail-closed」。
+# --------------------------------------------------------------------------- #
+
+# 计算文件 sha256（优先 sha256sum，退化 shasum / openssl，覆盖精简系统与 macOS）
+# 用法: yf_sha256_of_file <file>
+# 返回: 0 并打印 64 位小写十六进制；文件不存在或三种工具都算不出来 → 1
+function yf_sha256_of_file() {
+    local _f=$1
+    local _h=""
+    if [ ! -f "$_f" ]; then
+        return 1
+    fi
+    if command -v sha256sum >/dev/null 2>&1; then
+        _h=$(sha256sum "$_f" 2>/dev/null | awk '{print $1}')
+    elif command -v shasum >/dev/null 2>&1; then
+        _h=$(shasum -a 256 "$_f" 2>/dev/null | awk '{print $1}')
+    elif command -v openssl >/dev/null 2>&1; then
+        _h=$(openssl dgst -sha256 "$_f" 2>/dev/null | awk '{print $NF}')
+    fi
+    if [ -z "$_h" ]; then
+        return 1
+    fi
+    echo "$_h"
+}
+
+# 用法: yf_download_sha256 <file> <url> <expected_sha256> [timeout]
+#
+# 语义（fail-closed）：下载 → 算 sha256 → 与期望值逐字符比对。
+#   * 期望值为空  -> 直接拒绝下载并返回 1（防「传空串等于跳过校验」的漏网）；
+#   * 文件下不下来、或算不出哈希 -> 删包并返回 1；
+#   * 不匹配       -> 删包并返回 1。
+# 调用方**必须**检查返回值，不要用 `|| true` 吞掉。
+# 镜像/代理/GitHub 加速仍由 yf_download 负责，本函数只管完整性。
+function yf_download_sha256() {
+    local file=$1
+    local url=$2
+    local expected=$3
+    local timeout=${4:-60}
+    local actual=""
+
+    if [ -z "$expected" ]; then
+        echo "[ERROR] yf_download_sha256: 期望 sha256 为空，拒绝下载（fail-closed）: $url" >&2
+        return 1
+    fi
+
+    if ! yf_download "$file" "$url" "$timeout"; then
+        echo "[ERROR] 下载失败: $url" >&2
+        rm -f "$file" 2>/dev/null
+        return 1
+    fi
+
+    actual=$(yf_sha256_of_file "$file") || actual=""
+    if [ -z "$actual" ]; then
+        echo "[ERROR] sha256 无法计算（缺少 sha256sum/shasum/openssl 或文件不存在），已删包并拒绝使用: $file" >&2
+        rm -f "$file" 2>/dev/null
+        return 1
+    fi
+    if [ "$actual" != "$expected" ]; then
+        echo "[ERROR] sha256 校验不匹配，已删包并拒绝使用: $file" >&2
+        echo "[ERROR]   期望: $expected" >&2
+        echo "[ERROR]   实际: $actual" >&2
+        rm -f "$file" 2>/dev/null
+        return 1
+    fi
+    echo "[OK] sha256 校验通过: $file"
+    return 0
 }
 
 # --- Common Helpers End ---

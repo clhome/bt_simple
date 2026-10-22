@@ -51,7 +51,7 @@ Install_App(){
 	# luarocks
 	if [ ! -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz ] || ! tar -tf $serverPath/source/op_waf/luarocks-3.5.0.tar.gz &>/dev/null;then
 		rm -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz
-		wget -nv --timeout=15 --tries=3 --no-check-certificate -O $serverPath/source/op_waf/luarocks-3.5.0.tar.gz https://luarocks.org/releases/luarocks-3.5.0.tar.gz
+		wget -nv --timeout=15 --tries=3 -O $serverPath/source/op_waf/luarocks-3.5.0.tar.gz https://luarocks.org/releases/luarocks-3.5.0.tar.gz
 		if [ ! -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz ] || ! tar -tf $serverPath/source/op_waf/luarocks-3.5.0.tar.gz &>/dev/null;then
 			rm -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz
 			github_download $serverPath/source/op_waf/luarocks-3.5.0.tar.gz https://github.com/luarocks/luarocks/archive/refs/tags/v3.5.0.tar.gz
@@ -72,7 +72,8 @@ Install_App(){
 
 
 	# if [ ! -f $serverPath/source/op_waf/lsqlite3_v096.zip ];then
-	# 	wget --no-check-certificate -O $serverPath/source/op_waf/lsqlite3_v096.zip http://lua.sqlite.org/home/zip/lsqlite3_v096.zip?uuid=v0.9.6
+	# 	# 历史写法用 wget 跳证书直连（http 源），已废弃：改用下方 github_download（默认校验证书）
+	# 	wget -O $serverPath/source/op_waf/lsqlite3_v096.zip http://lua.sqlite.org/home/zip/lsqlite3_v096.zip?uuid=v0.9.6
 	# fi
 
 	if [ ! -f $serverPath/source/op_waf/lsqlite3_v096.zip ];then

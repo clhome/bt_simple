@@ -384,6 +384,7 @@
   "复制用户密码为空!": "La password dell'utente di replica è vuota!",
   "{1}日志": "Log {1}",
   "分页参数不合法!": "Paginazione non valida!",
+  "参数 type 不合法，必须是整数!": "Parametro type non valido, deve essere un numero intero!",
   "端口不合法!": "Porta non valida!",
   "配置文件中未找到端口配置!": "Porta non trovata nella config!",
   "修改端口后服务未就绪:": "Servizio non pronto dopo il cambio porta:",

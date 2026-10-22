@@ -1596,7 +1596,7 @@ def set_op_waf_link():
         conf['op_waf_link']['bantime'] = bantime
 
         inst._strip_runtime(conf)
-        yf.writeFile(inst._config, json.dumps(conf))
+        yf.writeFile(inst._config, json.dumps(conf), must=True)
         inst.sync_jail_local(conf)
 
         if status() == 'start':
@@ -1703,7 +1703,7 @@ def disable_site_anti():
             return yf.returnJson(True, '网站防护已托管至御风OP防火墙', {'changed': 0})
 
         inst._strip_runtime(conf)
-        yf.writeFile(inst._config, json.dumps(conf))
+        yf.writeFile(inst._config, json.dumps(conf), must=True)
         inst.sync_jail_local(conf)
 
         if status() == 'start':
@@ -2118,7 +2118,8 @@ class fail2ban_main:
             conf['server'] = target_list
 
         self._strip_runtime(conf)
-        yf.writeFile(self._config, json.dumps(conf))
+        if not yf.writeFile(self._config, json.dumps(conf)):
+            return yf.returnJson(False, '配置保存失败')
         self.sync_jail_local(conf)
 
         # Reload fail2ban via existing method or systemctl
@@ -2147,7 +2148,8 @@ class fail2ban_main:
             conf['server'] = new_list
 
         self._strip_runtime(conf)
-        yf.writeFile(self._config, json.dumps(conf))
+        if not yf.writeFile(self._config, json.dumps(conf)):
+            return yf.returnJson(False, '配置保存失败')
         self.sync_jail_local(conf)
 
         if status() == 'start':
@@ -2162,7 +2164,8 @@ class fail2ban_main:
         conf = self.get_anti_info()
         conf['strict'] = strict
         self._strip_runtime(conf)
-        yf.writeFile(self._config, json.dumps(conf))
+        if not yf.writeFile(self._config, json.dumps(conf)):
+            return yf.returnJson(False, '配置保存失败')
         self.sync_jail_local(conf)
 
         if status() == 'start':
@@ -2206,10 +2209,14 @@ class fail2ban_main:
 
     def clear_log(self, args):
         log_file = runLog()
-        # 直接写文件，避免 echo 走 shell
+        # 直接写文件，避免 echo 走 shell。
+        # must=True：写失败必须抛异常。旧实现是「裸 writeFile 外面套 try/except」，
+        # 而 writeFile 默认永不抛异常 —— except 分支是永远进不去的死代码，
+        # 日志并没有被清空，界面却报「清空日志成功!」。
         try:
-            yf.writeFile(log_file, '')
-        except Exception:
+            yf.writeFile(log_file, '', must=True)
+        except Exception as e:
+            _log.warning('[fail2ban] 清空日志失败: %s -> %s', log_file, e)
             return yf.returnJson(False, '清空日志失败')
         return yf.returnJson(True, '清空日志成功!')
 

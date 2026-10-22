@@ -22,19 +22,34 @@ import glob
 import base64
 import re
 import logging
-from random import Random
+import secrets
 import functools
+
+
+# getRandomString 的字符集：62 个大小写字母 + 数字。
+# **不得修改** —— 它是该函数对外的契约之一（历史 AES key/iv、口令、token 都出自
+# 这里，运维脚本与用例也按这个字符集写过断言）。
+_RANDOM_STRING_CHARS = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
 
 
 def getRandomString(length):
     # 取随机字符串
-    rnd_str = ''
-    chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
-    chrlen = len(chars) - 1
-    random = Random()
-    for i in range(length):
-        rnd_str += chars[random.randint(0, chrlen)]
-    return rnd_str
+    #
+    # 2026-10-22（P2-3）：内部实现由 Mersenne Twister 换成 secrets（密码学安全随机源）。
+    # 旧实现每次调用 new 一个 MT 实例，输出不具备不可预测性，却被用来生成
+    # AES key/iv、面板安全入口、初始管理员口令、临时登录 token、数据库口令等安全材料。
+    #
+    # 对外契约保持完全不变（因此 20+ 个调用点零改动）：
+    #   * 函数名、签名不变；
+    #   * 字符集不变（_RANDOM_STRING_CHARS，共 62 个字符）；
+    #   * 返回类型 str 不变，长度严格等于 length；
+    #   * length <= 0 时返回 ''（与旧实现 range(length) 空循环一致）；
+    #   * length 传浮点/字符串等非整数时仍抛 TypeError（与旧 range() 行为一致）。
+    if length <= 0:
+        return ''
+    # secrets.choice 内部用拒绝采样取下标，保证每个字符等概率且必定落在字符集内，
+    # 不会出现偏置或越界；拼接结果长度恰为 length。
+    return ''.join(secrets.choice(_RANDOM_STRING_CHARS) for _ in range(length))
 
 
 def getUniqueId():

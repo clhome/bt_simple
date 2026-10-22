@@ -862,6 +862,8 @@
     "brand_panel": "御风面板"
   },
   "public": {
+    "plain_http_warning_title": "当前为明文 HTTP，登录 Cookie 可被嗅探",
+    "plain_http_warning_desc": "请尽快在「面板设置」中启用 HTTPS；在启用前不要通过公网使用此面板。",
     "config": "正在设置...",
     "detail": "详情",
     "disabled": "已关闭",

@@ -1,4 +1,11 @@
 {
+    "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s non ha una baseline di sicurezza per la versione compilata, usa il canale APT/YUM",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s rispetta gia la baseline (%s >= %s), nessun aggiornamento necessario",
+    "投递升级任务失败: %s": "Impossibile accodare l'attivita di aggiornamento: %s",
+    "已提交升级任务: %s → %s，请在任务日志查看进度": "Attivita di aggiornamento accodata: %s -> %s, controlla il log delle attivita",
+    "缺少安装脚本: %s": "Script di installazione mancante: %s",
+    "升级前备份旧二进制失败，已取消升级: %s": "Backup dei vecchi binari non riuscito, aggiornamento annullato: %s",
+    "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Aggiornamento non riuscito: %s (codice di uscita dello script %s), vecchi binari ripristinati: %s",
     "*PHP-FPM运行模式": "*Modalità di esecuzione PHP-FPM",
     "*允许创建的最大子进程数": "*Il numero massimo di processi secondari che è possibile creare",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Numero massimo di processi inattivi (pulisci quando i processi inattivi raggiungono questo valore)",
@@ -188,5 +195,20 @@
     "扩展列表配置文件格式错误!": "File elenco estensioni non valido!",
     "扩展名称不合法!": "Nome estensione non valido!",
     "未找到该扩展的卸载脚本!": "Script di disinstallazione non trovato!",
-    "请求失败": "Richiesta non riuscita"
+    "请求失败": "Richiesta non riuscita",
+    "PHP 应急缓解（临时缓解，非修复）": "Mitigazione di emergenza PHP (mitigazione temporanea, non una correzione)",
+    "本开关是 CVE-2026-109618/109619 的临时缓解，不是修复；请尽快升级 PHP 到含官方补丁的版本。": "Questo interruttore è una mitigazione temporanea per CVE-2026-109618/109619, non una correzione; aggiorna PHP a una versione con la patch ufficiale il prima possibile.",
+    "「不限制内存」档位属临时缓解，仅供压测/临时排障：-1 期间需监控主机内存，否则可能拖垮整台机器。": "Il livello \"nessun limite di memoria\" è una mitigazione temporanea, solo per test di carico / diagnosi temporanea: con -1 occorre monitorare la memoria dell'host, altrimenti l'intera macchina può andare in ginocchio.",
+    "关闭临时缓解会按开启前的原值还原配置（不是恢复默认值）。": "La disattivazione della mitigazione temporanea ripristina i valori rilevati prima dell'attivazione (non i valori predefiniti).",
+    "已开启 PHP 应急缓解（临时缓解，非修复）: memory_limit = %s": "Mitigazione di emergenza PHP attivata (mitigazione temporanea, non una correzione): memory_limit = %s",
+    "「不限制内存」档位需二次确认：-1 期间需监控主机内存，否则可能拖垮整台主机": "Il livello 'memoria illimitata' richiede conferma: monitora la memoria dell'host durante -1, altrimenti l'intero host può cadere",
+    "已关闭 PHP 应急缓解，配置已按开启前的原值还原": "Mitigazione di emergenza PHP disattivata; configurazione ripristinata ai valori registrati prima dell'attivazione",
+    "开启应急缓解失败: %s": "Attivazione della mitigazione di emergenza non riuscita: %s",
+    "回滚应急缓解失败: %s": "Rollback della mitigazione di emergenza non riuscito: %s",
+    "配置已写入并记录快照，但 php-fpm 重启失败，请手工重启后确认: %s": "Configurazione scritta e snapshot registrato, ma il riavvio di php-fpm non è riuscito; riavvialo manualmente e verifica: %s",
+    "配置已按原值还原，但 php-fpm 重启失败，请手工重启后确认: %s": "Configurazione ripristinata ai valori originali, ma il riavvio di php-fpm non è riuscito; riavvialo manualmente e verifica: %s",
+    "非法档位: %s（只允许 %s）": "Livello non valido: %s (sono consentiti solo %s)",
+    "没有检测到已安装的 PHP 配置（无需缓解）": "Nessuna configurazione PHP installata rilevata (nulla da mitigare)",
+    "读取缓解状态失败: %s": "Lettura dello stato della mitigazione non riuscita: %s",
+    "缓解模块不可用: %s": "Il modulo di mitigazione non è disponibile: %s"
 }

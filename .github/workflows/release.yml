@@ -111,6 +111,85 @@ jobs:
           sha256sum deploy.sh > dist/deploy.sh.sha256
           cat dist/deploy.sh.sha256
 
+      # ---------------------------------------------------------------------------
+      # 自升级通道的包名对齐（P1-9 / 与 P1-1 的跨项依赖）
+      #
+      # 面板自升级把所有下载物**固定落地成 `temp/yf.zip`**（见
+      # `web/utils/system/update.py`），而验签器是按 basename 在 `SHA256SUMS` 里查记录。
+      # 而面板的下载 URL 是 GitHub 的 tag 源码包：
+      #     https://github.com/<owner>/<repo>/archive/refs/tags/<tag>.zip
+      # ⇒ 清单里必须有一条名字叫 `yf.zip`、且摘要等于**面板真会下载到的那份字节**的记录，
+      #    否则自升级会被设计性地永远拒绝（fail-closed 没毛病，但等于没有升级通道）。
+      #
+      # 做法：直接把 tag 源码包拉下来当 `dist/yf.zip`（与面板下载的字节完全相同），
+      # 再由 `yf_release_sign.py` 一并算进 `SHA256SUMS` 并签名；同时也作为 Release 附件上传
+      # （备用镜像，字节一致，将来把自升级切到附件地址不需要改清单）。
+      # 拉不到时退化为 `git archive` 自建同结构包，并输出 ::warning:: 明确标注。
+      # ---------------------------------------------------------------------------
+      - name: 准备自升级通道的 yf.zip（SHA256SUMS 必须收录这个名字）
+        run: |
+          set -e
+          TAG="${{ steps.ver.outputs.tag }}"
+          VER="${{ steps.ver.outputs.ver }}"
+          URL="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY}/archive/refs/tags/${TAG}.zip"
+          fetched=no
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsSL --retry 2 --retry-delay 5 --max-time 600 -o dist/yf.zip "$URL"; then
+              fetched=yes
+              break
+            fi
+            echo "第 ${attempt} 次拉取 tag 源码包失败（$URL），20 秒后重试…"
+            sleep 20
+          done
+          if [ "$fetched" != "yes" ]; then
+            echo "::warning::拿不到 tag 源码包（$URL），改用自建同结构 yf.zip；"\
+                 "该版本的自升级只能从 Release 附件 yf.zip 取包"
+            git archive --format=zip --prefix="bt_simple-${VER}/" -o dist/yf.zip HEAD
+          fi
+          test -s dist/yf.zip
+          # 面板侧 verify_zip_integrity 有「不小于 1MB」的防截断下限，这里先自检一遍
+          SIZE=$(wc -c < dist/yf.zip)
+          if [ "$SIZE" -lt 1048576 ]; then
+            echo "yf.zip 体积异常（${SIZE} 字节），拒绝继续，避免发布一个必然被拒的升级包" >&2
+            exit 1
+          fi
+          sha256sum dist/yf.zip
+
+      # ---------------------------------------------------------------------------
+      # 供应链产物：SBOM + 带哈希的依赖锁（P1-9.4）
+      #
+      # 这两个产物原本只在 `.github/workflows/security-scan.yml` 里作为 CI artifact 生成，
+      # 用户拿不到 ⇒ 无法自行复核「这个版本到底装了什么」。这里把同两条命令搬到
+      # 发布流程，产物进 `dist/` 一起上传成 Release 附件（并因此间接被
+      # `SHA256SUMS` + 签名覆盖，防下载途中被换包）。
+      #
+      # 命令与 security-scan.yml 保持一致（改一处就要同步另一处）：
+      #   cyclonedx-py environment        -> sbom.json
+      #   pip-compile --generate-hashes   -> requirements.lock
+      # requirements.lock 仅作**审核与审计**用途，不是安装路径（安装仍以
+      # requirements.txt 为准，大陆网络 / 离线环境必须可装）。
+      # ---------------------------------------------------------------------------
+      - name: 安装 SBOM / 依赖锁生成工具
+        run: |
+          pip install --no-cache-dir "cyclonedx-bom>=4.1.0" "pip-tools>=7.4.0"
+
+      - name: 生成 SBOM（CycloneDX，sbom.json）
+        run: |
+          set -e
+          pip install --no-cache-dir -r requirements.txt
+          cyclonedx-py environment -o dist/sbom.json --output-format json
+          # 空组件的 SBOM 等于没生成，直接拦下（防「附件在、内容空」的假交付）
+          python -c "import json,sys; d=json.load(open('dist/sbom.json',encoding='utf-8')); sys.exit(0 if d.get('components') else 'sbom.json 没有组件，拒绝发布')"
+          ls -lh dist/sbom.json
+
+      - name: 生成带哈希的依赖锁（requirements.lock）
+        run: |
+          set -e
+          pip-compile --generate-hashes --resolver=backtracking \
+            --output-file dist/requirements.lock requirements.txt
+          grep -q 'sha256:' dist/requirements.lock
+          ls -lh dist/requirements.lock
+
       - name: 写入签名私钥
         env:
           YF_RELEASE_KEY: ${{ secrets.YF_RELEASE_KEY }}
@@ -142,18 +221,75 @@ jobs:
               --sums   dist/SHA256SUMS \
               --sig    dist/SHA256SUMS.minisig \
               --file   "dist/yf-panel-${VER}.tar.gz"
+          # 自升级通道的包也要能在清单里按 basename（yf.zip）查到并比对通过
+          python scripts/tools/yf_release_verify.py \
+              --pubkey keys/yf-release.pub \
+              --sums   dist/SHA256SUMS \
+              --sig    dist/SHA256SUMS.minisig \
+              --file   "dist/yf.zip"
+
+      # ---------------------------------------------------------------------------
+      # Release 正文注入实际 sha256
+      #
+      # 面板自升级 fail-closed：Release body 里没有 `sha256: <64hex>` 就拒绝升级。
+      # `softprops/action-gh-release@v2` 的 `body` 与 `body_path` **互斥**，所以不能
+      # 一边用模板文件、一边传字符串，只能：先渲染模板 -> dist/RELEASE_BODY.md -> body_path。
+      # 模板里缺 `sha256: __SHA256__` 注入点则直接失败（绝不让发布流程悄悄漏掉这一行）。
+      # ---------------------------------------------------------------------------
+      - name: 生成 Release 正文（把发布包实际 sha256 注入 body）
+        env:
+          YF_VER: ${{ steps.ver.outputs.ver }}
+        run: |
+          set -e
+          python - <<'YF_BODY_PY'
+          import hashlib
+          import os
+          import pathlib
+          import sys
+
+          ver = os.environ['YF_VER']
+          pkg = 'dist/yf.zip'
+          tarball = 'dist/yf-panel-%s.tar.gz' % ver
+
+          def sha256_of(path):
+              digest = hashlib.sha256()
+              with open(path, 'rb') as fh:
+                  for chunk in iter(lambda: fh.read(1024 * 1024), b''):
+                      digest.update(chunk)
+              return digest.hexdigest()
+
+          tpl = pathlib.Path('RELEASE_TEMPLATE.md').read_text(encoding='utf-8')
+          if 'sha256: __SHA256__' not in tpl:
+              sys.exit('RELEASE_TEMPLATE.md 缺少 `sha256: __SHA256__` 注入点：'
+                       '面板自升级会因正文没有 sha256 而拒绝升级')
+
+          body = tpl.replace('__SHA256__', sha256_of(pkg))
+          body = body.replace('__TARBALL_SHA256__', sha256_of(tarball))
+          body = body.replace('<版本>', ver)
+
+          out = pathlib.Path('dist/RELEASE_BODY.md')
+          with open(out, 'w', encoding='utf-8', newline='\n') as fh:
+              fh.write(body)
+          print('已生成 %s（%d 字节）' % (out, len(body)))
+          YF_BODY_PY
+          grep -qE '^sha256: [0-9a-f]{64}$' dist/RELEASE_BODY.md
+          echo '正文 sha256 注入校验通过'
 
       - name: 创建 GitHub Release 并上传附件
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           generate_release_notes: true
-          body_path: RELEASE_TEMPLATE.md
+          # 注：必须是「渲染后的文件」——模板里的 __SHA256__ 占位符已被实际摘要替换
+          body_path: dist/RELEASE_BODY.md
           name: Release ${{ steps.ver.outputs.tag }}
           files: |
             dist/yf-panel-${{ steps.ver.outputs.ver }}.tar.gz
+            dist/yf.zip
             dist/SHA256SUMS
             dist/SHA256SUMS.minisig
             dist/deploy.sh.sha256
+            dist/sbom.json
+            dist/requirements.lock
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

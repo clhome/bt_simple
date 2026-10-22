@@ -20,7 +20,8 @@ serverPath=$(dirname "$rootPath")
 # cd /www/server/mdserver-web/plugins/php-apt/versions && /bin/bash common.sh  7.1  install swoole
 
 
-PHP_VER_LIST=(56 70 71 72 73 74 80 81 82 83 84)
+# 与 info.json 的 versions 对齐（P0-1：补 85）。
+PHP_VER_LIST=(56 70 71 72 73 74 80 81 82 83 84 85)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
 	if [ ! -d  /www/server/php-apt/${PHP_VER} ];then
@@ -32,7 +33,7 @@ done
 
 cd $curPath
 
-PHP_VER_LIST_EXT=(56 70 71 72 73 74 80 81 82 83 84)
+PHP_VER_LIST_EXT=(56 70 71 72 73 74 80 81 82 83 84 85)
 PHP_EXT_LIST=(ioncube pdo mysqlnd sqlite3 odbc opcache mcrypt fileinfo \
 	exif gd intl memcache memcached redis imagick xdebug xhprof \
 	swoole yaf phalcon yar mongodb yac solr seaslog mbstring zip zstd)

@@ -109,6 +109,11 @@ preload_app = False
 capture_output = True
 access_log_format = '%(t)s %(p)s %(h)s "%(r)s" %(s)s %(L)s %(b)s %(f)s" "%(a)s"'
 loglevel = 'info'
+# 日志轮转**不在这里实现**（P1-9.2）：gunicorn 不响应 USR1，自己写定时器还要处理并发与
+# 压缩，比系统 logrotate 更容易出错。轮转由 `scripts/install/logrotate/yf-panel`
+# 模板 + `scripts/install/logrotate/install.sh` 下发到 /etc/logrotate.d/yf-panel
+# （daily / rotate 14 / compress / copytruncate）。下面两个路径是该模板的锚点：
+# 改路径必须同步改模板，否则轮转会静默失效。
 errorlog = log_dir + '/panel_error.log'
 accesslog = log_dir + '/panel.log'
 pidfile = log_dir + '/panel.pid'

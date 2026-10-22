@@ -191,6 +191,36 @@ _gh_verify_file() {
     return 0
 }
 
+# ---------- 传输层 TLS 校验：默认开启，放宽必须显式 opt-in（报告 P1-3） ----------
+#
+# 口径：**默认一律做 TLS 证书校验**。只有显式设置 `YF_INSECURE_DOWNLOAD=1` 时才放宽
+# （老系统 CA 根证书缺失 / 自建内网镜像等极端场景），且必须打醒目告警，便于事后追查。
+#
+# 刻意**不提供**「校验失败后自动降级重试」的兜底：一次失败就是失败，不会偷偷改用
+# 跳证书再试一遍 —— 那种兜底等于把默认安全的开关又拧回去了。需要放宽请人工设置
+# 环境变量，并在安装记录里留下痕迹（[WARN] 日志就是痕迹）。
+#
+# 本函数是仓库里唯一产出「放宽 TLS 参数」的地方（单一真源），
+# `scripts/lib.sh::yf_download` 与 `_gh_try_download` 都走它。
+YF_INSECURE_DOWNLOAD="${YF_INSECURE_DOWNLOAD:-}"
+
+# 是否已显式开启「关闭 TLS 校验」：只认字符串 1，其它值（含空、0、yes）一律视为未开启。
+yf_insecure_download_enabled() {
+    [ "${YF_INSECURE_DOWNLOAD}" = "1" ]
+}
+
+# 用法: yf_wget_tls_extra_args <url>
+# 输出: 要追加给 wget 的 TLS 参数（默认无输出 = 保持证书校验）；
+#       仅当 YF_INSECURE_DOWNLOAD=1 时输出放宽参数，并向 stderr 打 [WARN] 告警。
+# 注意: 调用方必须**不加引号**地使用命令替换（空值要能展开成「没有参数」）。
+yf_wget_tls_extra_args() {
+    if yf_insecure_download_enabled; then
+        echo "[WARN] TLS 校验已被 YF_INSECURE_DOWNLOAD=1 关闭: $1" >&2
+        echo "--no-check-certificate"
+    fi
+    return 0
+}
+
 # 尝试使用 wget 下载文件
 # 用法: _gh_try_download <保存路径> <完整URL> <超时秒数>
 # 返回: 0=成功 1=失败
@@ -202,7 +232,8 @@ _gh_try_download() {
     # 先删除可能存在的空文件/残留文件
     rm -f "$file" 2>/dev/null
 
-    wget --no-check-certificate -O "$file" --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
+    # 默认做 TLS 校验；放宽参数只能由 yf_wget_tls_extra_args 在显式 opt-in 时给出
+    wget $(yf_wget_tls_extra_args "$url") -O "$file" --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
 
     # 校验: 文件必须有效
     if _gh_verify_file "$file"; then

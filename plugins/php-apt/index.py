@@ -19,6 +19,10 @@ if os.path.exists(web_dir):
 import core.yf as yf
 import logging
 
+# P0-2：安全基线表 + 包版本读取（与编译版插件共用同一份基线，不许各写一套）
+from core import php_sec_baseline
+from core import php_sec_scan
+
 _log = logging.getLogger('yf.php_apt')
 
 app_debug = False
@@ -50,7 +54,7 @@ PHP_INI_KEY_RULES = {
     'max_input_vars': r'^[0-9]{1,9}$',
     'max_file_uploads': r'^[0-9]{1,6}$',
     'default_socket_timeout': r'^[0-9]{1,6}$',
-    'memory_limit': r'^[0-9]{1,9}[KMG]?$',
+    'memory_limit': r'^(-1|[0-9]{1,9}[KMG]?)$',
     'post_max_size': r'^[0-9]{1,9}[KMG]?$',
     'upload_max_filesize': r'^[0-9]{1,9}[KMG]?$',
     'error_reporting': r'^[0-9A-Za-z_ &~|^!()-]{1,60}$',
@@ -772,6 +776,92 @@ def reload(version):
 def killAllPhp(version):
     yf.execShell('pkill -9 -f php-fpm')
     return 'ok'
+
+
+# ---------------------------------------------------------------------------------
+# P0-2：升级到安全基线（apt 渠道）
+#
+# 口径与编译版不同：
+#   * 读数读**包版本串**（dpkg-query），不只看 `php -v` —— sury / Debian 安全源会把
+#     补丁回移到旧上游版本号（例：`8.2.29-1+deb12u3`），只看数字会把已修复的机器误判成危；
+#   * 升级用 `apt-get install --only-upgrade`，不动无关包；
+#   * **apt 不能像编译版那样整目录回退**，但可以钉回旧包版本（--allow-downgrades）。
+#     自动回退失败时，把命令原样返回给 UI，不给「已回退」的假承诺。
+# ---------------------------------------------------------------------------------
+APT_UPGRADE_TIMEOUT = 900
+
+
+def submitBaselineUpgrade(version=''):
+    """一键升级入口（前端调用）：apt 升级是秒级~分钟级，同步执行并当场回读。"""
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    branch = ver.replace('.', '')
+    floor = php_sec_baseline.branch_floor(branch)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有安全基线，不支持一键升级' % ver)
+
+    before_pkg = php_sec_scan.read_package_version('apt', branch)
+    if not before_pkg:
+        return yf.returnJson(False, '未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装' % ver)
+    before, _raw = php_sec_baseline.parse_package_version(before_pkg)
+    if php_sec_baseline.has_backport_marker('apt', before_pkg):
+        return yf.returnJson(True, 'PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级'
+                             % (ver, before_pkg))
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+
+    yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
+    rc, out, errout = yf.execShellRc(php_sec_baseline.build_apt_upgrade_argv(branch),
+                                     shell=False, timeout=APT_UPGRADE_TIMEOUT)
+    tail = '\n'.join((out or errout or '').splitlines()[-12:])
+
+    after_pkg = php_sec_scan.read_package_version('apt', branch)
+    after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
+    verdict = php_sec_baseline.verify_upgrade(
+        branch, before, after,
+        backport=php_sec_baseline.has_backport_marker('apt', after_pkg))
+
+    if verdict['ok']:
+        try:
+            restart(ver)
+        except Exception as _e:
+            _log.debug('[php-apt] 升级后重启 PHP%s-FPM 异常: %s', ver, _e)
+        dropPhpSecSnapshot()
+        yf.writeLog('PHP安全升级', 'PHP%s(apt) %s' % (ver, verdict['text']))
+        return yf.returnJson(True, verdict['text'], {'before': before_pkg, 'after': after_pkg,
+                                                     'rc': rc, 'log_tail': tail})
+
+    # 失败：先试自动钉回旧版本（apt 缓存/源里还有旧包才可能成功）
+    rollback_argv = php_sec_baseline.build_apt_rollback_argv(branch, before_pkg)
+    rb_rc, rb_out, rb_err = (-1, '', '')
+    if rollback_argv:
+        # 列表 argv + shell=False（不拼命令行）；`list(...)` 再复制一份，
+        # 顺便让 shell 拼接棘轮守卫能静态看出这里不是 shell 字符串。
+        rb_rc, rb_out, rb_err = yf.execShellRc(list(rollback_argv), shell=False,
+                                               timeout=APT_UPGRADE_TIMEOUT)
+    try:
+        restart(ver)
+    except Exception as _e:
+        _log.debug('[php-apt] 升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
+    dropPhpSecSnapshot()
+    hint = ' '.join(rollback_argv) if rollback_argv else '（无可用回退命令）'
+    msg = '升级失败: %s（apt 退出码 %s），自动回退%s；手工回退请执行: %s' % (
+        verdict['text'], rc, '成功' if rb_rc == 0 else '未成功（apt 不保证旧版本仍在源内）', hint)
+    yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级失败: %s' % (ver, msg))
+    return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
+                                      'rollback_rc': rb_rc, 'rollback_argv': rollback_argv,
+                                      'log_tail': tail})
+
+
+def dropPhpSecSnapshot():
+    """删掉巡检快照，让首页卡片的告警/结论在升级后立即重新计算。"""
+    try:
+        path = yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception as _e:
+        _log.debug('[php-apt] 清理安全巡检快照失败: %s', _e)
 
 
 def upgradeSelfHealing(version=''):
@@ -1770,6 +1860,8 @@ if __name__ == "__main__":
         print(reload(version))
     elif func == 'kill_all_php':
         print(killAllPhp(version))
+    elif func == 'submit_baseline_upgrade':
+        print(submitBaselineUpgrade(version))
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':

@@ -193,5 +193,6 @@
     "不支持的防护类型:": "Unsupported protection type:",
     "配置文件读取失败": "Failed to read config file",
     "black_ip 参数格式错误": "Invalid black_ip parameter",
-    "请求失败": "Request failed"
+    "请求失败": "Request failed",
+    "配置保存失败": "Failed to save the configuration"
 }

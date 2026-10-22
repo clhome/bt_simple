@@ -14,9 +14,31 @@ elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then
 	source /www/server/yufeng_panel/scripts/lib_make_jobs.sh
 fi
 
-version=8.3.30
+# P0-2 判存守卫：读完整版本号再判（本文件两道判存都依赖它）。
+# 加载不到就直接停止 —— 没有判定函数就等于回到「目录存在即跳过」的假成功。
+for _yf_guard in "${rootPath}/plugins/php/versions/common/php_ver_guard.sh" \
+	"/www/server/yufeng_panel/plugins/php/versions/common/php_ver_guard.sh"; do
+	if [ -f "$_yf_guard" ]; then
+		. "$_yf_guard"
+		break
+	fi
+done
+if ! command -v yf_php_install_needs_build >/dev/null 2>&1; then
+	echo "[ERROR] 缺少判存守卫 php_ver_guard.sh，无法校验已装版本，停止安装以避免假成功。"
+	exit 1
+fi
+
+# CVE-2026-109618/109619（php2shell）修复基线：8.3 分支不得低于 8.3.36
+# 哈希口径是官方 php-<version>.tar.xz 的 sha256（不是 md5），取值来源
+# https://www.php.net/releases/index.php?json&version=<分支>&max=1 （2026-10-22 取，<分支>=8.3；禁止凭记忆或第三方镜像抄值）
+version=8.3.36
 PHP_VER=83
-md5_file_ok=67f084d36852daab6809561a7c8023d130ca07fc6af8fb040684dd1414934d48
+sha256_file_ok=dd54693aa334c5c4d72e9aee96b082c2473750a18a6c1d105789c93a3b1692fd
+# P0-2（已完成）：下面两道判存都改成「比对完整版本号」，所以只改 version= 也能对
+# 存量机器生效：
+#   ① 源码层比对 main/php_version.h 里的 PHP_VERSION，不一致就清目录重新下载解压；
+#   ② 安装层比对 bin/php -v / sbin/php-fpm -v，低于目标版本必须重装，不再「目录存在即跳过」。
+# 判定逻辑在 plugins/php/versions/common/php_ver_guard.sh，可独立调用做幂等测试。
 Install_php()
 {
 #------------------------ install start ------------------------------------#
@@ -35,7 +57,18 @@ if [ "$?" == "0" ];then
 	cd ${rootPath}/plugins/php/lib && /bin/bash oniguruma.sh
 fi
 
-if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ];then
+# P0-2①：源码层判存 —— 不再只看 php_version.h 是否存在，而是比对里面的完整版本号。
+# 版本不一致 / 读不出（含旧源码残留）都必须重新下载解压，否则会拿旧源码编译。
+yf_php_src_needs_fetch "$sourcePath/php/php${PHP_VER}" "${version}"
+_yf_src_need_fetch=$?
+if [ "$_yf_src_need_fetch" = "2" ]; then
+	echo "[ERROR] 目标版本 '${version}' 非法，无法判定源码版本，停止安装。"
+	exit 1
+fi
+if [ "$_yf_src_need_fetch" = "0" ]; then
+	if [ -d "$sourcePath/php/php${PHP_VER}" ]; then
+		echo "已解压源码的版本与目标 ${version} 不一致（或无法读取），清理旧源码后重新下载解压..."
+	fi
 	if ! command -v xz >/dev/null 2>&1; then
 		which apt-get >/dev/null 2>&1 && apt-get update && apt-get install -y xz-utils
 		which yum >/dev/null 2>&1 && yum install -y xz
@@ -65,7 +98,7 @@ if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ];then
 	#检测文件是否损坏.
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
 		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
-		if [ "${md5_file}" != "${md5_file_ok}" ]; then
+		if [ "${md5_file}" != "${sha256_file_ok}" ]; then
 			echo "PHP${version} 下载文件不完整,重新安装"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
 			exit 1
@@ -92,6 +125,14 @@ if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ];then
 	fi
 	if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ]; then
 		echo "Error: PHP source extraction failed, main/php_version.h not found!"
+		rm -rf $sourcePath/php/php${PHP_VER}
+		exit 1
+	fi
+
+	# P0-2①：解压完再回读一次，源码版本必须等于目标版本 —— 宁可失败，也不用错源码编译。
+	_yf_src_ver=`yf_php_ver_from_header "$sourcePath/php/php${PHP_VER}"`
+	if [ "$_yf_src_ver" != "${version}" ]; then
+		echo "[ERROR] 解压后的源码版本 '${_yf_src_ver:-未知}' 与目标 ${version} 不一致，停止安装。"
 		rm -rf $sourcePath/php/php${PHP_VER}
 		exit 1
 	fi
@@ -162,7 +203,16 @@ fi
 	fi
 
 	# echo "$sourcePath/php/php${PHP_VER}"
-	if [ ! -d $serverPath/php/${PHP_VER} ];then
+	# P0-2②：安装层判存 —— 不再「目录存在就整段跳过 configure/make/install」，
+	# 改为比对已装二进制的完整版本；低于目标版本（或读不出）必须重装。
+	yf_php_install_needs_build "$serverPath/php/${PHP_VER}" "${version}"
+	_yf_inst_need_build=$?
+	if [ "$_yf_inst_need_build" = "2" ]; then
+		echo "[ERROR] 无法判定已装 PHP 版本（目标 '${version}'），停止安装以避免假成功。"
+		exit 1
+	fi
+	if [ "$_yf_inst_need_build" = "0" ]; then
+		echo "开始编译安装 PHP${version}（前缀 $serverPath/php/${PHP_VER}）..."
 		cd $sourcePath/php/php${PHP_VER}
 		./configure \
 		--prefix=$serverPath/php/${PHP_VER} \
@@ -212,7 +262,20 @@ fi
 		if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
 
 		# rm -rf $sourcePath/php/php${PHP_VER}
-	fi 
+	else
+		echo "已装 PHP 版本不低于目标 ${version}，跳过编译。"
+	fi
+
+	# P0-2②：装完回读一次（只提示不中断：缺失动态库时 `php -v` 可能失败，
+	# 硬失败会误伤正常新装；升级流程里的硬断言与回退由面板侧统一兜底）。
+	if [ "$_yf_inst_need_build" = "0" ]; then
+		_yf_inst_ver=`yf_php_ver_from_binary "$serverPath/php/${PHP_VER}"`
+		if [ "$_yf_inst_ver" = "${version}" ]; then
+			echo "PHP${version} 安装完成，回读校验通过（${_yf_inst_ver}）。"
+		else
+			echo "[WARN] 安装后回读版本 '${_yf_inst_ver:-未知}' 与目标 ${version} 不一致，请检查编译日志。"
+		fi
+	fi
 	#------------------------ install end ------------------------------------#
 }
 

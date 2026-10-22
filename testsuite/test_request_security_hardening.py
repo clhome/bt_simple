@@ -5,7 +5,7 @@
 覆盖三件事：
 
 G3  CSRF 与「用 GET 改状态」
-    * 判定逻辑的真值表（token × referer × 豁免 × API 头）
+    * 判定逻辑的真值表（token × referer × 豁免 × API 凭据鉴权）
     * 状态变更端点必须 POST-only，且不得从 request.args 取参
     * GET 注销已移除
 
@@ -88,10 +88,25 @@ class CsrfDecisionTest(unittest.TestCase):
         self.assertTrue(allowed)
         self.assertEqual(reason, 'referer-only')
 
-    def test_08_api_header_auth_exempt(self):
+    def test_08_api_exemption_requires_verified_credentials(self):
+        """P2-1 修复点：只有**真的通过 API 凭据鉴权**才豁免，光带 `App-Id` 头不算。
+
+        旧断言是 `has_app_id=True` 即放行（reason='api-header-auth'）——那等于把
+        「伪造一个头就绕过 CSRF」的漏洞写进了回归用例。现更正为：
+            * 未鉴权（`api_verified=False`，即使带了 App-Id 头）-> 拒绝，理由不得是豁免；
+            * 鉴权通过（`api_verified=True`）-> 放行，reason='api-authenticated'。
+        这是**收紧**而不是放宽：旧行为（头存在就放行）不再有任何断言为它背书。
+        """
+        # 带 App-Id 头但未通过凭据鉴权 -> 必须拒绝（伪造头不能换豁免）
         allowed, reason = self._decide(has_app_id=True)
+        self.assertFalse(allowed, '光带 App-Id 头不得豁免 CSRF（伪造头即可绕过）')
+        self.assertEqual(reason, 'no-proof')
+        self.assertNotEqual(reason, 'api-authenticated')
+
+        # 真的鉴权通过 -> 放行，且 reason 与旧口径区分开（便于审计）
+        allowed, reason = self._decide(api_verified=True)
         self.assertTrue(allowed)
-        self.assertEqual(reason, 'api-header-auth')
+        self.assertEqual(reason, 'api-authenticated')
 
     def test_09_hook_and_acme_exempt(self):
         for path in ('/hook', '/.well-known/acme-challenge/x'):

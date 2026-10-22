@@ -1,4 +1,6 @@
 {
+  "plain_http_warning_title": "HTTP en clair : les cookies de connexion peuvent être interceptés",
+  "plain_http_warning_desc": "Veuillez activer HTTPS dans les paramètres du panneau dès que possible ; n'utilisez pas ce panneau sur le réseau public avant cela.",
   "config": "Configuration en cours...",
   "detail": "Détails",
   "disabled": "Désactivé",

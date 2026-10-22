@@ -1373,6 +1373,38 @@ start_panel() {
 }
 
 # =====================================================================
+# gunicorn 日志轮转下发（整改项 P1-9.2）
+#
+# 为何需要：web/setting.py 只把 gunicorn 输出指到 logs/panel.log 与
+# logs/panel_error.log，仓库原本没有任何轮转配置 —— 长期运行每天都在涨，
+# 小盘 VPS 迟早被面板自己的日志塞满（写满根分区 → 面板与数据库一起挂）。
+#
+# 真正的安装逻辑在 scripts/install/logrotate/install.sh（可单独重跑、幂等），
+# 这里只负责「安装/迁移流程里叫它一声」。失败**不阻断安装**（缺 logrotate 的
+# 最小系统仍应能用面板），但必须可显：输出 WARN 并落进安装日志，不静默。
+# =====================================================================
+install_logrotate_conf() {
+    local _lg_script="${PANEL_DIR}/scripts/install/logrotate/install.sh"
+    if [ ! -f "$_lg_script" ]; then
+        log_warn "未找到日志轮转下发脚本（$_lg_script），本次跳过日志轮转配置"
+        return 0
+    fi
+    # 不用 `脚本 | tee -a 日志`：管道会把脚本的退出码换成 tee 的（永远 0），
+    # 真正的失败就被吞了。先收集输出与退出码，再同时上屏 + 落日志。
+    local _lg_out=""
+    local _lg_rc=0
+    _lg_out=$(bash "$_lg_script" 2>&1) || _lg_rc=$?
+    if [ -n "$_lg_out" ]; then
+        printf '%s\n' "$_lg_out" >> "$LOG_FILE"
+        printf '%s\n' "$_lg_out"
+    fi
+    if [ "$_lg_rc" -ne 0 ]; then
+        log_warn "日志轮转配置下发失败（返回码 $_lg_rc），面板可继续使用；详情见 ${PANEL_DIR}/logs/logrotate_install.log ；可手动重跑：bash ${PANEL_DIR}/scripts/install/logrotate/install.sh"
+    fi
+    return 0
+}
+
+# =====================================================================
 # 代码下载
 # =====================================================================
 download_code() {
@@ -1595,6 +1627,9 @@ fresh_install() {
     setup_china_git_config
     cd ${PANEL_DIR} && bash scripts/install/${OSNAME}.sh 2>&1 | tee -a $LOG_FILE
 
+    # 下发 gunicorn 日志轮转配置（P1-9.2；失败只告警，不阻断安装）
+    install_logrotate_conf
+
     # 启动服务
     cd ${PANEL_DIR} && bash cli.sh start
     sleep 3
@@ -1757,6 +1792,8 @@ conn.close()
 
     # 启动
     set_panel_version
+    # 日志轮转配置自愈（P1-9.2）：老面板目录迁移过来的机器通常没有这份配置
+    install_logrotate_conf
     start_panel
     sleep 2
     disable_upstream_update
@@ -2031,6 +2068,9 @@ migrate_from_bt() {
     log_info "安装系统依赖..."
 
     cd ${PANEL_DIR} && bash scripts/install/${OSNAME}.sh 2>&1 | tee -a $LOG_FILE
+
+    # 下发 gunicorn 日志轮转配置（P1-9.2；失败只告警，不阻断安装）
+    install_logrotate_conf
 
     # 启动
     cd ${PANEL_DIR} && bash cli.sh start

@@ -193,5 +193,6 @@
     "不支持的防护类型:": "Tipo di protezione non supportato:",
     "配置文件读取失败": "Lettura file non riuscita",
     "black_ip 参数格式错误": "Parametro black_ip non valido",
-    "请求失败": "Richiesta non riuscita"
+    "请求失败": "Richiesta non riuscita",
+    "配置保存失败": "Impossibile salvare la configurazione"
 }

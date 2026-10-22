@@ -384,6 +384,7 @@
   "复制用户密码为空!": "Das Passwort des Replikationsbenutzers ist leer!",
   "{1}日志": "{1}-Protokoll",
   "分页参数不合法!": "Ungültige Seitenangabe!",
+  "参数 type 不合法，必须是整数!": "Ungültiger Parametertyp, muss eine Ganzzahl sein!",
   "端口不合法!": "Ungültiger Port!",
   "配置文件中未找到端口配置!": "Port in Konfiguration nicht gefunden!",
   "修改端口后服务未就绪:": "Dienst nach Portänderung nicht bereit:",

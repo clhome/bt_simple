@@ -1,4 +1,11 @@
 {
+    "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s has no compiled-edition security baseline, use the APT/YUM channel to upgrade",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s already meets the baseline (%s >= %s), no upgrade needed",
+    "投递升级任务失败: %s": "Failed to queue the upgrade task: %s",
+    "已提交升级任务: %s → %s，请在任务日志查看进度": "Upgrade task queued: %s -> %s, check the task log for progress",
+    "缺少安装脚本: %s": "Missing install script: %s",
+    "升级前备份旧二进制失败，已取消升级: %s": "Failed to back up the old binaries before upgrading, upgrade cancelled: %s",
+    "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Upgrade failed: %s (install script exit code %s), old binaries restored: %s",
     "*PHP-FPM运行模式": "*PHP-FPM running mode",
     "*允许创建的最大子进程数": "*The maximum number of child processes allowed to be created",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Maximum number of idle processes (clean up when idle processes reach this value)",
@@ -188,5 +195,20 @@
     "扩展列表配置文件格式错误!": "Extension list file invalid!",
     "扩展名称不合法!": "Invalid extension name!",
     "未找到该扩展的卸载脚本!": "Uninstall script not found!",
-    "请求失败": "Request failed"
+    "请求失败": "Request failed",
+    "PHP 应急缓解（临时缓解，非修复）": "PHP emergency mitigation (temporary mitigation, not a fix)",
+    "本开关是 CVE-2026-109618/109619 的临时缓解，不是修复；请尽快升级 PHP 到含官方补丁的版本。": "This switch is a temporary mitigation for CVE-2026-109618/109619, not a fix; upgrade PHP to a version with the official patch as soon as possible.",
+    "「不限制内存」档位属临时缓解，仅供压测/临时排障：-1 期间需监控主机内存，否则可能拖垮整台机器。": "The \"no memory limit\" tier is a temporary mitigation, only for load testing / temporary troubleshooting: while set to -1 you must monitor host memory, otherwise the whole machine can be taken down.",
+    "关闭临时缓解会按开启前的原值还原配置（不是恢复默认值）。": "Disabling the temporary mitigation restores the values captured before it was enabled (not the defaults).",
+    "已开启 PHP 应急缓解（临时缓解，非修复）: memory_limit = %s": "PHP emergency mitigation enabled (temporary mitigation, not a fix): memory_limit = %s",
+    "「不限制内存」档位需二次确认：-1 期间需监控主机内存，否则可能拖垮整台主机": "The 'unlimited memory' tier needs confirmation: monitor host memory while -1 is active, otherwise the whole host may be taken down",
+    "已关闭 PHP 应急缓解，配置已按开启前的原值还原": "PHP emergency mitigation disabled; configuration restored to the values captured before it was enabled",
+    "开启应急缓解失败: %s": "Failed to enable the emergency mitigation: %s",
+    "回滚应急缓解失败: %s": "Failed to roll back the emergency mitigation: %s",
+    "配置已写入并记录快照，但 php-fpm 重启失败，请手工重启后确认: %s": "Configuration written and snapshot recorded, but the php-fpm restart failed; restart it manually and verify: %s",
+    "配置已按原值还原，但 php-fpm 重启失败，请手工重启后确认: %s": "Configuration restored to the original values, but the php-fpm restart failed; restart it manually and verify: %s",
+    "非法档位: %s（只允许 %s）": "Invalid tier: %s (only %s are allowed)",
+    "没有检测到已安装的 PHP 配置（无需缓解）": "No installed PHP configuration detected (nothing to mitigate)",
+    "读取缓解状态失败: %s": "Failed to read the mitigation status: %s",
+    "缓解模块不可用: %s": "The mitigation module is unavailable: %s"
 }

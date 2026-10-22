@@ -193,5 +193,6 @@
     "不支持的防护类型:": "Nicht unterstützter Schutztyp:",
     "配置文件读取失败": "Konfigdatei nicht lesbar",
     "black_ip 参数格式错误": "Ungültiger black_ip-Parameter",
-    "请求失败": "Anfrage fehlgeschlagen"
+    "请求失败": "Anfrage fehlgeschlagen",
+    "配置保存失败": "Konfiguration konnte nicht gespeichert werden"
 }

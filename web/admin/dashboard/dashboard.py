@@ -15,6 +15,7 @@ import json
 import os
 import sys
 import logging
+import threading
 
 _log = logging.getLogger('yf.dashboard')
 
@@ -32,13 +33,20 @@ import core.yf as yf
 import core.quick_login_nonce as quick_login_nonce
 import thisdb
 
+# P2-2 的判定函数（`plain_http_warning.py`，零依赖纯函数）一律**函数内延迟导入**：
+# 本模块会被用例按文件路径 exec（无父包，`admin` 还是 stub），模块级相对导入会炸。
+
 
 blueprint = Blueprint('dashboard', __name__, url_prefix='/', template_folder='../../templates')
 @blueprint.route('/', endpoint='index', methods=['GET'])
 @panel_login_required
 def index():
     name = thisdb.getOption('template', default='default')
-    return render_template('%s/index.html' % name)
+    # P2-2：明文 HTTP（且面板 SSL 未开）时，首页显著提示登录 Cookie 可被嗅探。
+    # 只加模板变量，不改部署默认值，也不碰 SESSION_COOKIE_SECURE 的开关逻辑。
+    from .plain_http_warning import plain_http_warning_flag
+    return render_template('%s/index.html' % name,
+                           plain_http_warning=plain_http_warning_flag())
 
 #: 快捷登录签发时间戳的容许窗口（毫秒，双边界），与 core.quick_login_nonce.NONCE_TTL 对齐。
 QUICK_LOGIN_TTL_MS = 60 * 1000
@@ -212,6 +220,43 @@ def get_location_from_pconline(ip):
     except Exception as e:
         _log.debug('[dashboard] pconline IP 归属地解析失败: %s', e)
     return None
+
+# 首页「PHP 安全基线」告警卡片的取数接口（P0-2）。
+#
+# 口径（告警三态）：
+#   * 无任何 PHP  → state='empty'、alarm=False，前端只显示空态，绝不告警；
+#   * 仅 apt/yum → 按包版本里的渠道回移标记判，不按上游数字判危（sury/Remi 会回移补丁）；
+#   * 未联网    → 仍然用内置基线表判定，返回 baseline_date，前端标注「基线表日期」。
+#
+# 取数优先读每日巡检写下的快照（O(1)，不在页面请求里跑 shell）；无快照/快照过期时
+# 即时巡检一次（用 3s 短超时 runner，避免一个异常二进制把首页拖住），结果同时落盘。
+_PHP_SEC_SCAN_LOCK = threading.Lock()
+
+
+@blueprint.route('/get_php_security_status', endpoint='get_php_security_status',
+                 methods=['GET', 'POST'])
+@panel_login_required
+def get_php_security_status():
+    from core import php_sec_scan
+
+    snapshot = yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
+    offline = yf.extNetDisabled()
+    try:
+        with _PHP_SEC_SCAN_LOCK:
+            data = php_sec_scan.load_or_scan(
+                snapshot,
+                server_php_dir=yf.getServerDir() + '/php',
+                offline=offline,
+                run=php_sec_scan.make_runner(3),
+            )
+    except Exception as e:
+        # 巡检自身出错不得让首页 500：明确返回错误，前端显示失败而不是「无风险」
+        _log.warning('[dashboard] PHP 安全巡检失败: %s', e)
+        return yf.returnData(False, 'PHP安全基线巡检失败: %s' % e)
+
+    data['offline'] = bool(offline)
+    return yf.returnData(True, 'ok', data)
+
 
 def get_ip_location_str(ip):
     # 1. 优先方案：参考 op_waf 使用 ip-api.com

@@ -60,7 +60,12 @@ def getEnvInfo():
     if os.path.exists(sdir + '/openresty/nginx/sbin/nginx'):
         data['webserver'] = 'OpenResty'
     data['php'] = []
-    phpversions = ['52', '53', '54', '55', '56', '70', '71', '72', '73', '74', '80', '81', '82', '83', '84']
+    # 环境信息页要枚举的编译版 PHP 目录名。少一个版本号 = 该版本装好了也
+    # 在「环境信息」里看不见（getEnvInfo 只按这张表去探 $serverDir/php/<NN>/bin/php）。
+    # 新增编译版 PHP 时须与 plugins/php/index.py 的 makeOpenrestyConf() 白名单同步追加。
+    # TODO(P0-4): 52~74 的收紧下架由 P0-4 统一处理，本次只追加 85。
+    phpversions = ['52', '53', '54', '55', '56', '70', '71', '72', '73', '74',
+                   '80', '81', '82', '83', '84', '85']
     phpPath = sdir + '/php/'
     for pv in phpversions:
         if not os.path.exists(phpPath + pv + '/bin/php'):

@@ -130,6 +130,14 @@
 </style>
 </head>
 <body>
+{# P2-2 明文 HTTP 告警：登录页最顶部整条红底，不可关闭，不泄露版本/路径等信息。
+   仅在「请求是明文 HTTP 且面板 SSL 未开启」时由后端置 plain_http_warning=True。 #}
+{% if plain_http_warning %}
+<div id="plainHttpWarning" role="alert" style="position:relative; z-index:200; padding:10px 16px; background:#c0392b; border-bottom:1px solid #962d22; color:#fff; font-size:13px; line-height:20px; text-align:center;">
+	<span style="font-weight:700;" data-i18n="public.plain_http_warning_title">{{ t('public.plain_http_warning_title', '当前为明文 HTTP，登录 Cookie 可被嗅探') }}</span>
+	<span style="margin-left:8px; opacity:0.92;" data-i18n="public.plain_http_warning_desc">{{ t('public.plain_http_warning_desc', '请尽快在「面板设置」中启用 HTTPS；在启用前不要通过公网使用此面板。') }}</span>
+</div>
+{% endif %}
 <div class="main">
 	<div class="login-wrapper">
 		<div class="login-intro">

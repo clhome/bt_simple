@@ -1,4 +1,6 @@
 {
+  "plain_http_warning_title": "Unverschlüsseltes HTTP: Login-Cookies können mitgelesen werden",
+  "plain_http_warning_desc": "Bitte aktivieren Sie HTTPS in den Panel-Einstellungen so bald wie möglich; nutzen Sie dieses Panel bis dahin nicht über das öffentliche Netz.",
   "config": "Wird eingerichtet...",
   "detail": "Details",
   "disabled": "Deaktiviert",

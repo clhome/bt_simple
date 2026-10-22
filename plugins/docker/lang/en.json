@@ -257,5 +257,7 @@
     "添加失败!": "Add failed",
     "特权模式": "Privileged",
     "特权模式说明": "Grants full host privileges; trusted images only. Off by default.",
-    "IP地址不合法": "Invalid IP address"
+    "IP地址不合法": "Invalid IP address",
+    "配置已保存，但 systemctl daemon-reload 失败: ": "Configuration saved, but systemctl daemon-reload failed: ",
+    "配置已保存，但重启 Docker 服务失败: ": "Configuration saved, but restarting the Docker service failed: "
 }

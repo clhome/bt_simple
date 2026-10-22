@@ -1,4 +1,11 @@
 {
+    "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s n'a pas de base de securite pour l'edition compilee, utilisez le canal APT/YUM",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s respecte deja la base (%s >= %s), aucune mise a niveau necessaire",
+    "投递升级任务失败: %s": "Echec de la mise en file de la tache de mise a niveau: %s",
+    "已提交升级任务: %s → %s，请在任务日志查看进度": "Tache de mise a niveau en file: %s -> %s, voir le journal des taches",
+    "缺少安装脚本: %s": "Script d'installation manquant: %s",
+    "升级前备份旧二进制失败，已取消升级: %s": "Echec de la sauvegarde des anciens binaires, mise a niveau annulee: %s",
+    "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Echec de la mise a niveau: %s (code de sortie du script %s), anciens binaires restaures: %s",
     "*PHP-FPM运行模式": "*Mode d'exécution PHP-FPM",
     "*允许创建的最大子进程数": "*Le nombre maximum de processus enfants pouvant être créés",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Nombre maximum de processus inactifs (nettoyer lorsque les processus inactifs atteignent cette valeur)",
@@ -188,5 +195,20 @@
     "扩展列表配置文件格式错误!": "Fichier de liste d'extensions invalide !",
     "扩展名称不合法!": "Nom d'extension invalide !",
     "未找到该扩展的卸载脚本!": "Script de désinstallation introuvable !",
-    "请求失败": "Échec de la requête"
+    "请求失败": "Échec de la requête",
+    "PHP 应急缓解（临时缓解，非修复）": "Atténuation d'urgence PHP (atténuation temporaire, pas un correctif)",
+    "本开关是 CVE-2026-109618/109619 的临时缓解，不是修复；请尽快升级 PHP 到含官方补丁的版本。": "Ce commutateur est une atténuation temporaire pour CVE-2026-109618/109619, pas un correctif ; mettez à jour PHP vers une version contenant le correctif officiel dès que possible.",
+    "「不限制内存」档位属临时缓解，仅供压测/临时排障：-1 期间需监控主机内存，否则可能拖垮整台机器。": "Le palier « sans limite de mémoire » est une atténuation temporaire, réservée aux tests de charge / au dépannage temporaire : pendant -1, surveillez la mémoire de l'hôte, sinon la machine entière peut être mise à genoux.",
+    "关闭临时缓解会按开启前的原值还原配置（不是恢复默认值）。": "La désactivation de l'atténuation temporaire restaure les valeurs relevées avant son activation (et non les valeurs par défaut).",
+    "已开启 PHP 应急缓解（临时缓解，非修复）: memory_limit = %s": "Atténuation d'urgence PHP activée (atténuation temporaire, pas un correctif) : memory_limit = %s",
+    "「不限制内存」档位需二次确认：-1 期间需监控主机内存，否则可能拖垮整台主机": "Le palier 'mémoire illimitée' nécessite une confirmation : surveillez la mémoire de l'hôte pendant -1, sinon l'hôte entier peut tomber",
+    "已关闭 PHP 应急缓解，配置已按开启前的原值还原": "Atténuation d'urgence PHP désactivée ; configuration restaurée aux valeurs relevées avant son activation",
+    "开启应急缓解失败: %s": "Échec de l'activation de l'atténuation d'urgence : %s",
+    "回滚应急缓解失败: %s": "Échec du retour en arrière de l'atténuation d'urgence : %s",
+    "配置已写入并记录快照，但 php-fpm 重启失败，请手工重启后确认: %s": "Configuration écrite et instantané enregistré, mais le redémarrage de php-fpm a échoué ; redémarrez-le manuellement puis vérifiez : %s",
+    "配置已按原值还原，但 php-fpm 重启失败，请手工重启后确认: %s": "Configuration restaurée aux valeurs d'origine, mais le redémarrage de php-fpm a échoué ; redémarrez-le manuellement puis vérifiez : %s",
+    "非法档位: %s（只允许 %s）": "Palier invalide : %s (seuls %s sont autorisés)",
+    "没有检测到已安装的 PHP 配置（无需缓解）": "Aucune configuration PHP installée détectée (rien à atténuer)",
+    "读取缓解状态失败: %s": "Échec de la lecture de l'état de l'atténuation : %s",
+    "缓解模块不可用: %s": "Le module d'atténuation est indisponible : %s"
 }

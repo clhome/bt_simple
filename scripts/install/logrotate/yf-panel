@@ -1,0 +1,33 @@
+# 御风面板（BtSimple）gunicorn 日志轮转配置
+# =============================================================================
+# 本文件是**模板**，由 scripts/install/logrotate/install.sh 渲染后安装到
+# /etc/logrotate.d/yf-panel ；模板里的 __PANEL_DIR__ 会被替换成真实面板目录。
+#
+# 为什么必须 copytruncate（而不是 USR1 / create 那一套）：
+#   gunicorn 的 accesslog / errorlog 是**已打开的文件句柄**，它不响应 USR1
+#   （那是对 nginx 的约定），收到信号也不会重开日志文件。若用 create 模式，
+#   logrotate 会先把日志 rename 成 .1 再新建空文件，而 gunicorn 继续往已被
+#   rename 的旧 inode 写 —— 看起来轮转成功，磁盘占用却只增不减，等于没轮转。
+#   copytruncate = 先拷贝内容、再把原文件截断为 0，不需要进程配合，
+#   是 gunicorn 场景的通用解（代价是截断瞬间可能丢几行，可接受）。
+#
+# 路径必须与 web/setting.py 里的配置一致：
+#   errorlog = <面板目录>/logs/panel_error.log
+#   accesslog = <面板目录>/logs/panel.log
+# 这两行是面板唯一的应用日志出口；不改路径就不用改本模板。
+#
+# 保留策略：daily + rotate 14 = 保留 14 天（压缩后占用很小）。
+# =============================================================================
+
+__PANEL_DIR__/logs/panel.log
+__PANEL_DIR__/logs/panel_error.log
+{
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su root root
+}

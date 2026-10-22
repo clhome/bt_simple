@@ -37,7 +37,7 @@ Install_App()
 
 
 	if [ ! -f $REDIS_DIR/${FILE_TGZ} ];then
-		wget -nv --no-check-certificate -O $REDIS_DIR/${FILE_TGZ} https://download.redis.io/releases/${FILE_TGZ}
+		wget -nv -O $REDIS_DIR/${FILE_TGZ} https://download.redis.io/releases/${FILE_TGZ}
 	fi
 	
 	cd $REDIS_DIR && tar -zxf ${FILE_TGZ}

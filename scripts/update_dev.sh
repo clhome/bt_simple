@@ -40,6 +40,27 @@ fi
 
 LOG_FILE=/var/log/yf-update.log
 
+# =========================================================================
+# 供应链闸门（测评报告 P1-2）：未经验证的远端内容一律拒绝 root 执行
+#
+# 历史上这里用「放宽传输层 TLS 校验的 curl」拉 dev 分支源码包，
+# 解包后直接 cp 覆盖 /www/server/yufeng_panel。
+# 分支快照是**未签名**产物，无法证明来源与完整性；以 root 覆盖面板代码 = 任意代码执行。
+# 现在这条路**默认拒绝**（fail-closed），并且**刻意不提供**环境变量放过口。
+#
+# 升级请改用已实现 Ed25519 验签与回滚的 deploy.sh（update / rollback 子命令）。
+# =========================================================================
+yf_refuse_unverified_source() {
+	echo -e "\033[31m[ERROR]\033[0m 拒绝执行未经验证的远端内容：$1" >&2
+	echo -e "\033[31m[ERROR]\033[0m 原因：它是**未签名**的分支快照，没有可校验的 Ed25519 签名，" >&2
+	echo -e "\033[31m[ERROR]\033[0m       以 root 覆盖面板代码等于把服务器完全交给链路中间人（供应链 fail-closed）。" >&2
+	echo -e "\033[31m[ERROR]\033[0m 请改用下列任一方式升级：" >&2
+	echo -e "\033[31m[ERROR]\033[0m   1) bash deploy.sh update           # 下载发布包 → Ed25519 验签 → 升级（含回滚）" >&2
+	echo -e "\033[31m[ERROR]\033[0m   2) bash deploy.sh rollback         # 需要回退时先用它恢复上一个备份" >&2
+	echo -e "\033[31m[ERROR]\033[0m   3) 下载**带签名的发布包**，按发布说明升级" >&2
+	exit 1
+}
+
 {
 
 HTTP_PREFIX="https://"
@@ -271,10 +292,15 @@ fi
 
 echo "local:${LOCAL_ADDR}"
 
-CP_CMD=/usr/bin/cp
-if [ -f /bin/cp ];then
-	CP_CMD=/bin/cp
-fi
+# -------------------------------------------------------------------------
+# 供应链闸门（P1-2）：本脚本原来在这里用「放宽传输层 TLS 校验的 curl」拉 dev 分支
+# 源码包，`tar -zxf` 后 cp 覆盖 /www/server/yufeng_panel。分支快照无法证明来源，
+# 以 root 覆盖代码等价于任意代码执行，因此这条路**默认拒绝**（fail-closed）。
+# 闸门下方的（覆盖 -> 重启）流程按原样保留，作为「已验签发布包」落地后要走的步骤；
+# 在恢复验签下载之前不可达。升级请用 deploy.sh update / deploy.sh rollback。
+# -------------------------------------------------------------------------
+echo "update mdserver-web dev code start"
+yf_refuse_unverified_source "GitHub dev 分支源码包（未签名快照）"
 
 if [ -f /tmp/dev.tar.gz ];then
 	rm -rf /tmp/dev.tar.gz
@@ -283,16 +309,6 @@ fi
 if [ -d /tmp/bt_simple-dev ];then
 	rm -rf /tmp/bt_simple-dev
 fi
-
-echo "update mdserver-web dev code start"
-
-curl --insecure -sSLo /tmp/dev.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz
-cd /tmp && tar -zxf /tmp/dev.tar.gz
-$CP_CMD -rf /tmp/bt_simple-dev/* /www/server/yufeng_panel
-rm -rf /tmp/dev.tar.gz
-rm -rf /tmp/bt_simple-dev
-
-echo "update mdserver-web dev code end"
 
 
 #pip uninstall public

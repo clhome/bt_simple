@@ -52,6 +52,17 @@ cd /www/server/mdserver-web/plugins/php/versions && bash all_test.sh
 | openSUSE 15.4 	|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|
 | openEuler 22.03 	|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|✅		|
 
+> **PHP 版本支持状态说明（P0-4 起）**
+>
+> 上表 PHP53 ~ PHP81 列的 ✅ 表示「**历史版本曾在对应系统上编译/运行通过**」，**不代表当前仍在支持列表内**。
+>
+> * **PHP53 ~ PHP73（5.2/5.3/5.4/5.5/5.6/7.0/7.1/7.2/7.3）**：已从默认版本列表**下架**。这些分支上游早已停止安全维护，且存在**已知未修复的 RCE**（CVE-2026-109618/109619，php2shell），官方不会提供补丁 —— 因此面板默认**拒绝安装**（`plugins/php` 与 `plugins/php-apt` 的 `versions` 清单里已移除），**禁止用于公网环境**。
+>   确需在隔离/内网环境自担风险使用的，必须显式 opt-in：`YF_ALLOW_UNSAFE_PHP=1 bash install.sh install <版本>`。
+> * **PHP74 / PHP80 / PHP81（7.4 / 8.0 / 8.1）**：**编译版已下架**（`plugins/php` 不再提供）。这三个分支上游已停止发布编译版安全版本，但 Debian/Ubuntu 的 sury 源与 CentOS/RHEL 的 Remi 源**仍在提供安全回移补丁**，请改用 **PHP[APT]** 或 **PHP[YUM]** 渠道安装（`plugins/php-apt` / `plugins/php-yum` 的 `versions` 仍含 `74/80/81`）。直接走编译版同样默认拒绝，需显式 `YF_ALLOW_UNSAFE_PHP=1` 才放行。
+> * **PHP82 ~ PHP85（8.2/8.3/8.4/8.5）**：当前默认支持的版本区间，编译版与 APT/YUM 渠道均可用（编译版的版本地板与官方 sha256 由 `testsuite/test_php_cve_version_floor.py` 守卫）。
+>
+> 守卫用例：`testsuite/test_php_unsupported_versions.py`；`makeOpenrestyConf()` 的白名单**刻意保留**老版本号，仅为存量已装机器仍能生成 `enable-php-<NN>.conf`，与「能否新装」无关。
+
 
 
 | 系统名称 			| MySQL55|MySQL56|MySQL57|MySQL80|

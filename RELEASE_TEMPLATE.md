@@ -41,6 +41,25 @@ yf rollback      # 回滚到上一次升级前的版本
   `/www/backup/yufeng_panel.prerollback.<时间戳>.tar.gz`，需要撤销时解压它即可。
 - 数据库结构不需要手工回退：老代码启动时若发现库版本更高，只会告警、**不动数据**。
 
+## 完整性校验
+
+> 本节**不要手改**：`sha256:` 这一行由发布流程自动注入。
+> `.github/workflows/release.yml` 在出包后计算实际摘要，替换本节里的 `__SHA256__`
+> 占位符，把结果写成 `dist/RELEASE_BODY.md` 再作为 Release 正文（`body_path`）。
+> 面板自升级是 **fail-closed** 的：正文里没有 `sha256: <64 位十六进制>` 会**直接拒绝升级**，
+> 所以这一行是发布链路的硬要求，不是装饰。
+
+sha256: __SHA256__
+
+- 上面这个摘要对应**自升级通道实际下载的那个包**：面板固定把它落地成 `temp/yf.zip`，
+  因此发布侧的 `SHA256SUMS` 也以 `yf.zip` 这个名字登记同一条记录（验签器按 basename 查表）。
+- 安装用的 `yf-panel-<版本>.tar.gz` 摘要见 Release 附件 `SHA256SUMS`，本次为：
+
+  `__TARBALL_SHA256__  yf-panel-<版本>.tar.gz`
+
+- 自行复核：`sha256sum yf.zip` 与本节第一行逐字符比对；清单与签名可用
+  `python scripts/tools/yf_release_verify.py` 复核（公钥 `keys/yf-release.pub`）。
+
 ## 发布前自检
 
 - [ ] `python testsuite/run_all.py` 全绿（含 4 项静态门禁）

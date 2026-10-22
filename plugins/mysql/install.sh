@@ -153,7 +153,7 @@ Install_fast_mysql() {
         if command -v yf_download &> /dev/null; then
             yf_download "${tmp_file}" "${mirror_url}"
         else
-            wget -nv --no-check-certificate -O "${tmp_file}" "${mirror_url}"
+            wget -nv -O "${tmp_file}" "${mirror_url}"
         fi
 
         if [ -f "${tmp_file}" ]; then

@@ -595,9 +595,56 @@ def readFile(filename):
         return False
 
 
-def writeFile(filename, content, mode='w+'):
-    # 写文件内容 (覆写模式支持原子落盘，防止断电/OOM/磁盘满导致文件截断为0字节)
-    # 关键配置落盘后追加 size>0 二次校验，区分 ENOSPC 场景
+class WriteFileError(IOError):
+    """`writeFile(must=True)` 写盘失败时抛出的异常（`IOError` 即 `OSError` 的别名）。
+
+    带上 `filename` 与原因，让「设置没保存」这件事在日志与前端里都能定位到具体文件。
+    """
+
+    def __init__(self, filename, reason):
+        self.filename = filename
+        self.reason = reason
+        # 优先用 errno 的可读描述（如「Not a directory」），否则回落到异常文本
+        detail = str(getattr(reason, 'strerror', '') or reason)
+        self._message = '写文件失败: %s: %s' % (filename, detail)
+        IOError.__init__(self, self._message)
+
+    def __str__(self):
+        # OSError.__str__ 一旦看到 .filename 就会拼成「[Errno None] None: '...'」，
+        # 这里要的是给人看的中国话。
+        return self._message
+
+
+def writeFile(filename, content, mode='w+', must=False):
+    """写文件内容，成功返回 True。**失败语义由 `must` 决定**（兼容契约，勿改默认值）：
+
+    * ``must=False``（默认，全仓 1700+ 调用点的历史行为）：写失败只记日志并
+      ``return False``，**永不抛异常**。适用于日志、缓存、指纹等「丢了也能跑」的写入。
+    * ``must=True``：用于**设置 / 保存 / 规则落盘**类写入（用户在界面上点了保存、
+      随后系统会 reload 配置）。这类场景写失败必须让调用方看得见，否则就是
+      「写盘失败 = 界面显示成功」。此时写失败抛 :class:`WriteFileError`
+      （`IOError` 子类，带文件名与原因）。
+
+    怎么用（二选一，别混着来）：
+
+        # 1) 设置类：让异常把失败带出去
+        try:
+            yf.writeFile(path, body, must=True)
+        except Exception:
+            return yf.returnJson(False, '保存失败')
+
+        # 2) 设置类：直接看返回值
+        if not yf.writeFile(path, body):
+            return yf.returnJson(False, '保存失败')
+
+    **不要**再写「裸 writeFile 外面套 try/except」：默认参数下它不抛异常，
+    except 分支是永远进不去的死代码（fail2ban 的 clear_log 历史上就栽在这里，
+    写失败仍回「清空日志成功!」）。
+
+    实现细节：覆写模式支持原子落盘（临时文件 + fsync + os.replace），
+    防止断电/OOM/磁盘满导致文件截断为 0 字节；关键配置落盘后追加 size>0 二次校验，
+    区分 ENOSPC 场景。
+    """
     try:
         parent_dir = os.path.dirname(filename)
         if parent_dir and not os.path.exists(parent_dir):
@@ -615,13 +662,19 @@ def writeFile(filename, content, mode='w+'):
                         writeFileLog('[yf.writeFile] fsync 失败: %s -> %s' % (filename, _e))
                 os.replace(temp_file, filename)
                 # 二次校验：非空内容落盘后文件必须 >0，否则视为 ENOSPC/截断失败
+                # （先把判定结果取出来再抛/返回：直接在 getsize 的 try 里 raise
+                #  会被它自己的 except 吞掉，又变成「等不来的异常」）
+                zero_size = False
                 if content is not None and content != '':
                     try:
-                        if os.path.getsize(filename) == 0 and len(str(content)) > 0:
-                            writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={len(str(content))}\n{getTracebackInfo()}")
-                            return False
+                        zero_size = (os.path.getsize(filename) == 0 and len(str(content)) > 0)
                     except Exception as _e:
                         writeFileLog('[yf.writeFile] 校验替换结果失败: %s -> %s' % (filename, _e))
+                if zero_size:
+                    writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={len(str(content))}\n{getTracebackInfo()}")
+                    if must:
+                        raise WriteFileError(filename, '落盘后文件大小为 0（磁盘满或配额不足）')
+                    return False
                 return True
             except Exception as write_err:
                 if os.path.exists(temp_file):
@@ -648,7 +701,12 @@ def writeFile(filename, content, mode='w+'):
             writeFileLog(f"[writeFile] {filename} failed: {e}\n{getTracebackInfo()}")
         except Exception as _e:
             writeFileLog(getTracebackInfo())
-        return False
+        if not must:
+            # 默认契约：失败只回 False，绝不抛异常（全仓历史调用点依赖这一点）
+            return False
+        if isinstance(e, WriteFileError):
+            raise
+        raise WriteFileError(filename, e) from e
 
 
 def systemdCfgDir():
@@ -981,7 +1039,13 @@ def getAesKey():
         try:
             with open(aes_file, 'r') as f:
                 _aes_key_cache = json.loads(f.read())
-                return _aes_key_cache
+            # 2026-10-22（P2-3）：本次修复之前落盘的 aes.json 通常是 0644（umask 决定），
+            # 升级后不会重写文件，所以读到就用时顺手收紧一次；失败只告警，不影响读取。
+            try:
+                os.chmod(aes_file, 0o600)
+            except Exception as _e:
+                _log.warning('[yf] aes.json 设置 0600 权限失败（不影响功能）: %s', _e)
+            return _aes_key_cache
         except Exception as _e:
             _log.debug('[yf] 读取 AES key 缓存失败: %s', _e)
             
@@ -993,6 +1057,15 @@ def getAesKey():
             f.write(json.dumps(_aes_key_cache))
     except Exception as _e:
         _log.debug('[yf] 写入 AES key 缓存失败: %s', _e)
+    # 2026-10-22（P2-3）：aes.json 里是明文的 AES key/vi（面板加密存储的根密钥），
+    # 必须收紧到 0600（与 web/admin/__init__.py 的 secret_key.pl 同一范式）。
+    # POSIX 上 chmod 真正生效；Windows 上 os.chmod 只影响只读位（不收紧 ACL），
+    # 属于降级——因此这里只尽力而为：失败只告警，绝不因此让 getAesKey() 抛错，
+    # 否则面板在只读/受限数据目录下会直接起不来。
+    try:
+        os.chmod(aes_file, 0o600)
+    except Exception as _e:
+        _log.warning('[yf] aes.json 设置 0600 权限失败（不影响功能）: %s', _e)
     return _aes_key_cache
 
 

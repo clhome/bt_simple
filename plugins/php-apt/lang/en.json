@@ -1,4 +1,9 @@
 {
+    "PHP%s 没有安全基线，不支持一键升级": "PHP %s has no security baseline, one-click upgrade is not supported",
+    "未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装": "apt package php%s-fpm not found, please confirm PHP was installed via the APT channel",
+    "PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级": "apt package of PHP %s (%s) already carries the channel backport marker, no upgrade needed",
+    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s already meets the baseline (%s >= %s), no upgrade needed",
+    "升级失败: %s（apt 退出码 %s），自动回退%s；手工回退请执行: %s": "Upgrade failed: %s (apt exit code %s), automatic rollback %s; to roll back manually run: %s",
     "*PHP-FPM运行模式": "*PHP-FPM running mode",
     "*允许创建的最大子进程数": "*The maximum number of child processes allowed to be created",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Maximum number of idle processes (clean up when idle processes reach this value)",

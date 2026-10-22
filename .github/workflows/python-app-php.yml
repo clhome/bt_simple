@@ -6,8 +6,10 @@ name: MW APP PHP
 # 触发策略（报告 P1 第 9 条：CI 自动化程度低）：保留手动触发，另加 push / PR 自动触发，
 # 但用 paths 收窄到「本插件目录 + 本 workflow 文件」。依据：这个 workflow 的实际动作是
 # `sudo bash scripts/install_dev.sh` 装整套面板，再用 `plugins/php/install.sh install NN`
-# **逐个真装 11 个 PHP 版本**（53~81），是本仓库最重的集成冒烟。只有 PHP 插件本体或
+# **逐个真装 4 个受支持 PHP 版本**（82~85），是本仓库最重的集成冒烟。只有 PHP 插件本体或
 # 本 workflow 自身改动才可能影响它的结论。
+# P0-4：5.2~7.3（无官方修复）与 7.4/8.0/8.1（编译版下架，改走 APT/YUM 渠道）已从
+# 默认列表下架，真装步骤只保留 82~85；另加一步断言旧版本**必须被拒绝**。
 # 守卫：testsuite/test_ci_workflows_hardening.py
 on:
   workflow_dispatch:
@@ -40,39 +42,28 @@ jobs:
     - name: Install MW
       run: |
         sudo bash scripts/install_dev.sh
-    - name: Install PHP53
+    - name: Install PHP82
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 53
-    - name: Install PHP54
+        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 82
+    - name: Install PHP83
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 54
-    - name: Install PHP55
+        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 83
+    - name: Install PHP84
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 55
-    - name: Install PHP56
+        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 84
+    - name: Install PHP85
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 56
-    - name: Install PHP70
+        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 85
+    # P0-4：下架版本必须「默认拒绝」。这里真跑一次安装脚本，断言退出码非 0 ——
+    # 53 代表 5.2~7.3（已知未修复 RCE），74 代表 7.4/8.0/8.1（编译版下架，改走 APT/YUM）。
+    # 守卫用例：testsuite/test_php_unsupported_versions.py
+    - name: Unsupported PHP versions must be rejected
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 70
-    - name: Install PHP71
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 71
-    - name: Install PHP72
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 72
-    - name: Install PHP73
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 73
-    - name: Install PHP74
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 74
-    - name: Install PHP80
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 80
-    - name: Install PHP81
-      run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 81
+        cd /www/server/mdserver-web/plugins/php
+        # 确保没有残留的 opt-in 开关（unset 未定义变量在 bash 里本来就返回 0，不加 || true）
+        unset YF_ALLOW_UNSAFE_PHP
+        ! sudo bash install.sh install 53
+        ! sudo bash install.sh install 74
     - name: Start DEBUG
       run: |
         cd /www/server/mdserver-web/web && sudo ../bin/python3 -m gunicorn -c setting.py app:app
