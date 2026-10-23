@@ -13,6 +13,16 @@ var lan = {
 		return msg;
 	},
 	"index": {
+			"security_title": "Security",
+			"security_has_risks": "Security risks detected, please resolve promptly",
+			"sec_item_plain_http": "Plaintext HTTP",
+			"sec_item_php_sec": "PHP Security Baseline",
+			"sec_plain_http_why_title": "Why does this risk exist?",
+			"sec_plain_http_why_desc": "Under unencrypted plain HTTP connections without SSL, intermediate network nodes may intercept your credentials and session cookies, leading to unauthorized control.",
+			"sec_plain_http_action_desc": "It is recommended to enable Panel SSL in 'Panel Settings' immediately to use HTTPS encryption.",
+			"sec_modal_plain_http_title": "Plaintext Transmission Security Risk",
+			"sec_goto_setting": "Go to Panel Settings",
+			"sec_modal_details_suffix": "Risk Resolution",
 			"php_sec_unknown_version": "Version not recognised",
 			"php_sec_no_auto_rollback": "APT/YUM upgrades cannot be rolled back automatically. Continue?",
 			"php_sec_title": "PHP Security Baseline",

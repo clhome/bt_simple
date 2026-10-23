@@ -2786,6 +2786,11 @@ function renderRecentLoginsTable(data) {
     if (ipsToQuery.length > 0) {
         fetchAndRenderIpLocations(ipsToQuery);
     }
+
+    // 保持左侧安全模块高度与右侧登录记录完全等高
+    if (window.btSecurityCenter && typeof btSecurityCenter.syncHeight === 'function') {
+        btSecurityCenter.syncHeight();
+    }
 }
 
 // 获取并渲染首页右下角最近 2 次登录记录 (SWR 会话缓存机制：切菜单秒开 + 60s 智能冷却)
@@ -3132,7 +3137,11 @@ function phpSecRenderCard(data) {
         }
     }
     $body.html(html);
-    $card.show();
+    // 不直接在首页大块展开，由软件模块下方的安全模块统一呈现
+    $card.hide();
+    if (window.btSecurityCenter && typeof window.btSecurityCenter.updatePhpStatus === 'function') {
+        window.btSecurityCenter.updatePhpStatus(data);
+    }
 }
 
 // 拉取巡检结果并渲染（forceRefresh 只影响前端缓存，后端始终返回最新快照）
@@ -3224,3 +3233,209 @@ function upgradePhpToBaseline(el) {
         { btn: [t('public.confirm', '确认'), t('public.cancel', '取消')], icon: 0 },
         function(index) { layer.close(index); doUpgrade(); });
 }
+
+// =====================================================================================
+// 首页安全监控中心（Security Center）
+// 汇聚系统安全风险（目前包括：明文 HTTP、PHP 安全基线等），
+// 统一在首页「软件」模块下方以图标按钮+右上角问题数角标（Badge）呈现，不在首页直接平铺
+// =====================================================================================
+var btSecurityCenter = {
+    plainHttp: false,
+    phpAlarmCount: 0,
+    phpData: null,
+    modalIndex: null,
+
+    // 初始化检查
+    init: function() {
+        this.plainHttp = ($('#plainHttpWarning').length > 0);
+        this.render();
+    },
+
+    // 更新 PHP 安全基线数据
+    updatePhpStatus: function(data) {
+        this.phpData = data;
+        var count = 0;
+        if (data && data.state === 'alarm' && Array.isArray(data.items)) {
+            for (var i = 0; i < data.items.length; i++) {
+                if (data.items[i].alarm) {
+                    count++;
+                }
+            }
+        }
+        this.phpAlarmCount = count;
+        this.render();
+        // 如果当前已打开 PHP 安全基线详情弹窗，则同步更新弹窗内容
+        if (this.modalIndex && $('#phpSecModalBody').length) {
+            this.updateModalContent();
+        }
+    },
+
+    // 渲染安全模块
+    render: function() {
+        var $box = $('#indexSecurityBox');
+        var $container = $('#securityItemsContainer');
+        if (!$box.length || !$container.length) return;
+
+        var totalProblems = (this.plainHttp ? 1 : 0) + this.phpAlarmCount;
+
+        // 若无任何安全问题，整块安全模块隐藏不占位
+        if (totalProblems <= 0) {
+            $box.hide();
+            $container.empty();
+            return;
+        }
+
+        var html = '';
+
+        // 1. 明文 HTTP 按钮（有问题才显示）
+        if (this.plainHttp) {
+            html += '<a href="javascript:;" class="sec-btn-card" onclick="btSecurityCenter.showPlainHttpModal()">' +
+                '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ff4d4f; flex-shrink: 0;">' +
+                    '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>' +
+                    '<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>' +
+                '</svg>' +
+                '<span>' + phpSecEscape(t('index.sec_item_plain_http', '明文 HTTP')) + '</span>' +
+                '<span class="sec-btn-badge">1</span>' +
+            '</a>';
+        }
+
+        // 2. PHP 安全基线按钮（存在风险版本才显示）
+        if (this.phpAlarmCount > 0) {
+            html += '<a href="javascript:;" class="sec-btn-card" onclick="btSecurityCenter.showPhpSecModal()">' +
+                '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ff4d4f; flex-shrink: 0;">' +
+                    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>' +
+                    '<line x1="12" y1="8" x2="12" y2="12"></line>' +
+                    '<line x1="12" y1="16" x2="12.01" y2="16"></line>' +
+                '</svg>' +
+                '<span>' + phpSecEscape(t('index.sec_item_php_sec', 'PHP 安全基线')) + '</span>' +
+                '<span class="sec-btn-badge">' + this.phpAlarmCount + '</span>' +
+            '</a>';
+        }
+
+        $container.html(html);
+        $box.show();
+        this.syncHeight();
+    },
+
+    // 保持左侧安全模块与右侧最近登录模块高度精准一致
+    syncHeight: function() {
+        var $loginBox = $('.recent-logins-box');
+        var $secBox = $('#indexSecurityBox');
+        if ($loginBox.length && $secBox.length && $secBox.is(':visible')) {
+            var h = $loginBox.outerHeight();
+            if (h && h > 40) {
+                if ($secBox[0] && $secBox[0].style) {
+                    $secBox[0].style.setProperty('height', h + 'px', 'important');
+                    $secBox[0].style.setProperty('min-height', h + 'px', 'important');
+                }
+            }
+        }
+    },
+
+    // 弹窗展示明文 HTTP 风险详情
+    showPlainHttpModal: function() {
+        var title = t('public.plain_http_warning_title', '当前为明文 HTTP，登录 Cookie 可被嗅探');
+        var desc = t('public.plain_http_warning_desc', '请尽快在「面板设置」中启用 HTTPS；在启用前不要通过公网使用此面板。');
+        var content = '<div style="padding: 24px; font-size: 13px; line-height: 22px; color: #333;">' +
+            '<div style="display:flex; align-items:flex-start; gap:14px; padding:14px; background:#fff1f0; border:1px solid #ffa39e; border-radius:6px; margin-bottom:16px;">' +
+                '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#cf1322" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">' +
+                    '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' +
+                    '<line x1="12" y1="9" x2="12" y2="13"/>' +
+                    '<line x1="12" y1="17" x2="12.01" y2="17"/>' +
+                '</svg>' +
+                '<div>' +
+                    '<div style="font-weight: 700; color: #cf1322; font-size: 14px;">' + phpSecEscape(title) + '</div>' +
+                    '<div style="margin-top: 4px; color: #595959;">' + phpSecEscape(desc) + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; padding: 12px 14px; color: #666; font-size: 12px;">' +
+                '<p style="margin: 0 0 6px 0; font-weight: 600; color: #333;">' + phpSecEscape(t('index.sec_plain_http_why_title', '为什么会有该风险？')) + '</p>' +
+                '<p style="margin: 0 0 6px 0;">' + phpSecEscape(t('index.sec_plain_http_why_desc', '在未开启 SSL 的明文 HTTP 连接下，网络链路上任意节点均可能截获您的登录凭证与会话 Cookie，导致面板被未授权控制。')) + '</p>' +
+                '<p style="margin: 0;">' + phpSecEscape(t('index.sec_plain_http_action_desc', '建议立即在「面板设置」-「安全设置」开启面板 SSL，启用 HTTPS 证书加密访问。')) + '</p>' +
+            '</div>' +
+        '</div>';
+
+        layer.open({
+            type: 1,
+            title: [t('index.sec_modal_plain_http_title', '明文传输安全风险告警'), 'font-weight:600; font-size:14px;'],
+            area: ['540px', 'auto'],
+            btn: [t('index.sec_goto_setting', '前往面板设置'), t('public.close', '关闭')],
+            content: content,
+            yes: function(index) {
+                layer.close(index);
+                window.location.href = '/config/index';
+            }
+        });
+    },
+
+    // 构建 PHP 安全弹窗内容
+    buildPhpModalHtml: function() {
+        var data = this.phpData;
+        var meta = [];
+        if (data) {
+            if (data.baseline_date) {
+                meta.push(t('index.php_sec_baseline_date', '基线表日期') + ': ' + data.baseline_date);
+            }
+            if (data.offline) {
+                meta.push(t('index.php_sec_offline', '未联网，使用内置基线表'));
+            }
+            if (data.scan_time_text) {
+                meta.push(t('index.php_sec_scan_time', '巡检时间') + ': ' + data.scan_time_text);
+            }
+        }
+        var metaStr = meta.length ? '（' + meta.join(' · ') + '）' : '';
+        var bodyHtml = $('#phpSecBody').html() || '';
+
+        return '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">' +
+                '<span class="c9 f12">' + phpSecEscape(metaStr) + '</span>' +
+                '<a class="btlink f12" href="javascript:;" onclick="getPhpSecurityStatus(true);">' + phpSecEscape(t('index.php_sec_refresh', '立即巡检')) + '</a>' +
+            '</div>' +
+            '<div class="php-sec-content-list">' + bodyHtml + '</div>';
+    },
+
+    updateModalContent: function() {
+        if ($('#phpSecModalBody').length) {
+            $('#phpSecModalBody').html(this.buildPhpModalHtml());
+        }
+    },
+
+    // 弹窗展示 PHP 安全基线详情
+    showPhpSecModal: function() {
+        var data = this.phpData;
+        if (!data) {
+            getPhpSecurityStatus(true);
+            return;
+        }
+
+        var modalHtml = '<div id="phpSecModalBody" style="padding: 16px 20px 24px; font-size: 12px; max-height: 480px; overflow-y: auto;">' +
+            this.buildPhpModalHtml() +
+        '</div>';
+
+        var that = this;
+        this.modalIndex = layer.open({
+            type: 1,
+            title: [t('index.php_sec_title', 'PHP 安全基线') + ' - ' + t('index.sec_modal_details_suffix', '风险处理'), 'font-weight:600; font-size:14px;'],
+            area: ['640px', 'auto'],
+            btn: [t('public.close', '关闭')],
+            content: modalHtml,
+            end: function() {
+                that.modalIndex = null;
+            }
+        });
+    }
+};
+
+window.btSecurityCenter = btSecurityCenter;
+
+// 页面加载或脚本初始化时自动尝试启动
+$(function() {
+    if (window.btSecurityCenter && typeof window.btSecurityCenter.init === 'function') {
+        window.btSecurityCenter.init();
+    }
+    $(window).on('resize.btSecurity', function() {
+        if (window.btSecurityCenter && typeof window.btSecurityCenter.syncHeight === 'function') {
+            window.btSecurityCenter.syncHeight();
+        }
+    });
+});
+

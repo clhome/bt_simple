@@ -1,5 +1,15 @@
 {
   "index": {
+    "security_title": "Sécurité",
+    "security_has_risks": "Risques de sécurité détectés, veuillez résoudre rapidement",
+    "sec_item_plain_http": "HTTP en clair",
+    "sec_item_php_sec": "Ligne de base de sécurité PHP",
+    "sec_plain_http_why_title": "Pourquoi ce risque existe-t-il ?",
+    "sec_plain_http_why_desc": "Sous des connexions HTTP en texte brut sans SSL, n'importe quel nœud réseau intermédiaire peut intercepter vos identifiants et cookies de session.",
+    "sec_plain_http_action_desc": "Il est recommandé d'activer le SSL du panneau dans les « Paramètres du panneau » immédiatement pour un chiffrement HTTPS.",
+    "sec_modal_plain_http_title": "Alerte de risque de sécurité lié à la transmission en texte brut",
+    "sec_goto_setting": "Accéder aux paramètres du panneau",
+    "sec_modal_details_suffix": "Traitement des risques",
     "php_sec_unknown_version": "Version non reconnue",
     "php_sec_no_auto_rollback": "Les mises a niveau APT/YUM ne peuvent pas etre annulees automatiquement. Continuer ?",
     "php_sec_title": "Base de sécurité PHP",

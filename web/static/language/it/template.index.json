@@ -1,5 +1,15 @@
 {
   "index": {
+    "security_title": "Sicurezza",
+    "security_has_risks": "Rilevati rischi per la sicurezza, risolvere tempestivamente",
+    "sec_item_plain_http": "HTTP in chiaro",
+    "sec_item_php_sec": "Linea di base di sicurezza PHP",
+    "sec_plain_http_why_title": "Perché esiste questo rischio?",
+    "sec_plain_http_why_desc": "Sotto connessioni HTTP in chiaro senza SSL, qualsiasi nodo di rete intermedio può intercettare le credenziali e i cookie di sessione.",
+    "sec_plain_http_action_desc": "Si consiglia di abilitare immediatamente il SSL del pannello in 'Impostazioni pannello' per la crittografia HTTPS.",
+    "sec_modal_plain_http_title": "Avviso di sicurezza: trasmissione in testo non crittografato",
+    "sec_goto_setting": "Vai alle impostazioni del pannello",
+    "sec_modal_details_suffix": "Risoluzione dei rischi",
     "php_sec_unknown_version": "Versione non riconosciuta",
     "php_sec_no_auto_rollback": "Gli aggiornamenti APT/YUM non possono essere annullati automaticamente. Continuare?",
     "php_sec_title": "Baseline di sicurezza PHP",

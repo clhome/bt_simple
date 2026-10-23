@@ -6263,7 +6263,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 }
 
 /* 强制对齐左边“软件”卡片和右边“流量/磁盘IO”卡片的高度，使其像素级绝对一致，告别错落感 */
-.main-content .pr8 > .bgw,
+.main-content .pr8 > .bgw:not(.index-security-box),
 .main-content .pl7 > .bgw:not(.recent-logins-box) {
     height: 350px !important;
     box-sizing: border-box !important;
@@ -6465,12 +6465,11 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .table > thead > tr > th { border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
 .table > tbody > tr > td { border-top: 1px solid var(--border-color); vertical-align: middle; }
 
-/* 最近登录卡片极致紧凑精致化设计 (高度独立控制，自适应2行内容，彻底消除滚动条) */
+/* 底部对齐精致化卡片：左侧安全模块与右侧最近登录模块严格等高、样式统一 */
 .recent-logins-box,
+.index-security-box,
+.main-content .pr8 > .bgw.index-security-box,
 .main-content .pl7 > .bgw.recent-logins-box {
-    height: auto !important;
-    max-height: 125px !important;
-    min-height: 0 !important;
     box-sizing: border-box !important;
     margin-top: 10px !important;
     overflow: hidden !important;
@@ -6479,7 +6478,23 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     border: 1px solid rgba(0, 0, 0, 0.04) !important;
     transition: box-shadow var(--transition-normal, 0.3s ease), border-color var(--transition-normal, 0.3s ease) !important;
 }
+
+.recent-logins-box,
+.main-content .pl7 > .bgw.recent-logins-box {
+    height: auto !important;
+    min-height: 106px !important;
+    max-height: 125px !important;
+}
+
+.index-security-box,
+.main-content .pr8 > .bgw.index-security-box {
+    height: 106px !important;
+    min-height: 106px !important;
+}
+
 .recent-logins-box:hover,
+.index-security-box:hover,
+.main-content .pr8 > .bgw.index-security-box:hover,
 .main-content .pl7 > .bgw.recent-logins-box:hover {
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05) !important;
     border-color: rgba(16, 185, 129, 0.15) !important;
