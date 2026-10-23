@@ -138,8 +138,15 @@ class CleanD03Hardening(unittest.TestCase):
                 self.assertTrue(ok, '白名单内合法日志被误拒: %s (%s)' % (p, msg))
             self._assert_ops_refused(p)
 
-        # 跨平台（含 Windows）必须被拒的越界路径
-        outside = os.path.join(os.path.dirname(os.getcwd()), 'yf_d03_outside_check.log')
+        # 跨平台（含 Windows）必须被拒的越界路径。
+        # 慎用 `dirname(cwd)` 造「白名单外」路径：ALLOWED_DIR_PREFIXES 里有
+        # `/tmp`、`/var/tmp`、`/var/log`、`/www/server`，而仓库恰好躺在这些目录下
+        # 是常见情况（CI 的临时构建目录、沙箱、docker build 都在 `/tmp`）。那种
+        # 布局下父目录就“回到”白名单内部，断言会**假红**（实测：仓库放在
+        # `/tmp/<repo>` 时必然失败，放在 `/home/<user>/w/<repo>` 时才绿）。
+        # 改成固定挂在根目录下的路径：任何白名单前缀都不可能匹配到它，
+        # 也不依赖 repo 到底被 clone 到哪里。
+        outside = os.path.abspath(os.path.join(os.sep, 'yf_d03', 'outside_check.log'))
         for p in (os.path.abspath(os.sep), outside):
             ok, _m = self.cs.is_safe_path(p)
             self.assertFalse(ok, '白名单外路径未被拒绝: %s' % p)

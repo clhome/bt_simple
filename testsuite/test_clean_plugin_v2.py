@@ -10,8 +10,19 @@ import tempfile
 # 设置导入路径
 repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 clean_plugin_dir = os.path.join(repo_root, 'plugins', 'clean')
-if clean_plugin_dir not in sys.path:
-    sys.path.insert(0, clean_plugin_dir)
+web_dir = os.path.join(repo_root, 'web')
+for _p in (repo_root, web_dir, clean_plugin_dir):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+# 进程级隔离（必须在导入插件模块之前）：插件的 saveConfigData() 会写
+# `<yf.getServerDir()>/clean/task_config.json`，而 getServerDir() 是**由仓库被
+# clone 在哪一层**推出来的 —— 仓库只有两级时（如 /tmp/bt_simple）会指向文件系统
+# 根目录下的 `/server`，os.makedirs 直接 PermissionError（2026-10-23 在 Linux 复现）。
+# 本用例测的是插件逻辑，不该受「仓库放在哪一层 / 宿主有没有装面板」影响。
+from testsuite._isolation import isolate  # noqa: E402
+
+_PANEL_TMP, _SERVER_TMP = isolate('clean_plugin_v2')
 
 import clean_security
 import clean_scanner
@@ -199,37 +210,89 @@ def test_executor_history():
     print("[5] 测试清理执行器战报与历史持久化...")
     import index
 
-    # 本用例会真的执行一次清理，而 execute_clean() 会把战报**追加**进
-    # plugins/clean/clean_history.json —— 那是**受 git 跟踪**的文件。
-    # 不还原的话，每跑一次门禁就在工作区留一条脏改动（历史里多一条记录），
-    # 提交时极易被 `git add -A` 一起带进去（上一轮审计就发现该文件被提交过
-    # 547 行测试噪音）。所以先快照、结束时原样还原。
-    hist_path = os.path.join(clean_plugin_dir, 'clean_history.json')
-    with open(hist_path, 'rb') as f:
-        snapshot = f.read()
-    try:
-        # 模拟执行一次清理（不带敏感目录，空跑安全测试）
-        record = clean_executor.execute_clean({'categories': [], 'clean_journal': False, 'clean_pkg_cache': False})
-        assert 'freed_format' in record
-        assert 'time' in record
-        assert 'scanned_files' in record
+    # 本用例测的是「执行器写战报 → API 读得到」这条契约，**不是**「顺手把宿主机清一遍」。
+    #
+    # 旧写法传 `categories: []` 想表达「什么都不清」，而产品侧当时的语义是
+    # `if not selected_categories: selected_categories = 全部分类`（空列表＝全部），
+    # 默认 `size_threshold_mb=0` 又是「见日志就截」——于是它真的在宿主机上跑了一次清理：
+    # 实测 /var/log/** 被截断，仓库层级较浅时连仓库里的文件都被截成 0 字节（130 个）。
+    # 现在照 test_clean_d03_hardening::test_08_category_scope 的做法，用**临时目录里的
+    # 夹具日志**替换扫描结果：既非破坏性，又真的断言了「勾选的分类确实被清理」。
+    fixture_dir = tempfile.mkdtemp(prefix='yf_clean_hist_')
+    victim = os.path.join(fixture_dir, 'app.log')
+    with open(victim, 'wb') as fh:
+        fh.write(b'Z' * 4096)
 
-        # 测试通过 API 读取历史
+    # 临时把夹具目录加入白名单：不这么做 is_safe_path 会因「超出受控白名单范围」
+    # 拒绝临时目录里的夹具日志（Windows 上白名单只额外含 cwd）。
+    orig_allowed = list(clean_security.ALLOWED_DIR_PREFIXES)
+    clean_security.ALLOWED_DIR_PREFIXES = orig_allowed + [fixture_dir]
+    orig_scan = clean_executor.scan_all_categories
+    clean_executor.scan_all_categories = lambda *a, **k: ({'categories': {}}, [
+        {'path': victim, 'name': 'app.log', 'size': 4096,
+         'mtime': time.time() - 30 * 86400, 'category': 'web'},
+    ])
+    try:
+        record = clean_executor.execute_clean({
+            'categories': ['web'],
+            'retention_days': 7,
+            'size_threshold_mb': 0,
+            'clean_journal': False,
+            'clean_pkg_cache': False,
+        })
+    finally:
+        clean_executor.scan_all_categories = orig_scan
+        clean_security.ALLOWED_DIR_PREFIXES = orig_allowed
+
+    try:
+        assert record['scanned_files'] == 1, f"扫描数异常: {record['scanned_files']}"
+        assert record['cleaned_files'] == 1, f"勾选的夹具日志未被清理: {record}"
+        assert os.path.getsize(victim) == 0, '勾选的夹具日志没有被截断'
+        assert 'freed_format' in record and 'time' in record
+        assert record['selected_categories'] == ['web'], record['selected_categories']
+
+        # 测试通过 API 读取历史（历史文件落在隔离出来的 server 目录里，不碰受跟踪文件）
         hist_json = index.get_history()
         hist_data = json.loads(hist_json)
         assert hist_data['status'] is True
-        assert len(hist_data['data']) > 0
+        assert len(hist_data['data']) > 0, '战报没有写进历史文件'
         print("  [PASS] 清理战报生成正常，历史持久化及读取成功")
 
         # 测试运行日志写入与读取
         run_log_res = json.loads(index.get_run_log())
         assert run_log_res['status'] is True
-        assert "START 磁盘清理与瘦身执行" in run_log_res['data'] or "END 本次清理执行完成" in run_log_res['data']
+        assert "START 磁盘清理与瘦身执行" in run_log_res['data'] or             "END 本次清理执行完成" in run_log_res['data'], '运行日志里没有本次执行记录'
         print("  [PASS] 运行日志 clean.log 自动流水写入与读取验证通过")
     finally:
-        # 还原受跟踪的历史文件：门禁不该弄脏工作区
-        with open(hist_path, 'wb') as f:
-            f.write(snapshot)
+        shutil.rmtree(fixture_dir, ignore_errors=True)
+
+
+def test_empty_categories_means_nothing():
+    """`categories: []` 必须是「什么都不清」，不能是「全部清」（fail-closed）。"""
+    print("[6] 测试空分类选择不清任何文件（fail-closed）...")
+    fixture_dir = tempfile.mkdtemp(prefix='yf_clean_empty_')
+    victim = os.path.join(fixture_dir, 'app.log')
+    with open(victim, 'wb') as fh:
+        fh.write(b'Z' * 4096)
+
+    orig_allowed = list(clean_security.ALLOWED_DIR_PREFIXES)
+    clean_security.ALLOWED_DIR_PREFIXES = orig_allowed + [fixture_dir]
+    orig_scan = clean_executor.scan_all_categories
+    clean_executor.scan_all_categories = lambda *a, **k: ({'categories': {}}, [
+        {'path': victim, 'name': 'app.log', 'size': 4096, 'mtime': 1.0, 'category': 'web'},
+    ])
+    try:
+        record = clean_executor.execute_clean({'categories': [], 'clean_journal': False,
+                                               'clean_pkg_cache': False})
+    finally:
+        clean_executor.scan_all_categories = orig_scan
+        clean_security.ALLOWED_DIR_PREFIXES = orig_allowed
+    try:
+        assert record['cleaned_files'] == 0, f"空分类选择竟然清理了文件: {record['details']}"
+        assert os.path.getsize(victim) == 4096, '空分类选择把日志截断了（fail-open）'
+        print("  [PASS] 空分类选择不会清理任何文件")
+    finally:
+        shutil.rmtree(fixture_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
@@ -239,4 +302,5 @@ if __name__ == '__main__':
     test_index_api()
     test_i18n_json()
     test_executor_history()
+    test_empty_categories_means_nothing()
     print("================ clean 插件 v2.0 全部测试通过！ ================")

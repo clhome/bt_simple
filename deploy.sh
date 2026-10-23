@@ -1261,33 +1261,84 @@ backup_bt_panel() {
 # =====================================================================
 # 回滚功能
 # =====================================================================
+# =====================================================================
+# 回滚到「迁移前布局」（mdserver-web 物理目录 + /usr/bin/mw）
+#
+# 只认 mdserver-web-*.tar.gz：那份归档的根目录就是 `mdserver-web/`，解压到 /www/server
+# 正好还原迁移前的样子。历史 bug：这里**优先挑 yufeng_panel-*.tar.gz**，于是先把物理
+# 目录搬回 mdserver-web、再解压出 /www/server/yufeng_panel —— mdserver-web 缺 web/
+# 起不来、数据还分成两份。要回退到「上一次升级前」请用 `deploy.sh rollback`（它只解压
+# 覆盖、不搬目录），两条路径现在的分工是：
+#   * 回滚「布局」（新面板 -> 老面板）  = rollback_yufeng_panel / `deploy.sh rollback_mw`
+#   * 回滚「版本」（升级失败退上一版）  = rollback_panel / `deploy.sh rollback` / `rollback_yf`
+# 本函数**不自建回滚网就不是回滚**：先把当前状态存一份 prerollback（点号分隔命名，
+# 避免被 rollback_panel 的 `yufeng_panel-*.tar.gz` 通配误选）。
+# =====================================================================
 rollback_yufeng_panel() {
-    local backup_file=$(ls -t ${BACKUP_DIR}/yufeng_panel-*.tar.gz 2>/dev/null | head -1)
+    local backup_file
+    local target_legacy_dir="$LEGACY_PANEL_DIR"
+    local ts
+
+    backup_file=$(pick_legacy_backup)
     if [ -z "$backup_file" ]; then
-        backup_file=$(ls -t ${BACKUP_DIR}/mdserver-web-*.tar.gz 2>/dev/null | head -1)
-    fi
-    if [ -z "$backup_file" ]; then
-        log_error "未找到面板备份文件!"
+        log_error "未找到迁移前备份（${BACKUP_DIR}/mdserver-web-*.tar.gz），无法还原 mdserver-web 布局"
+        log_error "若只想回退到上一次升级前的版本，请执行: bash $0 rollback"
         return 1
     fi
-    log_info "从备份恢复: $backup_file"
+    log_warn "将回滚到【迁移前】的 mdserver-web 布局：$(basename "$backup_file")"
+    log_warn "  备份时间: $(date -r "$backup_file" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo '未知')"
+    log_warn "  注意：该备份之后产生的面板数据（站点 / 计划任务 / 设置）不会保留"
     stop_panel
 
-    # 清除向下兼容的软链接，将物理目录还原为 /www/server/mdserver-web
-    if [ -L "/www/server/mdserver-web" ]; then
-        rm -f /www/server/mdserver-web
-    fi
-    if [ -d "/www/server/yufeng_panel" ] && [ ! -L "/www/server/yufeng_panel" ]; then
-        log_info "恢复物理目录: /www/server/yufeng_panel -> /www/server/mdserver-web"
-        mv /www/server/yufeng_panel /www/server/mdserver-web
+    # 先把当前状态另存一份，保证「回滚」这个动作本身可撤销
+    if [ -d "$PANEL_DIR" ] && [ ! -L "$PANEL_DIR" ]; then
+        ts=$(date +%Y%m%d%H%M%S)
+        mkdir -p "$BACKUP_DIR"
+        if tar -czf "${BACKUP_DIR}/yufeng_panel.prerollback.${ts}.tar.gz" \
+            --exclude='yufeng_panel/bin' --exclude='yufeng_panel/lib' \
+            --exclude='yufeng_panel/lib64' --exclude='yufeng_panel/include' \
+            -C /www/server yufeng_panel 2>/dev/null; then
+            log_info "已保存回滚前的当前状态: ${BACKUP_DIR}/yufeng_panel.prerollback.${ts}.tar.gz"
+        else
+            log_warn "回滚前状态备份失败（继续，但本次回滚将不可撤销）"
+        fi
     fi
 
-    # 清理物理目录下的新版代码文件
-    local target_legacy_dir="/www/server/mdserver-web"
-    rm -rf ${target_legacy_dir}/web ${target_legacy_dir}/panel_task.py ${target_legacy_dir}/panel_tools.py
+    # 清除向下兼容的软链接，将物理目录还原为 mdserver-web
+    if [ -L "$LEGACY_PANEL_DIR" ]; then
+        rm -f "$LEGACY_PANEL_DIR"
+    fi
+    if [ -d "$PANEL_DIR" ] && [ ! -L "$PANEL_DIR" ]; then
+        log_info "恢复物理目录: ${PANEL_DIR} -> ${LEGACY_PANEL_DIR}"
+        if ! mv "$PANEL_DIR" "$LEGACY_PANEL_DIR"; then
+            log_error "物理目录还原失败，已中止（${PANEL_DIR} 仍在原位）"
+            return 1
+        fi
+    fi
+
+    # 清理物理目录下的新版代码文件。
+    # 为什么必须删而不是靠 tar 覆盖：`tar -xzf` 只覆盖归档里**有**的文件，不会删掉目标里
+    # 多出来的文件。新版是 `web/core/yf/` 包、老版是 `web/core/yf.py` 模块，两者并存会让
+    # `import core.yf` 解析到错误的那一份（老面板起来后行为诡异）；`panel_task.py` /
+    # `panel_tools.py` 同理（老版本叫 `tools.py`）。
+    if [ ! -d "$target_legacy_dir" ]; then
+        log_error "找不到 ${target_legacy_dir}，无法清理新版代码，已中止（未解压备份）"
+        return 1
+    fi
+    rm -rf "${target_legacy_dir}/web" "${target_legacy_dir}/panel_task.py" "${target_legacy_dir}/panel_tools.py"
 
     # 解压备份还原老代码
-    tar -xzf "$backup_file" -C /www/server
+    if ! tar -xzf "$backup_file" -C /www/server; then
+        log_error "备份解压失败，已中止: $backup_file"
+        return 1
+    fi
+
+    # 解压后必须回读确认：归档不完整时**立刻报错**，而不是等用户去启动时才发现
+    # （之前“半残”状态的痛点就是没人知道到底缺了什么）。
+    if [ ! -d "${target_legacy_dir}/web" ] || [ ! -f "${target_legacy_dir}/cli.sh" ]; then
+        log_error "备份解压后 ${target_legacy_dir} 仍不完整（缺 web/ 或 cli.sh），请检查归档: $backup_file"
+        return 1
+    fi
 
     # 还原系统数据库
     local db_bak=$(ls -t ${BACKUP_DIR}/system.db.*.bak 2>/dev/null | head -1)
@@ -1580,6 +1631,89 @@ deploy_code() {
 }
 
 # =====================================================================
+# 面板根目录迁移：mdserver-web -> yufeng_panel（fresh_install / migrate_from_mw 共用）
+#
+# 为什么不能用一句 `mv $LEGACY_PANEL_DIR $PANEL_DIR`：
+#   目标目录**已存在**时，GNU mv 会把源目录**塞进**目标里（变成
+#   $PANEL_DIR/mdserver-web/），老 data/ plugins/ 被埋进子目录，面板随后以
+#   「空库」启动 —— 用户看到的是「升级后数据全没了」（数据其实还在，但没人找得到）。
+#   历史上两个入口各写了一套（fresh_install 用 cp -af 合并、migrate_from_mw 直接 mv），
+#   于是同一台机器走不同入口会得到两种结果。现在统一到这里。
+#
+# 口径（两个入口完全一致）：
+#   1) 目标不存在 -> mv：原子改名，不占额外空间；
+#   2) 目标已存在 -> **不合并、不删除**：把老目录整体原样移到
+#      $BACKUP_DIR/mdserver-web.legacy.<时间戳>，再建软链。
+#      理由：两边都有数据时「谁覆盖谁」没有正确答案，自动合并必然丢掉一边；
+#      移到备份区是可逆改名（同盘秒完成），并在日志里打印取回方法。
+#   3) 无论哪条路，最后都建 $LEGACY_PANEL_DIR -> $PANEL_DIR 软链，
+#      让数据库 / nginx conf / cron 里残留的旧路径继续可用。
+#   返回 0 = 成功；非 0 = 已中止（此时**老目录原样留在原位**，可重跑）。
+# =====================================================================
+migrate_panel_dir() {
+	local _src="${1:-$LEGACY_PANEL_DIR}"
+	local _dst="${2:-$PANEL_DIR}"
+	local _stamp
+	local _aside
+
+	# 防御：只处理「明确的面板目录」，不允许空值/根目录/上级目录（rm -rf 的前置闸门）
+	case "$_src" in
+		''|'/'|'/www'|'/www/server'|'.'|'..')
+			log_error "拒绝处理异常面板目录: '${_src}'"
+			return 1
+			;;
+	esac
+	case "$_dst" in
+		''|'/'|'/www'|'/www/server')
+			log_error "拒绝迁移到异常目标目录: '${_dst}'"
+			return 1
+			;;
+	esac
+
+	# 已经是兼容软链（之前迁移完成过）：只校正指向，不动物理目录
+	if [ -L "$_src" ]; then
+		ln -sfn "$_dst" "$_src"
+		log_info "旧路径已是兼容软链接，保持: ${_src} -> ${_dst}"
+		return 0
+	fi
+	[ -d "$_src" ] || return 0
+
+	if [ ! -e "$_dst" ]; then
+		log_info "迁移物理目录 ${_src} -> ${_dst}..."
+		if ! mv "$_src" "$_dst"; then
+			log_error "物理目录迁移失败: ${_src} -> ${_dst}"
+			return 1
+		fi
+	else
+		_stamp=$(date +%Y%m%d%H%M%S)
+		_aside="${BACKUP_DIR}/mdserver-web.legacy.${_stamp}"
+		mkdir -p "$BACKUP_DIR" 2>/dev/null
+		log_warn "目标目录已存在（${_dst}），为避免 mv 嵌套与数据互相覆盖，老目录整体移入备份区"
+		if ! mv "$_src" "$_aside"; then
+			log_error "老目录移入备份区失败，已中止（${_src} 未改动）"
+			return 1
+		fi
+		log_info "老面板目录已原样保留: ${_aside}"
+		log_info "  如需取回老数据: rm -f ${_src} && mv ${_aside} ${_src}"
+	fi
+
+	if ! ln -sfn "$_dst" "$_src"; then
+		log_error "创建兼容软链接失败: ${_src} -> ${_dst}"
+		return 1
+	fi
+	log_info "已创建向下兼容的软链接: ${_src} -> ${_dst}"
+	return 0
+}
+
+# 选择「迁移前」备份：**只有 mdserver-web-*.tar.gz 才是迁移前布局**的备份。
+# 单列一个函数是为了能被守卫用例真跑：历史 bug 就是这里优先挑了 yufeng_panel-*.tar.gz，
+# 于是先把物理目录搬回 mdserver-web、再把 yufeng 备份解压成 /www/server/yufeng_panel，
+# 结果 mdserver-web 缺 web/ 起不来、数据还分成两份。
+pick_legacy_backup() {
+	ls -t "${BACKUP_DIR}"/mdserver-web-*.tar.gz 2>/dev/null | head -1
+}
+
+# =====================================================================
 # 场景1: 全新安装
 # =====================================================================
 fresh_install() {
@@ -1589,9 +1723,9 @@ fresh_install() {
     rm -f /usr/bin/yf /usr/bin/mw /usr/bin/bs
 
     # 如果检测到旧版的真正 mdserver-web 目录存在，且它不是一个软链接
-    if [ -d "/www/server/mdserver-web" ] && [ ! -L "/www/server/mdserver-web" ]; then
+    if [ -d "$LEGACY_PANEL_DIR" ] && [ ! -L "$LEGACY_PANEL_DIR" ]; then
         log_warn "检测到旧版 mdserver-web 面板安装目录！"
-        log_info "正在自动将其重命名为 yufeng_panel 保证安装正常..."
+        log_info "正在自动将其迁移为 yufeng_panel 保证安装正常..."
 
         # 停止旧面板服务
         if [ -f "/etc/init.d/mw" ]; then
@@ -1600,29 +1734,20 @@ fresh_install() {
             /etc/init.d/yf stop >/dev/null 2>&1
         fi
 
-        # 安全重命名物理目录
-        if [ -d "/www/server/yufeng_panel" ]; then
-            cp -af /www/server/mdserver-web/* /www/server/yufeng_panel/
-            rm -rf /www/server/mdserver-web
-        else
-            mv /www/server/mdserver-web /www/server/yufeng_panel
-        fi
-
-        if [ -d "/www/server/yufeng_panel" ]; then
-            log_info "物理目录迁移成功: mdserver-web -> yufeng_panel"
-            # 创建向下兼容的软链接
-            ln -sf /www/server/yufeng_panel /www/server/mdserver-web
-            log_info "已创建兼容性软链接: mdserver-web -> yufeng_panel"
-
-            # ⚠️ 关键防御保护：若在全新安装过程中检测到并迁移了旧数据，
-            # 必须直接重定向调用 migrate_from_mw 函数，以防后续的 fresh_install 流程执行 rm -rf 清空该目录！
-            log_info "检测到老版本数据已自动重命名，全新安装程序将自动切换为【迁移升级模式】..."
-            migrate_from_mw
-            exit 0
-        else
+        # 物理目录迁移/安置 + 建兼容软链（与 migrate_from_mw 走同一个实现，
+        # 避免历史上「一个入口合并、一个入口直接 mv 嵌套」的两套口径）
+        if ! migrate_panel_dir "$LEGACY_PANEL_DIR" "$PANEL_DIR"; then
             log_error "目录迁移失败，请检查权限！"
             exit 1
         fi
+
+        log_info "物理目录迁移成功: mdserver-web -> yufeng_panel"
+
+        # ⚠️ 关键防御保护：若在全新安装过程中检测到并迁移了旧数据，
+        # 必须直接重定向调用 migrate_from_mw 函数，以防后续的 fresh_install 流程执行 rm -rf 清空该目录！
+        log_info "检测到老版本数据已自动重命名，全新安装程序将自动切换为【迁移升级模式】..."
+        migrate_from_mw
+        exit 0
     fi
 
     # 创建目录结构
@@ -1773,10 +1898,11 @@ migrate_from_mw() {
     fi
 
     if [ -d "$LEGACY_PANEL_DIR" ] && [ ! -L "$LEGACY_PANEL_DIR" ]; then
-        log_info "迁移物理目录 ${LEGACY_PANEL_DIR} -> ${PANEL_DIR}..."
-        mv ${LEGACY_PANEL_DIR} ${PANEL_DIR}
-        ln -sf ${PANEL_DIR} ${LEGACY_PANEL_DIR}
-        log_info "已创建向下兼容的软链接: ${LEGACY_PANEL_DIR} -> ${PANEL_DIR}"
+        # 与 fresh_install 共用同一实现：目标已存在时「移到备份区」而不是 mv（mv 会嵌套）
+        if ! migrate_panel_dir "$LEGACY_PANEL_DIR" "$PANEL_DIR"; then
+            log_error "物理目录迁移失败，已中止（${LEGACY_PANEL_DIR} 未改动，可重跑本脚本）"
+            return 1
+        fi
     fi
 
     # 下载并部署
@@ -1841,7 +1967,14 @@ conn.close()
         log_warn "面板可能未正常启动，请检查日志: tail -50 ${PANEL_DIR}/logs/panel_error.log"
         echo ""
         if confirm "是否回滚到迁移前状态?"; then
-            rollback_yufeng_panel
+            # `$HAS_YF` 是**本次运行前**的状态：
+            #   false -> 这次是从 MW 迁过来的，回滚要还原「迁移前布局」（rollback_yufeng_panel）；
+            #   true  -> 本来就在 yufeng 上（只是又升级了一次），回滚到上一版即可（rollback_panel）。
+            if $HAS_YF; then
+                rollback_panel
+            else
+                rollback_yufeng_panel
+            fi
             return
         fi
     fi
@@ -1869,7 +2002,7 @@ conn.close()
     show_panel_info "$rand_pass"
     echo ""
     log_info "===== yufeng_panel 迁移完成 ====="
-    echo -e "${YELLOW}提示: 如需回滚请执行: bash /www/server/yufeng_panel/deploy.sh rollback_yf${PLAIN}"
+    echo -e "${YELLOW}提示: 回滚到迁移前（mdserver-web）请执行: bash ${PANEL_DIR}/deploy.sh rollback_mw ；回退到上一次升级前请执行: bash ${PANEL_DIR}/deploy.sh rollback${PLAIN}"
 }
 
 # =====================================================================
@@ -2371,8 +2504,17 @@ main() {
             fresh_install
             exit 0
             ;;
-        rollback_mw|rollback_yf)
+        # 回滚【布局】：新面板 -> 迁移前的 mdserver-web（只认 mdserver-web 备份）
+        rollback_mw)
             rollback_yufeng_panel
+            exit 0
+            ;;
+        # 回滚【版本】：解压覆盖 yufeng_panel 最近的备份，**不搬目录**。
+        # 以前 rollback_yf 与 rollback_mw 共用分支，于是它也会“搬回 mdserver-web”，
+        # 却把 yufeng 备份解压成新目录 —— 两边都起不来的半残状态。
+        rollback_yf)
+            SILENT_MODE=true
+            rollback_panel
             exit 0
             ;;
         rollback)

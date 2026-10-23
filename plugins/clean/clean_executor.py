@@ -132,11 +132,17 @@ def execute_clean(options=None):
     if options is None:
         options = {}
 
-    selected_categories = options.get('categories', ['web', 'database', 'runtime', 'system', 'cache'])
+    selected_categories = options.get('categories', list(CATEGORY_CONFIGS.keys()))
     if isinstance(selected_categories, str):
         selected_categories = [selected_categories]
-    if not isinstance(selected_categories, (list, tuple)) or not selected_categories:
+    if not isinstance(selected_categories, (list, tuple)):
         selected_categories = list(CATEGORY_CONFIGS.keys())
+    # 注意：**显式传入的空列表等于「什么都不清」**，不再被偷偷当成「全部分类」。
+    # 旧写法是 `if not selected_categories: selected_categories = 全部分类`，
+    # 于是一个「一个都没勾」的调用会被解释成「全部勾上」—— 对一个截断/删除磁盘文件
+    # 的入口来说这是 fail-open（前端虽然拦了空选，但后端契约本身不能靠前端兜）。
+    # 实测代价见 testsuite/test_clean_plugin_v2.py::test_executor_history 的注释：
+    # 原本想「空跑」，结果在宿主机上真跑了一遍清理。
     selected_categories = [str(c) for c in selected_categories]
     truncate_active = options.get('truncate_active', True)
     delete_rotated = options.get('delete_rotated', True)

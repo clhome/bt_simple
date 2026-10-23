@@ -53,7 +53,17 @@ permissions:
 jobs:
   gate:
     name: 提交门禁（python testsuite/run_all.py）
-    runs-on: ubuntu-latest
+    # 只跑 compatibility.md 已验证的两个 Ubuntu LTS，**不用 ubuntu-latest**：
+    #   该标签自 2026-10-19 起迁移到 Ubuntu 26.04，而 README「⚠️ 待适配 / 未验证」
+    #   明确写着 26.04 的工具链分支 / t64 库名 / 第三方源都没验证。门禁跑在未验证
+    #   平台上时，一红就分不清「平台没适配」还是「代码真回归」—— 2026-10-23 的
+    #   #10~#12 就是这么变成一笔糊涂账的（详见《bt_simple Actions 报错整理》问题一）。
+    #   26.04 适配完成、并用 workflow_dispatch 单跑验证通过后再加回矩阵，
+    #   不要再用 `ubuntu-latest` 赌平台漂移。守卫：test_17 / test_50。
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
     # 本机全量门禁耗时以分钟计（253 个模块 + 4 项静态门禁，并行 8）。
     # GitHub 托管 runner 核数更少，给足预算；超时本身就是「门禁挂了」的信号，
     # 不用 continue-on-error 之类的开关掩盖。
@@ -74,6 +84,18 @@ jobs:
           set -e
           python -m pip install --upgrade pip
           python -m pip install --no-cache-dir -r requirements.txt
+
+      # 归因用：门禁一红，第一件事是分清「环境漂移」还是「真回归」。
+      # 2026-10-23 的 #10~#12 那次红，日志里没留 runner/Python/依赖的真实身份，
+      # 只能从「是不是缺某个包」一路猜，推高了归因成本（见《bt_simple Actions
+      # 报错整理》问题一）。这里把三者钉进日志，下一次红就不用再从零猜。
+      - name: 记录运行环境（归因用）
+        run: |
+          set -e
+          python -V
+          echo "runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+          uname -a
+          python -m pip list --format=freeze
 
       # 唯一门禁入口。`-v` 让失败模块打印完整输出（CI 日志里直接能看到断言）。
       - name: 运行提交门禁（用例 + 4 项静态门禁）

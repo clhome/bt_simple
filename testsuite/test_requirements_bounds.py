@@ -407,5 +407,44 @@ class LockHashVerifierTest(unittest.TestCase):
             self.assertIn('[通过]', out, '已存在锁文件却未给出通过摘要：%s' % out)
 
 
+class RequirementsFileDecodabilityTest(unittest.TestCase):
+    """`requirements.txt` 必须自带 coding cookie —— 否则 pip 在非 UTF-8 locale 下崩。
+
+    2026-10-23 实测（Windows 10 / GBK 控制台 / pip 23.0.1）：
+
+        pip install -r requirements.txt
+        UnicodeDecodeError: 'gbk' codec can't decode byte 0xa3 in position 90
+
+    一个包都装不上。原因：pip 的 `auto_decode()` 只在「有 BOM」或「前两行有
+    `coding[:=]<enc>` 声明」时才按 UTF-8 解码，否则回落到 `locale.getpreferredencoding()`
+    —— 本文件满是中文注释，GBK 必然解不开。
+
+    为什么 CI 没暴露：Linux 上 PEP 538 会把 C locale 强制成 C.UTF-8，于是「碰巧能读」。
+    这种「只有 Linux CI 绿」的坑一旦反过来（比如某天 runner 的 locale 变了），
+    就会表现成「依赖装不上 → 一堆用例 ModuleNotFoundError」，极难归因。
+    """
+
+    def test_14_requirements_declares_utf8_coding(self):
+        with open(REQ, 'rb') as fp:
+            head = fp.read(4096).decode('utf-8', 'replace')
+        first_two = head.split('\n')[:2]
+        self.assertTrue(
+            any(re.search(r'coding[:=]\s*utf-8', line, re.I) for line in first_two),
+            'requirements.txt 前两行没有 UTF-8 coding cookie（pip 会用 locale 编码解码，'
+            '在 GBK/CP1252 环境下直接 UnicodeDecodeError）：前两行=%r' % (first_two,))
+
+    def test_15_file_is_really_valid_utf8(self):
+        """cookie 只是「声明」；文件本身必须真的是合法 UTF-8（否则 pip 解出乱码）。"""
+        with open(REQ, 'rb') as fp:
+            raw = fp.read()
+        try:
+            raw.decode('utf-8')
+        except UnicodeDecodeError as exc:
+            self.fail('requirements.txt 不是合法 UTF-8：%s' % exc)
+        self.assertFalse(raw.startswith(b'\xef\xbb\xbf'),
+                         'requirements.txt 带了 UTF-8 BOM（pip 虽能处理，但会把首行注释'
+                         '变成正文，破坏注释语义）')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

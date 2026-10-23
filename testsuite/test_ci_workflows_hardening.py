@@ -437,6 +437,17 @@ class TestCoreRegressionWorkflow(unittest.TestCase):
     def test_16_no_masking(self):
         _assert_no_masking(self, CORE_WORKFLOW, self.text)
 
+    def test_17_runner_os_is_pinned_to_a_verified_version(self):
+        """门禁自己也不许跑在 `ubuntu-latest` 上。
+
+        2026-10-23 的核心回归红（#10~#12）到现在都无法从仓库状态复现：本地 Windows、
+        干净 venv（只装 requirements.txt）、以及 Linux/Python 3.11 全量复跑都是全绿。
+        唯一剩下的变量就是 runner 平台 —— `ubuntu-latest` 已迁到 README 列为
+        「待适配 / 未验证」的 26.04。平台一漂移，红就不再等于「代码回归」，
+        告警信号直接失效。所以把它钉到 compatibility.md 已验证的两个 LTS。
+        """
+        _assert_runner_pinned(self, CORE_WORKFLOW, self.text)
+
 
 class TestHeavyWorkflowTriggers(unittest.TestCase):
     """6 个重型集成冒烟：手动 + push/PR，但 paths 收窄到本插件目录 + 本文件。"""
@@ -508,6 +519,109 @@ class TestFrozenWorkflowTriggers(unittest.TestCase):
     def test_33_no_masking(self):
         for name in ('release.yml', 'i18n-check.yml'):
             _assert_no_masking(self, name, _read(os.path.join('.github', 'workflows', name)))
+
+
+# 门禁 / 冒烟类 workflow 允许钉的 runner 版本（= `compatibility.md` 已验证矩阵里的
+# Ubuntu）。加新版本的前提：先在 compatibility.md 里验证通过，再来这里放行
+# —— 顺序不能反。
+VERIFIED_RUNNER_OS = ('ubuntu-22.04', 'ubuntu-24.04')
+
+
+def _assert_runner_pinned(test, name, text):
+    """矩阵里的 `os` 必须是**已验证的具体版本**，不许 `ubuntu-latest`。
+
+    2026-10-23 的教训：`ubuntu-latest` 自 2026-10-19 起迁到 Ubuntu 26.04，而
+    26.04 在本仓库还是「待适配 / 未验证」。平台一漂移，workflow 变红就分不清
+    「平台没适配」还是「代码真回归」（重型冒烟真装 PHP/MySQL 时更致命）。
+    """
+    m = re.search(r'^\s*os:\s*\[(.*?)\]\s*$', text, re.M)
+    test.assertIsNotNone(m, '%s 找不到 `os: [...]` 矩阵' % name)
+    values = [v.strip().strip('\'"') for v in m.group(1).split(',') if v.strip()]
+    test.assertTrue(values, '%s 的 os 矩阵为空' % name)
+    for value in values:
+        test.assertNotIn('latest', value,
+                         '%s 用了 %s：`ubuntu-latest` 会随平台漂移，'
+                         '门禁/冒烟类 workflow 一律钉已验证的具体版本' % (name, value))
+        test.assertIn(value, VERIFIED_RUNNER_OS,
+                      '%s 钉了未验证的 runner %s（先让它在 compatibility.md '
+                      '里验证通过，再加进 VERIFIED_RUNNER_OS）' % (name, value))
+
+
+class TestHeavyWorkflowRunnability(unittest.TestCase):
+    """重型冒烟必须「跑得起来 + 判得出真假」—— 2026-10-23 的两次翻车都栽在这里。
+
+    背景（`bt_simple Actions 报错整理（Commit 1ec4a4c）` 问题二 / 问题三）：
+
+    1. **MySQL55/56/57/80 的 `Start DEBUG` 退出码 127**：那段是从 mdserver 时代
+       抄来的
+
+           cd web && gunicorn -c setting.py app:app
+           python3 panel_task.py &
+
+       两个点都能独立致命：`cd web` 是相对路径（runner 的 cwd 是 checkout 目录，
+       不是面板目录），裸 `gunicorn` 不在 PATH 上（面板的 Python 环境在
+       `/www/server/yufeng_panel/bin` 这个 venv 里，setup-python 的解释器没有它）。
+    2. **PHP / OpenResty 用 `ubuntu-latest`**：GitHub 已公告该标签自 2026-10-19 起
+       迁移到 Ubuntu 26.04，而 README「待适配 / 未验证」写明 26.04 的工具链分支、
+       t64 库名、ondrej/sury 源都没验证 —— 源码编译 PHP / OpenResty 在那里必然失败。
+       重型 workflow 是「真装一遍」，必须钉已验证的具体版本。
+
+    还有一个更隐蔽的问题：`web/setting.py` 里 `daemon=True`，所以「启动了」这件事
+    本身**不可判**（double-fork 后父进程立刻回 0，端口被占之类的失败发生在子进程）。
+    因此冒烟步骤必须断言**外部可观测状态**（`/healthz` 回 200），不能只敲启动命令。
+    """
+
+    def _text(self, name):
+        return _read(os.path.join('.github', 'workflows', name))
+
+    def test_50_runner_os_is_pinned_to_a_verified_version(self):
+        """矩阵里不许出现 `ubuntu-latest`：平台漂移会让「真装」类 workflow 无声变红。"""
+        for name in sorted(HEAVY_WORKFLOWS):
+            _assert_runner_pinned(self, name, self._text(name))
+
+    def test_51_no_bare_gunicorn_or_relative_panel_dir(self):
+        """不许出现「裸 gunicorn」与「相对面板目录」—— 这两条各自都能给出退出码 127。"""
+        # 注释行里提到旧写法是在解释为什么不能用，不算违规（_effective_lines 已剔除）
+        bare_gunicorn = re.compile(r'^\s*(?:sudo\s+)?gunicorn\b')
+        bare_task = re.compile(r'^\s*(?:sudo\s+)?python3\s+panel_task\.py')
+        rel_web = re.compile(r'^\s*cd\s+web\b')
+        for name in sorted(HEAVY_WORKFLOWS):
+            for line in _effective_lines(self._text(name)):
+                self.assertIsNone(bare_gunicorn.match(line),
+                                  '%s：裸 `gunicorn` 不在 PATH 上（面板 venv 在 ' \
+                                  '/www/server/yufeng_panel/bin），请用绝对路径：%s'
+                                  % (name, line.strip()))
+                self.assertIsNone(bare_task.match(line),
+                                  '%s：裸 `python3` 不是面板的解释器，请用 ' \
+                                  './bin/python3：%s' % (name, line.strip()))
+                self.assertIsNone(rel_web.match(line),
+                                  '%s：`cd web` 依赖 runner 的 cwd（那是 checkout ' \
+                                  '目录），请用绝对路径：%s' % (name, line.strip()))
+
+    def test_52_smoke_step_asserts_the_panel_answers(self):
+        """冒烟必须断言「面板真的应答了」，不能只敲启动命令（daemon=True 下那是假绿）。"""
+        for name in sorted(HEAVY_WORKFLOWS):
+            text = self._text(name)
+            self.assertIn('/healthz', text,
+                          '%s 没有调用 /healthz：只敲启动命令的话，gunicorn ' \
+                          'double-fork 后立刻返回 0，端口没起来也会判绿' % name)
+            self.assertIn('/www/server/yufeng_panel', text,
+                          '%s 没有用面板的绝对路径' % name)
+            self.assertIn('exit 1', text,
+                          '%s 的冒烟步骤没有失败出口（只会一路绿下去）' % name)
+
+    def test_53_actions_are_on_current_majors(self):
+        """`actions/*` 不许停在 v3（Node.js 20 已弃用，会被强制跑在新 runtime 上）。"""
+        floors = {'actions/checkout': 4, 'actions/setup-python': 5}
+        for name in _workflow_files():
+            text = self._text(name)
+            for action, floor in floors.items():
+                for m in re.finditer(re.escape(action) + r'@v(\d+)', text):
+                    version = int(m.group(1))
+                    self.assertGreaterEqual(
+                        version, floor,
+                        '%s 用了 %s@v%d（已弃用），请升到 v%d+'
+                        % (name, action, version, floor))
 
 
 class TestNoMaskedGateFailures(unittest.TestCase):

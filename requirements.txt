@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+# 本文件含中文注释，声明 coding cookie 是**必须的**，不是装饰：
+#   pip 读 requirements 文件时用 auto_decode()，只在有 BOM 或前两行有
+#   `coding[:=]` 声明时才按 UTF-8 解码，否则回落到 locale 编码。
+#   2026-10-23 实测：Windows（GBK 控制台）+ pip 23.0.1 上
+#   `pip install -r requirements.txt` 直接崩在
+#   `UnicodeDecodeError: 'gbk' codec can't decode byte 0xa3`，
+#   连一个包都装不上（Linux/CI 因 PEP 538 把 C locale 强制成 UTF-8 才没暴露）。
+#   守卫：testsuite/test_requirements_bounds.py::test_14。
 # ---------------------------------------------------------------------------------
 # 御风面板（bt_simple）运行依赖
 #
