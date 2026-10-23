@@ -1,53 +1,54 @@
 # coding: utf-8
-"""P2-11 守卫：待审核插件目录必须留在安全扫描范围之内。
+"""待审核插件「参考件化」守卫（2026-10-23 政策变更，取代 P2-11 的扫描范围守卫）。
 
-## 故障现场（改前的真实形状）
+## 政策变更
 
-`文档/待审核插件/` 里有 **34** 个还没转正的插件，它们原本**完全在门禁之外**：
+`文档/待审核插件/` 下的 34 个未转正插件一度被纳入安全扫描（P2-11）：
+`scripts/verify_code_quality.py` 的 `PENDING_SCAN_DIR` + 5 个 `pending_*` 基线，
+以及 `security-scan.yml` 的 `paths` 与 bandit 的 `-r` 目标。
 
-* `scripts/verify_code_quality.py` 的 `SCAN_DIRS = ['web', 'plugins']` 不含它，
-  连 `EXCLUDE_DIRS` 都把整个 `文档` 排除了 —— 代码质量棘轮对它彻底失明；
-* `.github/workflows/security-scan.yml` 的 `paths:`（push 与 pull_request 两处）
-  与 bandit 的 `-r web scripts panel_task.py panel_tools.py` 都没有它；
-* `web/utils/plugin.py` 的插件列表还把 `待审核` 显式排除。
+2026-10-23 决定：**那批代码后续不会再被使用**，整目录打包成
+`文档/待审核插件.7z`，仅作为后续开发的参考件（要复用时手工解包看，不会原样搬进
+`plugins/`）。于是 P2-11 的扫描段失去了对象 —— 留着它只会变成「扫空目录恒绿」的
+假守卫，还挂着 5 个 `pending_*` 基线，误导后人以为有东西正在被门禁保护。
 
-后果不是「现在有洞」，而是「**转正那一刻才第一次被扫**」：转正的动作就是把这些文件
-原样搬进 `plugins/` 直接进生产 —— 存量里已经写着 `os.system` / 裸 `except` /
-`except Exception: pass` / 裸 `yf.writeFile` 后直接报成功。
+## 本文件锁死的东西（新口径）
 
-## 修复口径（本文件锁死的东西）
-
-1. 扫描范围：`scripts/verify_code_quality.py` 新增 `PENDING_SCAN_DIR = '文档/待审核插件'`，
-   **单独成常量**（不塞进 `SCAN_DIRS`），指标键加 `pending_` 前缀单独记基线；
-2. 基线是**实测现值 + 只减不增**（`scripts/code_quality_baseline.json` 的 `pending_*`），
-   既不设 0（会让 34 个插件的存量立刻把门禁打红），也不把它排除在外（那就是原来的洞）；
-3. 触发范围：`security-scan.yml` 的 push / pull_request 两处 `paths:` 与 bandit 两处
-   `-r` 目录都含该目录；
-4. 转正资格：`文档/插件转正检查单.md`（本文件只校验它存在且关键条目在位）。
+1. **活代码树已下线**：`文档/待审核插件/` 不得存在（防有人解包回去当活代码）；
+   参考件 `文档/待审核插件.7z` 必须存在且非空；
+2. **棘轮里不得再有待审核段**：`scripts/verify_code_quality.py` 的**代码标识符**里
+   不许出现 `PENDING_SCAN_DIR` / `PENDING_METRICS` / `ALL_METRICS` /
+   `_iter_pending_py_files`、也不许出现任何 `pending_*` 指标名；
+   `scripts/code_quality_baseline.json` 不许有 `pending_*` 键；
+3. **真跑一次 `run_scan()`**：扫到的文件必须全部落在 `web/`、`plugins/`、
+   `panel_task.py`、`panel_tools.py` 之下 —— 防有人把 `文档/` 又塞回扫描范围；
+4. **security-scan.yml 不再是待审核插件的触发器**：`paths`（push / pull_request）
+   与两条 bandit 命令里都不许再出现该目录；同时两条 bandit 命令必须还在、
+   `paths` 不许被清空、也不许出现全通配 `**`（否则上面几条断言会失去意义）；
+5. **转正出口还在**：`文档/插件转正检查单.md` 必须存在，并写明新口径
+   （从 `待审核插件.7z` 取参考 → 落到 `plugins/` → 走正式门禁）。
 
 ## 断言策略
 
-* 扫描范围用 **AST 取常量值** + **真跑 `run_scan()`**：只断言「源码里出现了这个字符串」
-  太弱（注释里写一句就能骗过），所以额外证明「这个常量真的把文件喂进了扫描器」——
-  删掉常量、或把 `_iter_pending_py_files()` 从 `run_scan()` 里摘掉，都会红。
-* baseline 的 `pending_*` 值与**本文件写死的常量双向一致**：只改基线不改用例、或只改用例
-  不改基线，都会红（防止「悄悄放宽基线」这种最省事的作弊）。
-* workflow 用 `yaml.safe_load` 解析后断言（不用文本匹配）：文本匹配会把注释里出现的
-  `文档/待审核插件/**` 也算成通过，而 GitHub 读的是解析后的 `paths:`。
-  PyYAML 缺失时退回 `test_ci_workflows_hardening.py` 的受控行解析器（那个解析器由
-  它自己的 `test_02` 与 PyYAML 逐文件交叉比对过），因此本文件对 PyYAML 不是硬依赖。
-* 目录本身仍然存在且非空：防止有人「删掉待审核目录」来让上面几条轻松变绿。
+* 标识符用 **AST** 取（`ast.Name` / `ast.Attribute` / 函数名 / 形参），不靠文本匹配
+  —— 注释里解释「为什么删掉 `pending_*`」不能算违规；
+* 行为用**真跑 `run_scan()`** 证明，而不是只看常量值；
+* workflow 用 `yaml.safe_load` 解析后断言（GitHub 读的是解析后的 `paths:`，
+  注释里出现的路径字符串不算数）；无 PyYAML 时退回 `test_ci_workflows_hardening.py`
+  的受控行解析器（它自己的 `test_02` 会与 PyYAML 逐文件交叉比对）。
 
-变异自证（手工执行，输出见整改报告）：把 `PENDING_SCAN_DIR` 从扫描范围里去掉 → 用例 1/2 红；
-把 `文档/待审核插件/**` 从 push 的 `paths:` 删掉 → 用例 3 红；改回即绿。
+变异自证（手工执行，均实测变红 → 还原后绿）：
+①删 `文档/待审核插件.7z` → 用例 01/02 红；②在 `verify_code_quality.py` 里加回
+`PENDING_SCAN_DIR` 常量 → 用例 10 红；③把 `文档` 塞进 `SCAN_DIRS` → 用例 13 红
+（这类「扩了范围但恰好空扫」只有常量级断言抓得住，见该用例说明）；
+④把 `文档/待审核插件/**` 加回 `security-scan.yml` 的 paths → 用例 20 红；
+⑤把它加回 bandit 目标 → 用例 21 红。
 """
 import ast
 import importlib.util
 import io
 import json
 import os
-import subprocess
-import sys
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -57,27 +58,23 @@ QUALITY_SCRIPT = os.path.join(ROOT, 'scripts', 'verify_code_quality.py')
 BASELINE_FILE = os.path.join(ROOT, 'scripts', 'code_quality_baseline.json')
 SECURITY_WORKFLOW = os.path.join(ROOT, '.github', 'workflows', 'security-scan.yml')
 CHECKLIST = os.path.join(ROOT, '文档', '插件转正检查单.md')
+
+#: 参考件（源码树下线后**唯一**的载体）。
+ARCHIVE = os.path.join(ROOT, '文档', '待审核插件.7z')
+#: 已下线的活代码目录（必须不存在）。
 PENDING_DIR = os.path.join(ROOT, '文档', '待审核插件')
+#: 任何位置都不许再出现的目录名（paths / bandit 目标 / 扫描范围）。
+PENDING_TOKEN = '文档/待审核插件'
 
-#: 待审核目录在扫描范围里的**唯一事实来源**（verify_code_quality.py 的常量值）。
-PENDING_SCAN_DIR = '文档/待审核插件'
-#: GitHub `paths` 过滤使用的模式（`**` 跨层级，覆盖目录下一切文件）。
-PENDING_PATH_GLOB = '文档/待审核插件/**'
+#: 允许被扫描的根：正式代码（含插件）+ 根级脚本。
+PRODUCTION_ROOTS = ('web/', 'plugins/')
+PRODUCTION_FILES = ('panel_task.py', 'panel_tools.py')
 
-#: 待审核段基线 = **2026-10-22 实测现值**（P2-11 落地时跑 `verify_code_quality.py` 得到）。
-#: 只减不增：每清掉一处，这里和 scripts/code_quality_baseline.json 都要跟着降。
-#:
-#: 实测来源（34 个条目 / 44 个 *.py，其中 15 个文件有命中）：
-#:   bare_except 32（裸 except）    silent_except 9（except + 紧跟 pass）
-#:   print_in_web 0（与正式插件同口径：该项只统计 web/）  os_system_count 13
-#:   writefile_bare_success 23（裸 yf.writeFile 后 6 行内 returnJson(True)）
-PENDING_BASELINE = {
-    'pending_bare_except': 32,
-    'pending_silent_except': 9,
-    'pending_print_in_web': 0,
-    'pending_os_system_count': 13,
-    'pending_writefile_bare_success': 23,
-}
+#: 棘轮里不许再出现的标识符（P2-11 扫描段的组成部分）。
+FORBIDDEN_IDENTIFIERS = ('PENDING_SCAN_DIR', 'PENDING_METRICS', 'ALL_METRICS',
+                         '_iter_pending_py_files')
+#: 指标名前缀：`pending_*` 这套基线只属于已撤销的待审核段。
+FORBIDDEN_PREFIX = 'pending_'
 
 
 def _read(path):
@@ -94,37 +91,42 @@ def _load_module_by_path(path, name):
 
 def _quality_detector():
     """加载 `scripts/verify_code_quality.py`（纯标准库），复用同一份检测器。"""
-    return _load_module_by_path(QUALITY_SCRIPT, 'p211_quality_detector')
+    if 'yf_pending_quality_detector' not in __import__('sys').modules:
+        mod = _load_module_by_path(QUALITY_SCRIPT, 'yf_pending_quality_detector')
+        __import__('sys').modules['yf_pending_quality_detector'] = mod
+    return __import__('sys').modules['yf_pending_quality_detector']
 
 
-def _module_constants(path):
-    """用 AST 取模块级 `NAME = <字面量>` 的赋值（不执行、不依赖注释文本）。"""
-    out = {}
-    for node in ast.parse(_read(path)).body:
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target = node.targets[0]
-            if isinstance(target, ast.Name):
-                try:
-                    out[target.id] = ast.literal_eval(node.value)
-                except (ValueError, SyntaxError):
-                    continue
-    return out
+def _identifiers(path):
+    """AST 取模块里**真正用到的标识符**（名字、属性名、函数名、形参名）。
+
+    刻意不读注释与字符串：文件头需要写清楚「为什么删掉 `pending_*`」，
+    正文注释也可能提到旧常量名 —— 那些都不算「代码里还有它」。
+    """
+    tree = ast.parse(_read(path))
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.arg):
+            names.add(node.arg)
+        elif isinstance(node, ast.keyword) and node.arg:
+            names.add(node.arg)
+    return names
 
 
 def _load_trigger():
-    """解析 `security-scan.yml` 的触发块 → `{事件: {子键: [值...]}}`。
-
-    优先 PyYAML（`requirements.txt` 已含，CI 必有）；本机没有时退回
-    `testsuite/test_ci_workflows_hardening.py` 的受控行解析器 —— 它自己的
-    `test_02` 会在 PyYAML 可用时把两者逐文件比对，所以这条退路不是「换个更松的判据」。
-    两条路径都**不是文本匹配**：注释里出现的模式串不会进结果。
-    """
+    """解析 `security-scan.yml` 的触发块 → `{事件: {子键: [值...]}}`（非文本匹配）。"""
     text = _read(SECURITY_WORKFLOW)
     try:
         import yaml
     except ImportError:
         parser = _load_module_by_path(
-            os.path.join(HERE, 'test_ci_workflows_hardening.py'), 'p211_trigger_parser')
+            os.path.join(HERE, 'test_ci_workflows_hardening.py'), 'yf_pending_trigger_parser')
         return parser.parse_trigger_regex(text)
     data = yaml.safe_load(text)
     trig = data.get('on', data.get(True, {})) or {}
@@ -139,150 +141,166 @@ def _load_trigger():
     return out
 
 
-class TestPendingDirInScanScope(unittest.TestCase):
-    """1 + 2：待审核目录在代码质量棘轮的扫描范围里，且有独立基线兜住存量。"""
+def _bandit_commands():
+    """所有 `bandit -r ...` 命令（阻断档 + 报告档）。"""
+    text = _read(SECURITY_WORKFLOW)
+    try:
+        import yaml
+    except ImportError:
+        return [line.strip() for line in text.split('\n')
+                if line.strip().startswith('bandit -r')]
+    cmds = []
+    for job in (yaml.safe_load(text).get('jobs') or {}).values():
+        for step in (job or {}).get('steps') or []:
+            for line in (step.get('run') or '').split('\n'):
+                if line.strip().startswith('bandit -r'):
+                    cmds.append(line.strip())
+    return cmds
 
-    @classmethod
-    def setUpClass(cls):
-        cls.vcq = _quality_detector()
 
-    def test_01_pending_dir_is_a_scan_constant(self):
-        """扫描范围常量必须**真的存在且等于** `文档/待审核插件`（AST 取值，不看注释）。"""
-        consts = _module_constants(QUALITY_SCRIPT)
-        self.assertIn('PENDING_SCAN_DIR', consts,
-                      'scripts/verify_code_quality.py 里没有 PENDING_SCAN_DIR 常量 —— '
-                      '待审核目录又回到扫描范围之外了（P2-11 回退）')
-        self.assertEqual(consts['PENDING_SCAN_DIR'], PENDING_SCAN_DIR,
-                         'PENDING_SCAN_DIR 的值被改成了别的东西：%r' % (consts['PENDING_SCAN_DIR'],))
-        # 刻意不塞进 SCAN_DIRS：那是「已发布的正式代码」的语义，
-        # 混进去会让待审核存量直接污染正式基线（正式段 bare/silent/print 现在是 0）。
-        self.assertNotIn(PENDING_SCAN_DIR, consts.get('SCAN_DIRS', []),
-                         '待审核目录被塞进了 SCAN_DIRS：正式段基线会被存量稀释，'
-                         '请用 PENDING_SCAN_DIR + pending_* 指标族')
+class TestReferenceArchiveOnly(unittest.TestCase):
+    """1：活代码树已下线，参考件（7z）还在。"""
 
-    def test_02_pending_files_really_reach_the_scanner(self):
-        """光有常量不算数：必须证明它真把待审核目录的 *.py 喂进了扫描器。"""
-        files = list(self.vcq._iter_pending_py_files())
-        self.assertTrue(files, 'PENDING_SCAN_DIR 没扫到任何文件（路径写错了？目录被删了？）')
-        bad = [f for f in files
-               if not os.path.relpath(f, ROOT).replace(os.sep, '/')
-               .startswith(PENDING_SCAN_DIR + '/')]
-        self.assertEqual(bad, [], '扫描到了待审核目录之外的文件：%s' % bad[:5])
+    def test_01_live_tree_is_gone(self):
+        self.assertFalse(
+            os.path.isdir(PENDING_DIR),
+            '`文档/待审核插件/` 又出现了：2026-10-23 起该目录已整目录打包成 '
+            '`文档/待审核插件.7z`，源码树不再入库。要复用请解包到仓库外的目录看，'
+            '不要解回仓库（否则它会被误当成活代码，也会重新进扫描/棘轮的口径争议）。')
 
-    def test_03_run_scan_has_pending_metrics(self):
-        """`run_scan()` 必须产出 pending_* 指标，且确实数到了存量（不是空转的 0）。"""
-        counts = self.vcq.counts_of(self.vcq.run_scan())
-        for key in PENDING_BASELINE:
-            self.assertIn(key, counts, 'run_scan() 没有产出 %s' % key)
-        self.assertGreater(counts['pending_bare_except'], 0,
-                           '待审核段的裸 except 统计为 0：要么存量被清了（请下调基线），'
-                           '要么这个目录根本没被扫（那就是 P2-11 的老问题）')
+    def test_02_archive_exists(self):
+        self.assertTrue(os.path.isfile(ARCHIVE),
+                        '缺少参考件 `文档/待审核插件.7z` —— 它是那批插件代码的唯一载体，'
+                        '删掉就等于永久丢弃后续开发的参考')
+        size = os.path.getsize(ARCHIVE)
+        self.assertGreater(size, 64 * 1024,
+                           '参考件只有 %d 字节，疑似空包/截断（原包约 470KB）' % size)
 
-    def test_04_baseline_keys_present_and_measured(self):
-        """基线文件里必须有全部 pending_* 键，且当前实测值 ≤ 基线（真跑棘轮）。"""
-        baseline = self.vcq.load_baseline()
-        missing = [k for k in PENDING_BASELINE if k not in baseline]
-        self.assertEqual(missing, [],
-                         'scripts/code_quality_baseline.json 缺少待审核段基线键：%s'
-                         '（用 `python scripts/verify_code_quality.py --update` 按实测值生成，'
-                         '不许手工写大）' % missing)
-        counts = self.vcq.counts_of(self.vcq.run_scan())
-        over = {k: (counts[k], baseline[k]) for k in PENDING_BASELINE
-                if counts[k] > baseline[k]}
-        self.assertEqual(over, {},
-                         '待审核段指标超过了基线（当前, 基线）：%r。'
-                         '要么清掉新增的违规，要么在报告里说明后**下调**基线；'
-                         '不许把基线改大' % over)
 
-    def test_05_static_gate_exit_code_zero(self):
-        """子进程真跑一次棘轮：退出码必须是 0（`--static` 里的那一条就是它）。"""
-        proc = subprocess.run([sys.executable, 'scripts/verify_code_quality.py'],
-                              cwd=ROOT, capture_output=True, timeout=280)
-        out = (proc.stdout + proc.stderr).decode('utf-8', 'replace')
-        self.assertEqual(proc.returncode, 0,
-                         'scripts/verify_code_quality.py 退出码非 0：\n%s' % out)
+class TestRatchetHasNoPendingSegment(unittest.TestCase):
+    """2 + 3：棘轮里没有待审核段，且扫描结果只覆盖正式代码。"""
 
-    def test_06_pending_baseline_not_silently_loosened(self):
-        """基线不可悄悄放宽：文件里的 pending_* 值必须等于本用例写死的常量（双向）。"""
-        baseline = self.vcq.load_baseline()
-        in_file = {k: v for k, v in baseline.items() if k.startswith('pending_')}
-        self.assertEqual(sorted(in_file), sorted(PENDING_BASELINE),
-                         '基线文件里的 pending_* 键集合与本用例不一致：文件 %r / 用例 %r。'
-                         '新增或删除指标时两处必须同步' % (sorted(in_file), sorted(PENDING_BASELINE)))
-        drifted = {k: (in_file[k], PENDING_BASELINE[k]) for k in PENDING_BASELINE
-                   if in_file.get(k) != PENDING_BASELINE[k]}
-        self.assertEqual(drifted, {},
-                         'pending_* 基线被单方面改过（文件值, 用例值）：%r。'
-                         '放宽基线必须同时改用例并在报告里写明理由与实测证据' % drifted)
+    def test_10_quality_script_has_no_pending_identifiers(self):
+        names = _identifiers(QUALITY_SCRIPT)
+        hit = sorted(n for n in names
+                     if n in FORBIDDEN_IDENTIFIERS or n.startswith(FORBIDDEN_PREFIX))
+        self.assertEqual(
+            hit, [],
+            'verify_code_quality.py 里又出现了待审核扫描段的标识符 %r。'
+            '该段已随「待审核插件打包成参考件」撤销：目录都不存在，扫它只会'
+            '「扫空目录恒绿」，是假守卫。要上线的新插件落进 `plugins/` 就会被扫。' % hit)
+
+    def test_11_baseline_has_no_pending_keys(self):
+        with io.open(BASELINE_FILE, encoding='utf-8') as fh:
+            baseline = json.load(fh)
+        stale = sorted(k for k in baseline if k.startswith(FORBIDDEN_PREFIX))
+        self.assertEqual(stale, [],
+                         'scripts/code_quality_baseline.json 还留着待审核段的基线键 %r'
+                         '（对应的扫描代码已删除，这些键永远不会有读数）' % stale)
+
+    def test_12_run_scan_only_covers_production_code(self):
+        """真跑一次检测器：任何落到 `文档/`（或其它非正式代码）的命中都算红。"""
+        detector = _quality_detector()
+        result = detector.run_scan()
+        scanned = set()
+        for metric in detector.METRICS:
+            for path, _line, _snippet in result[metric]:
+                scanned.add(path.replace('\\', '/'))
+        self.assertTrue(scanned, 'run_scan() 一个文件都没扫到，检测器已经空转')
+        bad = sorted(p for p in scanned
+                     if not (p.startswith(PRODUCTION_ROOTS) or p in PRODUCTION_FILES))
+        self.assertEqual(
+            bad, [],
+            '扫描结果里出现了正式代码之外的路径 %r —— 有人把 `文档/`（或别的参考件目录）'
+            '重新塞进了扫描范围。参考件不进生产，也不该进棘轮' % bad[:5])
+
+
+    def test_13_scan_scope_is_exactly_production(self):
+        """扫描范围常量必须**逐字**等于正式代码。
+
+        只靠 `test_12`（真跑一遍、看命中路径）不够：如果有人把 `文档/` 塞回
+        `SCAN_DIRS`，而那儿恰好没有任何 `*.py`（参考件已打包成 7z 就是这样），
+        一次空扫照样全绿 —— 那正是本仓库最忌讳的「假守卫」。所以这里把常量本身
+        钉死：扩范围必须显式改用例并说明理由。
+        """
+        consts = {}
+        for node in ast.parse(_read(QUALITY_SCRIPT)).body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1                     and isinstance(node.targets[0], ast.Name):
+                try:
+                    consts[node.targets[0].id] = ast.literal_eval(node.value)
+                except (ValueError, SyntaxError):
+                    continue
+        self.assertEqual(consts.get('SCAN_DIRS'), ['web', 'plugins'],
+                         'SCAN_DIRS 变了：%r —— 参考件（文档/）不属于扫描范围，'
+                         '要上线的插件落进 plugins/ 就会被扫' % (consts.get('SCAN_DIRS'),))
+        self.assertEqual(consts.get('SCAN_ROOT_PY'), ['panel_task.py', 'panel_tools.py'],
+                         'SCAN_ROOT_PY 变了：%r' % (consts.get('SCAN_ROOT_PY'),))
 
 
 class TestSecurityScanWorkflowScope(unittest.TestCase):
-    """3：`security-scan.yml` 的 push / pull_request 触发范围与 bandit 目录都覆盖待审核目录。"""
+    """4：security-scan.yml 不再是待审核插件目录的触发器。"""
 
     @classmethod
     def setUpClass(cls):
         cls.trigger = _load_trigger()
-        cls.text = _read(SECURITY_WORKFLOW)
+        cls.cmds = _bandit_commands()
 
-    def test_10_push_paths_include_pending_dir(self):
-        paths = (self.trigger.get('push') or {}).get('paths', [])
-        self.assertIn(PENDING_PATH_GLOB, paths,
-                      'security-scan.yml 的 push paths 不含 %s —— 改动待审核插件不会触发扫描'
-                      '（现有 paths：%r）' % (PENDING_PATH_GLOB, paths))
+    def test_20_paths_do_not_reference_pending_dir(self):
+        for event in ('push', 'pull_request'):
+            paths = (self.trigger.get(event) or {}).get('paths', [])
+            hit = [p for p in paths if PENDING_TOKEN in p]
+            self.assertEqual(
+                hit, [],
+                'security-scan.yml 的 %s paths 仍有 %r：该目录已是参考件（7z 里没有可执行'
+                '代码），改它触发全量扫描既扫不到代码、又白占 CI 配额。'
+                '要上线的插件落进 `plugins/` 那条路径本来就被扫' % (event, hit))
 
-    def test_11_pull_request_paths_include_pending_dir(self):
-        paths = (self.trigger.get('pull_request') or {}).get('paths', [])
-        self.assertIn(PENDING_PATH_GLOB, paths,
-                      'security-scan.yml 的 pull_request paths 不含 %s（现有 paths：%r）'
-                      % (PENDING_PATH_GLOB, paths))
+    def test_21_bandit_targets_do_not_reference_pending_dir(self):
+        self.assertGreaterEqual(len(self.cmds), 2,
+                                'bandit 的扫描命令少于 2 条（阻断 + 报告两条都要留）')
+        bad = [c for c in self.cmds if PENDING_TOKEN in c]
+        self.assertEqual(
+            bad, [],
+            '这些 bandit 命令还带着已下线的参考件目录：%r。'
+            'bandit 扫不存在的目录 = 「看起来扫了」的假覆盖' % bad)
 
-    def test_12_bandit_scan_dirs_include_pending_dir(self):
-        """bandit 是**显式列目录**的，所以命令里也得有它（两个步骤都要）。"""
-        try:
-            import yaml
-        except ImportError:  # 无 PyYAML 时退化为「逐行找 bandit -r」的受控解析
-            cmds = [line for line in self.text.split('\n')
-                    if line.strip().startswith('bandit -r')]
-        else:
-            cmds = []
-            for job in (yaml.safe_load(self.text).get('jobs') or {}).values():
-                for step in (job or {}).get('steps') or []:
-                    run = step.get('run') or ''
-                    cmds.extend(line for line in run.split('\n')
-                                if line.strip().startswith('bandit -r'))
-        self.assertGreaterEqual(len(cmds), 2, 'bandit 的扫描命令少于 2 条（阻断 + 报告）')
-        bad = [c.strip() for c in cmds if PENDING_SCAN_DIR not in c]
-        self.assertEqual(bad, [],
-                         '这些 bandit 命令没扫待审核目录：%r' % bad)
-
-    def test_13_trigger_still_has_no_regression(self):
-        """顺带确认没把整个 paths 改成通配（那等于「每次都扫」，也会让上面的断言失去意义）。"""
+    def test_22_scan_scope_still_covers_production(self):
+        """反向：撤掉参考件不许把正式代码的覆盖也一起撤掉。"""
         for event in ('push', 'pull_request'):
             paths = (self.trigger.get(event) or {}).get('paths', [])
             self.assertTrue(paths, '%s 的 paths 被清空了' % event)
             self.assertNotIn('**', paths, '%s 的 paths 出现全通配 **' % event)
+            for required in ('plugins/**/*.py', 'web/**.py', 'scripts/**.py'):
+                self.assertIn(required, paths,
+                              '%s 的 paths 缺少 %s —— 正式代码的触发范围被缩小了'
+                              % (event, required))
+        joined = ' '.join(self.cmds)
+        for target in ('web', 'scripts', 'panel_task.py', 'panel_tools.py'):
+            self.assertIn(target, joined, 'bandit 目标里少了 %s' % target)
 
 
 class TestChecklistDoc(unittest.TestCase):
-    """4：转正检查单存在，且关键条目在位（否则「纳入扫描」只是半道门禁）。"""
+    """5：转正出口还在，且写明新口径。"""
 
     @classmethod
     def setUpClass(cls):
         cls.text = _read(CHECKLIST) if os.path.isfile(CHECKLIST) else ''
 
-    def test_20_checklist_file_exists(self):
+    def test_30_checklist_file_exists(self):
         self.assertTrue(os.path.isfile(CHECKLIST),
-                        '缺少 文档/插件转正检查单.md —— 没有检查单，「转正必须过审计」就没有载体')
+                        '缺少 文档/插件转正检查单.md —— 没有检查单，「转正必须过审计」'
+                        '就没有载体（参考件唯一的出口就是这张单子）')
 
-    def test_21_checklist_covers_key_items(self):
+    def test_31_checklist_covers_key_items(self):
         """关键条目逐词命中：任一被删掉，都意味着某类风险从检查单里消失了。"""
-        # 词 -> 它代表的那条要求（报红时能直接看出丢了什么）
         required = {
+            '待审核插件.7z': '参考件载体与取用口径（不再是活代码目录）',
+            'plugins/': '落地位置：转正 = 搬进 plugins/，随后自动进正式门禁',
             'os.system': '命令注入面（execShell / os.system / eval / 裸拼命令）',
             'bandit': 'bandit 无 HIGH 的机械门禁',
             'i18n': '六语言键齐全 + 死键清零',
             '严格模式': '安装/卸载脚本的 set -euo pipefail',
-            'writefile': '棘轮 5 项指标里的 writefile_bare_success',
+            'writefile': '棘轮指标里的 writefile_bare_success',
             'ERR trap': '安装脚本失败可定位',
             'lib_install_report': 'P1-8 规范库落账',
             'requirements.txt': '依赖与锁口径',
@@ -294,23 +312,10 @@ class TestChecklistDoc(unittest.TestCase):
                    if word not in self.text]
         self.assertEqual(missing, [], '转正检查单缺少这些条目：%s' % missing)
 
-    def test_22_checklist_has_checkboxes(self):
+    def test_32_checklist_has_checkboxes(self):
         """必须是「可勾选清单」，不是散文。"""
         ticks = self.text.count('- [ ]')
         self.assertGreaterEqual(ticks, 15, '可勾选项只有 %d 条，检查单退化成散文了' % ticks)
-
-
-class TestPendingDirStillExists(unittest.TestCase):
-    """6：顺带守卫 —— 待审核目录仍存在且非空（防「删目录让检查变绿」）。"""
-
-    def test_30_pending_dir_exists_and_not_empty(self):
-        self.assertTrue(os.path.isdir(PENDING_DIR),
-                        '文档/待审核插件/ 不见了：P2-11 只做「纳入扫描 + 检查单」，'
-                        '不是「删掉待审核目录」。真要清空必须先逐个走完转正检查单')
-        entries = [n for n in os.listdir(PENDING_DIR) if not n.startswith('.')]
-        self.assertGreater(len(entries), 0,
-                           '文档/待审核插件/ 空了 —— 是转正搬走了，还是被人删了？'
-                           '转正必须同步 36 插件契约计数并更新本用例')
 
 
 if __name__ == '__main__':

@@ -81,9 +81,14 @@ _I18N_PATHS = [
 # security-scan.yml 的 paths（基线，逐字抄写；顺序为归一化后的排序结果）
 # `scripts/**.py`：bandit 本来就扫 scripts，触发范围必须跟上，否则漏扫
 # （2026-10-13：`scripts/tools/build_edition.py` 的 B202 HIGH 就是这么躲过好几次提交的）。
-# `文档/待审核插件/**`：P2-11 新增 —— 待审核插件转正就是搬进 `plugins/` 直接进生产，
-# 所以它的改动也必须触发扫描（bandit 的 `-r` 目录也同步加了这个目录）；
-# 代码质量棘轮那侧的对应基线是 `scripts/code_quality_baseline.json` 的 `pending_*` 键。
+# 2026-10-23 基线变更（显式记录，因为本基线是「逐字抄写」的）：
+#   `文档/待审核插件/**` 已从 paths 中**移除**。该目录整目录打包成了
+#   `文档/待审核插件.7z`，源码树不再入库，那批代码只作后续开发的参考件、不再被使用；
+#   参考件不进生产，也就不进扫描门禁（7z 里没有可执行代码，扫它等于假覆盖）。
+#   要上线的插件落进 `plugins/` 就自动被扫 —— 那条路径 `plugins/**/*.py` 一直在。
+#   相关守卫同步改写：testsuite/test_pending_plugins_scan_scope.py。
+#   `scripts/**.py`：bandit 本来就扫 scripts，触发范围必须跟上，否则漏扫
+#   （2026-10-13：`scripts/tools/build_edition.py` 的 B202 HIGH 就是这么躲过好几次提交的）。
 _SCAN_PATHS = [
     '.github/workflows/security-scan.yml',
     'panel_task.py',
@@ -92,7 +97,6 @@ _SCAN_PATHS = [
     'requirements*.txt',
     'scripts/**.py',
     'web/**.py',
-    '文档/待审核插件/**',
 ]
 
 # 不许动触发条件的三个 workflow（基线 = 2026-10-12 改动前的实际触发，逐字抄写）。

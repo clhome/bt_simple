@@ -6,7 +6,10 @@
   2. 临时登录 token 用后即焚（同一 token 第二次使用被拒）；
   3. bcrypt 缺失时必须 fail-closed（校验拒绝 / 哈希抛异常），且告警不得静默；
   4. /dashboard/hook 路由必须带登录态校验，不再无鉴权；
-  5. plugins/待审核/ 与 文档/待审核插件/ 必须有「未审核 + 命令注入未修」警示 README。
+  5. plugins/待审核/ 必须有「未审核 + 命令注入未修」警示 README。
+     （`文档/待审核插件/` 已于 2026-10-23 打包为 `文档/待审核插件.7z`，
+     源码树下线、只作参考件，不再校验其 README；新政策见
+     testsuite/test_pending_plugins_scan_scope.py）
 
 沿用仓库既有风格：AST 抽出真实函数体在桩命名空间里执行（不依赖 flask app 上下文、
 不碰真库、不发网络请求）。断言必须真能失败 —— 见 `test/p2_miscsec_mutation_probe.py`。
@@ -37,7 +40,6 @@ SETTING_PY = os.path.join(WEB, 'utils', 'setting.py')
 LOGIN_PY = os.path.join(WEB, 'admin', 'dashboard', 'login.py')
 DASHBOARD_PY = os.path.join(WEB, 'admin', 'dashboard', 'dashboard.py')
 PLUGIN_WARN_README = os.path.join(ROOT, 'plugins', '待审核', 'README.md')
-DOC_WARN_README = os.path.join(ROOT, '文档', '待审核插件', 'README.md')
 
 
 def _read(path):
@@ -353,13 +355,14 @@ class TestPendingPluginWarnings(unittest.TestCase):
     def test_plugins_pending_readme(self):
         self._check(PLUGIN_WARN_README)
 
-    def test_docs_pending_readme(self):
-        self._check(DOC_WARN_README)
-
     def test_pending_code_untouched_marker(self):
-        """警示文档存在即可；这里只保证目录里确实有待审核插件（防止误删成空目录）。"""
+        """警示文档存在即可；这里只保证目录里确实有待审核插件（防止误删成空目录）。
+
+        `文档/待审核插件/` 已于 2026-10-23 打包成 `文档/待审核插件.7z`（源码树下线、
+        只作参考件），所以这里只校验 `plugins/待审核/`；新政策的守卫在
+        `test_pending_plugins_scan_scope.py`。
+        """
         self.assertTrue(os.path.isdir(os.path.join(ROOT, 'plugins', '待审核')))
-        self.assertTrue(os.path.isdir(os.path.join(ROOT, '文档', '待审核插件')))
 
 
 if __name__ == '__main__':
