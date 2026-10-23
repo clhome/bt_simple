@@ -27,6 +27,8 @@ import functools
 
 
 from . import deDoubleCrypt, getFileSuffix, getInfo, getNotifyPath, getPanelTaskPidFile, getTracebackInfo, getTriggerTaskLockFile, httpPost, notifyMessageTry
+# P2-6：HTTP 用途分级常量（url 的 path 里带 bot token，必须走 credential 档）
+from .net import PURPOSE_CREDENTIAL
 
 
 # ---------------------------------------------------------------------------
@@ -441,7 +443,8 @@ def tgbotNotifyHttpPost(app_token, chat_id, msg):
             'chat_id': chat_id,
             'text': msg,
         }
-        rdata = httpPost(url, post_data)
+        # P2-6：url 的 path 里带 bot token（等同于凭据），禁止 TLS 校验失败后降级
+        rdata = httpPost(url, post_data, purpose=PURPOSE_CREDENTIAL)
         return True
     except Exception as e:
         writeFileLog(str(e))

@@ -91,6 +91,7 @@
     "操作": "Opérations",
     "时区": "fuseau horaire",
     "是否允许上传文件": "S'il faut autoriser le téléchargement de fichiers",
+    "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）": "S'il faut activer pathinfo (le modèle nginx bloque déjà les chemins .php inexistants avec try_files, son activation est donc sûre)",
     "是否开启pathinfo": "S'il faut activer pathinfo",
     "是否输出详细错误信息": "S'il faut afficher des informations d'erreur détaillées",
     "最大活跃进程数量(max active processes)": "Nombre maximal de processus actifs (max active processes)",

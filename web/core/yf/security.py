@@ -56,20 +56,56 @@ def md5(content):
         return False
 
 
+# ---------------------------------------------------------------------------
+# 加密组件缺失的具名异常（fail-closed 契约）
+#
+# 背景：历史上「缺少 bcrypt / cryptography」时，本模块会静默降级 ——
+#   * checkPwd() 退回**无盐 SHA256** 比对（等于放行登录）；
+#   * hasPwd()  退回**无盐 SHA256** 哈希（等于写弱哈希）；
+#   * enDoubleCrypt() 直接 `return strings`（等于**明文落盘**）。
+# 三条都是 fail-open，且用户/运维都看不到。现在统一改成具名异常 + 拒绝写入，
+# 让调用方**显式**决定怎么失败，绝不允许「悄悄降级继续跑」。
+# ---------------------------------------------------------------------------
+def _install_hint(pkg):
+    """补齐依赖的补救提示（异常文案与日志共用，避免两处写法不一致）。"""
+    return ('请安装后重启面板：pip install %s（或按 requirements.txt 重新安装依赖）' % pkg)
+
+
+class PwdCryptoUnavailable(RuntimeError):
+    """口令哈希组件（bcrypt）不可用。
+
+    抛出场景：`hasPwd()` 需要生成新口令哈希、`checkPwd()` 缺少 bcrypt 实现。
+    语义：**fail-closed** —— 调用方必须把「设置/校验口令」判定为失败，
+    绝不允许退回无盐 SHA256（那会让弱哈希继续写入、让登录被放行）。
+    """
+
+
+class DataCryptUnavailable(RuntimeError):
+    """数据加密组件（cryptography/Fernet）不可用。
+
+    抛出场景：`enDoubleCrypt()` 无法真正完成加密。
+    语义：**fail-closed** —— 绝不能把入参原样返回，否则口令/密钥会以
+    **明文**落盘（面板通知口令、FTP 口令、SSH 口令、数据库 root 口令……）。
+    """
+
+
 def checkPwd(password, hashed):
     '''
     验证密码
+
+    bcrypt 缺失时**返回 False**（拒绝校验），不再退回无盐 SHA256 比对。
+    注意：`checkPwdCompat()` 见到 False 后会继续走历史 MD5/SHA256 比对分支 ——
+    那是「老安装升级到 bcrypt」的一次性兼容路径（命中即回写 bcrypt），
+    属于既有正确行为，本函数不负责替它兜底。
     '''
     try:
         import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except ImportError:
-        # fail-open：bcrypt 缺失时退回 SHA256。绝不能静默 —— 降级会削弱口令存储强度，
-        # 必须留下明确告警（含补救建议），便于运维发现依赖缺失。
-        _log.warning('[yf.security] bcrypt 不可用，口令校验降级为 SHA256 比对'
-                     '（请安装 bcrypt：pip install bcrypt）；本次降级不阻断登录')
-        import hashlib
-        return hashlib.sha256(password.encode('utf-8')).hexdigest() == hashed
+        # fail-closed：bcrypt 缺失时不做任何「等价物比对」，直接判失败。
+        _log.warning('[yf.security] bcrypt 不可用，口令校验一律判失败（fail-closed）；%s',
+                     _install_hint('bcrypt'))
+        return False
     except Exception as _e:
         return False
 
@@ -120,6 +156,10 @@ def checkPwdCompat(password, stored):
 
 def enDoubleCrypt(key, strings):
     # 加密字符串
+    #
+    # fail-closed：加密不可用时**抛 DataCryptUnavailable**，绝不把入参原样返回。
+    # 旧实现 `except Exception: return strings` 会让口令/密钥以**明文**落盘，
+    # 而且调用方从返回值上看不出任何异样（看着像「加密成功了一个很短的密文」）。
     try:
         import base64
         import cryptography
@@ -141,9 +181,14 @@ def enDoubleCrypt(key, strings):
         f = Fernet(_key)
         result = f.encrypt(strings)
         return result.decode('utf-8')
+    except DataCryptUnavailable:
+        raise
     except Exception as _e:
         writeFileLog(getTracebackInfo())
-        return strings
+        raise DataCryptUnavailable(
+            '数据加密组件不可用（缺少 cryptography 或加密实现异常），已拒绝加密并中止写入，'
+            '不会以明文保存口令/密钥；%s。原始错误: %s: %s'
+            % (_install_hint('cryptography'), type(_e).__name__, _e)) from _e
 
 
 def aesEncrypt(data, key=None, vi=None):

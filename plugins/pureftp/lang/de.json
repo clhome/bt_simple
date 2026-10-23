@@ -1,4 +1,5 @@
 {
+    "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "Datenverschluesselungskomponente nicht verfuegbar (cryptography fehlt); Speichern abgelehnt. Bitte cryptography installieren und erneut versuchen",
     "(同内网)": "(Wie Intranet)",
     "FTP 用户名": "FTP-Benutzername",
     "FTP 连接与账号管理": "FTP-Verbindung und Kontoverwaltung",

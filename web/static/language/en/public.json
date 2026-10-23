@@ -1,4 +1,6 @@
 {
+  "login_guard_degraded_title": "Login rate limiting has degraded to in-process counters; limits no longer hold with multiple workers",
+  "login_guard_degraded_desc": "Failed-login counts cannot be written to the database, so brute-force protection and session revocation after a password change only apply inside this process. Please check the database and the panel_login_failure table, then reload this page.",
   "plain_http_warning_title": "Plain HTTP: login cookies can be sniffed",
   "plain_http_warning_desc": "Please enable HTTPS in Panel Settings as soon as possible; do not use this panel over the public network until then.",
   "config": "Setting up...",

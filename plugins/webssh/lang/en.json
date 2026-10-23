@@ -1,4 +1,5 @@
 {
+    "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "Data encryption component unavailable (cryptography is missing); the save was refused. Please install cryptography and try again",
     "SSH终端": "SSH terminal",
     "SSH账号": "SSH Account",
     "不存在此配置": "This configuration does not exist.",

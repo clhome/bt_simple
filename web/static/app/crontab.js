@@ -144,8 +144,15 @@ function getCronData(page) {
             cron_backupto = getBackupName(rdata['backup_hook'], rdata.data[i]['backup_to']);
           }
         }
+        // P2-15：历史任务的 echo 若是原始命令（含空格/分号等），同步时会被后端拒绝，
+        // 且只写一条日志不给任何提示。这里把「同步被拒」显式标到任务名旁，
+        // title 里带后端给的原因与修法，避免用户误以为任务还在正常跑。
+        var sync_mark = '';
+        if (rdata.data[i]['sync_ok'] === false) {
+          sync_mark = ' <span class="cron-sync-rejected" title="' + cronEsc(rdata.data[i]['sync_reason'] || '') + '" style="display:inline-block;margin-left:6px;padding:0 6px;border-radius:3px;background:#e74c3c;color:#fff;font-size:12px;white-space:nowrap;cursor:help;">' + cronEsc(t('crontab.cron_sync_rejected', '同步被拒')) + '</span>';
+        }
         cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + cronEsc(rdata.data[i].name) + "' name='id' value='" + rdata.data[i].id + "'></td>\
-					<td>" + cronEsc(rdata.data[i].name) + "</td>\
+					<td>" + cronEsc(rdata.data[i].name) + sync_mark + "</td>\
 					<td>" + status + "</td>\
 					<td>" + cronEsc(rdata.data[i].type) + "</td>\
 					<td>" + cronEsc(rdata.data[i].cycle) + "</td>\

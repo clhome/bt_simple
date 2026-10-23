@@ -2021,7 +2021,9 @@
     "py_msg_15fa79": "Die angegebene Kategorie existiert nicht!",
     "py_msg_6d5524": "Kategorie bereitsLöschen!",
     "py_msg_2b7ff5": "Verlängerung fehlgeschlagen. Details finden Sie im Protokoll!",
-    "py_msg_a36237": "Zertifikatsverlängerung erfolgreich!"
+    "py_msg_a36237": "Zertifikatsverlängerung erfolgreich!",
+    "cert_issue_retry_limit_help": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain an die entsprechende Website gebunden ist\n2. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n3. Wenn Ihre Website einen Reverse-Proxy oder ein CDN verwendet, deaktivieren Sie es zuerst\n4. Wenn für Ihre Website eine 301-Weiterleitung eingerichtet ist, deaktivieren Sie sie zuerst\n5. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln",
+    "cert_issue_retry_limit_help_short": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n2. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln"
   },
   "database": {
     "H1": "Startseite",
@@ -2531,8 +2533,6 @@
     "synchronizing_server_firewall_rules": "Server-Firewallregeln werden synchronisiert, Bitte warten...",
     "the_synchronization_request_failed": "Synchronisierungsanfrage fehlgeschlagen. Bitte überprüfen Sie die Netzwerkverbindung oder den Serverstatus.",
     "bordered_hover_layout_fixed": "Prozessname",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "- Details zu Prozessen, die den Port verwenden",
     "after_the_reset_the": "Nach dem Zurücksetzen kann der alte private Schlüssel nicht mehr für die passwortlose Anmeldung an diesem Server verwendet werden (sofern die Schlüssel-Anmeldung aktiviert ist). Möchten Sie ihn wirklich neu generieren? Root Schlüssel?",
     "reset_root_key": "Zurücksetzen Root Schlüssel",
@@ -2841,7 +2841,6 @@
     "cutting_log": "Protokollrotation",
     "backup_directory_1": "Sicherungsverzeichnis",
     "role_menuitem_tabindex_all": "Alle",
-    "textname_mr_keep_the": "",
     "backup_directory_2": "Sicherungsverzeichnis[",
     "back_up_website_2": "Website sichern",
     "back_up_the_database_3": "Datenbank sichern",
@@ -2879,7 +2878,6 @@
     "edit_scheduled_tasks": "Geplante Aufgabe bearbeiten –[",
     "setting_con_ptb_clearfix": "Aufgabentyp",
     "clearfix_plan_ptb_typename": "",
-    "clearfix_plan_ptb_typename_1": "",
     "maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
     "maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
     "maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2899,7 +2897,6 @@
     "typename_exclude_dir_mr": "Verzeichnis ausschließen",
     "typename_controls_mr_tip": "Hinweis",
     "typename_controls_mr_url": "URLAdresse",
-    "clearfix_plan_ptb_bt": "",
     "backup_directory_6": "Sicherungsverzeichnis[",
     "saving_your_edits_please": "Bearbeiteter Inhalt wird gespeichert, bitte warten...",
     "dropdown_planweek_mr_default": "Montag",
@@ -3089,7 +3086,9 @@
     "py_msg_77c6a9": "DateienSchreiben fehlgeschlagen,ObEinschaltenSystemhärtungsfunktion!",
     "py_msg_9d44d8": "Erfolgreich erkannt und synchronisiert {1} Aufgabe(n)",
     "py_msg_2c1843": "AufgabeNameWiederholen",
-    "py_msg_f47dfc": "Aktuelle AufgabeListeist bereits aktuell, keine fehlenden Aufgaben zu synchronisieren"
+    "py_msg_f47dfc": "Aktuelle AufgabeListeist bereits aktuell, keine fehlenden Aufgaben zu synchronisieren",
+    "cron_sync_rejected": "Sync abgelehnt",
+    "cron_sync_rejected_tip": "Die Aufgabenkennung enthält unerlaubte Zeichen (nur A-Za-z0-9_.- erlaubt, höchstens 64). Die Synchronisierung wird deshalb abgelehnt; bitte die Aufgabe bearbeiten und erneut speichern, um eine gültige Kennung zu erzeugen."
   },
   "day_limit": "Tagesbegrenzung",
   "day_none": "Kein",
@@ -3394,7 +3393,6 @@
     "size": "Größe:",
     "author": "Autor:",
     "source_btlink": "Quelle: <a class=\"btlink\" href=\"",
-    "help_info_red_this": "",
     "quot_gt_confirm_installation": "Installation bestätigen",
     "upload_failed": "Upload fehlgeschlagen 2!:",
     "installing_this_may_take": "Wird installiert,Dies kann einige Minuten dauern...",
@@ -4591,6 +4589,8 @@
     "brand_panel": "Yufeng-Panel"
   },
   "public": {
+    "login_guard_degraded_title": "Die Login-Drosselung läuft nur noch mit prozessinternen Zählern – bei mehreren Workern greift sie nicht mehr",
+    "login_guard_degraded_desc": "Fehlanmeldungen können nicht in die Datenbank geschrieben werden, daher gelten Brute-Force-Schutz und das Abmelden von Sitzungen nach einer Passwortänderung nur in diesem Prozess. Bitte Datenbank und Tabelle panel_login_failure prüfen und diese Seite neu laden.",
     "plain_http_warning_title": "Unverschlüsseltes HTTP: Login-Cookies können mitgelesen werden",
     "plain_http_warning_desc": "Bitte aktivieren Sie HTTPS in den Panel-Einstellungen so bald wie möglich; nutzen Sie dieses Panel bis dahin nicht über das öffentliche Netz.",
     "config": "Wird eingerichtet...",

@@ -8,6 +8,10 @@ import time
 sys.path.append(os.getcwd() + "/class/core")
 import yf
 import db
+try:
+    import core.db_pwd as db_pwd
+except Exception as _e:  # 面板 web 目录不在 sys.path 时降级
+    db_pwd = None
 
 cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
 info = yf.execShell(cmd)
@@ -57,9 +61,13 @@ echo "The root password set ${pwd}  successuful"'''
     if os.path.exists('mysql_root.sh'):
         os.remove('mysql_root.sh')
 
+    # P2-4：root 口令加密落库（与插件 index.py 用同一命名空间，读侧才解得开）
+    stored_pwd = password
+    if db_pwd is not None:
+        stored_pwd = db_pwd.encrypt_pwd(db_pwd.SCOPE_MYSQL_ROOT, password)
     pos = yf.getServerDir() + '/mysql'
     result = sql.table('config').dbPos(pos, 'mysql').where(
-        'id=?', (1,)).setField('mysql_root', password)
+        'id=?', (1,)).setField('mysql_root', stored_pwd)
 
 
 def set_panel_pwd(password, ncli=False):

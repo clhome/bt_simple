@@ -1,4 +1,5 @@
 {
+    "口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试": "Password encryption component unavailable (bcrypt is missing); the save was refused. Please install bcrypt and try again",
     "80端不能使用!": "Port 80 cannot be used!",
     "PHP版本": "PHP version",
     "kill所有php进程": "kill all php processes",

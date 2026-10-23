@@ -236,6 +236,25 @@ def fixCrlf(file_path):
 
 
 def execShell(cmdstring, cwd=None, timeout=EXEC_DEFAULT_TIMEOUT, shell=True):
+    """执行命令，返回 `(stdout, stderr)`。
+
+    约定（P2-12，新代码必须遵守；`testsuite/test_shell_debt_reduction_plan.py`
+    会对新增/改动文件跑静态检查）：
+      1. **新代码默认必须用 argv 列表 + `shell=False`**。argv 形态不经过 `/bin/sh`
+         重新解析，参数里的空格、引号、`$()`、反引号都不会被解释 —— 这是唯一
+         「参数带外部输入也安全」的形态。偏好 argv 时请用 `execShellRc(argv,
+         shell=False)`：`execShell` 的 `shell=False` 分支会把**字符串** `shlex.split()`
+         后再执行，只有传列表才是原样透传。
+      2. 只有当命令本身真的需要 shell（`cd`/`export`/`source` 等内建、管道、
+         重定向、`&&`/`;` 串联），**且参数里不含任何外部输入**（全是常量，或
+         已过 `yf.shlexQuote()` 的值）时，才允许 `shell=True`，并且必须在**该调用点
+         就地**注释说明理由（为什么只能是 shell=True、外部输入是怎么被拦住的）。
+         没有理由注释的 `shell=True` 调用点按违规处理。
+      3. 存量裸拼按年度计划偿还，不在新代码里继续扩散：基线见
+         `scripts/shell_concat_baseline.txt` / `scripts/shell_concat_baseline_plugins.txt`，
+         下降档位与到期日见 `testsuite/test_shell_concat_ratchet.py` 的 `REDUCTION_PLAN`
+         与《组件生命周期与安全响应政策》第 9 节。
+    """
     if shell and isinstance(cmdstring, str):
         cmdstring = sanitizeCmdScripts(cmdstring, cwd=cwd)
 
@@ -282,6 +301,13 @@ def execShell(cmdstring, cwd=None, timeout=EXEC_DEFAULT_TIMEOUT, shell=True):
 
 def execShellRc(cmdstring, cwd=None, timeout=EXEC_DEFAULT_TIMEOUT, shell=True):
     """与 execShell 同样的执行语义，但额外返回子进程退出码：(rc, stdout, stderr)。
+
+    约定（P2-12，与 `execShell` 同一口径，新代码必须遵守）：
+      1. **新代码默认必须用 argv 列表 + `shell=False`**（argv 不经 `/bin/sh`
+         重新解析，带外部输入也安全；列表形态请走本函数的 `shell=False` 分支）；
+      2. 只有命令含 shell 内建/管道/重定向/`&&`，**且参数不含任何外部输入**
+         （常量或已过 `yf.shlexQuote()`）时才允许 `shell=True`，并在同处注释理由；
+      3. 存量裸拼按 `REDUCTION_PLAN` 的年度下降档位偿还，不在新代码里扩散。
 
     为什么需要：execShell 的 (out, err) 契约无法区分「脚本失败」与「脚本无输出」，
     调用方只能无条件报成功（插件卸载曾因此假成功）；需要判成败的场景用本函数，
@@ -727,19 +753,25 @@ def systemdCfgDir():
 def hasPwd(password):
     '''
     加密密码字符
+
+    bcrypt 缺失时**抛 PwdCryptoUnavailable**（fail-closed），不再退回无盐 SHA256：
+    退回等于把一个强度不足的弱哈希写进用户表，而且旧实现只打 warning，
+    用户/运维完全感知不到。写入口必须显式失败。
     '''
     try:
         import bcrypt
         salt = bcrypt.gensalt()
         hpw = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hpw.decode('utf-8')
-    except ImportError:
-        # fail-open：bcrypt 缺失时退回 SHA256。绝不能静默 —— 新口令将被写成弱哈希，
-        # 必须留下明确告警（含补救建议）。
-        _log.warning('[yf] bcrypt 不可用，口令加密降级为 SHA256（请安装 bcrypt：'
-                     'pip install bcrypt）；降级期间新写入的口令哈希强度不足')
-        import hashlib
-        return hashlib.sha256(password.encode('utf-8')).hexdigest()
+    except ImportError as _e:
+        # fail-closed：绝不写弱哈希。调用方捕获后应返回失败（如 returnJson(False, ...)）。
+        _log.warning('[yf] bcrypt 不可用，口令哈希生成被拒绝（fail-closed），未写入任何值；'
+                     '请安装后重启面板：pip install bcrypt'
+                     '（或按 requirements.txt 重新安装依赖）')
+        raise PwdCryptoUnavailable(
+            '口令加密组件不可用（缺少 bcrypt），已拒绝生成/保存口令哈希；'
+            '请安装后重启面板：pip install bcrypt（或按 requirements.txt 重新安装依赖）'
+        ) from _e
 
 
 def getHost(port=False):
@@ -1116,12 +1148,19 @@ def _get_http_pool(insecure=False):
         return None
 
 
-def httpGet(url, timeout=10):
-    return HttpGet2(url, timeout)
+def httpGet(url, timeout=10, purpose=None):
+    """HttpGet2 的转发（兼容旧名）。purpose 为空时交给下游的默认分级（low），
+    因此既有调用点行为不变；携带凭据/下载代码的调用点必须显式传分级。"""
+    if purpose is None:
+        return HttpGet2(url, timeout)
+    return HttpGet2(url, timeout, purpose=purpose)
 
 
-def httpPost(url, data, timeout=10):
-    return HttpPost(url, data, timeout)
+def httpPost(url, data, timeout=10, purpose=None):
+    """HttpPost 的转发（兼容旧名）。purpose 语义同 httpGet。"""
+    if purpose is None:
+        return HttpPost(url, data, timeout)
+    return HttpPost(url, data, timeout, purpose=purpose)
 
 
 def isVaildIpV6(ip):
@@ -1340,7 +1379,7 @@ from .github import _makeGithubProxyUrl, getGithubProxy, getGithubProxyName, get
 from . import paths
 from .paths import getAcmeDir, getAcmeDomainDir, getBackupDir, getLogsDir, getNotifyPath, getPanelLogs, getPanelPort, getPanelTaskExecLog, getPanelTaskLog, getPanelTaskPidFile, getPanelTmp, getRecycleBinDir, getSqitePrefix, getSshDir, getTriggerTaskLockFile, getWwwDir, getYfLogs, setBackupDir
 from . import security
-from .security import aesDecrypt, aesEncrypt, checkPwd, checkPwdCompat, enDoubleCrypt, encodeImage, isLegacyPwdHash, md5
+from .security import DataCryptUnavailable, PwdCryptoUnavailable, aesDecrypt, aesEncrypt, checkPwd, checkPwdCompat, enDoubleCrypt, encodeImage, isLegacyPwdHash, md5
 from . import shell
 from .shell import buildSoftLink, checkBinExist, checkPort, createLinuxUser, deleteFile, getGlibcVersion, invalidPathReason, isOpenPort, makeDirs, processExists, sanitizeCmdScripts, setMode, setOwn, shlexQuote, shlex_quote
 from . import textutil
@@ -1348,7 +1387,7 @@ from .textutil import formatDate, getDataFromInt, getDate, getDateFromNow, getDe
 from . import log
 from .log import _logIdentity, debugLog, echoEnd, echoInfo, echoStart, returnJson, returnMsg, userSafeError, verifyAuditChain, writeAudit, writeDbLog
 from . import net
-from .net import HttpGet, HttpGet2, HttpPost, _insecure_ssl_context, _pool_request, checkCert, checkIp, clearSsh, connectSsh, createLocalSSL, createPanelSslContext, createSshInfo, getHostPort, getLocalIp, getSSHPort, getSSHStatus, getSslCrt, isIpAddr, isVaildIp, isVaildIpV4, setHostPort
+from .net import PURPOSE_CODE, PURPOSE_CREDENTIAL, PURPOSE_LOW, HttpGet, HttpGet2, HttpPost, _insecure_ssl_context, _pool_request, checkCert, checkIp, clearSsh, connectSsh, createLocalSSL, createPanelSslContext, createSshInfo, getHostPort, getLocalIp, getSSHPort, getSSHStatus, getSslCrt, isIpAddr, isVaildIp, isVaildIpV4, setHostPort
 from . import panel
 from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMessage, emailNotifyTest, getFpmAddress, getFpmConfFile, getMyORM, getNotifyData, getOpVer, getWebStatus, initNotifyConfig, isInstalledWeb, isRestart, notifyMessage, opLuaInitAccessFile, opLuaInitFile, opLuaInitWorkerFile, opLuaMake, opLuaMakeAll, panelCmd, requestFcgiPHP, restartPanel, restartTask, restartWeb, tgbotNotifyChatID, tgbotNotifyHttpPost, tgbotNotifyMessage, tgbotNotifyObject, tgbotNotifyTest, triggerTask, wakePanelTask, writeNotify
 from . import system

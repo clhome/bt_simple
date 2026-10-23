@@ -259,5 +259,6 @@
     "特权模式说明": "Concede tutti i privilegi host; solo immagini attendibili. Disattivato per impostazione predefinita.",
     "IP地址不合法": "Indirizzo IP non valido",
     "配置已保存，但 systemctl daemon-reload 失败: ": "Configurazione salvata, ma systemctl daemon-reload non è riuscito: ",
-    "配置已保存，但重启 Docker 服务失败: ": "Configurazione salvata, ma il riavvio del servizio Docker non è riuscito: "
+    "配置已保存，但重启 Docker 服务失败: ": "Configurazione salvata, ma il riavvio del servizio Docker non è riuscito: ",
+    "端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]": "Formato della porta non valido: sono accettati solo porta o indirizzo:porta, e la parte indirizzo può essere solo *, IPv4 o [IPv6]"
 }

@@ -1379,7 +1379,14 @@ def ensureBasicAuth():
         setCfg('password', password)
 
     path = getBasicAuthFile()
-    if not yf.writeFile(path, username + ':' + yf.hasPwd(password)):
+    # 缺 bcrypt 时 hasPwd() 抛 PwdCryptoUnavailable（fail-closed）：
+    # 不能写弱哈希，也不能把 cfg.json 里刚存的账号当成「已生效」。
+    try:
+        htpasswd = username + ':' + yf.hasPwd(password)
+    except yf.PwdCryptoUnavailable as _e:
+        _log.error('[pgadmin] 写 pg.pass 被拒绝（bcrypt 不可用）: %s', _e)
+        return False
+    if not yf.writeFile(path, htpasswd):
         return False
     _ensureBasicAuthReadable(path)
     return True

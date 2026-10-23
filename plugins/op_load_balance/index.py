@@ -763,7 +763,8 @@ def getHealthStatus():
 
     url = 'http://' + domain + '/upstream_status_' + upstream_name
 
-    url_data = yf.httpGet(url)
+    # P2-6：节点 upstream 状态探测（只读状态，低敏）→ purpose=low
+    url_data = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
     # httpGet 失败时返回 False/''，旧实现直接 json.loads(False) → TypeError 回前端
     if not isinstance(url_data, str) or not url_data.strip():
         return yf.returnJson(False, '节点健康状态获取失败')

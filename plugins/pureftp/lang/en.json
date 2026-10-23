@@ -1,4 +1,5 @@
 {
+    "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "Data encryption component unavailable (cryptography is missing); the save was refused. Please install cryptography and try again",
     "(同内网)": "(Same as intranet)",
     "FTP 用户名": "FTP username",
     "FTP 连接与账号管理": "FTP connection and account management",

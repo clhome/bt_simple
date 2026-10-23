@@ -14,8 +14,12 @@ i18n 静态校验（CI 门禁）
   7. no-zero-placeholder    无 {0} 占位符（msgTpl 从 {1} 起替换）
   8. backend-msg-prefix     后端消息的「可翻译前缀」不含 HTML
   9. backend-msg-key        后端中文消息能查到语言包键（冒号前缀契约）
+                            —— 分「插件段（plugins/*/index.py）」与「web 段
+                            （web/**/*.py）」两段；web 段存量走棘轮基线
+                            `scripts/i18n_web_backend_baseline.txt`（只减不增）
  10. nested-layer-hook      插件二级弹窗（嵌套 layer）i18n 钩子已安装
  11. user-visible-damage    被代码引用到的键，其译文不得空白 / 中文泄漏 / 机翻拼接
+ 12. empty-values           语言包不得留空值键（派生为空的纯标记/注释除外）
 
 设计约束：**自包含**。检测逻辑与自证夹具全部内嵌，只依赖标准库。
 `test/` 被 `.gitignore` 忽略，本脚本不得依赖其中任何文件——否则 CI 里
@@ -23,18 +27,24 @@ i18n 静态校验（CI 门禁）
 
 用法:
     python scripts/verify_i18n.py              # 全部检查
-    python scripts/verify_i18n.py --verbose    # 附失败明细
+    python scripts/verify_i18n.py --verbose    # 附失败明细（含插件段/web 段计数）
     python scripts/verify_i18n.py --check pt-argc
     python scripts/verify_i18n.py --list       # 列出全部检查名
     python scripts/verify_i18n.py --self-test  # 校验检测器本身（已知答案）
+    python scripts/verify_i18n.py --write-web-backend-baseline
+                                               # 重建 web 段棘轮基线（仅在
+                                               # 明确收紧/清理后手工执行）
 
 退出码: 0 = 全部通过；1 = 存在失败
 """
 import argparse
+import collections
+import io
 import json
 import os
 import re
 import sys
+import tokenize
 
 # 终端编码兜底（Windows GBK 控制台直接跑时避免 UnicodeEncodeError）
 try:
@@ -729,16 +739,25 @@ def _backend_msg_resolves(lit, keys):
     return (prefix + (sp or ' ')) in keys  # ③ 尾随空格容错
 
 
-def _scan_backend_msg_keys(src, keys):
-    """扫描单份 Python 源码，返回 [(行号, 字面量)] 形式的「查不到键」消息列表。"""
+def _scan_backend_msg_keys(src, keys, call_re=RETURNJSON_RE, skip_lines=()):
+    """扫描单份 Python 源码，返回 [(行号, 字面量)] 形式的「查不到键」消息列表。
+
+    `call_re` 只决定「哪些出消息的调用」被扫；判据（`_backend_msg_resolves`）不变：
+    插件目录用 `returnJson(`（历史约定），`web/` 后端另外还有 `returnData(` /
+    `returnMsg(`（web 的实际主力出口），见 `WEB_BACKEND_MSG_CALL_RE`。
+    `skip_lines`：属于文档字符串/注释的行号（web 后端的用法示例不是运行时消息）。
+    """
     out = []
-    for m in RETURNJSON_RE.finditer(src):
+    for m in call_re.finditer(src):
+        line = src.count('\n', 0, m.start()) + 1
+        if line in skip_lines:
+            continue
         lit = _py_arg2_leading_literal(src, m.end() - 1)
         if not lit or not CJK_RE.search(lit):
             continue
         if _backend_msg_resolves(lit, keys):
             continue
-        out.append((src.count('\n', 0, m.start()) + 1, lit))
+        out.append((line, lit))
     return out
 
 
@@ -750,9 +769,190 @@ def _load_zh_keys(plugin):
         return set(json.load(fh))
 
 
-def check_backend_msg_key(ctx):
+# --- web 段：扫描范围、键集、棘轮基线 -----------------------------------------
+#
+# 为什么 web 段要单独一套规则：
+#   * 插件后端的消息一律走 `returnJson(...)`，键就在 `plugins/<name>/lang/*.json`；
+#   * `web/` 后端的消息主力出口是 `returnData(...)`（另有 `returnJson` / `returnMsg`），
+#     键在全局语言包 `web/static/language/zh-CN/*.json`（扁平键 + `sec.leaf` 点号键，
+#     与 `web/core/i18n.py::_lookup_message` 的寻址口径一致）。
+#   * web 段存量中文消息较多、语言包不可能一次补齐，所以用**棘轮基线**代替
+#     「必须 0 条」：基线记录当前实测的未命中指纹，门禁只允许「不大于基线」，
+#     新增未命中即红；已修好的条目必须从基线删除（否则基线就成了永久白名单）。
+WEB_BACKEND_ROOT = os.path.join(WORKSPACE, 'web')
+#: 检查 9 的扫描范围（**唯一真源**：用例与自证都锚在这里；去掉 'web' 就等于
+#: 把 web 后端重新交出 i18n 门禁之外，必须红）。
+BACKEND_MSG_KEY_SCOPES = ('plugins', 'web')
+WEB_BACKEND_REL = 'web'          # 扫描范围标识（自证/用例断言用）
+WEB_BACKEND_SKIP_DIRS = {'__pycache__', 'node_modules', 'versions', '.git'}
+WEB_BACKEND_BASELINE_REL = 'scripts/i18n_web_backend_baseline.txt'
+WEB_BACKEND_BASELINE = os.path.join(WORKSPACE, 'scripts',
+                                    'i18n_web_backend_baseline.txt')
+
+# web 后端的出消息调用（插件段仍只用 RETURNJSON_RE，不动既有判据的覆盖面）
+WEB_BACKEND_MSG_CALL_RE = re.compile(r'\b(?:returnJson|returnData|returnMsg)\s*\(')
+
+
+def _py_doc_lines(src):
+    """返回「文档字符串 / 注释」占据的行号集合（1 基）。
+
+    web 后端有大量用法示例写在 docstring 里（例如 `yf.returnJson` 的说明），
+    那是文档不是运行时消息；不排除就会天天红，逼人把门禁关掉。
+    tokenize 失败（语法太老/半截文件）时返回空集，宁可多报也不静默少报。
+    """
+    lines = set()
+    prev_type = tokenize.ENCODING
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+            if tok.type == tokenize.COMMENT:
+                lines.add(tok.start[0])
+            elif tok.type == tokenize.STRING and prev_type in (
+                    tokenize.NEWLINE, tokenize.NL, tokenize.INDENT,
+                    tokenize.DEDENT, tokenize.ENCODING):
+                # 语句级字符串 = docstring（函数实参形态前面是 '(' / ','，不会命中）
+                lines.update(range(tok.start[0], tok.end[0] + 1))
+            if tok.type not in (tokenize.NL, tokenize.COMMENT):
+                prev_type = tok.type
+    except Exception:
+        return set()
+    return lines
+
+
+def web_backend_files(root=None):
+    """产出 `(相对路径, 绝对路径)` —— web 后端的 Python 源文件。
+
+    相对路径一律用 `/`，基线文件跳平台可比。`root` 可指向临时副本（用例自证用）。
+    扫描范围由 `BACKEND_MSG_KEY_SCOPES` 控制：`'web'` 不在其中时本函数返回空。
+    """
+    if WEB_BACKEND_REL not in BACKEND_MSG_KEY_SCOPES:
+        return []
+    root = root or WORKSPACE
+    base = os.path.join(root, 'web')
+    if not os.path.isdir(base):
+        return []
+    out = []
+    for dirpath, dirnames, filenames in os.walk(base):
+        dirnames[:] = sorted(d for d in dirnames if d not in WEB_BACKEND_SKIP_DIRS)
+        for fn in sorted(filenames):
+            if not fn.endswith('.py'):
+                continue
+            path = os.path.join(dirpath, fn)
+            out.append((os.path.relpath(path, root).replace(os.sep, '/'), path))
+    return out
+
+
+def _load_web_keys(root=None):
+    """web 后端可用键集：zh-CN 全局语言包的扁平键 + 点号叶子路径 + lan.js 键名。
+
+    与 `_lookup_message()`（后端）和 `translateAny()`（前端）的寻址口径一致。
+    注意：全局语言包目前**没有**任何中文键，所以任何中文硬编码消息都查不到键；
+    键集存在的意义是「将来若把某条中文登记成键，门禁自动放过」。
+    """
+    root = root or WORKSPACE
+    keys = set()
+    lang_root = os.path.join(root, 'web', 'static', 'language', DEFAULT_LANG)
+
+    def walk(obj, prefix=''):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                keys.add(str(k))
+                keys.add(prefix + '.' + k if prefix else str(k))
+                walk(v, prefix + '.' + k if prefix else str(k))
+
+    if os.path.isdir(lang_root):
+        for fn in sorted(os.listdir(lang_root)):
+            if not fn.endswith('.json'):
+                continue
+            try:
+                walk(read_json(os.path.join(lang_root, fn)))
+            except Exception:
+                continue
+    lan_js = os.path.join(lang_root, 'lan.js')
+    if os.path.isfile(lan_js):
+        try:
+            walk(_parse_lan_js(lan_js))
+        except Exception:
+            pass
+    return keys
+
+
+def web_backend_msg_misses(root=None, keys=None):
+    """当前 web 后端里「查不到语言包键」的中文消息：`[(相对路径, 行号, 字面量)]`。"""
+    root = root or WORKSPACE
+    keys = _load_web_keys(root) if keys is None else keys
+    out = []
+    for rel, path in web_backend_files(root):
+        src = read_text(path)
+        skip = _py_doc_lines(src)
+        for line, lit in _scan_backend_msg_keys(src, keys,
+                                                WEB_BACKEND_MSG_CALL_RE, skip):
+            out.append((rel, line, lit))
+    return out
+
+
+def _web_msg_fingerprint(rel, lit):
+    """棘轮指纹：`web 相对路径 + 消息字面量（首尾空白已剥离）`。
+
+    刻意**不含行号**：行号会因无关改动漂移，那样基线每天都要重写、棘轮形同虚设。
+    """
+    return '%s\t%s' % (rel, lit.strip())
+
+
+def load_web_backend_baseline(path=None):
+    """读取棘轮基线：`[(相对路径, 字面量)]`（跳过空行与 `#` 注释）。"""
+    path = path or WEB_BACKEND_BASELINE
+    out = []
+    if not os.path.isfile(path):
+        return out
+    for raw in read_text(path).splitlines():
+        line = raw.rstrip('\r')
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        rel, _, lit = line.partition('\t')
+        if not lit:
+            continue
+        out.append((rel, lit))
+    return out
+
+
+def _web_backend_ratchet_problems(misses, baseline):
+    """棘轮判定：`misses`（实时）必须 ≤ `baseline`（基线）。
+
+    * 实时里有、基线里没有 → **新增未命中**，红（这才是本项要防的东西）；
+    * 基线里有、实时里没有 → **基线过期**，也红 —— 否则基线只增不减，
+      修好的条目会被永久豁免，棘轮退化成白名单。
+    基线是**多集**（同一条消息在同一文件里出现多次就记多行），逐条消耗，
+    保证报出的是真实行号而不是首次出现的位置。
+    返回 `(problems, 新增数, 过期数)`。
+    """
+    allowance = collections.Counter(_web_msg_fingerprint(rel, lit) for rel, lit in baseline)
     problems = []
-    for name in plugin_names():
+    new_cnt = 0
+    for rel, ln, lit in misses:
+        fp = _web_msg_fingerprint(rel, lit)
+        if allowance[fp] > 0:
+            allowance[fp] -= 1
+            continue
+        new_cnt += 1
+        problems.append('%s:%d  web 后端中文消息查不到语言包键（外语界面会漏翻）: %r'
+                        % (rel, ln, lit.strip()[:70]))
+    stale = sorted(fp for fp, n in allowance.items() for _ in range(n) if n > 0)
+    for fp in stale:
+        rel, _, lit = fp.partition('\t')
+        problems.append('%s  基线已过期（该消息现已能查到键或已删除），请从 %s 删除该行: %r'
+                        % (rel, WEB_BACKEND_BASELINE_REL, lit[:70]))
+    return problems, new_cnt, len(stale)
+
+
+def check_backend_msg_key(ctx):
+    """检查 9：后端中文消息必须能在语言包中查到键（插件段 + web 段）。
+
+    `--verbose` 的分段计数写在 `check_backend_msg_key.section_counts` 上，由 `main()`
+    打印（函数体里 print 会污染 `result` 之外的输出，也会破坏 `--self-test` 的比对）。
+    """
+    problems = []
+    plugin_misses = 0
+    for name in plugin_names() if 'plugins' in BACKEND_MSG_KEY_SCOPES else []:
         path = os.path.join(PLUGIN_ROOT, name, 'index.py')
         keys = _load_zh_keys(name)
         if not (os.path.isfile(path) and keys is not None):
@@ -761,6 +961,7 @@ def check_backend_msg_key(ctx):
         for line, lit in _scan_backend_msg_keys(read_text(path), keys):
             if (name, lit.strip()) in BACKEND_MSG_KEY_EXCEPTIONS:
                 continue
+            plugin_misses += 1
             problems.append('%s:%d  语言包查不到键（外语界面会漏翻）: %r'
                             % (rel, line, lit[:70]))
 
@@ -773,6 +974,20 @@ def check_backend_msg_key(ctx):
         if _backend_msg_resolves(lit, keys):
             problems.append('例外已失效（%s 的 %r 现已能查到键），请删除该例外：%s'
                             % (name, lit, why))
+
+    # --- web 段（棘轮） ---
+    misses = web_backend_msg_misses() if WEB_BACKEND_REL in BACKEND_MSG_KEY_SCOPES else []
+    baseline = load_web_backend_baseline()
+    web_problems, new_cnt, stale_cnt = _web_backend_ratchet_problems(misses, baseline)
+    problems.extend(web_problems)
+    check_backend_msg_key.section_counts = {
+        '插件段未命中': plugin_misses,
+        '插件段例外': len(BACKEND_MSG_KEY_EXCEPTIONS),
+        'web 段实测未命中': len(misses),
+        'web 段基线': len(baseline),
+        'web 段新增': new_cnt,
+        'web 段基线过期': stale_cnt,
+    }
     return problems
 
 
@@ -1091,6 +1306,136 @@ def check_user_visible_damage(ctx):
 
 
 # ---------------------------------------------------------------------------
+# 检查 12：语言包不得留空值键
+# ---------------------------------------------------------------------------
+#
+# 空值键（值为 `''` 或纯空白）会让界面变成「键名 / 空白」，也是「待补翻译」的
+# 沉渣。但有一类空值是**派生必然结果**，不能删也不能报：
+#   `web/static/language/<lang>/lan.js` 是单源，`.json` 载体由
+#   `scripts/tools/export_lang_carriers.py` 派生，规则是「标签换空格」；
+#   于是 `<!-- 系统配置 -->` / `<div class="node-row" ...>` 这类**纯标记/纯注释**
+#   源值派生后必然是空串。前端走 innerHTML 需要它们，删了就坏。
+# 所以判据是「派生合理性」而不是「见到空串就报」：
+#   载体值为空 ⇒ 源必须是「纯标记/纯注释/纯空白标点」；否则就是真空值。
+# 插件语言包没有派生环节，值不得为空（见下文）；确需保留的进例外表并写理由。
+EMPTY_VALUE_EXCEPTIONS = {
+    ('en', 'index.L3'):
+        '计数器单位词（zh「个」）；外语侧当前是单空格占位（真实翻译缺口，'
+        '非可删脏键）；web/ 代码里无引用，补译属内容工作而非结构清理',
+    ('de', 'index.L3'):
+        '同 en：计数器单位词占位，删了会让六语言叶子路径 parity 破裂',
+    ('en', 'index.second'):
+        '计数器单位词（zh「次」）的外语占位，同上',
+    ('en', 'index.auto_str_117'):
+        '计数器单位词（zh「 次」）的外语占位，同上',
+}
+
+_MARKUP_ONLY_RE = re.compile(r'<!--.*?-->|<[^>]*>', re.S)
+
+
+def _is_pure_markup(src):
+    """源值是否为「纯标记/纯注释」（含标签或至少一个注释，去掉后无文本）。"""
+    if not isinstance(src, str) or not src.strip():
+        return False
+    if '<' not in src:
+        return False
+    return not _MARKUP_ONLY_RE.sub('', src).strip()
+
+
+def _lan_source(packs_cache, lang, sec, dotted):
+    """取 lan.js 里该键的源值（字面优先，其次嵌套；与导出器一致）。"""
+    if lang not in packs_cache:
+        path = os.path.join(GLOBAL_LANG_ROOT, lang, 'lan.js')
+        try:
+            packs_cache[lang] = _parse_lan_js(path)
+        except Exception:
+            packs_cache[lang] = {}
+    node = packs_cache[lang].get(sec)
+    if isinstance(node, dict) and isinstance(node.get(dotted), str):
+        return node[dotted]
+    cur = node
+    for part in dotted.split('.'):
+        if not isinstance(cur, dict) or part not in cur:
+            return None
+        cur = cur[part]
+    return cur if isinstance(cur, str) else None
+
+
+def _empty_value_problems():
+    """返回空值键问题列表（供检查项与自证共用）。"""
+    problems = []
+    cache = {}
+    checked = 0
+    for lang in LANGS:
+        d = os.path.join(GLOBAL_LANG_ROOT, lang)
+        if not os.path.isdir(d):
+            continue
+        for fn in sorted(os.listdir(d)):
+            if not fn.endswith('.json'):
+                continue
+            try:
+                data = read_json(os.path.join(d, fn))
+            except Exception:
+                continue
+            for path, val in leaf_paths(data):
+                if not isinstance(val, str) or val.strip():
+                    continue
+                checked += 1
+                if (lang, path) in EMPTY_VALUE_EXCEPTIONS:
+                    continue
+                sec = path.split('.')[0]
+                src = _lan_source(cache, lang, sec, path.split('.', 1)[1]
+                                  if '.' in path else path)
+                if _is_pure_markup(src):
+                    continue          # 纯标记源 ⇒ 派生为空是必然的，不是缺陷
+                problems.append('global/%s %s::%s 空值键（lan.js 源=%r）'
+                                % (lang, fn, path, (src or '')[:40]))
+    # 插件语言包：没有派生环节，空值一律是缺陷
+    for name in plugin_names():
+        for lang in LANGS:
+            p = lang_path(name, lang)
+            if not os.path.isfile(p):
+                continue
+            try:
+                data = read_json(p)
+            except Exception:
+                continue
+            for k, v in data.items():
+                if not isinstance(v, str) or v.strip():
+                    continue
+                checked += 1
+                problems.append('%s/%s %r 空值键（键被引用时需要补译，否则删键）'
+                                % (name, lang, k[:60]))
+    _empty_value_problems.checked = checked
+    # 例外失效检查：补了值之后例外必须删掉（否则例外表变成永久白名单）
+    for (lang, path) in sorted(EMPTY_VALUE_EXCEPTIONS):
+        fn_candidates = []
+        d = os.path.join(GLOBAL_LANG_ROOT, lang)
+        if os.path.isdir(d):
+            fn_candidates = [fn for fn in sorted(os.listdir(d)) if fn.endswith('.json')]
+        still_empty = False
+        for fn in fn_candidates:
+            try:
+                data = read_json(os.path.join(d, fn))
+            except Exception:
+                continue
+            for p2, v2 in leaf_paths(data):
+                if p2 == path and isinstance(v2, str) and not v2.strip():
+                    still_empty = True
+                    break
+            if still_empty:
+                break
+        if not still_empty:
+            problems.append('空值例外已失效（%s %r 现已不是空值或已不存在），请删除该例外'
+                            % (lang, path))
+    return problems
+
+
+def check_empty_values(ctx):
+    return _empty_value_problems()
+
+
+# ---------------------------------------------------------------------------
 # 注册表与主流程
 # ---------------------------------------------------------------------------
 
@@ -1106,6 +1451,7 @@ CHECKS = [
     ('backend-msg-key', '后端中文消息可查到语言包键', check_backend_msg_key),
     ('nested-layer-hook', '插件二级弹窗 i18n 钩子已安装', check_nested_layer_hook),
     ('user-visible-damage', '被引用键的译文无空白/中文泄漏/机翻拼接', check_user_visible_damage),
+    ('empty-values', '语言包无空值键（派生为空的纯标记除外）', check_empty_values),
 ]
 
 
@@ -1276,6 +1622,36 @@ def bad_chinese_after_colon():
 FIXTURE_BACKEND_MSG_KEY_KEYS = frozenset(
     ('扫描完成', '获取日志失败:', '读取日志失败: ', '操作失败:'))
 
+# web 段自证夹具：证明「web/**/*.py 里的中文消息」真能被报出来，且
+# docstring 里的用法示例不会被误报（否则门禁天天红，谁都会把它关掉）。
+# 期望：2 条未命中（'新增的中文消息' / '另一条新增消息'），docstring 那行不算。
+FIXTURE_WEB_BACKEND = '''# -*- coding: utf-8 -*-
+"""用法示例（不是运行时消息）：
+
+    return yf.returnData(False, '文档示例消息，不该被报')
+"""
+from core import yf
+
+
+def ok_registered_key():
+    return yf.returnData(True, 'common.param_error')
+
+
+def ok_prefix_key():
+    return yf.returnData(False, '公共前缀: ' + str(1))
+
+
+def no_key():
+    return yf.returnData(False, '新增的中文消息')
+
+
+def no_key_return_json():
+    return yf.returnJson(False, '另一条新增消息')
+'''
+
+FIXTURE_WEB_BACKEND_KEYS = frozenset(('common.param_error', '公共前缀:'))
+FIXTURE_WEB_BACKEND_WANT = 2
+
 # 外部夹具（可选）：存在则额外跑一遍做交叉验证，不存在不判失败。
 FIXTURE_PREFIX = os.path.join(
     WORKSPACE, 'test', 'i18n_scripts', 'tools', 'fixtures', 'backend_msg_prefix.py')
@@ -1298,6 +1674,32 @@ def _tagged_expectations(src):
                 (ok_lines if m.group(1) == 'OK' else miss_lines).append(j + 1)
                 break
     return ok_lines, miss_lines
+
+
+def _selftest_web_scope():
+    """在系统临时目录造一份「临时副本 web 树」，供自证真跑一次扫描。
+
+    刻意不用仓库内目录：自证不得污染工作区（否则 `--self-test` 会把一条
+    假消息写进仓，门禁自己制造脏数据）。临时目录不可用时返回 None。
+    """
+    import shutil
+    import tempfile
+    try:
+        root = tempfile.mkdtemp(prefix='yf_i18n_web_')
+    except Exception:
+        return None
+    try:
+        probe_dir = os.path.join(root, 'web', 'admin')
+        os.makedirs(probe_dir, exist_ok=True)
+        with open(os.path.join(probe_dir, 'probe.py'), 'w',
+                  encoding='utf-8', newline='\n') as fh:
+            fh.write(FIXTURE_WEB_BACKEND)
+        # 明确留下清理标记：调用方用完会 rmtree（失败也不影响自证结论）
+        _selftest_web_scope.created = root
+        return root
+    except Exception:
+        shutil.rmtree(root, ignore_errors=True)
+        return None
 
 
 def self_test():
@@ -1359,6 +1761,44 @@ def self_test():
 
     # 6) 当前代码库：未命中数必须为 0（例外已在 check_backend_msg_key 中扣除）
     report('当前代码库后端消息未命中数', len(check_backend_msg_key({})), 0)
+
+    # 6b) web 段（`web/**/*.py`）：检测器自证 + 棘轮自证
+    print('backend-msg-key（web 段）检测器自证')
+    web_lines = _scan_backend_msg_keys(FIXTURE_WEB_BACKEND, FIXTURE_WEB_BACKEND_KEYS,
+                                      WEB_BACKEND_MSG_CALL_RE,
+                                      _py_doc_lines(FIXTURE_WEB_BACKEND))
+    report('web 夹具未命中数（docstring 示例不计）', len(web_lines),
+           FIXTURE_WEB_BACKEND_WANT)
+    report('扫描范围含 web', WEB_BACKEND_REL in BACKEND_MSG_KEY_SCOPES, True)
+    scan_root = _selftest_web_scope()
+    if scan_root is None:
+        skip('web 段临时副本扫描', '临时目录不可用')
+    else:
+        try:
+            got = web_backend_msg_misses(root=scan_root, keys=FIXTURE_WEB_BACKEND_KEYS)
+            report('web 段临时副本扫描未命中数', len(got), FIXTURE_WEB_BACKEND_WANT)
+            report('web 段扫描相对路径前缀', sorted({r.split('/')[0] for r, _l, _t in got}),
+                   ['web'])
+        finally:
+            import shutil
+            shutil.rmtree(scan_root, ignore_errors=True)
+    probe = [('web/admin/probe.py', 7, '新增的中文消息')]
+    report('棘轮：基线内不报',
+           _web_backend_ratchet_problems(probe, [('web/admin/probe.py', '新增的中文消息')])[0],
+           [])
+    report('棘轮：基线外新增 1 条即红',
+           _web_backend_ratchet_problems(probe, [])[1], 1)
+    report('棘轮：基线过期也红',
+           _web_backend_ratchet_problems([], [('web/a.py', '已修好的消息')])[2], 1)
+
+    # 6c) empty-values 检测器自证
+    print('empty-values 检测器自证')
+    report('纯标记源判为“派生必然为空”',
+           [_is_pure_markup('<!-- 系统配置 -->'), _is_pure_markup('</ul>'),
+            _is_pure_markup('<div class="node-row">'), _is_pure_markup('个'),
+            _is_pure_markup(''), _is_pure_markup(' ')],
+           [True, True, True, False, False, False])
+    report('当前代码库空值键违规数', len(check_empty_values({})), 0)
 
     # 7) user-visible-damage 检测器自证（内嵌夹具：已知答案 + 真实数据路径变异）
     report('damage 内嵌夹具命中种类', _fixture_damage_kinds(),
@@ -1432,16 +1872,55 @@ def _mutate_real(real, key, value):
     return sorted(kinds)
 
 
+def write_web_backend_baseline(path=None):
+    """按当前实测重写 web 段棘轮基线（**只在明确收紧/清理后手工执行**）。
+
+    写盘前打印新增/删除清单，避免「无意识基线漂移」：这是唯一能把基线放大的路径，
+    所以它必须是人显式执行的一条命令，而不是检查项的副作用。
+    """
+    path = path or WEB_BACKEND_BASELINE
+    misses = web_backend_msg_misses()
+    old = collections.Counter(_web_msg_fingerprint(rel, lit)
+                              for rel, lit in load_web_backend_baseline(path))
+    new = collections.Counter(_web_msg_fingerprint(rel, lit) for rel, _ln, lit in misses)
+    for fp in sorted((new - old).elements()):
+        print('  + %s' % fp.replace('\t', '  '))
+    for fp in sorted((old - new).elements()):
+        print('  - %s' % fp.replace('\t', '  '))
+    lines = [
+        '# web 后端中文消息棘轮基线（P2-14）',
+        '#',
+        '# 本文件由 `python scripts/verify_i18n.py --write-web-backend-baseline` 生成，',
+        '# 门禁断言「当前实测的未命中指纹 ≤ 本基线」（多集包含，见',
+        '# `verify_i18n.py::_web_backend_ratchet_problems`）：',
+        '#   * 新增一条 web 后端中文消息而语言包里没有对应键 → 红；',
+        '#   * 本基线里的条目被修好（或删除）后必须从本文件精删，否则也红。',
+        '#',
+        '# 格式：<web 相对路径>\\t<消息字面量（首尾空白已剥离）>；不含行号（行号会漂移）。',
+        '# 清理/补译时**只允许变小**：每修好一条就删掉对应行。',
+    ]
+    lines.extend(fp for fp in sorted(new.elements()))
+    with open(path, 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write('\n'.join(lines) + '\n')
+    print('已写入 %s（%d 条）' % (os.path.relpath(path, WORKSPACE), len(misses)))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description='i18n 静态校验（CI 门禁）')
     ap.add_argument('--verbose', '-v', action='store_true', help='打印失败明细')
     ap.add_argument('--check', help='只运行指定检查')
     ap.add_argument('--list', action='store_true', help='列出全部检查名')
     ap.add_argument('--self-test', action='store_true', help='校验检测器本身（已知答案）')
+    ap.add_argument('--write-web-backend-baseline', action='store_true',
+                    help='按当前实测重写 web 段棘轮基线（仅收紧/清理后手工执行）')
     args = ap.parse_args()
 
     if args.self_test:
         return self_test()
+
+    if args.write_web_backend_baseline:
+        return write_web_backend_baseline()
 
     if args.list:
         for key, title, _ in CHECKS:
@@ -1475,6 +1954,11 @@ def main():
                     print('         ... 其余 %d 项省略' % (len(problems) - 40))
         else:
             print('[PASS] %-22s %s' % (key, title))
+        # 分段计数（插件段 / web 段）：`--verbose` 时不论红绿都打一行，
+        # 便于核对「web 段实测 vs 基线」——否则只看得见结果看不见口径。
+        counts = getattr(fn, 'section_counts', None)
+        if args.verbose and counts:
+            print('         · ' + '  '.join('%s=%d' % kv for kv in counts.items()))
 
     print('-' * 72)
     if failed:

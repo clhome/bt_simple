@@ -25,6 +25,10 @@
                        反引号**仍会展开**。这是 dnsapi 注入的根因（`getDnsapiExportVar`），
                        基线必须为空 —— 任何一次回退都会变红。
 
+偿还计划（P2-12）：基线只是「不许变坏」，本文件另配 `REDUCTION_PLAN` —— 一张写死
+上限的年度下降表（快照档 → 70% → 40% → 清零），由
+`testsuite/test_shell_debt_reduction_plan.py` 按日期判定当前档并断言实际违规数不超标。
+
 扫描范围（两侧各一份基线，由 `SCAN_SCOPES` 驱动，守卫同时覆盖）：
   * web 侧：`web/` + `panel_tools.py` + `panel_task.py` -> `scripts/shell_concat_baseline.txt`
   * plugins 侧：`plugins/`（跳过 `plugins/待审核/` 与 `文档/待审核插件/`，
@@ -33,6 +37,7 @@
 刻意**排除** `testsuite/`、`test/`，否则守卫自己的夹具会被自己命中。
 """
 import ast
+import datetime
 import os
 import re
 import sys
@@ -72,6 +77,69 @@ SCAN_SCOPES = (
     {'name': 'plugins', 'dirs': ['plugins'], 'root_files': [],
      'exclude': PLUGINS_EXCLUDE_DIRS, 'baseline': PLUGINS_BASELINE_FILE},
 )
+
+
+# ---------------------------------------------------------------------------
+# 技术债偿还计划（P2-12）：基线只「防增」，这里补上「什么时候必须还清」
+# ---------------------------------------------------------------------------
+# 为什么要有这张表：只防增的棘轮有个致命的使用方式 —— 基线一旦不再缩小，
+# 「存量裸拼」就变成了永久豁免。所以除了「新指纹不得新增」（test_10，机制不动），
+# 再加一条**带日期的下降曲线**：到了某个日期，实际违规数必须已经降下来。
+#
+#: 每档 = (截止日期 'YYYY-MM-DD', web 段允许上限, 插件段允许上限)。
+#:
+#: **上限值一律是写死的整数，不在断言里现算**——现算（如 `int(baseline * 0.7)`）
+#: 会永远跟着基线走，等于没有约束；改这张表必须是一次显式的人工提交。
+#:
+#: 数值口径（2026-10-22 实测；用 `--print-baseline web` / `--print-baseline plugins`
+#: 跑本文件可复现）：
+#:   * 第一档 = **今天实测的违规数** = 两份基线文件的条目数（web 81 / 插件 316）；
+#:     两者必须一致，由 `test_shell_debt_reduction_plan.py` 用例 3 双向校验；
+#:   * 第二档 ≈ 第一档的 70%（81×0.7=56.7→57；316×0.7=221.2→221）；
+#:   * 第三档 ≈ 第一档的 40%（81×0.4=32.4→32；316×0.4=126.4→126）；
+#:   * 第四档必须为 0（终点：存量清零，此后基线文件只允许剩注释）。
+REDUCTION_PLAN = (
+    ('2026-10-22', 81, 316),    # 基线快照日（实测 81 / 316）
+    ('2027-06-30', 57, 221),    # ≈ 基线的 70%
+    ('2027-12-31', 32, 126),    # ≈ 基线的 40%
+    ('2028-06-30', 0, 0),       # 终点：清零
+)
+
+#: 计划表里各扫描段占的那一列（与 `REDUCTION_PLAN` 元组下标一一对应）。
+PLAN_LIMIT_INDEX = {'web': 1, 'plugins': 2}
+
+
+def _parse_plan_date(text):
+    """`'YYYY-MM-DD'` -> `datetime.date`（格式错直接抛，要求计划表可读）。"""
+    year, month, day = (int(x) for x in str(text).split('-'))
+    return datetime.date(year, month, day)
+
+
+def plan_tier_for(today=None):
+    """返回「今天适用的那一档」`(截止日期, web 上限, 插件上限)`。
+
+    判定口径（规则写死在这里，**不在断言里现算**）：
+      1. 取**最后一个「截止日期 <= 今天」的档** —— 即「已经到期、到今天就该达到的那一档」；
+         到期日**当天**就按该档约束，并且一直按它继续约束到下一个到期日；
+      2. 今天早于第一档（计划尚未生效）时取第一档：第一档就是基线快照档，
+         只有更严、不会更松；
+      3. 「截止日期」保持字面含义（到此日必须达标），所以到期日**之前**仍适用上一档 ——
+         否则会出现「计划生效第二天就要求跳到 70% 档」的时间炸弹，那不是还款计划而是断头台。
+    """
+    day = datetime.date.today() if today is None else today
+    if isinstance(day, str):
+        day = _parse_plan_date(day)
+    tier = REDUCTION_PLAN[0]
+    for cand in REDUCTION_PLAN:
+        if _parse_plan_date(cand[0]) <= day:
+            tier = cand
+    return tier
+
+
+def plan_limit_for(scope_name, today=None):
+    """该扫描段在「今天适用的那一档」里的允许上限（整数）。"""
+    return plan_tier_for(today)[PLAN_LIMIT_INDEX[scope_name]]
+
 
 SHELL_ATTRS = {'execShell', 'execShellRc', 'safeExecShell'}
 SUBPROCESS_ATTRS = {'Popen', 'run', 'call', 'check_output', 'check_call'}

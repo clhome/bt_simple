@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79": "指定分類不存在!",
 			"py_msg_6d5524": "分類已刪除!",
 			"py_msg_2b7ff5": "續籤失敗，詳細信息請查看記錄檔！",
-			"py_msg_a36237": "憑證續籤成功！"
+			"py_msg_a36237": "憑證續籤成功！",
+			"cert_issue_retry_limit_help": "簽發失敗,您嘗試申請證書的失敗次數已達上限!\n1、檢查域名是否綁定到對應站點\n2、檢查域名是否正確解析到本服務器,或解析還未完全生效\n3、如果您的站點設置了反向代理,或使用了CDN,請先將其關閉\n4、如果您的站點設置了301重定向,請先將其關閉\n5、如果以上檢查都確認沒有問題，請嘗試更換DNS服務商",
+			"cert_issue_retry_limit_help_short": "簽發失敗,您嘗試申請證書的失敗次數已達上限!\n1、檢查域名是否正確解析到本服務器,或解析還未完全生效\n2、如果以上檢查都確認沒有問題，請嘗試更換DNS服務商"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log": "切割記錄檔",
 			"backup_directory_1": "備份目錄",
 			"role_menuitem_tabindex_all": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有",
-			"textname_mr_keep_the": "",
 			"backup_directory_2": "備份目錄[",
 			"back_up_website_2": "備份網站",
 			"back_up_the_database_3": "備份資料庫",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks": "編輯排程任務-[",
 			"setting_con_ptb_clearfix": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任務類型",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr": "<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目錄",
 			"typename_controls_mr_tip": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">提示",
 			"typename_controls_mr_url": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6": "備份目錄[",
 			"saving_your_edits_please": "正在儲存編輯內容，請稍後...",
 			"dropdown_planweek_mr_default": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">週一</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9": "檔案寫入失敗,是否開啟系統加固功能!",
 			"py_msg_9d44d8": "成功檢測並同步了 {1} 個任務",
 			"py_msg_2c1843": "任務名稱重復",
-			"py_msg_f47dfc": "當前任務列表已是最新，無缺失任務需要同步"
+			"py_msg_f47dfc": "當前任務列表已是最新，無缺失任務需要同步",
+			"cron_sync_rejected": "同步被拒",
+			"cron_sync_rejected_tip": "任務標識含非法字元（僅允許 A-Za-z0-9_.-，最長 64），同步時會被拒絕；請編輯任務重新儲存以產生合規標識"
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules": "正在同步伺服器防火牆規則, 請稍候...",
 			"the_synchronization_request_failed": "同步請求失敗，請檢查網路連接或伺服器狀態。",
 			"bordered_hover_layout_fixed": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">處理程序名",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using": "-埠口使用處理程序詳情",
 			"after_the_reset_the": "重置後舊的私鑰將無法再用於免密登入此伺服器（如果已開啟金鑰登入），是否確認重新生成 Root 金鑰？",
 			"reset_root_key": "重置 Root 金鑰",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size": "</p>                        <p><b>大小：</b>",
 			"author": "</p>                        <p><b>作者：</b>",
 			"source_btlink": "</p>                        <p><b>來源：</b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation": "確定安裝",
 			"upload_failed": "上傳失敗2!:",
 			"installing_this_may_take": "正在安裝,這可能需要幾分鐘時間...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "登入限流已降級為行程內計數，多 worker 下限流失效",
+			"login_guard_degraded_desc": "失敗計數無法寫入資料庫，暴力破解防護與「改密碼踢下線」只在目前行程生效。請檢查資料庫與 panel_login_failure 表後重新整理本頁。",
 			"plain_http_warning_title": "目前為明文 HTTP，登入 Cookie 可能被竊聽",
 			"plain_http_warning_desc": "請儘快在「面板設定」中啟用 HTTPS；啟用前請勿透過公網使用此面板。",
 			"config": "正在設定...",

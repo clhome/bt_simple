@@ -122,8 +122,6 @@
     "synchronizing_server_firewall_rules": "Server-Firewallregeln werden synchronisiert, Bitte warten...",
     "the_synchronization_request_failed": "Synchronisierungsanfrage fehlgeschlagen. Bitte überprüfen Sie die Netzwerkverbindung oder den Serverstatus.",
     "bordered_hover_layout_fixed": "Prozessname",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "- Details zu Prozessen, die den Port verwenden",
     "after_the_reset_the": "Nach dem Zurücksetzen kann der alte private Schlüssel nicht mehr für die passwortlose Anmeldung an diesem Server verwendet werden (sofern die Schlüssel-Anmeldung aktiviert ist). Möchten Sie ihn wirklich neu generieren? Root Schlüssel?",
     "reset_root_key": "Zurücksetzen Root Schlüssel",

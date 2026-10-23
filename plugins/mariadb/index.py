@@ -16,6 +16,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import core.db_pwd as db_pwd
 import logging
 
 _log = logging.getLogger('yf.mariadb')
@@ -298,6 +299,82 @@ def pSqliteDb(dbname='databases'):
         _log.debug('[mariadb] pSqliteDb 异常已忽略: %s', _e)
     return conn
 
+# ---------------------------------------------------------------------------
+# P2-4：数据库口令「静态加密」的唯一读写入口（实现见 web/core/db_pwd.py）
+#
+# 落库形态：`yfenc:<Fernet token>`；历史明文（无标记）读写都原样通过，**无需迁移**。
+# 这两个函数是本插件唯一允许碰 `config.mysql_root` 的地方，其余代码一律走
+# `getRootPwd()` / `_saveRootPwd()`，避免「改了写点漏了读点」的单侧漂移。
+# ---------------------------------------------------------------------------
+
+def _chmod600(path):
+    """把明文口令快照文件收紧到 0600（P2-4）。失败只记日志，不影响自愈主流程。"""
+    try:
+        os.chmod(path, 0o600)
+        return True
+    except Exception as _e:
+        try:
+            yf.writeFileLog('[db_pwd] 明文口令快照 %s 权限收紧失败: %s' % (path, _e))
+        except Exception as _e2:
+            _log.warning('[mariadb] 记录权限收紧失败日志失败: %s', _e2)
+        return False
+
+
+# 加密命名空间（固定常量）：本插件写的东西统一用这一个 key。
+# root 口令与「库用户」口令共用同一命名空间，是为了让外部读取方（如 sphinx 读
+# mysql 的 databases.password）只需要知道「这是哪个插件的数据」一个常量。
+# 注意：本插件用 'mariadb_root' 命名空间，**不能**复用 mysql 的
+# —— 否则同一台机上两个插件互相解不开对方的密文。
+_PWD_SCOPE = db_pwd.SCOPE_MARIADB_ROOT
+
+
+def _storedRootPwd():
+    """读取 config.mysql_root 的**落库原值**（可能是 yfenc: 密文，也可能是历史明文）。
+
+    唯一允许直读该字段的地方；读出来的值必须再过 `db_pwd.decrypt_pwd()` 才能当口令用。
+    """
+    return pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+
+
+def getRootPwd(default=''):
+    """读取并解密 MariaDB root 口令（P2-4）。
+
+    密文 → 解密；历史明文 → 原样返回（向后兼容）；解不开 → fail-closed 返回 default，
+    绝不把密文当口令拼进命令（那会变成「密码错误」这种看不出根因的故障）。
+
+    注意：本插件的命名空间是 `SCOPE_MARIADB_ROOT`（'mariadb_root'），**不能**复用
+    mysql 的 —— 否则同一台机上两个插件互相解不开对方的密文。
+    """
+    pwd = db_pwd.decrypt_pwd(_PWD_SCOPE, _storedRootPwd())
+    return default if pwd is None else pwd
+
+
+def _saveRootPwd(pwd):
+    """把 root 口令加密后写回 config.mysql_root（P2-4：禁止明文落库）。"""
+    return pSqliteDb('config').where('id=?', (1,)).save(
+        'mysql_root', (db_pwd.encrypt_pwd(_PWD_SCOPE, pwd),))
+
+
+def _encUserPwd(pwd):
+    """加密「数据库用户」口令（落 databases.password）。空口令原样返回（不加密）。"""
+    return db_pwd.encrypt_pwd(_PWD_SCOPE, pwd)
+
+
+def _decUserPwd(stored):
+    """解密「数据库用户」口令；历史明文原样返回；解不开返回 None（fail-closed）。"""
+    return db_pwd.decrypt_pwd(_PWD_SCOPE, stored)
+
+
+def _decUserRows(rows):
+    """列表接口的行内口令就地解密：前端要能看到可复制的**明文**。
+
+    解不开的行给空串（而不是把密文丢给前端 —— 用户会复制一坨 base64 去登录）。
+    """
+    for row in rows or []:
+        if isinstance(row, dict) and 'password' in row:
+            row['password'] = _decUserPwd(row.get('password')) or ''
+    return rows
+
 
 def pMysqlDb(name=''):
     # pymysql
@@ -310,7 +387,7 @@ def pMysqlDb(name=''):
     db.setSocket(getSocketFile())
     db.setDbName(name)
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     db.setPwd(pwd)
     return db
 
@@ -550,14 +627,18 @@ def upgradeSelfHealing(version=''):
     # 3. 幂等迁移 SQLite 数据库字段与密码同步
     try:
         psdb = pSqliteDb('databases')
-        root_pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root') or ''
+        root_pwd = getRootPwd() or ''
         if root_pwd:
             root_pl = getServerDir() + '/mysql_root.pl'
             default_pl = getServerDir() + '/default.pl'
+            # P2-4：这两个快照文件是**明文**口令（给 `bs 10 / show_panel_pwd` 显示用），
+            # 落盘后立刻收紧到 0600；chmod 失败记日志，绝不静默留 0644。
             if not os.path.exists(root_pl):
                 yf.writeFile(root_pl, root_pwd)
+                _chmod600(root_pl)
             if not os.path.exists(default_pl):
                 yf.writeFile(default_pl, root_pwd)
+                _chmod600(default_pl)
         logs.append("SQLite 元数据与 root 密码快照已自动同步。")
     except Exception as ex:
         logs.append(f"元数据同步警告: {ex}")
@@ -881,7 +962,7 @@ def initMariaDbPwd():
         pwd + ' -e "drop database test";'
     yf.execShell(drop_test_db)
 
-    pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
+    _saveRootPwd(pwd)
 
     # 删除冗余账户
     # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
@@ -1335,7 +1416,7 @@ def importDbBackup():
         p = subprocess.Popen(['gzip', '-d', file_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
 
     mysql_bin = getServerDir() + '/bin/mariadb'
@@ -1356,8 +1437,7 @@ def importDbBackup():
 
 
 def rootPwd():
-    return pSqliteDb('config').where(
-        'id=?', (1,)).getField('mysql_root')
+    return getRootPwd()
 
 
 # 「导入外部 SQL 包」的安全解压组件（与 mysql 插件共用 plugins/mysql/import_archive.py）
@@ -1508,7 +1588,7 @@ def importDbExternal():
                 _log.debug('[mariadb] importDbExternal 异常已忽略: %s', _e)
         return yf.returnJson(False, 'SQL文件内容为空', {'log': err_log, 'exit_code': 1, 'has_error': True})
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
     my_cnf = getConf()
 
@@ -1711,7 +1791,7 @@ def importDbExternalProgressBar():
     if import_sql == "" or not os.path.exists(import_sql):
         return yf.returnJson(False, '未找到SQL文件')
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
 
     my_cnf = getConf()
@@ -1854,6 +1934,8 @@ def getDbList():
     field = 'id,pid,name,username,password,accept,rw,ps,addtime'
     clist = conn.where(condition, ()).field(
         field).limit(limit).order('addtime desc, id desc').select()
+    # P2-4：口令列落库为密文，回前端前还原成明文（解不开给空串，不丢密文给前端）
+    _decUserRows(clist)
 
     for x in range(0, len(clist)):
         dbname = clist[x]['name']
@@ -1875,8 +1957,7 @@ def getDbList():
     data['data'] = clist
 
     info = {}
-    info['root_pwd'] = pSqliteDb('config').where(
-        'id=?', (1,)).getField('mysql_root')
+    info['root_pwd'] = getRootPwd()
     try:
         info['port'] = getDbPort()
     except Exception:
@@ -1930,11 +2011,14 @@ def syncGetDatabases():
 def toDbBase(find):
     pdb = pMysqlDb()
     psdb = pSqliteDb('databases')
-    if len(find['password']) < 3:
+    # P2-4：落库口令已是密文，先还原成明文再判长度/建用户（历史明文原样通过）
+    password = _decUserPwd(find.get('password')) or ''
+    if len(password) < 3:
         find['username'] = find['name']
-        find['password'] = yf.md5(str(time.time()) + find['name'])[0:10]
+        password = yf.md5(str(time.time()) + find['name'])[0:10]
+        find['password'] = password
         psdb.where("id=?", (find['id'],)).save(
-            'password,username', (find['password'], find['username']))
+            'password,username', (_encUserPwd(password), find['username']))
 
     result = pdb.execute("create database `" + find['name'] + "`")
     if "using password:" in str(result):
@@ -1942,7 +2026,6 @@ def toDbBase(find):
     if "Connection refused" in str(result):
         return -1
 
-    password = find['password']
     __createUser(find['name'], find['username'], password, find['accept'])
     return 1
 
@@ -2006,7 +2089,7 @@ def setRootPwd(version=''):
         isError = isSqlError(result)
         if isError != None:
             if force == 1:
-                pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
+                _saveRootPwd(password)
                 return yf.returnJson(True, '【强制修改】数据库root密码修改成功(不意为成功连接数据)!')
             return isError
 
@@ -2014,7 +2097,7 @@ def setRootPwd(version=''):
         r = pdb.execute(cmd)
         # print(r)
 
-        pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
+        _saveRootPwd(password)
         orm = pMysqlDb()
         orm.execute("flush privileges")
 
@@ -2067,7 +2150,8 @@ def setUserPwd(version=''):
                 continue
             r = pdb.execute("SET PASSWORD FOR %s@%s = %s", (username, x, newpassword))
 
-        psdb.where("id=?", (uid,)).setField('password', newpassword)
+        # P2-4：库用户新口令加密落库（明文只在本次调用内存在）
+        psdb.where("id=?", (uid,)).setField('password', _encUserPwd(newpassword))
 
         orm = pMysqlDb()
         orm.execute("flush privileges")
@@ -2163,8 +2247,10 @@ def addDb():
     __createUser(dbname, dbuser, password, address)
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
+    # P2-4：新建库用户的初始口令加密落库（__createUser 仍用明文）
+    stored_user_pwd = _encUserPwd(password)
     psdb.add('pid,name,username,password,accept,rw,ps,addtime',
-             (0, dbname, dbuser, password, address, 'all', ps, addTime))
+             (0, dbname, dbuser, stored_user_pwd, address, 'all', ps, addTime))
     return yf.returnJson(True, '添加成功!')
 
 
@@ -2216,7 +2302,7 @@ def delDb():
         # 数据库连接参数
         db_host = 'localhost'
         db_port = int(getDbPort())
-        db_pass = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        db_pass = getRootPwd()
         db_socket = getSocketFile()
 
         import pymysql
@@ -2354,8 +2440,7 @@ def setDbAccess():
     try:
         is_root = (name == 'root')
         if is_root:
-            password = pSqliteDb('config').where(
-                'id=?', (1,)).getField('mysql_root')
+            password = getRootPwd()
             if not password:
                 return yf.returnJson(False, '获取ROOT数据库密码失败!')
             dbname = '*'
@@ -2372,7 +2457,8 @@ def setDbAccess():
 
             dbname = db_info.get('name') or name
             name = db_info.get('username') or name
-            password = db_info.get('password') or ''
+            # P2-4：databases.password 落库为密文，先还原成明文再用
+            password = _decUserPwd(db_info.get('password')) or ''
             req_rw = args.get('rw', '').strip()
             if req_rw in ['all', 'rw', 'r']:
                 rw = req_rw
@@ -2486,7 +2572,7 @@ def resetDbRootPwd(version):
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = yf.getRandomString(16)
-    pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
+    _saveRootPwd(pwd)
 
     db_option = "-S " + getSocketFile()
     cmd_pass = serverdir + '/bin/mariadb ' + db_option + ' -uroot -e'
@@ -2960,6 +3046,8 @@ def getMasterDbList(version=''):
     field = 'id,pid,name,username,password,accept,ps,addtime'
     clist = conn.where(condition, ()).field(
         field).limit(limit).order('addtime desc, id desc').select()
+    # P2-4：口令列落库为密文，回前端前还原成明文
+    _decUserRows(clist)
     count = conn.where(condition, ()).count()
 
     for x in range(0, len(clist)):
@@ -3913,7 +4001,7 @@ def dumpMysqlData(version=''):
         return data[1]
 
     db_arg = str(args['db']).strip()
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     mysql_dir = getServerDir()
     myconf = mysql_dir + "/etc/my.cnf"
 
@@ -4446,7 +4534,7 @@ def doFullSyncUser(version=''):
 
     time_s = time.time()
     if os.path.exists(bak_file):
-        pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        pwd = getRootPwd()
         sock = getSocketFile()
 
         # pwd/sock/bak_file/sync_db 均为拼接进 shell 的变量，逐段 shlexQuote
@@ -4615,7 +4703,7 @@ def doFullSyncSSH(version=''):
     id_rsa_conn.where('ip=?', (ip,)).setField('ps', ps)
     writeDbSyncStatus({'code': 4, 'msg': '刷新从库同步信息完成...', 'progress': 50})
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     root_dir = getServerDir()
     msock = root_dir + "/mysql.sock"
     yf.execShell("cd /tmp && gzip -d dump.sql.gz")

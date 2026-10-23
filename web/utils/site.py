@@ -45,6 +45,32 @@ _EMAIL_RE = re.compile(r'^[A-Za-z0-9_.+@\-]*$')
 #: 键名由 `/site/set_dnsapi` 写入、可任意构造，故读侧按标识符白名单过滤。
 _DNSAPI_KEY_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 
+#: 证书签发失败（失败次数达上限）的排查指引 —— **文案在语言包，HTML 结构在代码里**。
+#:
+#: 为什么不把整段带 `<p>` 的文案直接做成一条译文：
+#:   1. `.json` 语言包载体有「值不得含 HTML」红线
+#:      （`web/core/i18n.py::assert_no_html_in_translations`）；
+#:   2. `scripts/tools/export_lang_carriers.py` 派生载体时会把 `<p>`/`<br>` 换成空格，
+#:      于是后端 `t()` 取到的是「挤成一行」的文本。
+#: 所以译文按「一行一句」（`\n` 分隔、不含任何标签）登记在 `lan.js` 的 `site` 段，
+#: 由 `_certFailHelp()` 把第一行之后的行包成 `<p>` 段落 —— 与历史文案结构逐字一致。
+_CERT_FAIL_HELP_KEY = 'site.cert_issue_retry_limit_help'
+_CERT_FAIL_HELP_SHORT_KEY = 'site.cert_issue_retry_limit_help_short'
+
+
+def _certFailHelp(key):
+    """把多行译文渲染成「首行 + `<p>` 段落」的历史消息结构。
+
+    译文缺键时 `t()` 会回退成键名本身，`splitlines()` 后只剩一行，
+    最终仍是一段可读文本（不抛错、不返回空串）。
+    """
+    from core.i18n import t as _t
+    text = _t(key) or ''
+    lines = [ln.strip() for ln in str(text).split('\n') if ln.strip()]
+    if not lines:
+        return ''
+    return lines[0] + ''.join('<p>%s</p>' % ln for ln in lines[1:])
+
 
 def safeSiteName(name):
     """站点名/模板名/证书名的统一白名单校验，不合法返回 ''。
@@ -1411,7 +1437,15 @@ class sites(object):
         info = thisdb.getSitesById(site_id)
         siteName = info['name']
         filename = self.passPath + '/' + siteName + '.pass'
-        passconf = username + ':' + yf.hasPwd(password)
+        # 缺 bcrypt 时 hasPwd() 抛 PwdCryptoUnavailable（fail-closed）：
+        # 必须在改 Nginx 配置/写 .pass 文件**之前**失败，不能留下
+        # 「配置已开认证、密码文件里却是弱哈希」的半成品。
+        try:
+            passconf = username + ':' + yf.hasPwd(password)
+        except yf.PwdCryptoUnavailable as _e:
+            yf.writeFileLog('[site] 设置目录加密被拒绝: %s' % _e)
+            return yf.returnData(
+                False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
 
         configFile = self.getHostConf(siteName)
         # 处理Nginx配置
@@ -2912,11 +2946,9 @@ location  {from} {\n\
         src_cert = src_path + '/fullchain.cer'
         src_key = src_path + '/' + domains[0] + '.key'
 
-        msg = '签发失败,您尝试申请证书的失败次数已达上限!<p>1、检查域名是否绑定到对应站点</p>\
-            <p>2、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
-            <p>3、如果您的站点设置了反向代理,或使用了CDN,请先将其关闭</p>\
-            <p>4、如果您的站点设置了301重定向,请先将其关闭</p>\
-            <p>5、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
+        # 文案见语言包 `site.cert_issue_retry_limit_help`（多行译文），
+        # `<p>` 段落结构由 `_certFailHelp()` 拼装。
+        msg = _certFailHelp(_CERT_FAIL_HELP_KEY)
         if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
             data = {}
             data['err'] = result
@@ -3147,9 +3179,9 @@ export PATH
             src_cert = src_path + '/fullchain.cer'
             src_key = src_path + '/' + d + '.key'
 
-            msg = '签发失败,您尝试申请证书的失败次数已达上限!\
-                <p>1、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
-                <p>2、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
+            # 文案见语言包 `site.cert_issue_retry_limit_help_short`（多行译文），
+            # `<p>` 段落结构由 `_certFailHelp()` 拼装。
+            msg = _certFailHelp(_CERT_FAIL_HELP_SHORT_KEY)
             if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
                 data = {}
                 data['err'] = result

@@ -122,8 +122,6 @@
     "synchronizing_server_firewall_rules": "Sincronizzazione delle regole del firewall del server, attendere...",
     "the_synchronization_request_failed": "La richiesta di sincronizzazione non è riuscita, controlla la connessione di rete o lo stato del server.",
     "bordered_hover_layout_fixed": "Nome del processo",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "-Dettagli del processo di utilizzo della porta",
     "after_the_reset_the": "Dopo il ripristino, la vecchia chiave privata non potrà più essere utilizzata per accedere a questo server senza password (se l'accesso con chiave è abilitato). Sei sicuro di rigenerare la chiave Root?",
     "reset_root_key": "Reimposta la chiave principale",

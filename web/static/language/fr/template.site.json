@@ -1035,7 +1035,9 @@
     "py_msg_15fa79": "La catégorie indiquée n'existe pas !",
     "py_msg_6d5524": "La catégorie a été supprimée !",
     "py_msg_2b7ff5": "Échec du renouvellement. Pour plus de détails, consultez les journaux !",
-    "py_msg_a36237": "Le renouvellement du certificat a réussi !"
+    "py_msg_a36237": "Le renouvellement du certificat a réussi !",
+    "cert_issue_retry_limit_help": "Échec de la délivrance : vous avez atteint le nombre maximal d'échecs de demande de certificat !\n1. Vérifiez que le domaine est bien associé au site correspondant\n2. Vérifiez que le domaine pointe correctement vers ce serveur, ou que la résolution n'a pas encore pris effet\n3. Si votre site utilise un proxy inverse ou un CDN, désactivez-le d'abord\n4. Si votre site a une redirection 301 configurée, désactivez-la d'abord\n5. Si tous les points ci-dessus sont corrects, essayez de changer de fournisseur DNS",
+    "cert_issue_retry_limit_help_short": "Échec de la délivrance : vous avez atteint le nombre maximal d'échecs de demande de certificat !\n1. Vérifiez que le domaine pointe correctement vers ce serveur, ou que la résolution n'a pas encore pris effet\n2. Si tous les points ci-dessus sont corrects, essayez de changer de fournisseur DNS"
   },
   "database": {
     "H1": "Tableau de bord",

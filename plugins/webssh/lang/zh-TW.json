@@ -1,4 +1,5 @@
 {
+ "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "資料加密元件不可用（缺少 cryptography），已拒絕儲存；請安裝 cryptography 後重試",
  "SSH终端": "SSH終端",
  "SSH账号": "SSH帳號",
  "不存在此配置": "不存在此配置",

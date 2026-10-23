@@ -1,4 +1,5 @@
 {
+    "口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试": "Componente di cifratura della password non disponibile (manca bcrypt); salvataggio rifiutato. Installare bcrypt e riprovare",
     "80端不能使用!": "La fine 80 non può essere utilizzata!",
     "PHP版本": "Versione PHP",
     "kill所有php进程": "uccidi tutti i processi php",

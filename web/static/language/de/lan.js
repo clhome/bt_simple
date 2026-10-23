@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79": "Die angegebene Kategorie existiert nicht!",
 			"py_msg_6d5524": "Kategorie bereitsLöschen!",
 			"py_msg_2b7ff5": "Verlängerung fehlgeschlagen. Details finden Sie im Protokoll!",
-			"py_msg_a36237": "Zertifikatsverlängerung erfolgreich!"
+			"py_msg_a36237": "Zertifikatsverlängerung erfolgreich!",
+			"cert_issue_retry_limit_help": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain an die entsprechende Website gebunden ist\n2. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n3. Wenn Ihre Website einen Reverse-Proxy oder ein CDN verwendet, deaktivieren Sie es zuerst\n4. Wenn für Ihre Website eine 301-Weiterleitung eingerichtet ist, deaktivieren Sie sie zuerst\n5. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln",
+			"cert_issue_retry_limit_help_short": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n2. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log": "Protokollrotation",
 			"backup_directory_1": "Sicherungsverzeichnis",
 			"role_menuitem_tabindex_all": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">Alle",
-			"textname_mr_keep_the": "",
 			"backup_directory_2": "Sicherungsverzeichnis[",
 			"back_up_website_2": "Website sichern",
 			"back_up_the_database_3": "Datenbank sichern",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks": "Geplante Aufgabe bearbeiten –[",
 			"setting_con_ptb_clearfix": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Aufgabentyp",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr": "<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">Verzeichnis ausschließen",
 			"typename_controls_mr_tip": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">Hinweis",
 			"typename_controls_mr_url": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">URLAdresse",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6": "Sicherungsverzeichnis[",
 			"saving_your_edits_please": "Bearbeiteter Inhalt wird gespeichert, bitte warten...",
 			"dropdown_planweek_mr_default": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">Montag</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9": "DateienSchreiben fehlgeschlagen,ObEinschaltenSystemhärtungsfunktion!",
 			"py_msg_9d44d8": "Erfolgreich erkannt und synchronisiert {1} Aufgabe(n)",
 			"py_msg_2c1843": "AufgabeNameWiederholen",
-			"py_msg_f47dfc": "Aktuelle AufgabeListeist bereits aktuell, keine fehlenden Aufgaben zu synchronisieren"
+			"py_msg_f47dfc": "Aktuelle AufgabeListeist bereits aktuell, keine fehlenden Aufgaben zu synchronisieren",
+			"cron_sync_rejected": "Sync abgelehnt",
+			"cron_sync_rejected_tip": "Die Aufgabenkennung enthält unerlaubte Zeichen (nur A-Za-z0-9_.- erlaubt, höchstens 64). Die Synchronisierung wird deshalb abgelehnt; bitte die Aufgabe bearbeiten und erneut speichern, um eine gültige Kennung zu erzeugen."
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules": "Server-Firewallregeln werden synchronisiert, Bitte warten...",
 			"the_synchronization_request_failed": "Synchronisierungsanfrage fehlgeschlagen. Bitte überprüfen Sie die Netzwerkverbindung oder den Serverstatus.",
 			"bordered_hover_layout_fixed": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Prozessname",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using": "- Details zu Prozessen, die den Port verwenden",
 			"after_the_reset_the": "Nach dem Zurücksetzen kann der alte private Schlüssel nicht mehr für die passwortlose Anmeldung an diesem Server verwendet werden (sofern die Schlüssel-Anmeldung aktiviert ist). Möchten Sie ihn wirklich neu generieren? Root Schlüssel?",
 			"reset_root_key": "Zurücksetzen Root Schlüssel",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size": "</p>                        <p><b>Größe:</b>",
 			"author": "</p>                        <p><b>Autor:</b>",
 			"source_btlink": "</p>                        <p><b>Quelle:</b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation": "Installation bestätigen",
 			"upload_failed": "Upload fehlgeschlagen 2!:",
 			"installing_this_may_take": "Wird installiert,Dies kann einige Minuten dauern...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "Die Login-Drosselung läuft nur noch mit prozessinternen Zählern – bei mehreren Workern greift sie nicht mehr",
+			"login_guard_degraded_desc": "Fehlanmeldungen können nicht in die Datenbank geschrieben werden, daher gelten Brute-Force-Schutz und das Abmelden von Sitzungen nach einer Passwortänderung nur in diesem Prozess. Bitte Datenbank und Tabelle panel_login_failure prüfen und diese Seite neu laden.",
 			"plain_http_warning_title": "Unverschlüsseltes HTTP: Login-Cookies können mitgelesen werden",
 			"plain_http_warning_desc": "Bitte aktivieren Sie HTTPS in den Panel-Einstellungen so bald wie möglich; nutzen Sie dieses Panel bis dahin nicht über das öffentliche Netz.",
 			"config": "Wird eingerichtet...",

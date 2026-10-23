@@ -103,7 +103,7 @@ class DependencyLockTest(unittest.TestCase):
         tpl = _read(RELEASE_TPL)
         for section in ('变更类型', '升级说明', '回滚'):
             self.assertIn(section, tpl, 'RELEASE_TEMPLATE.md 缺少必填段：%s' % section)
-        self.assertIn('body_path: RELEASE_TEMPLATE.md',
+        self.assertIn('body_path: dist/RELEASE_BODY.md',   # P1-9：正文渲染后再引用
                       _read(os.path.join(ROOT, '.github', 'workflows', 'release.yml')))
 
 

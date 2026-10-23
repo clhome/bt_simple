@@ -1,0 +1,38 @@
+# web 后端中文消息棘轮基线（P2-14）
+#
+# 本文件由 `python scripts/verify_i18n.py --write-web-backend-baseline` 生成，
+# 门禁断言「当前实测的未命中指纹 ≤ 本基线」（多集包含，见
+# `verify_i18n.py::_web_backend_ratchet_problems`）：
+#   * 新增一条 web 后端中文消息而语言包里没有对应键 → 红；
+#   * 本基线里的条目被修好（或删除）后必须从本文件精删，否则也红。
+#
+# 格式：<web 相对路径>\t<消息字面量（首尾空白已剥离）>；不含行号（行号会漂移）。
+# 清理/补译时**只允许变小**：每修好一条就删掉对应行。
+web/admin/dashboard/dashboard.py	PHP安全基线巡检失败: %s
+web/admin/dashboard/dashboard.py	登录限流状态读取失败: %s
+web/admin/files/files.py	URL安全校验失败: %s
+web/admin/files/files.py	路径不存在
+web/admin/setting/notify_email.py	数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试
+web/admin/setting/notify_tgbot.py	数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试
+web/admin/setting/panel_bookmark.py	数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试
+web/admin/setting/panel_bookmark.py	数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试
+web/admin/setting/secondary_verifiy.py	数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试
+web/admin/setting/setting.py	两次输入的密码不一致！
+web/admin/setting/setting.py	会话不存在
+web/admin/setting/setting.py	原密码错误，请重新输入！
+web/admin/setting/setting.py	口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试
+web/admin/setting/setting.py	口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试
+web/admin/setting/setting.py	密码修改成功，请使用新密码重新登录！
+web/admin/setting/setting.py	已下线该会话
+web/admin/setting/setting.py	已解除登录封禁
+web/admin/setting/setting.py	新密码不能与原密码相同！
+web/admin/setting/setting.py	新密码必须同时包含英文字母和数字！
+web/admin/setting/setting.py	新密码长度至少需要8位！
+web/admin/setting/setting.py	用户不存在！
+web/admin/setting/setting.py	登录超时，请重新登录！
+web/admin/setting/setting.py	获取成功
+web/admin/setting/setting.py	请输入原密码！
+web/utils/site.py	口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试
+web/utils/system/update.py	升级包完整性校验失败: {zip_err}
+web/utils/system/update.py	发布流程缺少 sha256，拒绝升级
+web/utils/system/update.py	未取得发布签名清单（SHA256SUMS/SHA256SUMS.minisig），拒绝升级

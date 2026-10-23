@@ -35,57 +35,71 @@ def migrate_encrypted_data():
     """
     一次性将旧密钥加密的数据迁移到新密钥。
     解密（利用自动降级机制）后重新加密（利用新机制）。
+
+    fail-closed：加密组件不可用（缺 cryptography）时 enDoubleCrypt 抛
+    DataCryptUnavailable，本函数**中止迁移并向上报错**：
+      * 不继续后续条目（不拿半成品覆盖库）；
+      * **不写** `.crypt_migrated` 标记文件（下次还能重跑，不会永久跳过）；
+      * 绝不把解密后的明文回写进库。
     """
     flag_file = yf.getPanelDataDir() + '/.crypt_migrated'
     if os.path.exists(flag_file):
         return
 
     yf.writeLog('安全机制', '开始执行敏感数据安全加密迁移...')
-    
-    # 1. 迁移二步验证
-    two_step = thisdb.getOptionByJson('two_step_verification', default={'open': False})
-    if 'secret' in two_step:
-        decrypted = _decrypt_old('mdserver-web', two_step['secret'])
-        if decrypted:
-            # 重加密必须用**读取方相同的 key**：读侧统一是 'mdserver-web'
-            # （admin/dashboard/login.py 与 admin/setting/secondary_verifiy.py）。
-            # 旧实现写 'yufeng_panel'，而 deDoubleCrypt 只会试 key+salt 与 key，
-            # 于是迁移后二次验证的 secret 谁都解不开 —— 开了 2FA 的帐号直接登不进去。
-            two_step['secret'] = yf.enDoubleCrypt('mdserver-web', decrypted)
-            thisdb.setOption('two_step_verification', json.dumps(two_step))
-            
-    # 2. 迁移邮件通知
-    notify_email = thisdb.getOptionByJson('notify_email', default={'open': False}, type='notify')
-    if 'cfg' in notify_email:
-        decrypted = _decrypt_old('email', notify_email['cfg'])
-        if decrypted:
-            notify_email['cfg'] = yf.enDoubleCrypt('email', decrypted)
-            thisdb.setOption('notify_email', json.dumps(notify_email), type='notify')
-            
-    # 3. 迁移 TG Bot 通知
-    notify_tgbot = thisdb.getOptionByJson('notify_tgbot', default={'open': False}, type='notify')
-    if 'cfg' in notify_tgbot:
-        decrypted = _decrypt_old('tgbot', notify_tgbot['cfg'])
-        if decrypted:
-            notify_tgbot['cfg'] = yf.enDoubleCrypt('tgbot', decrypted)
-            thisdb.setOption('notify_tgbot', json.dumps(notify_tgbot), type='notify')
-            
-    # 4. 迁移 SSH 主机信息
-    ssh_host_dir = yf.getServerDir() + '/webssh/host'
-    if os.path.exists(ssh_host_dir):
-        for host in os.listdir(ssh_host_dir):
-            info_file = ssh_host_dir + '/' + host + '/info.json'
-            if os.path.exists(info_file):
-                try:
-                    rdata = yf.readFile(info_file)
-                    decrypted = _decrypt_old('mdserver-web', rdata)
-                    if decrypted:
-                        # 同二步验证：读侧（utils/ssh/ssh_terminal.py::getSshInfo）用的是
-                        # 'mdserver-web'，写侧必须一致，否则迁移后 json.loads 直接炸。
-                        enstr = yf.enDoubleCrypt('mdserver-web', decrypted)
-                        yf.writeFile(info_file, enstr)
-                except Exception as _e:
-                    yf.writeFileLog('[crypt_migrate] 回写加密串失败: %s' % _e)
-                    
+
+    try:
+        # 1. 迁移二步验证
+        two_step = thisdb.getOptionByJson('two_step_verification', default={'open': False})
+        if 'secret' in two_step:
+            decrypted = _decrypt_old('mdserver-web', two_step['secret'])
+            if decrypted:
+                # 重加密必须用**读取方相同的 key**：读侧统一是 'mdserver-web'
+                # （admin/dashboard/login.py 与 admin/setting/secondary_verifiy.py）。
+                # 旧实现写 'yufeng_panel'，而 deDoubleCrypt 只会试 key+salt 与 key，
+                # 于是迁移后二次验证的 secret 谁都解不开 —— 开了 2FA 的帐号直接登不进去。
+                two_step['secret'] = yf.enDoubleCrypt('mdserver-web', decrypted)
+                thisdb.setOption('two_step_verification', json.dumps(two_step))
+                
+        # 2. 迁移邮件通知
+        notify_email = thisdb.getOptionByJson('notify_email', default={'open': False}, type='notify')
+        if 'cfg' in notify_email:
+            decrypted = _decrypt_old('email', notify_email['cfg'])
+            if decrypted:
+                notify_email['cfg'] = yf.enDoubleCrypt('email', decrypted)
+                thisdb.setOption('notify_email', json.dumps(notify_email), type='notify')
+                
+        # 3. 迁移 TG Bot 通知
+        notify_tgbot = thisdb.getOptionByJson('notify_tgbot', default={'open': False}, type='notify')
+        if 'cfg' in notify_tgbot:
+            decrypted = _decrypt_old('tgbot', notify_tgbot['cfg'])
+            if decrypted:
+                notify_tgbot['cfg'] = yf.enDoubleCrypt('tgbot', decrypted)
+                thisdb.setOption('notify_tgbot', json.dumps(notify_tgbot), type='notify')
+                
+        # 4. 迁移 SSH 主机信息
+        ssh_host_dir = yf.getServerDir() + '/webssh/host'
+        if os.path.exists(ssh_host_dir):
+            for host in os.listdir(ssh_host_dir):
+                info_file = ssh_host_dir + '/' + host + '/info.json'
+                if os.path.exists(info_file):
+                    try:
+                        rdata = yf.readFile(info_file)
+                        decrypted = _decrypt_old('mdserver-web', rdata)
+                        if decrypted:
+                            # 同二步验证：读侧（utils/ssh/ssh_terminal.py::getSshInfo）用的是
+                            # 'mdserver-web'，写侧必须一致，否则迁移后 json.loads 直接炸。
+                            enstr = yf.enDoubleCrypt('mdserver-web', decrypted)
+                            yf.writeFile(info_file, enstr)
+                    except yf.DataCryptUnavailable:
+                        # 加密组件不可用不是「这一台主机」的局部问题：必须中止整个迁移，
+                        # 不能落到下面的通用 except 里当「回写失败」继续跑。
+                        raise
+                    except Exception as _e:
+                        yf.writeFileLog('[crypt_migrate] 回写加密串失败: %s' % _e)
+    except yf.DataCryptUnavailable as _e:
+        yf.writeFileLog('[crypt_migrate] 敏感数据加密迁移已中止（未写标记文件，可修复后重跑）：%s' % _e)
+        raise
+
     yf.writeFile(flag_file, '1')
     yf.writeLog('安全机制', '敏感数据安全加密迁移完成。')

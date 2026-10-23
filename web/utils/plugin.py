@@ -61,6 +61,86 @@ def _has_symlink(path):
                 return True
     return False
 
+# ---------------------------------------------------------------------------------
+# 插件 zip 包解压（P2-10）：解压**前**的成员校验
+#   - 判据不另写：直接复用面板统一的 utils.file.safeArchiveCheck(pkg, dest, 'zip')；
+#   - 照 P1-4（plugins/mysql/import_archive.py 的 _safeArchiveCheck）的范式：只在
+#     调用时 import，取不到校验函数 / 校验抛异常一律 fail-closed，绝不做
+#     「无法校验就当通过」的放行；
+#   - 校验通过才 unzip；解压后的 _has_symlink 检查保留为第二道（纵深防御）。
+# ---------------------------------------------------------------------------------
+PLUGIN_ZIP_KIND = 'zip'
+
+
+def _pluginArchiveCheck(zip_path, dest_dir):
+    """调用面板统一的归档成员校验函数；取不到就抛（由调用方按 fail-closed 处理）。"""
+    import utils.file as file_utils
+    return file_utils.safeArchiveCheck(zip_path, dest_dir, PLUGIN_ZIP_KIND)
+
+
+def _safeExtractPluginZip(zip_path, dest_dir):
+    """先校验成员名、通过后才解压插件包。返回 `(ok, msg)`。
+
+    `ok=False` 表示**一个成员都没有解压**（越界成员不会写到 dest_dir 内外），
+    `msg` 是中文原因（校验被拒时含拒绝码，如 `parent_ref` / `absolute_path` /
+    `symlink_escape`）；`ok=True` 时 `msg` 为空串。
+    被拒的包本身与解压目录的清理由调用方负责（updateZip 里统一做）。
+    """
+    try:
+        ok, code = _pluginArchiveCheck(zip_path, dest_dir)
+    except Exception as _e:
+        # 校验函数都跑不起来时同样拒绝（fail-closed）：
+        # 放行等于把「无法校验」当成「没有风险」
+        _log.warning('[plugin] 插件包成员校验无法执行(%s): %s', zip_path, _e)
+        return False, '插件包成员校验无法执行，已拒绝解压（fail-closed）'
+    if not ok:
+        _log.warning('[plugin] 拒绝越界成员(%s): %s', zip_path, code)
+        return False, '插件包含越界或非法成员，已拒绝解压（%s）' % code
+    # 校验通过才解压（原行为：unzip 覆盖解压到面板 temp）
+    yf.safeExecShell(['unzip', '-o', '-q', zip_path, '-d', dest_dir])
+    return True, ''
+
+
+def _checkPluginSourceDir(src_dir):
+    """inputZipApi 的独立入口自校验：源目录树内不得有软链。返回 `(ok, code)`。
+
+    为什么是软链而不是成员名：inputZipApi 不解压任何归档，它做的是
+    `shutil.copytree`（默认跟随软链）。对应到 `utils.file.safeArchiveCheck` 的判据里，
+    目录形态下唯一的「越界载体」就是软链（校验侧对应拒绝码 `symlink_escape` /
+    `symlink_absolute`），故这里复用同一份检测 `_has_symlink`。
+    单独调用 /plugins/input_zip 会绕过 updateZip，所以这个入口必须自校验。
+    """
+    try:
+        if not os.path.isdir(src_dir):
+            return False, 'bad_dir'
+        if _has_symlink(src_dir):
+            return False, 'symlink'
+    except Exception as _e:
+        # 校验跑不起来同样拒绝（fail-closed）
+        _log.warning('[plugin] 插件源目录校验无法执行(%s): %s', src_dir, _e)
+        return False, 'check_failed'
+    return True, 'OK'
+
+
+def _cleanupRejectedPluginPackage(zip_path, dest_dir, reason):
+    """拒绝插件包后的清理：删掉临时 zip + 清空解压目录（保证零落地、无残留）。
+
+    只动这两处：临时 zip 本体（确认是普通文件才删）与 `<面板>/temp` 解压目录
+    （`yf.removeDir` 自带非法路径拒绝）。宁可不删，也绝不删目录外的文件。
+    """
+    yf.writeFileLog('[plugin] 拒绝插件包(%s): %s' % (reason, zip_path))
+    try:
+        if os.path.isfile(zip_path) and not os.path.islink(zip_path):
+            os.remove(zip_path)
+    except Exception as _e:
+        _log.warning('[plugin] 删除被拒插件包失败(%s): %s', zip_path, _e)
+    try:
+        if os.path.isdir(dest_dir):
+            yf.removeDir(dest_dir)
+    except Exception as _e:
+        _log.warning('[plugin] 清空插件解压目录失败(%s): %s', dest_dir, _e)
+
+
 def _valid_script_name(name):
     name = str(name or '').strip()
     return bool(name) and bool(re.match(r'^[a-zA-Z0-9_]+$', name))
@@ -1703,11 +1783,18 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_7ed95c')
 
         request_zip.save(tmp_file)
-        yf.safeExecShell(['unzip', '-o', '-q', tmp_file, '-d', tmp_path])
+        # 安全（P2-10）：解压**之前**先按面板统一判据校验成员名 —— `../evil`、绝对路径、
+        # 软链逃逸一律拒绝。校验不过 / 校验函数跑不起来（fail-closed）→ 临时 zip 与解压
+        # 目录一起清掉，**一个文件都不落地**；校验通过才 unzip。
+        ok, msg = _safeExtractPluginZip(tmp_file, tmp_path)
+        if not ok:
+            _cleanupRejectedPluginPackage(tmp_file, tmp_path, msg)
+            return yf.returnData(False, msg)
         os.remove(tmp_file)
 
         # 安全：包内软链会被 unzip 原样还原，后续 inputZipApi 的 copytree 会「跟随软链」把包外
         # 文件（如 /etc/shadow）复制成插件目录里的普通文件并可经 /plugins/file 下载 —— 直接拒收。
+        # 这一道是解压前校验之外的第二道（纵深防御），不得删除。
         if _has_symlink(tmp_path):
             yf.writeFileLog('[plugin] 拒绝含软链的插件包: %s' % getattr(request_zip, 'filename', ''))
             yf.removeDir(tmp_path)
@@ -1774,9 +1861,12 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_2ca3e3')
 
         plugin_path = os.path.abspath(yf.getPluginDir() + '/' + plugin_name)
-        # 安全：copytree 默认跟随软链，会把手伸到插件包外（纵深防御，与 updateZip 同一道门）
-        if _has_symlink(tmp_path):
-            yf.writeFileLog('[plugin] 拒绝含软链的插件目录: %s' % tmp_path)
+        # 安全：copytree 默认跟随软链，会把手伸到插件包外（纵深防御，与 updateZip 同一道门）。
+        # tmp_path 可能已被 updateZip 校验过，但 /plugins/input_zip 是**独立入口**，直接调用
+        # 可以绕过 updateZip —— 所以这里必须自校验（判据与 safeArchiveCheck 同为「软链」）。
+        ok, reject_code = _checkPluginSourceDir(tmp_path)
+        if not ok:
+            yf.writeFileLog('[plugin] 拒绝非法插件源目录(%s): %s' % (reject_code, tmp_path))
             return yf.returnData(False, 'ERROR')
 
         try:

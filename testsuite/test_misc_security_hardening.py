@@ -4,7 +4,7 @@
 覆盖 5 项：
   1. 面板 SSL 私钥写入后显式 chmod 0600（net.createLocalSSL / setting.savePanelSsl）；
   2. 临时登录 token 用后即焚（同一 token 第二次使用被拒）；
-  3. bcrypt 缺失时降级 SHA256 必须打 warning，不得静默 fail-open；
+  3. bcrypt 缺失时必须 fail-closed（校验拒绝 / 哈希抛异常），且告警不得静默；
   4. /dashboard/hook 路由必须带登录态校验，不再无鉴权；
   5. plugins/待审核/ 与 文档/待审核插件/ 必须有「未审核 + 命令注入未修」警示 README。
 
@@ -256,29 +256,34 @@ class TestTempLoginTokenOneTime(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 3) bcrypt fail-open 告警
+# 3) bcrypt 缺失必须 fail-closed（P2-7：旧口径「降级 SHA256」已被废除）
 # ---------------------------------------------------------------------------
 
-class TestBcryptFailOpenWarns(unittest.TestCase):
+class TestBcryptFailClosed(unittest.TestCase):
+    """缺 bcrypt 时：校验返回 False、哈希抛 PwdCryptoUnavailable，且必须打告警。
 
-    def test_checkpwd_warns_on_importerror(self):
+    历史口径（本用例的前身 TestBcryptFailOpenWarns）断言的是
+    「降级到无盐 SHA256 且仍放行」——那正是 P2-7 要拆掉的 fail-open 漏洞，
+    断言已按新契约反向收紧（不是放宽）。
+    """
+
+    def test_checkpwd_returns_false_on_importerror(self):
         stored = hashlib.sha256(b'pw').hexdigest()
         with mock.patch.dict(sys.modules, {'bcrypt': None}):
             with self.assertLogs('yf.core', level='WARNING') as cm:
                 ok = yf_security.checkPwd('pw', stored)
-        self.assertTrue(ok, '降级路径仍应完成 SHA256 比对')
+        self.assertFalse(ok, '缺 bcrypt 时必须拒绝校验，不得退回无盐 SHA256 比对')
         joined = '\n'.join(cm.output)
         self.assertIn('bcrypt', joined, '告警文案必须点名 bcrypt')
-        self.assertIn('SHA256', joined, '告警文案必须说明降级到 SHA256')
 
-    def test_haspwd_warns_on_importerror(self):
+    def test_haspwd_raises_on_importerror(self):
         with mock.patch.dict(sys.modules, {'bcrypt': None}):
             with self.assertLogs('yf.core', level='WARNING') as cm:
-                digest = yf.hasPwd('pw')
-        self.assertEqual(len(digest), 64, '降级应返回 SHA256 十六进制串')
+                with self.assertRaises(yf.PwdCryptoUnavailable) as ctx:
+                    yf.hasPwd('pw')
+        self.assertIn('bcrypt', str(ctx.exception), '异常文案必须点名 bcrypt')
         joined = '\n'.join(cm.output)
         self.assertIn('bcrypt', joined)
-        self.assertIn('SHA256', joined)
 
     def test_bcrypt_available_does_not_warn(self):
         stored = yf.hasPwd('pw')

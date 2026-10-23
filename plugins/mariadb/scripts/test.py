@@ -17,6 +17,10 @@ root_dir = os.path.dirname(os.path.dirname(plugin_dir))
 
 sys.path.append(root_dir + "/class/core")
 import yf
+try:
+    import core.db_pwd as db_pwd
+except Exception as _e:  # 面板 web 目录不在 sys.path 时降级
+    db_pwd = None
 
 os.chdir(root_dir)
 
@@ -58,7 +62,9 @@ def pMysqlDb():
     db.setSocket(yf.getServerDir() + '/mysql/mysql.socket')
 
     print(yf.getServerDir() + '/mysql/mysql.socket')
-    db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('mysql_root'))
+    # P2-4：mysql_root 已改为密文落库，连库前必须解密（历史明文原样通过）
+    _stored = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    db.setPwd(db_pwd.decrypt_pwd_any(_stored) if db_pwd is not None else _stored)
     return db
 
 if __name__ == '__main__':

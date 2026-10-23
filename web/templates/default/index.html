@@ -17,6 +17,25 @@
     </div>
     {% endif %}
 
+    {# P2-8 登录限流降级告警：`panel_login_failure` 表不可用时，失败计数退化为
+       **进程内内存计数**（fail-open 取舍保持不变），多 worker 下每个进程各算各的，
+       「爆破限流 / 改密码踢下线」会静默失效。只有后端判定为 memory 态才显示；
+       db 态静默（`login_guard_degraded` 由 `login_guard.status()` 算出）。 #}
+    {% if login_guard_degraded %}
+    <div id="loginGuardWarning" role="alert" data-login-guard-backend="{{ login_guard_status['backend'] }}" style="margin:12px 15px 0; padding:10px 14px; display:flex; align-items:flex-start; gap:10px; line-height:20px; border:1px solid rgba(230,126,34,0.45); border-left:5px solid #e67e22; border-radius:4px; background: rgba(230,126,34,0.08); color:#b9600f;">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto; margin-top:2px;">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+            <div style="font-weight:700; font-size:13px;" data-i18n="public.login_guard_degraded_title">{{ t('public.login_guard_degraded_title', '登录限流已降级为进程内计数，多 worker 下限流失效') }}</div>
+            <div style="font-size:12px; margin-top:2px; color:#a05a10;" data-i18n="public.login_guard_degraded_desc">{{ t('public.login_guard_degraded_desc', '失败计数无法写入数据库，爆破防护与「改密码踢下线」只在本进程生效。请检查数据库与 panel_login_failure 表后刷新本页。') }}</div>
+            <div id="loginGuardReason" style="font-size:11px; margin-top:2px; color:#a05a10; font-family: Consolas, monospace;">{{ login_guard_status['reason'] }}</div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="index-pos-box bgw clearfix">
         <div class="position f12 pull-left" style="margin-left: 15px; padding-left: 18px; line-height: 52px; height: 52px;">
             <div style="display: inline-block; vertical-align: middle; margin-left: 28px; cursor:pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding:0 14px; height:28px; line-height:26px; border-radius:4px; background: linear-gradient(90deg, rgba(32,165,58,0.1), rgba(32,165,58,0.02)); border: 1px solid rgba(32,165,58,0.35); color: #20a53a; box-shadow: 0 0 8px rgba(32,165,58,0.08);" onmouseover="this.style.background='linear-gradient(90deg, rgba(32,165,58,0.15), rgba(32,165,58,0.05))'; this.style.borderColor='rgba(32,165,58,0.5)'; this.style.boxShadow='0 0 15px rgba(32,165,58,0.15)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='linear-gradient(90deg, rgba(32,165,58,0.1), rgba(32,165,58,0.02))'; this.style.borderColor='rgba(32,165,58,0.35)'; this.style.boxShadow='0 0 8px rgba(32,165,58,0.08)'; this.style.transform='translateY(0)';" onclick="showSystemDetails()" data-i18n-attr="title" data-i18n="index.view_system_details_title" title="{{ t('index.view_system_details_title', '点击查看系统详细环境') }}">

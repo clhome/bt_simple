@@ -636,6 +636,40 @@ log_info()  { echo -e "${GREEN}[INFO]${PLAIN} $1" | tee -a $LOG_FILE; }
 log_warn()  { echo -e "${YELLOW}[WARN]${PLAIN} $1" | tee -a $LOG_FILE; }
 log_error() { echo -e "${RED}[ERROR]${PLAIN} $1" | tee -a $LOG_FILE; }
 
+# ---------------------------------------------------------------------------
+# P2-4：初始密码快照 data/default.pl 的唯一写入口
+#
+# 为什么还留着明文：show_panel_info 的提示、以及 panel_tools.py 的 `bs 10 /
+# show_panel_pwd` 都要把初始密码**原样显示**给用户（加密了用户就永远看不到初始
+# 口令，等于把自己锁在门外）。所以改成「明文 + 0600 + 引导删除」：
+#   * 写完立刻 chmod 600，且必须**真的成功**（失败要明确 WARN，不能静默留 0644）；
+#   * 安装结束提示里明确告知「首次登录后请删除」。
+# 它只是安装后的短期保留物，不是长期凭据存储。
+# ---------------------------------------------------------------------------
+default_pl_path() {
+    echo "${PANEL_DIR}/data/default.pl"
+}
+
+write_default_pl() {
+    local pwd_value="$1"
+    local file
+    file=$(default_pl_path)
+
+    mkdir -p "$(dirname "$file")" 2>/dev/null || true
+    # 以 umask 077 先创建/截断，避开「0644 写完再 chmod」的窗口期
+    ( umask 077 && : > "$file" ) 2>/dev/null
+    if ! echo "$pwd_value" > "$file" 2>/dev/null; then
+        log_warn "初始密码文件写入失败: $file（请手工记录本次密码并检查 data/ 目录权限）"
+        return 1
+    fi
+    if chmod 600 "$file" 2>/dev/null; then
+        log_info "初始密码已写入 $file 并设为 0600（明文，首次登录后请删除）"
+        return 0
+    fi
+    log_warn "chmod 600 $file 失败，该明文密码文件可能仍可被其他用户读取！请手工执行: chmod 600 $file"
+    return 1
+}
+
 confirm() {
     if [ "$SILENT_MODE" = "true" ]; then
         return 0
@@ -1663,7 +1697,7 @@ fresh_install() {
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
     if [ -f ${PANEL_DIR}/panel_tools.py ]; then
         cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
-        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+        write_default_pl "$rand_pass"
     fi
 
 
@@ -1826,7 +1860,7 @@ conn.close()
         rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
         if [ -f ${PANEL_DIR}/panel_tools.py ]; then
             cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
-            echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+            write_default_pl "$rand_pass"
         fi
         log_info "检测到缺少默认密码文件，已重新生成面板密码"
     fi
@@ -2103,7 +2137,7 @@ migrate_from_bt() {
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
     if [ -f ${PANEL_DIR}/panel_tools.py ]; then
         cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
-        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+        write_default_pl "$rand_pass"
     fi
 
 
@@ -2258,9 +2292,14 @@ show_panel_info() {
     elif [ -f ${PANEL_DIR}/data/port.pl ]; then
         local port=$(cat ${PANEL_DIR}/data/port.pl 2>/dev/null)
         echo -e "面板端口: ${port:-7200}"
-        if [ -f ${PANEL_DIR}/data/default.pl ]; then
-            echo -e "默认密码: $(cat ${PANEL_DIR}/data/default.pl)"
+        if [ -f $(default_pl_path) ]; then
+            echo -e "默认密码: $(cat $(default_pl_path))"
         fi
+    fi
+    # P2-4：初始密码是明文快照（0600），只能短期保留 —— 必须把「用完就删」说给用户。
+    if [ -f $(default_pl_path) ]; then
+        echo -e "${YELLOW}提示: 初始密码以明文保存在 $(default_pl_path)（权限 0600）。${PLAIN}"
+        echo -e "${YELLOW}     首次登录并修改密码后请删除它: rm -f $(default_pl_path)${PLAIN}"
     fi
     echo -e "=================================================================="
     echo -e "日志文件: ${LOG_FILE}"

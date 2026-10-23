@@ -217,8 +217,17 @@ def set_basic_auth():
     data['salt'] = salt
     # 口令用 bcrypt 存储；salt 仅用于兼容历史 MD5 存量值的一次性比对，
     # 校验侧见 web/admin/__init__.py。
-    data['basic_user'] = yf.hasPwd(basic_user + salt)
-    data['basic_pwd'] = yf.hasPwd(basic_pwd + salt)
+    # 缺 bcrypt 时 hasPwd() 抛 PwdCryptoUnavailable（fail-closed）：
+    # 两个值必须在**写入任何东西之前**算完，失败则整次保存作废（不能写弱哈希）。
+    try:
+        basic_user_hash = yf.hasPwd(basic_user + salt)
+        basic_pwd_hash = yf.hasPwd(basic_pwd + salt)
+    except yf.PwdCryptoUnavailable as _e:
+        yf.writeFileLog('[setting] BasicAuth 口令保存被拒绝: %s' % _e)
+        return yf.returnData(
+            False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
+    data['basic_user'] = basic_user_hash
+    data['basic_pwd'] = basic_pwd_hash
     data['open'] = is_open
 
     thisdb.setOption('basic_auth', json.dumps(data))
@@ -408,7 +417,15 @@ def set_password():
     if password1 == old_password:
         return yf.returnData(False, '新密码不能与原密码相同！')
 
-    thisdb.setUserPwdByName(username, password1)
+    # 缺 bcrypt 时 setUserPwdByName 抛 PwdCryptoUnavailable：必须回失败，
+    # 绝不能把「没写进去的新口令」当成功（否则用户下次无法登录，还可能把
+    # 旧弱哈希当新口令继续用）。
+    try:
+        thisdb.setUserPwdByName(username, password1)
+    except yf.PwdCryptoUnavailable as _e:
+        yf.writeFileLog('[setting] 修改面板密码被拒绝: %s' % _e)
+        return yf.returnData(
+            False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
     yf.writeLog('面板设置', '管理员[{1}]成功修改了面板密码', (username,))
 
     # 强制下线：撤销该账号的全部服务端会话（含当前会话），
@@ -456,7 +473,7 @@ def revoke_session():
     uid = session.get('uid') or 1
     sid = (request.form.get('session_id', '') or '').strip()
     if not sid:
-        return yf.returnData(False, '参数错误')
+        return yf.returnData(False, 'common.param_error')
     # 只能下线自己的会话（先从服务端副本确认归属，防越权操作他人会话）
     row = panel_session.get(sid)
     if not row or int(row.get('uid') or 0) != int(uid):

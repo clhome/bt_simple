@@ -731,6 +731,14 @@ def makePhpIni(version):
             'upload_max_filesize': '50M',
             'date.timezone': 'PRC',
             'short_open_tag': 'On',
+            # cgi.fix_pathinfo 默认值保留 1（P2-16 复评结论，勿随手改 0）：
+            # 站点 vhost（web/misc/nginx/tpl/nginx.conf）引用的
+            # conf/enable-php-<NN>.conf 里，`location ~ [^/]\.php(/|$)` 首行
+            # 就是 `try_files $uri =404` —— 不存在的 .php 路径在 nginx 层直接
+            # 404，FPM 根本收不到「不存在的 SCRIPT_FILENAME」，于是
+            # fix_pathinfo 的「沿路径向上回退找已存在文件」永远不触发
+            # （那正是「上传图片马，用 .jpg/x.php 当脚本执行」的利用前提）。
+            # 另：pathinfo.conf 的 `if` 拆分只在 $uri 真存在时才生效。
             'cgi.fix_pathinfo': '1',
             'max_execution_time': '300',
             'display_errors': 'Off',
@@ -767,6 +775,119 @@ def makePhpIni(version):
             yf.writeFile(dst_ini, content)
 
 
+# ---------------------------------------------------------------------------
+# P2-13：session / upload 共享临时目录的权限加固
+# ---------------------------------------------------------------------------
+# 背景：旧实现 `chown -R www:www` 之后紧跟 `chmod 0777` → 这两个目录是**本机所有本地
+# 用户可读**的：`/www/server/php/tmp/session` 里躺着所有站点的 `sess_<id>` 文件，
+# 任意本地低权用户 `cat` 一下就能拿到别人的会话 ID = 会话劫持（拿后台登录态）。
+#
+# 新权限 1730 = sticky(1) + owner rwx(7) + group -wx(3) + others ---(0)：
+#   * owner(www)：读写+进入（PHP-FPM 以 www 运行，创建/读写 session 文件正常）；
+#   * group(www)：**w+x 但没有 r** —— 同组可创建文件、可按已知文件名直接访问，
+#     但 `ls` 不出目录内容（拿不到别人的 sess_ 文件名）；
+#   * others：完全无权限（本地任意用户不再是「能读」而是 EACCES）；
+#   * sticky：组内也不能删除/改名别人创建的文件（等价 /tmp 的语义）。
+# 注意：`同站点多请求共享 session` 完全不受影响 —— 目录没变、路径没变、
+# save_path 没变，只是权限位收紧。
+#: 共享目录目标权限（字符串形态给 chmod argv 用）。
+SHARED_PHP_DIR_MODE = '1730'
+#: 同一个权限的整型掩码（供权限回读自检与用例断言，与上面必须一致）。
+SHARED_PHP_DIR_MODE_BITS = 0o1730
+
+
+def _phpSharedDirOwnerFixNeeded():
+    """是否需要做 POSIX 属主/权限校准（苹果 / FreeBSD / Windows 不做）。
+
+    口径沿用旧实现（苹果与 FreeBSD 不做 chown），并显式排除 Windows：
+    那里没有 `chown`，`chmod 1730` 也没有 sticky 语义，真跑只会报错刷日志。
+    """
+    if os.name != 'posix':
+        return False
+    try:
+        if yf.isAppleSystem():
+            return False
+        return not str(yf.getOs()).startswith('freebsd')
+    except Exception as _e:
+        _log.debug('[php] 判断是否需要校准共享目录属主失败: %s', _e)
+        return False
+
+
+def _chownSharedPhpDirs(session_path, upload_path, runner=None):
+    """`chown -R www:www <session> <upload>`（argv 列表 + shell=False，回真实 rc）。
+
+    `runner` 仅给用例注入（捕获 argv，不真跑）；生产路径的首参必须是**字面量列表**——
+    棘轮的 `bare_variable` 规则不接受裸变量首参（P2-12 口径）。
+    """
+    if runner is not None:
+        return runner(['chown', '-R', 'www:www', session_path, upload_path])
+    return yf.execShellRc(['chown', '-R', 'www:www', session_path, upload_path], shell=False)
+
+
+def _chmodSharedPhpDirs(session_path, upload_path, runner=None):
+    """`chmod 1730 <session> <upload>`（argv 列表 + shell=False，回真实 rc）。"""
+    if runner is not None:
+        return runner(['chmod', SHARED_PHP_DIR_MODE, session_path, upload_path])
+    return yf.execShellRc(['chmod', SHARED_PHP_DIR_MODE, session_path, upload_path], shell=False)
+
+
+def _hardenSharedPhpDirs(session_path, upload_path, dry_run_runner=None):
+    """把 PHP 的 session / upload 共享目录校准为安全形态（**幂等，含存量修复**）。
+
+    参数
+    ----
+    session_path, upload_path : 要校准的两个目录（真实路径；由调用方拼好）
+    dry_run_runner : 可选替身 `runner(argv) -> (rc, out, err)`。用例注入后只捕获 argv，
+                     不真跑 chown/chmod（Windows 上没有这两个语义）。
+
+    返回 `(ok, logs)`：`logs` 是中文结论，**成功与失败都必须有一条**——旧实现在这里
+    完全静默（权限没改成、chown 失败都没人知道），本项要求不许静默。
+
+    为什么必须「幂等」而不是「新建时设一次」：现场绝大多数机器是旧版本装出来的，
+    目录**早就存在**且是 0777。只在新建分支里 chmod = 存量永远不修。所以这里对
+    「已存在」的目录同样执行 chown + chmod（见用例 test_existing_0777_dir_is_fixed）。
+
+    已知边界（P2-13 判定为待评估项，不做「按站点隔离」，理由见
+    《文档/php-session-upload-目录权限与按站点隔离待评估.md》）：
+    session.save_path 目前是「每版本一个全局值」，目录按站点拆分需要每站点独立
+    FPM pool / 独立 UID，会改变 session 可见范围与磁盘布局，属产品决策范围。
+    """
+    logs = []
+    ok = True
+
+    # 1. 目录存在性：不存在就建；已存在（很可能是旧版本留下的 0777）**原地校准**
+    for _path in (session_path, upload_path):
+        if os.path.isdir(_path):
+            continue
+        if os.path.exists(_path):
+            logs.append('session/upload 目录权限校正失败：%s 已存在但不是目录，无法校准' % _path)
+            ok = False
+            continue
+        if not yf.makeDirs(_path):
+            logs.append('session/upload 目录权限校正失败：无法创建目录 %s' % _path)
+            ok = False
+    if not ok:
+        return ok, logs
+
+    # 2. 属主 www:www（保留旧行为；递归是为了顺带修好存量 session 文件的属主）
+    rc, out, err = _chownSharedPhpDirs(session_path, upload_path, dry_run_runner)
+    if rc != 0:
+        ok = False
+        logs.append('session/upload 目录属主校正失败（chown -R www:www rc=%s）：%s'
+                    % (rc, (err or out or '无输出').strip()))
+
+    # 3. 权限 1730 —— **无论目录是新是旧都覆盖写**（存量 0777 靠这一步被修回）
+    rc, out, err = _chmodSharedPhpDirs(session_path, upload_path, dry_run_runner)
+    if rc != 0:
+        ok = False
+        logs.append('session/upload 目录权限校正失败（chmod %s rc=%s）：%s'
+                    % (SHARED_PHP_DIR_MODE, rc, (err or out or '无输出').strip()))
+    else:
+        logs.append('session/upload 目录权限已校正为 %s（sticky：组内不可列出目录、'
+                    '不可删除他人文件；others 无权限）' % SHARED_PHP_DIR_MODE)
+    return ok, logs
+
+
 def initReplace(version, force_refresh_service=False):
     if not isInstalled(version):
         return ''
@@ -796,17 +917,22 @@ def initReplace(version, force_refresh_service=False):
     phpFpmPoolReplace(version, 'backup')
     phpFpmReplace(version)
 
+    # P2-13：session / upload 共享临时目录统一走 _hardenSharedPhpDirs（1730 + www:www，
+    # 幂等，存量 0777 目录也会被修回）——安装/升级路径与自愈路径必须同一口径，
+    # 否则「装好是 1730、重装一次又变回 777」这类不一致还会回来。
     session_path = getServerDir() + '/tmp/session'
-    if not os.path.exists(session_path):
-        yf.makeDirs(session_path)
-    if not yf.isAppleSystem() and not yf.getOs().startswith('freebsd'):
-        yf.execShell('chown -R www:www ' + yf.shlexQuote(session_path))
-
     upload_path = getServerDir() + '/tmp/upload'
-    if not os.path.exists(upload_path):
-        yf.makeDirs(upload_path)
-    if not yf.isAppleSystem() and not yf.getOs().startswith('freebsd'):
-        yf.execShell('chown -R www:www ' + yf.shlexQuote(upload_path))
+    if _phpSharedDirOwnerFixNeeded():
+        _dir_ok, _dir_logs = _hardenSharedPhpDirs(session_path, upload_path)
+    else:
+        # 苹果 / FreeBSD / Windows：只保证目录存在（不做 chown/chmod），与旧口径一致
+        for _path in (session_path, upload_path):
+            if not os.path.exists(_path):
+                yf.makeDirs(_path)
+        _dir_ok, _dir_logs = True, ['共享 Session 与 Upload 目录已确认存在（本系统跳过属主/权限校准）。']
+    if not _dir_ok:
+        # 不静默：权限没改成会在现场表现为「站点随机掉登录 / 传文件失败」
+        yf.writeLog('插件管理[PHP]', '共享目录校准失败: ' + '；'.join(_dir_logs))
 
     # 运行临时与日志目录健全
     var_run = getVersionDir(version) + '/var/run'
@@ -1127,15 +1253,23 @@ def upgradeSelfHealing(version=''):
     try:
         session_path = getServerDir() + '/tmp/session'
         upload_path = getServerDir() + '/tmp/upload'
-        if not os.path.exists(session_path):
-            yf.makeDirs(session_path)
-        if not os.path.exists(upload_path):
-            yf.makeDirs(upload_path)
-        if not yf.isAppleSystem() and not current_os.startswith('freebsd'):
+        if not _phpSharedDirOwnerFixNeeded():
+            # 苹果 / FreeBSD / Windows：只保证目录存在，不做 chown/chmod（与旧口径一致）
+            for _path in (session_path, upload_path):
+                if not os.path.exists(_path):
+                    yf.makeDirs(_path)
+            logs.append("公共 Session 与 Upload 临时目录已确认存在（本系统跳过属主/权限校准）。")
+        else:
+            # `id www` 是**字面量管道**（含 &>/dev/null、|| 与子 shell 括号），无法 argv 化；
+            # 串里没有任何变量插值、也没有外部输入，shell=True 是安全的定式（P2-12 允许）。
             yf.execShell('id www &>/dev/null || (groupadd www 2>/dev/null && useradd -g www -s /sbin/nologin www 2>/dev/null)')
-            yf.execShell(f'chown -R www:www {session_path} {upload_path}')
-            yf.execShell(f'chmod 777 {session_path} {upload_path}')
-        logs.append("公共 Session 与 Upload 临时目录及 www 权限已校准。")
+            # P2-13：chown/chmod 改走 argv 列表 + shell=False，并用 rc 判成败；
+            # 权限 1730（sticky + owner rwx + group wx + others 无）取代旧的 777，
+            # 且**已存在的 0777 目录同样会被修回 1730**（幂等存量修复，不只管新建）。
+            _dir_ok, _dir_logs = _hardenSharedPhpDirs(session_path, upload_path)
+            logs.extend(_dir_logs)
+            if not _dir_ok:
+                logs.append("公共目录校准失败，详见上方失败原因；PHP 会继续自愈，但请人工处理该目录权限。")
     except Exception as ex:
         logs.append(f"公共目录校准异常: {ex}")
 
@@ -1713,7 +1847,7 @@ def getPhpConf(version):
         {'name': 'default_socket_timeout', 'type': 2, 'ps': 'Socket超时时间'},
         {'name': 'error_reporting', 'type': 3, 'ps': '错误级别'},
         {'name': 'display_errors', 'type': 1, 'ps': '是否输出详细错误信息'},
-        {'name': 'cgi.fix_pathinfo', 'type': 0, 'ps': '是否开启pathinfo'},
+        {'name': 'cgi.fix_pathinfo', 'type': 0, 'ps': '是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）'},
         {'name': 'date.timezone', 'type': 3, 'ps': '时区'}
     ]
     defaults_map = {
@@ -1730,6 +1864,8 @@ def getPhpConf(version):
         'default_socket_timeout': '60',
         'error_reporting': 'E_ALL & ~E_NOTICE',
         'display_errors': 'Off',
+        # cgi.fix_pathinfo 默认 1：安全性依赖 nginx 模板的 try_files 防护，
+        # 详见 makePhpIni() 内同名注释（php/php-apt/php-yum 三渠道一致）。
         'cgi.fix_pathinfo': '1',
         'date.timezone': 'PRC'
     }
@@ -1811,6 +1947,8 @@ def resetPhpConf(version):
         'default_socket_timeout': '60',
         'error_reporting': 'E_ALL & ~E_NOTICE',
         'display_errors': 'Off',
+        # cgi.fix_pathinfo 默认 1：安全性依赖 nginx 模板的 try_files 防护，
+        # 详见 makePhpIni() 内同名注释（php/php-apt/php-yum 三渠道一致）。
         'cgi.fix_pathinfo': '1',
         'date.timezone': 'PRC'
     }

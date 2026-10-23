@@ -364,6 +364,20 @@ def _run_get_db_list(plugin, args):
         'pSqliteDb': (lambda *a: _FakeDb(calls)),
         'getDbBackupListFunc': (lambda *a: []),
         'getDbPort': (lambda: '3306'),
+        # P2-4 起 getDbList() 还会调一批模块级辅助函数（解密口令 / 读配置 / 取目录）。
+        # 隔离执行只带目标 def，故按「够用即止」给替身：本用例只关心分页参数与 LIMIT，
+        # 不关心口令与配置内容。新增辅助函数时补一行即可（缺了会以 NameError 立刻暴露）。
+        '_decUserRows': (lambda rows: rows),
+        '_decUserPwd': (lambda v: v),
+        '_cnfValue': (lambda *a, **k: ''),
+        '_readCnf': (lambda *a, **k: {}),
+        '_storedRootPwd': (lambda *a, **k: ''),
+        'getRootPwd': (lambda *a, **k: ''),
+        'getConf': (lambda *a, **k: {}),
+        'getDbBackupDir': (lambda *a, **k: ''),
+        'getPluginDir': (lambda *a, **k: ''),
+        'getPluginName': (lambda *a, **k: 'mysql'),
+        'getServerDir': (lambda *a, **k: ''),
     }
     _exec_fn(plugin, '_parsePageArgs', ns)
     fn = _exec_fn(plugin, 'getDbList', ns)

@@ -1035,7 +1035,9 @@
     "py_msg_15fa79": "La categoria specificata non esiste!",
     "py_msg_6d5524": "La categoria è stata eliminata!",
     "py_msg_2b7ff5": "Il rinnovo non è andato a buon fine. Per ulteriori dettagli, consulta il log!",
-    "py_msg_a36237": "Rinnovo del certificato riuscito!"
+    "py_msg_a36237": "Rinnovo del certificato riuscito!",
+    "cert_issue_retry_limit_help": "Emissione non riuscita: hai raggiunto il numero massimo di richieste di certificato non riuscite!\n1. Verifica che il dominio sia associato al sito corrispondente\n2. Verifica che il dominio risolva correttamente su questo server o che la risoluzione non sia ancora del tutto attiva\n3. Se il tuo sito utilizza un reverse proxy o una CDN, disattivalo prima\n4. Se il tuo sito ha un reindirizzamento 301 configurato, disattivalo prima\n5. Se tutti i controlli sopra sono corretti, prova a cambiare provider DNS",
+    "cert_issue_retry_limit_help_short": "Emissione non riuscita: hai raggiunto il numero massimo di richieste di certificato non riuscite!\n1. Verifica che il dominio risolva correttamente su questo server o che la risoluzione non sia ancora del tutto attiva\n2. Se tutti i controlli sopra sono corretti, prova a cambiare provider DNS"
   },
   "database": {
     "H1": "Dashboard",

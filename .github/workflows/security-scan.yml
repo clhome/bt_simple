@@ -13,10 +13,16 @@ name: 供应链安全扫描
 #
 # 首次运行若变红，那是扫描器在干活：按报告 triage 后再合并，不要直接把 job 改成 continue-on-error。
 #
-# 触发范围必须覆盖被扫描的目录：bandit 扫的是 `web scripts panel_task.py panel_tools.py`，
-# 所以 `paths` 里也得有 `scripts/**.py`（2026-10-13 补）。此前缺这一条，导致
+# 触发范围必须覆盖被扫描的目录：bandit 扫的是 `web scripts panel_task.py panel_tools.py`
+# 加上待审核插件目录（P2-11），所以 `paths` 里也得有 `scripts/**.py`（2026-10-13 补）。此前缺这一条，导致
 # `scripts/tools/build_edition.py` 的 B202(HIGH) 在多次提交里都没被扫到，
 # 直到某次同时改了 `web/**` 才暴雷 —— 扫描范围与触发范围不一致 = 漏扫。
+#
+# 待审核插件目录（P2-11）：`文档/待审核插件/` 的 34 个插件当前不可达（插件列表把
+# `待审核` 显式排除），但**转正 = 搬进 `plugins/` 直接进生产**。它们过去既不在 bandit 的
+# `-r` 目录里、也不在 `paths` 里 —— 等于「转正那一刻才第一次被扫」。现在两处都补上，
+# 与正式插件同一套扫描；代码质量棘轮那侧的对应基线见 `scripts/code_quality_baseline.json`
+# 的 `pending_*` 键（只减不增）。
 
 on:
   push:
@@ -26,6 +32,7 @@ on:
       - 'web/**.py'
       - 'scripts/**.py'
       - 'plugins/**/*.py'
+      - '文档/待审核插件/**'
       - 'panel_task.py'
       - 'panel_tools.py'
       - '.github/workflows/security-scan.yml'
@@ -35,6 +42,7 @@ on:
       - 'web/**.py'
       - 'scripts/**.py'
       - 'plugins/**/*.py'
+      - '文档/待审核插件/**'
       - 'panel_task.py'
       - 'panel_tools.py'
       - '.github/workflows/security-scan.yml'
@@ -83,14 +91,14 @@ jobs:
       - name: bandit（HIGH 阻断）
         run: |
           set -e
-          bandit -r web scripts panel_task.py panel_tools.py \
+          bandit -r web scripts panel_task.py panel_tools.py 文档/待审核插件 \
             -x testsuite,test,node_modules,.git \
             -lll \
             -f txt
       - name: bandit（全量报告，不阻断）
         if: always()
         run: |
-          bandit -r web scripts panel_task.py panel_tools.py \
+          bandit -r web scripts panel_task.py panel_tools.py 文档/待审核插件 \
             -x testsuite,test,node_modules,.git \
             -f json -o bandit-report.json || true
       - uses: actions/upload-artifact@v4

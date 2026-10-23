@@ -292,9 +292,11 @@ class TestRepoHygiene(unittest.TestCase):
         只扫 git 会提交的目录（plugins/ web/ scripts/），不扫 test/、参考/、tmp/
         这些被 .gitignore 忽略的本地草稿目录。
 
-        **为什么 `.bak` 不在检查范围内**：本仓库有意保留了 35 份 `.bak` 快照作为
-        i18n 改造前的回滚依据 —— 33 份 `plugins/<name>/js/*.i18n.bak`（提交 `e5cd1211d`）
-        加 2 份 `web/static/app/{index,site}.js.bak`（提交 `a04869054`）。
+        **为什么 `.bak` 不在检查范围内**：本仓库仍保留 2 份 `.bak` 快照作为 hot 回滚依据
+        —— `web/static/app/{index,site}.js.bak`（提交 `a04869054`）。历史上的 33 份
+        `plugins/<name>/js/*.i18n.bak`（提交 `e5cd1211d`）已在 P2-14 清理归零（它们在
+        `plugins/` 里随包下发，而 i18n 改造的回滚依据 git 历史里已有），并已纳入
+        `verify_i18n.py` 与 `test_i18n_web_backend_scope.py` 的挤子不得回潮。
         把 `.bak` 当作垃圾会直接产生假阳性，所以这里只盯真正的「事故残留」：
         合并/补丁失败留下的 `.orig` / `.rej`，编辑器残留的 `.swp` / `~`，以及 OS 垃圾文件。
         """

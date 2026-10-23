@@ -2241,14 +2241,16 @@ def addAreaLimit():
 
 def cleanDropIp():
     url = "http://127.0.0.1/clean_waf_drop_ip"
-    data = yf.httpGet(url)
+    # P2-6：127.0.0.1 的 WAF 内部接口（低敏）→ purpose=low
+    data = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
     return yf.returnJson(True, 'ok!', data)
 
 
 def getDropIpList():
     url = "http://127.0.0.1/get_waf_drop_ip"
     try:
-        data = yf.httpGet(url)
+        # P2-6：127.0.0.1 的 WAF 内部接口（低敏）→ purpose=low
+        data = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
         res = json.loads(data)
         if res['status'] == 0:
             return yf.returnJson(True, 'ok!', res['msg'])
@@ -2434,7 +2436,8 @@ def removeDropIp():
 
     url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + urllib.parse.quote(ip, safe='')
     try:
-        res_data = yf.httpGet(url)
+        # P2-6：127.0.0.1 的 WAF 内部接口（低敏）→ purpose=low
+        res_data = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
         res = json.loads(res_data)
         if res['status'] != 0:
             return yf.returnJson(False, res.get('msg', '释放失败'))
@@ -2817,7 +2820,8 @@ def testRun():
     else:
         default_site = 'ALL'
     url = "http://" + default_site + '/?t=../etc/passwd'
-    returnData = yf.httpGet(url, 10)
+    # P2-6：本机站点自测（低敏）→ purpose=low
+    returnData = yf.httpGet(url, 10, purpose=yf.PURPOSE_LOW)
 
     # url = "https://" + default_site + '/?t=../etc/passwd'
     # returnData = yf.httpGet(url, 3)

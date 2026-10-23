@@ -8,6 +8,7 @@ import re
 import json
 
 import core.yf as yf
+import core.db_pwd as db_pwd
 import logging
 
 _log = logging.getLogger('yf.data_query.mysql')
@@ -625,7 +626,9 @@ class nosqlMySQL():
         # 尝试读取数据库密码（多源兜底）
         # 1. 尝试从 {sid}/mysql.db 中读取
         try:
-            mysql_pass = self.sqliteDb(target_sid, 'config').where('id=?', (1,)).getField('mysql_root')
+            # P2-4：mysql_root 已改为密文落库，解不开就当作没读到（fail-closed，不拿密文连库）
+            mysql_pass = db_pwd.decrypt_pwd_any(
+                self.sqliteDb(target_sid, 'config').where('id=?', (1,)).getField('mysql_root'))
             if mysql_pass:
                 result['password'] = mysql_pass
         except Exception as _e:
@@ -634,7 +637,8 @@ class nosqlMySQL():
         # 2. 尝试从 serverDir/mysql.db 中读取
         if not result['password']:
             try:
-                mysql_pass = yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
+                mysql_pass = db_pwd.decrypt_pwd_any(
+                    yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root'))
                 if mysql_pass:
                     result['password'] = mysql_pass
             except Exception as _e:

@@ -91,6 +91,7 @@
     "操作": "操作",
     "时区": "时区",
     "是否允许上传文件": "是否允许上传文件",
+    "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）": "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）",
     "是否开启pathinfo": "是否开启pathinfo",
     "是否输出详细错误信息": "是否输出详细错误信息",
     "最大活跃进程数量(max active processes)": "最大活跃进程数量(max active processes)",

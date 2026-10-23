@@ -244,6 +244,34 @@ def readSecretPwd(secrets_file):
 
 #: 接收模块路径禁入区：以 `read only = false` 把这些路径暴露成 rsync 共享，
 #: 等于把面板源码 / 系统配置 / 生产库开放为可写共享。
+#:
+#: 注意（2026-10-22 补）：禁入区必须**包含平台对应的系统目录**。历史上这里只写了
+#: POSIX 路径，于是 Windows 上 `invalidRecvPath()` 等同于全放行（`C:\Windows\System32`
+#: 这类目录会被允许当共享根）。两个平台的列表同时生效（各自只在对应平台命中）。
+_POSIX_DENY_DIRS = ('/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64', '/boot',
+                    '/dev', '/proc', '/sys', '/run', '/var/run', '/root')
+
+
+def _windowsDenyDirs():
+    """Windows 上必须禁的系统目录（环境变量缺失时退回常见默认路径）。
+
+    没有 `SystemRoot` 的非 Windows 环境返回空列表，不影响 POSIX 判定。
+    """
+    if os.name != 'nt':
+        return []
+    out = []
+    # 注意：**不能**把 `USERPROFILE` 列入禁入区 —— 面板在开发/测试场景下会把数据放在
+    # 用户目录（`%TEMP%` 也在其下），一律禁入会把合法共享路径也判危险。
+    for var, fallback in (('SystemRoot', r'C:\Windows'),
+                          ('ProgramFiles', r'C:\Program Files'),
+                          ('ProgramFiles(x86)', r'C:\Program Files (x86)'),
+                          ('ProgramData', r'C:\ProgramData')):
+        val = (os.environ.get(var) or fallback or '').strip()
+        if val:
+            out.append(val)
+    return out
+
+
 def invalidRecvPath(path):
     try:
         real = os.path.realpath(path)
@@ -252,10 +280,20 @@ def invalidRecvPath(path):
     panel_dir = os.path.realpath(yf.getPanelDir())
     if real == panel_dir or real.startswith(panel_dir + os.sep):
         return True
-    for p in ('/etc', '/usr', '/bin', '/sbin', '/lib', '/lib64', '/boot', '/dev',
-              '/proc', '/sys', '/run', '/var/run', '/root'):
-        if real == p or real.startswith(p + os.sep):
+    deny = list(_POSIX_DENY_DIRS) + _windowsDenyDirs()
+    for p in deny:
+        try:
+            p_real = os.path.realpath(p)
+        except Exception:
+            p_real = p
+        if not p_real:
+            continue
+        if real == p_real or real.startswith(p_real + os.sep):
             return True
+    # 盘符根目录（如 `C:\`）同样是危险共享根：等价于 POSIX 的 `/`
+    drive, tail = os.path.splitdrive(real)
+    if drive and tail in ('\\', '/'):
+        return True
     return False
 
 

@@ -623,12 +623,24 @@ def restartPanelService_step():
 # 但日常运行中面板库本身没有任何回滚点：误删、写坏、磁盘故障都无处可退。
 #
 # 为什么必须用 SQLite 在线备份 API 而不是文件复制（cp / shutil.copyfile）：
-# 面板库跑在 WAL 模式下（web/core/db.py 的 `PRAGMA journal_mode=WAL`），已提交但尚未
-# checkpoint 的事务**只存在于 panel.db-wal 里**。实测：刚建表并提交的小库，主文件里连表
-# 都没有（内容全在 -wal）。直接复制主库文件得到的是「缺最近事务」的旧快照，恢复后表现为
-# 数据静默丢失；把 -wal/-shm 一起拷又会与主库版本不匹配而损坏。
-# `sqlite3.Connection.backup()` 走 SQLite 自己的页级在线备份协议，不阻塞业务写入，
-# 拿到的必然是一致快照（含 WAL 中已提交的内容）。
+# 面板库**当前跑在 SQLite 默认的 rollback journal 上**（`PRAGMA journal_mode` 的默认值
+# `delete`）：`web/core/resources.py::get_sqlite_pragmas()` 只下发 synchronous /
+# cache_size / busy_timeout，**不设** `journal_mode`，也不开 mmap。历史上曾显式用过
+# WAL，已因 `panel.db-shm` 的共享内存被重置/截断时持映射进程会 **SIGBUS 静默死亡**
+# 而回退（详见该函数 docstring；`web/core/db.py::_applyPragmas()` 与
+# `web/core/migrations/runner.py::_pragmas()` 的兜底分支也是同一口径）。
+# 即使当下没有 `-wal` 文件，**也不能**直接复制库文件：
+#   * rollback journal 期间主库是被**就地改写**的（先把旧页写进 -journal，再改主库），
+#     复制过程若与写事务重叠，拷到的是「写到一半」的页 —— 撕裂快照，恢复后表现为
+#     随机表损坏或数据错位；
+#   * 而且 WAL 是**写进库文件头**的持久模式：只要有一次连接把面板库切到 WAL（用户用
+#     `sqlite3` 命令行、其它工具、或以后的代码改动），后续所有连接都会继续跑在 WAL 下，
+#     已提交但尚未 checkpoint 的事务**只存在于 panel.db-wal 里**。实测：刚建表并提交的
+#     小库，主文件里连表都没有（内容全在 -wal）。直接复制主库文件得到的是「缺最近事务」
+#     的旧快照，恢复后表现为数据静默丢失；把 -wal/-shm 一起拷又会与主库版本不匹配而损坏。
+# `sqlite3.Connection.backup()` 走 SQLite 自己的页级在线备份协议（读一致快照、
+# journal / WAL 两种模式都按同一套逻辑处理），不阻塞业务写入，拿到的必然是一致快照 ——
+# 这也是不管将来是否重新启用 WAL，备份路径都不用改的原因。
 #
 # 备份目录选 `yf.getBackupDir()/panel_db`（默认 /www/backup/panel_db）：
 #   * 与站点备份 `<backup>/site`、数据库备份 `<backup>/database` 同源同盘，沿用用户在面板里

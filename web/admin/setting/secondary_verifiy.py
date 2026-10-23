@@ -52,7 +52,14 @@ def get_auth_secret():
         secret = yf.deDoubleCrypt(tag, two_step_verification['secret'])
     else:
         secret = pyotp.random_base32()
-        crypt_data = yf.enDoubleCrypt(tag, secret)
+        # 缺 cryptography 时 enDoubleCrypt 抛 DataCryptUnavailable（fail-closed）：
+        # 密钥绝不能以明文落库（二步验证密钥等同于账号凭据）。
+        try:
+            crypt_data = yf.enDoubleCrypt(tag, secret)
+        except yf.DataCryptUnavailable as _e:
+            yf.writeFileLog('[setting] 二步验证密钥保存被拒绝（加密不可用）: %s' % _e)
+            return yf.returnData(
+                False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
         two_step_verification['secret'] = crypt_data
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
         # 重置密钥 = 旧验证器全部失效，强制其它设备重新登录

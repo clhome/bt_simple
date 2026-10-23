@@ -62,6 +62,9 @@ HEAVY_WORKFLOWS = {
 }
 
 # i18n-check.yml 的 paths（基线，逐字抄写；顺序为归一化后的排序结果）
+# `web/**/*.py`：P2-14 —— web 后端（returnData/returnJson/returnMsg）的中文消息
+# 已进入 `verify_i18n.py` 的 backend-msg-key 检查（web 段走棘轮基线），触发范围
+# 必须跟上。这是**收紧**（多一条触发路径 = 更多提交会跑这个门禁），不是放宽。
 _I18N_PATHS = [
     '.github/workflows/i18n-check.yml',
     'plugins/**/*.js',
@@ -69,6 +72,7 @@ _I18N_PATHS = [
     'plugins/**/index.py',
     'plugins/**/lang/**',
     'scripts/verify_i18n.py',
+    'web/**/*.py',
     'web/static/app/i18n.js',
     'web/static/app/public.js',
     'web/static/language/**',
@@ -77,6 +81,9 @@ _I18N_PATHS = [
 # security-scan.yml 的 paths（基线，逐字抄写；顺序为归一化后的排序结果）
 # `scripts/**.py`：bandit 本来就扫 scripts，触发范围必须跟上，否则漏扫
 # （2026-10-13：`scripts/tools/build_edition.py` 的 B202 HIGH 就是这么躲过好几次提交的）。
+# `文档/待审核插件/**`：P2-11 新增 —— 待审核插件转正就是搬进 `plugins/` 直接进生产，
+# 所以它的改动也必须触发扫描（bandit 的 `-r` 目录也同步加了这个目录）；
+# 代码质量棘轮那侧的对应基线是 `scripts/code_quality_baseline.json` 的 `pending_*` 键。
 _SCAN_PATHS = [
     '.github/workflows/security-scan.yml',
     'panel_task.py',
@@ -85,6 +92,7 @@ _SCAN_PATHS = [
     'requirements*.txt',
     'scripts/**.py',
     'web/**.py',
+    '文档/待审核插件/**',
 ]
 
 # 不许动触发条件的三个 workflow（基线 = 2026-10-12 改动前的实际触发，逐字抄写）。

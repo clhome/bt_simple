@@ -1112,20 +1112,79 @@ def __release_port(port):
         return "Release failed {}".format(e)
 
 
+#: 端口串的两种合法形态（见 `_parseDockerPort`）：
+#:   纯端口 `80` / 地址:端口 `0.0.0.0:80`
+#: 端口一律 ASCII 数字（`[0-9]` 而非 `\d`：后者会匹配全角/其他 Unicode 数字）。
+_DOCKER_PORT_RE = re.compile(r'^[0-9]{1,5}$')
+_DOCKER_IPV4_RE = re.compile(r'^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$')
+#: IPv6 必须写成方括号形态（`[::1]`）—— 不戴方括号的 `::1:80` 与「多余的冒号」
+#: 在文本上无法区分，只能一律拒绝。这里只做字符集与长度约束（不引 ipaddress：
+#: 地址段仅用于日志可读性，不参与 connect）。
+_DOCKER_IPV6_BRACKET_RE = re.compile(r'^\[[0-9A-Fa-f:.]{2,45}\]$')
+#: 格式错（形态就不对）与范围错（形态对但超界）分开报，用户能直接看出该改哪里。
+DOCKER_PORT_FORMAT_ERR = '端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]'
+DOCKER_PORT_RANGE_ERR = '端口设置值范围无效，范围 [1-65535]'
+
+
+def _isDockerHost(host):
+    """地址段是否合法：`*`、IPv4（四段 0-255）或 `[IPv6]`。"""
+    if host == '*':
+        return True
+    if _DOCKER_IPV6_BRACKET_RE.match(host):
+        return True
+    m = _DOCKER_IPV4_RE.match(host)
+    if not m:
+        return False
+    return all(0 <= int(part) <= 255 for part in m.groups())
+
+
+def _parseDockerPort(raw):
+    """解析前端传来的端口串，返回 `(ok, 端口字符串)`；不合法时返回 `(False, 中文原因)`。
+
+    纯函数（无 IO / 无全局状态），供 `dockerPortCheck()` 与用例共用。
+
+    历史缺陷：旧实现 `if ':' in port: port = port.rsplit(':', 1)[1]` ——
+      * `1:2:3` 被取最后一段当成端口 `3` 而**通过**（多出来的段完全不看）；
+      * 地址段根本没校验，`a:b:80`、`:80` 一样能过；
+      * `::1:80`（未加方括号的 IPv6）会被当成端口 `80` 而地址全丢。
+    现在显式分三种形态判定：纯端口、地址:端口（**恰一个冒号**）、`[IPv6]:端口`。
+    """
+    text = str(raw if raw is not None else '').strip()
+    if text.startswith('['):
+        # `[IPv6]:端口` —— 方括号内可以含多个冒号，方括号后必须紧跟一个冒号
+        m = re.match(r'^(\[[0-9A-Fa-f:.]{2,45}\]):([0-9]{1,5})$', text)
+        if not m:
+            return False, DOCKER_PORT_FORMAT_ERR
+        host, port = m.group(1), m.group(2)
+    elif text.count(':') == 1:
+        host, port = [part.strip() for part in text.split(':', 1)]
+        if not host or not _isDockerHost(host):
+            return False, DOCKER_PORT_FORMAT_ERR
+    elif text.count(':') > 1:
+        # `1:2:3` / `a:b:80` / `::1:80`：冒号多于一个且不是方括号形态，明确拒绝
+        return False, DOCKER_PORT_FORMAT_ERR
+    else:
+        port = text
+
+    if not _DOCKER_PORT_RE.match(port):
+        return False, DOCKER_PORT_RANGE_ERR
+    if not (1 <= int(port) <= 65535):
+        return False, DOCKER_PORT_RANGE_ERR
+    return True, port
+
+
 def dockerPortCheck():
     args = getArgs()
     data = checkArgs(args, ['port'])
     if not data[0]:
         return data[1]
 
-    port = str(args['port']).strip()
     # 前端传的是「地址:端口」（地址为 `*` 表示 0.0.0.0）；旧实现把整串当端口号
     # 丢给 socket.connect → getaddrinfo 直接报错 → 恒回「未被占用」，
     # 冲突检测形同虚设（默认的 0.0.0.0 走 `*` 分支，100% 命中这个缺陷）。
-    if ':' in port:
-        port = port.rsplit(':', 1)[1].strip()
-    if not re.match(r'^[0-9]{1,5}$', port) or not (1 <= int(port) <= 65535):
-        return yf.returnJson(False, '端口设置值范围无效，范围 [1-65535]')
+    ok, port = _parseDockerPort(args['port'])
+    if not ok:
+        return yf.returnJson(False, port)
 
     if IsPortExists(port):
         return yf.returnJson(True, 'ok')

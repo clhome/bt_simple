@@ -1516,7 +1516,9 @@ def unban_active_ip():
     op_waf_synced = False
     if not silent and op_waf_link_enabled():
         try:
-            res = yf.httpGet('http://127.0.0.1/remove_waf_drop_ip?ip={}&silent=1'.format(ip), timeout=5)
+            # P2-6：127.0.0.1 的 WAF 内部接口（低敏）→ purpose=low
+            res = yf.httpGet('http://127.0.0.1/remove_waf_drop_ip?ip={}&silent=1'.format(ip),
+                             timeout=5, purpose=yf.PURPOSE_LOW)
             if res:
                 op_waf_synced = True
         except Exception:

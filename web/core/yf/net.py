@@ -149,6 +149,148 @@ def setHostPort(port):
 
 # ------------------------------   network start  -----------------------------
 
+# ---------------------------------------------------------------------------
+# 出站 HTTP 用途分级（P2-6）
+#
+# 背景：本模块的 HTTP 客户端原先在 TLS 校验失败时会**静默降级为不校验证书**，
+# 且不打任何日志。凭据类请求（bot token）与代码类下载（安装包/脚本/发布物）
+# 一旦被中间人诱导降级就是直接失守；而低敏探测（本机接口、负载状态）在缺失 CA
+# 束的老系统上又确实需要降级才能工作。因此按「这次请求承载什么」分级，降级许
+# 可由分级决定，并且**任何降级都必须留痕**（不许静默）：
+#
+#   PURPOSE_LOW        低敏：查 IP 归属地、探测版本号/负载状态、本机 127.0.0.1
+#                      接口、通知类。允许降级，但每次降级都写日志。
+#   PURPOSE_CODE       代码类：下载可执行内容/安装包/脚本/发布物。禁止降级，
+#                      校验失败即放弃并写明确原因。
+#   PURPOSE_CREDENTIAL 凭据类：携带或换取凭据（token、口令、密钥、认证请求）。
+#                      禁止降级，同上。
+#
+# 默认值是 PURPOSE_LOW：既有调用点不传也保持原行为（签名向后兼容）。
+# 未知分级按「禁止降级」处理（fail-closed），避免分级名拼错反而静默放宽。
+#
+# 分级表（调用点 → purpose）。改调用点时请同步维护这张表：
+#   low        plugins/apache/index.py runInfo（本机 server-status 负载状态）
+#   low        plugins/openresty/index.py runInfo（本机 nginx_status）
+#   low        plugins/op_load_balance/index.py getHealthStatus（节点 upstream 状态）
+#   low        plugins/op_waf/index.py cleanDropIp / getDropIpList / removeDropIp
+#              （127.0.0.1 的 WAF 内部接口）
+#   low        plugins/op_waf/index.py testRun（本机站点自测）
+#   low        plugins/fail2ban/index.py 解封联动（127.0.0.1 的 WAF 接口）
+#   credential web/core/yf/panel.py tgbotNotifyHttpPost（path 里带 bot token）
+#   code       暂无调用点：安装件下载走 panel_task.py 与 P1-3 的 shell 下载面，
+#              常量与门禁已就绪供后续复用
+# 转发层（不吃分级、原样透传）：web/core/yf/__init__.py 的 httpGet / httpPost。
+# ---------------------------------------------------------------------------
+PURPOSE_LOW = 'low'
+PURPOSE_CODE = 'code'
+PURPOSE_CREDENTIAL = 'credential'
+
+#: 允许在 TLS 校验失败后降级为「不校验证书」的用途（**只有**低敏）。
+_PURPOSE_DOWNGRADE_ALLOWED = {
+    PURPOSE_LOW: True,
+    PURPOSE_CODE: False,
+    PURPOSE_CREDENTIAL: False,
+}
+
+#: 日志脱敏用：整个 query string / netloc 里的 userinfo / telegram bot token。
+_RE_URL_QUERY = re.compile(r'\?[^\s\'")]*')
+_RE_URL_USERINFO = re.compile(r'//[^/\s@]+@')
+_RE_URL_TG_TOKEN = re.compile(r'/bot\d+:[A-Za-z0-9_-]+')
+
+
+def _maskUrl(url):
+    """脱敏 URL：只保留 ``scheme://host/path``。
+
+    去掉 userinfo（``user:pass@``）与整个 query string（``?token=...``）——这两处
+    最常夹带凭据；path 保留是为了日志还能定位到具体接口。telegram 的 bot token
+    藏在 path 里（``/bot<id>:<token>/sendMessage``），额外单独擦掉。
+    """
+    try:
+        if not isinstance(url, str):
+            url = str(url)
+        from urllib.parse import urlsplit
+        parts = urlsplit(url.strip())
+        try:
+            host = parts.hostname or ''
+            port = parts.port
+        except ValueError:
+            host, port = '', None
+        netloc = host
+        if port:
+            netloc = '%s:%s' % (host, port)
+        path = _RE_URL_TG_TOKEN.sub('/bot<已脱敏>', parts.path or '/')
+        if parts.scheme:
+            return '%s://%s%s' % (parts.scheme, netloc, path)
+        if netloc:
+            return '//%s%s' % (netloc, path)
+        return path
+    except Exception:
+        return '<url 脱敏失败>'
+
+
+def _errText(err):
+    """异常转一行文本（带类型名），用于日志里的「原因」。"""
+    try:
+        return '%s: %s' % (type(err).__name__, err)
+    except Exception:
+        return '未知异常'
+
+
+def _maskDetail(detail, url=None):
+    """擦掉细节文本里可能夹带的原始 URL / query string / userinfo。
+
+    urllib3 的异常（如 MaxRetryError）会把请求 URL 原样带进 message，直接写日志
+    等于把凭据抄进日志，所以这里先整体替换成脱敏 URL，再用正则兜底擦残留。
+    """
+    try:
+        text = detail if isinstance(detail, str) else str(detail)
+    except Exception:
+        return '<无法格式化>'
+    if isinstance(url, str) and url and url in text:
+        text = text.replace(url, _maskUrl(url))
+    text = _RE_URL_USERINFO.sub('//', text)
+    text = _RE_URL_QUERY.sub('?<已脱敏>', text)
+    return text
+
+
+def _httpPolicyLog(text):
+    """写一条分级相关日志（降级 / 拒绝降级）。
+
+    写日志失败绝不影响请求流程，也不许因此变成「静默」——退一步至少打 _log。
+    """
+    try:
+        writeFileLog('[yf.net] ' + text)
+    except Exception as e:
+        _log.warning('[yf.net] 写 HTTP 分级日志失败: %s | 原日志: %s', e, text)
+
+
+def _purposeAllowsDowngrade(purpose):
+    """该用途是否允许在 TLS 校验失败后降级为「不校验证书」。
+
+    未知用途 fail-closed（禁止降级）并留痕，避免分级名拼错反而放宽了校验。
+    """
+    if purpose is None:
+        # 显式传 None 视同 low（兼容「不知道分级」的老调用形态）
+        return True
+    if isinstance(purpose, str) and purpose in _PURPOSE_DOWNGRADE_ALLOWED:
+        return _PURPOSE_DOWNGRADE_ALLOWED[purpose]
+    _httpPolicyLog('未知 purpose=%r，按禁止降级处理（只认 %s / %s / %s）'
+                   % (purpose, PURPOSE_LOW, PURPOSE_CODE, PURPOSE_CREDENTIAL))
+    return False
+
+
+def _httpPolicyRefuse(method, url, purpose, detail=None):
+    """code / credential 禁止降级的统一收口：写明确原因并返回错误串。
+
+    返回错误串（而不是抛异常）与既有 `HttpGet` 的失败返回形态保持一致；错误里
+    只带脱敏后的 URL，避免凭据随返回值回流到前端。
+    """
+    reason = 'TLS 校验失败/请求失败' if detail is None else _maskDetail(_errText(detail), url)
+    _httpPolicyLog('禁止降级：purpose=%s 不允许改用不校验证书的通道（%s %s，原因：%s）'
+                   % (purpose, method, _maskUrl(url), reason))
+    return '请求失败（purpose=%s 禁止降级为不校验证书）: %s %s' % (purpose, method, _maskUrl(url))
+
+
 def _insecure_ssl_context():
     try:
         import ssl
@@ -157,15 +299,37 @@ def _insecure_ssl_context():
         return None
 
 
-def _pool_request(method, url, timeout, body=None, headers=None):
-    """先用「验证证书」的连接池请求；失败再降级到不校验证书的池。
+def _pool_request(method, url, timeout, body=None, headers=None, purpose=PURPOSE_LOW):
+    """先用「验证证书」的连接池请求；失败后**按 purpose 决定是否降级**。
 
-    返回解码后的字符串；两者都失败返回 None。保留降级路径是因为部分老系统
-    CA 束缺失，强验证会导致插件/GitHub 下载全面失败。
+    - ``purpose=PURPOSE_LOW``（默认）：允许降级到不校验证书的池，但**每次降级都
+      写日志**（purpose + 脱敏 url + 「已降级为不校验证书」），不许静默；保留这条
+      路径是因为部分老系统 CA 束缺失，强验证会让本机探测/负载状态页全面失败。
+    - ``purpose=PURPOSE_CODE`` / ``PURPOSE_CREDENTIAL``：禁止降级，验证失败即放弃，
+      返回 None，并写明确原因（含 purpose 与脱敏后的 url）。
+
+    返回解码后的字符串；失败返回 None。
     """
+    allow_downgrade = _purposeAllowsDowngrade(purpose)
+    verified_error = None
     for insecure in (False, True):
+        if insecure:
+            # 到这里说明「验证证书」的一轮已经失败（异常 / 池不可用）
+            if not allow_downgrade:
+                _httpPolicyLog('禁止降级：purpose=%s 不允许改用不校验证书的连接池'
+                               '（%s %s，原因：%s）'
+                               % (purpose, method, _maskUrl(url),
+                                  _maskDetail(_errText(verified_error) if verified_error
+                                              else '验证证书的连接池不可用', url)))
+                return None
+            _httpPolicyLog('已降级为不校验证书重试：purpose=%s（%s %s，原因：%s）'
+                           % (purpose, method, _maskUrl(url),
+                              _maskDetail(_errText(verified_error) if verified_error
+                                          else '验证证书的连接池不可用', url)))
         pool = _get_http_pool(insecure=insecure)
         if not pool:
+            if not insecure and verified_error is None:
+                verified_error = '验证证书的连接池不可用'
             continue
         try:
             kwargs = {'timeout': timeout, 'retries': False}
@@ -178,61 +342,81 @@ def _pool_request(method, url, timeout, body=None, headers=None):
             if isinstance(data, bytes):
                 data = data[:1048576].decode('utf-8', errors='replace') if len(data) > 1048576 else data.decode('utf-8', errors='replace')
             return data
-        except Exception:
+        except Exception as e:
+            if not insecure:
+                verified_error = e
+            else:
+                _log.debug('[yf.net] 降级池请求仍失败: %s',
+                           _maskDetail(_errText(e), url))
             continue
     return None
 
 
-def HttpGet(url, timeout=10):
+def HttpGet(url, timeout=10, purpose=PURPOSE_LOW):
     """
-    发送GET请求（验证优先，失败降级；连接池复用）
+    发送GET请求（验证优先；失败后按 purpose 决定是否降级；连接池复用）
     @url 被请求的URL地址(必需)
-    @timeout 超时时间默认60秒
+    @timeout 超时时间默认10秒
+    @purpose 用途分级：low/code/credential，默认 low（向后兼容）。
+             code/credential 禁止任何降级（含下方 urllib 不校验兜底）。
     return string
     """
-    data = _pool_request('GET', url, timeout)
+    data = _pool_request('GET', url, timeout, purpose=purpose)
     if data is not None:
         return data
-    try:
+    if _purposeAllowsDowngrade(purpose):
+        # 低敏：允许兜底用「不校验证书」的 urllib 上下文，但必须留痕（不许静默）
+        _httpPolicyLog('已降级为不校验证书兜底请求：purpose=%s（GET %s，连接池均失败）'
+                       % (purpose, _maskUrl(url)))
+        try:
+            import urllib.request
+            ctx = _insecure_ssl_context()
+            kwargs = {'timeout': timeout}
+            if ctx is not None:
+                kwargs['context'] = ctx
+            response = urllib.request.urlopen(url, **kwargs)
+            result = response.read()
+            if isinstance(result, bytes):
+                result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
+            return result
+        except Exception as ex:
+            # 失败细节同样脱敏后再回流（异常文本可能夹带原始 URL）
+            return _maskDetail(_errText(ex), url)
+    return _httpPolicyRefuse('GET', url, purpose)
+
+
+def HttpGet2(url, timeout, purpose=PURPOSE_LOW):
+    """同 HttpGet（连接池版），purpose 语义一致（默认 low，向后兼容）。"""
+    data = _pool_request('GET', url, timeout, purpose=purpose)
+    if data is not None:
+        return data
+    if _purposeAllowsDowngrade(purpose):
+        _httpPolicyLog('已降级为不校验证书兜底请求：purpose=%s（GET %s，连接池均失败）'
+                       % (purpose, _maskUrl(url)))
         import urllib.request
-        ctx = _insecure_ssl_context()
-        kwargs = {'timeout': timeout}
-        if ctx is not None:
-            kwargs['context'] = ctx
-        response = urllib.request.urlopen(url, **kwargs)
-        result = response.read()
-        if isinstance(result, bytes):
-            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
-        return result
-    except Exception as ex:
-        return str(ex)
+        try:
+            ctx = _insecure_ssl_context()
+            kwargs = {'timeout': timeout}
+            if ctx is not None:
+                kwargs['context'] = ctx
+            req = urllib.request.urlopen(url, **kwargs)
+            result = req.read()
+            if isinstance(result, bytes):
+                result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
+            return result
+        except Exception as e:
+            return _maskDetail(_errText(e), url)
+    return _httpPolicyRefuse('GET', url, purpose)
 
 
-def HttpGet2(url, timeout):
-    data = _pool_request('GET', url, timeout)
-    if data is not None:
-        return data
-    import urllib.request
-    try:
-        ctx = _insecure_ssl_context()
-        kwargs = {'timeout': timeout}
-        if ctx is not None:
-            kwargs['context'] = ctx
-        req = urllib.request.urlopen(url, **kwargs)
-        result = req.read()
-        if isinstance(result, bytes):
-            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
-        return result
-    except Exception as e:
-        return str(e)
-
-
-def HttpPost(url, data, timeout=10):
+def HttpPost(url, data, timeout=10, purpose=PURPOSE_LOW):
     """
-    发送POST请求（验证优先，失败降级；1MB 响应截断）
+    发送POST请求（验证优先；失败后按 purpose 决定是否降级；1MB 响应截断）
     @url 被请求的URL地址(必需)
     @data POST参数，可以是字符串或字典(必需)
-    @timeout 超时时间默认60秒
+    @timeout 超时时间默认10秒
+    @purpose 用途分级：low/code/credential，默认 low（向后兼容）。
+             带凭据的 POST（如 bot token）必须显式传 credential。
     return string
     """
     headers = {'User-Agent': 'bt_simple/1.0', 'Content-Type': 'application/x-www-form-urlencoded'}
@@ -243,31 +427,35 @@ def HttpPost(url, data, timeout=10):
         body = _up.urlencode(data)
     else:
         body = data
-    result = _pool_request('POST', url, timeout, body=body, headers=headers)
+    result = _pool_request('POST', url, timeout, body=body, headers=headers, purpose=purpose)
     if result is not None:
         return result
-    try:
-        import urllib.request
-        ctx = _insecure_ssl_context()
-        if isinstance(data, dict):
-            if len(str(data)) > 65536:
-                return "POST data too large"
-            data = urllib.parse.urlencode(data).encode('utf-8')
-        elif isinstance(data, str):
-            data = data.encode('utf-8')
-        req = urllib.request.Request(url, data)
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        req.add_header('User-Agent', 'bt_simple/1.0')
-        kwargs = {'timeout': timeout}
-        if ctx is not None:
-            kwargs['context'] = ctx
-        response = urllib.request.urlopen(req, **kwargs)
-        result = response.read()
-        if isinstance(result, bytes):
-            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
-        return result
-    except Exception as ex:
-        return str(ex)
+    if _purposeAllowsDowngrade(purpose):
+        _httpPolicyLog('已降级为不校验证书兜底请求：purpose=%s（POST %s，连接池均失败）'
+                       % (purpose, _maskUrl(url)))
+        try:
+            import urllib.request
+            ctx = _insecure_ssl_context()
+            if isinstance(data, dict):
+                if len(str(data)) > 65536:
+                    return "POST data too large"
+                data = urllib.parse.urlencode(data).encode('utf-8')
+            elif isinstance(data, str):
+                data = data.encode('utf-8')
+            req = urllib.request.Request(url, data)
+            req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            req.add_header('User-Agent', 'bt_simple/1.0')
+            kwargs = {'timeout': timeout}
+            if ctx is not None:
+                kwargs['context'] = ctx
+            response = urllib.request.urlopen(req, **kwargs)
+            result = response.read()
+            if isinstance(result, bytes):
+                result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
+            return result
+        except Exception as ex:
+            return _maskDetail(_errText(ex), url)
+    return _httpPolicyRefuse('POST', url, purpose)
 
 
 def isIpAddr(ip):

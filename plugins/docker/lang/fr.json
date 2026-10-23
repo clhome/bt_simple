@@ -259,5 +259,6 @@
     "特权模式说明": "Accorde tous les privilèges de l'hôte ; images de confiance uniquement. Désactivé par défaut.",
     "IP地址不合法": "Adresse IP invalide",
     "配置已保存，但 systemctl daemon-reload 失败: ": "Configuration enregistrée, mais systemctl daemon-reload a échoué: ",
-    "配置已保存，但重启 Docker 服务失败: ": "Configuration enregistrée, mais le redémarrage du service Docker a échoué: "
+    "配置已保存，但重启 Docker 服务失败: ": "Configuration enregistrée, mais le redémarrage du service Docker a échoué: ",
+    "端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]": "Format de port non valide : seuls port ou adresse:port sont acceptés, et la partie adresse doit être *, une IPv4 ou [IPv6]"
 }

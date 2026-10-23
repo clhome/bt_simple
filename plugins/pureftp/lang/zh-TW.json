@@ -1,4 +1,5 @@
 {
+ "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "資料加密元件不可用（缺少 cryptography），已拒絕儲存；請安裝 cryptography 後重試",
  "(同内网)": "(同內網)",
  "FTP 用户名": "FTP 使用者名稱",
  "FTP 连接与账号管理": "FTP 連線與帳號管理",

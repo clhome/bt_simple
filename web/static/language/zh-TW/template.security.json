@@ -122,8 +122,6 @@
     "synchronizing_server_firewall_rules": "正在同步伺服器防火牆規則, 請稍候...",
     "the_synchronization_request_failed": "同步請求失敗，請檢查網路連接或伺服器狀態。",
     "bordered_hover_layout_fixed": "處理程序名",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "-埠口使用處理程序詳情",
     "after_the_reset_the": "重置後舊的私鑰將無法再用於免密登入此伺服器（如果已開啟金鑰登入），是否確認重新生成 Root 金鑰？",
     "reset_root_key": "重置 Root 金鑰",

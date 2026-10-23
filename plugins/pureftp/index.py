@@ -651,6 +651,16 @@ def addFtp():
     if conn.where('name=?', (user,)).count() > 0:
         return yf.returnJson(False, 'FTP 用户已存在!')
 
+    # 口令加密必须在建系统用户**之前**完成：缺 cryptography 时 enDoubleCrypt 抛
+    # DataCryptUnavailable（fail-closed）。放在后面会出现「系统账号已建、面板记录
+    # 写不了」的半成品；绝不能退回写明文。
+    try:
+        pwd_crypt = yf.enDoubleCrypt(_PWD_CRYPT_KEY, pwd)
+    except yf.DataCryptUnavailable as _e:
+        _log.error('[pureftp] 添加 FTP 用户被拒绝（加密不可用）: %s', _e)
+        return yf.returnJson(
+            False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
+
     ok, msg = pftpAdd(user, pwd, path)
     if not ok:
         return yf.returnJson(False, '操作失败: ' + msg)
@@ -658,7 +668,7 @@ def addFtp():
     addtime = time.strftime('%Y-%m-%d %X', time.localtime())
     # 口令加密落库（旧实现写明文；列表接口也不再回传，界面无从泄漏）
     conn.add('pid,name,password,path,status,ps,addtime',
-             (0, user, yf.enDoubleCrypt(_PWD_CRYPT_KEY, pwd), path, 1, ps, addtime))
+             (0, user, pwd_crypt, path, 1, ps, addtime))
     _reloadPwDb()
     return 'ok'
 
@@ -713,8 +723,15 @@ def modFtp():
     conn = pftpDB()
     if conn is None:
         return yf.returnJson(False, '操作失败:')
+    # 先加密后写库：缺 cryptography 时 fail-closed，不得落明文
+    try:
+        pwd_crypt = yf.enDoubleCrypt(_PWD_CRYPT_KEY, pwd)
+    except yf.DataCryptUnavailable as _e:
+        _log.error('[pureftp] 修改 FTP 口令被拒绝（加密不可用）: %s', _e)
+        return yf.returnJson(
+            False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
     conn.where('id=?', (row_id,)).save(
-        'password', (yf.enDoubleCrypt(_PWD_CRYPT_KEY, pwd),))
+        'password', (pwd_crypt,))
     return 'ok'
 
 

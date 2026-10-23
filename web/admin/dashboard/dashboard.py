@@ -38,6 +38,24 @@ import thisdb
 
 
 blueprint = Blueprint('dashboard', __name__, url_prefix='/', template_folder='../../templates')
+
+
+def _login_guard_status():
+    """P2-8：登录限流后端状态（首页告警用）。
+
+    `login_guard.status()` 自身已经兜底，这里再包一层是因为**首页不能被它拖垮**：
+    走到 except 说明连模块/接口都拿不到，此时无法证明限流是 db 态 ——
+    宁可告警也不能静默（「看不见的降级」正是本项要治的病）。
+    """
+    try:
+        from core import login_guard
+        return login_guard.status()
+    except Exception as e:
+        _log.warning('[dashboard] 登录限流状态读取失败（按降级处理）: %s', e)
+        return {'table_ready': False, 'backend': 'memory',
+                'reason': '状态读取失败: %s' % e, 'checked_at': ''}
+
+
 @blueprint.route('/', endpoint='index', methods=['GET'])
 @panel_login_required
 def index():
@@ -45,8 +63,13 @@ def index():
     # P2-2：明文 HTTP（且面板 SSL 未开）时，首页显著提示登录 Cookie 可被嗅探。
     # 只加模板变量，不改部署默认值，也不碰 SESSION_COOKIE_SECURE 的开关逻辑。
     from .plain_http_warning import plain_http_warning_flag
+    # P2-8：登录限流降级（DB 表不可用 -> 进程内计数，多 worker 下失效）时首页告警。
+    # 只加模板变量，fail-open 取舍不变；status() 自带 5s 缓存，不在首屏反复探表。
+    _guard = _login_guard_status()
     return render_template('%s/index.html' % name,
-                           plain_http_warning=plain_http_warning_flag())
+                           plain_http_warning=plain_http_warning_flag(),
+                           login_guard_status=_guard,
+                           login_guard_degraded=(_guard.get('backend') != 'db'))
 
 #: 快捷登录签发时间戳的容许窗口（毫秒，双边界），与 core.quick_login_nonce.NONCE_TTL 对齐。
 QUICK_LOGIN_TTL_MS = 60 * 1000
@@ -256,6 +279,24 @@ def get_php_security_status():
 
     data['offline'] = bool(offline)
     return yf.returnData(True, 'ok', data)
+
+
+@blueprint.route('/get_login_guard_status', endpoint='get_login_guard_status',
+                 methods=['GET', 'POST'])
+@panel_login_required
+def get_login_guard_status():
+    """P2-8：登录限流后端状态（`db` / `memory` + 降级原因）。
+
+    只读接口，不改变限流行为；首页告警与外部监控（脚本）共用这一个口径。
+    与 `/get_php_security_status` 同写法：登录可见，失败时明确返回错误而不是
+    假装「一切正常」。
+    """
+    try:
+        from core import login_guard
+        return yf.returnData(True, 'ok', login_guard.status())
+    except Exception as e:
+        _log.warning('[dashboard] 登录限流状态读取失败: %s', e)
+        return yf.returnData(False, '登录限流状态读取失败: %s' % e)
 
 
 def get_ip_location_str(ip):

@@ -259,5 +259,6 @@
     "特权模式说明": "Gewährt volle Host-Rechte; nur für vertrauenswürdige Images. Standard: aus.",
     "IP地址不合法": "Ungültige IP-Adresse",
     "配置已保存，但 systemctl daemon-reload 失败: ": "Konfiguration gespeichert, aber systemctl daemon-reload ist fehlgeschlagen: ",
-    "配置已保存，但重启 Docker 服务失败: ": "Konfiguration gespeichert, aber der Neustart des Docker-Dienstes ist fehlgeschlagen: "
+    "配置已保存，但重启 Docker 服务失败: ": "Konfiguration gespeichert, aber der Neustart des Docker-Dienstes ist fehlgeschlagen: ",
+    "端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]": "Ungültiges Portformat: Es wird nur Port oder Adresse:Port akzeptiert, der Adressteil darf nur *, IPv4 oder [IPv6] sein"
 }

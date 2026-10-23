@@ -756,3 +756,588 @@ plugins/php-yum  未改：["74","80","81","82","83","84","85"]（最低已是 74
 1. **「默认启用自签 TLS」这条路线未做**（用户选择只做告警）。如需推进：改 `web/admin/__init__.py:113-115` 的 SSL 判定 + 安装时生成自签证书 + 强制跳转，属独立版本项。
 2. 告警只在**登录页与首页**两处；其他页面（如文件管理、数据库）未加横幅，若需要可复用 `plain_http_warning_flag()`。
 3. 反代场景依赖上游正确设置 `X-Forwarded-Proto`；若反代没设，会仍按明文告警（属偏保守的 fail-loud，不是误放行）。
+
+### P2-3 getRandomString 改用 secrets + 密钥文件落盘 0600 —— 已完成（2026-10-22）
+
+**① `getRandomString` 内部换密码学安全随机源（零调用方改动）**
+`web/core/yf/textutil.py`：删 `from random import Random`，加 `import secrets`（`:25`）；新增模块常量 `_RANDOM_STRING_CHARS`（`:32`，62 字符，原样抄写并注明「不得修改，是契约」）；实现改为 `''.join(secrets.choice(_RANDOM_STRING_CHARS) for _ in range(length))`（`:52`）。
+**对外契约完全不变**：函数名/签名/字符集/返回类型；`length <= 0` → `''`（与旧 `range()` 空循环一致）；非整数仍抛 `TypeError`。⇒ 20+ 个调用点（AES key/iv、`admin_path`、初始账号口令、临时登录 token、mariadb/mongodb 口令等）**零改动**。
+
+**② 全仓「用 random 生成安全材料」排查**
+- `web/utils/vilidate.py`：验证码字符 `random.sample(...)` → **`secrets.SystemRandom().sample(...)`**（语义等价：仍取 length 个**不重复**字符、仍返回 list）；干扰点/颜色/曲线等**纯装饰**用 `random` 保留不动。
+- 其余调用点均为装饰/展示/测试数据用途，逐个列在报告里说明保留理由。
+
+**③ `aes.json` 落盘 0600（写 + 读两条路径）**
+`web/core/yf/__init__.py:1045`（生成新 aes.json 之后）与 `:1066`（读到**既有老 aes.json 后顺手收紧**，否则老部署永远是 0644）；两处都用 `try/except` + `_log.warning`（Windows 上 `os.chmod` 只影响只读位，不能因此让功能失败）。
+
+**④ 方案文档写入兼容说明**：`参考/优化261022/…整改方案_2026-10-22.md:260`（P2 表格第 3 行）行末补「**旧数据兼容**：历史用 MT 生成的密钥/口令仍然有效（只影响新生成的材料），无需迁移；如需轮换按 `aes.json` 备份→删除→重启面板重新生成」。表格其它内容未动。
+
+**改动文件**：`web/core/yf/textutil.py`、`web/core/yf/__init__.py`、`web/utils/vilidate.py`、方案文档；新增 `testsuite/test_secret_random_and_keymode.py`（**12 用例**）。
+
+**验证证据（全部实测）**
+- 实测 grep：`textutil.py` 已无 `from random import Random`、有 `import secrets` 与 `secrets.choice` 实现；`aes.json` 两处 `os.chmod(..., 0o600)`（`:1045` 写路径、`:1066` 读路径）；方案文档 `:260` 含旧数据兼容说明
+- `-k secret_random` → **12 项** PASS；`-k setup` → 12 项；`-k admin` → 111 项；`-k i18n` → 240 项；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：字符集与长度（n ∈ 1/8/16/32/48 长度精确、字符全在集合内、`n=0` 行为不变）/ **源码断言 `getRandomString` 函数体内无 `Random()`/`random.`** 且 import 已消失 / 200 次长度 16 无重复（**注明这只是「无明显退化」，不能证明密码学强度**）/ 1000 次单字符出现 ≥50 种（未退化成常数）/ `aes.json` 生成后权限 `0o600`（POSIX；Windows 跳过权限断言但断言文件可创建可读）/ **预置 key/vi 后 `getAesKey()` 仍返回原值**（证明 chmod 没破坏读取）
+- **变异自证 2 段**：①`getRandomString` 改回 `Random()` → 源码断言用例红 → 复原绿；②删掉 `os.chmod(aes_file, 0o600)` → 权限用例红（Windows 上改以「源码里必须有该 chmod」的静态断言作变异目标，保证不受平台影响）→ 加回绿
+
+**遗留**
+1. **历史密钥未轮换**：旧 MT 生成的 AES key/iv 与口令仍然有效（只影响新生成材料）。若要轮换：备份 `data/aes.json` → 删除 → 重启面板重新生成（已写进方案文档）。轮换会让既有加密字段不可解，需配套迁移工具，属独立版本项。
+2. `getRandomString` 现在按字符取随机（62 进制），熵约 5.95 bit/字符；口令长度沿用既有取值（如 8/12/16/32/48），本次**未擅自加长**（会改变对外可见的生成结果长度）。若要更强，建议在调用点提高 length 或用 `secrets.token_urlsafe`。
+3. 其它密钥文件（如 `web/admin/__init__.py:88` 的 secret_file、`web/core/crypt_salt.py:21`）**本来就有 0600**，未改。
+
+### P2-4 MySQL/MariaDB 口令加密落库 + default.pl 处置 —— 已完成（2026-10-22）
+
+> 执行说明：本项 subagent **超时**（改动已全部落盘、31 条用例已通过，但没来得及出报告）。代码与改动面我逐一核过，**两段变异自证由我本人补做**。
+
+**① 新增单一实现 `web/core/db_pwd.py`（core 层，避免 `plugins/` 目录被当成新插件计数）**
+- `MARKER = 'yfenc:'`：**「这是密文」的唯一判据**，用来区分「新密文」与「历史明文」。
+- 作用域常量 `SCOPE_MYSQL_ROOT='mysql_root'` / `SCOPE_MARIADB_ROOT='mariadb_root'`（固定值，不许随实例变化，否则解不回来）。
+- `encrypt_pwd(scope, pwd)` → `MARKER + enDoubleCrypt(scope, pwd)`（复用 `web/core/yf/security.py:121` 的既有范式）。
+- `decrypt_pwd(scope, stored)`（**读侧唯一入口，fail-closed**）：`None`→`None`；`''`→`''`；**不以 MARKER 开头 → 原样返回（历史明文向后兼容，无需迁移）**；以 MARKER 开头 → 解密，**解不开返回 `None` 并写日志，绝不把密文当口令用**。
+- 另有 `is_encrypted` / `decrypt_pwd_strict` / `decrypt_pwd_any(scopes=KNOWN_SCOPES)`（后者给「不知道密文是哪个命名空间写的」场景用，全部解不开就丢弃）。
+
+**② 写点/读点全量迁移（**25 个引用点 / 12 个文件**）**
+- 收敛成单一出入口：`plugins/mysql/index.py:283` 注释明确「这两个函数是本插件唯一允许碰 `config.mysql_root` 的地方」——`_getRootPwdRaw():307`（取落库原值）与 `:325-327`（`db_pwd.encrypt_pwd(_PWD_SCOPE, pwd)` 后写回）。
+- 迁移到的文件：`plugins/{mysql,mariadb}/index.py`、`plugins/{mysql,mariadb}/scripts/{tools,backup,test}.py`、`plugins/data_query/{common_db,sql_mysql}.py`、`plugins/sphinx/class/sphinx_make.py`、`scripts/backup.py`、`panel_tools.py`。**每一个读 `mysql_root` 去连库/备份的地方都必须解密**——漏一个就是「拿密文当口令」的静默功能坏掉，所以改动面比方案原文写的两个插件更宽（属必要范围，非顺手重构）。
+- `plugins/data_query/common_db.py:18` 引入 `core.db_pwd`，`:644 dec = db_pwd.decrypt_pwd_any(val)`（它事先不知道口令是 mysql 还是 mariadb 写的）。
+
+**③ `data/default.pl` 处置**
+- `deploy.sh:640-669` 抽出**唯一写入口** `write_default_pl()`：写完立刻 `chmod 600`，**且必须真成功**——失败走 `log_warn` 明确告警（`chmod 600 $file 失败，该明文密码文件可能仍可被其他用户读取！请手工执行: chmod 600 $file`），不留 0644。
+- 三处写点（`:1700`、`:1863`、`:2140`）全部改走该函数。
+- **保留文件不删**：`deploy.sh:2221-2222` 要靠它显示初始密码，删了用户永远看不到初始口令；改为「写即 0600 + 明确告警」。删除指引见遗留。
+
+**改动/新增文件**：新增 `web/core/db_pwd.py`、`testsuite/test_db_password_at_rest.py`（**31 用例**）；改 `plugins/{mysql,mariadb}/index.py`、`plugins/{mysql,mariadb}/scripts/{tools,backup,test}.py`、`plugins/data_query/{common_db,sql_mysql}.py`、`plugins/sphinx/class/sphinx_make.py`、`scripts/backup.py`、`panel_tools.py`、`deploy.sh`。
+
+**验证证据（全部实测）**
+- 实测：`db_pwd.` 引用点 **25 处 / 12 文件**；mysql 写点已无明文（`save('mysql_root', (pwd,))` 已消失，改走 `:327 encrypt_pwd`）；`deploy.sh:665` 有 `if chmod 600 "$file"`、`:669` 有失败 WARN；`data_query/common_db.py:644` 用 `decrypt_pwd_any`
+- `-k db_password_at_rest` → **31 项** PASS；`-k mysql` → 147 项；`-k mariadb` → 113 项；`-k data_query` → 23 项；`-k deploy` / `-k sh` / `-k i18n` / `-k backup` / `-k sphinx` → 全 PASS；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：加解密**往返逐字符相等**（含 `p@ss$()"`、中文、空格）/ **历史明文原样透传**（`decrypt_pwd`、`decrypt_pwd_strict`、`decrypt_pwd_any` 三条路径）/ `None`/`''` 原样 / **fail-closed**（`yfenc:garbage` 不返回垃圾、返回 `None` 且有日志）/ mysql 写点必须走 `encrypt_pwd`（静态 AST/文本断言）/ 读点必须经 `decrypt_pwd` / `deploy.sh` 三处写 `default.pl` 后有 `chmod 600` / `data_query` 引入 `db_pwd` 且对口令候选解密
+- **变异自证 2 段（我本人执行）**：①去掉 `decrypt_pwd` 的 MARKER 兼容分支（`if not text.startswith(MARKER)` → `if False`）→ `test_07_legacy_plaintext_untouched` / `test_09_any_scope_passes_legacy_through` / `test_14_strict_passes_legacy_plaintext` **3 红** → 复原 `diff -q` 一致、31 项 OK；②把 mysql 写点改回明文 `save('mysql_root', (pwd,))` → `test_17_mysql_root_write_is_encrypted` **1 红** → 复原 `diff -q` 一致、31 项 OK；两文件 `MUTATION` 残留均为 0
+
+**遗留（如实记录）**
+1. **加密依赖 salt**：`enDoubleCrypt` 的 key = `md5(scope + get_salt())`。**salt 文件变更/丢失会导致既有密文解不开**（`decrypt_pwd` 返回 `None`，fail-closed 但用户会连不上库）。运维提示：备份 `data/aes.json` 与 salt 文件；轮换前先解密落回明文再重加密。
+2. **历史明文不改写**：存量库里仍是明文（`decrypt_pwd` 原样透传），下次在该面板里改口令时才会写成密文。若要一次性迁移，需单独脚本（读→`encrypt_pwd`→写回），本次未做。
+3. **`default.pl` 未自动删除**（要保住「显示初始密码」功能）：建议在首次登录成功后由面板提示删除，或安装结束提示里加一行 `rm -f /www/server/yufeng_panel/data/default.pl`；该「用户可见删除指引」**尚未落地**，属后续小项。
+4. `decrypt_pwd_any` 是按已知命名空间穷举，命名空间越多尝试越多（当前 2 个，可忽略）；新增 scope 时记得加进 `KNOWN_SCOPES`。
+
+### P2-5 MySQL 改 root 口令的 SQL/shell 插值改安全通道 —— 已完成（2026-10-22）
+
+**问题（4 处 shell 字符串 + 1 处口令上 argv）**：`setRootPwdForce()` 把口令拼进 `mysql -e "...PASSWORD('{new_password}')..."` 再 `yf.execShell()`（`shell=True`）——口令含 `'` 或 `$()` 即 shell/SQL 双重注入；验证步骤还用了 `-p'{new_password}'`，口令出现在 **argv**（`ps` 可见）。
+
+**① 新增两个纯函数（模块级）**
+- **`_mysqlSqlLiteral(s)`**（`:2393`）：按 **MySQL 字符串字面量**语义转义（`\`→`\`、`'`→`\'`、`"`→`\"`、`\0`/`\n`/`\r`/`\Z`），返回值**不含外层引号**，由调用方加 `'...'`。
+- **`_mysqlClientDefaultsFile(pwd)`**（`:2482`）：在临时目录写 **0600** 的 option 文件（`[client] user=root password="..."`），返回路径，调用方 `finally` 删除。
+- **两种转义规则不能混用**：SQL 字面量规则与 option-file 规则不同（前者反斜杠是转义符，后者要按 `\` 与 `"` 处理），已分别实现并在 docstring 说明。
+- **`_mysqlLogFailure(scene, rc, err, secret=None)`**：mysql 语法错误回显会带查询片段（可能含口令），所以把口令的**原文形态与 SQL 转义形态都替换成 `***`** 再落盘。
+
+**② 4 处改造（全部 argv + `shell=False`）**
+| 位置 | 原 | 新 |
+|---|---|---|
+| `adjust_password_policy` 两条 `SET GLOBAL` | `execShell(serverdir+f"...")` | `execShellRc([mysql_bin,'-u','root','-e',sql], shell=False)`，rc≠0 记日志（策略值 LOW/4 不变） |
+| 5.5/5.6 `PASSWORD('{new_password}')` | shell 字符串 | `[mysql_bin,'-u','root','-e', "…PASSWORD('" + _mysqlSqlLiteral(pwd) + "')…"]` |
+| 非 5.5/5.6 清空 `authentication_string` | shell 字符串 | 常量 SQL → argv |
+| `ALTER USER … IDENTIFIED BY '{new_password}'` | shell 字符串 + `# print("新密码",…)` 注释 | argv + `_mysqlSqlLiteral`；注释已删 |
+| **验证口令** `-p'{new_password}'` | 口令在 argv | **`--defaults-extra-file=<0600 临时文件>`**，口令**不进 argv、不进 shell**，`finally` 删除 |
+- 每条都用 `execShellRc` 的 **rc 判成败**；`setRootPwdForce` 的返回值语义（`True/False`）保持不变（调用方 `ok = setRootPwdForce(...)` 未改）。
+- `ps -ef|…|xargs kill` pipeline **保留**并加注释「纯字面量、无外部输入」。
+- `mysqld_safe --skip-grant-tables` 流程、5.5/5.6 与 8.x 分支语义、策略值均未改。
+
+**改动文件**：`plugins/mysql/index.py`（含顶部加 `tempfile` import）；新增 `testsuite/test_mysql_root_pwd_safety.py`（**20 用例**）。
+
+**验证证据（全部实测）**
+- 实测：`_mysqlSqlLiteral:2393` / `_mysqlClientDefaultsFile:2482` 在位；`grep '-p.{0,3}new_password'` **零命中**；`execShellRc([...[mysql_bin,'-u','root','-e', sql], shell=False` 形态在位；`_mysqlLogFailure` 对口令原文与转义形态都打码
+- `-k mysql_root_pwd` → **20 项** PASS；`-k mysql` → **167 项**；`-k db_password_at_rest` → 31 项（P2-4 未回归）；`-k shell_concat` → 18 项（无 `bare_variable` 违规）；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：`_mysqlSqlLiteral` 表驱动往返（`it's`、`back\slash`、`p@ss'";$(id)\``、`'; DROP TABLE mysql.user; -- `、`\' OR 1=1 -- `、换行/`\0`）/ 预期转义逐字符 / defaults 文件含 `password="..."` 且 **0600**、用完被删 / 静态断言（无 f-string 含 `{new_password}` 传给 `execShell`、无 `-p'`、mysql 调用均为 list argv）/ **行为用例**（替身记录 argv：每次都是 list、**口令不出现在任何 argv 元素**、SQL 里是转义形态、返回 `True` 当且仅当验证 rc==0）
+- **变异自证（我本人补做）**：把 `_mysqlSqlLiteral` 改成直接 `return s`（完全不转义）→ `test_01_table_driven_roundtrip` 多组（含 `'; DROP TABLE mysql.user; -- `）+ `test_02_expected_escapes` **全部红** → 复原 `diff -q` 一致、`MUTATION` 残留 0、20 项 OK
+
+**遗留**
+1. **mariadb 侧同型点未改**（方案只要求 MySQL；本项红线限定只改 mysql）：`plugins/mariadb/index.py` 如有 `setRootPwdForce` 同构写法，需按本项同一范式另行处理。
+2. `adjust_password_policy` 把口令策略降到 LOW/4 是既有产品行为（为了让用户能设短口令），本项**未改语义**；但这与「口令强度」目标冲突，建议后续评估是否改为「仅在强制重置流程内临时降低、完成后恢复」。
+3. option 文件写在临时目录（0600）；若主机 `/tmp` 与他人共享且有 root 级攻击者，仍可读——这是「不把口令放 argv」的固有权衡，比原来 `ps` 可见严格更强。
+
+### P2-6 HTTP 客户端验签失败静默降级 → 按用途分级 —— 已完成（2026-10-22）
+
+**问题**：`web/core/yf/net.py` 的 `_pool_request()` 用 `for insecure in (False, True)` 验证失败就换不验证的池，`except: continue` **静默吞掉、无日志**；`HttpGet`/`HttpGet2`/`HttpPost` 失败后还**无条件**用 `_insecure_ssl_context()` 再试一次。
+
+**① 用途分级（签名向后兼容，旧位置参数不变）**
+```python
+_pool_request(method, url, timeout, body=None, headers=None, purpose=PURPOSE_LOW)
+HttpGet (url, timeout=10, purpose=PURPOSE_LOW)
+HttpGet2(url, timeout,     purpose=PURPOSE_LOW)
+HttpPost(url, data, timeout=10, purpose=PURPOSE_LOW)
+# 包级转发 httpGet/httpPost(..., purpose=None) → None 交给下游默认 low
+```
+- `PURPOSE_LOW='low'`（低敏：查 IP 归属地、探测版本/负载、本机 127.0.0.1）
+- `PURPOSE_CODE='code'`（下载可执行内容/安装包/脚本/发布物）→ **禁止降级**
+- `PURPOSE_CREDENTIAL='credential'`（携带/换取凭据：token、口令、认证请求）→ **禁止降级**
+- 策略表 `{low: True, code: False, credential: False}`；**未知 purpose 按禁止降级处理**（fail-closed）
+
+**② 三分支行为**
+
+| 分级 | 连接池降级 | `urllib` 不校验兜底 | 返回 | 日志 |
+|---|---|---|---|---|
+| `low` | 允许（**降级前先写日志**） | 允许（写日志后再发） | 数据/错误串 | 每次降级一条（purpose + 脱敏 url + 「已降级为不校验证书」+ 原因） |
+| `code` / `credential` | **禁止** | **禁止** | `None` / 错误串 | 「禁止降级：purpose=… 不允许改用不校验证书的连接池（原因）」 |
+
+- 两条降级路径（连接池、`urllib` 兜底）**全部挂上 purpose 门禁**：`_insecure_ssl_context()` 的三处使用点（`:373/:398/:438`）都在 low 分支内。
+- **URL 脱敏**：日志只保留 `scheme://host/path`，去掉 query string 与 userinfo（不含 `token=`/`pass@`）。
+
+**③ 调用点逐个分类并显式标注**（12 个调用点）
+- `credential`：`web/core/yf/panel.py` 的 `tgbotNotifyHttpPost`（带 bot token）
+- `low`：`plugins/apache/index.py`(2)、`plugins/openresty/index.py`(2)、`plugins/op_load_balance/index.py`(1)、`plugins/op_waf/index.py`(4)、`plugins/fail2ban/index.py:1519`(1，本机 127.0.0.1 联动解封)
+- `web/core/yf/__init__.py` 的 `httpGet`/`httpPost` 是转发层，新增 `purpose=None` 透传并重导出 `PURPOSE_*` 常量
+- 完整分级表已写入报告；`scripts/tools/split_yf_module.py`、`plugins/*/t/index.py`（工具/测试脚本）不在运行路径，未分类
+
+**④ 方案文档**：`参考/优化261022/…整改方案_2026-10-22.md` 的 **P2 表格第 6 行**已按新口径更新（只动该行）。
+
+**改动文件**：`web/core/yf/net.py`、`web/core/yf/__init__.py`、`web/core/yf/panel.py`、`plugins/{apache,openresty,op_load_balance,op_waf,fail2ban}/index.py`、方案文档；新增 `testsuite/test_http_client_downgrade_policy.py`（**12 用例**）。
+
+**验证证据（全部实测）**
+- 实测：`PURPOSE_*` 三常量在 `:184-186`；策略表 `:190-192`（`code: False`）；未知 purpose `:277` 按禁止降级并写日志；`_insecure_ssl_context()` 三处使用点均在 low 分支
+- `-k http_client` → **12 项** PASS；`-k offline_switch` → 14 项；`-k fail2ban` → 80 项；`-k op_waf` → 175 项；`-k admin` / `-k i18n` / `--static` → 全 PASS；全部 EXIT=0
+- 用例覆盖：`code`/`credential` **三种函数（HttpGet/HttpGet2/HttpPost）都禁止降级**（替身证明没走不验证池、返回 `None`）/ `low` 允许降级且**必有日志** / **无静默路径**（三 purpose × 不验证池可用/不可用两态，凡降级必有日志）/ URL 脱敏（不含 `pass`/`SECRET`/`token=`，含 host 与 path）/ 默认值兼容（不传 purpose = low，既有调用点不报错）/ 静态断言 `_insecure_ssl_context` 只在 low 分支
+- **变异自证（我本人补做）**：把策略表 `PURPOSE_CODE: False → True`（code 也允许降级）→ `test_code_and_credential_never_downgrade`（HttpGet/HttpGet2/HttpPost 三组）+ `test_no_silent_downgrade_path`（两态）**多组红** → 复原 `diff -q` 一致、`MUTATION` 残留 0、12 项 OK
+
+**遗留**
+1. **P1-3 的 shell 面（`wget`/`curl`）未纳入本分级**：那是 shell 下载器，已有自己的 TLS 收口与棘轮（P1-3），两套机制各自成立但**没有共用一张表**；若要统一，需把 `yf_insecure_download_enabled()` 与 `PURPOSE_*` 对齐。
+2. `scripts/tools/split_yf_module.py`、`plugins/{op_waf,webstats}/t/index.py` 等工具/测试脚本的调用点未分类（不在运行路径）。
+3. 包级 `httpGet(url, timeout, purpose=None)` 用 `None` 表示「交给下游默认」，与 `net.py` 的 `PURPOSE_LOW` 默认值语义等价但写法不同——后续可统一为 `PURPOSE_LOW`（本次为不改变既有关键字参数调用形态而保留 `None`）。
+
+### P2-7 bcrypt / cryptography 缺失统一 fail-closed —— 已完成（2026-10-22）
+
+**三处 fail-open 全部改为 fail-closed**
+1. `web/core/yf/security.py:74 class PwdCryptoUnavailable(RuntimeError)`、`:83 class DataCryptUnavailable(RuntimeError)`（中文文案 + `_install_hint(pkg)` 给出「pip install … 后重启面板」）。
+2. `checkPwd()`：`except ImportError` → `_log.warning` + **`return False`**（不再退回无盐 SHA256 比对）。`checkPwdCompat()` 的**历史 MD5/SHA256 比对路径保留不变**（既有正确行为）。
+3. `enDoubleCrypt()`：`except` → **`raise DataCryptUnavailable`**，删掉了致命的 `return strings`（原来缺 `cryptography` 时**明文直接落盘**）。
+4. `web/core/yf/__init__.py` 的 `hasPwd()`：`except ImportError` → **`raise PwdCryptoUnavailable`**（不再退回 SHA256 弱哈希）；异常经 `from .security import ...` 重导出，可写 `yf.PwdCryptoUnavailable`。
+
+**调用点全部 fail-closed（改 33 个文件）**
+- `hasPwd`（11 处）：`web/thisdb/user.py`×3（初始化管理员/改密/CLI 改根口令）、`web/admin/setting/setting.py`×2（BasicAuth）、`web/utils/site.py`×1、`plugins/pgadmin/index.py`×1、`plugins/phpmyadmin/index.py`×3 → 捕获后**返回失败**（`口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装后重试`），不写弱哈希。
+- `enDoubleCrypt`（14 处）：`web/admin/setting/{notify_email,notify_tgbot,panel_bookmark,secondary_verifiy}.py`、`web/core/db_pwd.py:139`（`encrypt_pwd` **向上传播**，避免写出「带 MARKER 的明文」）、`plugins/pureftp/index.py`×2（**加密提前到建系统用户之前**，避免"用户建了但口令没存"）、`plugins/webssh/index.py`×1（同样提前到建目录之前）→ 捕获后失败返回。
+- `web/core/crypt_migrate.py`：捕获 → **中止迁移并报错**（绝不写明文）。
+- 三插件（phpmyadmin/pureftp/webssh）× 6 语言各登记 2 条新错误文案（过 `backend-msg-key` 门禁）。
+- `testsuite/test_misc_security_hardening.py`：把一条**断言「降级 SHA256」的旧用例反向收紧**为 fail-closed（原断言为漏洞背书，属加强而非放宽）。
+
+**改动文件**：`web/core/yf/{security.py,__init__.py}`、`web/core/{db_pwd.py,crypt_migrate.py}`、`web/thisdb/user.py`、`web/utils/site.py`、`web/admin/setting/{setting,notify_email,notify_tgbot,panel_bookmark,secondary_verifiy}.py`、`plugins/{pgadmin,phpmyadmin,pureftp,webssh}/index.py`、三插件 6 语言包、`testsuite/test_misc_security_hardening.py`；新增 `testsuite/test_crypto_fail_closed.py`（**20 用例**）。
+
+**验证证据（全部实测）**
+- 实测：两个异常类在 `security.py:74/:83`；`enDoubleCrypt` 的 except 分支已是 `raise DataCryptUnavailable`（无 `return strings`）；`hasPwd` 是 `raise PwdCryptoUnavailable`（无 `hashlib`）；`checkPwd` 的 ImportError 分支 `return False`（`hashlib` 仅出现在 `checkPwdCompat` 的历史兼容路径，符合预期）
+- `-k crypto_fail_closed` → **20 项** PASS；`-k pureftp` → 42 项；`-k webssh` → 25 项；`-k phpmyadmin` → 32 项；`-k pgadmin` → 79 项；`-k i18n` / `--static` → 全 PASS；全部 EXIT=0
+- 用例覆盖：缺 bcrypt 时 `hasPwd` 抛异常 / `checkPwd` 返回 False / `checkPwdCompat` 仍能过历史哈希；缺 cryptography 时 `enDoubleCrypt` **抛异常且返回值不是明文**；`db_pwd.encrypt_pwd` 抛异常（不产 `yfenc:` 明文）；**端到端无明文落盘**（pureftp 加用户、notify_email 保存两条路径：模拟缺库 → 断言**零写入**）；静态断言 `enDoubleCrypt` 的 except 不含 `return strings`、`hasPwd`/`checkPwd` 不含 SHA256 退化
+- **变异自证（我本人执行）**：在 `raise DataCryptUnavailable` 前插入 `return strings`（复现明文返回）→ `test_enDoubleCrypt_raises_instead_of_returning_plaintext`、`test_notify_email_save_writes_nothing_without_cryptography`、`test_pureftp_addFtp_writes_nothing_without_cryptography`、`test_encrypt_pwd_raises_without_cryptography`、`test_enDoubleCrypt_never_returns_input_on_error` **5 红** → 复原 `diff -q` 一致、`MUTATION` 残留 0、20 项 OK
+- 过程记录：我第一次的变异把 `raise` 块整段替换导致 `IndentationError`（无效变异），已立即逐字节复原后改用「在 raise 前插入 `return strings`」的语法有效变异，这才得到上面 5 红。
+
+**遗留**
+1. **缺库时面板功能会明确降级**（这是 fail-closed 的预期结果）：`bcrypt` 缺失 → 不能改口令、不能新建带口令的用户（返回明确错误）；`cryptography` 缺失 → 不能保存通知/双因子/书签等加密配置、不能写数据库口令密文。运维补救：`pip install bcrypt cryptography` 后重启面板（异常文案里已写明）。
+2. **既有 bcrypt 哈希在缺 bcrypt 时无法校验**（`checkPwd` 返回 False）⇒ 管理员将无法登录；这是唯一诚实的选择（没有 bcrypt 就算不出校验值）。若担心自救困难，可在面板启动时检测缺库并**显式告警**（未做，属后续小项）。
+3. 少量「模块导入期」调用点未逐一改造，但已确认它们不会落明文（详见报告）。
+
+### P2-8 限流 fail-open 明示 + 面板可见告警 —— 已完成（2026-10-22）
+
+**取舍不变，只做「可见化」**（表不可用不能把登录全部打死，那是可用性事故）。
+
+**① `web/core/login_guard.py` 只加状态查询，限流本体一行未改**
+- `status()`（`:334`）返回 `{'table_ready', 'backend': 'db'|'memory', 'reason', 'checked_at'}`；`:288 'backend': 'db' if ready else 'memory'`。
+- 判定理由来自 `_table_ready()` 内部（`_READY_REASON`），顺带修掉一处**静默分支**（`isinstance(cur,str)` 原先直接 return，现在记「查询 sqlite_master 失败」）。
+- `STATUS_CACHE_TTL = 5`（`:55`）+ `_reset_status_cache()`（`:327`），避免每次请求都探表。
+- `is_banned()` / `_bump()` / `register_failure()` / `failure_count()` / `reset()` **零改动**（fail-open 取舍保留）。
+
+**② 面板可见**
+- 后端：`web/admin/dashboard/dashboard.py:284-287` 新增 `@panel_login_required` 的 `/get_login_guard_status`（照 `/get_php_security_status` 写法，走 `yf.returnData`）；`index()` **只追加** `login_guard_status=` / `login_guard_degraded=(_guard.get('backend') != 'db')`（P2-2 的 `plain_http_warning=` 原样保留）。
+- 前端：`web/templates/default/index.html:24-32` 在 P2-2 明文 HTTP 告警块**之后**追加 `{% if login_guard_degraded %}` 橙底 `#e67e22` + `role="alert"` 块，带 `data-login-guard-backend` 标两态、显示降级原因；**仅 memory 态告警、db 态静默**。
+- i18n：六语言 `lan.js` 各 +2 键（`login_guard_degraded_title` / `_desc`），`export_lang_carriers.py --apply` 派生（汇总「值变更 0 / 新增 36 / 丢失 0」）。
+
+**③ 文档**
+- `SECURITY.md` 新增「## 已知取舍」小节：限流在 DB 表不可用时 fail-open（退化为进程内计数、多 worker 下失效）、面板首页会告警、以及为什么这样取舍。
+- 方案文档 **P2 表格第 8 行**按新口径重写（`sed -n 265p` 已取证）。
+
+**改动文件**：`web/core/login_guard.py`、`web/admin/dashboard/dashboard.py`、`web/templates/default/index.html`、六语言 `lan.js` + 3 个派生载体、`SECURITY.md`、方案文档；新增 `testsuite/test_login_guard_visibility.py`（**29 用例**）。
+
+**验证证据（全部实测）**
+- 实测：`status():334`、`STATUS_CACHE_TTL:55`、`:288 backend` 判定、路由 `:284-287`、模板 `:24-32` 告警块、`SECURITY.md` 含 3 处 `fail-open`、方案 `:265` 已更新
+- `-k login_guard` → **29 项** PASS；`-k dashboard` → 12 项；`-k login` → 144 项；`-k i18n` → 240 项；`-k security` → 92 项；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：db/memory 两态判定（memory 时 `reason` 非空）/ `_query`/`_execute` 抛异常仍返回且判 memory / 缓存连调两次只探一次表 + `_reset_status_cache()` 后可再探 / 路由存在且有登录校验装饰器 / 首页告警块受状态控制且含「限流」「降级」/ 六语言键齐 + zh-TW 无简体残留 / **`is_banned()` 的 fail-open 分支仍在**（本项不改取舍）
+- **变异自证 2 段**：①`backend` 恒为 `'db'`（不暴露降级）→ 用例 1/2 红 → 复原绿；②删首页告警块 → 用例 5 红 → 加回绿
+
+**⚠ 过程记录：subagent 报告「门禁全绿」是不实的，我复核发现 `-k i18n` 红**
+- 真正原因**不在 P2-8**，而在 **P2-5**：为了「口令不进日志」删掉了 `# print("修改root密码", …)` / `# print("停止安全模式", …)` / `# print("清空root密码", …)` 三行注释，而这三行是 `plugins/mysql/lang/*.json` 里三个键的**唯一引用** ⇒ 变成死键（`test_plugins_i18n_upgrade.TestNoDeadKeys` 报 `[\"mysql '修改root密码'\", …]`）。
+- 处置：确认三个键在插件源码里**零引用**后，从 **6 个语言包**里删除这 3 个键（每个文件 451 键；悬空逗号已修）。修后 `-k i18n` 240 项全绿、`-k mysql` 绿。
+- 教训（已按此复核后面各项）：**subagent 的自述结论必须自己复跑门禁**，不能采信。
+
+**遗留**
+1. **多 worker 下限流失效本身未修**（本项只做可见化）：根治需共享存储（Redis/DB 表）+ 表不可用时的明确降级策略，属架构项。
+2. 告警只在首页；其它页面若也需要，可复用 `/get_login_guard_status`。
+3. `_table_ready()` 的 60s 缓存与 `status()` 的 5s 缓存是两套 TTL，语义不同（前者控制「是否可以写库」，后者只是展示），已在代码注释说明。
+
+### P2-9 依赖锁定补全 —— 已完成（2026-10-22）
+
+**① 14 个无界依赖按「A/B 双轨」处置（红线上限：不许编造版本号）**
+
+A 类：**有本机实测依据** → 补下界（4 个，注释写明依据与日期）
+
+| 依赖 | 下界 | 依据（本机 `pip list` 实测） |
+|---|---|---|
+| `packaging` | `>=23.2` | 实测 23.2；`web/utils/system/update.py`、`plugins/mysql/index.py` 直接 import |
+| `bcrypt` | `>=4.1.2` | 实测 4.1.2；`yf/security.py`、`yf/__init__.py` import |
+| `pytz` | `>=2023.3.post1` | 实测 2023.3.post1；`admin/setting/timezone.py` 用 `pytz.all_timezones` |
+| `zstandard` | `>=0.22.0` | 实测 0.22.0；C 扩展压缩包 |
+
+B 类：**无可靠依据 → 不猜数字**，登记进 `requirements.txt` 文末 `# --- 无界依赖例外清单（P2-9）---`（10 个）：`pyotp`、`pymongo`、`pymemcache`、`redis`、`croniter`、`tldextract`、`pyTelegramBotAPI`、`telebot`、`brotli`、`zstd`。
+**额外发现（第 15 个）**：`Flask-Compress` 同样无任何边界——测评清单的 14 项没点到它，是新守卫扫出来的，一并登记例外。
+**未给任何包新造上界**（无仓库先例，避免拍脑袋写 `<N` 反而把未来版本挡死）。既有 CVE 下界值一个没动。
+
+**② `requirements.lock` 的「有哈希」有了校验手段**
+新增 `scripts/verify_requirements_lock.py`：读指定 lock（默认仓库根 `requirements.lock`；不存在则退出码 0 + 提示「按 release 流程生成」），断言**每个 `name==version` 行下面都有 `--hash=sha256:` 行**；发现无哈希的包 → 退出码 1 并列出。`release.yml` 加两行注释说明本地怎么核。
+（lock 本身仍需联网生成，故不入库——与 P1-9 的「随 Release 附件分发」口径一致。）
+
+**③ `py<3.9` 口径写进交付文档**
+- `文档/组件生命周期与安全响应政策.md` 新增 `## 8. 依赖与 Python 版本支持`（`:139`）：8.1 版本支持矩阵、8.2 `<3.9` 分档为何保留 + **EOL 2027-06-30** + 上游无修复版本属**已知残留风险**、8.3 A/B 双轨边界口径、8.4 锁文件哈希校验方式。
+- `SECURITY.md:142`「已知取舍」末尾加子节指向该章节。
+
+**改动/新增文件**：`requirements.txt`、`文档/组件生命周期与安全响应政策.md`、`SECURITY.md`、`.github/workflows/release.yml`（仅 2 行注释）；新增 `scripts/verify_requirements_lock.py`、`testsuite/test_requirements_bounds.py`（**13 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`requirements.txt:146` 例外清单小节存在；4 个 A 类下界在位（`:35 :83 :123 :143`）且注释含实测依据；文档含 `2027-06-30`（2 处）与 `## 8. 依赖与 Python 版本支持`（`:139`）；`SECURITY.md:142` 指向该节；两个新文件在位
+- `-k requirements` → **24 项** PASS（含既有 `test_requirements_hardening.py` 未回归）；`-k docs` → 8 项；`-k delivery_engineering` → 9 项；`-k ci_workflows` → 21 项；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：每个非注释依赖行要么带上下界、要么在例外清单；**新增无界依赖且不在清单 → 红**；例外清单里的包名必须真实存在于 requirements.txt（防腐烂）；`py<3.9` 分档与 `2027-06-30` 文档口径；`SECURITY.md` 有指向；`release.yml` 的 `files:` 仍含 `requirements.lock`
+- **变异自证 2 段**：①加一行无界依赖 `websocket-client` → 守卫红 → 删除绿；②删掉某 A 类下界 → 守卫红 → 复原绿
+
+**遗留**
+1. **10+1 个依赖仍无版本边界**（已在例外清单里写明理由与复核时机）：这些包无本地实测依据、且面板只在特定插件路径使用；下次联网时应用 `pip index versions <pkg>` 或 PyPI 官方页确认后再补。
+2. **`requirements.lock` 仍不入库**：需联网 `pip-compile --generate-hashes`，只在 release/security-scan 流程产出并随 Release 分发；本地校验用新增脚本。
+3. `Flask-Compress` 是本次新发现的漏项（原测评清单未覆盖），说明「无界依赖」清单本身需要持续扫描——守卫用例已把这条纳入。
+
+### P2-10 插件 zip 导入统一走 safeArchiveCheck —— 已完成（2026-10-22）
+
+**① 解压前校验（复用统一判据，不另写）**
+`web/utils/plugin.py` 新增模块级 `_safeExtractPluginZip(zip_path, dest_dir)`（`:81`）：
+- `_pluginArchiveCheck()`（`:78`）**只在调用时** `import utils.file` 取 `safeArchiveCheck(zip_path, dest_dir, 'zip')`——照 P1-4 的 `_safeArchiveCheck` 范式；
+- **取不到校验函数 / 校验抛异常 → fail-closed 拒绝**（`插件包成员校验无法执行，已拒绝解压（fail-closed）`）；
+- 校验不过 → 返回 `插件包含越界或非法成员，已拒绝解压（<code>）`，`_log.warning` 记 code；
+- **校验通过才** `:100 yf.safeExecShell(['unzip','-o','-q',…])`。
+
+**② 两个入口各自把关**
+- `updateZip()`（`:1789`）：`request_zip.save(tmp_file)` → `_safeExtractPluginZip(tmp_file, tmp_path)` → 被拒则 `_cleanupRejectedPluginPackage()`（**删临时 zip + 清 `<面板>/temp` + `writeFileLog`**）并 `returnData(False, msg)`，**一个文件都不落地**；通过后才 `os.remove(tmp_file)`。
+- `inputZipApi()`（`:1852`）：**独立入口自校验**——不能直接用 `safeArchiveCheck`（它收到的是**已解压**目录，没有归档可校验），改为 `_checkPluginSourceDir(tmp_path)`（**同一套「软链」判据**）**在 `shutil.copytree` 之前**执行，代码注释写明「`/plugins/input_zip` 是独立入口，直接调用可绕过 updateZip，所以必须自校验」。
+- **事后 `_has_symlink()` 检查全部保留**（`:1798`、`inputZipApi` 内）作第二道纵深防御，注释标注「不得删除」。
+
+**③ 解压路径排查**：`web/utils/plugin.py` 内除 `unzip` 外无 `zipfile`/`tarfile` 解压路径；危险步骤是 `inputZipApi` 的 `shutil.copytree`（默认跟随软链），已由 `_checkPluginSourceDir` 前置拦截。
+
+**改动文件**：`web/utils/plugin.py`（+94/−4）；新增 `testsuite/test_plugin_zip_import_slip.py`（**28 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`_safeExtractPluginZip:81`，唯一解压调用点 `:100`（**在校验之后**）；`_safeExtractPluginZip` 调用点 `:1789`（updateZip）；`inputZipApi` 的 `_checkPluginSourceDir` 在 `copytree` **之前**；事后 `_has_symlink` 仍在
+- `-k plugin_zip` → **28 项** PASS；`-k archive_slip` → 23 项；`-k import_slip` → 17 项（P1-4 未回归）；`-k i18n` → 240 项；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：`../evil.txt` 成员被拒 + 目录内外零落盘 + 临时 zip 被删 / **绝对路径**成员被拒 / **软链逃逸**成员被拒（POSIX；Windows skip 并用静态断言替代）/ 校验函数不可用或抛异常 → **fail-closed** / 合法插件包（`info.json` + `.py`）正常通过 / 静态断言校验行号早于解压行号、两个入口均有校验、事后 `_has_symlink` 未被删
+- **变异自证 2 段**：①删掉解压前 `safeArchiveCheck` → 用例 1/6 红 → 加回绿；②把「校验失败→拒绝」改成「记录后继续解压」→ 用例 1/2/3 红 → 改回绿
+
+**遗留**
+1. `inputZipApi` 的校验对象是**目录**而非归档，因此用的是同一套「软链」判据（`_checkPluginSourceDir`）而不是 `safeArchiveCheck`——这是入口形态决定的，已在代码注释说明；若将来它自己解压归档，必须换成 `safeArchiveCheck`。
+2. 插件包**导入后**的 `install.sh` 执行仍是 root 执行第三方脚本（属「插件可信度」问题，不在本项范围；P1-3/P2-11 覆盖下载与扫描面）。
+
+### P2-11 待审核插件纳入安全扫描门禁 + 转正检查单 —— 已完成（2026-10-22）
+
+**① 待审核目录纳入扫描（棘轮式，不一次性推翻 CI）**
+- `scripts/verify_code_quality.py`：新增 `PENDING_SCAN_DIR = '文档/待审核插件'`（`:95`，**单独成常量**，不进 `SCAN_DIRS` 以免污染既有语义）；新增 `PENDING_METRICS`/`ALL_METRICS`（`pending_` 前缀指标族，`:103`）；新增 `_iter_pending_py_files()` 并抽出 `_scan_files()`，`run_scan()` 改两段扫描（正式段 → `METRICS`，待审核段 → `PENDING_METRICS`，待审核段 `in_web=False` 与正式插件同口径）；`counts_of()`/`--verbose`/`--update`/门禁循环改走 `ALL_METRICS`。**检测器本体 `scan_text()` 一行未改**（判据天然同一套）。
+- `scripts/code_quality_baseline.json`：原 5 键值（0/0/0/3/69）不变，新增 5 个 `pending_*` 键 = **实测现值**（由 `--update` 生成，不手填）。
+
+**实测基线（依据）**：待审核目录 34 个条目（33 插件目录 + README），44 个 `*.py`，15 个文件有命中 → `pending_bare_except=32`、`pending_os_system_count=13`、`pending_print_in_web=0`、`pending_silent_except=9`、`pending_writefile_bare_success=23`。
+
+**② CI 触发范围与扫描范围对齐**
+`.github/workflows/security-scan.yml`：push 与 pull_request **两处** `paths:` 各补 `文档/待审核插件/**`；bandit 是**显式列目录**，两处命令（阻断 `-lll` 与全量报告）都补上该目录。
+`testsuite/test_ci_workflows_hardening.py` 的 `_SCAN_PATHS` 基线补一条（该用例对触发路径做逐字基线比对）——**这是收紧**（多一条必须存在的 path），不是放宽。
+
+**③ 新增 `文档/插件转正检查单.md`**（113 行 / **25 个可勾选项**）：同一套棘轮扫描 + bandit 无 HIGH、人工审计（`execShell`/`os.system`/`eval`/裸拼命令/路径拼接/上传解压/权限属主/外部下载 TLS+哈希）、危险版本口径（引用《组件生命周期与安全响应政策》）、i18n 六语言与死键、安装脚本严格模式+ERR trap+`|| true` 甄别（引用 P1-8 规范库）、依赖与锁例外口径、转正后移出待审核并同步 36 插件契约计数；末尾带「审计人/日期/结论」表格模板。
+
+**④ 方案文档**：P2 表格**第 11 行**（`:268`）按已落地口径重写（表格仍 4 列，`|| true` 已转义避免破表）。
+
+**改动/新增文件**：`scripts/verify_code_quality.py`、`scripts/code_quality_baseline.json`、`.github/workflows/security-scan.yml`、`testsuite/test_ci_workflows_hardening.py`（1 处基线收紧）、方案文档；新增 `文档/插件转正检查单.md`、`testsuite/test_pending_plugins_scan_scope.py`（**14 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`PENDING_SCAN_DIR:95`、5 个 `pending_*` 基线键（32/13/0/9/23）；`security-scan.yml` 中 `文档/待审核插件` 出现 **5 次**（两处 paths + 两处 bandit + 头注）；`文档/插件转正检查单.md` 在位
+- `-k pending_plugins` → **14 项** PASS；`-k ci_workflows` → 21 项；`-k docs` → 8 项；`-k plugin` → PASS；`--static` → **PASS**（代码质量棘轮已含待审核段）
+- 用例覆盖：扫描范围常量含该目录 / 基线键存在且真跑棘轮 ≤ 基线 / **两处 `paths:` 都含该目录（`yaml.safe_load` 解析断言，非文本匹配）** / 检查单存在且关键条目（`os.system`/`bandit`/`i18n`/严格模式/`writefile`）齐 / 基线值与用例常量**双向校验**（改一处漏一处即红）/ 待审核目录仍存在且条目 > 0（防删目录蒙过检查）
+- **变异自证 2 段**：①把 `文档/待审核插件` 从扫描范围常量删掉 → 用例 1/2 红 → 加回绿；②从 push 分支 `paths` 删掉该行 → 用例 3 红（YAML 解析断言）→ 加回绿
+
+**遗留**
+1. **34 个待审核插件里的实际问题未修**（本项只做「纳入扫描 + 检查单」）：实测 `bare_except 32`、`os.system 13`、`silent_except 9`、`writefile_bare_success 23`。建议转正顺序：先修 `os.system`（最危险）→ 再 `bare_except`/`silent_except` → 最后 `writefile_bare_success`。
+2. 基线是**只减不增**的棘轮；新增待审核插件若带入新违规会让 CI 红（这是期望行为）。
+3. `web/utils/plugin.py:1088` 仍把 `待审核` 排除在插件列表外（不可达状态保持），本项未改——转正后才进 `plugins/`。
+
+### P2-12 execShell shell=True 债务：年度下降目标 + 新代码 argv 检查点 —— 已完成（2026-10-22）
+
+**① 给棘轮加「年度下降目标 + 判定口径」（写死整数，不用公式现算）**
+`testsuite/test_shell_concat_ratchet.py:101` 新增
+```python
+REDUCTION_PLAN = (
+    ('2026-10-22',  81, 316),   # 基线快照日（当日实测 81 / 316）
+    ('2027-06-30',  57, 221),   # ≈ 基线 70%
+    ('2027-12-31',  32, 126),   # ≈ 基线 40%
+    ('2028-06-30',   0,   0),   # 清零
+)
+```
+配套 `_parse_plan_date()` / `plan_tier_for()`（按日期判定当前档）/ `plan_limit_for()`；模块 docstring 顶部加「偿还计划」说明。**既有 18 个用例一行未动**（`test_10_no_new_violations` 的指纹机制保留）。
+
+**② 基线顺带收紧（只删不增）**：`scripts/shell_concat_baseline.txt` **84 → 81**（剪掉已被前序任务改好的 `cleanup.py::cleanup_legacy_plugins`(chattr 改 argv)、`crontab.py::getShell`、`crontab.py::writeShell`(chmod 改 argv)）；`scripts/shell_concat_baseline_plugins.txt` **322 → 316**（剪掉 mysql 的 `adjust_password_policy`×2 与 `setRootPwdForce` 的 4 条 `bare_variable`，均系 P2-5 改 argv 后失效的指纹）。
+
+**③ 新代码默认 argv 的可执行检查点**
+- `web/core/yf/__init__.py` 的 `execShell`/`execShellRc` docstring 顶部写死约定：**新代码默认 argv 列表 + `shell=False`**；只有命令含 shell 内建/管道/重定向且**参数不含外部输入**时才允许 `shell=True`，且必须就地注释理由。**业务逻辑与既有 shell 调用零改动**。
+- 静态用例：把「新增/改动文件」（`git ls-files --others --exclude-standard` + `git diff --name-only HEAD`）作为新代码集合，复用棘轮 `analyze_source()` 断言 `analysis == {}`；git 不可用或无改动时 skip（不假红）。
+- 注：P2-5 已把 `setRootPwdForce` 全面改 argv，所以插件段基线能真实下降 6 条。
+
+**④ 文档**
+- 方案 P2 表格**第 12 行**按落地口径重写（`参考/` 被 `.gitignore` 忽略，属工作区文件）。
+- `文档/组件生命周期与安全响应政策.md` 新增 `## 9. 技术债偿还计划（shell 拼接）`：问题形态 / 当前实测数 / 档位表 + 判定口径 + 三条硬约束 / 新代码 argv 约定 + 检查点 / 还债顺序。
+
+**改动/新增文件**：`testsuite/test_shell_concat_ratchet.py`、`scripts/shell_concat_baseline.txt`、`scripts/shell_concat_baseline_plugins.txt`、`web/core/yf/__init__.py`（仅 docstring）、生命周期文档、方案文档；新增 `testsuite/test_shell_debt_reduction_plan.py`（**8 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`REDUCTION_PLAN` 四档在上（81/316 → 57/221 → 32/126 → 0/0）
+- `-k shell_concat` → **18 项** PASS（未回归）；`-k shell_debt` → **8 项** PASS；`-k sh` → 157 项；`-k docs` → 8 项；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：`REDUCTION_PLAN` 日期升序 + 上限**单调不增** + 最后一档全 0（有终点）/ 按当前日期判定档位并断言实际违规数 ≤ 该档上限 / 基线文件条目数与第一档一致（防两套数打架）/ 新代码检查点（git 不可用则 skip）/ 生命周期文档含第 9 节与 `2027` 日期 / `execShell` docstring 含「argv」「shell=False」
+- **变异自证 2 段**：①第一档上限改成比实测更小（假装更严）→ 用例 2 红 → 复原绿；②最后一档改成非 0（去掉终点）→ 用例 1 红 → 复原绿
+
+**遗留**
+1. **397 处历史 shell 拼接本轮未改**（web 81 + 插件 316）：按 `REDUCTION_PLAN` 在 2028-06-30 前清零；建议顺序：先 `inline_bare_concat`（含外部输入的）→ 再 `bare_variable` → 最后纯字面量管道。
+2. 插件段与 web 段**各自一份目标**（口径不同：插件是第三方代码，改造成本更高）。
+3. `shell=True` 不会被移除（大量 `ps|grep|xargs` 类字面量管道依赖它），策略是「新代码默认 argv + 存量按计划下降」。
+
+### ⚠ 阶段记录：用户在 P2 阶段中途自行提交了一次
+
+- **事实**：`git log` 出现新提交 `6148f12ba php高危CVE-2026-109618和CVE-2026-109619 +安全性整体升级`（Date: 2026-10-22 15:49:47），作者 `clhome <wzuccie@gmail.com>`，包含 P0/P1 阶段成果（`python-app-php.yml`、`release.yml`、`RELEASE_TEMPLATE.md`、`SECURITY.md`、`cli.sh`、`compatibility.md` 等）。
+- **不是我提交的**：本次任务红线明确「不 git commit」，我全程未执行任何 commit。
+- **影响**：P2 阶段（P2-1 起）的改动目前仍在工作区未提交（`git status` 约 110 项）。最终审阅时请把 `6148f12ba` 与工作区改动**分开看**。
+- **建议**：后续若仍要我继续，我不会 commit；需要我给出「按阶段分组」的改动清单以便你分次提交时，可以在 task-final 一并提供。
+
+### P2-13 PHP session/upload 目录 chmod 777 → 1730 —— 已完成（2026-10-22）
+
+**① 权限改 1730（sticky + owner rwx + group wx + others 无）**
+`plugins/php/index.py` 新增权限三件套（`:786-823`）：
+- `SHARED_PHP_DIR_MODE = '1730'`（chmod argv 用）与 `SHARED_PHP_DIR_MODE_BITS = 0o1730`（回读断言用，二者必须一致）
+- `_chownSharedPhpDirs()`（`:815-816`）= `execShellRc(['chown','-R','www:www',session,upload], shell=False)`
+- `_chmodSharedPhpDirs()`（`:822-823`）= `execShellRc(['chmod', SHARED_PHP_DIR_MODE, session, upload], shell=False)`
+- `_hardenSharedPhpDirs()`（幂等，含**存量修复**）：目录已存在时**照样 chown/chmod**（所以旧版本留下的 0777 会被原地修回 1730），返回 `(ok, logs)`。
+- **`chmod 777` 在 `plugins/php/index.py` 已清零（grep = 0）**；三条含变量插值的 shell 字符串**改成了 argv 列表**（符合 P2-12 的「新代码默认 argv」约定）。
+- `initReplace()` 与 `upgradeSelfHealing()` **两个入口**都走同一口径。
+
+**② 存量修正路径有证据**：`_hardenSharedPhpDirs` 对已存在目录不跳过权限校准（跳过只针对「是否新建」），用例 4 用「先造 0o777 目录 → 跑校准 → 断言 0o1730」证明不是只管新建；成功/失败都写进 `logs`（`session/upload 目录权限已校正为 1730` / 明确失败原因），**不静默**。
+
+**③ 「按站点属主隔离」→ 选择「待评估」，未硬改（诚实记录理由）**
+PHP 的 `session.save_path` 是**每版本 pool 一个全局值**，按站点拆分需要给每站点独立 `session.save_path`（pool 级/站点级），**会改变 session 可见范围与磁盘布局，可能让现有用户 session 失效**——属产品决策级改动。已产出设计/风险/迁移说明：`文档/php-session-upload-目录权限与按站点隔离待评估.md`，并在代码注释与方案里标注「按站点隔离为待评估项」。**1730 + 属组隔离这一半已交付**。
+
+**④ 一处工程细节（值得记）**：`run_all.py -k` 是按**模块文件名子串**过滤的，而本项正式用例名 `test_php_session_dir_perm.py` 不含连续子串 `php_session_perm`——直接 `-k php_session_perm` 会选出 **0 个模块但退出码 0**（本仓库反复强调的**假绿**）。因此新增了 20 行**别名模块** `testsuite/test_php_session_perm.py`：只重新导出正式模块，**不含任何断言**（断言全在正式文件里）。
+
+**改动/新增文件**：`plugins/php/index.py`（+143/−17）；新增 `testsuite/test_php_session_dir_perm.py`（**18 用例**）、`testsuite/test_php_session_perm.py`（别名，无断言）、`文档/php-session-upload-目录权限与按站点隔离待评估.md`。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`grep -c "chmod 777" plugins/php/index.py` = **0**；`SHARED_PHP_DIR_MODE='1730'`（`:786`）与 `0o1730`（`:788`）；chown/chmod 均为 argv + `shell=False`（`:815-823`）
+- `-k php_session_perm` → **18 项** PASS；`-k php_session_dir_perm` → 18 项（两种过滤都选得到，非假绿）；`-k shell_concat` → 18 项 PASS（未回归）；`-k php` → **428 项** PASS；`-k php_pool` / `-k php_ini` → PASS；`--static` → PASS
+- 用例覆盖：无 `chmod 777` + 含 `1730` / chmod·chown **首参必须是 `ast.List`**（不是字符串/裸变量）/ **回读 `st_mode & 0o7777 == 0o1730`**（POSIX；Windows skip 并改用静态断言）/ **存量 0o777 → 0o1730** / 成功与失败各有明确日志 / 站点隔离标注存在
+- **变异自证 2 段**：①`1730` 改回 `777` → 用例 1/3 红 → 复原绿；②去掉「已存在目录也修正」→ 用例 4 红 → 复原绿
+
+**遗留**
+1. **按站点属主隔离未实现**（待评估）：需产品决策（是否接受 session 失效/迁移成本）；设计与迁移步骤已写进 `文档/php-session-upload-目录权限与按站点隔离待评估.md`。
+2. 别名模块让这 18 条用例在**全量门禁里会跑两遍**（`test_php_session_perm` 与 `test_php_session_dir_perm` 都匹配全量收集）——无害（只读回读断言），但若在意耗时，可把正式文件改名并在 `run_all` 里加别名映射。
+3. `scripts/shell_concat_baseline_plugins.txt` **未删行**：这三条 shell 字符串原本是 `inline_bare_concat` 指纹，改 argv 后指纹消失，但棘轮对「基线里已不存在的指纹」不报错，故本次未动；下次 `--print-baseline` 时可一并清理（P2-12 的下降计划会覆盖）。
+
+### P2-14 i18n 门禁扩到 web/ 后端 + 空值键与 .bak 清理 —— 已完成（2026-10-22）
+
+> 执行说明：subagent **超时**（改动已落盘、用例已过，但没出报告）。代码与清理结果我逐一核过，**变异自证由我本人补做**。
+
+**① backend-msg-key 扩到 `web/`（棘轮式，只减不增）**
+`scripts/verify_i18n.py`：新增 `BACKEND_MSG_KEY_SCOPES = ('plugins', 'web')`（`:785`）与 `WEB_BACKEND_ROOT = os.path.join(WORKSPACE,'web')`（`:782`），`check_backend_msg_key()` 现在**同时扫插件段与 web 段**（沿用同一解析器，判据不变）；新增 `WEB_BACKEND_MSG_CALL_RE`（`:747`）识别 web 的实际出口 `returnMsg(`；新增基线文件 **`scripts/i18n_web_backend_baseline.txt`** 与 `--write-web-backend-baseline` 生成开关（`:34`），门禁断言「当前 ≤ 基线」，**新增 web 后端中文消息若不在语言包即红**。
+`--verbose` 可区分「插件段 / web 段」两段计数。
+
+**② 触发路径补齐**：`.github/workflows/i18n-check.yml` 的 push 与 pull_request 两处 `paths:` 都补 `web/**/*.py`（共 4 处命中），改 web 后端现在会真的触发门禁。
+
+**③ 存量清理（精确计数）**
+- **产品内 `*.i18n.bak`：33 → 0**（删前 grep 确认无代码/构建引用）
+- **`test/tmp_plugin_i18n_audit/` 下 31 个 `.bak` 完整保留**（它们是审计对照基线，删了会让既有用例红）
+- **空值键清零**：`verify_i18n.py` 新增/激活 `empty-values` 检查项（「语言包无空值键，派生为空的纯标记除外」）→ `scripts/verify_i18n.py` 现在 **12 项检查全通过**
+- `plugins/clean/lang/{de,en,fr,it}.json` 等语言包随之清理（清理后 `-k i18n` 260 项全绿）
+
+**改动/新增文件**：`scripts/verify_i18n.py`、`.github/workflows/i18n-check.yml`、若干语言包、删除 33 个产品 `.i18n.bak`；新增 `scripts/i18n_web_backend_baseline.txt`、`testsuite/test_i18n_web_backend_scope.py`（**20 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：产品 `.bak` = **0**；`test/` 夹具 `.bak` = **31**（未误删）；`BACKEND_MSG_KEY_SCOPES=('plugins','web')`（`:785`）、`WEB_BACKEND_ROOT`（`:782`）；`i18n-check.yml` 含 `web/**/*.py` 4 处；基线与新用例文件在位
+- `-k i18n_web_backend` → **20 项** PASS；`-k i18n` → **260 项**（原 240 + 20）PASS；`--static` → PASS；`python scripts/verify_i18n.py` → **12 项全通过**（新增 `empty-values` 通过）
+- 用例覆盖：扫描范围常量含 `web` 且真跑 `verify_i18n.py` 退出码 0 / **能变红自证**（塞一条「web 后端中文消息 + 语言包无键」→ 必须被报出）/ **两处 paths 都含 `web/**/*.py`（`yaml.safe_load` 断言）** / 产品 `.bak` 计数 0 且 `test/` 夹具 ≥30 / 空值键 0 / 基线与用例常量**双向校验**（防悄悄放宽）
+- **变异自证（我本人执行）**：把 `BACKEND_MSG_KEY_SCOPES` 改回 `('plugins',)` → `test_01_scope_constant_and_call`、`test_02_web_scope_scans_real_web_files`、`test_10_new_message_is_reported`、`test_11_...`、`test_52_baseline_equals_live_misses` **5 组红** → 复原 `diff -q` 一致、`MUTATION` 残留 0、20 项 OK
+
+**遗留**
+1. **web 段仍有基线存量**（`scripts/i18n_web_backend_baseline.txt` 不是空的）：存量 web 后端中文消息没一次性补译，靠棘轮只减不增；下个版本按该文件逐条补。
+2. 空值键检查放行了「派生为空的纯标记」——这类是占位型键（前端动态填充），已在检查项说明里写清口径。
+3. `.bak` 是历史遗留的翻译备份，删掉后如需回溯只能看 git 历史（已可回溯，未额外归档）。
+
+### P2-15 cron_name 白名单导致历史任务静默停摆 → 列表状态标记 —— 已完成（2026-10-22）
+
+> 执行说明：subagent **超时**（代码已落盘、用例已过，未出报告）。改动我逐一核过，**变异自证由我本人补做**。
+
+**① 后端：列表返回带「被拒状态 + 原因」**
+`web/utils/crontab.py` 新增模块级纯函数 **`cron_name_status(echo)`（`:77`）**，复用 `_cron_safe_name()` / `_CRON_NAME_RE`（**单一判据，不另写正则**）：
+- 合规 → `{'sync_ok': True, 'sync_reason': '', 'sync_reason_code': ''}`
+- 被拒 → `{'sync_ok': False, 'sync_reason': <中文指引：仅允许 A-Za-z0-9_.-、最长 64、请编辑任务重新保存以生成合规标识>, 'sync_reason_code': 'cron_name_invalid'}`
+`getCrontabHuman()` 拼装处（`:510` 附近）**只新增这三个字段，不动既有字段**（前端在用）。
+
+**② 前端标记**：`web/static/app/crontab.js` 对 `sync_ok === false` 的任务加醒目状态标记（含 `sync_reason` 提示），文案走 i18n（`lan.js` 唯一真源 + `export_lang_carriers.py --apply` 派生 `template.crontab.json` 等）。
+
+**③ 升级需知**：`文档/组件生命周期与安全响应政策.md` 新增 **`## 10. 升级需知：cron 任务标识白名单`**（`:302`）：哪些历史任务会受影响、面板里怎么识别（`sync_ok`/`sync_reason_code` 字段表，`:338`）、怎么修（编辑并重新保存即生成合规 `cron_name`）；文档开头「适用范围」（`:8`）也已登记该节。
+方案 P2 表格**第 15 行**同步更新。
+
+**改动文件**：`web/utils/crontab.py`、`web/static/app/crontab.js`、六语言 `lan.js` + 3 个派生载体 × 6、生命周期文档、方案文档；新增 `testsuite/test_crontab_sync_status.py`（**12 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`cron_name_status:77` 在位；`sync_ok`/`sync_reason`/`sync_reason_code` 三字段在 `:91-98`；`crontab.js` 含 2 处判定；文档 `:302 ## 10. 升级需知`、`:338` 字段表；`python -m py_compile` OK
+- `-k crontab_sync` → **12 项** PASS；`-k crontab` → **36 项** PASS（未回归）；`-k i18n` → PASS；`--static` → PASS；全部 EXIT=0
+- 用例覆盖：一条合规 + 一条历史非法 `echo`（`echo hello; rm -rf /tmp/x`）→ 非法那条 `sync_ok is False` 且 `sync_reason_code=='cron_name_invalid'`、`sync_reason` 含「重新保存」类指引；合规那条 `sync_ok is True` / **判据单一来源**（与 `_cron_safe_name(echo)` 同结论）/ 既有字段保留 / 六语言键齐 / 文档含「cron」「白名单」/ 静态断言判定正则只有 `_CRON_NAME_RE` 一处
+- **变异自证（我本人执行）**：在 `cron_name_status` 开头插 `return {'sync_ok': True, ...}`（恒合规）→ `test_01_list_exposes_rejected_and_ok` + `test_02_single_source_of_truth` **2 红** → 复原 `diff -q` 一致、`MUTATION` 残留 0、12 项 OK
+
+**遗留**
+1. 被拒任务**不会自动修**（面板只标记 + 给指引）：需用户编辑保存一次以生成合规 `cron_name`；自动迁移（按时间戳生成新标识并改写脚本名）会动用户 crontab，属高风险，未做。
+2. `sync_reason` 文案在 `cron_name_status` 内用 `_t(...)` 取（六语言已登记）；若某语言缺键会回退中文——`-k i18n` 的键齐检查已覆盖。
+3. 该状态字段只在任务列表返回中；`crontab` 的 CLI 路径（若存在）未加同口径提示。
+
+### P2-16 杂项四项 —— 已完成（2026-10-22）
+
+> 执行说明：subagent **超时**（A/B 完成、C 正在加注释、D 已改，未出报告）。四项我逐一核过，**两段变异自证由我本人补做**。
+
+**A. `web/utils/site.py` 证书失败消息走翻译层**
+两处裸中文多行 `msg`（原 `:2923`、`:3158`）改为**代码键**：文案进语言包，HTML 结构留在代码里（`:48` 注释说明该分工）；六语言 `lan.js`（唯一真源）+ `export_lang_carriers.py --apply` 派生载体；**zh-TW 无简体残留**（`-k i18n` 260 项绿为证）。
+
+**B. `plugins/docker/index.py` 端口格式校验**
+新增模块级纯函数 **`_parseDockerPort(raw)`（`:1141`）**，`dockerPortCheck()`（`:1176`）改为 `:1185 ok, port = _parseDockerPort(args['port'])`。
+合法形态只有两种（`:1115` 注释写明）：**纯端口** 或 **恰一个冒号的「地址:端口」**（地址段只允许 `*` / IPv4 / `[IPv6]`）。`1:2:3`（多冒号、非 `[::1]:80` 形态）**明确拒绝**并返回中文错误；端口仍限 `1..65535`；既有合法输入结论不变。
+
+**C. `cgi.fix_pathinfo` 复评结论 = 保留默认 `1`（有证据）**
+- 先读 nginx/OpenResty 模板，确认**已用 `try_files` + `fastcgi_split_path_info` 把不存在的 `.php` 路径挡在 FPM 之外**（这正是 `fix_pathinfo=1` 是否可被利用的关键前提）。
+- 因此**不改默认值**，而是在四处默认值旁加注释说明「为什么 1 是安全的（依赖 nginx 模板的 try_files 防护），勿随手改 0」（`plugins/php/index.py:734`、`:1867`，另两处同口径），并把 UI 该项说明补成「本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的」（`:1850`）。
+- 反过来说明为什么**不盲目改 0**：改成 0 会让依赖 PATH_INFO 的老框架（如部分 ThinkPHP/CI 路由）行为变化，属兼容性风险；有 try_files 防护时 1 并不放大攻击面。
+
+**D. `panel_task.py:626` WAL 注释与实现对齐**
+核对当前实现：`web/core/resources.py::get_sqlite_pragmas()` **只下发** `synchronous`/`cache_size`/`busy_timeout`，**不设 `journal_mode`、不开 mmap** ⇒ 面板库跑在 SQLite 默认 **rollback journal（delete）**。注释已改为「当前跑在 rollback journal 上；历史上曾显式用过 WAL，已因 `panel.db-shm` 共享内存被重置/截断时持映射进程 **SIGBUS 静默死亡**而回退（详见该函数 docstring；`web/core/db.py::_applyPragmas()` 与 `web/core/migrations/runner.py::_pragmas()` 兜底分支同口径）」，并保留「为什么必须用 `Connection.backup()`」的原有论证。**只改注释，未动逻辑。**
+
+**改动文件**：`web/utils/site.py`、`plugins/docker/index.py`、六语言 `lan.js` + 派生载体、`plugins/{php,php-apt,php-yum}/index.py`（C 项注释/UI 文案）、`panel_task.py`；新增 `testsuite/test_p2_16_misc.py`（**22 用例**）。
+
+**验证证据（全部实测，我自己复跑）**
+- 实测：`_parseDockerPort:1141` + `dockerPortCheck:1176`/`:1185` 接线；`fix_pathinfo` 四处默认值旁均有结论注释与 UI 提示；`panel_task.py` 已无「面板库跑在 WAL 模式下」的矛盾表述，且写明 rollback journal + WAL 回退原因
+- `-k p2_16` → **22 项** PASS；`-k docker` → 94 项；`-k i18n` → 260 项；`-k php` → 428 项；`--static` → PASS；`-k site` 仅 `test_site_create_default_page.py` 红（**本机既有环境性红**：PyPI 同名 `web` 包劫持 `web/` 命名空间导入，与本项无关，属 4 个已知红之一）
+- 用例覆盖：B 端口表驱动（`'80'`/`'0.0.0.0:80'`/`'*:443'`/`'[::1]:8080'` **通过**；`'1:2:3'`/`'a:b:80'`/`'0'`/`'65536'`/`'abc'`/`':80'` **拒绝**）+ `dockerPortCheck` 必须走 `_parseDockerPort` 的接线断言 / A 无裸中文字面量 + 六语言键齐 / C 四处默认值与结论一致 + 代码/UI 有理由 + nginx 模板确有 `try_files` 证据 / D 注释不再矛盾且说明历史与现状
+- **变异自证 2 段**：①把 `dockerPortCheck` 退回旧 `rsplit(':',1)` 写法 → `test_05_docker_port_check_uses_parser` 红 → 复原 `diff -q` 一致；②把注释改回「面板库跑在 WAL 模式下」→ `test_01_comment_no_longer_claims_wal` 红 → 复原一致；两文件 `MUTATION` 残留 0、22 项 OK
+
+**遗留**
+1. **C 项结论依赖 nginx 模板的 try_files 防护**：若某用户自建站点模板移除了 `try_files`/`fastcgi_split_path_info`，`fix_pathinfo=1` 就可能被利用。已在代码注释与 UI 说明里点明该前提；更强的做法是「检测到模板缺防护时把该项强制为 0」——属后续小项（需先有模板检测能力）。
+2. B 项的 IPv6 只接受 `[::1]:8080` 方括号形态（未带方括号的多冒号串一律拒绝），与前端「地址:端口」的既有约定一致。
+3. A 项只做键化，文案措辞未改（避免影响用户从既有截图/文档对照）。
+
+---
+
+## 阶段三（P2）收尾
+
+- P2-1 ~ P2-16 **全部关闭**，逐项证据见上。
+- 阶段收尾 `python testsuite/run_all.py --static` → **全绿**（4 项静态门禁：i18n 12 项 / i18n 检测器自证 / 代码质量棘轮含待审核段 / 棘轮自证）。
+- 本机全量门禁仍有 **4 个既有环境性红**（与 29 项整改无关，按用户决定：权威全量门禁用 WSL Debian + Python 3.11 跑）：
+  `test_all_python_syntax`（工作区 `test/` 未入库陈旧副本的 f-string 语法）、`test_index_soft_sort` 与 `test_site_create_default_page`（本机 PyPI 同名 `web` 包劫持 `web/` 命名空间）、`test_rsyncd_d09_hardening`（Windows 无 `/etc`）。
+
+---
+
+## task-final 全量门禁 + 反向抽查 + 一致性核对（2026-10-22）
+
+### 1. 完整门禁结果与「红项归属」（本机 Windows 环境）
+
+**实际工作区（含本轮全部 29 项改动）**
+```
+用例：266 个参与门禁，0 个隔离；静态门禁 4 项；总耗时 114.5s
+参与门禁的用例共 3333 个 test 方法
+❌ 门禁未通过：4 项失败
+    test_all_python_syntax.py / test_index_soft_sort.py /
+    test_rsyncd_d09_hardening.py / test_site_create_default_page.py
+```
+
+**归属结论：4 项全部与本轮改动无关，且逐项有实证**
+
+| 红项 | 成因 | 证据 |
+|---|---|---|
+| `test_index_soft_sort.py`<br>`test_site_create_default_page.py` | 本机**用户 site-packages 装了 PyPI 同名 `web` 包**，而仓库 `web/` 没有 `__init__.py`（命名空间包），Python 的「常规包优先于命名空间包」规则让流氓包劫持了 `web.utils` | ① `PYTHONNOUSERSITE=1` 重跑这两个模块 → **全绿**（但会连带屏蔽真实依赖，不能作为普遍跑法）；② 在 `bc743eb` 干净 worktree 上同样红 |
+| `test_rsyncd_d09_hardening.py` | 断言 `/etc/ssh` 属危险路径，**Windows 无 `/etc`** → 黑名单不就位 | 在 `bc743eb` 干净 worktree 上同样红 |
+| `test_all_python_syntax.py` | 工作区 `test/` 下**未入库**的本地临时副本 `test_php_pool_healing_and_ui_quotes.py:41` 用了 py3.12+ 才允许的「f-string 内含反斜杠」 | ① `git ls-files test/` = **0**（该目录整体未入库）；② 把它临时改名后重跑，报错路径随之变成 `_tmp_ut\...`，证明就是它；③ `bc743eb` 干净 worktree 没有这些临时文件，该模块**通过** |
+
+**基线对照（同一解释器、同一命令）**
+
+| 检出 | 红项数 | 红项 |
+|---|---:|---|
+| `bc743eb`（本轮起点，干净 worktree） | **3** | index_soft_sort / rsyncd / site_create_default_page（全为环境性） |
+| `6148f12ba`（**用户中途自行提交**，干净 worktree） | **6** | 上述 3 + `test_dependency_lock_and_hygiene` / `test_edition_layering` / `test_yf_package_contract` |
+| 实际工作区（含本轮改动） | **4** | 上述 3 + `test_all_python_syntax`（未入库临时文件） |
+
+⇒ **本轮改动没有引入任何新的门禁失败**；并且把用户那次提交里多出的 3 个红（依赖锁/分层/包契约）在**实际工作区里跑绿了**（分别由 P2-9 / P1-9 / P2-11 的改动覆盖）。
+
+**关于「退出码 0」**：本机 Windows 上**无法**达成——`test_rsyncd_d09_hardening` 需要 Linux 的 `/etc`，另两个需要用户环境里没有那个流氓 `web` 包（用户已决定「不碰环境、不改用例」）。权威全量门禁在 **CI（ubuntu-latest）**：`.github/workflows/core-regression.yml` 跑的就是 `testsuite/run_all.py`，干净检出下上述 4 个红均不复现（`test_all_python_syntax` 已由干净 worktree 实测证明）。
+本轮所有**受改动影响的模块**均已本地逐项跑绿（见各条记录），阶段收尾 `--static` 全绿。
+
+### 2. 门禁红线核对
+- `testsuite/quarantine.txt`：`git status` **无改动**，条数仍 **47**（未新增任何隔离项）
+- 未删除/放宽既有断言换绿；个别既有断言被**收紧**（`test_request_security_hardening` 的「API 头即豁免」改为「必须真鉴权」；`test_misc_security_hardening` 的 SHA256 降级改为 fail-closed；`test_ci_workflows_hardening` 的扫描路径基线各加一条）——三处均已在对应记录里说明「属收紧」
+- **我全程未执行 `git commit`**（最新提交 `6148f12ba` 是用户 15:49 自行提交的）
+
+### 3. 反向抽查（方案路径:行号 vs 现状）—— 16/16 通过
+
+| 抽查点 | 结论 |
+|---|---|
+| P0-1 `versions/82` = 8.2.35、`versions/85` = 8.5.12 | OK |
+| P0-2 基线表落在 `web/core/php_sec_baseline.py`（`'84': '8.4.27'`） | OK |
+| P0-3 pool 512M + `session.upload_progress.enabled = 0` | OK |
+| P0-4 `plugins/php/info.json` 仅 `['82','83','84','85']` | OK |
+| P1-1 升级强制 sha256 + `_run_release_verifier` | OK |
+| P1-4 导入先 `safeArchiveCheck`（`import_archive.py`） | OK |
+| P1-7 `writeFile(..., must=False)` | OK |
+| P2-4 `db_pwd.MARKER = 'yfenc:'` | OK |
+| P2-5 无 `-p'{new_password}'`（口令不上 argv） | OK |
+| P2-6 `PURPOSE_CODE` 分级常量 | OK |
+| P2-7 `enDoubleCrypt` 不再 `return strings` | OK |
+| P2-10 插件包解压前 `_safeExtractPluginZip` | OK |
+| P2-13 无 `chmod 777` 且 `SHARED_PHP_DIR_MODE = '1730'` | OK |
+| P2-15 `sync_reason_code` 字段 | OK |
+| P2-16 `_parseDockerPort` | OK |
+
+### 4. task.md ↔ 方案 一致性
+- `task.md` 本轮记录数：**30**（`task-0` + P0-1~P0-4 + P1-1~P1-9 + P2-1~P2-16），与方案 29 项**逐条对应**，无遗漏、无多余编号。
+- 方案文件已在**文首「修订记录」**（R1–R17）记录 17 处方案自身问题与修正；并在实施过程中**按项同步更新**方案正文：P0-1 补 `makeOpenrestyConf` 清单收口、P0-2 补两道判存、P2 表格第 3/6/8/11/12/15/16 行按落地口径重写，另新增「依赖关系与执行顺序」「附录 A/B」——**不存在「改了代码没改方案」的漂移**（第 3 节抽查即为此设）。
+- 每项记录均含：改动文件、修法摘要、**验证证据**（用例名 + 命令 + 实际输出/grep 计数前后对比/变异自证的红→绿）、遗留说明。
+
+---
+
+## task-final 补充：本机环境修复 + 全量门禁真正 exit 0（2026-10-22 晚）
+
+> 上一节记录的是「按用户最初决定：不碰环境」时的情况（本机 4 红、exit 1）。用户随后批准「修本机环境 + 一处用例平台适配」，故有本节；**本节结论取代上一节的 exit 结论**。
+
+### 1. 环境修复（3 项，均有验证）
+| 问题 | 处置 | 验证 |
+|---|---|---|
+| 用户 site-packages 里有 PyPI 同名 `web` 包（`C:\Users\wzucc\AppData\Roaming\Python\Python310\site-packages\web`，非 pip 安装、面板不用它），因仓库 `web/` 无 `__init__.py`（命名空间包）而被其劫持 | 目录改名为 `web.disabled_by_env_fix_20261022`（**不删**，可随时改回） | `python -c "import web"` 现指向 `F:\...\bt_simple\web`；`test_index_soft_sort` / `test_site_create_default_page` 转绿 |
+| 未入库的陈旧副本 `test/test_php_pool_healing_and_ui_quotes.py:41` 用 py3.12+ 才允许的 f-string 反斜杠（已入库的 `testsuite/` 版本早已修好） | 改名为 `....py.stale`（**不删**） | `test_all_python_syntax` 转绿 |
+| `plugins/rsyncd/index.py::invalidRecvPath()` 的禁入区**只有 POSIX 路径**，Windows 上等于全放行（`C:\Windows\System32` 可当共享根）——这是**产品真缺口**，不是用例问题 | 产品补 `_windowsDenyDirs()`（`SystemRoot`/`ProgramFiles`/`ProgramFiles(x86)`/`ProgramData`）+ 盘符根判定；**刻意不把 `USERPROFILE` 列入**（否则 `%TEMP%` 下的合法共享全被判危险，实测过并已回退该条） | `testsuite/test_rsyncd_d09_hardening.py` 56 项全绿 |
+
+用例侧仅做**平台自适应**（不删不改弱断言）：`test_05` 的系统目录样本由写死 `/etc/ssh` 改为「POSIX 用 `/etc/ssh`、Windows 用 `%SystemRoot%\System32`」，并**新增** `test_05b_deny_list_covers_current_platform_system_dirs`（断言当前平台的系统目录与盘符根都必须被拒）。
+
+### 2. 全量门禁暴露的 5 处回归（我先前只跑 `-k` 相关模块，漏了它们）——已全部修掉
+
+| 红项 | 根因 | 处置 |
+|---|---|---|
+| `test_panel_cmd_path_guard` | **P2-5** 的 `_mysqlSqlLiteral` **docstring 示例**里有 `"…'\n + _mysqlSqlLiteral(` 形态，被守卫正则误判成「字符串字面量里的 JS 式拼接」 | 把示例改成散文描述（并注明为何不留代码块） |
+| `test_pagination_param_hardening` | **P2-4** 后 `getDbList()` 会调一批模块级辅助函数（`_decUserRows`/`getRootPwd`/`getConf`…），而该用例用 AST **只 exec 目标 def** ⇒ NameError | 在该用例的隔离命名空间里补最小替身（缺了就 NameError，不会静默）；**未改** `_exec_fn` 的通用行为（试过自动收集依赖，会把用到 `sys` 等的函数一起拉进来导致更多红，已回退） |
+| `test_edition_layering` | **P1-9** 把 `body_path` 从 `RELEASE_TEMPLATE.md` 改为渲染产物 `dist/RELEASE_BODY.md`（为注入真实 sha256），旧断言过期 | 断言改为 `body_path: dist/RELEASE_BODY.md` **且**仍断言 `RELEASE_TEMPLATE.md` 是正文真源（**收紧**，不是放宽） |
+| `test_dependency_lock_and_hygiene` | 同上 | 同上口径 |
+| `test_yf_package_contract` | **P2-3** 的用例补丁了 `yf._aes_key_cache`；**P2-13** 起有测试补丁 `yf.makeDirs` —— codemod 的 `PATCHED_STATE` / `PATCHED_FUNCS` 未登记 | `scripts/tools/split_yf_module.py`：`PATCHED_STATE += '_aes_key_cache'`、`PATCHED_FUNCS += 'makeDirs'` |
+
+> 教训记录：**「`-k 相关模块` 绿」不等于「全量绿」**——跨模块契约（旧断言/补丁集/字符串守卫）只有全量跑才暴露。后续每轮改完应尽早跑一次全量，而不是留到最后。
+
+### 3. 最终全量门禁（权威结论）
+```
+用例：291 个参与门禁，0 个隔离；静态门禁 4 项；总耗时 137.1s
+参与门禁的用例共 3757 个 test 方法
+✅ 全部门禁通过，可以提交。
+EXIT=0
+```
+- `quarantine.txt`：**未改动**（47 条不变，未用隔离区换绿）
+- 静态门禁 4 项全绿（i18n 12 项 / i18n 检测器自证 / 代码质量棘轮含待审核段 / 棘轮自证）
+- 我全程**未执行 `git commit`**（最新提交仍是用户 15:49 的 `6148f12ba`）

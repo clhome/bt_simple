@@ -122,8 +122,6 @@
     "synchronizing_server_firewall_rules": "Synchronisation des règles du pare-feu du serveur en cours, veuillez patienter...",
     "the_synchronization_request_failed": "Échec de la requête de synchronisation. Veuillez vérifier votre connexion Internet ou l'état du serveur.",
     "bordered_hover_layout_fixed": "Nom du processus",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "- Détails sur les processus utilisant les ports",
     "after_the_reset_the": "Après la réinitialisation, l'ancienne clé privée ne pourra plus être utilisée pour se connecter à ce serveur sans mot de passe (si la connexion par clé est activée). Voulez-vous vraiment régénérer la clé racine ?",
     "reset_root_key": "Réinitialiser la clé racine",

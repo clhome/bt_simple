@@ -440,7 +440,14 @@ def start():
     if not os.path.exists(pma_path):
         username = cfg.get('username') or yf.getRandomString(8)
         password = cfg.get('password') or yf.getRandomString(10)
-        pass_cmd = username + ':' + yf.hasPwd(password)
+        # 缺 bcrypt 时 hasPwd() 抛 PwdCryptoUnavailable（fail-closed）：
+        # 口令文件与 cfg 必须**一起不写**，不能落弱哈希。
+        try:
+            pass_cmd = username + ':' + yf.hasPwd(password)
+        except yf.PwdCryptoUnavailable as _e:
+            _log.error('[phpmyadmin] 生成 pma.pass 被拒绝（bcrypt 不可用）: %s', _e)
+            return yf.returnJson(
+                False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
         setCfg('username', username)
         setCfg('password', password)
         yf.writeFile(pma_path, pass_cmd)
@@ -601,7 +608,13 @@ def setPmaUsername():
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pma.pass'
-    pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    # 缺 bcrypt：拒绝生成/覆盖 pma.pass（fail-closed），不写弱哈希
+    try:
+        pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    except yf.PwdCryptoUnavailable as _e:
+        _log.error('[phpmyadmin] 保存基础认证口令被拒绝（bcrypt 不可用）: %s', _e)
+        return yf.returnJson(
+            False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
     yf.writeFile(pma_path, pass_cmd)
 
     yf.restartWeb()
@@ -622,7 +635,13 @@ def setPmaPassword():
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pma.pass'
-    pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    # 缺 bcrypt：拒绝生成/覆盖 pma.pass（fail-closed），不写弱哈希
+    try:
+        pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    except yf.PwdCryptoUnavailable as _e:
+        _log.error('[phpmyadmin] 保存基础认证口令被拒绝（bcrypt 不可用）: %s', _e)
+        return yf.returnJson(
+            False, '口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试')
     yf.writeFile(pma_path, pass_cmd)
 
     yf.restartWeb()

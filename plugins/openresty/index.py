@@ -752,7 +752,8 @@ def runInfo():
     # 取Openresty负载状态
     try:
         url = 'http://127.0.0.1:%s/nginx_status' % port
-        result = yf.httpGet(url, timeout=3)
+        # P2-6：本机 nginx_status 探测（低敏）→ purpose=low
+        result = yf.httpGet(url, timeout=3, purpose=yf.PURPOSE_LOW)
         tmp = result.split()
         data = {}
         data['active'] = tmp[2]
@@ -766,7 +767,7 @@ def runInfo():
     except Exception as e:
         try:
             url = 'http://' + yf.getHostAddr() + ':%s/nginx_status' % port
-            result = yf.httpGet(url)
+            result = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
             tmp = result.split()
             data = {}
             data['active'] = tmp[2]

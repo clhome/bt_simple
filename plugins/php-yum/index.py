@@ -697,6 +697,12 @@ def initReplace(version):
                 'upload_max_filesize': '50M',
                 'date.timezone': 'PRC',
                 'short_open_tag': 'On',
+                # cgi.fix_pathinfo 默认值保留 1（P2-16 复评结论，勿随手改 0）：
+                # 站点 vhost（web/misc/nginx/tpl/nginx.conf）引用的
+                # conf/enable-php-<NN>.conf 里，`location ~ [^/]\.php(/|$)` 首行
+                # 就是 `try_files $uri =404` —— 不存在的 .php 路径在 nginx 层
+                # 直接 404，FPM 收不到「不存在的 SCRIPT_FILENAME」⇒
+                # fix_pathinfo 的「向上回退找已存在文件」不会触发。
                 'cgi.fix_pathinfo': '1',
                 'max_execution_time': '300',
                 'display_errors': 'Off',
@@ -1024,7 +1030,7 @@ def getPhpConf(version):
         {'name': 'default_socket_timeout', 'type': 2, 'ps': 'Socket超时时间'},
         {'name': 'error_reporting', 'type': 3, 'ps': '错误级别'},
         {'name': 'display_errors', 'type': 1, 'ps': '是否输出详细错误信息'},
-        {'name': 'cgi.fix_pathinfo', 'type': 0, 'ps': '是否开启pathinfo'},
+        {'name': 'cgi.fix_pathinfo', 'type': 0, 'ps': '是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）'},
         {'name': 'date.timezone', 'type': 3, 'ps': '时区'}
     ]
     defaults_map = {
@@ -1041,7 +1047,10 @@ def getPhpConf(version):
         'default_socket_timeout': '60',
         'error_reporting': 'E_ALL & ~E_NOTICE',
         'display_errors': 'Off',
-        'cgi.fix_pathinfo': '0',
+        # cgi.fix_pathinfo 默认 1（本次由 0 对齐为 1）：安全性依赖 nginx 模板的
+        # try_files 防护，详见 makePhpIni() 内同名注释；且 PHP 自身的编译默认
+        # 就是 1，这里原先的 0 与本插件的 makePhpIni()/resetPhpConf 不一致。
+        'cgi.fix_pathinfo': '1',
         'date.timezone': 'PRC'
     }
 
@@ -1111,6 +1120,8 @@ def resetPhpConf(version):
         'default_socket_timeout': '60',
         'error_reporting': 'E_ALL & ~E_NOTICE',
         'display_errors': 'Off',
+        # cgi.fix_pathinfo 默认 1：安全性依赖 nginx 模板的 try_files 防护，
+        # 详见 makePhpIni() 内同名注释（php/php-apt/php-yum 三渠道一致）。
         'cgi.fix_pathinfo': '1',
         'date.timezone': 'PRC'
     }

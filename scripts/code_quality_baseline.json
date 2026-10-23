@@ -1,6 +1,11 @@
 {
   "bare_except": 0,
   "os_system_count": 3,
+  "pending_bare_except": 32,
+  "pending_os_system_count": 13,
+  "pending_print_in_web": 0,
+  "pending_silent_except": 9,
+  "pending_writefile_bare_success": 23,
   "print_in_web": 0,
   "silent_except": 0,
   "writefile_bare_success": 69

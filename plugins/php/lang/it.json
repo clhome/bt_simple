@@ -96,6 +96,7 @@
     "文件内容获取中...": "Acquisizione del contenuto del file in corso...",
     "时区": "Fuso orario",
     "是否允许上传文件": "È consentito caricare file?",
+    "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）": "Attivare o meno pathinfo (il modello nginx blocca già i percorsi .php inesistenti con try_files, quindi attivarlo è sicuro)",
     "是否开启pathinfo": "Attivare o meno pathinfo",
     "是否输出详细错误信息": "Visualizzare o meno i messaggi di errore dettagliati",
     "最大活跃进程数量(max active processes)": "Numero massimo di processi attivi (max active processes)",

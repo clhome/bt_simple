@@ -60,7 +60,14 @@ def set_notify_tgbot():
     if not isinstance(parsed, dict):
         return yf.returnData(False, 'ARGS_ERR')
 
-    crypt_data = yf.enDoubleCrypt('tgbot', data)
+    # 缺 cryptography 时 enDoubleCrypt 抛 DataCryptUnavailable（fail-closed）：
+    # 绝不能把 Bot token 明文写进 notify_tgbot.cfg。
+    try:
+        crypt_data = yf.enDoubleCrypt('tgbot', data)
+    except yf.DataCryptUnavailable as _e:
+        yf.writeFileLog('[setting] TG Bot 配置保存被拒绝（加密不可用）: %s' % _e)
+        return yf.returnData(
+            False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
     
     notify_tgbot = thisdb.getOptionByJson('notify_tgbot', default={'open':False}, type='notify')
     notify_tgbot['cfg'] = crypt_data

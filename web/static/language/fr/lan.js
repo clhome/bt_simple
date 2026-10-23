@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79":"La catégorie indiquée n'existe pas !",
 			"py_msg_6d5524":"La catégorie a été supprimée !",
 			"py_msg_2b7ff5":"Échec du renouvellement. Pour plus de détails, consultez les journaux !",
-			"py_msg_a36237":"Le renouvellement du certificat a réussi !"
+			"py_msg_a36237":"Le renouvellement du certificat a réussi !",
+			"cert_issue_retry_limit_help": "Échec de la délivrance : vous avez atteint le nombre maximal d'échecs de demande de certificat !\n1. Vérifiez que le domaine est bien associé au site correspondant\n2. Vérifiez que le domaine pointe correctement vers ce serveur, ou que la résolution n'a pas encore pris effet\n3. Si votre site utilise un proxy inverse ou un CDN, désactivez-le d'abord\n4. Si votre site a une redirection 301 configurée, désactivez-la d'abord\n5. Si tous les points ci-dessus sont corrects, essayez de changer de fournisseur DNS",
+			"cert_issue_retry_limit_help_short": "Échec de la délivrance : vous avez atteint le nombre maximal d'échecs de demande de certificat !\n1. Vérifiez que le domaine pointe correctement vers ce serveur, ou que la résolution n'a pas encore pris effet\n2. Si tous les points ci-dessus sont corrects, essayez de changer de fournisseur DNS"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log":"Journal de découpe",
 			"backup_directory_1":"Sauvegarder le répertoire",
 			"role_menuitem_tabindex_all":"<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">Tout",
-			"textname_mr_keep_the": "",
 			"backup_directory_2":"Répertoire de sauvegarde [",
 			"back_up_website_2":"Sauvegarder le site",
 			"back_up_the_database_3":"Sauvegarder la base de données",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks":"Modifier une tâche planifiée - [",
 			"setting_con_ptb_clearfix":"<div class=\"setting-con ptb20\"> <div class=\"clearfix plan ptb10\"> <span class=\"typename c4 pull-left f14 text-right mr20\">Type de tâche",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr":"<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">Répertoires exclus",
 			"typename_controls_mr_tip":"<span class=\"typename controls c4 pull-left f14 text-right mr20\">Remarque",
 			"typename_controls_mr_url":"<span class=\"typename controls c4 pull-left f14 text-right mr20\">Adresse URL",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6":"Répertoire de sauvegarde [",
 			"saving_your_edits_please":"Enregistrement des modifications en cours, veuillez patienter...",
 			"dropdown_planweek_mr_default":"<div class=\"dropdown planweek pull-left mr20\">     <button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">Lundi</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9":"Échec de l'écriture des fichiers. Faut-il activer la fonctionnalité de renforcement de la sécurité du système ?",
 			"py_msg_9d44d8":"{1} tâche a été détectée et synchronisée avec succès",
 			"py_msg_2c1843":"La mission « Nom » est en double",
-			"py_msg_f47dfc":"La liste des missions est à jour ; aucune mission manquante ne doit être synchronisée."
+			"py_msg_f47dfc":"La liste des missions est à jour ; aucune mission manquante ne doit être synchronisée.",
+			"cron_sync_rejected": "Synchro refusée",
+			"cron_sync_rejected_tip": "L'identifiant de la tâche contient des caractères illégaux (seuls A-Za-z0-9_.- sont autorisés, 64 au maximum). La synchronisation sera refusée ; ouvrez la tâche, modifiez-la et enregistrez-la à nouveau pour générer un identifiant conforme."
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules":"Synchronisation des règles du pare-feu du serveur en cours, veuillez patienter...",
 			"the_synchronization_request_failed":"Échec de la requête de synchronisation. Veuillez vérifier votre connexion Internet ou l'état du serveur.",
 			"bordered_hover_layout_fixed":"<div style=\"padding: 20px;\"> <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\"> <tbody> <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Nom du processus",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using":"- Détails sur les processus utilisant les ports",
 			"after_the_reset_the":"Après la réinitialisation, l'ancienne clé privée ne pourra plus être utilisée pour se connecter à ce serveur sans mot de passe (si la connexion par clé est activée). Voulez-vous vraiment régénérer la clé racine ?",
 			"reset_root_key":"Réinitialiser la clé racine",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size":"</p>                        <p><b>Taille :</b>",
 			"author":"</p> <p><b>Auteur : </b>",
 			"source_btlink":"</p> <p><b>Source : </b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation":"Confirmer l'installation",
 			"upload_failed":"Échec du téléchargement 2 ! :",
 			"installing_this_may_take":"L'installation est en cours, cela peut prendre quelques minutes...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "La limitation des tentatives de connexion est dégradée en compteurs locaux au processus : elle ne tient plus avec plusieurs workers",
+			"login_guard_degraded_desc": "Les échecs de connexion ne peuvent pas être écrits dans la base de données : la protection contre le brute force et l'invalidation des sessions après changement de mot de passe ne valent que dans ce processus. Vérifiez la base de données et la table panel_login_failure, puis rechargez cette page.",
 			"plain_http_warning_title": "HTTP en clair : les cookies de connexion peuvent être interceptés",
 			"plain_http_warning_desc": "Veuillez activer HTTPS dans les paramètres du panneau dès que possible ; n'utilisez pas ce panneau sur le réseau public avant cela.",
 			"config": "Configuration en cours...",

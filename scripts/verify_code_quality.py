@@ -20,6 +20,24 @@
     棘轮的价值是「阻止继续恶化」+ 给出可量化的下降目标，
     每轮顺手清一批、把基线调低即可，永远不会反弹。
 
+扫描范围（两段，各自一套基线）：
+    正式段  SCAN_DIRS = ['web', 'plugins'] + SCAN_ROOT_PY
+    待审核段 PENDING_SCAN_DIR = '文档/待审核插件'
+
+    为什么待审核段单独成常量、指标单独记 `pending_*`（P2-11）：
+        `文档/待审核插件/` 里放着 34 个还没转正的插件。它们**当前不可达**
+        （`web/utils/plugin.py` 的插件列表把 `待审核` 显式排除），但「转正」
+        就是把这些文件搬进 `plugins/`，一搬就直接进生产 —— 所以它们必须在
+        同一道棘轮之下，否则转正那一刻才第一次被扫，等于没扫。
+        但又不许把它们混进 SCAN_DIRS：①SCAN_DIRS 的语义是「已发布的正式代码」，
+        转正前它们不是；②正式段已经清零的指标（bare/silent/print 全 0）一旦
+        混入待审核目录的存量（本轮只纳入扫描、不修插件代码），会立刻把整套
+        门禁打红，而「清零」这个既有成果也就再也不可读了。
+        于是：**同一套检测器、同一套判据、分开的基线**，各自只减不增。
+        待审核段的 print 口径与正式插件一致（`print_in_web` 只统计 `web/`，
+        插件代码要打印就走 `yf.writeFileLog`/`logging`），所以 `pending_print_in_web`
+        基准恒为 0 —— 这不是豁免，而是与正式插件**同一条**尺子。
+
 三个指标：
     bare_except           裸 `except:` —— 会吞掉 KeyboardInterrupt / SystemExit
     silent_except         `except Exception:` 紧接 `pass` —— 静默失败，线上无法诊断
@@ -72,12 +90,19 @@ SCAN_ROOT_PY = ['panel_task.py', 'panel_tools.py']
 EXCLUDE_DIRS = {'__pycache__', 'node_modules', 'test', 'testsuite', '参考', '文档',
                 'cl_tasks', '.git', 'data', 'logs', 'tmp', '.workbuddy-ai'}
 
+#: 待审核插件目录（P2-11）：转正即进生产，必须与正式插件同一套棘轮。
+#: 单独成常量而不是塞进 SCAN_DIRS —— 见文件头「扫描范围」一节的说明。
+PENDING_SCAN_DIR = '文档/待审核插件'
+
 RE_BARE_EXCEPT = re.compile(r'^\s*except\s*:\s*(#.*)?$')
 RE_EXCEPT = re.compile(r'^\s*except\b')
 RE_PRINT = re.compile(r'(?<![\w.])print\s*\(')
 RE_OS_SYSTEM = re.compile(r'(?<![\w.])os\.system\s*\(')
 METRICS = ('bare_except', 'silent_except', 'print_in_web', 'os_system_count',
            'writefile_bare_success')
+#: 待审核段的指标族：与正式段一一对应，只是键名加 `pending_` 前缀、单列基线。
+PENDING_METRICS = tuple('pending_' + m for m in METRICS)
+ALL_METRICS = METRICS + PENDING_METRICS
 
 #: 裸 writeFile 之后「写后直接报成功」的判定窗口（行）
 WRITEFILE_SUCCESS_WINDOW = 6
@@ -97,6 +122,23 @@ def _iter_py_files():
         path = os.path.join(ROOT, fn)
         if os.path.isfile(path):
             yield path
+
+
+def _iter_pending_py_files():
+    """待审核插件目录下的 `*.py`（P2-11 纳入扫描范围）。
+
+    刻意与 `_iter_py_files()` **分开**：那个函数是「正式代码」的单一入口，
+    被 `testsuite/test_writefile_must_and_ratchet.py` 的棘轮直接复用，
+    混入待审核目录会让正式基线与待审核存量互相污染。
+    """
+    abs_base = os.path.join(ROOT, PENDING_SCAN_DIR.replace('/', os.sep))
+    if not os.path.isdir(abs_base):
+        return
+    for root, dirs, files in os.walk(abs_base):
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+        for fn in files:
+            if fn.endswith('.py'):
+                yield os.path.join(root, fn)
 
 
 def _rel(path):
@@ -251,18 +293,29 @@ def _scan_text_regex(text, in_web):
     return found
 
 
-def run_scan():
-    result = {m: [] for m in METRICS}
-    for path in _iter_py_files():
+def _scan_files(paths, metrics, result, in_web_of=None):
+    """把一批文件扫进 `result`，键名前缀由 `metrics` 决定（正式段 / 待审核段共用）。"""
+    for path in paths:
         try:
             with open(path, 'r', encoding='utf-8', errors='ignore') as fh:
                 text = fh.read().replace('\r\n', '\n')
         except OSError:
             continue
-        in_web = _rel(path).startswith('web/')
-        for metric, hits in scan_text(text, path, in_web).items():
-            for line_no, snippet in hits:
-                result[metric].append((_rel(path), line_no, snippet))
+        in_web = in_web_of(path) if in_web_of else _rel(path).startswith('web/')
+        hits_by_metric = scan_text(text, path, in_web)
+        for metric, key in metrics.items():
+            for line_no, snippet in hits_by_metric[metric]:
+                result[key].append((_rel(path), line_no, snippet))
+
+
+def run_scan():
+    """两段扫描：正式代码 → `METRICS`，待审核插件 → `PENDING_METRICS`。"""
+    result = {m: [] for m in ALL_METRICS}
+    _scan_files(_iter_py_files(), dict(zip(METRICS, METRICS)), result)
+    # 待审核段与正式插件同口径：`in_web=False`（`print_in_web` 只针对 web/ 生产代码）
+    _scan_files(_iter_pending_py_files(),
+                dict(zip(METRICS, PENDING_METRICS)), result,
+                in_web_of=lambda path: False)
     return result
 
 
@@ -274,7 +327,7 @@ def load_baseline():
 
 
 def counts_of(result):
-    return {m: len(result[m]) for m in METRICS}
+    return {m: len(result[m]) for m in ALL_METRICS}
 
 
 def self_test():
@@ -341,7 +394,7 @@ def main(argv=None):
     baseline = load_baseline()
 
     if args.verbose:
-        for metric in METRICS:
+        for metric in ALL_METRICS:
             print('--- %s (%d) ---' % (metric, counts[metric]))
             for path, line_no, snippet in result[metric][:40]:
                 print('  %s:%d  %s' % (path, line_no, snippet[:100]))
@@ -366,7 +419,7 @@ def main(argv=None):
             json.dump(new_baseline, fh, ensure_ascii=False, indent=2, sort_keys=True)
             fh.write('\n')
         print('[OK] 基线已更新：%s' % _rel(BASELINE_FILE))
-        for metric in METRICS:
+        for metric in ALL_METRICS:
             print('  %-16s %s' % (metric, new_baseline.get(metric)))
         return 0
 
@@ -375,12 +428,14 @@ def main(argv=None):
         return 1
 
     problems = []
-    for metric in METRICS:
+    # 列宽按最长指标名算：待审核段加入后 `pending_writefile_bare_success` 比原来宽一倍（P2-11）
+    name_width = max(len(m) for m in ALL_METRICS) + 2
+    for metric in ALL_METRICS:
         old = baseline.get(metric)
         new = counts[metric]
         mark = 'OK ' if (old is not None and new <= old) else 'BAD'
-        print('  [%s] %-16s 当前 %4d  基线 %4d' % (
-            mark, metric, new, old if old is not None else -1))
+        print('  [%s] %-*s 当前 %4d  基线 %4d' % (
+            mark, name_width, metric, new, old if old is not None else -1))
         if old is None:
             problems.append('%s 缺基线' % metric)
         elif new > old:

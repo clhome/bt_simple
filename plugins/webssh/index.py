@@ -291,6 +291,15 @@ class App():
             info['pkey'] = args['pkey']
             info['pkey_passwd'] = args['pkey_passwd']
 
+        # 先加密后落盘：缺 cryptography 时 enDoubleCrypt 抛 DataCryptUnavailable
+        # （fail-closed）。加密失败时连主机目录都不建，更不能把明文写进 info.json。
+        try:
+            enstr = yf.enDoubleCrypt('mdserver-web', json.dumps(info))
+        except yf.DataCryptUnavailable as _e:
+            _log.error('[webssh] 保存主机凭据被拒绝（加密不可用）: %s', _e)
+            return yf.returnJson(
+                False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
+
         dst_host_dir = self.__host_dir + '/' + host
         if not os.path.exists(dst_host_dir):
             os.makedirs(dst_host_dir, mode=0o700)
@@ -299,7 +308,6 @@ class App():
         except Exception as _e:
             _log.debug('[webssh] 设置主机配置目录权限失败: %s', _e)
 
-        enstr = yf.enDoubleCrypt('mdserver-web', json.dumps(info))
         yf.writeFile(dst_host_dir + '/info.json', enstr)
         return yf.returnJson(True, '添加成功!')
 

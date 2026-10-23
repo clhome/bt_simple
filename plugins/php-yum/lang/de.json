@@ -88,6 +88,7 @@
     "操作": "Aktionen",
     "时区": "Zeitzone",
     "是否允许上传文件": "Ist das Hochladen von Dateien erlaubt?",
+    "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）": "Ist Pathinfo aktiviert (die nginx-Vorlage blockiert nicht existierende .php-Pfade bereits mit try_files, das Aktivieren ist daher sicher)",
     "是否开启pathinfo": "Ist Pathinfo aktiviert?",
     "是否输出详细错误信息": "Sollen detaillierte Fehlermeldungen ausgegeben werden?",
     "暂时仅支持centos,almalinux,fedora,rocky": "Derzeit werden nur CentOS, AlmaLinux, Fedora und Rocky unterstützt.",

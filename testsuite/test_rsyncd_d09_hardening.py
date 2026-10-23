@@ -294,14 +294,38 @@ class RsyncdD09Test(unittest.TestCase):
             self.assertFalse(res['status'], payload)
         self.assertEqual(conf_before, _read(self._conf_path()), '被拒的请求不得改动配置')
 
+    def _system_danger_path(self):
+        """平台对应的「系统目录」样本（禁入区必须覆盖它）。
+
+        2026-10-22：原来写死 `/etc/ssh`，而 Windows 上没有 `/etc` —— 用例红的是
+        「样本路径不存在」，不是产品逻辑。现改为按平台取**真实存在**的系统目录：
+        POSIX 用 `/etc/ssh`，Windows 用 `%SystemRoot%\\System32`。断言强度不变
+        （两个平台都必须拒绝自己的系统目录）。
+        """
+        if os.name == 'nt':
+            root = (os.environ.get('SystemRoot') or r'C:\\Windows').strip()
+            return os.path.join(root, 'System32')
+        return '/etc/ssh'
+
     def test_05_add_rec_rejects_dangerous_paths(self):
         """接收目录会被 read only = false 暴露成可写共享：面板源码/系统目录/相对路径必须拒绝"""
         panel_dir = os.path.realpath(os.path.join(ROOT))
-        for path in ('/etc/ssh', '/', panel_dir, os.path.join(panel_dir, 'web'),
+        for path in (self._system_danger_path(), '/', panel_dir, os.path.join(panel_dir, 'web'),
                      'relative/path', '/proc/self', '/root/x'):
             res = self._add_rec('inj2', path, 'pw', 'x')
             self.assertFalse(res['status'], path)
         self.assertFalse(os.path.exists(os.path.join(panel_dir, 'x')))
+
+    def test_05b_deny_list_covers_current_platform_system_dirs(self):
+        """禁入区必须包含**当前平台**的系统目录（防再次只写 POSIX 路径）。"""
+        self.assertTrue(self.mod.invalidRecvPath(self._system_danger_path()))
+        if os.name == 'nt':
+            # 盘符根目录等价于 POSIX 的 `/`：同样不得作为共享根
+            drive = os.path.splitdrive(os.path.realpath(ROOT))[0]
+            self.assertTrue(self.mod.invalidRecvPath(drive + os.sep))
+        else:
+            self.assertTrue(self.mod.invalidRecvPath('/etc'))
+            self.assertTrue(self.mod.invalidRecvPath('/usr/bin'))
 
     def test_06_add_rec_rejects_bad_password(self):
         """secrets 文件格式是 name:pwd —— 口令含 ':' 会截断，含换行会注入文件"""

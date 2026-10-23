@@ -1035,7 +1035,9 @@
     "py_msg_15fa79": "Die angegebene Kategorie existiert nicht!",
     "py_msg_6d5524": "Kategorie bereitsLöschen!",
     "py_msg_2b7ff5": "Verlängerung fehlgeschlagen. Details finden Sie im Protokoll!",
-    "py_msg_a36237": "Zertifikatsverlängerung erfolgreich!"
+    "py_msg_a36237": "Zertifikatsverlängerung erfolgreich!",
+    "cert_issue_retry_limit_help": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain an die entsprechende Website gebunden ist\n2. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n3. Wenn Ihre Website einen Reverse-Proxy oder ein CDN verwendet, deaktivieren Sie es zuerst\n4. Wenn für Ihre Website eine 301-Weiterleitung eingerichtet ist, deaktivieren Sie sie zuerst\n5. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln",
+    "cert_issue_retry_limit_help_short": "Ausstellung fehlgeschlagen: Sie haben die maximale Anzahl fehlgeschlagener Zertifikatsanfragen erreicht!\n1. Prüfen Sie, ob die Domain korrekt auf diesen Server zeigt oder die Auflösung noch nicht vollständig wirksam ist\n2. Wenn alle oben genannten Punkte korrekt sind, versuchen Sie, den DNS-Anbieter zu wechseln"
   },
   "database": {
     "H1": "Startseite",

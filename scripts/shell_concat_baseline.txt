@@ -11,7 +11,6 @@ panel_tools.py::restore_bt_data::bare_variable::cmd_upgrade
 panel_tools.py::yfcli::bare_variable::cmd
 web/admin/setting/setting.py::migrate_restore::bare_variable::cmd
 web/admin/setting/setting.py::migrate_sites::bare_variable::cmd
-web/admin/setup/cleanup.py::cleanup_legacy_plugins::inline_bare_concat::f'chattr -R -i -a "{p}" 2>/dev/null'
 web/admin/setup/init_cmd.py::_install_initd::inline_bare_concat::'chmod +x ' + initd_bin
 web/admin/setup/init_cmd.py::_install_initd::inline_bare_concat::'rm -f %s && ln -sf %s %s' % (link, initd_bin, link)
 web/admin/setup/init_cmd.py::init_cmd::inline_bare_concat::'chmod +x ' + script_bin
@@ -55,8 +54,6 @@ web/core/yf/system.py::getOsName::bare_variable::cmd
 web/utils/adult_log.py::getAuditLast::bare_variable::cmd
 web/utils/adult_log.py::getAuditLastLog::bare_variable::cmd
 web/utils/adult_log.py::getAuditLogsName::bare_variable::cmd
-web/utils/crontab.py::getShell::inline_bare_concat::'chmod 750 ' + file
-web/utils/crontab.py::writeShell::inline_bare_concat::"chmod 600 '" + file +"' && chown root.root " + file
 web/utils/file.py::getOccupyingProcess::bare_variable::cmd
 web/utils/file.py::uncompress::bare_variable::cmd
 web/utils/file.py::zip::bare_variable::cmd

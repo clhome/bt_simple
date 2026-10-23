@@ -1,4 +1,5 @@
 {
+    "口令加密组件不可用（缺少 bcrypt），已拒绝保存；请安装 bcrypt 后重试": "Composant de chiffrement du mot de passe indisponible (bcrypt manquant) ; enregistrement refuse. Veuillez installer bcrypt puis reessayer",
     "80端不能使用!": "Le port 80 ne fonctionne pas !",
     "PHP版本": "Version PHP",
     "kill所有php进程": "tuer tous les processus php",

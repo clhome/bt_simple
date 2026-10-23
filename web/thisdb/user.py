@@ -30,9 +30,17 @@ def initAdminUser():
         password = yf.getRandomString(12).lower()
         now_time = yf.formatDate()
         login_ip = '127.0.0.1'
+        # 口令哈希生成必须先行且可失败：bcrypt 缺失时 hasPwd() 抛
+        # PwdCryptoUnavailable（fail-closed）。此处的用户表与 default.pl
+        # （默认口令明文快照）必须**一起不写**，否则会留下「明文口令 + 弱哈希」的残局。
+        try:
+            pwd_hash = yf.hasPwd(password)
+        except yf.PwdCryptoUnavailable as _e:
+            yf.writeFileLog('[thisdb.user] 初始化管理员失败：%s' % _e)
+            return False
         add_user = {
             'name':name, 
-            'password':yf.hasPwd(password),
+            'password':pwd_hash,
             'login_ip':login_ip,
             'login_time':now_time,
             'phone':'',
@@ -114,6 +122,8 @@ def setUserByName(name, new_name):
     return yf.M('users').where("name=?", (name,)).setField('name', new_name.strip())
 
 def setUserPwdByName(name, password):
+    # 缺 bcrypt 时 hasPwd() 抛 PwdCryptoUnavailable：这里**不吞异常**、直接向上抛，
+    # 由调用方记日志并回失败（绝不在这里静默写入弱哈希，也不把失败当成功）。
     pwd = yf.hasPwd(password)
     return yf.M('users').where("name=?", (name,)).setField('password', pwd)
 
@@ -129,7 +139,16 @@ def setUserByRoot(name = None,password = None) -> bool:
         yf.M('users').where('id=?', (1,)).setField('name', name)
 
     if password is not None:
-        pwd = yf.hasPwd(password)
+        # 缺 bcrypt：拒绝保存（不写弱哈希），把失败显式报出来（CLI 用）
+        try:
+            pwd = yf.hasPwd(password)
+        except yf.PwdCryptoUnavailable as _e:
+            yf.writeFileLog('[thisdb.user] 保存面板口令被拒绝：%s' % _e)
+            try:
+                yf.echoInfo('Error: %s' % _e)
+            except Exception as _e2:
+                yf.writeFileLog('[thisdb.user] 输出错误信息失败: %s' % _e2)
+            return False
         yf.M('users').where('id=?', (1,)).setField('password', pwd)
 
     if not data:

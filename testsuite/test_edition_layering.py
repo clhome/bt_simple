@@ -228,7 +228,11 @@ class ReleaseTemplateTest(unittest.TestCase):
 
     def test_12_release_workflow_uses_template(self):
         text = _read('.github/workflows/release.yml')
-        self.assertIn('body_path: RELEASE_TEMPLATE.md', text)
+        # P1-9 起正文由“模板 -> 注入实际 sha256 -> dist/RELEASE_BODY.md”渲染，
+        # 故 body_path 指向**渲染产物**；模板仍是唯一真源（下一步断言）。
+        self.assertIn('body_path: dist/RELEASE_BODY.md', text)
+        self.assertIn('RELEASE_TEMPLATE.md', text,
+                      'Release 正文必须仍由 RELEASE_TEMPLATE.md 渲染')
 
 
 if __name__ == '__main__':

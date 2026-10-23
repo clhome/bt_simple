@@ -443,13 +443,14 @@ def runInfo():
     # 取Openresty负载状态
     try:
         url = 'http://127.0.0.1:%s/server-status?auto' % port
-        result = yf.httpGet(url, timeout=3)
+        # P2-6：本机负载状态探测（低敏）→ purpose=low
+        result = yf.httpGet(url, timeout=3, purpose=yf.PURPOSE_LOW)
         data = runInfoDone(result)
         return yf.getJson(data)
     except Exception as e:
         try:
             url = 'http://' + yf.getHostAddr() + ':%s/server-status?auto' % port
-            result = yf.httpGet(url)
+            result = yf.httpGet(url, purpose=yf.PURPOSE_LOW)
             data = runInfoDone(result)
             return yf.getJson(data)
         except Exception as e:

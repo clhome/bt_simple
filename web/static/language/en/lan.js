@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79": "Specified category does not exist!",
 			"py_msg_6d5524": "The category has Delete!",
 			"py_msg_2b7ff5": "Renewal failed. For detailed information, please check the logs!",
-			"py_msg_a36237": "Certificate renewal successful!"
+			"py_msg_a36237": "Certificate renewal successful!",
+			"cert_issue_retry_limit_help": "Issuance failed: you have reached the maximum number of failed certificate requests!\n1. Check that the domain is bound to the corresponding site\n2. Check that the domain resolves to this server correctly, or that the resolution has not fully taken effect yet\n3. If your site uses a reverse proxy or a CDN, disable it first\n4. If your site has a 301 redirect configured, disable it first\n5. If all of the above are confirmed correct, try switching to another DNS provider",
+			"cert_issue_retry_limit_help_short": "Issuance failed: you have reached the maximum number of failed certificate requests!\n1. Check that the domain resolves to this server correctly, or that the resolution has not fully taken effect yet\n2. If all of the above are confirmed correct, try switching to another DNS provider"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log": "Split log",
 			"backup_directory_1": "Backup directory",
 			"role_menuitem_tabindex_all": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">all ",
-			"textname_mr_keep_the": "",
 			"backup_directory_2": "Backup directory [",
 			"back_up_website_2": "Backup website",
 			"back_up_the_database_3": "Backup database",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks": "Edit cron task-[",
 			"setting_con_ptb_clearfix": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Task type",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr": "<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">Excluded directories",
 			"typename_controls_mr_tip": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">tip",
 			"typename_controls_mr_url": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">URLaddress",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6": "Backup directory [",
 			"saving_your_edits_please": "Now saveeditcontent,Please wait a moment...",
 			"dropdown_planweek_mr_default": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">Monday</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9": "Failed to write the file. Is the system hardening feature enabled?",
 			"py_msg_9d44d8": "Successfully detected and synchronized {1} tasks",
 			"py_msg_2c1843": "Task name duplicated",
-			"py_msg_f47dfc": "The task list is already up to date; no missing tasks need to be synchronized"
+			"py_msg_f47dfc": "The task list is already up to date; no missing tasks need to be synchronized",
+			"cron_sync_rejected": "Sync rejected",
+			"cron_sync_rejected_tip": "The task identifier contains illegal characters (only A-Za-z0-9_.- are allowed, up to 64). Syncing will be rejected; edit the task and save it again to generate a valid identifier."
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules": "Syncing serverfirewallrule, Please wait...",
 			"the_synchronization_request_failed": "syncrequestfailed,Please checknetworkconnect or server status.",
 			"bordered_hover_layout_fixed": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">processname",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using": "- Processes using the port",
 			"after_the_reset_the": "After resetting, the old private key can no longer be used for password-free login to this server (if key login is enabled). Are you sure you want to regenerate the Root key?",
 			"reset_root_key": "Reset Root key",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size": "</p>                        <p><b>size:</b>",
 			"author": "</p>                        <p><b>Author:</b>",
 			"source_btlink": "</p>                        <p><b>Source:</b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation": "Confirm installation",
 			"upload_failed": "Upload failed 2!:",
 			"installing_this_may_take": "Installing,This may take a few minutetime...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "Login rate limiting has degraded to in-process counters; limits no longer hold with multiple workers",
+			"login_guard_degraded_desc": "Failed-login counts cannot be written to the database, so brute-force protection and session revocation after a password change only apply inside this process. Please check the database and the panel_login_failure table, then reload this page.",
 			"plain_http_warning_title": "Plain HTTP: login cookies can be sniffed",
 			"plain_http_warning_desc": "Please enable HTTPS in Panel Settings as soon as possible; do not use this panel over the public network until then.",
 			"config": "Setting up...",

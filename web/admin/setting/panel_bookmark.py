@@ -38,12 +38,14 @@ _PB_URL_RE = re.compile(r'^https?://[^\s/]+', re.I)
 
 
 def _enc_pwd(pwd):
+    """关联面板口令加密（fail-closed）。
+
+    旧实现在加密异常时 `return pwd`，等于把**明文**写进 panel 表；
+    现在让 DataCryptUnavailable 向上抛，由端点转成失败返回。
+    """
     if not pwd:
         return ''
-    try:
-        return yf.enDoubleCrypt(_PB_CRYPT_KEY, pwd)
-    except Exception:
-        return pwd
+    return yf.enDoubleCrypt(_PB_CRYPT_KEY, pwd)
 
 
 def _dec_pwd(pwd):
@@ -76,8 +78,15 @@ def add_panel_info():
     isAdd = yf.M('panel').where('title=? OR url=?', (title, url)).count()
     if isAdd:
         return yf.returnData(False, 'setting.py_msg_e23be1')
+    # 缺 cryptography：拒绝保存（不落明文），并给出明确错误
+    try:
+        enc_pwd = _enc_pwd(password)
+    except yf.DataCryptUnavailable as _e:
+        yf.writeFileLog('[setting] 面板书签口令保存被拒绝（加密不可用）: %s' % _e)
+        return yf.returnData(
+            False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
     isRe = yf.M('panel').add('title,url,username,password,click,add_time',
-            (title, url, username, _enc_pwd(password), 0, int(time.time())))
+            (title, url, username, enc_pwd, 0, int(time.time())))
     if isRe:
         return yf.returnData(True, 'common.add_success')
     return yf.returnData(False, 'common.add_failed')
@@ -158,8 +167,15 @@ def set_panel_info():
 
     # 密码留空表示“不修改”，避免前端不再回显明文后被误清空
     if password:
+        # 缺 cryptography：拒绝保存（不落明文），并给出明确错误
+        try:
+            enc_pwd = _enc_pwd(password)
+        except yf.DataCryptUnavailable as _e:
+            yf.writeFileLog('[setting] 面板书签口令保存被拒绝（加密不可用）: %s' % _e)
+            return yf.returnData(
+                False, '数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试')
         isRe = yf.M('panel').where('id=?', (panel_id,)).save('title,url,username,password',
-                                                              (title, url, username, _enc_pwd(password)))
+                                                              (title, url, username, enc_pwd))
     else:
         isRe = yf.M('panel').where('id=?', (panel_id,)).save('title,url,username',
                                                               (title, url, username))

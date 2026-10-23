@@ -1035,7 +1035,9 @@
     "py_msg_15fa79": "Specified category does not exist!",
     "py_msg_6d5524": "The category has Delete!",
     "py_msg_2b7ff5": "Renewal failed. For detailed information, please check the logs!",
-    "py_msg_a36237": "Certificate renewal successful!"
+    "py_msg_a36237": "Certificate renewal successful!",
+    "cert_issue_retry_limit_help": "Issuance failed: you have reached the maximum number of failed certificate requests!\n1. Check that the domain is bound to the corresponding site\n2. Check that the domain resolves to this server correctly, or that the resolution has not fully taken effect yet\n3. If your site uses a reverse proxy or a CDN, disable it first\n4. If your site has a 301 redirect configured, disable it first\n5. If all of the above are confirmed correct, try switching to another DNS provider",
+    "cert_issue_retry_limit_help_short": "Issuance failed: you have reached the maximum number of failed certificate requests!\n1. Check that the domain resolves to this server correctly, or that the resolution has not fully taken effect yet\n2. If all of the above are confirmed correct, try switching to another DNS provider"
   },
   "database": {
     "H1": "Homepage",

@@ -15,6 +15,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import core.db_pwd as db_pwd
 
 
 def getServerDir():
@@ -55,7 +56,9 @@ def pMysqlDb():
     db.setPort(getDbPort())
     db.setSocket(getSocketFile())
     # db.setCharset("utf8")
-    db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('mysql_root'))
+    # P2-4：mysql_root 已改为密文落库，连库前必须解密（历史明文原样通过 / 解不开给空）
+    db.setPwd(db_pwd.decrypt_pwd_any(
+        pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')) or '')
     return db
 
 class sphinxMake():
@@ -266,6 +269,9 @@ index {$DB_NAME}_{$TABLE_NAME}_delta:{$DB_NAME}_{$TABLE_NAME}
 
 	def makeSphinxDbSource(self, db, table, create_sphinx_table = False):
 		db_info = pSqliteDb('databases').field('username,password').where('name=?', (db,)).find()
+		if db_info and isinstance(db_info, dict):
+			# P2-4：databases.password 落库为密文（mysql 插件命名空间），取明文写 sphinx 数据源
+			db_info['password'] = db_pwd.decrypt_pwd_any(db_info.get('password')) or ''
 		if not db_info:
 			# find() 查不到返回 None；旧实现 db_info['username'] 直接 TypeError。
 			# 调用方是 `conf += self.makeSphinxDbSource(...)`，返回空串最不意外。

@@ -122,8 +122,6 @@
     "synchronizing_server_firewall_rules": "Syncing serverfirewallrule, Please wait...",
     "the_synchronization_request_failed": "syncrequestfailed,Please checknetworkconnect or server status.",
     "bordered_hover_layout_fixed": "processname",
-    "background_process_pid": "",
-    "background_startup_command": "",
     "details_on_processes_using": "- Processes using the port",
     "after_the_reset_the": "After resetting, the old private key can no longer be used for password-free login to this server (if key login is enabled). Are you sure you want to regenerate the Root key?",
     "reset_root_key": "Reset Root key",

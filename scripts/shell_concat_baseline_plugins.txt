@@ -99,8 +99,6 @@ plugins/mongodb/index.py::mgOp::inline_bare_concat::file + ' ' + method
 plugins/mongodb/index.py::status::bare_variable::status_cmd
 plugins/mongodb/scripts/backup.py::backupDatabase::bare_variable::cmd
 plugins/mysql/index.py::<module>::bare_variable::cmd
-plugins/mysql/index.py::adjust_password_policy::inline_bare_concat::serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.length=4;\""
-plugins/mysql/index.py::adjust_password_policy::inline_bare_concat::serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.policy=LOW;\""
 plugins/mysql/index.py::binLog::inline_bare_concat::'rm -f ' + path + '/binlog.*'
 plugins/mysql/index.py::binLog::inline_bare_concat::'rm -f ' + path + '/mysql-bin.*'
 plugins/mysql/index.py::doFullSyncSSH::bare_variable::cmd
@@ -153,11 +151,7 @@ plugins/mysql/index.py::myPass::inline_bare_concat::"sed -i '/password=/d' {}".f
 plugins/mysql/index.py::myPass::inline_bare_concat::"sed -i '/user=root/d' {}".format(conf_file)
 plugins/mysql/index.py::resetDbRootPwd::bare_variable::cmd_pass
 plugins/mysql/index.py::setDbBackup::bare_variable::cmd
-plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd
-plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_clear_root
-plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_mod_root
 plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_msafe
-plugins/mysql/index.py::setRootPwdForce::bare_variable::cmd_newpass
 plugins/mysql/index.py::syncDatabaseRepair::inline_bare_concat::"echo 'ok' > "+table_check_file
 plugins/mysql/index.py::upgradeSelfHealing::inline_bare_concat::'chmod 750 ' + ddir
 plugins/mysql/index.py::upgradeSelfHealing::inline_bare_concat::'chown -R mysql:mysql ' + ddir

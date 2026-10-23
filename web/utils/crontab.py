@@ -70,6 +70,35 @@ def _cron_safe_name(echo):
     return name
 
 
+# 任务标识不可用于同步的原因码（前端/接口只需认这一个字符串，不必解析文案）。
+CRON_SYNC_REASON_NAME_INVALID = 'cron_name_invalid'
+
+
+def cron_name_status(echo):
+    """任务标识（DB 的 echo 列）能否用于同步 —— 列表展示与同步路径共用同一判据。
+
+    判据**只有一个**：`_cron_safe_name()`（即 `_CRON_NAME_RE` 白名单）。这里刻意不另写
+    正则，避免「列表说能同步、同步时又被拒」这种两套口径。
+
+    返回 dict（字段名直接用 sync_ 前缀，前端无需再包一层）：
+      * 合规：`{'sync_ok': True, 'sync_reason': '', 'sync_reason_code': ''}`
+      * 被拒：`{'sync_ok': False, 'sync_reason': <指引文案>, 'sync_reason_code': 'cron_name_invalid'}`
+
+    背景：白名单上线前，`init_cron` 恢复「其它系统任务」时会把**原始命令**写进 echo，
+    这类历史任务在同步时被 `getShell()` 静默拒绝（只写日志），用户看不到它已经停摆。
+    """
+    if _cron_safe_name(echo):
+        return {'sync_ok': True, 'sync_reason': '', 'sync_reason_code': ''}
+    return {
+        'sync_ok': False,
+        'sync_reason': _t(
+            'crontab.cron_sync_rejected_tip',
+            '任务标识含非法字符（仅允许 A-Za-z0-9_.-，最长 64），同步时会被拒绝；'
+            '请编辑任务重新保存以生成合规标识'),
+        'sync_reason_code': CRON_SYNC_REASON_NAME_INVALID,
+    }
+
+
 def _cron_int(value, lo, hi):
     """周期字段必须是非负纯数字且落在 [lo, hi]；'-1'、'abc'、'1\n* * * * *' 一律不合法。"""
     val = str(value if value is not None else '').strip()
@@ -134,6 +163,12 @@ class crontab(object):
         dbdata['min_end_en'] = yf.getDefault(data, 'min_end_en', '0')
         dbdata['min_end_h'] = yf.getDefault(data, 'min_end_h', '23')
         dbdata['min_end_m'] = yf.getDefault(data, 'min_end_m', '59')
+
+        # 历史任务的 echo 可能是原始命令（老版本恢复「其它系统任务」时写入），白名单上线后
+        # 这类任务永远同步不成功。既然只能靠「重新保存」来修，保存时就顺手换一个新合规标识：
+        # 判据仍是 _cron_safe_name()（不另写规则），旧标识对应的 crontab 行在下面先被删掉。
+        if not _cron_safe_name(info.get('echo')):
+            dbdata['echo'] = yf.md5(yf.md5(str(time.time()) + '_yf'))
 
         if not self.removeForCrond(info['echo']):
             return yf.returnData(False, 'crontab.py_msg_9b5111')
@@ -469,6 +504,11 @@ class crontab(object):
                 '3': _t('crontab.day_holiday')
             }
             t['day_type_h'] = day_type_map.get(str(t.get('day_type', '0')), _t('crontab.day_none'))
+
+            # 把「同步时会被拒绝」暴露到列表里：同步路径 getShell() 用的是同一个判据，
+            # 历史 echo 为原始命令的任务否则会静默停摆（只留一条日志）。
+            # 只新增 sync_ok / sync_reason / sync_reason_code，不动既有字段。
+            t.update(cron_name_status(t.get('echo')))
 
             rdata.append(t)
         return rdata

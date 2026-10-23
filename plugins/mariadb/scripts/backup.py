@@ -20,6 +20,7 @@ if os.path.exists(web_dir):
 
 import core.yf as yf
 import core.db as db
+import core.db_pwd as db_pwd
 
 
 class backupTools:
@@ -70,8 +71,10 @@ class backupTools:
         filename = backup_path + "/" + version_prefix + "_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
 
-        mysql_root = yf.M('config').dbPos(db_path, db_name).where(
-            "id=?", (1,)).getField('mysql_root') or ''
+        # P2-4：mysql_root 已改为密文落库，写进 my.cnf 前必须解密
+        mysql_root = db_pwd.decrypt_pwd_any(
+            yf.M('config').dbPos(db_path, db_name).where(
+                "id=?", (1,)).getField('mysql_root')) or ''
 
         my_conf_path = db_path + '/etc/my.cnf'
         content = yf.readFile(my_conf_path)

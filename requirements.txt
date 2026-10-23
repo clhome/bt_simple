@@ -18,11 +18,21 @@
 #      pillow / pyyaml 的下界顶到 CVE 修复版，每处行内注释写明 CVE 编号与修复版本；
 #      同时移除全仓零 import 的死依赖 chardet / flask-helper / supervisor。
 #      守卫：testsuite/test_requirements_hardening.py
+#   7. 无界依赖（2026-10-22，修测评报告 P2-9）：测评清单点名的 14 个依赖原本没有任何版本边界
+#      （实测还扫出第 15 个 Flask-Compress，一并处置），按「不许凭印象写上游最新版」的纪律
+#      分两类处理 ——
+#        (A) 有本地实测依据的补下界，行内注明「下界取自开发环境实测版本」；
+#        (B) 没有可靠依据的**不猜数字**，登记到文末「无界依赖例外清单（P2-9）」，
+#            逐条写理由与复核时机。
+#      守卫：testsuite/test_requirements_bounds.py（新增无界依赖未登记 → 红）
 # ---------------------------------------------------------------------------------
 
 setuptools>=33.1.1
 wheel>=0.37.1
-packaging
+# P2-9（A 类补下界）：packaging 被 web/utils/system/update.py（packaging.version.Version）
+# 与 plugins/mysql/index.py 直接 import，用于比较面板 / 插件版本号。
+# 下界只取开发环境实测版本，**不是**「上游最新版」声明。
+packaging>=23.2  # 下界取自开发环境实测版本（packaging 23.2），2026-10-22
 pip>=22.0.0
 
 # --- Web 框架与模板 -----------------------------------------------------------
@@ -36,13 +46,16 @@ pip>=22.0.0
 #     计划于 2027-06-30 停止支持：届时移除全部 `python_version < '3.9'` 分档
 #     （flask / Werkzeug / pyOpenSSL / cryptography 四处）。
 #     依据：CentOS 7 与 Debian 10 上游均已 EOL、依赖链对该分支已无修复版本，
-#     属已知残留风险。守卫：testsuite/test_requirements_hardening.py
+#     属已知残留风险。同一时间点还要停用 scripts/lib.sh 按 python3 版本追加的
+#     version/r3.6.txt / r3.7.txt / r3.8.txt 这类锁版本文件（见
+#     《文档/组件生命周期与安全响应政策.md》第 8 节）。
+#     守卫：testsuite/test_requirements_hardening.py
 flask>=3.1.3,<4.0.0; python_version >= '3.9'
 flask>=2.0.3,<3.0.0; python_version < '3.9'
 Werkzeug>=3.1.6,<4.0.0; python_version >= '3.9'
 Werkzeug>=1.0.1,<3.0.0; python_version < '3.9'
 Jinja2>=2.11.2,<4.0.0
-Flask-Compress
+Flask-Compress  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
 whitenoise>5.3.0
 
 # --- 实时通信（webssh） -------------------------------------------------------
@@ -65,8 +78,10 @@ flask-sockets>=0.2.1
 flask-bcrypt==1.0.1
 flask-caching>=1.10.1
 cache==1.0.3
-bcrypt
-pyotp
+# P2-9（A 类补下界）：bcrypt 是带 C 扩展的包（web/core/yf/security.py、
+# web/core/yf/__init__.py 里 import bcrypt 做口令哈希），下界取开发环境实测版本。
+bcrypt>=4.1.2  # 下界取自开发环境实测版本（bcrypt 4.1.2），2026-10-22
+pyotp  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
 
 # --- 数据库 ---------------------------------------------------------------
 SQLAlchemy>=1.4.54,<2.0.0
@@ -75,9 +90,9 @@ PyMySQL>=1.0.2
 #Flask-Migrate==4.*
 #Flask-Security-Too==5.5.*; python_version >= '3.10'
 #Flask-Security-Too==5.4.*; python_version <= '3.9'
-pymongo
-pymemcache
-redis
+pymongo  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+pymemcache  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+redis  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
 
 # --- 网络 / 加密 --------------------------------------------------------------
 # requests 下界 2.32.4：依次修复 CVE-2023-32681（Proxy-Authorization 泄漏，2.31.0 修）、
@@ -103,11 +118,13 @@ configparser==5.2.0
 # 面板 gunicorn 公网直暴露，前置反代会放大请求走私影响。
 gunicorn>=22.0.0  # CVE-2024-1135 / CVE-2024-6827，修复版 22.0.0
 # 已移除死依赖 supervisor（全仓零 import；supervisor 插件在自身 install.sh 内 pip install）
-pytz
+# P2-9（A 类补下界）：pytz 的版本号形如「年份.序号(.postN)」，不是语义化版本；
+# 面板在 web/admin/setting/timezone.py 里用 pytz.all_timezones 拉时区列表。
+pytz>=2023.3.post1  # 下界取自开发环境实测版本（pytz 2023.3.post1），2026-10-22
 # pyyaml 下界 5.4：修复 CVE-2020-14343（yaml.load 任意代码执行）；代码内已全部 safe_load。
 pyyaml>=5.4  # CVE-2020-14343，修复版 5.4
-croniter
-tldextract
+croniter  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+tldextract  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
 # pillow 下界 12.3.0：修复 CVE-2025-48379 及 2026 年一批堆越界 / 解压缩炸弹
 # （CVE-2026-25990 / 40192 / 54058~59205），12.3.0 集中修复；验证码功能运行时 import PIL。
 pillow>=12.3.0  # CVE-2025-48379、CVE-2026-25990/40192/54058~59205，修复版 12.3.0
@@ -116,10 +133,37 @@ pillow>=12.3.0  # CVE-2025-48379、CVE-2026-25990/40192/54058~59205，修复版 
 zmq==0.0.0
 
 # --- 通知 -------------------------------------------------------------------
-pyTelegramBotAPI
-telebot
+pyTelegramBotAPI  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+telebot  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
 
 # --- 压缩（按 CPU 自适应启用，见 web/core/resources.py） ----------------------
-brotli
-zstd
-zstandard
+brotli  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+zstd  # 例外：无实测依据，登记于文末「无界依赖例外清单（P2-9）」
+# P2-9（A 类补下界）：zstandard 是带 C 扩展的压缩包，下界取开发环境实测版本。
+zstandard>=0.22.0  # 下界取自开发环境实测版本（zstandard 0.22.0），2026-10-22
+
+# ---------------------------------------------------------------------------------
+# --- 无界依赖例外清单（P2-9）---
+# ---------------------------------------------------------------------------------
+# 下面这些包**故意**没有版本边界。纪律：仓库离线开发，无法核对上游最新版，
+# 凭印象写一个数字比不写更糟（写小了挡安装、写大了等于没锁）。所以这里不写数字，
+# 而是把「为什么可以不写」和「什么时候必须回来复核」显式记下来，由门禁强制台账完整：
+#   * 新增一条无版本边界的依赖却没登记在本节 → testsuite/test_requirements_bounds.py 变红；
+#   * 本节登记项在 requirements.txt 里不存在、或已经补上了边界 → 同样变红（防台账腐烂）。
+# 登记格式（每行一条，包名与上面 requirements.txt 里的写法逐字一致）：
+#   <包名>  —— 理由：…；复核时机：…
+# 本清单共 11 条。共同的复核时机：**下次联网跑 pip-compile 生成 requirements.lock 时**
+# （scripts/gen_requirements_lock.sh，或 CI 的 security-scan.yml `lock` job），
+# 届时锁文件里有确切版本，可按需把某条升级为「A 类补下界」并从本节删除。
+#
+#   Flask-Compress  —— 理由：纯 Python 的 Flask 压缩中间件，web/admin/__init__.py 直接 import Compress，并按 web/core/resources.py 推导的算法列表设 COMPRESS_ALGORITHM；对外 API 面极小（Compress(app) + 配置项），无 C 扩展；它是最初 14 项清单之外、由守卫用例扫出的第 15 个无界依赖（P2-9 整改时补登记）；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   pyotp  —— 理由：纯 Python 实现、无 C 扩展 / ABI 约束；面板只在两步验证（TOTP）路径按需 import（web/admin/dashboard/login.py、web/admin/setting/secondary_verifiy.py），只用 TOTP / random_base32 极小 API 面；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   pymongo  —— 理由：纯 Python（可装 C 扩展但非必需）的 MongoDB 驱动，面板主进程不依赖，仅 data_query / mongodb 插件的连接与探测路径 import（plugins/data_query/nosql_mongodb.py、plugins/mongodb/index.py）；驱动与服务端版本兼容面宽，代理由插件路径自行容错（import 失败只降级为「未安装驱动」提示）；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   pymemcache  —— 理由：纯 Python 的 memcached 客户端，只被 plugins/data_query/nosql_memcached.py 使用（import 失败即降级为「未装驱动」提示）；无 C 扩展、上游无已知破坏性大版本；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   redis  —— 理由：纯 Python 的 redis 客户端，只被 plugins/data_query/nosql_redis.py 与 plugins/data_query/common_db.py 的连通性探测使用；面板核心不 import，插件侧 import 失败已容错；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   croniter  —— 理由：纯 Python 的 cron 表达式解析库；本机实测 web/ plugins/ scripts/ 内**零 import**（历史快照里 web/admin/setup/init_cron.py 曾用过，现已改用自身 utils.crontab）；保留是依赖清单既成事实，删依赖不在 P2-9 范围；复核时机：下次依赖清理轮次确认仍无引用后按死依赖删除，或联网生成锁文件时定界。
+#   tldextract  —— 理由：纯 Python 的域名后缀解析；只被 web/utils/site.py 一处使用，且外层 try/except 包裹（解析失败降级）；默认行为可能按需下载公共后缀列表，故**不宜**用上界锁死其升级；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   pyTelegramBotAPI  —— 理由：通知渠道（Telegram）用的 SDK，只在 web/core/yf/panel.py、web/core/yf/__init__.py 按需 import；它与 telebot 在 PyPI 上提供同名模块（面板代码只 import telebot），两者的边界必须一起对齐才有意义，单给一条加上界会造成解析冲突；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时给两条定同一口径的界。
+#   telebot  —— 理由：同 pyTelegramBotAPI（二者提供同名模块 telebot，面板只 import telebot 的 TeleBot）；单边定界会造成两个分发包争抢同一模块名，属需产品决策的依赖收敛问题，不在 P2-9 范围；开发机未安装，无实测版本依据；复核时机：与 pyTelegramBotAPI 同时定界，或在下轮依赖清理里收敛成一条。
+#   brotli  —— 理由：可选 HTTP 压缩编码器，面板代码**零 import**；只在 web/core/resources.py 的压缩算法候选列表里以字符串 'br' 出现，由压缩中间件按名字探测，装不上只是少一种编码、不影响启动；带 C 扩展，上界容易挡掉发行版自带的更快 wheel；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。
+#   zstd  —— 理由：可选 HTTP 压缩编码器（同 brotli 口径），面板代码零 import，只在 web/core/resources.py 的算法候选列表里以字符串 'zstd' 出现；开发机未安装，无实测版本依据；复核时机：下次联网生成锁文件时定界。

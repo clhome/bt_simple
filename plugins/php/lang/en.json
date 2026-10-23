@@ -96,6 +96,7 @@
     "文件内容获取中...": "Retrieving file content...",
     "时区": "time zone",
     "是否允许上传文件": "Whether to allow file upload",
+    "是否开启pathinfo（本机 nginx 模板已用 try_files 拦截不存在的 .php 路径，开启是安全的）": "Whether to enable pathinfo (the nginx template already blocks non-existent .php paths with try_files, so it is safe to enable)",
     "是否开启pathinfo": "Whether to enable pathinfo",
     "是否输出详细错误信息": "Whether to output detailed error information",
     "最大活跃进程数量(max active processes)": "Maximum Number of Active Processes (max active processes)",

@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79": "指定分类不存在!",
 			"py_msg_6d5524": "分类已删除!",
 			"py_msg_2b7ff5": "续签失败，详细信息请查看日志！",
-			"py_msg_a36237": "证书续签成功！"
+			"py_msg_a36237": "证书续签成功！",
+			"cert_issue_retry_limit_help": "签发失败,您尝试申请证书的失败次数已达上限!\n1、检查域名是否绑定到对应站点\n2、检查域名是否正确解析到本服务器,或解析还未完全生效\n3、如果您的站点设置了反向代理,或使用了CDN,请先将其关闭\n4、如果您的站点设置了301重定向,请先将其关闭\n5、如果以上检查都确认没有问题，请尝试更换DNS服务商",
+			"cert_issue_retry_limit_help_short": "签发失败,您尝试申请证书的失败次数已达上限!\n1、检查域名是否正确解析到本服务器,或解析还未完全生效\n2、如果以上检查都确认没有问题，请尝试更换DNS服务商"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log": "切割日志",
 			"backup_directory_1": "备份目录",
 			"role_menuitem_tabindex_all": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有",
-			"textname_mr_keep_the": "",
 			"backup_directory_2": "备份目录[",
 			"back_up_website_2": "备份网站",
 			"back_up_the_database_3": "备份数据库",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks": "编辑计划任务-[",
 			"setting_con_ptb_clearfix": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务类型",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr": "<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录",
 			"typename_controls_mr_tip": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">提示",
 			"typename_controls_mr_url": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6": "备份目录[",
 			"saving_your_edits_please": "正在保存编辑内容，请稍后...",
 			"dropdown_planweek_mr_default": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9": "文件写入失败,是否开启系统加固功能!",
 			"py_msg_9d44d8": "成功检测并同步了 {1} 个任务",
 			"py_msg_2c1843": "任务名称重复",
-			"py_msg_f47dfc": "当前任务列表已是最新，无缺失任务需要同步"
+			"py_msg_f47dfc": "当前任务列表已是最新，无缺失任务需要同步",
+			"cron_sync_rejected": "同步被拒",
+			"cron_sync_rejected_tip": "任务标识含非法字符（仅允许 A-Za-z0-9_.-，最长 64），同步时会被拒绝；请编辑任务重新保存以生成合规标识"
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules": "正在同步服务器防火墙规则, 请稍候...",
 			"the_synchronization_request_failed": "同步请求失败，请检查网络连接或服务器状态。",
 			"bordered_hover_layout_fixed": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">进程名",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using": "-端口使用进程详情",
 			"after_the_reset_the": "重置后旧的私钥将无法再用于免密登录此服务器（如果已开启密钥登录），是否确认重新生成 Root 密钥？",
 			"reset_root_key": "重置 Root 密钥",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size": "</p>                        <p><b>大小：</b>",
 			"author": "</p>                        <p><b>作者：</b>",
 			"source_btlink": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation": "确定安装",
 			"upload_failed": "上传失败2!:",
 			"installing_this_may_take": "正在安装,这可能需要几分钟时间...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "登录限流已降级为进程内计数，多 worker 下限流失效",
+			"login_guard_degraded_desc": "失败计数无法写入数据库，爆破防护与「改密码踢下线」只在本进程生效。请检查数据库与 panel_login_failure 表后刷新本页。",
 			"plain_http_warning_title": "当前为明文 HTTP，登录 Cookie 可被嗅探",
 			"plain_http_warning_desc": "请尽快在「面板设置」中启用 HTTPS；在启用前不要通过公网使用此面板。",
 			"config": "正在设置...",

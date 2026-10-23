@@ -26,6 +26,7 @@ sys.path.append(web_dir)
 
 from utils.firewall import Firewall as YfFirewall
 import core.yf as yf
+import core.db_pwd as db_pwd
 import thisdb
 import logging
 
@@ -725,7 +726,10 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
             
             pwd = ""
             try:
-                pwd = yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
+                # P2-4：mysql_root 已改为密文落库（yfenc: 前缀），必须先解密，
+                # 否则 mysql_upgrade 会拿到一坨 base64 当口令（fail-closed 返回 None）。
+                pwd = db_pwd.decrypt_pwd_any(
+                    yf.M('config').dbPos(yf.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root'))
             except Exception as e:
                 _log.debug('[panel_tools] 读取 MySQL root 密码失败: %s', e)
             

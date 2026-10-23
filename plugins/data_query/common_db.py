@@ -15,6 +15,7 @@ if os.path.exists(web_dir):
         sys.path.append(web_dir)
 
 import core.yf as yf
+import core.db_pwd as db_pwd
 import logging
 
 _log = logging.getLogger('yf.data_query')
@@ -633,10 +634,19 @@ def detectLocalMySQLPasswords():
     passwords = []
 
     def _add_pwd(p):
-        if p is not None:
-            val = str(p).strip()
-            if val and val not in passwords:
-                passwords.append(val)
+        if p is None:
+            return
+        val = str(p).strip()
+        if not val:
+            return
+        # P2-4：mysql_root 等字段已改为密文落库（`yfenc:` 前缀），先按已知命名空间解密
+        # 再当候选；历史明文原样通过；解不开（None）就丢弃 —— 绝不拿密文去连库。
+        dec = db_pwd.decrypt_pwd_any(val)
+        if not dec:
+            return
+        val = dec.strip()
+        if val and val not in passwords:
+            passwords.append(val)
 
     # 1. 优先探测官方 mysql 或 mariadb 插件内部配置数据库
     for mod_name in ['mysql', 'mariadb', 'mysql-apt', 'mysql-yum', 'mysql-community']:

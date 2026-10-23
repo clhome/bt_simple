@@ -1,4 +1,5 @@
 {
+    "数据加密组件不可用（缺少 cryptography），已拒绝保存；请安装 cryptography 后重试": "Datenverschluesselungskomponente nicht verfuegbar (cryptography fehlt); Speichern abgelehnt. Bitte cryptography installieren und erneut versuchen",
     "SSH终端": "SSH-Terminal",
     "SSH账号": "SSH-Konto",
     "不存在此配置": "Diese Konfiguration existiert nicht.",

@@ -55,12 +55,15 @@ PATCHED_FUNCS = {
     'writeFile', 'opWeb', 'httpGet', 'hasPwd', 'returnData', 'isAppleSystem',
     'readFile', 'writeFileLog', 'writeLog', 'checkPid', 'removeDir',
     'isSupportSystemctl', 'getOs', 'M', 'getPanelDataDir', 'systemdCfgDir',
+    # P2-3 起用例会补丁它（清进程内缓存以真跑落盘逻辑）
+    'makeDirs',
 }
 
 # 被补丁的「模块级状态」（不是函数，无法用 shim 代）：
 # 引用它们的函数必须一并留在 __init__.py，否则补丁改的是包里的名字，
 # 子模块里读到的还是旧对象。
-PATCHED_STATE = {'_PANEL_ROOT_DIR'}
+# `_aes_key_cache`：P2-3 的 AES key 进程内缓存，用例会置 None 强制重读落盘值。
+PATCHED_STATE = {'_PANEL_ROOT_DIR', '_aes_key_cache'}
 
 # 面板根推算表达式：包内要多上溯一层
 # 面板根推算表达式：包内文件比原来深一层，故多一层 dirname。

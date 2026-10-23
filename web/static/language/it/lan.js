@@ -1871,7 +1871,9 @@ var lan = {
 			"py_msg_15fa79": "La categoria specificata non esiste!",
 			"py_msg_6d5524": "La categoria è stata eliminata!",
 			"py_msg_2b7ff5": "Il rinnovo non è andato a buon fine. Per ulteriori dettagli, consulta il log!",
-			"py_msg_a36237": "Rinnovo del certificato riuscito!"
+			"py_msg_a36237": "Rinnovo del certificato riuscito!",
+			"cert_issue_retry_limit_help": "Emissione non riuscita: hai raggiunto il numero massimo di richieste di certificato non riuscite!\n1. Verifica che il dominio sia associato al sito corrispondente\n2. Verifica che il dominio risolva correttamente su questo server o che la risoluzione non sia ancora del tutto attiva\n3. Se il tuo sito utilizza un reverse proxy o una CDN, disattivalo prima\n4. Se il tuo sito ha un reindirizzamento 301 configurato, disattivalo prima\n5. Se tutti i controlli sopra sono corretti, prova a cambiare provider DNS",
+			"cert_issue_retry_limit_help_short": "Emissione non riuscita: hai raggiunto il numero massimo di richieste di certificato non riuscite!\n1. Verifica che il dominio risolva correttamente su questo server o che la risoluzione non sia ancora del tutto attiva\n2. Se tutti i controlli sopra sono corretti, prova a cambiare provider DNS"
 		},
 
 	"ftp": {
@@ -2911,7 +2913,6 @@ var lan = {
 			"cutting_log": "tronco da taglio",
 			"backup_directory_1": "Backup cartella",
 			"role_menuitem_tabindex_all": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">Tutto",
-			"textname_mr_keep_the": "",
 			"backup_directory_2": "Directory di backup[",
 			"back_up_website_2": "Backup sito web",
 			"back_up_the_database_3": "Backup database",
@@ -2949,7 +2950,6 @@ var lan = {
 			"edit_scheduled_tasks": "Modifica attività pianificate-[",
 			"setting_con_ptb_clearfix": "<div class=\"setting-con ptb20\">\ t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Tipo di attività",
 			"clearfix_plan_ptb_typename": "</ul>",
-			"clearfix_plan_ptb_typename_1": "",
 			"maxlength_max_min_name": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_1": "\" maxlength=\"2\" max=\"23\" min=\"0\">",
 			"maxlength_max_min_name_2": "\" maxlength=\"2\" max=\"59\" min=\"0\">",
@@ -2969,7 +2969,6 @@ var lan = {
 			"typename_exclude_dir_mr": "<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">Directory escluse",
 			"typename_controls_mr_tip": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">Suggerimento",
 			"typename_controls_mr_url": "<span class=\"typename controls c4 pull-left f14 text-right mr20\">Indirizzo URL",
-			"clearfix_plan_ptb_bt": "",
 			"backup_directory_6": "Directory di backup[",
 			"saving_your_edits_please": "Salvataggio delle modifiche, attendere...",
 			"dropdown_planweek_mr_default": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\ t\t\t<b val=\"1\">Lunedì</b> <span class=\"caret\">",
@@ -3159,7 +3158,9 @@ var lan = {
 			"py_msg_77c6a9": "Errore di scrittura del file: si desidera attivare la funzione di protezione del sistema?",
 			"py_msg_9d44d8": "Attività {1} rilevate e sincronizzate correttamente",
 			"py_msg_2c1843": "Il nome dell'attività è duplicato",
-			"py_msg_f47dfc": "L'elenco delle attività attuali è già aggiornato; non ci sono attività mancanti da sincronizzare."
+			"py_msg_f47dfc": "L'elenco delle attività attuali è già aggiornato; non ci sono attività mancanti da sincronizzare.",
+			"cron_sync_rejected": "Sync rifiutata",
+			"cron_sync_rejected_tip": "L'identificatore dell'attività contiene caratteri non validi (sono ammessi solo A-Za-z0-9_.-, massimo 64). La sincronizzazione verrà rifiutata; apri l'attività, modificala e salva di nuovo per generare un identificatore valido."
 		},
 
 	"files": {
@@ -3500,8 +3501,6 @@ var lan = {
 			"synchronizing_server_firewall_rules": "Sincronizzazione delle regole del firewall del server, attendere...",
 			"the_synchronization_request_failed": "La richiesta di sincronizzazione non è riuscita, controlla la connessione di rete o lo stato del server.",
 			"bordered_hover_layout_fixed": "<div style=\"padding: 20px;\"> <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\"> <tbody> <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Nome del processo",
-			"background_process_pid": "",
-			"background_startup_command": "",
 			"details_on_processes_using": "-Dettagli del processo di utilizzo della porta",
 			"after_the_reset_the": "Dopo il ripristino, la vecchia chiave privata non potrà più essere utilizzata per accedere a questo server senza password (se l'accesso con chiave è abilitato). Sei sicuro di rigenerare la chiave Root?",
 			"reset_root_key": "Reimposta la chiave principale",
@@ -3702,7 +3701,6 @@ var lan = {
 			"size": "</p>                        <p><b>Dimensione:</b>",
 			"author": "</p> <p><b>Autore:</b>",
 			"source_btlink": "</p> <p><b>Fonte: </b><a class=\"btlink\" href=\"",
-			"help_info_red_this": "",
 			"quot_gt_confirm_installation": "Conferma l'installazione",
 			"upload_failed": "Caricamento non riuscito 2!:",
 			"installing_this_may_take": "L'installazione potrebbe richiedere alcuni minuti...",
@@ -3900,6 +3898,8 @@ var lan = {
 		},
 
 	"public": {
+			"login_guard_degraded_title": "La limitazione dei tentativi di accesso è degradata a contatori in memoria del processo: con più worker non è più efficace",
+			"login_guard_degraded_desc": "I tentativi falliti non possono essere scritti nel database, quindi la protezione contro il brute force e la disconnessione delle sessioni dopo il cambio password valgono solo in questo processo. Controllare il database e la tabella panel_login_failure, poi ricaricare questa pagina.",
 			"plain_http_warning_title": "HTTP in chiaro: i cookie di accesso possono essere intercettati",
 			"plain_http_warning_desc": "Attiva HTTPS nelle impostazioni del pannello il prima possibile; fino ad allora non usare questo pannello sulla rete pubblica.",
 			"config": "Configurazione in corso...",

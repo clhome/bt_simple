@@ -168,6 +168,8 @@ jobs:
       #   pip-compile --generate-hashes   -> requirements.lock
       # requirements.lock 仅作**审核与审计**用途，不是安装路径（安装仍以
       # requirements.txt 为准，大陆网络 / 离线环境必须可装）。
+      # 需要逐包核对「每个 name==version 都带 --hash=sha256」时，本地跑：
+      #   python scripts/verify_requirements_lock.py dist/requirements.lock
       # ---------------------------------------------------------------------------
       - name: 安装 SBOM / 依赖锁生成工具
         run: |

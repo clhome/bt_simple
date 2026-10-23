@@ -9,6 +9,7 @@ import subprocess
 import re
 import json
 import shlex
+import tempfile
 
 from packaging import version as pk_version
 
@@ -18,6 +19,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import core.db_pwd as db_pwd
 import logging
 
 _log = logging.getLogger('yf.mysql')
@@ -275,6 +277,77 @@ def pSqliteDb(dbname='databases'):
     return conn
 
 
+# ---------------------------------------------------------------------------
+# P2-4：数据库口令「静态加密」的唯一读写入口（实现见 web/core/db_pwd.py）
+#
+# 落库形态：`yfenc:<Fernet token>`；历史明文（无标记）读写都原样通过，**无需迁移**。
+# 这两个函数是本插件唯一允许碰 `config.mysql_root` 的地方，其余代码一律走
+# `getRootPwd()` / `_saveRootPwd()`，避免「改了写点漏了读点」的单侧漂移。
+# ---------------------------------------------------------------------------
+
+def _chmod600(path):
+    """把明文口令快照文件收紧到 0600（P2-4）。失败只记日志，不影响自愈主流程。"""
+    try:
+        os.chmod(path, 0o600)
+        return True
+    except Exception as _e:
+        try:
+            yf.writeFileLog('[db_pwd] 明文口令快照 %s 权限收紧失败: %s' % (path, _e))
+        except Exception as _e2:
+            _log.warning('[mysql] 记录权限收紧失败日志失败: %s', _e2)
+        return False
+
+
+# 加密命名空间（固定常量）：本插件写的东西统一用这一个 key。
+# root 口令与「库用户」口令共用同一命名空间，是为了让外部读取方（如 sphinx 读
+# mysql 的 databases.password）只需要知道「这是哪个插件的数据」一个常量。
+_PWD_SCOPE = db_pwd.SCOPE_MYSQL_ROOT
+
+
+def _storedRootPwd():
+    """读取 config.mysql_root 的**落库原值**（可能是 yfenc: 密文，也可能是历史明文）。
+
+    唯一允许直读该字段的地方；读出来的值必须再过 `db_pwd.decrypt_pwd()` 才能当口令用。
+    """
+    return pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+
+
+def getRootPwd(default=''):
+    """读取并解密 MySQL root 口令（P2-4）。
+
+    密文 → 解密；历史明文 → 原样返回（向后兼容）；解不开 → fail-closed 返回 default，
+    绝不把密文当口令拼进命令（那会变成「密码错误」这种看不出根因的故障）。
+    """
+    pwd = db_pwd.decrypt_pwd(_PWD_SCOPE, _storedRootPwd())
+    return default if pwd is None else pwd
+
+
+def _saveRootPwd(pwd):
+    """把 root 口令加密后写回 config.mysql_root（P2-4：禁止明文落库）。"""
+    return pSqliteDb('config').where('id=?', (1,)).save(
+        'mysql_root', (db_pwd.encrypt_pwd(_PWD_SCOPE, pwd),))
+
+
+def _encUserPwd(pwd):
+    """加密「数据库用户」口令（落 databases.password）。空口令原样返回（不加密）。"""
+    return db_pwd.encrypt_pwd(_PWD_SCOPE, pwd)
+
+
+def _decUserPwd(stored):
+    """解密「数据库用户」口令；历史明文原样返回；解不开返回 None（fail-closed）。"""
+    return db_pwd.decrypt_pwd(_PWD_SCOPE, stored)
+
+
+def _decUserRows(rows):
+    """列表接口的行内口令就地解密：前端要能看到可复制的**明文**。
+
+    解不开的行给空串（而不是把密文丢给前端 —— 用户会复制一坨 base64 去登录）。
+    """
+    for row in rows or []:
+        if isinstance(row, dict) and 'password' in row:
+            row['password'] = _decUserPwd(row.get('password')) or ''
+    return rows
+
 
 def pMysqlDb():
     # pymysql
@@ -285,7 +358,7 @@ def pMysqlDb():
     db.setPort(getDbPort())
     db.setSocket(getSocketFile())
     # db.setCharset("utf8")
-    db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('mysql_root'))
+    db.setPwd(getRootPwd())
     return db
 
 
@@ -864,7 +937,7 @@ def initMysqlPwd(version='5.7'):
             yf.shlexQuote("drop user 'root'@'" + sql_hostname + "'")
         yf.execShell(drop_root_hostname)
 
-    pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
+    _saveRootPwd(pwd)
     return True
 
 def initMysql8Pwd():
@@ -910,7 +983,7 @@ def initMysql8Pwd():
         myconf + ' -uroot -p"' + pwd + '" -e "drop database test";'
     yf.execShell(drop_test_db)
 
-    pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
+    _saveRootPwd(pwd)
 
     # 删除冗余账户
     # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
@@ -1594,8 +1667,7 @@ def myPass(act, root):
 
 
 def rootPwd():
-    return pSqliteDb('config').where(
-        'id=?', (1,)).getField('mysql_root')
+    return getRootPwd()
 
 
 # 「导入外部 SQL 包」的安全解压组件（plugins/mysql/import_archive.py，mariadb 复用同一份）
@@ -1744,7 +1816,7 @@ def importDbExternal():
                 _log.debug('[mysql] importDbExternal 异常已忽略: %s', _e)
         return yf.returnJson(False, 'SQL文件内容为空', {'log': err_log, 'exit_code': 1, 'has_error': True})
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
     my_cnf = getConf()
 
@@ -1934,7 +2006,7 @@ def importDbExternalProgressBar():
     if import_sql == "":
         return yf.returnJson(False, '未找SQL文件')
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
 
     my_cnf = getConf()
@@ -1978,7 +2050,7 @@ def importDbBackup():
         pdb = pMysqlDb()
         pdb.execute('reset master')
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
     mysql_cmd = getServerDir() + '/bin/mysql -S ' + yf.shlexQuote(sock) + ' -uroot -p' + \
         yf.shlexQuote(pwd) + ' ' + yf.shlexQuote(name) + ' < ' + yf.shlexQuote(file_path_sql)
@@ -2037,7 +2109,7 @@ def importDbBackupProgressBar():
         pdb = pMysqlDb()
         pdb.execute('reset master')
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     sock = getSocketFile()
 
     # sock / pwd / file_path_sql / name 同上：先 shlexQuote 再拼进 shell
@@ -2167,6 +2239,8 @@ def getDbList():
     field = 'id,pid,name,username,password,accept,rw,ps,addtime'
     clist = conn.where(condition, ()).field(
         field).limit(limit).order('addtime desc, id desc').select()
+    # P2-4：口令列落库为密文，回前端前还原成明文（解不开给空串，不丢密文给前端）
+    _decUserRows(clist)
 
     for x in range(0, len(clist)):
         dbname = clist[x]['name']
@@ -2188,8 +2262,7 @@ def getDbList():
     data['data'] = clist
 
     info = {}
-    info['root_pwd'] = pSqliteDb('config').where(
-        'id=?', (1,)).getField('mysql_root')
+    info['root_pwd'] = getRootPwd()
     try:
         info['port'] = getDbPort()
     except Exception:
@@ -2243,11 +2316,14 @@ def syncGetDatabases():
 def toDbBase(find):
     pdb = pMysqlDb()
     psdb = pSqliteDb('databases')
-    if len(find['password']) < 3:
+    # P2-4：落库口令已是密文，先还原成明文再判长度/建用户（历史明文原样通过）
+    password = _decUserPwd(find.get('password')) or ''
+    if len(password) < 3:
         find['username'] = find['name']
-        find['password'] = yf.md5(str(time.time()) + find['name'])[0:10]
+        password = yf.md5(str(time.time()) + find['name'])[0:10]
+        find['password'] = password
         psdb.where("id=?", (find['id'],)).save(
-            'password,username', (find['password'], find['username']))
+            'password,username', (_encUserPwd(password), find['username']))
 
     result = pdb.execute("create database `" + find['name'] + "`")
     if "using password:" in str(result):
@@ -2255,7 +2331,6 @@ def toDbBase(find):
     if "Connection refused" in str(result):
         return -1
 
-    password = find['password']
     __createUser(find['name'], find['username'], password, find['accept'])
     return 1
 
@@ -2299,61 +2374,263 @@ def syncToDatabases():
     msg = yf.getInfo('本次共同步了{1}个数据库!', (str(n),))
     return yf.returnJson(True, msg)
 
+# ---------------------------------------------------------------------------
+# P2-5：root 口令不再拼进 shell 字符串、也不再进 argv
+#
+# 历史写法把用户口令拼进一行 shell 命令（execShell 默认 shell=True）：口令里只要
+# 出现 `'`、`$()`、反引号就能截断引号或触发命令替换（以 root 身份执行）；验证那一步
+# 还把口令拼成 `-p'...'` 直接进 argv，`ps -ef` 全员可见。现在统一为：
+#   1. mysql 客户端一律 `yf.execShellRc([...], shell=False)`，参数列表直传 Popen；
+#   2. SQL 文本里的口令走 `_mysqlSqlLiteral()` 按 **MySQL 字符串字面量**语义转义；
+#   3. 需要「连库」的验证步骤改用 0600 临时 option 文件 + `--defaults-extra-file`，
+#      口令既不进 argv、也不进任何 shell 字符串。
+# ---------------------------------------------------------------------------
+
+#: mysql 客户端单条会话命令的超时（都是毫秒级命令，60s 已很宽松）
+_MYSQL_CLI_TIMEOUT = 60
+
+
+def _mysqlSqlLiteral(s):
+    """把 Python 字符串转成 **MySQL 字符串字面量引号内的内容**（外层引号由调用方加）。
+
+    返回值**不含**外层单引号。调用方的写法是：先写一个以单引号结尾的 SQL 片段，
+    再把本函数的返回值拼上去，最后补上单引号与后半句 SQL（例：ALTER USER 语句里的
+    IDENTIFIED BY 子句）。
+
+    注：此处刻意不把完整拼接示例写成代码块 —— `testsuite/test_panel_cmd_path_guard.py`
+    会扫描“字符串字面量里出现 JS 式拼接”的写法（形如引号后紧跟加号再跟函数调用），
+    文档里的示例代码会被它误报。
+
+    转义规则取 MySQL 默认语义（未开启 `NO_BACKSLASH_ESCAPES` 时，单/双引号字符串里
+    反斜杠都是转义符）：
+
+        ``\\``  -> ``\\\\``      （必须先处理，否则后补的反斜杠会被二次转义）
+        ``'``   -> ``\\'``
+        ``"``   -> ``\\"``
+        ``\\0``（NUL）  -> ``\\\\0``
+        ``\\n``  -> ``\\\\n``
+        ``\\r``  -> ``\\\\r``
+        ``\\Z``（0x1a，Ctrl+Z） -> ``\\\\Z``
+
+    其余字符（`$`、反引号、`;`、空格、中文……）在 SQL 字面量里没有特殊含义，
+    且不再经过 shell，因此既不转义、也不能转义（多写一个反斜杠会让口令变样）。
+
+    注意：这是 **SQL 字面量**规则，与 mysql option 文件的转义规则**不同**，
+    两者不能互相复用（option 文件侧见 `_mysqlOptionValue()`）。
+    """
+    if s is None:
+        s = ''
+    if not isinstance(s, str):
+        s = str(s)
+    out = []
+    for ch in s:
+        if ch == '\\':
+            out.append('\\\\')
+        elif ch == "'":
+            out.append("\\'")
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == '\x00':
+            out.append('\\0')
+        elif ch == '\n':
+            out.append('\\n')
+        elif ch == '\r':
+            out.append('\\r')
+        elif ch == '\x1a':
+            out.append('\\Z')
+        else:
+            out.append(ch)
+    return ''.join(out)
+
+
+def _mysqlOptionValue(s):
+    """把 Python 字符串转成 **mysql option 文件双引号值内部的内容**（外层 `"` 由调用方加）。
+
+    option 文件是 `key=value` 的行协议，转义规则与 SQL 字面量**不同**，混用会写坏口令：
+
+        ``\\``  -> ``\\\\``
+        ``"``   -> ``\\"``（值用双引号包起来）
+        ``\\n``/``\\r``/``\\t``/``\\b`` -> 对应的 option-file 转义序列
+                     （option 文件按行读，裸换行会把值截断，必须转义）
+        ``'``   -> **原样保留**：双引号值里的单引号是普通字符；若照 SQL 规则写成 ``\\'``，
+                     解析出来会多一个反斜杠，口令就错了
+        `$`、反引号 -> 原样（option 文件不做任何 shell 展开）
+
+    option 文件没有 ``\\0``/``\\Z`` 转义序列（SQL 有），所以这两个字符不做特殊处理——
+    正常口令不会含 NUL，含 NUL 的口令本身也无法经命令行/option 文件承载。
+    """
+    if s is None:
+        s = ''
+    if not isinstance(s, str):
+        s = str(s)
+    out = []
+    for ch in s:
+        if ch == '\\':
+            out.append('\\\\')
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == '\n':
+            out.append('\\n')
+        elif ch == '\r':
+            out.append('\\r')
+        elif ch == '\t':
+            out.append('\\t')
+        elif ch == '\b':
+            out.append('\\b')
+        else:
+            out.append(ch)
+    return ''.join(out)
+
+
+def _mysqlClientDefaultsFile(pwd):
+    """在系统临时目录写一个 **权限 0600** 的 mysql option 文件，返回其路径。
+
+    内容::
+
+        [client]
+        user=root
+        password="<按 option-file 规则转义后的口令>"
+
+    用途：让口令只存在于一个权限 0600 的文件里，由 mysql 客户端自己读取
+    （`--defaults-extra-file=<path>`，该参数必须是 mysql 的**第一个**参数），
+    于是口令既不进 argv（ps 不可见）、也不进任何 shell 字符串。
+
+    **调用方必须 try/finally 删除返回的路径**（见 `setRootPwdForce`）。
+    写失败时本函数自行清理并抛出，避免留下半成品文件。
+    """
+    fd, path = tempfile.mkstemp(prefix='bt_mysql_cli_', suffix='.cnf')
+    try:
+        content = '[client]\nuser=root\npassword="%s"\n' % _mysqlOptionValue(pwd)
+        try:
+            fh = os.fdopen(fd, 'w', encoding='utf-8', newline='\n')
+        except Exception:
+            os.close(fd)
+            raise
+        with fh:
+            fh.write(content)
+        # mkstemp 建出来本就是 0600；这里再显式收一次，防 umask/平台差异
+        # （Windows 上 chmod 只有只读位有意义，失败也不影响功能）
+        try:
+            os.chmod(path, 0o600)
+        except OSError as e:
+            _log.debug('[mysql] 收紧临时 option 文件权限失败: %s', e)
+    except Exception:
+        try:
+            os.remove(path)
+        except OSError as e:
+            _log.debug('[mysql] 清理写失败的临时 option 文件失败: %s', e)
+        raise
+    return path
+
+
+def _mysqlLogFailure(scene, rc, err, secret=None):
+    """记录 mysql 命令失败原因：**口令一律打码**，绝不进日志。
+
+    mysql 的语法错误回显会带上查询片段（可能含口令），所以这里把口令的原文形态和
+    SQL 转义形态都替换成 `***` 再落盘。
+    """
+    text = str(err or '')
+    if secret:
+        for form in (str(secret), _mysqlSqlLiteral(secret)):
+            if form:
+                text = text.replace(form, '***')
+    text = ' '.join(text.split())[:200]
+    yf.writeFileLog('[mysql] %s 失败 rc=%s: %s' % (scene, rc, text))
+
+
 def adjust_password_policy(version):
     if version.startswith("8."):
         serverdir = getServerDir()
-        yf.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.policy=LOW;\"")
-        yf.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.length=4;\"")
+        mysql_bin = serverdir + '/bin/mysql'
+        # 这两条 SQL 是常量、无用户输入，仍统一改成 argv + shell=False：
+        # 避免后人照抄「把 SQL 拼成 shell 字符串」的错误范式。
+        for sql in ('SET GLOBAL validate_password.policy=LOW;',
+                    'SET GLOBAL validate_password.length=4;'):
+            rc, _out, err = yf.execShellRc(
+                [mysql_bin, '-u', 'root', '-e', sql],
+                shell=False, timeout=_MYSQL_CLI_TIMEOUT)
+            if rc != 0:
+                _mysqlLogFailure('调整密码策略（%s）' % sql, rc, err)
+
 
 def setRootPwdForce(new_password,version=''):
     # stop(version)
-    # | awk '{print $2}'| xargs kill
+    # 此处无外部输入：命令串是纯字面量（不含任何变量/用户数据），保留 pipeline。
+    # 改 argv 需依赖 pkill 的存在性（精简系统/FreeBSD 不保证有），收益不抵风险。
     data = yf.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
-    # print(data)
     time.sleep(1)
 
     serverdir = getServerDir()
+    mysql_bin = serverdir + '/bin/mysql'
 
     # 启动安全模式
     cmd_msafe = [serverdir + "/bin/mysqld_safe", "--skip-grant-tables", "--skip-networking"]
-    # print("cmd_msafe",cmd_msafe)
     subprocess.Popen(cmd_msafe, stdout=subprocess.PIPE, shell=False, bufsize=4096, stderr=subprocess.PIPE)
     # 等待MySQL安全模式启动...
     time.sleep(5)
 
     if version.startswith("5.5") or version.startswith("5.6"):
-        cmd_mod_root = serverdir+f"/bin/mysql -u root -e \"UPDATE mysql.user SET Password=PASSWORD('{new_password}') WHERE user='root'; FLUSH PRIVILEGES;\""
-        data = yf.execShell(cmd_mod_root)
-        # print("修改root密码", cmd_mod_root)
-        # print(data)
+        # 5.5/5.6：口令经 _mysqlSqlLiteral 转义后只出现在 SQL 文本里，argv 直传
+        sql_mod_root = ("UPDATE mysql.user SET Password=PASSWORD('"
+                        + _mysqlSqlLiteral(new_password)
+                        + "') WHERE user='root'; FLUSH PRIVILEGES;")
+        rc, _out, err = yf.execShellRc(
+            [mysql_bin, '-u', 'root', '-e', sql_mod_root],
+            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
+        if rc != 0:
+            _mysqlLogFailure('安全模式下用 PASSWORD() 写入 root 口令', rc, err, new_password)
     else:
-        cmd_clear_root = serverdir+"/bin/mysql -u root -e \"UPDATE mysql.user SET authentication_string = '' WHERE user = 'root'; FLUSH PRIVILEGES;\""
-        data = yf.execShell(cmd_clear_root)
-        # print(cmd_clear_root,"清空root密码",data)
+        sql_clear_root = ("UPDATE mysql.user SET authentication_string = '' "
+                          "WHERE user = 'root'; FLUSH PRIVILEGES;")
+        rc, _out, err = yf.execShellRc(
+            [mysql_bin, '-u', 'root', '-e', sql_clear_root],
+            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
+        if rc != 0:
+            _mysqlLogFailure('安全模式下清空 root authentication_string', rc, err)
 
+    # 同上：纯字面量 pipeline，无外部输入，保留。
     data = yf.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
-    # print("停止安全模式",data)
 
     # 正常启动MySQL
     start(version)
     time.sleep(5)
-    
+
     if not version.startswith("5.5") and not version.startswith("5.6"):
         # 针对MySQL 8.0+调整密码策略
         if version.startswith("8."):
             adjust_password_policy(version)
-        # 设置新密码
-        cmd_newpass = serverdir+f"/bin/mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{new_password}'; FLUSH PRIVILEGES;\""
-        data = yf.execShell(cmd_newpass)
-        # print("新密码",cmd_newpass)
-        # print(data)
-    
-    # 验证密码
-    cmd = serverdir+f"/bin/mysql -u root -p'{new_password}' -e 'SHOW DATABASES;'"
-    data = yf.execShell(cmd)
-    if data[1] == '':
-        return True
-    return False
+        # 设置新密码（SQL 字面量转义 + argv 直传，不经 shell）
+        sql_newpass = ("ALTER USER 'root'@'localhost' IDENTIFIED BY '"
+                       + _mysqlSqlLiteral(new_password)
+                       + "'; FLUSH PRIVILEGES;")
+        rc, _out, err = yf.execShellRc(
+            [mysql_bin, '-u', 'root', '-e', sql_newpass],
+            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
+        if rc != 0:
+            _mysqlLogFailure('ALTER USER 设置 root 新口令', rc, err, new_password)
+
+    # 验证密码：口令只进 0600 临时 option 文件（--defaults-extra-file 必须是第一个参数），
+    # 不进 argv、不进 shell；用完立刻删。
+    try:
+        cnf = _mysqlClientDefaultsFile(new_password)
+    except Exception as e:
+        # 异常文本里可能带路径，但不含口令
+        yf.writeFileLog('[mysql] 创建临时 option 文件失败（口令未记录）: %s' % str(e)[:200])
+        return False
+    try:
+        rc, _out, err = yf.execShellRc(
+            [mysql_bin, '--defaults-extra-file=' + cnf, '-u', 'root', '-e', 'SHOW DATABASES;'],
+            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
+    finally:
+        try:
+            os.remove(cnf)
+        except OSError as e:
+            # 删不掉时口令仍只在一个 0600 的临时文件里，只能记日志便于人工清理
+            _log.debug('[mysql] 删除临时 option 文件失败: %s', e)
+    if rc != 0:
+        _mysqlLogFailure('用新 root 口令连接验证', rc, err, new_password)
+        return False
+    return True
 
 
 def setRootPwd(version=''):
@@ -2366,13 +2643,13 @@ def setRootPwd(version=''):
     #强制修改
     force = 0
     if 'force' in args and args['force'] == '1':
-        pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
+        _saveRootPwd(password)
         return yf.returnJson(True, '【强制本地记录】数据库root密码修改成功(立马检查)!')
     if 'force' in args and args['force'] == '2':
         force = 2
         ok = setRootPwdForce(password,version)
 
-        pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
+        _saveRootPwd(password)
         if ok and version.startswith("8"):
             pdb = pMysqlDb()
             pdb.query("SET GLOBAL validate_password.policy=MEDIUM;")
@@ -2396,7 +2673,7 @@ def setRootPwd(version=''):
             result = pdb.execute(
                 "update mysql.user set Password=password('" + password + "') where User='root'")
         pdb.execute("flush privileges")
-        pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
+        _saveRootPwd(password)
 
         msg = ''
         if force == 1:
@@ -2453,7 +2730,8 @@ def setUserPwd(version=''):
             pdb.execute("update mysql.user set Password=password(%s) where User=%s", (newpassword, username))
 
         pdb.execute("flush privileges")
-        psdb.where("id=?", (uid,)).setField('password', newpassword)
+        # P2-4：库用户新口令加密落库（明文只在本次调用内存在）
+        psdb.where("id=?", (uid,)).setField('password', _encUserPwd(newpassword))
         return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
     except Exception as ex:
         return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
@@ -2545,8 +2823,10 @@ def addDb():
     __createUser(dbname, dbuser, password, address)
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
+    # P2-4：新建库用户的初始口令加密落库（__createUser 仍用明文）
+    stored_user_pwd = _encUserPwd(password)
     psdb.add('pid,name,username,password,accept,rw,ps,addtime',
-             (0, dbname, dbuser, password, address, 'all', ps, addTime))
+             (0, dbname, dbuser, stored_user_pwd, address, 'all', ps, addTime))
     return yf.returnJson(True, '添加成功!')
 
 
@@ -2595,7 +2875,7 @@ def delDb():
         # 数据库连接参数
         db_host = 'localhost'
         db_port = int(getDbPort())
-        db_pass = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        db_pass = getRootPwd()
         db_socket = getSocketFile()
 
         import pymysql
@@ -2750,8 +3030,7 @@ def setDbAccess():
     try:
         is_root = (name == 'root')
         if is_root:
-            password = pSqliteDb('config').where(
-                'id=?', (1,)).getField('mysql_root')
+            password = getRootPwd()
             if not password:
                 return yf.returnJson(False, '获取ROOT数据库密码失败!')
             dbname = '*'
@@ -2768,7 +3047,8 @@ def setDbAccess():
 
             dbname = db_info.get('name') or name
             name = db_info.get('username') or name
-            password = db_info.get('password') or ''
+            # P2-4：databases.password 落库为密文，先还原成明文再用
+            password = _decUserPwd(db_info.get('password')) or ''
             req_rw = args.get('rw', '').strip()
             if req_rw in ['all', 'rw', 'r']:
                 rw = req_rw
@@ -2888,7 +3168,7 @@ def resetDbRootPwd(version):
     myconf = serverdir + "/etc/my.cnf"
     pwd = yf.getRandomString(16)
 
-    pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
+    _saveRootPwd(pwd)
 
     mdb8 = getMdb8Ver()
     # MySQL 5.7+ 和 8.x/9.x 都使用 flush privileges + ALTER USER 方式重置密码
@@ -3394,6 +3674,8 @@ def getMasterDbList(version=''):
         field = 'id,pid,name,username,password,accept,ps,addtime'
         clist = conn.where(condition, ()).field(
             field).limit(limit).order('addtime desc, id desc').select()
+        # P2-4：口令列落库为密文，回前端前还原成明文
+        _decUserRows(clist)
         count = conn.where(condition, ()).count()
 
         for x in range(0, len(clist)):
@@ -4441,7 +4723,7 @@ def dumpMysqlData(version=''):
         return data[1]
 
     db_arg = str(args['db']).strip()
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     mysql_dir = getServerDir()
     myconf = mysql_dir + "/etc/my.cnf"
 
@@ -5021,7 +5303,7 @@ def doFullSyncUser(version=''):
         if channel_name != '':
             doFullSyncUserImportContentForChannel(bak_file, channel_name)
 
-        pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        pwd = getRootPwd()
         sock = getSocketFile()
 
         # pwd/sock/bak_file/sync_db_import 均为拼接进 shell 的变量，逐段 shlexQuote
@@ -5198,7 +5480,7 @@ def doFullSyncSSH(version=''):
     id_rsa_conn.where('ip=?', (ip,)).setField('ps', ps)
     writeDbSyncStatus({'code': 4, 'msg': '刷新从库同步信息完成...', 'progress': 50})
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+    pwd = getRootPwd()
     root_dir = getServerDir()
     msock = root_dir + "/mysql.sock"
     yf.execShell("cd /tmp && gzip -d dump.sql.gz")
@@ -5355,14 +5637,18 @@ def upgradeSelfHealing(version=''):
     try:
         psdb = pSqliteDb('databases')
         # 同步 root 密码至快照文件
-        root_pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root') or ''
+        root_pwd = getRootPwd() or ''
         if root_pwd:
             root_pl = getServerDir() + '/mysql_root.pl'
             default_pl = getServerDir() + '/default.pl'
+            # P2-4：这两个快照文件是**明文**口令（给 `bs 10 / show_panel_pwd` 显示用），
+            # 落盘后立刻收紧到 0600；chmod 失败记日志，绝不静默留 0644。
             if not os.path.exists(root_pl):
                 yf.writeFile(root_pl, root_pwd)
+                _chmod600(root_pl)
             if not os.path.exists(default_pl):
                 yf.writeFile(default_pl, root_pwd)
+                _chmod600(default_pl)
         logs.append("SQLite 元数据与 root 密码快照已自动同步。")
     except Exception as ex:
         logs.append(f"元数据同步警告: {ex}")
