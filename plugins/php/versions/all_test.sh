@@ -5,12 +5,12 @@ export PATH=$PATH:/opt/homebrew/bin
 DIR=$(cd "$(dirname "$0")"; pwd)
 ROOT_DIR=$(cd "$(dirname "$0")"; pwd)
 
-# cd /www/server/mdserver-web/scripts/quick && bash debug.sh
-# cd /www/server/mdserver-web/plugins/php/versions && /bin/bash all_test.sh
+# cd /www/server/yufeng_panel/scripts/quick && bash debug.sh
+# cd /www/server/yufeng_panel/plugins/php/versions && /bin/bash all_test.sh
 
-# cd /www/server/mdserver-web/plugins/php && bash install.sh install 82
-# cd /www/server/mdserver-web/plugins/php/versions/common && bash gd.sh install 73
-# cd /www/server/mdserver-web/plugins/php/versions/common && bash swoole.sh install 54
+# cd /www/server/yufeng_panel/plugins/php && bash install.sh install 82
+# cd /www/server/yufeng_panel/plugins/php/versions/common && bash gd.sh install 73
+# cd /www/server/yufeng_panel/plugins/php/versions/common && bash swoole.sh install 54
 
 
 # PHP_VER=52
@@ -33,7 +33,7 @@ PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82 83 84 85)
 for PHP_VER in ${PHP_VER_LIST[@]}; do
 	echo "php${PHP_VER} -- start"
 	if [ ! -d  /www/server/php/${PHP_VER} ];then
-		cd /www/server/mdserver-web/plugins/php && bash install.sh install ${PHP_VER}
+		cd /www/server/yufeng_panel/plugins/php && bash install.sh install ${PHP_VER}
 	fi
 	echo "php${PHP_VER} -- end"
 done

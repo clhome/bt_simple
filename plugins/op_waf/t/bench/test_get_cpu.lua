@@ -1,4 +1,4 @@
--- cd /www/server/mdserver-web/plugins/op_waf/t/bench && bash bench.sh
+-- cd /www/server/yufeng_panel/plugins/op_waf/t/bench && bash bench.sh
 
 local function target()
     ngx.re.find("hello, world.", [[\w+\.]], "jo")

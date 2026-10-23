@@ -16,15 +16,15 @@ RUN apt-get update -y && \
 RUN mkdir -p /www/server /www/wwwroot /www/wwwlogs /www/backup/database /www/backup/site
 
 # 3. 拷贝本地面板代码（请在项目根目录执行 docker build -f docker/Dockerfile .）
-COPY . /www/server/mdserver-web
+COPY . /www/server/yufeng_panel
 
 # 4. 初始化面板并安装环境（分层构建，提高缓存利用率）
-RUN cd /www/server/mdserver-web && bash scripts/install/debian.sh
+RUN cd /www/server/yufeng_panel && bash scripts/install/debian.sh
 
-RUN cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4
-RUN cd /www/server/mdserver-web/plugins/php && bash install.sh install 74
-RUN cd /www/server/mdserver-web/plugins/mysql && bash install.sh install 5.6
-RUN cd /www/server/mdserver-web/plugins/phpmyadmin && bash install.sh install 4.4.15
+RUN cd /www/server/yufeng_panel/plugins/openresty && bash install.sh install 1.21.4
+RUN cd /www/server/yufeng_panel/plugins/php && bash install.sh install 74
+RUN cd /www/server/yufeng_panel/plugins/mysql && bash install.sh install 5.6
+RUN cd /www/server/yufeng_panel/plugins/phpmyadmin && bash install.sh install 4.4.15
 
 # 5. 添加自启动与入口守护脚本
 ADD docker/entrypoint.sh /entrypoint.sh
@@ -33,6 +33,6 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 7200 80 443 888
 
 # 6. 精准暴露数据持久化目录，避免宿主机挂载覆盖 /www/server
-VOLUME [ "/www/wwwroot", "/www/server/mysql/data", "/www/server/mdserver-web/data", "/www/backup" ]
+VOLUME [ "/www/wwwroot", "/www/server/mysql/data", "/www/server/yufeng_panel/data", "/www/backup" ]
 
 ENTRYPOINT ["/entrypoint.sh"]

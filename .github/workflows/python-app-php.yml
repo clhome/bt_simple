@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: MW APP PHP
+name: YF APP PHP
 
 # 触发策略（报告 P1 第 9 条：CI 自动化程度低）：保留手动触发，另加 push / PR 自动触发，
 # 但用 paths 收窄到「本插件目录 + 本 workflow 文件」。依据：这个 workflow 的实际动作是
@@ -39,32 +39,32 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
-    - name: Install MW
+    - name: Install YFPanel
       run: |
         sudo bash scripts/install_dev.sh
     - name: Install PHP82
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 82
+        cd /www/server/yufeng_panel/plugins/php && sudo bash install.sh install 82
     - name: Install PHP83
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 83
+        cd /www/server/yufeng_panel/plugins/php && sudo bash install.sh install 83
     - name: Install PHP84
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 84
+        cd /www/server/yufeng_panel/plugins/php && sudo bash install.sh install 84
     - name: Install PHP85
       run: |
-        cd /www/server/mdserver-web/plugins/php && sudo bash install.sh install 85
+        cd /www/server/yufeng_panel/plugins/php && sudo bash install.sh install 85
     # P0-4：下架版本必须「默认拒绝」。这里真跑一次安装脚本，断言退出码非 0 ——
     # 53 代表 5.2~7.3（已知未修复 RCE），74 代表 7.4/8.0/8.1（编译版下架，改走 APT/YUM）。
     # 守卫用例：testsuite/test_php_unsupported_versions.py
     - name: Unsupported PHP versions must be rejected
       run: |
-        cd /www/server/mdserver-web/plugins/php
+        cd /www/server/yufeng_panel/plugins/php
         # 确保没有残留的 opt-in 开关（unset 未定义变量在 bash 里本来就返回 0，不加 || true）
         unset YF_ALLOW_UNSAFE_PHP
         ! sudo bash install.sh install 53
         ! sudo bash install.sh install 74
     - name: Start DEBUG
       run: |
-        cd /www/server/mdserver-web/web && sudo ../bin/python3 -m gunicorn -c setting.py app:app
-        cd /www/server/mdserver-web && sudo ./bin/python3 panel_task.py &
+        cd /www/server/yufeng_panel/web && sudo ../bin/python3 -m gunicorn -c setting.py app:app
+        cd /www/server/yufeng_panel && sudo ./bin/python3 panel_task.py &

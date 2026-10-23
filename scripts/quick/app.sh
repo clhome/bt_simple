@@ -13,7 +13,7 @@ echo "welcome to YF panel"
 startTime=`date +%s`
 
 if [ ! -d /www/server/yufeng_panel ];then
-	echo "mdserver-web not exist!"
+	echo "yufeng_panel not exist!"
 	exit 1
 fi
 

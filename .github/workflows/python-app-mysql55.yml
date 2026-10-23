@@ -1,12 +1,12 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: MW APP MySQL55
+name: YF APP MySQL55
 
 # 触发策略（报告 P1 第 9 条：CI 自动化程度低）：保留手动触发，另加 push / PR 自动触发，
 # 但用 paths 收窄到「本插件目录 + 本 workflow 文件」。依据：这个 workflow 的实际动作是
 # `sudo bash scripts/install_dev.sh` 装整套面板，再用 `plugins/mysql/install.sh install 5.5`
-# **真装一次 MySQL 5.5**，属重型集成冒烟（matrix 3 个 OS × 全套安装）。每次提交都跑既慢
+# **真装一次 MySQL 5.5**，属重型集成冒烟（Ubuntu 22.04 × 全套安装）。每次提交都跑既慢
 # 又没必要；只有 MySQL 插件本体或本 workflow 自身改动才可能影响它的结论。
 # 守卫：testsuite/test_ci_workflows_hardening.py
 on:
@@ -27,7 +27,10 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-18.04, ubuntu-22.04]
+        # 2026-10-23：ubuntu-18.04（2023-04 下线）与 ubuntu-20.04（2025-04 下线）
+        # 已被 GitHub 托管 runner 移除，写了这两个标签的矩阵会在「分配 runner」阶段
+        # 直接失败（与安装脚本无关的红）。只保留仍受支持的 22.04 LTS。
+        os: [ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     #runs-on: ubuntu-latest
 
@@ -37,12 +40,12 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
-    - name: Install MW
+    - name: Install YFPanel
       run: |
         sudo bash scripts/install_dev.sh
     - name: Install MySQL55
       run: |
-        cd /www/server/mdserver-web/plugins/mysql && sudo bash install.sh install 5.5
+        cd /www/server/yufeng_panel/plugins/mysql && sudo bash install.sh install 5.5
     - name: Start DEBUG
       run: |
         cd web && gunicorn -c setting.py app:app

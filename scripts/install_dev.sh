@@ -18,6 +18,10 @@ WORKING='[\033[34m*\033[0m]'
 is64bit=`getconf LONG_BIT`
 
 
+# 注意：这里的 `tools.py` 是**历史/异构布局的标记文件**（mdserver-web / 宝塔时代的面板根目录
+# 都有它），本仓库把它改名成了 `panel_tools.py`，所以本判据在当前仓库里**不会命中**。
+# 不要「修正」成 panel_tools.py —— 那个文件在每次正常安装/升级时都存在，改过去会让
+# 本脚本（以及同样写法的 install.sh / update.sh / update_dev.sh）对已装面板的机器直接退出。
 if [ -f /www/server/yufeng_panel/tools.py ];then
 	echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
 	echo -e "rm -rf /www/server/yufeng_panel"

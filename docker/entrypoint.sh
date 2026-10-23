@@ -19,8 +19,10 @@ if [ ! -f "/www/server/yufeng_panel/data/panel_initialized.flag" ]; then
     PANEL_PASS=${PANEL_PASSWORD:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)}
     
     cd /www/server/yufeng_panel
-    bin/python tools.py username ${PANEL_USER}
-    bin/python tools.py panel ${PANEL_PASS}
+    # 工具文件名是 panel_tools.py（历史 mdserver-web 时代叫 tools.py，本仓库没有该文件：
+    # 旧写法在 `set -e` 下必然 No such file or directory → 容器启动即退出）
+    bin/python3 panel_tools.py username ${PANEL_USER}
+    bin/python3 panel_tools.py panel ${PANEL_PASS}
     
     echo "=========================================================="
     echo "  yufeng_panel (bt_simple) Docker Initialized!"

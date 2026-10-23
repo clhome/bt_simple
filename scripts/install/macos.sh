@@ -30,32 +30,32 @@ brew install md5sum libevent pidof bison
 brew install pcre2 libxpm libelf
 brew install automake icu4c libmemcached
 
-if [ ! -d $DEV/server/mdserver-web ]; then
+if [ ! -d $DEV/server/yufeng_panel ]; then
 	wget -O /tmp/master.zip https://codeload.github.com/clhome/bt_simple/zip/master
 	cd /tmp && unzip /tmp/master.zip
-	mv /tmp/bt_simple-master $DEV/server/mdserver-web
+	mv /tmp/bt_simple-master $DEV/server/yufeng_panel
 	rm -f /tmp/master.zip
 	rm -rf /tmp/bt_simple-master
 fi
 
 if [ ! -d $DEV/server/lib ]; then
 	# lib.sh 装不上 Python 依赖会 exit 1；不显式退出的话后续命令会把退出码变回 0
-	cd $DEV/server/mdserver-web/scripts && bash lib.sh || exit 1
+	cd $DEV/server/yufeng_panel/scripts && bash lib.sh || exit 1
 fi  
 
-chmod 755 $DEV/server/mdserver-web/data
-if [ -f $DEV/server/mdserver-web/bin/activate ];then
-    cd $DEV/server/mdserver-web && python3 -m venv $DEV/server/mdserver-web
-    source $DEV/server/mdserver-web/bin/activate
-    pip3 install -r $DEV/server/mdserver-web/requirements.txt
+chmod 755 $DEV/server/yufeng_panel/data
+if [ -f $DEV/server/yufeng_panel/bin/activate ];then
+    cd $DEV/server/yufeng_panel && python3 -m venv $DEV/server/yufeng_panel
+    source $DEV/server/yufeng_panel/bin/activate
+    pip3 install -r $DEV/server/yufeng_panel/requirements.txt
 else
-	cd $DEV/server/mdserver-web && pip3 install -r $DEV/server/mdserver-web/requirements.txt
+	cd $DEV/server/yufeng_panel && pip3 install -r $DEV/server/yufeng_panel/requirements.txt
 fi
 
 
-cd $DEV/server/mdserver-web && ./cli.sh start
-cd $DEV/server/mdserver-web && ./cli.sh stop
+cd $DEV/server/yufeng_panel && ./cli.sh start
+cd $DEV/server/yufeng_panel && ./cli.sh stop
 
 sleep 5
-cd $DEV/server/mdserver-web && ./scripts/init.d/yf default
-cd $DEV/server/mdserver-web && ./cli.sh debug
+cd $DEV/server/yufeng_panel && ./scripts/init.d/yf default
+cd $DEV/server/yufeng_panel && ./cli.sh debug

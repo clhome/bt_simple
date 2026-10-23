@@ -10,7 +10,7 @@ sysName=`uname`
 
 
 #获取信息和版本
-# bash /www/server/mdsever-web/scripts/getos.sh
+# bash /www/server/yufeng_panel/scripts/getos.sh
 if [ -f "${rootPath}/scripts/getos.sh" ]; then bash "${rootPath}/scripts/getos.sh"; fi
 OSNAME=`cat ${rootPath}/data/osname.pl`
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`

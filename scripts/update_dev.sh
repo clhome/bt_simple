@@ -299,7 +299,7 @@ echo "local:${LOCAL_ADDR}"
 # 闸门下方的（覆盖 -> 重启）流程按原样保留，作为「已验签发布包」落地后要走的步骤；
 # 在恢复验签下载之前不可达。升级请用 deploy.sh update / deploy.sh rollback。
 # -------------------------------------------------------------------------
-echo "update mdserver-web dev code start"
+echo "update yufeng_panel dev code start"
 yf_refuse_unverified_source "GitHub dev 分支源码包（未签名快照）"
 
 if [ -f /tmp/dev.tar.gz ];then

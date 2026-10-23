@@ -11,7 +11,7 @@ sysName=`uname`
 
 
 #获取信息和版本
-# bash /www/server/mdsever-web/scripts/getos.sh
+# bash /www/server/yufeng_panel/scripts/getos.sh
 bash ${rootPath}/scripts/getos.sh
 OSNAME=`cat ${rootPath}/data/osname.pl`
 

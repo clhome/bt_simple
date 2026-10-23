@@ -324,7 +324,7 @@ bash deploy.sh
 
 ```bash
 # 备份面板数据库与配置文件
-tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/mdserver-web/data
+tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/yufeng_panel/data
 ```
 
 #### 面板数据库自动备份与恢复
@@ -343,7 +343,7 @@ tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/mdserver-
 
 ```bash
 bs stop                                                      # 1. 停面板与任务进程
-cd /www/server/mdserver-web/data                             # 2. 清掉旧库的 WAL/SHM，
+cd /www/server/yufeng_panel/data                             # 2. 清掉旧库的 WAL/SHM，
 rm -f panel.db-wal panel.db-shm panel.db-journal             #    否则会被回放进新库
 mv panel.db panel.db.broken                                  # 3. 坏库留档（可选但建议）
 cp /www/backup/panel_db/panel_db_20260101_030000.db panel.db # 4. 用备份覆盖
