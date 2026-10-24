@@ -162,6 +162,18 @@ function phpCommonFunc(version){
             <button class="btn btn-success btn-sm" onclick="setPHPMaxSize(\''+ version+'\')" style="margin-left:20px">' + pt('保存') + '</button>\
         </p>';
 
+        // 源码镜像 + 官方最新版：内网/离线机器升级 PHP 时用（见 php_src_fetch.sh）
+        con += '<p class="conf_p" style="display:block;line-height:24px;">\
+            <span>' + pt('源码镜像') + '</span>\
+            <input class="phpSrcMirror bt-input-text mr5" style="width:250px" type="text" value="' + phpEsc(rdata['srcMirror'] || '') + '" placeholder="https://mirror.example.com/php/">\
+            <button class="btn btn-success btn-sm" style="margin-left:10px" onclick="setPHPSrcMirror(\'' + version + '\')">' + pt('保存') + '</button>\
+            <br><span class="c9 f11" style="margin-left:88px;">' + pt('内网或离线机器可填写源码镜像前缀，升级时优先生效') + '</span>\
+        </p>';
+
+        if (rdata['latestVersion']) {
+            con += '<p class="conf_p"><span>' + pt('官方最新版') + '</span><b style="color:#ff2020">' + phpEsc(rdata['latestVersion']) + '</b></p>';
+        }
+
         con += '<hr/><p class="conf_p" style="text-align:center;">\
             <button class="btn btn-default btn-sm" onclick="getPHPInfo(\'' + version + '\')">查看phpinfo()</button>  \
             <button class="btn btn-default btn-sm" onclick="phpPreload(\'' + version + '\')">' + pt('预加载脚本') + '</button>\
@@ -170,6 +182,17 @@ function phpCommonFunc(version){
         </p>';
 
         $(".soft-man-con").html(con);
+    });
+}
+
+//保存 PHP 源码镜像（内网/离线升级用；留空=默认官方与内置镜像）
+function setPHPSrcMirror(version) {
+    var mirror = $.trim($(".phpSrcMirror").val());
+    api.post('set_source_mirror', version, { 'mirror': mirror }, function (data) {
+        var rdata = phpInner(data);
+        showMsg(rdata.msg, function () {
+            phpCommonFunc(version);
+        }, { icon: rdata.status ? 1 : 2 });
     });
 }
 

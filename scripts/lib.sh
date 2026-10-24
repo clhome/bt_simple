@@ -104,7 +104,7 @@ function get_cpu_cores() {
     fi
 
     if [ -x "$(command -v free)" ]; then
-        local mem=$(free -m | grep Mem | awk '{printf("%.f",($2)/1024)}')
+        local mem=$(LC_ALL=C free -m | grep Mem | awk '{printf("%.f",($2)/1024)}')
         if [ "$cores" -gt "$mem" ] && [ "$mem" -gt 0 ]; then
             cores=$mem
         fi

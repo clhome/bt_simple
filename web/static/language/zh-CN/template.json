@@ -3320,6 +3320,9 @@
     "logaudittable_position_relative_block": "刷新列表"
   },
   "soft": {
+    "php_upgradable": "可更新",
+    "php_upgrade_tip": "将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。",
+    "php_upgrade_queued": "已提交升级任务，请在消息盒子查看进度",
     "type_all": "全部",
     "type_installed": "已安装",
     "type_runtime": "运行环境",
@@ -4611,6 +4614,8 @@
     "brand_panel": "御风面板"
   },
   "public": {
+    "task_failed": "失败",
+    "task_log": "日志",
     "login_guard_degraded_title": "登录限流已降级为进程内计数，多 worker 下限流失效",
     "login_guard_degraded_desc": "失败计数无法写入数据库，爆破防护与「改密码踢下线」只在本进程生效。请检查数据库与 panel_login_failure 表后刷新本页。",
     "plain_http_warning_title": "当前为明文 HTTP，登录 Cookie 可被嗅探",

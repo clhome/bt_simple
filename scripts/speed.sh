@@ -58,7 +58,7 @@ fi
 # 3. 尝试使用 free 命令（提取第二行非空数值）
 if [ -z "$mem_total" ] || [ "$mem_total" = "未知" ]; then
     if command -v free >/dev/null 2>&1; then
-        free_val=$(free -m 2>/dev/null | awk 'NR==2{print $2}')
+        free_val=$(LC_ALL=C free -m 2>/dev/null | awk 'NR==2{print $2}')
         if [ -n "$free_val" ] && [ "$free_val" -gt 0 ] 2>/dev/null; then
             if [ "$free_val" -ge 1024 ]; then
                 free_gb=$(awk "BEGIN {printf \"%.1f\", $free_val/1024}")

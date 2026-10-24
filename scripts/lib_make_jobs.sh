@@ -6,9 +6,9 @@ yf_ensure_swap() {
   if [ "$(id -u 2>/dev/null)" != "0" ]; then
     return 0
   fi
-  local swap_mb=$(free -m 2>/dev/null | awk '/^Swap:/{print $2}')
+  local swap_mb=$(LC_ALL=C free -m 2>/dev/null | awk '/^Swap:/{print $2}')
   [ -z "$swap_mb" ] && swap_mb=0
-  local mem_mb=$(free -m 2>/dev/null | awk '/^Mem:/{print $2}')
+  local mem_mb=$(LC_ALL=C free -m 2>/dev/null | awk '/^Mem:/{print $2}')
   [ -z "$mem_mb" ] && mem_mb=1024
   local total_vmem=$(( mem_mb + swap_mb ))
 
@@ -67,7 +67,7 @@ yf_php_build() {
   if command -v yf_ensure_swap >/dev/null 2>&1; then yf_ensure_swap; fi
   # 磁盘空间预检，方便定位“各种配置”机器的失败原因
   df -h "$PWD" 2>/dev/null | tail -n 3 || true
-  free -m 2>/dev/null || true
+  LC_ALL=C free -m 2>/dev/null || true
   if make -j1; then
     return 0
   fi
@@ -81,7 +81,7 @@ yf_php_build() {
 yf_make_jobs() {
   local target_ver="$1"
   local cpu=$(nproc 2>/dev/null || echo 1)
-  local mem_mb=$(free -m 2>/dev/null | awk '/^Mem:/{print $2}')
+  local mem_mb=$(LC_ALL=C free -m 2>/dev/null | awk '/^Mem:/{print $2}')
   [ -z "$mem_mb" ] && mem_mb=1024
 
   # 针对 PHP 8.4+ JIT IR 编译机制的特殊加固：单任务内存占用高达 1.5G

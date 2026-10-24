@@ -446,7 +446,7 @@ def phpFpmWwwReplace(version):
         
         # 动态根据内存计算 FPM 进程数
         try:
-            mem_total_str = yf.execShell("free -m | grep Mem | awk '{print $2}'")[0].strip()
+            mem_total_str = yf.execShell("LC_ALL=C free -m | grep Mem | awk '{print $2}'")[0].strip()
             if mem_total_str:
                 mem_total = int(mem_total_str)
                 if mem_total <= 1024:
@@ -795,10 +795,88 @@ def killAllPhp(version):
 #     自动回退失败时，把命令原样返回给 UI，不给「已回退」的假承诺。
 # ---------------------------------------------------------------------------------
 APT_UPGRADE_TIMEOUT = 900
+#: 包索引刷新超时（`apt-get update`）。刷新失败不阻断升级（本地索引可能仍然可用），
+#: 但必须写进日志 —— 「apt 退出码 0 但版本没变」最常见的原因就是索引是旧的。
+APT_REFRESH_TIMEOUT = 300
+
+#: 「什么都没升」的判定：apt 在「已是最新/源里没有更新包」时会以 0 退出。
+#:
+#: 必须同时认英文与**中文**摘要：apt 的输出随 locale 变化（真机实测 zh_CN 下是
+#: 「升级了 0 个软件包，新安装了 0 个软件包」），只匹配英文会漏判 → 把「源里没有新版」
+#: 误报成「升级失败但没有原因」。调用方还会补一条**语言无关**的判据
+#: （升级前后包版本串完全相同），这里只是让报错文案更准。
+_NO_UPGRADE_RE = re.compile(
+    r'0 upgraded,\s*0 newly installed'
+    r'|Nothing to do'
+    r'|升级了\s*0\s*个软件包'
+    r'|已经是最新版本'
+    r'|已是最新版本',
+    re.I)
+
+
+def _refreshPackageIndex():
+    """刷新包索引，返回 (rc, 摘要)。失败只记录，不阻断（与 apt 自身行为一致）。"""
+    try:
+        from core import proc_stream
+        # 边跑边回显：apt-get update 可能跑几分钟，捕获输出会让任务日志空白
+        rc, tail, _to = proc_stream.run_streaming(['apt-get', 'update'],
+                                                 timeout=APT_REFRESH_TIMEOUT, tail_lines=10)
+    except Exception as ex:
+        _log.debug('[php-apt] apt-get update 异常: %s', ex)
+        return (-1, str(ex))
+    tail = ' '.join((tail or '').split())[-200:]
+    if rc != 0:
+        yf.writeFileLog('[php-apt] apt-get update 失败（rc=%s）: %s' % (rc, tail))
+    return (rc, tail)
+
+
+def _queueUpgrade(ver, branch, floor):
+    """把升级投递到面板任务队列；返回给前端的信封。"""
+    try:
+        import thisdb
+        cmd = 'cd %s && %s %s upgrade_to_baseline %s' % (
+            yf.shlexQuote(yf.getPanelDir()),
+            yf.shlexQuote(sys.executable),
+            yf.shlexQuote(os.path.abspath(__file__)),
+            yf.shlexQuote(ver),
+        )
+        try:
+            thisdb.removeFailedTaskByCmd(cmd)
+        except Exception as ex:
+            _log.debug('[php-apt] 清理历史失败任务失败（忽略）: %s', ex)
+        added = thisdb.addTask(name='PHP%s 升级到安全基线 %s' % (ver, floor), cmd=cmd, status=0)
+        yf.triggerTask()
+    except Exception as ex:
+        return yf.returnJson(False, '投递升级任务失败: %s' % ex)
+    if not added:
+        return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度')
+    return yf.returnJson(True, '已提交升级任务（基线 %s），请在消息盒子查看进度' % floor)
 
 
 def submitBaselineUpgrade(version=''):
-    """一键升级入口（前端调用）：apt 升级是秒级~分钟级，同步执行并当场回读。"""
+    """前端入口：只做前置判定 + 投递任务（apt 升级可能跑几分钟，不能在请求里等）。"""
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    branch = ver.replace('.', '')
+    floor = php_sec_baseline.branch_floor(branch)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有安全基线，不支持一键升级' % ver)
+
+    before_pkg = php_sec_scan.read_package_version('apt', branch)
+    if not before_pkg:
+        return yf.returnJson(False, '未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装' % ver)
+    before, _raw = php_sec_baseline.parse_package_version(before_pkg)
+    if php_sec_baseline.has_backport_marker('apt', before_pkg):
+        return yf.returnJson(True, 'PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级'
+                             % (ver, before_pkg))
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+    return _queueUpgrade(ver, branch, floor)
+
+
+def upgradeToBaseline(version=''):
+    """任务队列入口：刷新索引 → apt 升级 → 回读断言 → 失败尝试钉回旧版本。"""
     err, ver = versionOrError(version)
     if err:
         return err
@@ -818,12 +896,19 @@ def submitBaselineUpgrade(version=''):
         return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
 
     yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
-    rc, out, errout = yf.execShellRc(php_sec_baseline.build_apt_upgrade_argv(branch),
-                                     shell=False, timeout=APT_UPGRADE_TIMEOUT)
-    tail = '\n'.join((out or errout or '').splitlines()[-12:])
+    upd_rc, upd_tail = _refreshPackageIndex()
+    from core import proc_stream
+    # 边跑边回显：apt 升级可能跑几分钟，把输出捕获住会让任务日志空白（看着像卡死）
+    rc, tail, _to = proc_stream.run_streaming(
+        php_sec_baseline.build_apt_upgrade_argv(branch),
+        timeout=APT_UPGRADE_TIMEOUT, tail_lines=30)
+    combined = tail or ''
 
     after_pkg = php_sec_scan.read_package_version('apt', branch)
     after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
+    # 语言无关的兜底判据：升级前后 dpkg 包版本串完全相同 ⇒ 确实什么都没升
+    no_op = bool(_NO_UPGRADE_RE.search(combined)) or bool(
+        before_pkg and after_pkg and before_pkg == after_pkg)
     verdict = php_sec_baseline.verify_upgrade(
         branch, before, after,
         backport=php_sec_baseline.has_backport_marker('apt', after_pkg))
@@ -842,8 +927,6 @@ def submitBaselineUpgrade(version=''):
     rollback_argv = php_sec_baseline.build_apt_rollback_argv(branch, before_pkg)
     rb_rc, rb_out, rb_err = (-1, '', '')
     if rollback_argv:
-        # 列表 argv + shell=False（不拼命令行）；`list(...)` 再复制一份，
-        # 顺便让 shell 拼接棘轮守卫能静态看出这里不是 shell 字符串。
         rb_rc, rb_out, rb_err = yf.execShellRc(list(rollback_argv), shell=False,
                                                timeout=APT_UPGRADE_TIMEOUT)
     try:
@@ -852,10 +935,18 @@ def submitBaselineUpgrade(version=''):
         _log.debug('[php-apt] 升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
     dropPhpSecSnapshot()
     hint = ' '.join(rollback_argv) if rollback_argv else '（无可用回退命令）'
-    msg = '升级失败: %s（apt 退出码 %s），自动回退%s；手工回退请执行: %s' % (
-        verdict['text'], rc, '成功' if rb_rc == 0 else '未成功（apt 不保证旧版本仍在源内）', hint)
+    extra = ''
+    if no_op:
+        # apt 以 0 退出但一个包都没升：这是「源里没有更新版本」，不是「已达标」
+        extra = ('；apt 报告 0 upgraded / 0 newly installed（源里没有比 %s 更新的包）'
+                 '，请检查 /etc/apt/sources.list 与 sury 源，并确认 apt-get update 成功%s'
+                 % (before, '' if upd_rc == 0 else '（本次刷新失败：%s）' % upd_tail))
+    msg = '升级失败: %s（apt 退出码 %s），自动回退%s%s；手工回退请执行: %s' % (
+        verdict['text'], rc, '成功' if rb_rc == 0 else '未成功（apt 不保证旧版本仍在源内）',
+        extra, hint)
     yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级失败: %s' % (ver, msg))
     return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
+                                      'refresh_rc': upd_rc, 'no_op': no_op,
                                       'rollback_rc': rb_rc, 'rollback_argv': rollback_argv,
                                       'log_tail': tail})
 
@@ -1818,6 +1909,14 @@ def installPreInspection(version):
 
     return 'ok'
 
+def jsonEnvelopeOk(payload):
+    """`yf.returnJson()` 信封是否代表成功（任务队列以退出码判成败，必须严格）。"""
+    try:
+        return bool(json.loads(payload).get('status'))
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -1872,6 +1971,11 @@ if __name__ == "__main__":
         print(killAllPhp(version))
     elif func == 'submit_baseline_upgrade':
         print(submitBaselineUpgrade(version))
+    elif func == 'upgrade_to_baseline':
+        # 任务队列入口：失败必须以非零退出码结束，否则任务会被记成成功
+        _r = upgradeToBaseline(version)
+        print(_r)
+        sys.exit(0 if jsonEnvelopeOk(_r) else 1)
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':

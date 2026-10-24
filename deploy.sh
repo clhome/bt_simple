@@ -828,7 +828,7 @@ check_architecture() {
 
 check_system_resources() {
     log_info "检测系统资源..."
-    local mem_total=$(free -m | grep Mem | awk '{print $2}')
+    local mem_total=$(LC_ALL=C free -m | grep Mem | awk '{print $2}')
     if [ "${mem_total}" -lt "450" ]; then
         log_error "当前服务器内存为: ${mem_total}MB"
         log_error "检测到当前服务器内存小于450MB，无法继续安装面板！"

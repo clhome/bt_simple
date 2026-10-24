@@ -50,7 +50,7 @@ die() {
 function check_system_resources() {
 	local mem_total root_disk_space www_disk_space
 
-	mem_total="${YF_FAKE_MEM_MB:-$(free -m 2>/dev/null | grep Mem | awk '{print $2}' || true)}"
+	mem_total="${YF_FAKE_MEM_MB:-$(LC_ALL=C free -m 2>/dev/null | grep Mem | awk '{print $2}' || true)}"
 	if [ -z "$mem_total" ]; then
 		# free 不可用（极简容器 / macOS）时无法判断，放行而不是误杀
 		echo -e "${WARN} 无法读取内存信息，跳过内存预检"

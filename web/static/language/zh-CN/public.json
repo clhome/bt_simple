@@ -1,4 +1,6 @@
 {
+  "task_failed": "失败",
+  "task_log": "日志",
   "login_guard_degraded_title": "登录限流已降级为进程内计数，多 worker 下限流失效",
   "login_guard_degraded_desc": "失败计数无法写入数据库，爆破防护与「改密码踢下线」只在本进程生效。请检查数据库与 panel_login_failure 表后刷新本页。",
   "plain_http_warning_title": "当前为明文 HTTP，登录 Cookie 可被嗅探",

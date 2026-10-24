@@ -791,6 +791,47 @@ def phpSecurityScan_step():
         print('phpSecurityScan:', yf.getTracebackInfo())
 
 
+# ---------------------------------------------------------------------------------
+# PHP 官方版本索引（「已安装的软件」里的升级提醒 / 一键升级的目标版本）
+#
+# 面板不可能跟着 PHP 每 4~6 周的补丁版发版，因此「当前官方最新版」必须能在运行期
+# 自动取到。这里每 12 小时抓一次 `www.php.net/releases/index.php?json&max=1`，
+# 结果落 `data/php_release_index.json` 缓存；任何失败都只记日志并保留旧缓存/内置表，
+# 绝不抛出、绝不阻塞其它任务，也绝不把「抓不到」当成「没有新版本」。
+# ---------------------------------------------------------------------------------
+PHP_RELEASE_INDEX_INTERVAL = 12 * 3600
+
+
+def phpReleaseIndex_step():
+    try:
+        from core import php_release_index
+        branches = []
+        versions_dir = yf.getPluginDir() + '/php/versions'
+        try:
+            for name in os.listdir(versions_dir):
+                if name.isdigit() and len(name) == 2:
+                    branches.append(name)
+        except OSError:
+            branches = []
+        index, info = php_release_index.refresh(yf.getPanelDataDir(),
+                                                branches=branches or None)
+        summary = ', '.join('%s→%s' % (b, e.get('version'))
+                            for b, e in sorted(index.items()))
+        if info.get('online'):
+            _log.info('[php_release] 官方版本索引已刷新: %s', summary)
+            yf.writeFileLog('[php_release] 官方版本索引已刷新（%s）: %s'
+                            % (','.join(info.get('branches') or []), summary))
+        else:
+            _log.info('[php_release] 使用缓存/内置版本表（%s）', info.get('error') or '未联网')
+            # 抓不到最新版属可接受降级，但必须留痕：否则「为什么一直提示升到旧版本」
+            # 这类问题无从追溯（面板的 _log 未接文件句柄，这里显式写面板日志）。
+            yf.writeFileLog('[php_release] 使用缓存/内置版本表（%s）: %s'
+                            % (info.get('error') or '未联网', summary))
+    except Exception:
+        # 取不到最新版不影响任何已有功能（升级入口会退回内置表）
+        _log.warning('[php_release] 刷新失败: %s', yf.getTracebackInfo())
+
+
 def panelDbBackup_step():
     # 面板自身库定时在线备份（失败只记日志并返回，绝不影响其它任务）
     try:
@@ -865,6 +906,8 @@ def run():
     # 采集本身只读几个版本号（`php -v` / `dpkg-query` / `rpm`，毫秒级），
     # 但要把结果落快照供首页告警卡片读取，所以放在通道 1 的每日槽位。
     watchdog_scheduler.add_task(phpSecurityScan_step, PHP_SEC_SCAN_INTERVAL)
+    # PHP 官方版本索引（12h）：给「已安装的软件」提供「可升级 x.y.z」的判据。
+    watchdog_scheduler.add_task(phpReleaseIndex_step, PHP_RELEASE_INDEX_INTERVAL)
 
     t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
     t_watchdog.daemon = True

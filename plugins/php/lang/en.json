@@ -1,8 +1,6 @@
 {
     "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s has no compiled-edition security baseline, use the APT/YUM channel to upgrade",
-    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s already meets the baseline (%s >= %s), no upgrade needed",
     "投递升级任务失败: %s": "Failed to queue the upgrade task: %s",
-    "已提交升级任务: %s → %s，请在任务日志查看进度": "Upgrade task queued: %s -> %s, check the task log for progress",
     "缺少安装脚本: %s": "Missing install script: %s",
     "升级前备份旧二进制失败，已取消升级: %s": "Failed to back up the old binaries before upgrading, upgrade cancelled: %s",
     "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Upgrade failed: %s (install script exit code %s), old binaries restored: %s",
@@ -211,5 +209,18 @@
     "非法档位: %s（只允许 %s）": "Invalid tier: %s (only %s are allowed)",
     "没有检测到已安装的 PHP 配置（无需缓解）": "No installed PHP configuration detected (nothing to mitigate)",
     "读取缓解状态失败: %s": "Failed to read the mitigation status: %s",
-    "缓解模块不可用: %s": "The mitigation module is unavailable: %s"
+    "缓解模块不可用: %s": "The mitigation module is unavailable: %s",
+    "PHP%s 无法确定可用的升级目标版本（缺官方版本/哈希），请检查面板能否访问 www.php.net，或手工配置源码镜像": "PHP%s: no upgrade target (missing official version/hash). Check www.php.net access or set a source mirror",
+    "PHP%s 已是最新（%s ≥ %s），无需升级": "PHP%s is up to date (%s >= %s), no upgrade needed",
+    "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Upgrade task already queued or running; see the message box for progress",
+    "已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度": "Upgrade queued: %s -> %s (target from %s); see the message box for progress",
+    "PHP%s 无法确定目标版本与官方哈希，拒绝升级（不做无校验安装）": "PHP%s: target version/hash unknown, upgrade refused (no unverified install)",
+    "源码镜像": "Source mirror",
+    "内网或离线机器可填写源码镜像前缀，升级时优先生效": "For LAN/offline hosts: source mirror prefix, used first when upgrading",
+    "官方最新版": "Latest official",
+    "镜像地址不合法，必须以 http:// 或 https:// 开头且不含空格": "Invalid mirror URL: must start with http:// or https:// and contain no spaces",
+    "镜像地址过长!": "Mirror URL too long!",
+    "保存源码镜像失败: %s": "Failed to save source mirror: %s",
+    "已恢复默认镜像": "Default mirrors restored",
+    "保存成功": "Saved"
 }

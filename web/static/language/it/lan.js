@@ -3639,6 +3639,9 @@ var lan = {
 		},
 
 	"soft": {
+		"php_upgradable": "Aggiornamento disponibile",
+		"php_upgrade_tip": "PHP verrà ricompilato (10-30 min), poi FPM si riavvia; in caso di errore la versione precedente viene ripristinata.",
+		"php_upgrade_queued": "Aggiornamento in coda; vedi la casella messaggi",
 			"type_all": "Tutti",
 			"type_installed": "Installato",
 			"type_runtime": "Ambiente di runtime",
@@ -3920,6 +3923,8 @@ var lan = {
 		},
 
 	"public": {
+		"task_failed": "Non riuscita",
+		"task_log": "Registro",
 			"login_guard_degraded_title": "La limitazione dei tentativi di accesso è degradata a contatori in memoria del processo: con più worker non è più efficace",
 			"login_guard_degraded_desc": "I tentativi falliti non possono essere scritti nel database, quindi la protezione contro il brute force e la disconnessione delle sessioni dopo il cambio password valgono solo in questo processo. Controllare il database e la tabella panel_login_failure, poi ricaricare questa pagina.",
 			"plain_http_warning_title": "HTTP in chiaro: i cookie di accesso possono essere intercettati",

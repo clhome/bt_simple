@@ -602,7 +602,7 @@ def phpFpmWwwReplace(version):
         
         # 动态根据内存计算 FPM 进程数
         try:
-            mem_total_str = yf.execShell("free -m | grep Mem | awk '{print $2}'")[0].strip()
+            mem_total_str = yf.execShell("LC_ALL=C free -m | grep Mem | awk '{print $2}'")[0].strip()
             if mem_total_str:
                 mem_total = int(mem_total_str)
                 if mem_total <= 1024:
@@ -889,10 +889,78 @@ def killAllPhp(version):
 # 原样交给 UI 并明示「需人工回退」，不能给虚假安全感。
 # ---------------------------------------------------------------------------------
 YUM_UPGRADE_TIMEOUT = 900
+#: 元数据刷新超时（`yum makecache`）。失败不阻断升级，但要写进日志。
+YUM_REFRESH_TIMEOUT = 300
+
+#: 「什么都没升」的判定：yum/dnf 在「无可用更新」时以 0 退出。
+_NO_UPGRADE_RE = re.compile(
+    r'No packages marked for update|Nothing to do|无需更新|没有需要更新的软件包|已经是最新版本',
+    re.I)
+
+
+def _refreshPackageIndex():
+    """刷新 yum 元数据，返回 (rc, 摘要)。失败只记录，不阻断。"""
+    try:
+        from core import proc_stream
+        # 边跑边回显：元数据刷新可能跑几分钟，捕获输出会让任务日志空白
+        rc, tail, _to = proc_stream.run_streaming(['yum', 'makecache'],
+                                                 timeout=YUM_REFRESH_TIMEOUT, tail_lines=10)
+    except Exception as ex:
+        _log.debug('[php-yum] yum makecache 异常: %s', ex)
+        return (-1, str(ex))
+    tail = ' '.join((tail or '').split())[-200:]
+    if rc != 0:
+        yf.writeFileLog('[php-yum] yum makecache 失败（rc=%s）: %s' % (rc, tail))
+    return (rc, tail)
+
+
+def _queueUpgrade(ver, branch, floor):
+    try:
+        import thisdb
+        cmd = 'cd %s && %s %s upgrade_to_baseline %s' % (
+            yf.shlexQuote(yf.getPanelDir()),
+            yf.shlexQuote(sys.executable),
+            yf.shlexQuote(os.path.abspath(__file__)),
+            yf.shlexQuote(ver),
+        )
+        try:
+            thisdb.removeFailedTaskByCmd(cmd)
+        except Exception as ex:
+            _log.debug('[php-yum] 清理历史失败任务失败（忽略）: %s', ex)
+        added = thisdb.addTask(name='PHP%s 升级到安全基线 %s' % (ver, floor), cmd=cmd, status=0)
+        yf.triggerTask()
+    except Exception as ex:
+        return yf.returnJson(False, '投递升级任务失败: %s' % ex)
+    if not added:
+        return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度')
+    return yf.returnJson(True, '已提交升级任务（基线 %s），请在消息盒子查看进度' % floor)
 
 
 def submitBaselineUpgrade(version=''):
-    """一键升级入口（前端调用）：yum update + 重启 FPM + 回读断言。"""
+    """前端入口：只做前置判定 + 投递任务（yum update 可能跑几分钟，不能在请求里等）。"""
+    err, ver = versionOrError(version)
+    if err:
+        return err
+    branch = formatVersion(ver)
+    floor = php_sec_baseline.branch_floor(branch)
+    if not floor:
+        return yf.returnJson(False, 'PHP%s 没有安全基线，不支持一键升级' % ver)
+
+    before_pkg = php_sec_scan.read_package_version('yum', branch)
+    if not before_pkg:
+        return yf.returnJson(False,
+                             '未检测到 yum 包 php%s-php-fpm，请确认已通过 YUM(Remi) 渠道安装' % branch)
+    before, _raw = php_sec_baseline.parse_package_version(before_pkg)
+    if php_sec_baseline.has_backport_marker('yum', before_pkg):
+        return yf.returnJson(True, 'PHP%s 的 yum 包 %s 已带渠道回移补丁标记，无需升级'
+                             % (ver, before_pkg))
+    if php_sec_baseline.version_ge(before, floor):
+        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+    return _queueUpgrade(ver, branch, floor)
+
+
+def upgradeToBaseline(version=''):
+    """任务队列入口：刷新元数据 → yum update → 回读断言（不支持自动回退）。"""
     err, ver = versionOrError(version)
     if err:
         return err
@@ -913,12 +981,19 @@ def submitBaselineUpgrade(version=''):
         return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
 
     yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
-    rc, out, errout = yf.execShellRc(php_sec_baseline.build_yum_upgrade_argv(branch),
-                                     shell=False, timeout=YUM_UPGRADE_TIMEOUT)
-    tail = '\n'.join((out or errout or '').splitlines()[-12:])
+    upd_rc, upd_tail = _refreshPackageIndex()
+    from core import proc_stream
+    # 边跑边回显：yum update 可能跑几分钟，把输出捕获住会让任务日志空白（看着像卡死）
+    rc, tail, _to = proc_stream.run_streaming(
+        php_sec_baseline.build_yum_upgrade_argv(branch),
+        timeout=YUM_UPGRADE_TIMEOUT, tail_lines=30)
+    combined = tail or ''
 
     after_pkg = php_sec_scan.read_package_version('yum', branch)
     after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
+    # 语言无关的兜底判据：升级前后 rpm 包版本串完全相同 ⇒ 确实什么都没升
+    no_op = bool(_NO_UPGRADE_RE.search(combined)) or bool(
+        before_pkg and after_pkg and before_pkg == after_pkg)
     verdict = php_sec_baseline.verify_upgrade(
         branch, before, after,
         backport=php_sec_baseline.has_backport_marker('yum', after_pkg))
@@ -939,10 +1014,16 @@ def submitBaselineUpgrade(version=''):
         _log.debug('[php-yum] 升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
     dropPhpSecSnapshot()
     manual = php_sec_baseline.build_yum_rollback_argv(branch, before_pkg)
-    msg = '升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退，手工回退请执行: %s' % (
-        verdict['text'], rc, ' '.join(manual) if manual else '（无可用回退命令）')
+    extra = ''
+    if no_op:
+        extra = ('；yum 报告无可用更新（源里没有比 %s 更新的包），请检查 Remi 源配置'
+                 '并确认 yum makecache 成功%s'
+                 % (before, '' if upd_rc == 0 else '（本次刷新失败：%s）' % upd_tail))
+    msg = '升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退%s，手工回退请执行: %s' % (
+        verdict['text'], rc, extra, ' '.join(manual) if manual else '（无可用回退命令）')
     yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级失败: %s' % (ver, msg))
     return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
+                                      'refresh_rc': upd_rc, 'no_op': no_op,
                                       'rollback_argv': manual, 'manual_rollback': True,
                                       'log_tail': tail})
 
@@ -1774,6 +1855,14 @@ def installPreInspection(version):
 
 
 
+def jsonEnvelopeOk(payload):
+    """`yf.returnJson()` 信封是否代表成功（任务队列以退出码判成败，必须严格）。"""
+    try:
+        return bool(json.loads(payload).get('status'))
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) < 2:
@@ -1825,6 +1914,11 @@ if __name__ == "__main__":
         print(killAllPhp(version))
     elif func == 'submit_baseline_upgrade':
         print(submitBaselineUpgrade(version))
+    elif func == 'upgrade_to_baseline':
+        # 任务队列入口：失败必须以非零退出码结束，否则任务会被记成成功
+        _r = upgradeToBaseline(version)
+        print(_r)
+        sys.exit(0 if jsonEnvelopeOk(_r) else 1)
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':

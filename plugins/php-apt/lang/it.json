@@ -3,7 +3,6 @@
     "未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装": "Pacchetto apt php%s-fpm non trovato, verifica che PHP sia stato installato dal canale APT",
     "PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级": "Il pacchetto apt di PHP %s (%s) riporta gia il marcatore di backport, nessun aggiornamento necessario",
     "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s rispetta gia la baseline (%s >= %s), nessun aggiornamento necessario",
-    "升级失败: %s（apt 退出码 %s），自动回退%s；手工回退请执行: %s": "Aggiornamento non riuscito: %s (codice di uscita apt %s), rollback automatico %s; per tornare indietro manualmente: %s",
     "*PHP-FPM运行模式": "*Modalità di esecuzione PHP-FPM",
     "*允许创建的最大子进程数": "*Il numero massimo di processi secondari che è possibile creare",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Numero massimo di processi inattivi (pulisci quando i processi inattivi raggiungono questo valore)",
@@ -179,5 +178,8 @@
     "时间参数不合法!": "Parametro tempo non valido!",
     "上传大小参数不合法!": "Parametro dimensione upload non valido!",
     "扩展列表配置文件不存在!": "File di configurazione elenco estensioni non trovato!",
-    "扩展列表配置文件格式错误!": "Formato file di configurazione elenco estensioni non valido!"
+    "扩展列表配置文件格式错误!": "Formato file di configurazione elenco estensioni non valido!",
+    "投递升级任务失败: %s": "Invio dell'attività di aggiornamento non riuscito: %s",
+    "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Attività di aggiornamento già in coda o in esecuzione; vedi la casella messaggi",
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Aggiornamento in coda (baseline %s); vedi la casella messaggi"
 }

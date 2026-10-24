@@ -268,7 +268,12 @@ function getSList(isdisplay) {
       var raw_ps = t('plugins.' + plugin.name + '.ps', plugin.ps);
       var display_title = raw_title;
       if (plugin.coexist) {
+        // 已安装的 coexist 插件（PHP 各分支）：连「真实运行时版本」一起显示。
+        // 以前只有分支号（PHP-83），用户看不出自己跑的是 8.3.30 还是 8.3.36。
         display_title = raw_title + '-' + plugin.versions;
+        if (plugin.php_current_version) {
+          display_title += ' ' + plugin.php_current_version;
+        }
       } else if (plugin.setup && plugin.setup_version) {
         display_title = raw_title + ' ' + plugin.setup_version;
       }
@@ -312,7 +317,17 @@ function getSList(isdisplay) {
         }
         var settingsLink = '<a class="btlink" onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')">' + t('public.set', '设置') + '</a>';
         var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
-        handle = mupdate + settingsLink + ' | ' + uninstallLink;
+        // PHP 分支有新补丁版时给一个「升级到 x.y.z」入口：只投递后台任务
+        // （目标版本与官方哈希由后端决定，见 plugins/php/index.py::getUpgradeTarget）。
+        var phpUpdateLink = '';
+        if (plugin.php_update_available && plugin.php_update) {
+          phpUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
+            yfSoftText(t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。')) + '"' +
+            ' onclick="phpUpgradeSoft(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.versions) +
+            '\',\'' + yfSoftJsStr(plugin.php_update.current || '') + '\',\'' + yfSoftJsStr(plugin.php_update.latest || '') + '\')">' +
+            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.php_update.latest || '') + '</a> | ';
+        }
+        handle = mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
         titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {
@@ -357,6 +372,11 @@ function getSList(isdisplay) {
       var plugin_title = yfSoftText(display_title);
       if (plugin.display_level == 1) {
         plugin_title += t('soft.size_third_party', ' (第三方插件)');
+      }
+      if (plugin.php_update_available && plugin.php_update) {
+        plugin_title += '<span class="php-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
+          'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
+          yfSoftText(t('soft.php_upgradable', '可更新')) + '</span>';
       }
       icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=ico.png";
       if (plugin.icon != '') {
@@ -1124,6 +1144,47 @@ function installPluginScriptConfirm(name, onConfirm) {
     onConfirm('');
   });
 }
+// PHP 分支升级：只投递后台任务。
+// 编译 10~30 分钟，绝不能塞进同步请求里 —— 面板是单 worker，整段编译会把整个面板
+// 拖住，「点升级后面板卡死」就是这么来的（apt 渠道同理，见 php-apt/index.py）。
+function phpUpgradeSoft(name, branch, current_ver, latest_ver) {
+  var tip = t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。');
+  var title = (current_ver ? (current_ver + ' → ' + latest_ver) : latest_ver);
+  layer.confirm('<b>' + yfSoftText(name) + ' ' + yfSoftText(branch) + '</b> ' + yfSoftText(title) +
+    '<br><span class="c9">' + yfSoftText(tip) + '</span>', {
+    title: t('soft.upgrade_to', '升级到') + ' PHP ' + yfSoftText(latest_ver || ''),
+    icon: 3,
+    closeBtn: 1,
+    btn: [t('public.confirm', '确认'), t('public.cancel', '取消')]
+  }, function (index) {
+    layer.close(index);
+    var loadT = layer.msg(t('public.getting', '正在获取中...'), { icon: 16, time: 0, shade: 0.2 });
+    $.post('/plugins/run', {
+      name: name,
+      func: 'submit_baseline_upgrade',
+      version: branch
+    }, function (rdata) {
+      if (loadT) layer.close(loadT);
+      var info = null;
+      if (rdata && typeof rdata.data === 'string' && rdata.data.charAt(0) === '{') {
+        try { info = JSON.parse(rdata.data); } catch (e) { info = null; }
+      }
+      var ok = info ? !!info.status : !!(rdata && rdata.status);
+      var text = (info && info.msg) ? info.msg : ((rdata && rdata.msg) || '');
+      layer.msg(yfSoftText(text) || (ok ? 'OK' : 'ERROR'), { icon: ok ? 1 : 0, time: 5000, shade: [0.3, '#000'] });
+      getSList(true);
+      getTaskCount();
+      if (ok && typeof messageBox === 'function') {
+        // 直接打开消息盒子：失败会显示「失败」并可查看日志（不再伪装成「等待」）
+        setTimeout(function () { messageBox(); }, 800);
+      }
+    }, 'json').fail(function () {
+      if (loadT) layer.close(loadT);
+      layer.msg(t('public.ERROR', '操作失败'), { icon: 2 });
+    });
+  });
+}
+
 function softUpdate(name, ver, current_ver) {
   layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
     icon: 3,

@@ -1,8 +1,6 @@
 {
     "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s hat keine Sicherheitsbasislinie fuer die kompilierte Variante, bitte ueber den APT/YUM-Kanal aktualisieren",
-    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s erfuellt die Basislinie bereits (%s >= %s), kein Upgrade noetig",
     "投递升级任务失败: %s": "Upgrade-Aufgabe konnte nicht eingereiht werden: %s",
-    "已提交升级任务: %s → %s，请在任务日志查看进度": "Upgrade-Aufgabe eingereiht: %s -> %s, Fortschritt im Aufgabenprotokoll",
     "缺少安装脚本: %s": "Installationsskript fehlt: %s",
     "升级前备份旧二进制失败，已取消升级: %s": "Sicherung der alten Binaerdateien fehlgeschlagen, Upgrade abgebrochen: %s",
     "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Upgrade fehlgeschlagen: %s (Exit-Code des Skripts %s), alte Binaerdateien wiederhergestellt: %s",
@@ -211,5 +209,18 @@
     "非法档位: %s（只允许 %s）": "Ungültige Stufe: %s (erlaubt sind nur %s)",
     "没有检测到已安装的 PHP 配置（无需缓解）": "Keine installierte PHP-Konfiguration gefunden (nichts zu mildern)",
     "读取缓解状态失败: %s": "Milderungsstatus konnte nicht gelesen werden: %s",
-    "缓解模块不可用: %s": "Das Milderungsmodul ist nicht verfügbar: %s"
+    "缓解模块不可用: %s": "Das Milderungsmodul ist nicht verfügbar: %s",
+    "PHP%s 无法确定可用的升级目标版本（缺官方版本/哈希），请检查面板能否访问 www.php.net，或手工配置源码镜像": "PHP%s: kein Upgrade-Ziel (Version/Hash fehlt). Prüfen Sie www.php.net oder setzen Sie einen Quell-Mirror",
+    "PHP%s 已是最新（%s ≥ %s），无需升级": "PHP%s ist aktuell (%s >= %s), kein Upgrade nötig",
+    "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Upgrade-Aufgabe ist bereits in der Warteschlange; Fortschritt im Nachrichtenfeld",
+    "已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度": "Upgrade eingereiht: %s -> %s (Ziel von %s); Fortschritt im Nachrichtenfeld",
+    "PHP%s 无法确定目标版本与官方哈希，拒绝升级（不做无校验安装）": "PHP%s: Zielversion/Hash unbekannt, Upgrade abgelehnt (keine ungeprüfte Installation)",
+    "源码镜像": "Quell-Mirror",
+    "内网或离线机器可填写源码镜像前缀，升级时优先生效": "Für LAN-/Offline-Hosts: Quell-Mirror-Präfix, wird beim Upgrade zuerst verwendet",
+    "官方最新版": "Aktuellste offizielle",
+    "镜像地址不合法，必须以 http:// 或 https:// 开头且不含空格": "Ungültige Mirror-URL: muss mit http:// oder https:// beginnen und darf keine Leerzeichen enthalten",
+    "镜像地址过长!": "Mirror-URL zu lang!",
+    "保存源码镜像失败: %s": "Quell-Mirror konnte nicht gespeichert werden: %s",
+    "已恢复默认镜像": "Standard-Mirrors wiederhergestellt",
+    "保存成功": "Gespeichert"
 }

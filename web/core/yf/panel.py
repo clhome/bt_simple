@@ -26,7 +26,10 @@ from random import Random
 import functools
 
 
-from . import deDoubleCrypt, getFileSuffix, getInfo, getNotifyPath, getPanelTaskPidFile, getTracebackInfo, getTriggerTaskLockFile, httpPost, notifyMessageTry
+# EXEC_*_TIMEOUT 是包级常量（定义在 __init__.py）。拆包时被漏掉，导致 `_do_reload`
+# 在本模块里 `NameError: EXEC_SERVICE_TIMEOUT` —— 该异常发生在 panel_task 的线程里，
+# 表现就是「reload openresty 静默失败，日志里刷 Traceback」。这里的导入必须保留。
+from . import EXEC_SERVICE_TIMEOUT, deDoubleCrypt, getFileSuffix, getInfo, getNotifyPath, getPanelTaskPidFile, getTracebackInfo, getTriggerTaskLockFile, httpPost, notifyMessageTry
 # P2-6：HTTP 用途分级常量（url 的 path 里带 bot token，必须走 credential 档）
 from .net import PURPOSE_CREDENTIAL
 
@@ -129,33 +132,21 @@ def isPanelTaskRunning():
         return False
 
 
-def ensurePanelTaskRunning():
-    """确保 panel_task 守护进程处于运行状态；若未运行则自动拉起自愈"""
-    if isPanelTaskRunning():
-        return True
-
-    # 1. 优先尝试通过 init.d 服务脚本启动任务进程
-    for initd in (getPanelDir() + '/scripts/init.d/yf', '/etc/init.d/yf'):
-        if os.path.exists(initd):
-            try:
-                safeExecShell([initd, 'start_task'])
-                if isPanelTaskRunning():
-                    return True
-            except Exception as _e:
-                writeFileLog('[panel_task] 尝试通过服务脚本拉起任务守护进程失败: %s' % _e)
-
-    # 2. 兜底直接后台异步拉起 panel_task.py
+def _spawnPanelTask():
+    """非阻塞地后台拉起 panel_task.py；返回是否已派发成功。"""
     try:
         import subprocess as _sp
         import sys
         panel_dir = getPanelDir()
         task_script = os.path.join(panel_dir, 'panel_task.py')
-        if os.path.isfile(task_script):
-            log_dir = os.path.join(panel_dir, 'logs')
-            if not os.path.exists(log_dir):
-                os.makedirs(log_dir, exist_ok=True)
-            log_file = os.path.join(log_dir, 'panel_task.log')
-            log_fp = open(log_file, 'a', encoding='utf-8')
+        if not os.path.isfile(task_script):
+            return False
+        log_dir = os.path.join(panel_dir, 'logs')
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, 'panel_task.log')
+        log_fp = open(log_file, 'a', encoding='utf-8')
+        try:
             sub_kwargs = {
                 'cwd': panel_dir,
                 'stdin': _sp.DEVNULL,
@@ -165,10 +156,45 @@ def ensurePanelTaskRunning():
             if os.name != 'nt' and hasattr(os, 'setsid'):
                 sub_kwargs['start_new_session'] = True
             _sp.Popen([sys.executable, task_script], **sub_kwargs)
-            writeFileLog('[panel_task] 检测到任务调度守护进程未运行，已自愈拉起')
-            return True
+        finally:
+            # 子进程已继承 fd，父进程这份必须关掉，否则每次自愈泄漏一个句柄
+            log_fp.close()
+        writeFileLog('[panel_task] 检测到任务调度守护进程未运行，已自愈拉起')
+        return True
     except Exception as e:
         writeFileLog('[panel_task] 自愈拉起 panel_task.py 失败: %s' % e)
+        return False
+
+
+def ensurePanelTaskRunning():
+    """确保 panel_task 守护进程处于运行状态；未运行则自动拉起。
+
+    顺序很重要：**先直接后台派发（非阻塞）**，再退到 init.d。
+    历史上是先调 `[initd, 'start_task']` —— 而 init.d 只实现 `restart_task`，
+    `start_task` 会落到 `panel_tools.py cli start_task` 并打印「未知命令」，
+    于是每次自愈都要白等一次子进程（最坏 120s 超时），Web 请求里表现为「点升级后
+    一直转圈」。直接 Popen 是几十毫秒且不依赖 initd 命令集。
+    """
+    if isPanelTaskRunning():
+        return True
+
+    if _spawnPanelTask():
+        # 拉起后给一个很短的观察窗口，起来了就不用再碰 init.d
+        for _ in range(10):
+            time.sleep(0.1)
+            if isPanelTaskRunning():
+                return True
+
+    # 兜底：走 init.d 的 restart_task（init.d 支持的命令里没有 start_task）
+    for initd in (getPanelDir() + '/scripts/init.d/yf', '/etc/init.d/yf'):
+        if not os.path.exists(initd):
+            continue
+        try:
+            safeExecShell([initd, 'restart_task'])
+            if isPanelTaskRunning():
+                return True
+        except Exception as _e:
+            writeFileLog('[panel_task] 尝试通过服务脚本拉起任务守护进程失败: %s' % _e)
     return False
 
 

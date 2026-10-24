@@ -1,4 +1,6 @@
 {
+  "task_failed": "失敗",
+  "task_log": "日誌",
   "login_guard_degraded_title": "登入限流已降級為行程內計數，多 worker 下限流失效",
   "login_guard_degraded_desc": "失敗計數無法寫入資料庫，暴力破解防護與「改密碼踢下線」只在目前行程生效。請檢查資料庫與 panel_login_failure 表後重新整理本頁。",
   "plain_http_warning_title": "目前為明文 HTTP，登入 Cookie 可能被竊聽",

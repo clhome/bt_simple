@@ -275,8 +275,8 @@ def swapStatus():
                         system_total = int(parts[1]) // 1024
                         break
     except Exception as e:
-        # 备用方案：读取 free -m，兼容不同 Locale 的 "Swap" 与 "交换"
-        data = yf.execShell("free -m")
+        # 备用方案：读取 LC_ALL=C free -m，兼容不同 Locale 的 "Swap" 与 "交换"
+        data = yf.execShell("LC_ALL=C free -m")
         for line in data[0].split('\n'):
             if 'Swap:' in line or '交换:' in line:
                 parts = line.split()
@@ -297,8 +297,8 @@ def swapStatus():
                         mem_total = int(parts[1]) // 1024
                         break
     except Exception as e:
-        # 备用方案：从 free -m 获取，兼容不同 Locale
-        data = yf.execShell("free -m")
+        # 备用方案：从 LC_ALL=C free -m 获取，兼容不同 Locale
+        data = yf.execShell("LC_ALL=C free -m")
         for line in data[0].split('\n'):
             if 'Mem:' in line or '内存:' in line:
                 parts = line.split()

@@ -656,7 +656,7 @@ def phpFpmPoolReplace(version, pool = 'www'):
         
         # 动态根据内存计算 FPM 进程数
         try:
-            mem_total_str = yf.execShell("free -m | grep Mem | awk '{print $2}'")[0].strip()
+            mem_total_str = yf.execShell("LC_ALL=C free -m | grep Mem | awk '{print $2}'")[0].strip()
             if mem_total_str:
                 mem_total = int(mem_total_str)
                 if mem_total <= 1024:
@@ -1421,6 +1421,51 @@ def checkPluginUpgrade(version=''):
 # ---------------------------------------------------------------------------------
 PHP_SEC_ROLLBACK_KEEP = 3       # 回退点保留份数（一份 ≈ 十几 MB，没必要无限堆）
 
+#: 面板选项名：PHP 源码镜像（内网/离线机器必需）。
+PHP_MIRROR_OPTION = 'php_source_mirror'
+#: 镜像地址白名单：只允许 http(s)，且必须是「目录前缀」或含 `{file}` 的模板。
+PHP_MIRROR_RE = re.compile(r"^https?://[^\s'\"<>]{4,200}$")
+
+
+def getSourceMirror():
+    """读面板选项里的 PHP 源码镜像前缀（非法/未设置返回空串）。
+
+    为什么需要它：编译版 PHP 的源码包默认从 php.net 与几个公共镜像下载；内网机器
+    常常完全连不上外网（或网关把 HTTPS 劫持成认证页）。此时唯一的出路是指向**内网镜像**
+    （nginx 反代 php.net 的 distributions 目录，或运维自己同步的一份）。
+    """
+    try:
+        import thisdb
+        value = thisdb.getOption(PHP_MIRROR_OPTION, default='') or ''
+    except Exception as ex:
+        _log.debug('[php] 读取源码镜像选项失败: %s', ex)
+        return ''
+    value = str(value).strip()
+    if not value or not PHP_MIRROR_RE.match(value):
+        return ''
+    if '{file}' not in value and not value.endswith('/'):
+        value += '/'
+    return value
+
+
+def setSourceMirror(value):
+    """保存源码镜像前缀（空串 = 恢复默认镜像列表）。返回 JSON 信封。"""
+    value = str(value or '').strip()
+    if value:
+        if not PHP_MIRROR_RE.match(value):
+            return yf.returnJson(False, '镜像地址不合法，必须以 http:// 或 https:// 开头且不含空格')
+        if '{file}' not in value and not value.endswith('/'):
+            value += '/'
+        if len(value) > 200:
+            return yf.returnJson(False, '镜像地址过长!')
+    try:
+        import thisdb
+        thisdb.setOption(PHP_MIRROR_OPTION, value)
+    except Exception as ex:
+        return yf.returnJson(False, '保存源码镜像失败: %s' % ex)
+    yf.writeLog('PHP源码镜像', '已设置 PHP 源码镜像: %s' % (value or '（默认）'))
+    return yf.returnJson(True, '保存成功' if value else '已恢复默认镜像', {'srcMirror': value})
+
 
 def getRuntimeVersion(version):
     """读已装编译版 PHP 的**完整运行时版本**（bin/php -v / sbin/php-fpm -v）。
@@ -1671,11 +1716,73 @@ def mitigationRevert():
                          {'revert': res, 'restart': restart})
 
 
+def _releaseIndexModule():
+    """惰性导入官方版本索引（离线/异常时返回 None，调用方退回内置基线表）。"""
+    try:
+        from core import php_release_index
+        return php_release_index
+    except Exception as ex:
+        _log.debug('[php] 载入 PHP 版本索引模块失败: %s', ex)
+        return None
+
+
+def isValidFullVersion(ver):
+    """完整小版本号（x.y.z）校验。"""
+    return bool(re.match(r'^[0-9]+\.[0-9]+\.[0-9]+$', str(ver or '').strip()))
+
+
+def isValidSha256(value):
+    return bool(re.match(r'^[0-9a-f]{64}$', str(value or '').strip().lower()))
+
+
+def getUpgradeTarget(version):
+    """算出该分支「应当升到哪个版本」——返回 (完整版本, sha256, 来源)。
+
+    优先级：官方版本索引（在线抓取 → 磁盘缓存 → 内置基线表）。
+    三重 fail-closed：版本号必须是 x.y.z 且属于本分支；哈希必须是 64 位十六进制；
+    目标不得低于该分支的安全基线。任何一项不满足都返回空串，调用方**不得**开工
+    —— 没有哈希的编译任务等于关掉完整性校验。
+    """
+    branch = str(version or '').strip()
+    floor = php_sec_baseline.branch_floor(branch)
+    candidate = ''
+    sha = ''
+    source = ''
+    idx = _releaseIndexModule()
+    if idx is not None:
+        try:
+            entry = idx.lookup(yf.getPanelDataDir(), branch) or {}
+            candidate = str(entry.get('version') or '').strip()
+            sha = str(entry.get('sha256') or '').strip().lower()
+            source = str(entry.get('source') or '')
+        except Exception as ex:
+            _log.debug('[php] 读取 PHP 版本索引失败: %s', ex)
+            candidate = ''
+    series = '%s.%s' % (branch[:1], branch[1:]) if len(branch) == 2 else ''
+    if not (isValidFullVersion(candidate) and candidate.startswith(series + '.')
+            and isValidSha256(sha)):
+        candidate = floor or ''
+        sha = php_sec_baseline.OFFICIAL_SHA256.get(candidate, '')
+        source = 'builtin'
+    if not candidate or not php_sec_baseline.version_ge(candidate, floor):
+        # 索引里的版本比基线还旧（镜像/缓存漂移）：退回基线，避免「升级到更不安全的版本」
+        candidate = floor or ''
+        sha = php_sec_baseline.OFFICIAL_SHA256.get(candidate, '')
+        source = 'builtin'
+    if not (isValidFullVersion(candidate) and isValidSha256(sha)):
+        return ('', '', '')
+    return (candidate, sha.lower(), source or 'builtin')
+
+
 def submitBaselineUpgrade(version=''):
     """一键升级入口（前端调用）：只投递任务，不在这里编译。
 
     编译 PHP 要十几分钟，塞进 /plugins/run 的同步请求必然超时（那里上限 600s）。
     因此走面板既有的任务队列（TASK_MAX_RUNTIME=7200s，有日志、有状态）。
+
+    目标版本由 `getUpgradeTarget()` 决定（官方索引的最新增补丁版，离线则用内置基线），
+    版本与哈希成对下发；`addTask()` 的返回值**必须**检查 —— 历史上它因「同命令的失败
+    任务还在库里」而返回 False，而这里照样回「已提交」，于是用户点了升级却什么都没发生。
     """
     err, ver = versionOrError(version)
     if err:
@@ -1685,23 +1792,66 @@ def submitBaselineUpgrade(version=''):
         return yf.returnJson(False, 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级' % ver)
     if not isInstalled(ver):
         return yf.returnJson(False, 'PHP版本未安装!')
+
+    target, sha, source = getUpgradeTarget(ver)
+    if not target or not sha:
+        return yf.returnJson(False, 'PHP%s 无法确定可用的升级目标版本（缺官方版本/哈希），请检查面板能否访问 www.php.net，或手工配置源码镜像' % ver)
+
     before = getRuntimeVersion(ver)
-    if php_sec_baseline.version_ge(before, floor):
-        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+    if php_sec_baseline.version_ge(before, target):
+        return yf.returnJson(True, 'PHP%s 已是最新（%s ≥ %s），无需升级' % (ver, before, target))
 
     try:
         import thisdb
-        cmd = 'cd %s && %s %s upgrade_to_baseline %s' % (
+        mirror = getSourceMirror()
+        # YF_PHP_MIRROR 只在面板里配置了内网镜像时下发；install.sh 侧把它排在
+        # 内置镜像列表之前（见 plugins/php/versions/common/php_src_fetch.sh）。
+        mirror_env = ('YF_PHP_MIRROR=%s ' % yf.shlexQuote(mirror)) if mirror else ''
+        cmd = 'cd %s && %sYF_PHP_TARGET_VERSION=%s YF_PHP_TARGET_SHA256=%s %s %s upgrade_to_baseline %s' % (
             yf.shlexQuote(yf.getPanelDir()),
+            mirror_env,
+            yf.shlexQuote(target),
+            yf.shlexQuote(sha),
             yf.shlexQuote(sys.executable),
             yf.shlexQuote(os.path.abspath(__file__)),
             yf.shlexQuote(ver),
         )
-        thisdb.addTask(name='PHP%s 升级到安全基线 %s' % (ver, floor), cmd=cmd, status=0)
+        task_name = 'PHP%s 升级到 %s' % (ver, target)
+        # 同一条命令的历史失败任务先清掉：失败任务不该阻止重试，也不该在消息盒子里
+        # 留一堆同名尸体（旧实现两者都发生：既挡住重试，又把失败显示成「等待」）。
+        try:
+            thisdb.removeFailedTaskByCmd(cmd)
+        except Exception as ex:
+            _log.debug('[php] 清理历史失败任务失败（忽略）: %s', ex)
+        added = thisdb.addTask(name=task_name, cmd=cmd, status=0)
         yf.triggerTask()
     except Exception as e:
         return yf.returnJson(False, '投递升级任务失败: %s' % e)
-    return yf.returnJson(True, '已提交升级任务: %s → %s，请在任务日志查看进度' % (before or '未知', floor))
+    if not added:
+        return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度',
+                             {'before': before, 'target': target})
+    return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度'
+                         % (before or '未知', target,
+                            '官方版本索引' if source == 'online' else '内置基线表'),
+                         {'before': before, 'target': target, 'source': source})
+
+
+def _writeVersionAuto(ver, target, sha):
+    """把「本次实际安装的目标版本」记到 `versions/<NN>/version.auto`。
+
+    目的：一键升级后，用户下次在「软件」页点重装/更新时也装同一个新版本，
+    否则会退回 install.sh 里写死的发布时版本（等于把刚升上去的又降回来）。
+    写失败不影响升级结果，只记日志。
+    """
+    try:
+        path = os.path.join(getPluginDir(), 'versions', ver, 'version.auto')
+        content = ('# 由面板「一键升级」写入：本次成功安装的目标版本\n'
+                   'version=%s\nsha256_file_ok=%s\n' % (target, sha))
+        yf.writeFile(path, content)
+        return path
+    except Exception as ex:
+        _log.debug('[php] 写入 version.auto 失败（忽略）: %s', ex)
+        return ''
 
 
 def upgradeToBaseline(version=''):
@@ -1715,9 +1865,18 @@ def upgradeToBaseline(version=''):
     if not isInstalled(ver):
         return yf.returnJson(False, 'PHP版本未安装!')
 
+    # 任务队列会把目标版本/哈希通过环境变量带进来（见 submitBaselineUpgrade）；
+    # 若不是从队列来的（手工执行），就自己算一次，口径完全一致。
+    target = str(os.environ.get('YF_PHP_TARGET_VERSION', '') or '').strip()
+    sha = str(os.environ.get('YF_PHP_TARGET_SHA256', '') or '').strip().lower()
+    if not (isValidFullVersion(target) and isValidSha256(sha)):
+        target, sha, _src = getUpgradeTarget(ver)
+    if not target or not sha:
+        return yf.returnJson(False, 'PHP%s 无法确定目标版本与官方哈希，拒绝升级（不做无校验安装）' % ver)
+
     before = getRuntimeVersion(ver)
-    if php_sec_baseline.version_ge(before, floor):
-        return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
+    if php_sec_baseline.version_ge(before, target):
+        return yf.returnJson(True, 'PHP%s 已是最新（%s ≥ %s），无需升级' % (ver, before, target))
 
     install_sh = os.path.join(getPluginDir(), 'versions', ver, 'install.sh')
     if not os.path.isfile(install_sh):
@@ -1729,13 +1888,21 @@ def upgradeToBaseline(version=''):
         # 没有回退点就不开工：编译失败会把人架在「装到一半」的状态
         return yf.returnJson(False, '升级前备份旧二进制失败，已取消升级: %s' % e)
     yf.writeLog('PHP安全升级', 'PHP%s 升级开始：%s → %s（回退点 %s）'
-                % (ver, before or '未知', floor, backup_dir or '无'))
+                % (ver, before or '未知', target, backup_dir or '无'))
 
-    rc, out, errout = yf.execShellRc(['bash', install_sh, 'install'],
-                                     cwd=getPluginDir(), shell=False, timeout=7200)
-    tail = '\n'.join((out or '').splitlines()[-12:])
+    # 版本与哈希通过环境变量下发（argv 列表，不拼 shell）：
+    # install.sh 会再校验一遍「x.y.z + 属于本分支 + 64 位哈希」，不合法就退回内置值。
+    # 必须「边跑边回显」：编译要 10~30 分钟，若把输出捕获在自己手里，面板任务日志
+    # 会一直是 0 字节 —— 消息盒子看不到任何进度，用户看到的就是「任务卡死了」。
+    from core import proc_stream
+    task_env = dict(os.environ)
+    task_env['YF_PHP_TARGET_VERSION'] = target
+    task_env['YF_PHP_TARGET_SHA256'] = sha
+    rc, tail, _timed_out = proc_stream.run_streaming(
+        ['bash', install_sh, 'install'],
+        cwd=getPluginDir(), env=task_env, timeout=7200, tail_lines=30)
     after = getRuntimeVersion(ver)
-    verdict = php_sec_baseline.verify_upgrade(ver, before, after)
+    verdict = php_sec_baseline.verify_upgrade(ver, before, after, floor=target)
 
     if not verdict['ok']:
         restored = []
@@ -1750,20 +1917,26 @@ def upgradeToBaseline(version=''):
         except Exception as _e:
             _log.debug('[php] 升级失败后重启 PHP%s 异常: %s', ver, _e)
         dropPhpSecSnapshot()
-        msg = '升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s' % (
-            verdict['text'], rc, ','.join(restored) or '无备份可还原')
+        hint = ''
+        combined = tail or ''
+        if '源码包' in combined or 'YF_PHP_MIRROR' in combined:
+            hint = '；源码获取失败的具体原因（每个镜像的报错与离线放置目录）见任务日志'
+        msg = '升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s%s' % (
+            verdict['text'], rc, ','.join(restored) or '无备份可还原', hint)
         yf.writeLog('PHP安全升级', 'PHP%s 升级失败: %s' % (ver, msg))
         return yf.returnJson(False, msg, {'before': before, 'after': after,
-                                          'rc': rc, 'log_tail': tail})
+                                          'target': target, 'rc': rc, 'log_tail': tail})
 
     try:
         restart(ver)
     except Exception as _e:
         _log.debug('[php] 升级成功后重启 PHP%s 异常: %s', ver, _e)
+    auto_path = _writeVersionAuto(ver, target, sha)
     dropPhpSecSnapshot()
-    yf.writeLog('PHP安全升级', 'PHP%s %s' % (ver, verdict['text']))
+    yf.writeLog('PHP安全升级', 'PHP%s %s%s' % (ver, verdict['text'],
+                                            ('（目标 %s）' % target) if auto_path else ''))
     return yf.returnJson(True, verdict['text'], {'before': before, 'after': after,
-                                                 'rc': rc, 'log_tail': tail})
+                                                 'target': target, 'rc': rc, 'log_tail': tail})
 
 
 def initdStatus(version):
@@ -1988,6 +2161,13 @@ def getLimitConf(version):
 
     m3 = re.search(r'(?m)^\s*;?\s*cgi\.fix_pathinfo\s*=\s*([0-9]+)', phpini)
     data['pathinfo'] = (m3.group(1).strip() == '1') if m3 else False
+    # 源码镜像（内网/离线机器用）+ 官方版本索引里该分支的最新版，供「常用功能」页展示
+    data['srcMirror'] = getSourceMirror()
+    try:
+        data['latestVersion'] = getUpgradeTarget(version)[0] if isPhpVersion(version) else ''
+    except Exception as ex:
+        _log.debug('[php] 取最新版本号失败: %s', ex)
+        data['latestVersion'] = ''
 
     return yf.getJson(data)
 
@@ -2895,6 +3075,10 @@ if __name__ == "__main__":
         print(resetPhpConf(version))
     elif func == 'get_limit_conf':
         print(getLimitConf(version))
+    elif func == 'get_source_mirror':
+        print(yf.getJson({'srcMirror': getSourceMirror()}))
+    elif func == 'set_source_mirror':
+        print(setSourceMirror(getArgs().get('mirror', '')))
     elif func == 'set_max_time':
         print(setMaxTime(version))
     elif func == 'set_max_size':

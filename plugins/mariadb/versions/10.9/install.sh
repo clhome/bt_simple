@@ -35,7 +35,7 @@ Install_app()
 		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
 	fi
 
-	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
+	MEM_INFO=$(LC_ALL=C free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
 	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
 	        cpuCore="${MEM_INFO}"

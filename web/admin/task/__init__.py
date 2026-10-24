@@ -86,39 +86,55 @@ def get_task_log_by_id():
 @blueprint.route('/get_task_speed', endpoint='get_task_speed', methods=['POST'])
 @panel_login_required
 def get_task_speed():
+    # 只把「排队中 / 执行中」的任务（0 / -1）算进 count。
+    # 历史实现用 `status != 1` 取任务、又用同一口径算 count，于是**失败任务(2)**
+    # 会被当成「还在等」：用户看到的升级任务永远显示「等待」，还以为面板卡死了。
     count = thisdb.getTaskUnexecutedCount()
-    if count == 0:
+    failed_count = thisdb.getTaskFailedCount()
+    # 活跃任务 + 最近失败任务一起回给前端；失败项带 status=2，前端渲染成「失败」
+    # 并提供「日志/删除」，不再伪装成等待。
+    # 注意：本模块有个路由函数就叫 `list`（`/task/list`），它在运行期会**遮蔽内置
+    # `list`** —— 这里写 `list(...)` 会 TypeError: list() takes 0 positional arguments。
+    # 所以用推导式构造，别用内置名。
+    task_rows = [row for row in (thisdb.getTaskActiveList(1, 6) or [])]
+    task_rows.extend(thisdb.getTaskRecentFailed(5) or [])
+    if count == 0 and len(task_rows) == 0:
         return yf.returnData(False, 'task.py_msg_3bc537')
-    
-    row = thisdb.getTaskFirstByRun()
-    if row is None:
-        return yf.returnData(False, 'task.py_msg_320fa8')
 
-    task_logfile = yf.getPanelTaskExecLog()
-
+    row = thisdb.getTaskFirstByRun() if count > 0 else None
     data = {}
-    data['name'] = row['name']
-    data['cmd'] = row['cmd']
-
-    if row['type'] == 'download':
-        readLine = ''
-        for i in range(3):
-            try:
-                readLine = yf.readFile(task_logfile)
-                data['msg'] = json.loads(readLine)
-                data['isDownload'] = True
-            except Exception as e:
-                if i == 2:
-                    thisdb.setTaskStatus(row['id'],0)
-                    return yf.returnData(False, 'admin.py_msg_ce742b', None, str(e))
-            time.sleep(0.5)
-    else:
-        data['msg'] = yf.getLastLine(task_logfile, 10)
+    if row is None:
+        # 只剩失败任务的平滑分支：不报错、不伪造 count
+        data['name'] = ''
+        data['cmd'] = ''
+        data['msg'] = ''
         data['isDownload'] = False
+    else:
+        task_logfile = yf.getPanelTaskExecLog()
+        data['name'] = row['name']
+        data['cmd'] = row['cmd']
+
+        if row['type'] == 'download':
+            readLine = ''
+            for i in range(3):
+                try:
+                    readLine = yf.readFile(task_logfile)
+                    data['msg'] = json.loads(readLine)
+                    data['isDownload'] = True
+                except Exception as e:
+                    if i == 2:
+                        thisdb.setTaskStatus(row['id'],0)
+                        return yf.returnData(False, 'admin.py_msg_ce742b', None, str(e))
+                time.sleep(0.5)
+        else:
+            data['msg'] = yf.getLastLine(task_logfile, 10)
+            data['isDownload'] = False
 
     data['count'] = count
-    data['task'] = thisdb.getTaskRunList(1,6)
+    data['failed_count'] = failed_count
+    data['task'] = task_rows
     return data
+
 
 @blueprint.route('/remove_task', endpoint='remove_task', methods=['POST'])
 @panel_login_required

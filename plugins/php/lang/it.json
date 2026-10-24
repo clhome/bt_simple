@@ -1,8 +1,6 @@
 {
     "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s non ha una baseline di sicurezza per la versione compilata, usa il canale APT/YUM",
-    "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s rispetta gia la baseline (%s >= %s), nessun aggiornamento necessario",
     "投递升级任务失败: %s": "Impossibile accodare l'attivita di aggiornamento: %s",
-    "已提交升级任务: %s → %s，请在任务日志查看进度": "Attivita di aggiornamento accodata: %s -> %s, controlla il log delle attivita",
     "缺少安装脚本: %s": "Script di installazione mancante: %s",
     "升级前备份旧二进制失败，已取消升级: %s": "Backup dei vecchi binari non riuscito, aggiornamento annullato: %s",
     "升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s": "Aggiornamento non riuscito: %s (codice di uscita dello script %s), vecchi binari ripristinati: %s",
@@ -211,5 +209,18 @@
     "非法档位: %s（只允许 %s）": "Livello non valido: %s (sono consentiti solo %s)",
     "没有检测到已安装的 PHP 配置（无需缓解）": "Nessuna configurazione PHP installata rilevata (nulla da mitigare)",
     "读取缓解状态失败: %s": "Lettura dello stato della mitigazione non riuscita: %s",
-    "缓解模块不可用: %s": "Il modulo di mitigazione non è disponibile: %s"
+    "缓解模块不可用: %s": "Il modulo di mitigazione non è disponibile: %s",
+    "PHP%s 无法确定可用的升级目标版本（缺官方版本/哈希），请检查面板能否访问 www.php.net，或手工配置源码镜像": "PHP%s: destinazione di aggiornamento ignota (versione/hash mancante). Verifica www.php.net o un mirror",
+    "PHP%s 已是最新（%s ≥ %s），无需升级": "PHP%s è aggiornato (%s >= %s), nessun aggiornamento necessario",
+    "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Attività di aggiornamento già in coda o in esecuzione; vedi la casella messaggi",
+    "已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度": "Aggiornamento in coda: %s -> %s (destinazione da %s); vedi la casella messaggi",
+    "PHP%s 无法确定目标版本与官方哈希，拒绝升级（不做无校验安装）": "PHP%s: versione/hash di destinazione ignoti, aggiornamento rifiutato (nessuna installazione non verificata)",
+    "源码镜像": "Mirror sorgente",
+    "内网或离线机器可填写源码镜像前缀，升级时优先生效": "Host LAN/offline: prefisso del mirror sorgente, usato per primo durante l'aggiornamento",
+    "官方最新版": "Ultima ufficiale",
+    "镜像地址不合法，必须以 http:// 或 https:// 开头且不含空格": "URL del mirror non valido: deve iniziare con http:// o https:// e non contenere spazi",
+    "镜像地址过长!": "URL del mirror troppo lungo!",
+    "保存源码镜像失败: %s": "Salvataggio del mirror sorgente non riuscito: %s",
+    "已恢复默认镜像": "Mirror predefiniti ripristinati",
+    "保存成功": "Salvato"
 }

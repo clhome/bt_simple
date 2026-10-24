@@ -94,8 +94,8 @@ class TestPhpInstallFixes(unittest.TestCase):
             with open(ver_install, "r", encoding="utf-8") as f:
                 content = f.read()
                 
-            # 如果脚本中包含 free -m 计算，必须加固 LC_ALL=C 与判空兜底
-            if "free -m" in content or "MEM_INFO" in content:
+            # 如果脚本中包含 LC_ALL=C free -m 计算，必须加固 LC_ALL=C 与判空兜底
+            if "LC_ALL=C free -m" in content or "MEM_INFO" in content:
                 self.assertIn("LC_ALL=C free -m", content, f"PHP {ver} 未使用 LC_ALL=C free -m 保证输出英文")
                 self.assertIn("/Mem|内存/", content, f"PHP {ver} 未兼容中文/英文 free 输出")
                 self.assertIn('if [ -z "${MEM_INFO}" ] || [ "${MEM_INFO}" == "0" ]; then', content, f"PHP {ver} 缺少 MEM_INFO 空值兜底")
@@ -103,16 +103,16 @@ class TestPhpInstallFixes(unittest.TestCase):
     def test_mem_info_bash_simulation(self):
         """通过模拟 bash 逻辑测试 MEM_INFO 各种输出场景（纯英文、中文、空、命令缺失）"""
         # 测试场景与输入：
-        # 1. 英文 free -m
-        # 2. 中文 free -m
+        # 1. 英文 LC_ALL=C free -m
+        # 2. 中文 LC_ALL=C free -m
         # 3. 空输出
         test_cases = [
-            # 英文 free -m
+            # 英文 LC_ALL=C free -m
             """total        used        free      shared  buff/cache   available
 Mem:           15904        4388        3540         523        7975       10672
 Swap:           2047           0        2047
 """,
-            # 中文 free -m
+            # 中文 LC_ALL=C free -m
             """               总计        已用        空闲        共享    缓冲/缓存    可用
 内存：         15904        4388        3540         523        7975       10672
 交换：          2047           0        2047

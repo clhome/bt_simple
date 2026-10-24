@@ -3639,6 +3639,9 @@ var lan = {
 		},
 
 	"soft": {
+		"php_upgradable": "Mise à jour disponible",
+		"php_upgrade_tip": "PHP sera recompilé (10-30 min), puis FPM redémarre ; en cas d'échec, l'ancienne version est restaurée.",
+		"php_upgrade_queued": "Mise à niveau en file ; voir la boîte de messages",
 			"type_all":"Tout",
 			"type_installed":"Installé",
 			"type_runtime":"Environnement d'exécution",
@@ -3920,6 +3923,8 @@ var lan = {
 		},
 
 	"public": {
+		"task_failed": "Échec",
+		"task_log": "Journal",
 			"login_guard_degraded_title": "La limitation des tentatives de connexion est dégradée en compteurs locaux au processus : elle ne tient plus avec plusieurs workers",
 			"login_guard_degraded_desc": "Les échecs de connexion ne peuvent pas être écrits dans la base de données : la protection contre le brute force et l'invalidation des sessions après changement de mot de passe ne valent que dans ce processus. Vérifiez la base de données et la table panel_login_failure, puis rechargez cette page.",
 			"plain_http_warning_title": "HTTP en clair : les cookies de connexion peuvent être interceptés",

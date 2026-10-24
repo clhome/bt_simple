@@ -3639,6 +3639,9 @@ var lan = {
 		},
 
 	"soft": {
+		"php_upgradable": "Update verfügbar",
+		"php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
+		"php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
 			"type_all": "Alle",
 			"type_installed": "Installiert",
 			"type_runtime": "Laufzeitumgebung",
@@ -3920,6 +3923,8 @@ var lan = {
 		},
 
 	"public": {
+		"task_failed": "Fehlgeschlagen",
+		"task_log": "Protokoll",
 			"login_guard_degraded_title": "Die Login-Drosselung läuft nur noch mit prozessinternen Zählern – bei mehreren Workern greift sie nicht mehr",
 			"login_guard_degraded_desc": "Fehlanmeldungen können nicht in die Datenbank geschrieben werden, daher gelten Brute-Force-Schutz und das Abmelden von Sitzungen nach einer Passwortänderung nur in diesem Prozess. Bitte Datenbank und Tabelle panel_login_failure prüfen und diese Seite neu laden.",
 			"plain_http_warning_title": "Unverschlüsseltes HTTP: Login-Cookies können mitgelesen werden",

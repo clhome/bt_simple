@@ -1743,6 +1743,38 @@ class plugin(object):
                     item['ps'] = ld['plugin_ps']
         return items
 
+    def annotatePhpUpdates(self, items):
+        """给 PHP 系插件条目附上「当前版本 / 是否有新版本」信息。
+
+        为什么在插件列表里做：用户报障的口径是「已安装的软件里看不出 PHP 该升级了」——
+        `setup_version` 只有分支号（`83`），真实运行时版本（`8.3.30`）与官方最新版
+        （`8.3.36`）都不在列表数据里，前端根本无从判断。
+
+        取数口径：
+          * 已装版本 ← `php_sec_scan` 的每日巡检快照（O(1)，不在列表请求里跑 shell；
+            没有快照就跳过，绝不为了列表去 `php -v` 逐个探测）；
+          * 官方最新版 ← `php_release_index` 的缓存（12h TTL，后台每日刷新）。
+        两者任缺其一 → 不标注（不猜、不误报）。
+        """
+        try:
+            import core.yf as yf
+            from core import php_release_index, php_sec_scan
+            data_dir = yf.getPanelDataDir()
+            snapshot = php_sec_scan.load_snapshot(
+                data_dir + '/' + php_sec_scan.SNAPSHOT_FILENAME,
+                max_age=7 * 24 * 3600)
+            if not snapshot:
+                return items
+            installed = snapshot.get('items') or []
+            index = php_release_index.load_cache(php_release_index.index_path(data_dir))
+            if not index:
+                index = php_release_index.builtin_index()
+            php_release_index.annotate_items(items, installed, index)
+        except Exception as e:
+            # 升级提醒是附加信息：任何异常都不能让软件列表 500
+            _log.debug('[plugin] 计算 PHP 升级信息失败: %s', e)
+        return items
+
     def getList(
         self,
         type = None,
@@ -1768,7 +1800,7 @@ class plugin(object):
         rdata['type'] = type_list
     
         data = self.getAllPluginList(type, keyword, page, size, show_third_party)
-        rdata['data'] = self.localizePluginItems(data[0])
+        rdata['data'] = self.annotatePhpUpdates(self.localizePluginItems(data[0]))
         rdata['list'] = yf.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
         return rdata
 

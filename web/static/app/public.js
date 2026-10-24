@@ -2345,13 +2345,22 @@ function getReloads() {
 								<span class='state'>" + t('public.downloading', '下载中') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 							</li>";
           }
+        } else if (h.task[g].status == "2") {
+          // 失败任务：以前这里是「等待」，导致用户以为任务永远卡住、不知道已经失败。
+          // 明确标红 + 直接给「日志」和「删除」，让失败可见、可诊断、可重试。
+          d += "<li><span class='titlename'>" + yfTaskEsc(h.task[g].name) + "</span><span class='state' style='color:#ff2020;'>" + t('public.task_failed', '失败') + " | <a class='btlink task-log-link' href=\"javascript:;\" data-task-id=\"" + parseInt(h.task[g].id, 10) + "\" data-task-name=\"" + yfTaskEsc(h.task[g].name) + "\">" + t('public.task_log', '日志') + "</a> | <a style='color:green' href=\"javascript:removeTask(" + parseInt(h.task[g].id, 10) + ")\">" + t('public.del', '删除') + "</a></span></li>";
         } else {
           d += "<li><span class='titlename'>" + yfTaskEsc(h.task[g].name) + "</span><span class='state'>" + t('public.waiting', '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.del', '删除') + "</a></span></li>";
         }
       }
       $("#task").text(h.count);
+      // 角标只反映活跃任务数（失败任务不占角标，避免「一直有个数字消不掉」）
       $(".task_count").text(h.count);
       $(".cmdlist").html(b + d);
+      // 失败任务的「日志」用 data 属性 + 事件委托（不把任务名拼进内联 JS，避免引号逃逸 XSS）
+      $(".cmdlist").off('click', '.task-log-link').on('click', '.task-log-link', function () {
+        showTaskLog($(this).data('task-id'), $(this).data('task-name'));
+      });
       if (c) {
         $(".cmd").html(c);
         try {

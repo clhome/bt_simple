@@ -3,7 +3,6 @@
     "未检测到 yum 包 php%s-php-fpm，请确认已通过 YUM(Remi) 渠道安装": "yum package php%s-php-fpm not found, please confirm PHP was installed via the YUM (Remi) channel",
     "PHP%s 的 yum 包 %s 已带渠道回移补丁标记，无需升级": "yum package of PHP %s (%s) already carries the channel backport marker, no upgrade needed",
     "PHP%s 已达标（%s ≥ 基线 %s），无需升级": "PHP %s already meets the baseline (%s >= %s), no upgrade needed",
-    "升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退，手工回退请执行: %s": "Upgrade failed: %s (yum exit code %s), YUM/Remi does not support automatic rollback; to roll back manually run: %s",
     "*PHP-FPM运行模式": "*PHP-FPM running mode",
     "*允许创建的最大子进程数": "*The maximum number of child processes allowed to be created",
     "*最大空闲进程数（当空闲进程达到此值时清理）": "*Maximum number of idle processes (clean up when idle processes reach this value)",
@@ -176,5 +175,8 @@
     "时间参数不合法!": "Invalid time parameter!",
     "上传大小参数不合法!": "Invalid upload size parameter!",
     "扩展列表配置文件不存在!": "Extension list config file not found!",
-    "扩展列表配置文件格式错误!": "Extension list config file format error!"
+    "扩展列表配置文件格式错误!": "Extension list config file format error!",
+    "投递升级任务失败: %s": "Failed to queue upgrade task: %s",
+    "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Upgrade task already queued or running; see the message box for progress",
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Upgrade queued (baseline %s); see the message box for progress"
 }

@@ -3639,6 +3639,9 @@ var lan = {
 		},
 
 	"soft": {
+		"php_upgradable": "Update available",
+		"php_upgrade_tip": "PHP will be recompiled (10-30 min), then FPM restarts; on failure the old version is restored.",
+		"php_upgrade_queued": "Upgrade queued; check the message box for progress",
 			"type_all": "All",
 			"type_installed": "Installed",
 			"type_runtime": "Runtime",
@@ -3920,6 +3923,8 @@ var lan = {
 		},
 
 	"public": {
+		"task_failed": "Failed",
+		"task_log": "Log",
 			"login_guard_degraded_title": "Login rate limiting has degraded to in-process counters; limits no longer hold with multiple workers",
 			"login_guard_degraded_desc": "Failed-login counts cannot be written to the database, so brute-force protection and session revocation after a password change only apply inside this process. Please check the database and the panel_login_failure table, then reload this page.",
 			"plain_http_warning_title": "Plain HTTP: login cookies can be sniffed",

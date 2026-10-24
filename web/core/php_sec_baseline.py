@@ -339,7 +339,7 @@ def summary_text(result):
 # 「升完必须回读达标，否则判失败并保留旧二进制」这条口径没被写坏。
 # ---------------------------------------------------------------------------------
 
-def verify_upgrade(branch, before, after, backport=False):
+def verify_upgrade(branch, before, after, backport=False, floor=None):
     """升级结果判定：回读版本必须 >= 基线（或渠道标记显示已回移补丁），否则算失败。
 
     返回 {'ok', 'before', 'after', 'floor', 'rollback', 'text'}：
@@ -347,8 +347,10 @@ def verify_upgrade(branch, before, after, backport=False):
       * 回读读不出（空）也算失败 —— 这正是旧实现「编译失败也报成功」的形状。
       * `backport=True`：apt/yum 渠道里包版本带了回移标记（sury/Remi/发行版），
         上游数字不动但补丁已在 —— 此时按标记判达标，不按数字误判。
+      * `floor=`：显式目标版本（编译版一键升级会下发「官方最新版」，可能高于内置基线）。
+        传了就按它判；不传仍按内置基线判，保持既有调用点行为不变。
     """
-    floor = branch_floor(branch)
+    floor = floor or branch_floor(branch)
     ok = bool(floor) and (bool(backport) or version_ge(after, floor))
     text = ''
     if not floor:

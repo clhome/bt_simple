@@ -1544,3 +1544,96 @@ EXIT=0
 - [x] 任务 1：会话 Cookie 名按 TLS 模式分裂（本地兜住浏览器覆盖限制）
 - [x] 任务 2：自签不下发 HSTS + 关闭时 max-age=0 清除
 - [x] 任务 3：守卫补齐，全量门禁 3850 用例全绿
+
+---
+
+## PHP 升级失败 / 消息盒卡死 + 已安装软件升级提醒（2026-10-24，真机 172.17.60.248）
+
+### 现场（用户报障）
+1. 「所有的 PHP 都升级失败，无法更新到最新版本」；
+2. 截图①（12:16）与截图③（16:07）都是同一现象：**消息盒子里的任务列表只有一行
+   `PHP83 升级到安全基线 8.3.36`，状态永远是「等待」**，点升级像卡死；
+3. 诉求：能不能自动抓最新版，在「已安装的软件」里提醒可升级。
+
+### 根因（四条，全部真机复现）
+
+| # | 根因 | 后果 |
+|---|------|------|
+| R1 | `getTaskUnexecutedCount()` / `addTask()` 用 `status != 1` 判定「未执行」 | 失败任务(2)永远算「未执行」：激活文件不删、角标不消；**同一条升级命令失败一次后，再点升级被 `addTask` 去重挡掉且静默返回 False**，调用方照样回「已提交」→ 用户点了没反应 |
+| R2 | `/task/get_task_speed` 返回所有非成功任务，前端把非 `-1` 一律渲染成「等待」 | 失败任务被显示成「等待」，用户看不出已经失败、也拿不到日志 |
+| R3 | 编译版源码下载：只有「南京镜像 → 官方」两跳、无重试、把网关认证页当压缩包、失败只回一句「下载文件不完整,重新安装」 | 内网/校园网（本机正是 Dr.COM 认证劫持，实测 `?tar.xz` 返回 3KB HTML）100% 失败且无从诊断 |
+| R4 | `upgradeToBaseline` 用 `execShellRc` **捕获** install.sh 输出 | 面板任务靠子进程 stdout 实时写任务日志 → 日志 0 字节，编译 10~30 分钟期间界面毫无进展（「完全卡死」的直接观感） |
+
+另有两个顺带发现的真 bug：
+* `web/core/yf/panel.py::_do_reload` 引用未导入的 `EXEC_SERVICE_TIMEOUT` → `NameError`
+  在 panel_task 线程里刷 Traceback，reload openresty 静默失败（拆包遗留）；
+* `ensurePanelTaskRunning()` 先调 `init.d yf start_task`，而 init.d **没有这个命令**，
+  每次自愈都白等一次子进程超时；
+* `scripts/lib_make_jobs.sh` 的 `free -m` 未加 `LC_ALL=C`：中文环境 `free` 输出「内存：」，
+  `awk /^Mem:/` 取不到值 → `yf_make_jobs` 恒为 1（实测真机 10 核 8G 只跑 `make -j1`，
+  编译时间 ×5~8）。同族问题在 105 个脚本里存在，本轮统一加 `LC_ALL=C`（122 处清零）。
+
+### 修复
+
+**A. 任务队列语义（R1/R2）**
+- `web/thisdb/tasks.py` 新增显式状态常量 `TASK_ACTIVE_STATUSES=(0,-1)`：
+  `getTaskUnexecutedCount()` 只统计 0/-1；`addTask()` 去重只看 0/-1；
+  新增 `getTaskFailedCount/getTaskActiveList/getTaskRecentFailed/removeFailedTaskByCmd`。
+- `/task/get_task_speed` 返回「活跃任务 + 最近失败任务（带 status=2）+ failed_count」，
+  不再把失败当等待；`getTaskFirstByRun()` 也只看活跃。
+- `public.js`：status=2 单独渲染成红色「失败 | 日志 | 删除」，失败日志入口走
+  `data-task-name` + 事件委托（不把任务名拼进内联 JS）。
+- `plugins/php/index.py::submitBaselineUpgrade`：投递前清理同命令的历史失败任务、
+  **检查 `addTask()` 返回值**，已在队列中时如实回「已在队列中」。
+
+**B. 源码包获取（R3）**
+- 新增 `plugins/php/versions/common/php_src_fetch.sh`（唯一实现）：
+  6 个镜像（官方 + 阿里/清华/中科大/腾讯/南大）逐个试、每个都 `xz 魔数 + sha256` 双校验；
+  HTML/空文件/截断 ⇒ 丢弃并写明「返回内容不是 xz 包（HTML 页面，标题:…）」；
+  哈希非法或缺失 ⇒ **fail-closed 拒绝下载**；离线包目录（`source/php`、`data/php_src`）；
+  `YF_PHP_MIRROR` 自定义镜像；全失败时打印「每个镜像的失败原因 + 4 条自救方式」。
+- TLS 放宽只走仓库单一真源 `yf_wget_tls_extra_args`（不新增 `--no-check-certificate`）。
+- `versions/{82,83,84,85}/install.sh`：改为调用统一下载器；
+  支持 `YF_PHP_TARGET_VERSION/YF_PHP_TARGET_SHA256` 与 `version.auto` 覆盖（x.y.z + 同分支
+  + 64 位哈希三重校验），升级成功后由面板写入 `version.auto`，重装不会退回旧版。
+
+**C. 升级不再「看起来卡死」（R4）**
+- 新增 `web/core/proc_stream.py::run_streaming()`：边跑边把子进程输出回显到当前 stdout
+  （面板任务实时写 `tmp/panelTask_<id>.log`），同时保留尾部 30 行用于判定；超时按
+  **进程组** SIGKILL（编译会产生 cc1/as/ld 一大家族）。
+- `plugins/php`、`php-apt`、`php-yum` 的升级执行全部改走它。
+
+**D. apt/yum 渠道**
+- 前端入口只投递任务（原来同步跑 apt/yum，单 worker 面板会被整段升级拖住）；
+  新增任务入口 `upgrade_to_baseline`（按信封成败给退出码）。
+- 升级前 `apt-get update` / `yum makecache`；把「0 upgraded / Nothing to do」这类
+  **假成功**判成失败并给出「源里没有更新包，请检查 sources.list/Remi 源」的建议。
+
+**E. 自动抓最新版 + 已安装软件提醒（用户诉求 2）**
+- 新增 `web/core/php_release_index.py`：按分支查官方发布索引
+  （`?json&version=8.3&max=1`，实测三种返回形状都认），严格校验版本/哈希，
+  12h 缓存 `data/php_release_index.json`，离线自动回退内置基线表并在结果里标 `source=builtin`。
+- `panel_task.py` 新增 12h 槽位 `phpReleaseIndex_step`。
+- `/plugins/list` 通过 `plugin.annotatePhpUpdates()` 给**已安装**的 PHP 条目附上
+  `php_current_version / php_update_available / php_update{current,latest,sha256}`。
+- 「软件」列表：标题后显示真实运行时版本（`PHP-83 8.3.30`）+ 红色「可更新」徽标，
+  操作列新增「升级到 8.3.36」→ 确认后投递后台任务并自动打开消息盒子。
+- 插件「常用功能」新增「源码镜像」输入框（内网/离线机器用）与「官方最新版」展示。
+
+### 真机验证
+- `yf_make_jobs 83` 由 1 → **9**（10 核 8G，中文 locale）；
+- 升级任务 79（旧代码）：20s 失败，日志 `panelTask_79.log` **0 字节**（复现 R4），
+  失败原因只剩「下载文件不完整」—— 无法定位（复现 R3）；
+- 部署后重提任务 80：`/task/get_task_speed` 实时返回 configure/make 输出（R4 修复），
+  下载阶段命中离线包 `data/php_src/php-8.3.36.tar.xz`（sha256 与官方一致）；
+- 失败任务在消息盒子里显示「失败 + 日志 + 删除」，`count` 归 0、`failed_count` 单独计数。
+
+### 任务追踪
+- [x] R1/R2 任务队列语义 + 前端失败态
+- [x] R3 统一下载器 + 4 个分支 install.sh + 目标版本/哈希下发
+- [x] R4 流式回显（含 apt/yum）
+- [x] apt/yum 异步 + 索引刷新 + 假成功检测
+- [x] 官方版本索引 + 已安装软件提醒 + 源码镜像设置
+- [x] `EXEC_SERVICE_TIMEOUT` / `init.d start_task` / `LC_ALL=C free -m`（122 处）
+- [x] 新增守卫 `testsuite/test_php_upgrade_queue_and_index.py`（28 项）
+- [x] 全量门禁 298 模块 / 3878 用例 / 4 静态门禁全绿
