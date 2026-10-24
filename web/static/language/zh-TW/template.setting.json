@@ -428,6 +428,8 @@
     "ssl_step_cert_warning": "2. 瀏覽器提示「您的連線不是私密連線」屬於自簽證書的正常現象",
     "ssl_step_click_advanced": "3. 點擊【進階】",
     "ssl_step_click_continue": "4. 點擊【繼續前往 xx.xx.xx.xx（不安全）】",
+    "ssl_closed_relogin_tip": "SSL 已關閉，面板已切回 http。原本的登入狀態不會帶過去，請使用下面的 http 地址重新登入一次。",
+    "ssl_closed_goto": "立即前往並重新登入",
     "msg_2": "類型",
     "self_signed_certificate_recommended": "自籤憑證 (推薦，瀏覽器會提示不安全。可忽略，請放心開啟)",
     "enabling_this_feature_will": "開啟後導致面板不能訪問，可以點擊查看",

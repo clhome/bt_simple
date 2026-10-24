@@ -75,6 +75,11 @@ def set_panel_local_ssl():
 @blueprint.route('/close_panel_ssl', endpoint='close_panel_ssl', methods=['POST'])
 @panel_login_required
 def close_panel_ssl():
+    # 这个响应还在 https 上（关 SSL 的请求本身是加密的），正好用来把浏览器里那条
+    # HSTS 记录清掉：否则浏览器会继续把 http://host:port 升级成 https，而 gunicorn
+    # 已经不再说 TLS —— 用户看到的就是「连接被重置/证书错误」，以为面板坏了。
+    from flask import g
+    g.hsts_clear = True
     return YfSetting.instance().closePanelSsl()
 
 # 设置面板域名

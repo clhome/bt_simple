@@ -180,17 +180,23 @@ def checkDomainPanel():
     if isVaildIpV6(ip):
         return False
 
+    # 跳转必须带上安全入口：admin_path 非空时，跳到 `http(s)://ip:port/` 只会看到
+    # 「请使用正确的入口登录面板」的死页面（该页本职是把入口藏起来，不会把人导去登录页）。
+    admin_path = (thisdb.getOption('admin_path', default='') or '').strip()
+    if admin_path and not admin_path.startswith('/'):
+        admin_path = '/' + admin_path
+
     if domain == '':
         if ip in ['127.0.0.1', 'localhost', '::1']:
             return False
         if current_host.strip().lower() != ip.strip().lower():
-            to = scheme + "://" + ip + ":" + str(port)
+            to = scheme + "://" + ip + ":" + str(port) + admin_path
             return redirect(to, code=302)
         return False
     else:
         # print(current_host.strip().lower(), domain.strip().lower())
         if current_host.strip().lower() != domain.strip().lower():
-            to = scheme + "://" + domain + ":" + str(port)
+            to = scheme + "://" + domain + ":" + str(port) + admin_path
             return redirect(to, code=302)
     return False
 

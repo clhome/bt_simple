@@ -45,6 +45,7 @@ UTILS_SETTING = os.path.join(WEB, 'utils', 'setting.py')
 URLS_JS = os.path.join(WEB, 'static', 'app', 'panel_ssl_urls.js')
 INDEX_JS = os.path.join(WEB, 'static', 'app', 'index.js')
 CONFIG_JS = os.path.join(WEB, 'static', 'app', 'config.js')
+SYSTEM_PY = os.path.join(WEB, 'core', 'yf', 'system.py')
 INDEX_HTML = os.path.join(WEB, 'templates', 'default', 'index.html')
 SETTING_HTML = os.path.join(WEB, 'templates', 'default', 'setting.html')
 LANG_DIR = os.path.join(WEB, 'static', 'language')
@@ -52,7 +53,8 @@ LANG_DIR = os.path.join(WEB, 'static', 'language')
 LANGS = ('zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it')
 UI_KEYS = ('ssl_access_lan', 'ssl_access_wan', 'ssl_access_domain', 'ssl_access_local',
            'ssl_first_visit_title', 'ssl_step_open_any', 'ssl_step_cert_warning',
-           'ssl_step_click_advanced', 'ssl_step_click_continue')
+           'ssl_step_click_advanced', 'ssl_step_click_continue',
+           'ssl_closed_relogin_tip', 'ssl_closed_goto')
 
 
 def _read(path):
@@ -198,6 +200,177 @@ class TestSetPanelLocalSslReturnsUrlList(unittest.TestCase):
         self.assertEqual(['lan', 'wan'], [u['type'] for u in data['urls']])
         self.assertEqual('https://172.17.60.248:60374/q69dnrwy', data['url'])
         self.assertTrue(set_option, '成功时仍要落库面板 SSL 状态')
+
+
+class TestCloseSslKeepsUserInside(unittest.TestCase):
+    """关闭 SSL 后必须把用户送到「带安全入口的 http 地址」，而不是死页面。
+
+    现场（2026-10-24）：关闭 SSL 后浏览器被带回 `http://ip:port/`（无安全入口），
+    面板渲染「请使用正确的入口登录面板」，用户以为面板坏了。真实原因是两层叠加：
+
+    1. 关掉 SSL 后，浏览器里那个带 `Secure` 标记的会话 Cookie 在明文 HTTP 下**不会
+       被回传** → 等于掉登录态；
+    2. 前端原来只是把当前 URL 的 `https` 换成 `http`（此时当前页是 `/`，没有入口），
+       而后端 `close_panel_ssl` 又没告诉前端该去哪。
+
+    所以：后端必须返回 http + admin_path 的地址清单，前端必须用它跳登录入口页。
+    """
+
+    def _close_ns(self, admin_path='q69dnrwy'):
+        pdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, pdir, True)
+        options = {}
+        ns = {
+            'yf': types.SimpleNamespace(
+                getPanelPort=lambda: 60374,
+                getLanIp=lambda: '172.17.60.248',
+                getLocalIp=lambda: '202.107.245.93',
+                writeFileLog=lambda *a, **k: None,
+                restartPanel=lambda: None,
+                returnData=lambda status, msg, data=None: {
+                    'status': status, 'msg': msg, 'data': data},
+            ),
+            'thisdb': types.SimpleNamespace(
+                getOptionByJson=lambda name, default=None: {'open': True, 'choose': 'local'},
+                setOption=lambda name, value: options.setdefault(name, value),
+                getOption=lambda name, default=None: {
+                    'admin_path': admin_path, 'panel_domain': '',
+                }.get(name, default),
+            ),
+            'os': os,
+            'json': json,
+        }
+        for fn in ('buildPanelAccessUrls', 'closePanelSsl'):
+            exec(compile(_func_src(UTILS_SETTING, fn), UTILS_SETTING, 'exec'), ns)
+        Stub = type('Stub', (object,), {
+            'buildPanelAccessUrls': ns['buildPanelAccessUrls'],
+            'closePanelSsl': ns['closePanelSsl'],
+        })
+        return Stub(), options
+
+    def test_returns_http_urls_with_admin_path(self):
+        stub, options = self._close_ns()
+        res = stub.closePanelSsl()
+        self.assertTrue(res['status'], res)
+        data = res['data']
+        self.assertIsInstance(data, dict, '关闭 SSL 必须返回 {url, urls} 供前端跳转')
+        for item in data['urls']:
+            self.assertTrue(item['url'].startswith('http://'), item['url'])
+            self.assertTrue(item['url'].endswith('/q69dnrwy'),
+                            '落点必须带安全入口，否则只会看到「请使用正确的入口登录面板」: %s'
+                            % item['url'])
+        self.assertFalse(any('https://' in u['url'] for u in data['urls']),
+                         '已关闭 SSL，不能再给 https 地址')
+        self.assertIn('panel_ssl', options, '关闭时必须落库')
+        self.assertIn('"open": false', options['panel_ssl'].replace('False', 'false'),
+                      '落库的面板 SSL 状态必须是关闭')
+
+    def test_empty_admin_path_keeps_root(self):
+        stub, _ = self._close_ns(admin_path='')
+        res = stub.closePanelSsl()
+        self.assertEqual('http://172.17.60.248:60374', res['data']['url'])
+
+    def test_frontend_uses_backend_url_not_naive_scheme_swap(self):
+        src = _read(CONFIG_JS)
+        # 旧的「把 https 字样换成 http」在 `当前页是 /` 时会落到无入口地址
+        self.assertNotIn("var to_http = window.location.href.replace('https', 'http')", src,
+                         '关闭 SSL 不能再用「当前 URL 去 s」的裸跳转（会落到无安全入口的 /）')
+        self.assertIn('showSslClosedWindow(', src, '关闭 SSL 后要有落地提示（含 http 地址 + 重新登录）')
+        self.assertIn('YfPanelSsl.pickTarget(', src, '跳转目标应取后端返回的地址清单')
+
+    def test_redirect_helper_keeps_admin_path(self):
+        """`checkDomainPanel` 的 302 同样必须带安全入口。"""
+        src = _read(SYSTEM_PY)
+        start = src.index('def checkDomainPanel(')
+        end = src.index('\ndef ', start + 1)
+        body = src[start:end]
+        self.assertIn('admin_path', body, '302 跳转丢了安全入口 → 用户会被丢到「入口错误」页')
+        self.assertIn('+ admin_path', body)
+
+
+class TestAdminPathStableAcrossSslToggle(unittest.TestCase):
+    """开启/关闭面板 SSL 不得改动安全入口（`admin_path`），前后缀必须一致。
+
+    用户可见的后果：入口一变，手里那条 `https://ip:port/q69dnrwy` 立刻失效，
+    而面板又把入口藏起来（`path.html` 不告诉你怎么找），看起来就是「开关 SSL 把
+    面板弄坏了」。所以这里把「入口只由安装初始化 / 用户手动修改写入」钉成契约：
+    SSL 相关流程**一个字都不许写** `admin_path`，且返回的地址后缀必须与库里一致。
+    """
+
+    ADMIN = 'q69dnrwy'
+
+    def _stub(self, pdir):
+        """构造一个带真实 buildPanelAccessUrls 的桩实例，记录所有 setOption。"""
+        written = []
+        ns = {
+            'yf': types.SimpleNamespace(
+                getPanelDir=lambda: pdir,
+                getPanelPort=lambda: 60374,
+                getLanIp=lambda: '172.17.60.248',
+                getLocalIp=lambda: '202.107.245.93',
+                writeFileLog=lambda *a, **k: None,
+                restartPanel=lambda: None,
+                createLocalSSL=lambda: True,
+                returnData=lambda status, msg, data=None: {
+                    'status': status, 'msg': msg, 'data': data},
+            ),
+            'thisdb': types.SimpleNamespace(
+                getOptionByJson=lambda name, default=None: {
+                    'panel_ssl': {'open': False, 'choose': 'local'},
+                }.get(name, dict(default or {})),
+                setOption=lambda name, value, **k: written.append((name, value)),
+                getOption=lambda name, default=None: {
+                    'admin_path': self.ADMIN, 'panel_domain': '',
+                }.get(name, default),
+            ),
+            'os': os,
+            'json': json,
+        }
+        for fn in ('buildPanelAccessUrls', 'setPanelLocalSsl', 'closePanelSsl'):
+            exec(compile(_func_src(UTILS_SETTING, fn), UTILS_SETTING, 'exec'), ns)
+        Stub = type('Stub', (object,), {k: ns[k] for k in
+                                        ('buildPanelAccessUrls', 'setPanelLocalSsl', 'closePanelSsl')})
+        return Stub(), written
+
+    def _suffixes(self, data):
+        self.assertIsInstance(data, dict, data)
+        return sorted(u['url'].rsplit(':', 1)[-1].split('/', 1)[-1] for u in data['urls'])
+
+    def test_open_and_close_keep_same_suffix(self):
+        pdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, pdir, True)
+        os.makedirs(os.path.join(pdir, 'ssl', 'local'))
+        for name in ('cert.pem', 'private.pem'):
+            with open(os.path.join(pdir, 'ssl', 'local', name), 'w', encoding='utf-8') as fh:
+                fh.write('x')
+
+        stub, written = self._stub(pdir)
+        opened = stub.setPanelLocalSsl('1')
+        closed = stub.closePanelSsl()
+
+        self.assertEqual([self.ADMIN, self.ADMIN], self._suffixes(opened['data']),
+                         '开启 SSL 后地址后缀必须还是原安全入口: %r' % (opened['data'],))
+        self.assertEqual([self.ADMIN, self.ADMIN], self._suffixes(closed['data']),
+                         '关闭 SSL 后地址后缀必须还是原安全入口: %r' % (closed['data'],))
+        names = [n for n, _v in written]
+        self.assertNotIn('admin_path', names,
+                         'SSL 开关不得写 admin_path（会让用户手里的入口地址失效）')
+
+    def test_ssl_module_never_writes_admin_path(self):
+        src = _read(UTILS_SETTING)
+        self.assertNotIn("setOption('admin_path'", src,
+                         'web/utils/setting.py 不得写 admin_path（入口只由安装初始化 / 用户手动修改）')
+        self.assertNotIn('setOption("admin_path"', src)
+
+    def test_all_ssl_entry_points_share_admin_path(self):
+        """四个入口（自签开启 / 自贴证书 / ACME / 关闭）都走同一个地址构造器。"""
+        src = _read(UTILS_SETTING)
+        for name in ('savePanelSsl', 'createPanelAcme', 'setPanelLocalSsl', 'closePanelSsl'):
+            start = src.index('def %s(' % name)
+            nxt = src.find('\n    def ', start + 1)
+            body = src[start:nxt if nxt != -1 else len(src)]
+            self.assertIn('buildPanelAccessUrls(', body,
+                          '%s 必须用 buildPanelAccessUrls 生成地址（否则后缀口径会分叉）' % name)
 
 
 class TestFrontendRendersBothAddresses(unittest.TestCase):

@@ -1455,3 +1455,92 @@ EXIT=0
 - [x] 任务 3：修复「关闭SSL证书」重复 DOM 与写死内高
 - [x] 任务 4：`testsuite/test_dialog_adaptive.py`（8 例，含 node 行为用例与"不得再写死小高度"扫描）
 - [x] 任务 5：全量门禁 3841 用例全绿；A12 冻结清单（16→14 处）与甲类行号同步
+
+---
+
+## 关闭面板 SSL 后无法进入面板（2026-10-24）
+
+### 现场
+关闭 SSL 后浏览器停在「请使用正确的入口登录面板」（`path.html`）死页面，必须 SSH 执行
+`bs default` 才知道入口。用户判定"面板关了 SSL 就进不去了"。
+
+### 根因（两层叠加）
+1. **Secure Cookie 不会被回传**：开着 SSL 时会话 Cookie 带 `Secure` 标记；关掉 SSL 后
+   浏览器走明文 HTTP，不会回传这个 Cookie → 服务端视为未登录。
+2. **落点没有安全入口**：前端原来只是把当前 URL 的 `https` 换成 `http`
+   （此时当前页是 `/`，不含 `/<安全入口>`），后端 `close_panel_ssl` 又没告诉前端该去哪。
+   未登录 + 无入口 → `path.html`（该页本职是把入口藏起来，不会把人导去登录页）。
+
+### 修复
+- `web/utils/setting.py`：`buildPanelAccessUrls(..., scheme='http')` 支持 http；
+  `closePanelSsl()` 返回带安全入口的 http 地址清单（未登录访问该入口即渲染登录页）。
+- `web/core/yf/system.py::checkDomainPanel()`：302 目标补上 `admin_path`（同类隐患，
+  该函数一旦被接线，缺入口同样会把用户丢到死页面）。
+- `web/static/app/config.js`：关闭 SSL 不再裸跳 `href.replace('https','http')`，
+  改为弹「已关闭 SSL，请用 http 地址重新登录」窗口（内网/外网地址可点复制 +
+  「立即前往并重新登录」按钮，`pickTarget` 优先同主机地址）。
+- i18n 新增 2 键：`config.ssl_closed_relogin_tip` / `config.ssl_closed_ goto`（六语言）。
+
+### 守卫
+- `testsuite/test_panel_ssl_ui_addresses.py` 新增 5 例：`closePanelSsl` 返回 http+入口、
+  空入口回落到根、前端不得再用裸 `replace('https','http')`、`checkDomainPanel` 带入口、
+  两个新 i18n 键六语言齐备。
+- A12「字面量整段复制」冻结清单改为**指纹口径**（文件 + 被复制的开标签 → 次数），
+  不再随行号漂移（本次已是当天第三次因代码增删导致行号失效）。
+
+### 任务追踪
+- [x] 任务 1：后端关闭 SSL 返回 http + 安全入口地址
+- [x] 任务 2：前端落地提示与跳转（不再裸换协议）
+- [x] 任务 3：`checkDomainPanel` 302 补安全入口
+- [x] 任务 4：i18n 两键六语言 + 载体派生
+- [x] 任务 5：守卫改指纹口径 + 全量门禁 3845 用例全绿
+
+### 追加核查：SSL 开关是否影响安全入口（admin_path）
+- 结论：**不影响**，后缀（如 `/q69dnrwy`）开关前后完全一致。
+- 依据：`admin_path` 全仓只有 3 个写入点 ——
+  1. `web/admin/setup/option.py::init_option()`（仅「库未初始化」时执行，即首装）；
+  2. `web/admin/setting/setting.py::set_admin_path()`（用户手动改入口）；
+  3. `panel_tools.py` 的 `admin_path` 命令（仅在库里为空时补一个）。
+  SSL 相关流程（`setPanelLocalSsl` / `savePanelSsl` / `createPanelAcme` / `closePanelSsl`）
+  一个都不写 `admin_path`，且四个入口统一由 `buildPanelAccessUrls()` 生成地址，
+  后缀取自同一个 option，故开关 SSL 只是 scheme 在 `https`/`http` 之间切换。
+- 守卫：`testsuite/test_panel_ssl_ui_addresses.py::TestAdminPathStableAcrossSslToggle`
+  3 例（开启与关闭后缀必须相同、SSL 模块不得写 admin_path、四个入口必须共用同一构造器）。
+
+---
+
+## 关闭 SSL 后「仅在普通窗口」登录后仍显示入口错误（2026-10-24）
+
+### 现场
+关 SSL 后：无痕窗口 → 正常；普通窗口 → 登录接口返回成功，随后 `/` 渲染
+「请使用正确的入口登录面板」；用户清理 Cookie 也无效。
+
+### 根因：浏览器的「Leave Secure cookies alone」
+开着 SSL 时会话 Cookie `YF_VER_1` 带 `Secure`。关掉 SSL 后：
+- http 请求不会回传 Secure Cookie → 服务端认为未登录；
+- 登录响应试图用**非 Secure** 的同名 Cookie 覆盖它时，浏览器按 RFC6265bis 存储模型
+  「新 Cookie 来自非安全源、且库里已有同名/同域/同路径的 Secure Cookie → **整条丢弃**」
+  （Chrome 的 strict secure cookies）→ 新会话永远存不进去。
+无痕窗口没有那条旧 Cookie，所以正常；清理 Cookie 若作用域/时间范围没覆盖到该主机，
+旧 Cookie 仍在，于是继续失败。服务端无法删除它（删除也是一次非 Secure 的 Set-Cookie，
+同样被丢弃）。
+
+### 修复
+1. **会话 Cookie 名按 TLS 模式分两套**（`web/admin/__init__.py`）：
+   `ready` → `YF_VER_1`（Secure）；否则 → `YF_VER_1_INSECURE`（非 Secure）。
+   明文模式只读写后者，那条陈旧的 Secure 名不再参与判定；重新开启 SSL 时回到前者。
+2. **自签证书不再下发 HSTS**（`requestAfter`）：HSTS 会让证书告警变成「不可绕过」，
+   而自签证书恰恰要求用户点「继续前往」，两者天生冲突（会被锁 30 天）。
+3. **关闭 SSL 时下发 `Strict-Transport-Security: max-age=0`**（`close_panel_ssl` 路由
+   置 `g.hsts_clear`），清掉此前可能留下的 HSTS 条目。
+4. 同步更新 `plain_http_warning.py` 文档里的 Cookie 名说明。
+
+### 守卫
+- `test_panel_ssl_state.py`：HSTS 必须「ready 且非自签」、关闭路径必须能发 max-age=0、
+  `close_panel_ssl` 必须置 `g.hsts_clear`、Cookie 名必须随 TLS 模式切换。
+- `test_readme_claims_honesty.py`：HSTS 四态表（真证书 / 关闭 / 自签 / 关闭时清除）。
+
+### 任务追踪
+- [x] 任务 1：会话 Cookie 名按 TLS 模式分裂（本地兜住浏览器覆盖限制）
+- [x] 任务 2：自签不下发 HSTS + 关闭时 max-age=0 清除
+- [x] 任务 3：守卫补齐，全量门禁 3850 用例全绿

@@ -81,6 +81,9 @@ class _FakeRequest(object):
 class _FakeG(object):
     request_id = 'test-rid'
 
+    def __init__(self, hsts_clear=False):
+        self.hsts_clear = hsts_clear
+
 
 class _FakeResponse(object):
     def __init__(self):
@@ -106,18 +109,19 @@ class _FakeYf(object):
     不被打上 HSTS —— 那种状态下根本没 HTTPS，打 HSTS 等于把浏览器锁在打不开的地址。
     """
 
-    def __init__(self, ssl_open, ssl_ready=None):
+    def __init__(self, ssl_open, ssl_ready=None, choose='nginx'):
         self._open = ssl_open
         self._ready = ssl_open if ssl_ready is None else ssl_ready
+        self._choose = choose
 
     def panelSslState(self, *a, **k):
         return {
             'open': self._open,
             'ready': self._ready,
             'degraded': bool(self._open) and not self._ready,
-            'choose': 'local',
-            'certfile': '/nonexistent/ssl/local/cert.pem',
-            'keyfile': '/nonexistent/ssl/local/private.pem',
+            'choose': self._choose,
+            'certfile': '/tmp/ssl/%s/cert.pem' % self._choose,
+            'keyfile': '/tmp/ssl/%s/private.pem' % self._choose,
         }
 
 
@@ -140,14 +144,14 @@ def _load_request_after():
     return fn, compile(module, ADMIN_INIT, 'exec')
 
 
-def _call_request_after(ssl_open, ssl_ready=None):
+def _call_request_after(ssl_open, ssl_ready=None, choose='nginx', hsts_clear=False):
     fn, code = _load_request_after()
     ns = {
         'time': time,
         'request': _FakeRequest(),
-        'g': _FakeG(),
+        'g': _FakeG(hsts_clear),
         'thisdb': _FakeThisdb(ssl_open),
-        'yf': _FakeYf(ssl_open, ssl_ready),
+        'yf': _FakeYf(ssl_open, ssl_ready, choose),
     }
     exec(code, ns)
     response = _FakeResponse()
@@ -238,15 +242,24 @@ class ReadmeClaimsHonestyTest(unittest.TestCase):
     # ------------------------------ HSTS ------------------------------
 
     def test_06_hsts_only_when_panel_ssl_on(self):
-        """面板 SSL 真的可用时下发 HSTS；关闭 / 半开状态不发（避免锁死访问）。"""
+        """HSTS 只发给「真证书」；自签 / 关闭 / 半开状态一律不发（否则浏览器被锁死）。"""
         self.assertIn('Strict-Transport-Security', _read(ADMIN_INIT),
                       'after_request 未下发 HSTS 头')
-        on = _call_request_after(ssl_open=True)
-        self.assertIn('Strict-Transport-Security', on, '面板 SSL 开启时未下发 HSTS')
+        on = _call_request_after(ssl_open=True, choose='nginx')
+        self.assertIn('Strict-Transport-Security', on, '真证书 HTTPS 时应下发 HSTS')
         self.assertIn('max-age=', on['Strict-Transport-Security'], 'HSTS 缺少 max-age')
         off = _call_request_after(ssl_open=False)
         self.assertNotIn('Strict-Transport-Security', off,
                          '面板 SSL 关闭时不应下发 HSTS')
+        # 自签证书绝不能发 HSTS：HSTS 会让证书告警变成「不可绕过」，
+        # 而自签恰恰需要用户点「继续前往」，两者天生冲突。
+        self_signed = _call_request_after(ssl_open=True, choose='local')
+        self.assertNotIn('Strict-Transport-Security', self_signed,
+                         '自签证书不得下发 HSTS（会让浏览器永久拒绝访问该主机）')
+        # 关 SSL 的那个响应要把它清掉
+        cleared = _call_request_after(ssl_open=False, hsts_clear=True)
+        self.assertEqual('max-age=0', cleared.get('Strict-Transport-Security'),
+                         '关闭 SSL 时必须下发 max-age=0 清除 HSTS')
         # 半开状态（配置 open、证书不可用）：实际仍是明文 HTTP，不能打 HSTS
         half = _call_request_after(ssl_open=True, ssl_ready=False)
         self.assertNotIn('Strict-Transport-Security', half,

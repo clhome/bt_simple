@@ -4166,6 +4166,8 @@
     "ssl_step_cert_warning": "2. 浏览器提示「您的连接不是私密连接」属于自签证书的正常现象",
     "ssl_step_click_advanced": "3. 点击【高级】",
     "ssl_step_click_continue": "4. 点击【继续前往 xx.xx.xx.xx（不安全）】",
+    "ssl_closed_relogin_tip": "SSL 已关闭，面板已切回 http。原来的登录态不会带过去，请使用下面的 http 地址重新登录一次。",
+    "ssl_closed_goto": "立即前往并重新登录",
     "msg_2": "类型",
     "self_signed_certificate_recommended": "自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)",
     "enabling_this_feature_will": "开启后导致面板不能访问，可以点击查看",

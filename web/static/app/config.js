@@ -359,19 +359,79 @@ $('input[name="bind_ssl"]').on('click', function () {
           return;
         }
         $.post('/setting/close_panel_ssl', {}, function (rdata) {
-          var to_http = window.location.href.replace('https', 'http');
-          showMsg(rdata.msg, function () {
-            if (rdata.status) {
-              window.location.href = to_http;
-            }
-          }, {
-            icon: rdata.status ? 1 : 2
-          }, 5000);
+          if (!rdata || !rdata.status) {
+            layer.msg((rdata && rdata.msg) || t('public.error', '操作失败'), { icon: 2 });
+            return;
+          }
+          // 关掉 SSL 后浏览器里那个带 Secure 的会话 Cookie 在明文 HTTP 下不会被回传，
+          // 等于掉登录态；而 `http://ip:port/`（无安全入口）只会渲染
+          // 「请使用正确的入口登录面板」的死页面。所以落点必须是后端给的、
+          // 带安全入口的 http 地址（未登录时该入口直接渲染登录页，重新登录即可）。
+          layer.close(index);
+          showSslClosedWindow(rdata.data);
         }, 'json');
       }
     });
   }
 });
+
+// 关闭 SSL 成功后的落地提示：列出 http 地址（内网/外网，点哪条复制哪条），
+// 并说明「需要重新登录一次」——Secure Cookie 在明文 HTTP 下不会被回传。
+function showSslClosedWindow(data) {
+  var urlsHtml = window.YfPanelSsl ? window.YfPanelSsl.urlsHtml(data) : '';
+  var target = window.YfPanelSsl ? window.YfPanelSsl.pickTarget(data) : '';
+  if (!target) {
+    // 后端没给地址（老版本/异常）时退回到「当前地址去 s」：至少不会停在 https 上打不开
+    target = String(window.location.href || '').replace(/^https/i, 'http');
+  }
+  if (!urlsHtml) {
+    var single = (typeof data === 'string' ? data : (data && data.url)) || '';
+    urlsHtml = '<div id="sslDomainCopyBox" style="background:#f8f9fa;border:1px dashed #20a53a;' +
+      'color:#20a53a;padding:12px 15px;font-size:15px;font-weight:bold;border-radius:6px;' +
+      'cursor:pointer;margin-bottom:10px;word-break:break-all;">' + escapeHTML(single) + '</div>';
+    target = single;
+  }
+  var content = '<div class="bt-form pd20" style="text-align:center;padding:20px 25px;">' +
+    '<div style="color:#20a53a;font-size:15px;font-weight:bold;margin-bottom:12px;">' +
+      '<span class="glyphicon glyphicon-ok-sign" style="margin-right:6px;"></span>' +
+      escapeHTML((lan && lan.config && t('config.disable_ssl_certificate')) || '关闭SSL证书') +
+    '</div>' +
+    '<div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:10px 12px;' +
+    'text-align:left;font-size:12px;color:#ad4e00;line-height:18px;margin-bottom:12px;">' +
+      escapeHTML(t('config.ssl_closed_relogin_tip',
+        'SSL 已关闭，面板已切回 http。原来的登录态不会带过去，请使用下面的 http 地址重新登录一次。')) +
+    '</div>' +
+    '<p style="color:#666;margin-bottom:10px;font-size:13px;">' +
+      escapeHTML(t('config.you_will_use_the', '后续您将使用如下安全加密协议访问（点击地址即可复制）：')) +
+    '</p>' +
+    urlsHtml +
+    '<div style="text-align:center;">' +
+      '<button type="button" class="btn btn-success" id="btnGotoHttpPanel" style="padding:6px 20px;border-radius:4px;">' +
+        '<span class="glyphicon glyphicon-log-in" style="margin-right:5px;"></span>' +
+        escapeHTML(t('config.ssl_closed_goto', '立即前往并重新登录')) +
+      '</button>' +
+    '</div>' +
+  '</div>';
+
+  layer.open({
+    type: 1,
+    title: [((lan && lan.config && t('config.disable_ssl_certificate')) || '关闭SSL证书'), 'font-weight:600;font-size:14px;'],
+    area: ['560px', 'auto'],
+    closeBtn: 1,
+    shadeClose: false,
+    content: content,
+    success: function (layero) {
+      if (window.YfPanelSsl) {
+        window.YfPanelSsl.bindCopy(layero);
+      }
+      $('#btnGotoHttpPanel').on('click', function () {
+        if (target) {
+          window.location.href = target;
+        }
+      });
+    }
+  });
+}
 
 /** op **/
 

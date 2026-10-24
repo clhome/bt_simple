@@ -4166,6 +4166,8 @@
     "ssl_step_cert_warning": "2. The browser shows \"Your connection is not private\" - normal for a self-signed certificate",
     "ssl_step_click_advanced": "3. Click [Advanced]",
     "ssl_step_click_continue": "4. Click [Proceed to xx.xx.xx.xx (unsafe)]",
+    "ssl_closed_relogin_tip": "SSL is disabled and the panel is back on http. Your previous sign-in is not carried over, please sign in again via the http address below.",
+    "ssl_closed_goto": "Go there and sign in again",
     "msg_2": "type",
     "self_signed_certificate_recommended": "Self-signed certificate (recommended. The browser will warn it is not secure. You can ignore this, please enable with confidence)",
     "enabling_this_feature_will": "Enabling it may make the panel inaccessible,You can click to view",

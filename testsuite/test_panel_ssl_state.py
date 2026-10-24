@@ -225,10 +225,30 @@ class TestPanelSslWiring(unittest.TestCase):
                       src,
                       'Secure Cookie 必须与「证书可用」绑定：半开状态下加 Secure = 登录掉线')
 
-    def test_hsts_requires_ready(self):
+    def test_hsts_requires_ready_and_real_cert(self):
+        """HSTS 只发给「可真上 HTTPS **且** 不是自签」的情况，且关 SSL 时要能清掉。"""
         src = _read(ADMIN_INIT)
-        self.assertIn("_panel_ssl_on = bool(yf.panelSslState()['ready'])", src,
-                      'HSTS 只能在真上 HTTPS 时下发')
+        self.assertIn("_panel_ssl_on = bool(_ssl_state['ready']) and _ssl_state['choose'] != 'local'",
+                      src,
+                      '自签证书不得下发 HSTS（HSTS 会让证书告警变成不可绕过，浏览器被永久锁死）')
+        self.assertIn("response.headers['Strict-Transport-Security'] = 'max-age=0'", src,
+                      '关闭 SSL 时必须能下发 max-age=0 清除浏览器里的 HSTS 条目')
+
+    def test_close_route_clears_hsts(self):
+        src = _read(os.path.join(WEB, 'admin', 'setting', 'panel_ssl.py'))
+        start = src.index('def close_panel_ssl(')
+        body = src[start:start + 900]
+        self.assertIn('g.hsts_clear = True', body,
+                      '关闭 SSL 的响应还在 https 上，必须顺手清掉 HSTS')
+
+    def test_session_cookie_name_switches_with_tls_mode(self):
+        """Cookie 名必须随「是否真的跑 TLS」切换（规避浏览器拒绝用非 Secure Cookie
+        覆盖同名 Secure Cookie 的死锁）。"""
+        src = _read(ADMIN_INIT)
+        self.assertIn('YF_VER_1_INSECURE', src,
+                      '缺少明文 HTTP 模式的会话 Cookie 名')
+        self.assertIn("('YF_VER_1' if panel_ssl_state['ready']", src,
+                      '会话 Cookie 名必须由 panelSslState 决定')
 
     def test_local_ssl_switch_refuses_open_without_cert(self):
         """自签证书生成失败时不得把 panel_ssl.open 置真（那就是半开状态）。"""

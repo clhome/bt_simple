@@ -107,7 +107,6 @@ except Exception:
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'YF_:'
-app.config['SESSION_COOKIE_NAME'] = "YF_VER_1"
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # 面板 SSL：只有证书真的可用（与 gunicorn 配置共用 yf.panelSslState 判定）才给会话
@@ -118,6 +117,25 @@ app.config['SESSION_COOKIE_SECURE'] = bool(panel_ssl_state['ready'])
 if panel_ssl_state['open'] and not panel_ssl_state['ready']:
     _log.error('面板 SSL 已开启但证书不可用（%s），本次按明文 HTTP 处理（Cookie 不加 Secure，'
                '避免登录态丢失）；请修复证书后重启面板', panel_ssl_state['certfile'])
+
+# 会话 Cookie 名按「面板到底跑不跑 TLS」分两套 —— 不是洁癖，是浏览器的硬规则：
+#
+#   RFC6265bis 存储模型：收到一个 **非 Secure** 的 Set-Cookie，而库里已存在同名/同域/
+#   同路径且带 Secure 的 Cookie 时，浏览器会**直接丢弃新的那条**（防止降级攻击）。
+#
+# 于是「开着 SSL 登录 → 关掉 SSL 继续用 http」会变成死结：浏览器里那条 Secure 的
+# `YF_VER_1` 既不会被发送（http 不回传 Secure Cookie），也不允许被 http 响应覆盖，
+# 登录接口返回成功但拿不到新会话，随后的 `/` 就渲染成「请使用正确的入口登录面板」。
+# 用户描述完全对得上：无痕窗口正常（没有旧 Cookie），普通窗口清 Cookie 也未必能救
+# （清错作用域 / 站点数据未清干净）。
+#
+# 用两个名字后：http 模式只读写 `YF_VER_1_INSECURE`（能正常下发/回传），那条陈旧的
+# Secure 名不再参与任何判定；重新开启 SSL 时又回到 `YF_VER_1`（secure 源可以覆盖
+# secure Cookie，不存在同样的问题）。
+#
+# 注意：切换 SSL 会换 Cookie 名 → 所有人需要重新登录一次（本来也会因为重启丢会话语境）。
+app.config['SESSION_COOKIE_NAME'] = ('YF_VER_1' if panel_ssl_state['ready']
+                                     else 'YF_VER_1_INSECURE')
 
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
@@ -342,12 +360,20 @@ def requestAfter(response):
 
     # 面板 SSL 开启时才下发 HSTS（30 天），且必须「证书真的可用」才算开启：
     # 半开状态下跳不了 https，下了 HSTS 反而把浏览器锁在打不开的地址上。
-    try:
-        _panel_ssl_on = bool(yf.panelSslState()['ready'])
-    except Exception:
-        _panel_ssl_on = False
-    if _panel_ssl_on:
-        response.headers['Strict-Transport-Security'] = 'max-age=2592000'
+    # 自签证书（choose='local'）**绝不下发 HSTS**：HSTS 一旦被浏览器记住，该主机的
+    # 证书告警就变成「不可绕过」，而自签证书恰恰需要用户点“继续访问”——两者天生矛盾。
+    # 关掉 SSL 时还会在 https 响应上下发 max-age=0 把这个条目清掉（见 close_panel_ssl）。
+    hsts_clear = bool(getattr(g, 'hsts_clear', False))
+    if hsts_clear:
+        response.headers['Strict-Transport-Security'] = 'max-age=0'
+    else:
+        try:
+            _ssl_state = yf.panelSslState()
+            _panel_ssl_on = bool(_ssl_state['ready']) and _ssl_state['choose'] != 'local'
+        except Exception:
+            _panel_ssl_on = False
+        if _panel_ssl_on:
+            response.headers['Strict-Transport-Security'] = 'max-age=2592000'
     
     # 静态资源开启强缓存
     if request.path.startswith('/static/'):

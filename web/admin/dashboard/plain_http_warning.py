@@ -13,7 +13,7 @@
 
 ## 为什么只做「告警」而不改默认值
 
-面板在**未开启面板 SSL** 时，会话 Cookie（`SESSION_COOKIE_NAME=YF_VER_1`）走的是
+面板在**未开启面板 SSL** 时，会话 Cookie（`SESSION_COOKIE_NAME=YF_VER_1_INSECURE`）走的是
 明文 HTTP，链路上任何一跳都能嗅探到它 —— 拿到即等价于登录态。彻底的修法是
 「默认自签 TLS + Secure Cookie」，但那会改变部署形态（首次访问的证书警告、
 反代/端口/防火墙联动），不属于本任务，故本任务**只做显著告警**：

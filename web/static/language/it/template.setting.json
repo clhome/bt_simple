@@ -428,6 +428,8 @@
     "ssl_step_cert_warning": "2. Il browser mostra \"La connessione non è privata\" - è normale con un certificato auto-firmato",
     "ssl_step_click_advanced": "3. Fai clic su [Avanzate]",
     "ssl_step_click_continue": "4. Fai clic su [Procedi verso xx.xx.xx.xx (non sicuro)]",
+    "ssl_closed_relogin_tip": "SSL è disattivato e il pannello è tornato su http. La sessione precedente non viene mantenuta, accedi di nuovo tramite l'indirizzo http qui sotto.",
+    "ssl_closed_goto": "Vai e accedi di nuovo",
     "msg_2": "tipo",
     "self_signed_certificate_recommended": "Certificato autofirmato (consigliato, il browser indicherà che non è sicuro. Può essere ignorato, non esitate ad abilitarlo)",
     "enabling_this_feature_will": "Dopo l'accensione non è più possibile accedere al pannello. È possibile fare clic per visualizzarlo.",

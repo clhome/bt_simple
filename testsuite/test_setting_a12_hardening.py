@@ -316,34 +316,27 @@ class ConfigJsDupLiteralTest(unittest.TestCase):
     """6:config.js 的「字面量整段复制」—— 只允许剩下已冻结的精确行号。"""
 
     #: 已知未闭环(乙类:两种解读可见文本等价,改动会静默改前端结构)。
-    #: **按文件 + 行号精确冻结**:新出现的命中会因不在清单里而失败;修好一条就删一行。
-    FROZEN = (
-        'web/static/app/config.js:106',
-        'web/static/app/config.js:1209',
-        'web/static/app/config.js:1221',
-        'web/static/app/config.js:1317',
-        'web/static/app/config.js:1334',
-        'web/static/app/config.js:1580',
-        'web/static/app/config.js:1713',
-        'web/static/app/config.js:1753',
-        'web/static/app/config.js:1821',
-        'web/static/app/config.js:1846',
-        'web/static/app/config.js:1899',
-        'web/static/app/config.js:2015',
-        'web/static/app/config.js:318',
-        'web/static/app/config.js:890',
-    )
+    #: 判据由 `testsuite/test_frontend_literal_hygiene.py::PENDING`（指纹清单）提供，
+    #: 本文件只负责校验其中的 config.js 子集（单一真源，不再各存一份行号）。
 
     def test_09_config_js_dup_literal_hits_match_frozen_list(self):
+        """config.js 的「字面量整段复制」必须与冻结指纹清单完全一致。
+
+        判据是 `testsuite/test_frontend_literal_hygiene.py::PENDING`（文件 + 被复制的
+        开标签文本 → 出现次数），**不再按行号冻结**：config.js 一天之内因为弹窗重写/
+        尺寸归一化挪过三次行号，行号清单每次都要手工重算，漏算之后守卫会对着无关代码
+        空转（假绿）。指纹与位置无关，且正是「哪段字面量被复制」这个判据本身。
+        """
         from testsuite import test_frontend_literal_hygiene as G
-        hits = sorted(h for h in G._scan()
-                      if h.startswith('web/static/app/config.js:'))
-        frozen = sorted(self.FROZEN)
+        prefix = 'web/static/app/config.js|'
+        hits = {k: v for k, v in G._scan_fingerprints().items() if k.startswith(prefix)}
+        frozen = {k: v for k, v in G.PENDING.items() if k.startswith(prefix)}
         self.assertEqual(
             hits, frozen,
-            'config.js 的「字面量整段复制」命中与冻结清单不一致:\n'
-            '  新增(必须修):%s\n  已修好(请从冻结清单删掉):%s'
-            % (sorted(set(hits) - set(frozen)), sorted(set(frozen) - set(hits))))
+            'config.js 的「字面量整段复制」命中与冻结清单不一致：'
+            '新增/变多(必须修):%s ；已修好/变少(请从清单减计数):%s'
+            % (sorted(k for k in hits if hits[k] > frozen.get(k, 0)),
+               sorted(k for k in frozen if hits.get(k, 0) < frozen[k])))
 
     def test_10_fixed_sites_are_really_de_duplicated(self):
         """甲类修复点:含这些「去重后唯一字面量」的代码行不得再出现整段复制。
@@ -365,17 +358,22 @@ class ConfigJsDupLiteralTest(unittest.TestCase):
         self.assertGreater(checked, 0, '锚点全丢了?config.js 的甲类修复点不见了')
 
     def test_11_fixed_sites_keep_single_copy_of_literal(self):
-        """甲类修复必须是「删重」而不是「删内容」:被去重的那段字面量仍出现一次。"""
-        text = _read(CONFIG_JS).split('\n')
-        cases = {1346: "'<option value=\"none\">'",
-                 1551: "'<a>'",
-                 1545: "'<a style=\"color:green;\">'",
-                 1548: "'<a style=\"color:brown;\">'",
-                 471: '<div class="bt-form bt-form pd20">'}
-        for ln, lit in cases.items():
-            self.assertEqual(text[ln - 1].count(lit), 1,
-                             'line %d 的 %r 应恰好出现一次(去重不能连内容一起删)'
-                             % (ln, lit))
+        """甲类修复必须是「删重」而不是「删内容」：被去重的那段字面量仍只出现该出现次数。
+
+        按**全文出现次数**判定（位置无关）：config.js 增删几行不会让本用例失效。
+        """
+        text = _read(CONFIG_JS)
+        cases = {
+            "'<option value=\"none\">'": 2,
+            "'<a>'": 1,
+            "'<a style=\"color:green;\">'": 1,
+            "'<a style=\"color:brown;\">'": 1,
+            '<div class="bt-form bt-form pd20">': 3,
+        }
+        for lit, expect in cases.items():
+            self.assertEqual(text.count(lit), expect,
+                             '%r 应恰好出现 %d 次(去重不能连内容一起删/也不能再复制)'
+                             % (lit, expect))
 
 
 def _load_safepath():

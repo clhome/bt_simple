@@ -4166,6 +4166,8 @@
     "ssl_step_cert_warning": "2. Der Browser meldet \"Ihre Verbindung ist nicht privat\" - bei selbstsignierten Zertifikaten normal",
     "ssl_step_click_advanced": "3. Klicken Sie auf [Erweitert]",
     "ssl_step_click_continue": "4. Klicken Sie auf [Weiter zu xx.xx.xx.xx (unsicher)]",
+    "ssl_closed_relogin_tip": "SSL ist deaktiviert, das Panel läuft wieder über http. Die bisherige Anmeldung wird nicht übernommen, bitte melden Sie sich über die unten stehende http-Adresse erneut an.",
+    "ssl_closed_goto": "Jetzt wechseln und erneut anmelden",
     "msg_2": "Typ",
     "self_signed_certificate_recommended": "Selbstsigniertes Zertifikat (Empfohlen. Der Browser zeigt „Nicht sicher“ an. Dies kann ignoriert werden; Sie können die Funktion bedenkenlos aktivieren.)",
     "enabling_this_feature_will": "Falls das Panel nach der Aktivierung nicht erreichbar ist, klicken Sie zum Ansehen auf",

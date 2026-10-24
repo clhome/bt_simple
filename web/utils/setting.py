@@ -36,7 +36,7 @@ class setting(object):
         pass
 
     # 面板 HTTPS 访问地址（内网 / 外网 都给出，前端各自可点复制）
-    def buildPanelAccessUrls(self, port=None, admin_path=None):
+    def buildPanelAccessUrls(self, port=None, admin_path=None, scheme='https'):
         """返回 {'url': 首选地址, 'urls': [{'type','host','url'}, ...]}。
 
         为什么不是只给一个地址：面板常在内网/公网两侧都可达，只给公网 IP 会让
@@ -44,7 +44,9 @@ class setting(object):
         两边都列出来，由用户自己选、各自可点复制。
 
         type 取值：domain（绑定的域名）/ lan（内网）/ wan（外网）/ local（本机）。
+        scheme 默认 https（开启面板 SSL 后）；关闭 SSL 时传 'http'。
         """
+        scheme = 'http' if str(scheme).lower() == 'http' else 'https'
         try:
             port = int(port or yf.getPanelPort())
         except (TypeError, ValueError):
@@ -57,7 +59,7 @@ class setting(object):
             admin_path = '/' + admin_path
 
         def _build(host):
-            return 'https://' + str(host) + ':' + str(port) + admin_path
+            return scheme + '://' + str(host) + ':' + str(port) + admin_path
 
         domain = (thisdb.getOption('panel_domain', default='') or '').strip()
 
@@ -337,7 +339,14 @@ class setting(object):
 
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         yf.restartPanel()
-        return yf.returnData(True, 'common.set_success')
+
+        # 必须把「关掉 SSL 之后该去哪里」明确告诉前端，并且**带上安全入口**：
+        # 关掉 SSL 后浏览器里那个带 Secure 标记的会话 Cookie 在明文 HTTP 下不会被
+        # 回传（等于掉登录态），此时如果只把人导到 http://ip:port/（无入口），
+        # 得到的就是「请使用正确的入口登录面板」的死页面 —— 用户以为面板坏了。
+        # 正确落点是 http://ip:port/<安全入口>（未登录时该入口直接渲染登录页）。
+        return yf.returnData(True, 'common.set_success',
+                             self.buildPanelAccessUrls(scheme='http'))
 
 
     # 申请面板let证书

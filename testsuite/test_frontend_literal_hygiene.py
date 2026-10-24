@@ -46,47 +46,77 @@ def _scan():
     return hits
 
 
-#: 已知尚未收敛的**精确命中**(文件 + 行号)。只允许变短 —— 任何清单外的新命中
-#: 都会让守卫变红。`web/static/app/config.js` 原本有 23 处,其中 10 处(甲类:
-#: 组外重复尾巴与组内末字面量逐字相同)已按「只留下内层一份」修好;剩下 14 处属
-#: 乙类(组外重复尾巴是组内**某段连续子串**的重复,两种解读渲染出的可见文本相同,
-#: 但括号结构会落在不同一侧),改动会静默改变前端结构,故保留并冻结在此。
-PENDING = (
-    'web/static/app/config.js:106',
-    'web/static/app/config.js:1209',
-    'web/static/app/config.js:1221',
-    'web/static/app/config.js:1317',
-    'web/static/app/config.js:1334',
-    'web/static/app/config.js:1580',
-    'web/static/app/config.js:1713',
-    'web/static/app/config.js:1753',
-    'web/static/app/config.js:1821',
-    'web/static/app/config.js:1846',
-    'web/static/app/config.js:1899',
-    'web/static/app/config.js:2015',
-    'web/static/app/config.js:318',
-    'web/static/app/config.js:890',
-)
+def _scan_fingerprints():
+    """按「文件 + 被复制的开标签」聚合命中次数（**不依赖行号**）。
+
+    为什么不再冻结行号：config.js 一天之内因为弹窗重写/尺寸归一化挪了三次行号，
+    每次都要手工重算冻结清单；而一旦漏算，行号会指到无关代码上，守卫看上去绿着、
+    实际上已经不再守护任何东西。指纹（重复的那段开标签文本）与位置无关，且正是
+    「哪段字面量被复制了」这个判据本身。
+    """
+    counts = {}
+    for rel in _SCAN_DIRS:
+        base = os.path.join(ROOT, rel)
+        if not os.path.isdir(base):
+            continue
+        for dp, dn, fn in os.walk(base):
+            dn[:] = [d for d in dn if d != '__pycache__']
+            for f in fn:
+                if not f.endswith(('.js', '.html')):
+                    continue
+                p = os.path.join(dp, f)
+                relf = os.path.relpath(p, ROOT).replace(os.sep, '/')
+                try:
+                    text = open(p, encoding='utf-8', errors='replace').read()
+                except OSError:
+                    continue
+                for line in text.splitlines():
+                    for m in _PAT.finditer(line):
+                        key = '%s|%s' % (relf, re.sub(r'\s+', ' ', m.group(1)))
+                        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+#: 已知尚未收敛的命中（**指纹 = 文件 + 被复制的开标签**，值 = 出现次数）。
+#: 只允许变短 —— 任何清单外的新命中都会让守卫变红；修好一条就把对应项的计数减一。
+#: `web/static/app/config.js` 原本有 23 处，其中 10 处（甲类：组外重复尾巴与组内
+#: 末字面量逐字相同）已按「只留下内层一份」修好；剩下的是乙类（组外重复尾巴是组内
+#: **某段连续子串**的重复，两种解读渲染出的可见文本相同，但括号结构会落在不同一侧），
+#: 改动会静默改变前端结构，故保留并冻结在此。
+#: 「关闭SSL证书」弹窗与面板 SSL 弹窗已重写，共消除 2 条。
+PENDING = {
+    'web/static/app/config.js|a style="font-weight: bolder;font-size: 16px;">': 1,
+    'web/static/app/config.js|button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">': 2,
+    'web/static/app/config.js|div class="apply_ssl" style="padding: 10px 0;"> <div class="label-input-group"> <div class="line mtb10"> <span class="tname text-center" style="width:100px;">': 1,
+    'web/static/app/config.js|div class="bt-form bt-form pd20"> <div class="line"> <span class="tname">': 1,
+    'web/static/app/config.js|div class="bt-form pd20" style="text-align: center;"> <div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;"> <span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>': 1,
+    'web/static/app/config.js|div class="bt-form pd20"> <div class="line"> <span class="tname">': 4,
+    'web/static/app/config.js|div class="bt-form pd20"> <div class="mb15"> <h3 class="layer-info-title">': 1,
+    'web/static/app/config.js|div class="bt-form" style="padding: 10px 20px;"> <div class="line"><span>': 1,
+    'web/static/app/config.js|div class="bt-form" style="padding: 25px 40px;"> <div style="text-align: center;"> <h3 style="font-size: 20px;color: #333;margin-left: 5px;">': 1,
+    'web/static/app/config.js|span style="color:red">': 1,
+}
 
 
 class DuplicatedLiteralTest(unittest.TestCase):
 
     def test_01_no_duplicated_literal_in_frontend(self):
-        hits = sorted(_scan())
-        frozen = sorted(PENDING)
-        new_hits = sorted(set(hits) - set(frozen))
-        fixed = sorted(set(frozen) - set(hits))
+        hits = _scan_fingerprints()
+        new_hits = sorted(k for k in hits if k not in PENDING)
+        grown = sorted('%s (%d > %d)' % (k, hits[k], PENDING[k])
+                       for k in hits if k in PENDING and hits[k] > PENDING[k])
+        fixed = sorted('%s (%d < %d)' % (k, hits.get(k, 0), PENDING[k])
+                       for k in PENDING if hits.get(k, 0) < PENDING[k])
         self.assertEqual(
             new_hits, [],
             '发现「拼接字面量被整段复制」的损坏(渲染重复标签 + 回退分支失效):\n  %s'
             % '\n  '.join(new_hits))
+        self.assertEqual(grown, [], '已有损坏点被复制得更多了:\n  %s' % '\n  '.join(grown))
         self.assertEqual(
             fixed, [],
-            '冻结清单里的这些位置已修好,请把对应行从 PENDING 里删掉:\n  %s'
+            '冻结清单里的这些已修好，请把对应项从 PENDING 里删掉/减计数:\n  %s'
             % '\n  '.join(fixed))
-        self.assertEqual(len(frozen), 14,
-                         'PENDING 清单长度变了(原 16 处乙类,面板 SSL 弹窗重写后已消除 1 处),'
-                         '请同步复核 A12 结论')
+
 
     def test_02_public_js_current_status_is_single_layer(self):
         # 具体回归点:public.js 的 current_status_1 那行只允许出现一次开标签

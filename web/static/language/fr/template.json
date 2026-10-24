@@ -4166,6 +4166,8 @@
     "ssl_step_cert_warning": "2. Le navigateur affiche \"Votre connexion n'est pas privée\" - normal avec un certificat auto-signé",
     "ssl_step_click_advanced": "3. Cliquez sur [Paramètres avancés]",
     "ssl_step_click_continue": "4. Cliquez sur [Continuer vers xx.xx.xx.xx (non sécurisé)]",
+    "ssl_closed_relogin_tip": "SSL est désactivé et le panneau repasse en http. Votre session précédente n'est pas conservée, reconnectez-vous via l'adresse http ci-dessous.",
+    "ssl_closed_goto": "Y aller et se reconnecter",
     "msg_2": "Type",
     "self_signed_certificate_recommended": "Certificat auto-signé (recommandé ; le navigateur affichera un message indiquant que le site n'est pas sécurisé. Vous pouvez ignorer ce message et l'activer en toute confiance)",
     "enabling_this_feature_will": "Une fois activée, cette fonction rend le panneau inaccessible. Vous pouvez cliquer ici pour en savoir plus.",
