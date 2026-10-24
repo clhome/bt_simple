@@ -963,7 +963,7 @@ function showDanger(num, port) {
     }
     layer.open({
         type: 1,
-        area: ['720px', '410px'],
+        area: ['720px', 'auto'],
         title: '安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)',
         closeBtn: 1,
         shift: 5,
@@ -3337,87 +3337,100 @@ var btSecurityCenter = {
         var loadT = layer.load(2);
         $.post('/setting/set_panel_local_ssl', { 'cert_type': 0 }, function(rdata) {
             layer.close(loadT);
-            if (rdata && rdata.status) {
-                var new_url = rdata.data || '';
-                if (new_url.indexOf('127.0.0.1') != -1 || new_url.indexOf('0.0.0.0') != -1) {
-                    new_url = new_url.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
-                }
-                var content = '<div class="bt-form pd20" style="text-align: center; padding: 20px 25px;">' +
-                    '<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 12px;">' +
-                        '<span class="glyphicon glyphicon-ok-sign" style="margin-right: 6px;"></span>' +
-                        phpSecEscape(t('config.locally_self_signed_ssl', '本地自签SSL') + ' ' + t('config.ssl_certificate_deployment_successful', '部署成功')) +
-                    '</div>' +
-                    '<p style="color: #666; margin-bottom: 10px; font-size: 13px;">' +
-                        phpSecEscape(t('config.you_will_use_the', '后续您将使用如下安全加密协议访问（点击地址即可复制）：')) +
-                    '</p>' +
-                    '<div id="sslDomainCopyBox" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 10px 14px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 12px; word-break: break-all;" title="点击复制">' +
-                        phpSecEscape(new_url) +
-                    '</div>' +
-                    '<div style="background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px 12px; text-align: left; font-size: 12px; color: #8c6b00; margin-bottom: 16px; line-height: 18px;">' +
-                        '<div style="font-weight: 600; margin-bottom: 4px;">' + phpSecEscape(t('config.steps_for_accessing_self', '自签证书访问步骤：')) + '</div>' +
-                        '<div>' + phpSecEscape(t('config.deploy_an_ssl_certificate', '1. 部署SSL证书')) + '</div>' +
-                        '<div>' + phpSecEscape(t('config.change_the_address_in', '2. 浏览器地址栏修改为https://访问')) + '</div>' +
-                        '<div>' + phpSecEscape(t('config.if_risk_warning_appears', '3. 如提醒风险（正常现象）点击【高级】或【详情】')) + '</div>' +
-                        '<div>' + phpSecEscape(t('config.continue_or_accept_the', '4.【继续访问】或【接收风险并继续】')) + '</div>' +
-                    '</div>' +
-                    '<div style="text-align: center;">' +
-                        '<button type="button" class="btn btn-success" id="btnRestartAfterSsl" style="padding: 6px 20px; border-radius: 4px;">' +
-                            '<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' +
-                            phpSecEscape(t('config.confirm_and_restart_the', '确定并重启面板')) +
-                        '</button>' +
-                    '</div>' +
-                '</div>';
-
-                layer.open({
-                    type: 1,
-                    title: [t('config.enable_ssl_certificate', '开启SSL证书'), 'font-weight:600; font-size:14px;'],
-                    area: ['540px', 'auto'],
-                    closeBtn: 1,
-                    shadeClose: false,
-                    content: content,
-                    success: function(layero, index) {
-                        $('#sslDomainCopyBox').on('click', function() {
-                            if (typeof copyTextToClipboard === 'function') {
-                                copyTextToClipboard(new_url);
-                            } else {
-                                var $temp = $('<input>');
-                                $('body').append($temp);
-                                $temp.val(new_url).select();
-                                document.execCommand('copy');
-                                $temp.remove();
-                                layer.msg(t('config.copied_successfully', '复制成功'), { icon: 1 });
-                            }
-                        });
-                        $('#btnRestartAfterSsl').on('click', function() {
-                            layer.close(index);
-                            var rebootLoad = layer.load(2);
-                            $.post('/system/restart', '', function() {
-                                layer.close(rebootLoad);
-                                var count = 10;
-                                var msgBox = layer.msg(t('config.the_dashboard_is_restarting', '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') +
-                                    ' <span id="restartSslCountdown" style="font-weight: bold; color: #20a53a;">' + count + '</span> ' +
-                                    t('config.seconds_1', '秒'), {
-                                    icon: 16,
-                                    time: 0,
-                                    shade: [0.3, '#000']
-                                });
-                                var timer = setInterval(function() {
-                                    count--;
-                                    if (count <= 0) {
-                                        clearInterval(timer);
-                                        layer.close(msgBox);
-                                        window.location.href = new_url;
-                                    } else {
-                                        $('#restartSslCountdown').text(count);
-                                    }
-                                }, 1000);
-                            });
-                        });
-                    }
-                });
-            } else {
+            if (!rdata || !rdata.status) {
                 layer.msg((rdata && rdata.msg) || t('public.error', '操作失败'), { icon: 2 });
+                return;
             }
+            // 后端返回 { url, urls: [{type, host, url}] }：内网 / 外网（+ 绑定域名）
+            // 逐条列出，点击任一行都能复制该地址。旧版纯字符串返回值同样兼容。
+            var sslData = rdata.data;
+            var urlsHtml = window.YfPanelSsl ? window.YfPanelSsl.urlsHtml(sslData) : '';
+            if (!urlsHtml) {
+                var single = (typeof sslData === 'string' ? sslData : (sslData && sslData.url)) || '';
+                if (single.indexOf('127.0.0.1') != -1 || single.indexOf('0.0.0.0') != -1) {
+                    single = single.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
+                }
+                urlsHtml = '<div id="sslDomainCopyBox" style="background:#f8f9fa;border:1px dashed #20a53a;' +
+                    'color:#20a53a;padding:10px 14px;font-size:14px;font-weight:bold;border-radius:6px;' +
+                    'cursor:pointer;margin-bottom:12px;word-break:break-all;">' + phpSecEscape(single) + '</div>';
+            }
+            var stepsHtml = window.YfPanelSsl ? window.YfPanelSsl.stepsHtml() : '';
+            var targetUrl = window.YfPanelSsl ? window.YfPanelSsl.pickTarget(sslData) : '';
+
+            var content = '<div class="bt-form pd20" style="text-align: center; padding: 20px 25px;">' +
+                '<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 12px;">' +
+                    '<span class="glyphicon glyphicon-ok-sign" style="margin-right: 6px;"></span>' +
+                    phpSecEscape(t('config.locally_self_signed_ssl', '本地自签SSL') + ' ' + t('config.ssl_certificate_deployment_successful', '部署成功')) +
+                '</div>' +
+                '<p style="color: #666; margin-bottom: 10px; font-size: 13px;">' +
+                    phpSecEscape(t('config.you_will_use_the', '后续您将使用如下安全加密协议访问（点击地址即可复制）：')) +
+                '</p>' +
+                urlsHtml +
+                stepsHtml +
+                '<div style="text-align: center;">' +
+                    '<button type="button" class="btn btn-success" id="btnRestartAfterSsl" style="padding: 6px 20px; border-radius: 4px;">' +
+                        '<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' +
+                        phpSecEscape(t('config.confirm_and_restart_the', '确定并重启面板')) +
+                    '</button>' +
+                '</div>' +
+            '</div>';
+
+            layer.open({
+                type: 1,
+                title: [t('config.enable_ssl_certificate', '开启SSL证书'), 'font-weight:600; font-size:14px;'],
+                area: ['580px', 'auto'],
+                closeBtn: 1,
+                shadeClose: false,
+                content: content,
+                success: function(layero, index) {
+                    if (window.YfPanelSsl) {
+                        window.YfPanelSsl.bindCopy(layero);
+                    }
+                    $('#sslDomainCopyBox').on('click', function() {
+                        if (window.YfPanelSsl) {
+                            window.YfPanelSsl.copy($(this).text());
+                        } else if (typeof copyTextToClipboard === 'function') {
+                            copyTextToClipboard($(this).text());
+                        } else {
+                            var $temp = $('<input>');
+                            $('body').append($temp);
+                            $temp.val($(this).text()).select();
+                            document.execCommand('copy');
+                            $temp.remove();
+                            layer.msg(t('config.copied_successfully', '复制成功'), { icon: 1 });
+                        }
+                    });
+                    $('#btnRestartAfterSsl').on('click', function() {
+                        layer.close(index);
+                        if (!targetUrl) {
+                            layer.msg(t('public.error', '操作失败'), { icon: 2 });
+                            return;
+                        }
+                        var rebootLoad = layer.load(2);
+                        $.post('/system/restart', '', function() {
+                            layer.close(rebootLoad);
+                            var count = 10;
+                            var msgBox = layer.msg(t('config.the_dashboard_is_restarting', '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') +
+                                ' <span id="restartSslCountdown" style="font-weight: bold; color: #20a53a;">' + count + '</span> ' +
+                                t('config.seconds_1', '秒'), {
+                                icon: 16,
+                                time: 0,
+                                shade: [0.3, '#000']
+                            });
+                            var timer = setInterval(function() {
+                                count--;
+                                if (count <= 0) {
+                                    clearInterval(timer);
+                                    layer.close(msgBox);
+                                    window.location.href = targetUrl;
+                                } else {
+                                    $('#restartSslCountdown').text(count);
+                                }
+                            }, 1000);
+                        });
+                    });
+                }
+            });
         }, 'json').fail(function() {
             layer.close(loadT);
             layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 2 });

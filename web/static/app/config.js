@@ -100,7 +100,7 @@ $('input[name="bind_domain"]').on('change', function () {
         layer.open({
           type: 1,
           title: lan && lan.config && t('config.domain_binding_was_successful') || "",
-          area: ['520px', '280px'],
+          area: ['520px', 'auto'],
           closeBtn: 1,
           shadeClose: false,
           content: ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.be_sure_to_make') || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							' || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							') + new_url + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.note_after_restarting_the') || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the_1') || '确认并重启面板') + '							</button>						</div>					</div>' || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the_1') || '确认并重启面板') + '							</button>						</div>					</div>'),
@@ -204,40 +204,82 @@ function fallbackCopyText(text) {
 }
 
 // SSL 申请/配置成功后的弹窗，支持点击一键复制，点击确定重启面板后进行 10 秒倒计时跳转 https 地址
+// SSL 申请/配置成功后的弹窗：内网 / 外网（及绑定域名）地址逐条列出，点击任一地址即可复制；
+// 并显著提示“首次访问自签证书地址”要依次点【高级】→【继续前往 xx.xx.xx.xx（不安全）】。
+// 点击“确定并重启面板”后倒计时跳转——优先跳到与当前访问同主机的那个地址。
 function showSSLSuccessWindow(new_url, title) {
-  title = title || lan && lan.config && t('config.ssl_certificate_deployment_successful') || "";
-  // 自动修复 127.0.0.1 和 0.0.0.0 为当前主机的实际域名/IP，以确保在任何环境下均可平顺访问
-  if (new_url.indexOf('127.0.0.1') != -1 || new_url.indexOf('0.0.0.0') != -1) {
-    new_url = new_url.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
+  title = title || (lan && lan.config && t('config.ssl_certificate_deployment_successful')) || "";
+  // 后端返回 { url, urls: [{type, host, url}] }；旧版本返回纯字符串，两种都要支持。
+  var urlsHtml = '';
+  if (window.YfPanelSsl) {
+    urlsHtml = window.YfPanelSsl.urlsHtml(new_url);
   }
+  if (!urlsHtml) {
+    // 兜底：组件未加载（静态资源缓存未刷新）时退回单地址盒子，功能不能断
+    var single = (typeof new_url === 'string' ? new_url : (new_url && new_url.url)) || '';
+    if (single.indexOf('127.0.0.1') != -1 || single.indexOf('0.0.0.0') != -1) {
+      single = single.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
+    }
+    urlsHtml = '<div id="sslDomainCopyBox" style="background:#f8f9fa;border:1px dashed #20a53a;color:#20a53a;' +
+      'padding:12px 15px;font-size:15px;font-weight:bold;border-radius:6px;cursor:pointer;' +
+      'margin-bottom:10px;word-break:break-all;" title="' +
+      escapeHTML(t('config.copy_the_address', '复制地址')) + '">' + escapeHTML(single) + '</div>';
+  }
+  var stepsHtml = window.YfPanelSsl ? window.YfPanelSsl.stepsHtml() : '';
+  var targetUrl = window.YfPanelSsl ? window.YfPanelSsl.pickTarget(new_url)
+    : ((typeof new_url === 'string' ? new_url : (new_url && new_url.url)) || '');
+
+  var content = '<div class="bt-form pd20" style="text-align:center;padding:20px 25px;">' +
+    '<div style="color:#20a53a;font-size:15px;font-weight:bold;margin-bottom:12px;">' +
+      '<span class="glyphicon glyphicon-ok-sign" style="margin-right:6px;"></span>' +
+      escapeHTML((lan && lan.config && t('config.the_ssl_certificate_for')) || '面板 SSL 证书已准备就绪！') +
+    '</div>' +
+    '<p style="color:#666;margin-bottom:10px;font-size:13px;">' +
+      escapeHTML(t('config.you_will_use_the', '后续您将使用如下安全加密协议访问（点击地址即可复制）：')) +
+    '</p>' +
+    urlsHtml +
+    stepsHtml +
+    '<div style="text-align:center;">' +
+      '<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding:6px 20px;border-radius:4px;">' +
+        '<span class="glyphicon glyphicon-refresh" style="margin-right:5px;"></span>' +
+        escapeHTML(t('config.confirm_and_restart_the', '确定并重启面板')) +
+      '</button>' +
+    '</div>' +
+  '</div>';
+
   layer.open({
     type: 1,
     title: title,
-    area: ['520px', '280px'],
+    area: ['580px', 'auto'],
     closeBtn: 1,
     shadeClose: false,
-    content: ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.the_ssl_certificate_for') || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				' || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				') + new_url + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.note_for_some_self') || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the') || '确定并重启面板') + '				</button>			</div>		</div>' || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the') || '确定并重启面板') + '				</button>			</div>		</div>'),
+    content: content,
     success: function (layero, index) {
-      // 鼠标悬停变色效果
-      $('#ssl-domain-box').on('mouseenter', function () {
+      if (window.YfPanelSsl) {
+        window.YfPanelSsl.bindCopy(layero);
+      }
+      $('#sslDomainCopyBox').on('mouseenter', function () {
         $(this).css('background', '#eef9ef');
       }).on('mouseleave', function () {
         $(this).css('background', '#f8f9fa');
+      }).on('click', function () {
+        if (window.YfPanelSsl) {
+          window.YfPanelSsl.copy($(this).text());
+        } else {
+          copyTextToClipboard($(this).text());
+        }
       });
 
-      // 点击复制事件
-      $('#ssl-domain-box').on('click', function () {
-        copyTextToClipboard(new_url);
-      });
-
-      // 确认并重启
       $('#btn-ssl-reboot-confirm').on('click', function () {
         layer.close(index);
         var loadT = layer.load(2);
         $.post('/system/restart', '', function () {
           layer.close(loadT);
           var count = 10;
-          var msgBox = layer.msg((((lan && lan.config && t('config.the_dashboard_is_restarting') || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">') + count + ('</span> ' + ('</span> ' + (lan && lan.config && t('config.seconds_1') || '秒') || '秒')), {
+          var msgBox = layer.msg(escapeHTML(t('config.the_dashboard_is_restarting',
+            '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...')) +
+            ' <span id="restart-countdown" style="font-weight:bold;color:#20a53a;">' + count + '</span> ' +
+            escapeHTML(t('config.seconds_1', '秒')), {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -247,7 +289,7 @@ function showSSLSuccessWindow(new_url, title) {
             if (count <= 0) {
               clearInterval(timer);
               layer.close(msgBox);
-              window.location.href = new_url;
+              window.location.href = targetUrl;
             } else {
               $('#restart-countdown').text(count);
             }
@@ -257,6 +299,7 @@ function showSSLSuccessWindow(new_url, title) {
     }
   });
 }
+
 $('input[name="bind_ssl"]').on('click', function () {
   var panel_ssl = $(this).prop("checked");
   $(this).prop("checked", !panel_ssl);
@@ -268,7 +311,7 @@ $('input[name="bind_ssl"]').on('click', function () {
       type: 1,
       closeBtn: 1,
       title: lan && lan.config && t('config.enable_ssl_certificate') || "",
-      area: ['600px', '440px'],
+      area: ['600px', 'auto'],
       btn: [lan && lan.config && t('config.enable_ssl_certificate_access') || ""],
       maxmin: false,
       shadeClose: true,
@@ -294,10 +337,21 @@ $('input[name="bind_ssl"]').on('click', function () {
       type: 1,
       closeBtn: 1,
       title: lan && lan.config && t('config.disable_ssl_certificate') || "",
-      area: ['480px', '280px'],
+      area: ['480px', 'auto'],
       btn: [lan && lan.config && t('config.confirm') || "", lan && lan.config && t('config.cancel') || ""],
       shadeClose: true,
-      content: '<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + ('<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + (lan && lan.config && t('config.turning_off_ssl_makes') || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.please_enter_the_following') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.want_to_close_this_1') || '我要关闭') + '</span>' + (lan && lan.config && t('config.verification_complete') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>' || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.please_enter_the_following') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.want_to_close_this_1') || '我要关闭') + '</span>' + (lan && lan.config && t('config.verification_complete') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>',
+      content: '<div class="bt-form" style="padding: 25px 40px;">' +
+        '<div class="hint_title" style="font-size: 15px; color: #111; text-align: center;">' +
+          '<div class="hint_con">' + (lan && lan.config && t('config.turning_off_ssl_makes') || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>' +
+        '</div>' +
+        // 高度不再写死（原来 105px + 内层重复一整份 DOM：英文三行提示就把输入框切掉了）
+        '<div class="confirm-info-box" style="background-color: #f0f0f0; clear: both; font-size: 14px; line-height: 26px; padding: 16px 20px; margin-top: 20px; border-radius: 4px;">' +
+          '<div>' + (lan && lan.config && t('config.please_enter_the_following') || '请手动输入【') +
+            '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.want_to_close_this_1') || '我要关闭') + '</span>' +
+            (lan && lan.config && t('config.verification_complete') || '】，完成验证') + '</div>' +
+          '<input onpaste="return false;" id="prompt_input_box" style="height: 30px; line-height: 30px; margin-top: 8px; width: 100%; max-width: 360px; box-sizing: border-box; color: #444; outline: none; border: 1px solid #ccc; padding: 0 8px;" type="text" value="" autocomplete="off">' +
+        '</div>' +
+      '</div>',
       yes: function (index) {
         var val = $('#prompt_input_box').val();
         if (val != (lan && lan.config && t('config.want_to_close_this') || "")) {
@@ -633,7 +687,7 @@ function setUserName() {
 function setTimezone() {
   layer.open({
     type: 1,
-    area: ["400px", "200px"],
+    area: ["400px", 'auto'],
     title: lan && lan.config && t('config.set_the_server_time') || "",
     closeBtn: 1,
     shift: 5,
@@ -1451,7 +1505,7 @@ function getTempAccessLogsReq(id) {
 }
 function getTempAccessLogs(id) {
   layer.open({
-    area: ['700px', '250px'],
+    area: ['700px', 'auto'],
     title: lan && lan.config && t('config.temporary_authorization_management') || "",
     closeBtn: 1,
     shift: 0,
@@ -1517,7 +1571,7 @@ function setStatusCode(o) {
   var code = $(o).data('code');
   layer.open({
     type: 1,
-    area: ['420px', '220px'],
+    area: ['420px', 'auto'],
     title: lan && lan.config && t('config.set_the_response_status') || "",
     closeBtn: 1,
     shift: 5,
@@ -1593,7 +1647,7 @@ function sessionManage() {
     '<tbody id="session_view_tbody"><tr><td colspan="5" class="c9">' + (lan && lan.config && t('config.session_empty') || '\u52a0\u8f7d\u4e2d...') + '</td></tr></tbody>' +
     '</table></div></div>';
   layer.open({
-    area: ['760px', '420px'],
+    area: ['760px', 'auto'],
     title: lan && lan.config && t('config.session_manage') || '\u767b\u5f55\u4f1a\u8bdd',
     closeBtn: 1,
     shift: 0,
@@ -1647,7 +1701,7 @@ function sessionRevoke(sid) {
 
 function setTempAccess() {
   layer.open({
-    area: ['700px', '380px'],
+    area: ['700px', 'auto'],
     title: lan && lan.config && t('config.temporary_authorization_management_1') || "",
     closeBtn: 1,
     shift: 0,
@@ -1691,7 +1745,7 @@ function setAuthBind() {
   $.post('/setting/get_auth_secret', {}, function (rdata) {
     console.log(rdata);
     var tip = layer.open({
-      area: ['500px', '355px'],
+      area: ['500px', 'auto'],
       title: lan && lan.config && t('config.two_step_verification_setup') || "",
       closeBtn: 1,
       shift: 0,
@@ -1759,7 +1813,7 @@ function setAuthSecretApi() {
 }
 function setBasicAuthTip(callback) {
   var tip = layer.open({
-    area: ['500px', '385px'],
+    area: ['500px', 'auto'],
     title: lan && lan.config && t('config.prompt_for_basicauth_authentication') || "",
     closeBtn: 0,
     shift: 0,
@@ -1784,7 +1838,7 @@ function setBasicAuth() {
   if (!basic_auth) {
     setBasicAuthTip(function () {
       var tip = layer.open({
-        area: ['500px', '385px'],
+        area: ['500px', 'auto'],
         title: lan && lan.config && t('config.configure_basicauth_authentication') || "",
         closeBtn: 1,
         shift: 0,
@@ -1837,7 +1891,7 @@ function setBasicAuth() {
 function showPanelApi() {
   $.post('/setting/get_panel_token', '', function (rdata) {
     var tip = layer.open({
-      area: ['500px', '355px'],
+      area: ['500px', 'auto'],
       title: lan && lan.config && t('config.configuration_panel_api') || "",
       closeBtn: 1,
       shift: 0,
@@ -1992,7 +2046,7 @@ function addApp() {
 }
 function appPage() {
   layer.open({
-    area: ['900px', '380px'],
+    area: ['900px', 'auto'],
     title: lan && lan.config && t('config.app_management') || "",
     closeBtn: 1,
     shift: 0,

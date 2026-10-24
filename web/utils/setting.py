@@ -35,6 +35,63 @@ class setting(object):
     def __init__(self):
         pass
 
+    # 面板 HTTPS 访问地址（内网 / 外网 都给出，前端各自可点复制）
+    def buildPanelAccessUrls(self, port=None, admin_path=None):
+        """返回 {'url': 首选地址, 'urls': [{'type','host','url'}, ...]}。
+
+        为什么不是只给一个地址：面板常在内网/公网两侧都可达，只给公网 IP 会让
+        内网用户绕出去再回来（甚至因 NAT 回环不通），只给内网 IP 外网又打不开。
+        两边都列出来，由用户自己选、各自可点复制。
+
+        type 取值：domain（绑定的域名）/ lan（内网）/ wan（外网）/ local（本机）。
+        """
+        try:
+            port = int(port or yf.getPanelPort())
+        except (TypeError, ValueError):
+            port = yf.getPanelPort()
+
+        if admin_path is None:
+            admin_path = thisdb.getOption('admin_path', default='') or ''
+        admin_path = (admin_path or '').strip()
+        if admin_path and not admin_path.startswith('/'):
+            admin_path = '/' + admin_path
+
+        def _build(host):
+            return 'https://' + str(host) + ':' + str(port) + admin_path
+
+        domain = (thisdb.getOption('panel_domain', default='') or '').strip()
+
+        lan = ''
+        try:
+            lan = (yf.getLanIp() or '').strip()
+        except Exception as _e:
+            yf.writeFileLog('[setting] 获取内网地址失败: %s' % _e)
+
+        wan = ''
+        try:
+            wan = (yf.getLocalIp() or '').strip()
+        except Exception as _e:
+            yf.writeFileLog('[setting] 获取外网地址失败: %s' % _e)
+
+        items = []
+        seen = set()
+        for kind, host in (('domain', domain), ('lan', lan), ('wan', wan)):
+            if not host or host in seen:
+                continue
+            # 回环/未指定地址不是可用的访问入口：拿不到真实地址时统一走下面的兜底，
+            # 否则界面上会出现「外网地址 127.0.0.1」这种自相矛盾的条目。
+            if host in ('127.0.0.1', '0.0.0.0', '::1', 'localhost'):
+                continue
+            seen.add(host)
+            items.append({'type': kind, 'host': host, 'url': _build(host)})
+
+        if not items:
+            # 拿不到任何真实地址（离线 / 内网探测被禁）时，本机地址占位：
+            # 至少让用户能复制出正确端口与安全入口。
+            host = lan or wan or '127.0.0.1'
+            items.append({'type': 'local', 'host': host, 'url': _build(host)})
+
+        return {'url': items[0]['url'], 'urls': items}
 
     # 保存面板证书
     def savePanelSsl(self, choose, cert_pem, private_key):
@@ -76,17 +133,9 @@ class setting(object):
         panel_ssl_data['choose'] = choose
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         
-        port = yf.getPanelPort()
-        admin_path = thisdb.getOption('admin_path', default='')
-        if admin_path and not admin_path.startswith('/'):
-            admin_path = '/' + admin_path
-            
-        domain = thisdb.getOption('panel_domain', default='')
-        if domain == '':
-            domain = yf.getLocalIp()
-            
-        to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return yf.returnData(True, 'site.cert_saved', to_panel_url)
+        # 地址清单统一由 buildPanelAccessUrls 生成：内网/外网/绑定域名都列出来，
+        # 前端各自可点复制（只给一个地址会让另一侧网络环境的用户打不开）。
+        return yf.returnData(True, 'site.cert_saved', self.buildPanelAccessUrls())
 
     def getPanelSsl(self):
         rdata = {}
@@ -255,13 +304,7 @@ class setting(object):
         panel_ssl_data['choose'] = 'nginx'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
 
-        port = yf.getPanelPort()
-        admin_path = thisdb.getOption('admin_path', default='')
-        if admin_path and not admin_path.startswith('/'):
-            admin_path = '/' + admin_path
-        
-        to_panel_url = 'https://' + main_domain + ":" + str(port) + admin_path
-        return yf.returnData(True, 'setting.py_msg_dacd39', to_panel_url)
+        return yf.returnData(True, 'setting.py_msg_dacd39', self.buildPanelAccessUrls())
 
     # 面板本地SSL设置
     def setPanelLocalSsl(self, cert_type):
@@ -284,17 +327,7 @@ class setting(object):
         panel_ssl_data['choose'] = 'local'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         
-        port = yf.getPanelPort()
-        admin_path = thisdb.getOption('admin_path', default='')
-        if admin_path and not admin_path.startswith('/'):
-            admin_path = '/' + admin_path
-            
-        domain = thisdb.getOption('panel_domain', default='')
-        if domain == '':
-            domain = yf.getLocalIp()
-            
-        to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return yf.returnData(True, 'common.set_success', to_panel_url)
+        return yf.returnData(True, 'common.set_success', self.buildPanelAccessUrls())
 
     def closePanelSsl(self):
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})

@@ -208,10 +208,17 @@ class TestPanelSslPrivateKeyPerms(unittest.TestCase):
         )
         ns = {'yf': yf_stub, 'thisdb': thisdb_stub, 'os': os, 'json': json}
         exec(compile(_func_src(SETTING_PY, 'savePanelSsl'), SETTING_PY, 'exec'), ns)
+        # savePanelSsl 成功后走 self.buildPanelAccessUrls() 生成内网/外网地址清单，
+        # 这里只验「私钥 chmod」这一条，地址清单由 test_panel_ssl_ui_addresses 覆盖。
+        Stub = type('Stub', (object,), {
+            'savePanelSsl': ns['savePanelSsl'],
+            'buildPanelAccessUrls': lambda self: {'url': 'https://127.0.0.1:7200', 'urls': []},
+        })
+        stub = Stub()
         with mock.patch('os.chmod') as chmod, mock.patch('os.remove'):
-            res = ns['savePanelSsl'](object(), 'local',
-                                     '-----BEGIN CERTIFICATE-----',
-                                     '-----BEGIN RSA PRIVATE KEY-----')
+            res = stub.savePanelSsl('local',
+                                    '-----BEGIN CERTIFICATE-----',
+                                    '-----BEGIN RSA PRIVATE KEY-----')
         self.assertTrue(res['status'], 'savePanelSsl 应成功：%r' % (res,))
         key_calls = [c for c in chmod.call_args_list
                      if os.path.normcase(os.path.normpath(str(c[0][0]))) == key_path_norm]

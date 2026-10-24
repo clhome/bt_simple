@@ -761,7 +761,7 @@ function showPortProcessInfo(ps_json, port) {
   layer.open({
     type: 1,
     title: yfFwText(port) + (lan && lan.firewall && t('firewall.details_on_processes_using') || ""),
-    area: ['500px', '300px'],
+    area: ['500px', 'auto'],
     closeBtn: 1,
     shadeClose: false,
     content: con

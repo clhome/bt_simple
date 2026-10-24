@@ -1386,3 +1386,72 @@ EXIT=0
 
 
 
+
+---
+
+## 面板 SSL 成功弹窗：内网/外网双地址 + 首次访问指引（2026-10-24）
+
+### 目标与要求
+1. 开启自签证书后的成功弹窗必须**同时给出内网地址与外网地址**，且**点哪一条就复制哪一条**
+   （原实现只显示后端算出的单个地址，多为公网 IP：内网用户被支去公网绕行，NAT 回环还可能直接不通）。
+2. 明确告知**首次访问自签证书地址**的浏览器操作：点【高级】→ 点【继续前往 xx.xx.xx.xx（不安全）】。
+   原有四步文案与 Chrome 实际按钮文案对不上（只有「高级或详情 / 继续访问」），用户照做找不到按钮。
+
+### 实现
+- 后端 `web/utils/setting.py::buildPanelAccessUrls()`：产出 `{url, urls:[{type,host,url}]}`，
+  type ∈ domain / lan / wan / local；去重、过滤回环、补前导 `/` 的安全入口。
+  `setPanelLocalSsl` / `savePanelSsl` / `createPanelAcme` 三个入口统一返回该结构。
+- `web/core/yf/net.py::getLanIp()`：UDP 出口探测 + `hostname -I`，只接受私网 IPv4（公网直绑网卡时返回 ''）。
+- 前端新组件 `web/static/app/panel_ssl_urls.js`（`window.YfPanelSsl`）：
+  `normalize / urlsHtml / stepsHtml / bindCopy / pickTarget`；兼容旧版纯字符串返回值。
+  `index.html`、`setting.html` 均带 `asset_v` 指纹引入。
+- `index.js::applySelfSignedSsl` 与 `config.js::showSSLSuccessWindow` 改用该组件：
+  逐行徽标（内网/外网/域名）+ 点击复制 + 首访四步指引；重启后跳转优先选「与当前访问同主机」的地址。
+- i18n：`config` 组新增 9 个键（ssl_access_lan/wan/domain/local、ssl_first_visit_title、
+  ssl_step_open_any/cert_warning/click_advanced/click_continue），六语言齐备，`.json` 载体由
+  `scripts/tools/export_lang_carriers.py --apply` 派生。
+
+### 任务追踪
+- [x] 任务 1：后端地址清单 `buildPanelAccessUrls` + `getLanIp`
+- [x] 任务 2：前端组件 `panel_ssl_urls.js` 与两处弹窗接线（逐行可复制）
+- [x] 任务 3：首访指引文案（高级 → 继续前往 xx.xx.xx.xx（不安全））+ 六语言
+- [x] 任务 4：回归用例 `testsuite/test_panel_ssl_ui_addresses.py`（17 例，含 node 行为用例）
+- [x] 任务 5：全量门禁 3833 用例 + 4 项静态门禁全绿
+
+### 附带修复（同日 gunicorn 26 反馈）
+- `web/core/yf/net.py::panelSslContextFactory()`：gunicorn≥22 的 `ssl_context` 只接受
+  `(conf, default_ssl_context_factory)` 形式的 **callable**，传 SSLContext 实例会被
+  `validate_callable(2)` 拒掉且**只打 stderr 告警**（进程照常起、TLS 根本没生效）。
+  工厂复用 gunicorn 默认 context（证书链/ALPN 在它那儿），只补最低 TLS 1.2 + 关压缩。
+- 删除 `web/setting.py` 里无效的 `http2 = True`（gunicorn 无该设置项，未知键被静默忽略）。
+
+---
+
+## 弹窗显示不全：尺寸自适应兜底层（2026-10-24）
+
+### 目标与要求
+- 「关闭SSL证书」确认框只显示到输入框上半截，按钮与输入被切；用户反馈"很多弹窗都有此类问题"。
+- 要求用**自适应弹窗尺寸**的办法一次性解决中英文各类弹窗显示不全。
+
+### 根因
+1. 调用点写死像素尺寸（`area: ['480px','280px']`）：中文短语放得下，英文/德文行数翻倍即被切；
+   全站共 17 处高度 < 500px。
+2. 该弹窗 body 还被**拼了两遍**（`'<div A>' + ('<div A>' + … )`，历史 i18n 批量改写留下的
+   字面量整段复制），出现两个 `#prompt_input_box`、嵌套 `confirm-info-box`，外加 `height:105px`。
+
+### 实现
+- 新增 `web/static/app/dialog_adaptive.js`（`window.YfAdaptiveDialog`）：接管 `layer.open`
+  - 宽度夹到 `min(配置, 94vw)`、下限 300px；高度 < 500px（非 iframe）→ `'auto'`；其余夹到 `88vh`
+  - 打开后再量一次（超宽收窄 + 高度交回内容、超高压缩滚动）；标题 > 20 字符才换行
+  - 注入 `word-break: break-word`，长 URL/长单词不撑破；`yfAdaptive: false` 可绕过
+  - `layer.confirm/alert` 内部也走 `layer.open`，同样被覆盖
+- `layout.html`（全站）与 `login.html`（独立页）紧跟 `layer.js` 引入该脚本。
+- 调用点归一化：17 处写死小高度改为 `[宽, 'auto']`；`config.js`/`firewall.js`/`index.js`。
+- 重写「关闭SSL证书」弹窗 body（单份 DOM、去 `height:105px`、输入框 `width:100%` 自适应）。
+
+### 任务追踪
+- [x] 任务 1：兜底层脚本 + 全站/登录页接线
+- [x] 任务 2：17 处写死小高度调用点改 `auto`
+- [x] 任务 3：修复「关闭SSL证书」重复 DOM 与写死内高
+- [x] 任务 4：`testsuite/test_dialog_adaptive.py`（8 例，含 node 行为用例与"不得再写死小高度"扫描）
+- [x] 任务 5：全量门禁 3841 用例全绿；A12 冻结清单（16→14 处）与甲类行号同步

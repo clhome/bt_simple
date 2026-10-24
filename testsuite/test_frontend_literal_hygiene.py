@@ -9,7 +9,7 @@
 这一分支**永久不可达** → t() 取不到时不再回退,直接渲染空/半截文案。
 
 本轮处理:`web/static/app/public.js`(A09 范围)已修;`web/static/app/config.js`
-(A12 范围)的 23 处中 10 处已按「只留内层一份」修好,剩余 16 处按精确行号冻结在
+(A12 范围)的 23 处中 10 处已按「只留内层一份」修好,剩余 14 处按精确行号冻结在
 `PENDING` 里(详见 testsuite/test_setting_a12_hardening.py 与 task.md A12 残留)。
 """
 import os
@@ -48,26 +48,24 @@ def _scan():
 
 #: 已知尚未收敛的**精确命中**(文件 + 行号)。只允许变短 —— 任何清单外的新命中
 #: 都会让守卫变红。`web/static/app/config.js` 原本有 23 处,其中 10 处(甲类:
-#: 组外重复尾巴与组内末字面量逐字相同)已按「只留下内层一份」修好;剩下 16 处属
+#: 组外重复尾巴与组内末字面量逐字相同)已按「只留下内层一份」修好;剩下 14 处属
 #: 乙类(组外重复尾巴是组内**某段连续子串**的重复,两种解读渲染出的可见文本相同,
 #: 但括号结构会落在不同一侧),改动会静默改变前端结构,故保留并冻结在此。
 PENDING = (
     'web/static/app/config.js:106',
-    'web/static/app/config.js:219',
-    'web/static/app/config.js:275',
-    'web/static/app/config.js:300',
-    'web/static/app/config.js:836',
-    'web/static/app/config.js:1155',
-    'web/static/app/config.js:1167',
-    'web/static/app/config.js:1263',
-    'web/static/app/config.js:1280',
-    'web/static/app/config.js:1526',
-    'web/static/app/config.js:1659',
-    'web/static/app/config.js:1699',
-    'web/static/app/config.js:1767',
-    'web/static/app/config.js:1792',
-    'web/static/app/config.js:1845',
-    'web/static/app/config.js:1961',
+    'web/static/app/config.js:1209',
+    'web/static/app/config.js:1221',
+    'web/static/app/config.js:1317',
+    'web/static/app/config.js:1334',
+    'web/static/app/config.js:1580',
+    'web/static/app/config.js:1713',
+    'web/static/app/config.js:1753',
+    'web/static/app/config.js:1821',
+    'web/static/app/config.js:1846',
+    'web/static/app/config.js:1899',
+    'web/static/app/config.js:2015',
+    'web/static/app/config.js:318',
+    'web/static/app/config.js:890',
 )
 
 
@@ -86,8 +84,9 @@ class DuplicatedLiteralTest(unittest.TestCase):
             fixed, [],
             '冻结清单里的这些位置已修好,请把对应行从 PENDING 里删掉:\n  %s'
             % '\n  '.join(fixed))
-        self.assertEqual(len(frozen), 16,
-                         'PENDING 清单长度变了(原 16 处乙类),请同步复核 A12 结论')
+        self.assertEqual(len(frozen), 14,
+                         'PENDING 清单长度变了(原 16 处乙类,面板 SSL 弹窗重写后已消除 1 处),'
+                         '请同步复核 A12 结论')
 
     def test_02_public_js_current_status_is_single_layer(self):
         # 具体回归点:public.js 的 current_status_1 那行只允许出现一次开标签

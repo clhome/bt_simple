@@ -117,6 +117,50 @@ def getLocalIp():
     return '127.0.0.1'
 
 
+def getLanIp():
+    """本机内网（局域网）IPv4 地址，取不到返回 ''。
+
+    只用于界面展示「内网地址」，不参与任何鉴权/校验。取值顺序：
+      1) UDP connect 不发包，只让内核按默认路由挑出口网卡（跨平台、无外部依赖）；
+      2) ``hostname -I`` 的输出（多网卡/容器环境更准）。
+    仅接受私网地址：公网 IP 直接绑在网卡上的机器返回 ''（那种情况下内网
+    与外网就是同一个地址，前端会自己去重）。
+    """
+    import ipaddress
+    import socket
+
+    candidates = []
+    try:
+        _sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            _sock.connect(('8.8.8.8', 53))
+            candidates.append(_sock.getsockname()[0])
+        finally:
+            _sock.close()
+    except OSError as _e:
+        _log.debug('[yf] 探测内网地址（UDP 出口）失败: %s', _e)
+
+    try:
+        _out = execShell('hostname -I 2>/dev/null')
+        for _ip in ((_out[0] if _out else '') or '').split():
+            candidates.append(_ip.strip())
+    except Exception as _e:
+        _log.debug('[yf] 探测内网地址（hostname -I）失败: %s', _e)
+
+    for _ip in candidates:
+        if not _ip:
+            continue
+        try:
+            _obj = ipaddress.ip_address(_ip)
+        except ValueError:
+            continue
+        if _obj.version != 4 or _obj.is_loopback or _obj.is_link_local:
+            continue
+        if _obj.is_private:
+            return _ip
+    return ''
+
+
 def getSslCrt():
     if os.path.exists('/etc/ssl/certs/ca-certificates.crt'):
         return '/etc/ssl/certs/ca-certificates.crt'

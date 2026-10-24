@@ -319,21 +319,19 @@ class ConfigJsDupLiteralTest(unittest.TestCase):
     #: **按文件 + 行号精确冻结**:新出现的命中会因不在清单里而失败;修好一条就删一行。
     FROZEN = (
         'web/static/app/config.js:106',
-        'web/static/app/config.js:219',
-        'web/static/app/config.js:275',
-        'web/static/app/config.js:300',
-        'web/static/app/config.js:836',
-        'web/static/app/config.js:1155',
-        'web/static/app/config.js:1167',
-        'web/static/app/config.js:1263',
-        'web/static/app/config.js:1280',
-        'web/static/app/config.js:1526',
-        'web/static/app/config.js:1659',
-        'web/static/app/config.js:1699',
-        'web/static/app/config.js:1767',
-        'web/static/app/config.js:1792',
-        'web/static/app/config.js:1845',
-        'web/static/app/config.js:1961',
+        'web/static/app/config.js:1209',
+        'web/static/app/config.js:1221',
+        'web/static/app/config.js:1317',
+        'web/static/app/config.js:1334',
+        'web/static/app/config.js:1580',
+        'web/static/app/config.js:1713',
+        'web/static/app/config.js:1753',
+        'web/static/app/config.js:1821',
+        'web/static/app/config.js:1846',
+        'web/static/app/config.js:1899',
+        'web/static/app/config.js:2015',
+        'web/static/app/config.js:318',
+        'web/static/app/config.js:890',
     )
 
     def test_09_config_js_dup_literal_hits_match_frozen_list(self):
@@ -348,22 +346,32 @@ class ConfigJsDupLiteralTest(unittest.TestCase):
             % (sorted(set(hits) - set(frozen)), sorted(set(frozen) - set(hits))))
 
     def test_10_fixed_sites_are_really_de_duplicated(self):
-        """甲类修复点:同一行里同一个开标签不得再出现两次相邻复制。"""
+        """甲类修复点:含这些「去重后唯一字面量」的代码行不得再出现整段复制。
+
+        改成按**字面量锚点**定位而不是写死行号:config.js 每次增删几行行号都会漂移,
+        钉死行号会让本用例悄悄失去意义(锚点跑到无关代码上依然「通过」)。
+        """
         text = _read(CONFIG_JS)
         from testsuite import test_frontend_literal_hygiene as G
-        for ln in (417, 642, 1039, 1259, 1276, 1292, 1359, 1491, 1494, 1497):
-            line = text.split('\n')[ln - 1]
+        anchors = ('\'<option value="none">\'', "'<a>'",
+                   '\'<a style="color:green;">\'', '\'<a style="color:brown;">\'')
+        checked = 0
+        for line in text.splitlines():
+            if not any(a in line for a in anchors):
+                continue
+            checked += 1
             self.assertIsNone(G._PAT.search(line),
-                              'line %d 又出现整段复制:%.80s' % (ln, line))
+                              '甲类修复点又出现整段复制:%.80s' % line)
+        self.assertGreater(checked, 0, '锚点全丢了?config.js 的甲类修复点不见了')
 
     def test_11_fixed_sites_keep_single_copy_of_literal(self):
         """甲类修复必须是「删重」而不是「删内容」:被去重的那段字面量仍出现一次。"""
         text = _read(CONFIG_JS).split('\n')
-        cases = {1292: "'<option value=\"none\">'",
-                 1497: "'<a>'",
-                 1491: "'<a style=\"color:green;\">'",
-                 1494: "'<a style=\"color:brown;\">'",
-                 417: '<div class="bt-form bt-form pd20">'}
+        cases = {1346: "'<option value=\"none\">'",
+                 1551: "'<a>'",
+                 1545: "'<a style=\"color:green;\">'",
+                 1548: "'<a style=\"color:brown;\">'",
+                 471: '<div class="bt-form bt-form pd20">'}
         for ln, lit in cases.items():
             self.assertEqual(text[ln - 1].count(lit), 1,
                              'line %d 的 %r 应恰好出现一次(去重不能连内容一起删)'

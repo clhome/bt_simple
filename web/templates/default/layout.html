@@ -172,6 +172,10 @@
 <script src="/static/layer/layer.js?v={{config.version}}"></script>
 {% endif %}
 
+        <!-- 弹窗尺寸自适应（必须紧跟 layer 加载：统一处理写死像素尺寸的弹窗，
+             否则中英文文案长度不同就会出现内容被切掉） -->
+        <script src="/static/app/dialog_adaptive.js?v={{config.version}}&t={{ asset_v('app/dialog_adaptive.js') }}"></script>
+
 
 
         <!-- jQuery Fly (本地加载，体积小) -->
