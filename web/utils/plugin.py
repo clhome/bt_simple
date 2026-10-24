@@ -1751,21 +1751,26 @@ class plugin(object):
         （`8.3.36`）都不在列表数据里，前端根本无从判断。
 
         取数口径：
-          * 已装版本 ← `php_sec_scan` 的每日巡检快照（O(1)，不在列表请求里跑 shell；
-            没有快照就跳过，绝不为了列表去 `php -v` 逐个探测）；
+          * 已装版本 ← `php_sec_scan` 的巡检快照（正常 O(1)）；
           * 官方最新版 ← `php_release_index` 的缓存（12h TTL，后台每日刷新）。
         两者任缺其一 → 不标注（不猜、不误报）。
+
+        为什么快照缺失时要「就地巡检一次」而不是直接跳过：一键升级成功后会主动删掉
+        快照（让首页告警立刻重算），若不在这里补建，软件列表在「下次每日巡检」之前
+        就**完全没有升级信息**（用户刚升完一个分支，另一个分支的可更新提示凭空消失）。
+        用 3s 短超时 runner，最坏只多几个毫秒级的 `php -v`。
         """
         try:
             import core.yf as yf
             from core import php_release_index, php_sec_scan
             data_dir = yf.getPanelDataDir()
-            snapshot = php_sec_scan.load_snapshot(
+            snapshot = php_sec_scan.load_or_scan(
                 data_dir + '/' + php_sec_scan.SNAPSHOT_FILENAME,
-                max_age=7 * 24 * 3600)
-            if not snapshot:
+                server_php_dir=yf.getServerDir() + '/php',
+                run=php_sec_scan.make_runner(3))
+            installed = (snapshot or {}).get('items') or []
+            if not installed:
                 return items
-            installed = snapshot.get('items') or []
             index = php_release_index.load_cache(php_release_index.index_path(data_dir))
             if not index:
                 index = php_release_index.builtin_index()

@@ -524,8 +524,11 @@ class ReleaseIndexTest(unittest.TestCase):
         self.assertIn('def annotatePhpUpdates(', src)
         self.assertIn('self.annotatePhpUpdates(self.localizePluginItems(data[0]))', src,
                       '软件列表必须调用注解（否则「已安装」页看不到可升级）')
-        self.assertIn('php_sec_scan.load_snapshot(', src,
-                      '已装版本必须读每日巡检快照（不在列表请求里跑 php -v）')
+        self.assertIn('php_sec_scan.load_or_scan(', src,
+                      '已装版本优先读巡检快照；快照缺失时必须就地补建一次'
+                      '（否则升级后列表会丢掉其它分支的更新提示）')
+        self.assertIn('make_runner(3)', src,
+                      '就地巡检必须用短超时 runner，别让列表请求被异常二进制拖住')
 
     def test_08_soft_js_shows_upgrade_entry(self):
         src = _read(SOFT_JS)
