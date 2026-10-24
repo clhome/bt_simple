@@ -13,7 +13,7 @@ var lan = {
 		return msg;
 	},
 	"index": {
-			"security_title": "Sicherheit",
+			"security_title": "Sicherheitsprüfung",
 			"security_has_risks": "Sicherheitsrisiken erkannt, bitte zeitnah beheben",
 			"sec_item_plain_http": "Klartext HTTP",
 			"sec_item_php_sec": "PHP-Sicherheitsbasislinie",
@@ -21,6 +21,7 @@ var lan = {
 			"sec_plain_http_why_desc": "Bei unverschlüsselten Klartext-HTTP-Verbindungen können Zwischenstationen im Netzwerk Ihre Anmeldedaten und Sitzungs-Cookies abfangen.",
 			"sec_plain_http_action_desc": "Es wird empfohlen, Panel-SSL in den 'Panel-Einstellungen' sofort zu aktivieren, um HTTPS-Verschlüsselung zu nutzen.",
 			"sec_modal_plain_http_title": "Sicherheitswarnung: Klartextübertragung",
+			"sec_enable_self_ssl": "Selbstsigniertes SSL aktivieren",
 			"sec_goto_setting": "Zu den Panel-Einstellungen",
 			"sec_modal_details_suffix": "Risikobehebung",
 			"php_sec_unknown_version": "Version nicht erkannt",

@@ -165,10 +165,11 @@ def checkDomainPanel():
     port = getPanelPort()
     scheme = 'http'
 
-    panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
-    if panel_ssl_data['open']:
-        if not inArray(['local','nginx'], panel_ssl_data['choose']):
-            return False
+    # 面板 SSL：只把浏览器 302 到 https 当且仅当证书真的可用（与 gunicorn 配置
+    # 共用 yf.panelSslState 判定）。配置 open 但证书缺失时 gunicorn 仍在明文 HTTP
+    # 上，此时跳 https 就是「无法访问面板」。
+    panel_ssl_state = _pkg().panelSslState()
+    if panel_ssl_state['ready']:
         scheme = 'https'
 
     client_ip = getClientIp()

@@ -503,10 +503,126 @@ def createPanelSslContext(certfile=None, keyfile=None, ciphers=None):
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.options |= ssl.OP_NO_COMPRESSION
     if ciphers:
-        context.set_ciphers(ciphers)
+        try:
+            context.set_ciphers(ciphers)
+        except Exception as _e:
+            # 套件字串不被当前 OpenSSL 接受（如编译掉了 DHE）时，宁可用 OpenSSL
+            # 默认套件把面板起起来，也不要因为一个降级策略把启动弄挂；最低版本
+            # TLS 1.2 仍生效。
+            _log.error('[yf] 面板 SSL 加密套件不可用，改用 OpenSSL 默认套件: %s', _e)
     if certfile and keyfile:
         context.load_cert_chain(certfile, keyfile)
     return context
+
+
+#: 面板 SSL 配置所在的 option 名（面板设置页写的就是它）
+PANEL_SSL_OPTION = 'panel_ssl'
+
+#: 合法的面板 SSL 证书来源（与 web/utils/setting.py 的口径一致）
+PANEL_SSL_CHOOSE = ('local', 'nginx')
+
+
+def panelSslState(panel_ssl_data=None):
+    """面板 SSL 的**实际可用**状态：配置意图 + 磁盘证书文件的一致性判定。
+
+    为什么必须只有这一个入口：`panel_ssl.open` 只是「用户点了开启」，能不能真
+    起 HTTPS 取决于 `<面板目录>/ssl/<choose>/{cert.pem,private.pem}` 是否真的在。
+    历史实现里各处口径不一 —— gunicorn 配置要 open **且** 证书存在才上 TLS，而
+    `checkDomainPanel`（302 到 https）、`SESSION_COOKIE_SECURE`、HSTS 只看 open。
+    于是只要证书没落盘就得到「半开状态」：跳到 https 打不开 + Secure Cookie 不被
+    回传 → 面板彻底访问不了（实测日志里只剩一条 chmod ... No such file）。
+
+    返回 dict（键名稳定，调用方共享同一份判定）：
+      open     配置里的 open 原值（用户意图）
+      choose   'local' / 'nginx'，非法值原样带回
+      certfile 证书路径（choose 非法时为空串）
+      keyfile  私钥路径（choose 非法时为空串）
+      ready    cert/key 都在且非空 —— 只有 True 才允许真的上 HTTPS
+      degraded open 为真但证书不可用（半开状态，必须按「未启用」处理并显式告警）
+    """
+    state = {
+        'open': False,
+        'choose': 'local',
+        'certfile': '',
+        'keyfile': '',
+        'ready': False,
+        'degraded': False,
+    }
+
+    if panel_ssl_data is None:
+        try:
+            import thisdb
+            panel_ssl_data = thisdb.getOptionByJson(PANEL_SSL_OPTION, default={'open': False})
+        except Exception as _e:
+            # 读库失败按「未开启」处理：宁可明文 HTTP 可用，也不要半开状态把人锁在外面
+            _log.debug('[yf] 读取面板 SSL 配置失败，按未开启处理: %s', _e)
+            panel_ssl_data = {'open': False}
+
+    if not isinstance(panel_ssl_data, dict):
+        return state
+
+    choose = panel_ssl_data.get('choose') or 'local'
+    state['open'] = bool(panel_ssl_data.get('open'))
+    state['choose'] = choose
+    if choose not in PANEL_SSL_CHOOSE:
+        return state
+
+    pdir = getPanelDir()
+    state['certfile'] = pdir + '/ssl/' + choose + '/cert.pem'
+    state['keyfile'] = pdir + '/ssl/' + choose + '/private.pem'
+    if not state['open']:
+        return state
+
+    try:
+        ready = (os.path.isfile(state['certfile'])
+                 and os.path.getsize(state['certfile']) > 0
+                 and os.path.isfile(state['keyfile'])
+                 and os.path.getsize(state['keyfile']) > 0)
+    except OSError as _e:
+        _log.debug('[yf] 面板 SSL 证书文件不可用(%s): %s', state['choose'], _e)
+        ready = False
+
+    state['ready'] = ready
+    state['degraded'] = not ready
+    return state
+
+
+def panelSslContextFactory(certfile=None, keyfile=None, ciphers=None):
+    """返回 gunicorn `ssl_context` 需要的 callable（签名必须是 ``(conf, factory)``）。
+
+    gunicorn>=21（本仓下界 22.0.0，实测 26.0.0）把这个配置项定义成**可调用对象**：
+    参数固定为 ``(Config, default_ssl_context_factory)``，由 ``validate_callable(2)``
+    校验。直接给它一个 SSLContext 实例会被拒：
+
+        Invalid value for ssl_context: <ssl.SSLContext object at 0x...>
+        Error: Value is not callable: <ssl.SSLContext object at 0x...>
+
+    更阴的是这只在 stderr 里告警（该配置项被跳过），gunicorn 照常启动，但
+    **根本没有 TLS** —— 界面以为开了 HTTPS，实际仍是明文。所以这里返回闭包，
+    由 gunicorn 在需要 socket 时再调用。
+
+    gunicorn 的默认工厂已经按 ``conf.certfile`` / ``conf.keyfile`` / ``conf.ciphers``
+    装好证书链、也配好了 ALPN，因此我们只在它给出的 context 上补两条必须自己钉死的
+    策略（最低 TLS 1.2、关压缩），其余交给 gunicorn 自己实现，避免两边打架。
+    """
+    def _panel_ssl_context(conf=None, default_ssl_context_factory=None):
+        import ssl
+        context = None
+        if default_ssl_context_factory is not None:
+            try:
+                context = default_ssl_context_factory()
+            except Exception as _e:
+                # 默认工厂失败（证书/私钥读不了、ciphers 不被 OpenSSL 接受…）时
+                # 退回自建 context，并把真实原因留在日志里。
+                _log.error('[yf] gunicorn 默认 SSLContext 构建失败，改用面板自建 context: %s', _e)
+                context = None
+        if context is None:
+            return createPanelSslContext(certfile, keyfile, ciphers)
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        context.options |= ssl.OP_NO_COMPRESSION
+        return context
+
+    return _panel_ssl_context
 
 
 def createLocalSSL():
@@ -519,7 +635,27 @@ def createLocalSSL():
     # if os.path.exists('ssl/local/input.pl'):
     #     return True
 
+    # 目录必须真的建得出来：只读挂载 / 权限不足 / 同名文件占位时，后面的 writeFile
+    # 只会静默返回 False，界面上「开启成功」、磁盘上什么都没有。这里提前报真实原因。
+    try:
+        if not os.path.isdir(local_dir):
+            os.makedirs(local_dir, exist_ok=True)
+    except OSError as _e:
+        _log.error('[yf] 面板自签证书目录不可用: %s (%s)', local_dir, _e)
+        return False
+    if not os.path.isdir(local_dir):
+        _log.error('[yf] 面板自签证书目录不可用: %s', local_dir)
+        return False
+
     client_ip = getClientIp()
+    # 无请求上下文时（gunicorn 载入配置、面板自愈、命令行调用）getClientIp() 只能
+    # 回落 127.0.0.1，签出来的证书 CN 与实际访问地址不符；此时优先用本机 IP。
+    try:
+        from flask import has_request_context
+        if not has_request_context():
+            client_ip = getLocalIp() or client_ip
+    except Exception as _e:
+        _log.debug('[yf] 判断请求上下文失败，按无上下文处理: %s', _e)
 
     import OpenSSL
     key = OpenSSL.crypto.PKey()
@@ -540,8 +676,25 @@ def createLocalSSL():
     cert_ca = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
     private_key = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
     if len(cert_ca) > 100 and len(private_key) > 100:
-        writeFile(local_dir+'/cert.pem', cert_ca, 'wb+')
-        writeFile(local_dir+'/private.pem', private_key, 'wb+')
+        # writeFile 的默认契约是「失败只回 False、不抛异常」，历史调用点全都忽略
+        # 返回值；这里必须显式校验落盘结果，否则「证书没写出去」会被当成功，
+        # 随后 gunicorn 静默退回明文 HTTP（配置却说已开 HTTPS）→ 面板打不开。
+        for _name, _body in (('cert.pem', cert_ca), ('private.pem', private_key)):
+            _path = local_dir+'/'+_name
+            try:
+                _ok = writeFile(_path, _body, 'wb+')
+            except Exception as _e:
+                _log.error('[yf] 面板自签证书写入异常: %s (%s)', _path, _e)
+                return False
+            try:
+                _size = os.path.getsize(_path) if os.path.isfile(_path) else 0
+            except OSError as _e:
+                _log.error('[yf] 面板自签证书落盘校验失败: %s (%s)', _path, _e)
+                _size = 0
+            if not _ok or _size == 0:
+                _log.error('[yf] 面板自签证书写入失败: %s（真实原因见 logs/debug.log 的 [writeFile] 记录）',
+                           _path)
+                return False
         # 私钥权限不得依赖进程 umask：显式收紧为 0600（仅属主可读写），
         # 与 data/secret_key.pl 的既有做法一致。
         try:

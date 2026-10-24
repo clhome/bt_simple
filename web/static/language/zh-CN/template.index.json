@@ -1,6 +1,6 @@
 {
   "index": {
-    "security_title": "安全",
+    "security_title": "安全扫描",
     "security_has_risks": "检测到安全风险，请及时处理",
     "sec_item_plain_http": "明文 HTTP",
     "sec_item_php_sec": "PHP 安全基线",
@@ -8,6 +8,7 @@
     "sec_plain_http_why_desc": "在未开启 SSL 的明文 HTTP 连接下，网络链路上任意节点均可能截获您的登录凭证与会话 Cookie，导致面板被未授权控制。",
     "sec_plain_http_action_desc": "建议立即在「面板设置」-「安全设置」开启面板 SSL，启用 HTTPS 证书加密访问。",
     "sec_modal_plain_http_title": "明文传输安全风险告警",
+    "sec_enable_self_ssl": "一键启用自签证书",
     "sec_goto_setting": "前往面板设置",
     "sec_modal_details_suffix": "风险处理",
     "php_sec_unknown_version": "版本无法识别",

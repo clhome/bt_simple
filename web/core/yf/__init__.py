@@ -676,10 +676,19 @@ def writeFile(filename, content, mode='w+', must=False):
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)
 
-        if mode in ('w', 'w+'):
+        is_binary = 'b' in (mode or '')
+        encoding = None if is_binary else 'utf-8'
+
+        # 兼容入参类型：二进制模式下确保为 bytes，文本模式下确保为 str
+        if is_binary and isinstance(content, str):
+            content = content.encode('utf-8')
+        elif not is_binary and isinstance(content, (bytes, bytearray)):
+            content = content.decode('utf-8', 'replace')
+
+        if mode in ('w', 'w+', 'wb', 'wb+'):
             temp_file = filename + f".tmp.{os.getpid()}_{int(time.time()*1000)}"
             try:
-                with open(temp_file, mode, encoding='utf-8') as fp:
+                with open(temp_file, mode, encoding=encoding) as fp:
                     fp.write(content)
                     fp.flush()
                     try:
@@ -691,13 +700,14 @@ def writeFile(filename, content, mode='w+', must=False):
                 # （先把判定结果取出来再抛/返回：直接在 getsize 的 try 里 raise
                 #  会被它自己的 except 吞掉，又变成「等不来的异常」）
                 zero_size = False
-                if content is not None and content != '':
+                content_len = len(content) if content is not None else 0
+                if content is not None and content_len > 0:
                     try:
-                        zero_size = (os.path.getsize(filename) == 0 and len(str(content)) > 0)
+                        zero_size = (os.path.getsize(filename) == 0)
                     except Exception as _e:
                         writeFileLog('[yf.writeFile] 校验替换结果失败: %s -> %s' % (filename, _e))
                 if zero_size:
-                    writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={len(str(content))}\n{getTracebackInfo()}")
+                    writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={content_len}\n{getTracebackInfo()}")
                     if must:
                         raise WriteFileError(filename, '落盘后文件大小为 0（磁盘满或配额不足）')
                     return False
@@ -718,7 +728,7 @@ def writeFile(filename, content, mode='w+', must=False):
                     writeFileLog(f"[writeFile] {filename}: {write_err}\n{getTracebackInfo()}")
                 raise write_err
         else:
-            with open(filename, mode, encoding='utf-8') as fp:
+            with open(filename, mode, encoding=encoding) as fp:
                 fp.write(content)
             return True
     except Exception as e:
@@ -1387,9 +1397,9 @@ from .textutil import formatDate, getDataFromInt, getDate, getDateFromNow, getDe
 from . import log
 from .log import _logIdentity, debugLog, echoEnd, echoInfo, echoStart, returnJson, returnMsg, userSafeError, verifyAuditChain, writeAudit, writeDbLog
 from . import net
-from .net import PURPOSE_CODE, PURPOSE_CREDENTIAL, PURPOSE_LOW, HttpGet, HttpGet2, HttpPost, _insecure_ssl_context, _pool_request, checkCert, checkIp, clearSsh, connectSsh, createLocalSSL, createPanelSslContext, createSshInfo, getHostPort, getLocalIp, getSSHPort, getSSHStatus, getSslCrt, isIpAddr, isVaildIp, isVaildIpV4, setHostPort
+from .net import PANEL_SSL_CHOOSE, PANEL_SSL_OPTION, PURPOSE_CODE, PURPOSE_CREDENTIAL, PURPOSE_LOW, HttpGet, HttpGet2, HttpPost, _insecure_ssl_context, _pool_request, checkCert, checkIp, clearSsh, connectSsh, createLocalSSL, createPanelSslContext, createSshInfo, getHostPort, getLocalIp, getSSHPort, getSSHStatus, getSslCrt, isIpAddr, isVaildIp, isVaildIpV4, panelSslContextFactory, panelSslState, setHostPort
 from . import panel
-from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMessage, emailNotifyTest, getFpmAddress, getFpmConfFile, getMyORM, getNotifyData, getOpVer, getWebStatus, initNotifyConfig, isInstalledWeb, isRestart, notifyMessage, opLuaInitAccessFile, opLuaInitFile, opLuaInitWorkerFile, opLuaMake, opLuaMakeAll, panelCmd, requestFcgiPHP, restartPanel, restartTask, restartWeb, tgbotNotifyChatID, tgbotNotifyHttpPost, tgbotNotifyMessage, tgbotNotifyObject, tgbotNotifyTest, triggerTask, wakePanelTask, writeNotify
+from .panel import _do_reload, checkHttpdConfig, checkWebConfig, emailNotifyMessage, emailNotifyTest, ensurePanelTaskRunning, getFpmAddress, getFpmConfFile, getMyORM, getNotifyData, getOpVer, getWebStatus, initNotifyConfig, isInstalledWeb, isPanelTaskRunning, isRestart, notifyMessage, opLuaInitAccessFile, opLuaInitFile, opLuaInitWorkerFile, opLuaMake, opLuaMakeAll, panelCmd, requestFcgiPHP, restartPanel, restartTask, restartWeb, tgbotNotifyChatID, tgbotNotifyHttpPost, tgbotNotifyMessage, tgbotNotifyObject, tgbotNotifyTest, triggerTask, wakePanelTask, writeNotify
 from . import system
 from .system import checkDomainPanel, extNetDisabled, fileNameCheck, getCertName, getCpuType, getObjectByJson, getOsID, getOsName, getPage, getPageObject, getStaticJson, getSystemDeviceTemperature, isChina, isDocker, isSupportHttp3, isVhostHasReuseport, isYufengPanel
 from . import validate

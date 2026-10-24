@@ -13,7 +13,7 @@ var lan = {
 		return msg;
 	},
 	"index": {
-			"security_title": "安全",
+			"security_title": "安全掃描",
 			"security_has_risks": "檢測到安全風險，請及時處理",
 			"sec_item_plain_http": "明文 HTTP",
 			"sec_item_php_sec": "PHP 安全基線",
@@ -21,6 +21,7 @@ var lan = {
 			"sec_plain_http_why_desc": "在未開啟 SSL 的明文 HTTP 連線下，網路鏈路上任意節點均可能截獲您的登入憑證與會話 Cookie，導致面板被未授權控制。",
 			"sec_plain_http_action_desc": "建議立即在「面板設定」-「安全設定」開啟面板 SSL，啟用 HTTPS 證書加密存取。",
 			"sec_modal_plain_http_title": "明文傳輸安全風險告警",
+			"sec_enable_self_ssl": "一鍵啟用自簽證書",
 			"sec_goto_setting": "前往面板設定",
 			"sec_modal_details_suffix": "風險處理",
 			"php_sec_unknown_version": "版本無法辨識",

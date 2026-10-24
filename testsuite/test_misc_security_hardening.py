@@ -19,6 +19,7 @@ import hashlib
 import json
 import logging
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -121,27 +122,65 @@ def _fake_openssl():
 
 class TestPanelSslPrivateKeyPerms(unittest.TestCase):
 
-    def test_createlocalssl_chmods_private_key_0600(self):
-        fake = _fake_openssl()
-        ns = {
-            'getPanelDir': lambda: '/tmp/pdir',
+    def _createlocalssl_ns(self, pdir, write_ok=True):
+        """构造 createLocalSSL 的桩命名空间（真实写盘到一个临时面板目录）。
+
+        writeFile 必须**真的落盘**：加固后的 createLocalSSL 会校验文件是否写出，
+        用一个什么都不写的桩等于永远走失败分支，测不到 chmod 那一段。
+        """
+        def _write(path, body, mode='w+'):
+            if not write_ok:
+                return False
+            with open(path, mode) as fh:
+                fh.write(body)
+            return True
+
+        return {
+            'getPanelDir': lambda: pdir,
             'execShell': lambda *a: None,
             'getClientIp': lambda: '127.0.0.1',
             'getLocalIp': lambda: '10.0.0.1',
-            'writeFile': lambda *a: None,
+            'writeFile': _write,
             'os': os,
             '_log': logging.getLogger('yf.core'),
         }
+
+    def test_createlocalssl_chmods_private_key_0600(self):
+        fake = _fake_openssl()
+        pdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, pdir, True)
+        ns = self._createlocalssl_ns(pdir)
         with mock.patch.dict(sys.modules, {'OpenSSL': fake}):
             exec(compile(_func_src(NET_PY, 'createLocalSSL'), NET_PY, 'exec'), ns)
             with mock.patch('os.chmod') as chmod:
                 result = ns['createLocalSSL']()
         self.assertTrue(result, 'createLocalSSL 应成功写出证书与私钥')
+        self.assertTrue(os.path.getsize(os.path.join(pdir, 'ssl', 'local', 'cert.pem')) > 0)
+        self.assertTrue(os.path.getsize(os.path.join(pdir, 'ssl', 'local', 'private.pem')) > 0)
         key_calls = [c for c in chmod.call_args_list
                      if str(c[0][0]).endswith('/ssl/local/private.pem')]
         self.assertTrue(key_calls, 'createLocalSSL 必须对 private.pem 调 os.chmod')
         self.assertEqual(key_calls[0][0][1], 0o600,
                          'private.pem 权限必须收紧为 0600，实际 %r' % (key_calls[0][0][1],))
+
+    def test_createlocalssl_write_failure_is_reported(self):
+        """写盘失败必须返回 False 且不报 chmod 成功：否则就是「开启成功但没证书」。
+
+        回归现场：writeFile 静默失败，只剩一条 'chmod ... No such file' 告警，
+        而配置里 panel_ssl.open 已为真 → gunicorn 退回明文 HTTP、app 仍 302 到
+        https，面板直接打不开。
+        """
+        fake = _fake_openssl()
+        pdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, pdir, True)
+        ns = self._createlocalssl_ns(pdir, write_ok=False)
+        with mock.patch.dict(sys.modules, {'OpenSSL': fake}):
+            exec(compile(_func_src(NET_PY, 'createLocalSSL'), NET_PY, 'exec'), ns)
+            with mock.patch('os.chmod') as chmod:
+                result = ns['createLocalSSL']()
+        self.assertFalse(result, '证书没落盘时 createLocalSSL 必须返回 False')
+        self.assertEqual([], chmod.call_args_list,
+                         '文件不存在时不该再去 chmod（那只会多一条误导性告警）')
 
     def test_savepanelsl_chmods_private_key_0600(self):
         pdir = tempfile.mkdtemp()

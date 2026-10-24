@@ -110,9 +110,14 @@ app.config['SESSION_KEY_PREFIX'] = 'YF_:'
 app.config['SESSION_COOKIE_NAME'] = "YF_VER_1"
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
-if panel_ssl_data['open']:
-    app.config['SESSION_COOKIE_SECURE'] = True
+# 面板 SSL：只有证书真的可用（与 gunicorn 配置共用 yf.panelSslState 判定）才给会话
+# Cookie 加 Secure。否则会出现「配置开了 HTTPS、实际明文 HTTP」时浏览器不回传
+# Secure Cookie → 登录成功却立即掉线（看起来就像面板打不开）。
+panel_ssl_state = yf.panelSslState()
+app.config['SESSION_COOKIE_SECURE'] = bool(panel_ssl_state['ready'])
+if panel_ssl_state['open'] and not panel_ssl_state['ready']:
+    _log.error('面板 SSL 已开启但证书不可用（%s），本次按明文 HTTP 处理（Cookie 不加 Secure，'
+               '避免登录态丢失）；请修复证书后重启面板', panel_ssl_state['certfile'])
 
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
@@ -335,11 +340,10 @@ def requestAfter(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
 
-    # 面板 SSL 开启时才下发 HSTS（30 天）。HTTP 访问不下发，避免把用户
-    # 锁在「强制 https 但证书不可用」的不可访问状态里。
+    # 面板 SSL 开启时才下发 HSTS（30 天），且必须「证书真的可用」才算开启：
+    # 半开状态下跳不了 https，下了 HSTS 反而把浏览器锁在打不开的地址上。
     try:
-        _panel_ssl = thisdb.getOptionByJson('panel_ssl', default={'open': False})
-        _panel_ssl_on = isinstance(_panel_ssl, dict) and bool(_panel_ssl.get('open'))
+        _panel_ssl_on = bool(yf.panelSslState()['ready'])
     except Exception:
         _panel_ssl_on = False
     if _panel_ssl_on:

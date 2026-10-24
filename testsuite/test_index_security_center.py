@@ -29,6 +29,7 @@ REQUIRED_KEYS = (
     'sec_plain_http_why_desc',
     'sec_plain_http_action_desc',
     'sec_modal_plain_http_title',
+    'sec_enable_self_ssl',
     'sec_goto_setting',
     'sec_modal_details_suffix'
 )
@@ -85,6 +86,14 @@ class IndexSecurityCenterTest(unittest.TestCase):
             missing = [k for k in REQUIRED_KEYS if not data.get(k)]
             self.assertEqual(missing, [], '%s 缺少安全中心文案键: %r' % (lang, missing))
 
+    def test_06_plain_http_modal_hardening(self):
+        js = _read(INDEX_JS)
+        self.assertIn('applySelfSignedSsl:', js, 'btSecurityCenter 缺少 applySelfSignedSsl 方法')
+        self.assertIn('/setting/set_panel_local_ssl', js, 'applySelfSignedSsl 必须调用 /setting/set_panel_local_ssl')
+        self.assertIn('/setting/index', js, '明文 HTTP 弹窗跳转路径必须为 /setting/index')
+        self.assertNotIn('/config/index', js, '禁止残留错误的 /config/index 跳转路由')
+
 
 if __name__ == '__main__':
     unittest.main()
+

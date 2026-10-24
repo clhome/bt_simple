@@ -50,9 +50,9 @@ VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -
 
 
 
-version=7.2.31
+version=7.2.34
 PHP_VER=72
-md5_file_ok=968adcb8d0c5652b6e191b025fc8ba41
+sha256_file_ok=409e11bc6a2c18707dfc44bc61c820ddfd81e17481470f3405ee7822d8379903
 Install_php()
 {
 #------------------------ install start ------------------------------------#
@@ -91,8 +91,8 @@ if [ ! -f "$sourcePath/php/php${PHP_VER}/main/php_version.h" ];then
 
 	#检测文件是否损坏.
 	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
-		md5_file=`md5sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
-		if [ "${md5_file}" != "${md5_file_ok}" ]; then
+		sha256_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
+		if [ "${sha256_file}" != "${sha256_file_ok}" ]; then
 			echo "PHP${version} 下载文件不完整,重新安装"
 			rm -rf $sourcePath/php/php-${version}.tar.xz
 			exit 1

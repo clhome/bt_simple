@@ -74,20 +74,41 @@ else:
     bind.append('0.0.0.0:%s' % panel_port)
 
 panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
-if panel_ssl_data['open']:
-    choose = panel_ssl_data['choose']
-    if yf.inArray(['local','nginx'],choose):
-        panel_cert = panel_dir+'/ssl/'+choose+'/cert.pem'
-        panel_private = panel_dir+'/ssl/'+choose+'/private.pem'
-        if os.path.exists(panel_cert) and os.path.exists(panel_private):
-            certfile = panel_cert
-            keyfile  = panel_private
-            ciphers = 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
-            # 显式锁定最低 TLS 1.2：gunicorn 的 `ssl_context`（>=20.1，本仓下界 22.0.0）
-            # 直接使用该 SSLContext，不再依赖已被 gunicorn 22 移除的 `ssl_version`。
-            # certfile/keyfile/ciphers 仍保留，供不支持 ssl_context 的旧 gunicorn 兜底。
-            ssl_context = yf.createPanelSslContext(certfile, keyfile, ciphers)
-            http2 = True
+# 面板 HTTPS 由 gunicorn 直接终结 TLS，所以「起不起 TLS」必须和 app 侧（302 到
+# https / Secure Cookie / HSTS）用**同一份判定**：yf.panelSslState() 同时看配置与
+# 磁盘证书。历史上这里只看「配置 + 文件存在」、app 侧只看配置，证书没落盘时就
+# 落到「配置说已开 HTTPS、实际明文 HTTP」的半开状态 —— 面板直接访问不了。
+panel_ssl_state = yf.panelSslState(panel_ssl_data)
+if panel_ssl_state['open'] and not panel_ssl_state['ready']:
+    # 半开状态：先自愈（重新生成本地自签证书），仍不行就明确告警并按明文 HTTP 起。
+    # 宁可先让面板能进，也不要为了「强制 HTTPS」把用户锁在门外。
+    _log.error('面板 SSL 已开启但证书不可用（%s / %s），尝试重新生成自签证书',
+               panel_ssl_state['certfile'], panel_ssl_state['keyfile'])
+    try:
+        yf.createLocalSSL()
+    except Exception as _e:
+        _log.error('重新生成面板自签证书失败: %s', _e)
+    panel_ssl_state = yf.panelSslState(panel_ssl_data)
+    if not panel_ssl_state['ready']:
+        _log.error('面板 SSL 证书仍不可用，本次以明文 HTTP 启动（面板仍可访问，但没有 TLS）；'
+                   '请修复 %s 目录后重启面板，或关闭面板 SSL 后重新开启',
+                   panel_dir + '/ssl')
+
+if panel_ssl_state['ready']:
+    # 下面三个是 gunicorn 自己的配置项：gunicorn 的默认 SSLContext 工厂会按它们
+    # 装证书链/套件（见 gunicorn/sock.py:ssl_context）。因此不能只靠自定义闭包。
+    certfile = panel_ssl_state['certfile']
+    keyfile  = panel_ssl_state['keyfile']
+    ciphers = 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
+    # gunicorn 的 `ssl_context` 是**可调用对象**（签名 (conf, default_factory)），
+    # 传 SSLContext 实例会被 `validate_callable(2)` 拒掉：
+    #   Invalid value for ssl_context / Error: Value is not callable
+    # 而且它只打 stderr 告警就跳过该项 —— 进程照常起，但根本没 TLS。
+    # 所以这里传工厂闭包，最低 TLS 1.2 的约束在闭包里钉死。
+    ssl_context = yf.panelSslContextFactory(certfile, keyfile, ciphers)
+    # 曾经的 `http2 = True` 是无效配置（gunicorn 没有同名设置项，未知名字被静默忽略）。
+    # gunicorn 26 的 HTTP/2 靠 `http_protocols="h2,h1"` + h2 库 + ALPN 协商，
+    # 但面板的 WebSocket（flask-socketio/simple-websocket）不支持 h2，故不开启。
 
 
 # 线程数按 CPU 自适应：低配 2（少线程少内存），高配最多 8。

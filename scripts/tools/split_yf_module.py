@@ -100,7 +100,8 @@ MODULE_FUNCS = {
         '_insecure_ssl_context', '_get_http_pool', '_pool_request', 'HttpGet', 'HttpGet2',
         'HttpPost', 'httpPost', 'getHost', 'getClientIp', 'getLocalIp', 'getHostAddr',
         'checkIp', 'isIpAddr', 'isVaildIpV4', 'isVaildIpV6', 'isVaildIp', 'getHostPort',
-        'setHostPort', 'getSslCrt', 'createLocalSSL', 'createPanelSslContext', 'getSSHPort', 'getSSHStatus',
+        'setHostPort', 'getSslCrt', 'createLocalSSL', 'createPanelSslContext', 'panelSslState', 'panelSslContextFactory',
+        'PANEL_SSL_OPTION', 'PANEL_SSL_CHOOSE', 'getSSHPort', 'getSSHStatus',
         'connectSsh', 'createSshInfo', 'clearSsh', 'checkCert',
     ],
     'textutil': [
@@ -124,6 +125,7 @@ MODULE_FUNCS = {
         'checkDomainPanel', 'fileNameCheck', 'getCertName',
     ],
     'panel': [
+        'isPanelTaskRunning', 'ensurePanelTaskRunning',
         'wakePanelTask', 'triggerTask', 'restartTask', 'restartPanel', 'panelCmd',
         'getOpVer', 'isRestart', 'getWebStatus', 'restartWeb', 'isInstalledWeb',
         '_do_reload', 'opLuaMake', 'opLuaInitFile', 'opLuaInitWorkerFile',

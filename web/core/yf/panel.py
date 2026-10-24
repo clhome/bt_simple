@@ -98,6 +98,80 @@ def isRestart():
     return True
 
 
+def isPanelTaskRunning():
+    """检测后台常驻任务守护进程 panel_task.py 是否存活"""
+    try:
+        pid_file = getPanelTaskPidFile()
+        if not os.path.exists(pid_file):
+            return False
+        with open(pid_file, 'r', encoding='utf-8') as f:
+            content = (f.read() or '').strip()
+        if not content.isdigit():
+            return False
+        pid = int(content)
+        if pid <= 1:
+            return False
+        if os.path.isdir('/proc'):
+            cmdline_file = '/proc/%d/cmdline' % pid
+            if not os.path.exists(cmdline_file):
+                return False
+            with open(cmdline_file, 'rb') as cf:
+                cmdline = cf.read().decode('utf-8', 'ignore')
+            return 'panel_task.py' in cmdline
+        elif os.name == 'posix':
+            try:
+                os.kill(pid, 0)
+                return True
+            except OSError:
+                return False
+        return True
+    except Exception:
+        return False
+
+
+def ensurePanelTaskRunning():
+    """确保 panel_task 守护进程处于运行状态；若未运行则自动拉起自愈"""
+    if isPanelTaskRunning():
+        return True
+
+    # 1. 优先尝试通过 init.d 服务脚本启动任务进程
+    for initd in (getPanelDir() + '/scripts/init.d/yf', '/etc/init.d/yf'):
+        if os.path.exists(initd):
+            try:
+                safeExecShell([initd, 'start_task'])
+                if isPanelTaskRunning():
+                    return True
+            except Exception as _e:
+                writeFileLog('[panel_task] 尝试通过服务脚本拉起任务守护进程失败: %s' % _e)
+
+    # 2. 兜底直接后台异步拉起 panel_task.py
+    try:
+        import subprocess as _sp
+        import sys
+        panel_dir = getPanelDir()
+        task_script = os.path.join(panel_dir, 'panel_task.py')
+        if os.path.isfile(task_script):
+            log_dir = os.path.join(panel_dir, 'logs')
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir, exist_ok=True)
+            log_file = os.path.join(log_dir, 'panel_task.log')
+            log_fp = open(log_file, 'a', encoding='utf-8')
+            sub_kwargs = {
+                'cwd': panel_dir,
+                'stdin': _sp.DEVNULL,
+                'stdout': log_fp,
+                'stderr': _sp.STDOUT,
+            }
+            if os.name != 'nt' and hasattr(os, 'setsid'):
+                sub_kwargs['start_new_session'] = True
+            _sp.Popen([sys.executable, task_script], **sub_kwargs)
+            writeFileLog('[panel_task] 检测到任务调度守护进程未运行，已自愈拉起')
+            return True
+    except Exception as e:
+        writeFileLog('[panel_task] 自愈拉起 panel_task.py 失败: %s' % e)
+    return False
+
+
 def wakePanelTask():
     # 事件驱动：通知后台 panel_task 进程立即处理新任务，避免其固定间隔空转。
     # 仅在有 /proc 的 Linux 环境下按 cmdline 严格校验 PID 归属后才发信号，
@@ -111,7 +185,7 @@ def wakePanelTask():
         pid_file = getPanelTaskPidFile()
         if not os.path.exists(pid_file):
             return False
-        with open(pid_file, 'r') as f:
+        with open(pid_file, 'r', encoding='utf-8') as f:
             pid = int((f.read() or '').strip())
         if pid <= 1:
             return False
@@ -131,6 +205,8 @@ def wakePanelTask():
 def triggerTask():
     lock_file = getTriggerTaskLockFile()
     writeFile(lock_file, 'True')
+    # 确保后台任务守护进程存活，未运行则自愈拉起
+    ensurePanelTaskRunning()
     # 立即唤醒后台任务进程，替代固定 3 秒空转轮询
     wakePanelTask()
 
@@ -145,7 +221,8 @@ def restartTask():
 def restartPanel():
     restart_file = getPanelDir()+'/data/restart.pl'
     writeFile(restart_file, 'True')
-    # 立即唤醒看门狗执行重启，替代 3 秒空转检测
+    # 确保后台看门狗存活并唤醒执行重启，替代 3 秒空转检测
+    ensurePanelTaskRunning()
     wakePanelTask()
     return True
 

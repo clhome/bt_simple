@@ -99,6 +99,28 @@ class _FakeThisdb(object):
         return default
 
 
+class _FakeYf(object):
+    """yf 桩：HSTS 的判定现在统一走 `yf.panelSslState()['ready']`。
+
+    `open` 与 `ready` 分开传入，才能断言「配置开了但证书不可用」（半开状态）
+    不被打上 HSTS —— 那种状态下根本没 HTTPS，打 HSTS 等于把浏览器锁在打不开的地址。
+    """
+
+    def __init__(self, ssl_open, ssl_ready=None):
+        self._open = ssl_open
+        self._ready = ssl_open if ssl_ready is None else ssl_ready
+
+    def panelSslState(self, *a, **k):
+        return {
+            'open': self._open,
+            'ready': self._ready,
+            'degraded': bool(self._open) and not self._ready,
+            'choose': 'local',
+            'certfile': '/nonexistent/ssl/local/cert.pem',
+            'keyfile': '/nonexistent/ssl/local/private.pem',
+        }
+
+
 def _load_request_after():
     """从 `web/admin/__init__.py` 里抽出 `requestAfter` 并在桩环境里执行。
 
@@ -118,13 +140,14 @@ def _load_request_after():
     return fn, compile(module, ADMIN_INIT, 'exec')
 
 
-def _call_request_after(ssl_open):
+def _call_request_after(ssl_open, ssl_ready=None):
     fn, code = _load_request_after()
     ns = {
         'time': time,
         'request': _FakeRequest(),
         'g': _FakeG(),
         'thisdb': _FakeThisdb(ssl_open),
+        'yf': _FakeYf(ssl_open, ssl_ready),
     }
     exec(code, ns)
     response = _FakeResponse()
@@ -178,17 +201,44 @@ class ReadmeClaimsHonestyTest(unittest.TestCase):
                          '面板 SSLContext 未锁定最低 TLS 1.2')
 
     def test_05_setting_wires_ssl_context(self):
-        """setting.py 必须把受约束的 SSLContext 交给 gunicorn（ssl_context）。"""
+        """setting.py 必须把受约束的 SSLContext 交给 gunicorn（ssl_context）。
+
+        gunicorn>=22 的 `ssl_context` 只能是**可调用对象**（签名 (conf, factory)）：
+        直接给 SSLContext 实例会被 `validate_callable(2)` 拒掉，而 gunicorn 只打一行
+        stderr 告警就跳过该项 —— 面板起得来但根本没有 TLS。所以这里钉住「传的是工厂」。
+        """
         text = _read(SETTING_PY)
-        self.assertIn('ssl_context = yf.createPanelSslContext(', text,
-                      'setting.py 未通过 ssl_context 下发 TLS 约束')
+        self.assertIn('ssl_context = yf.panelSslContextFactory(', text,
+                      'setting.py 未通过 ssl_context 工厂下发 TLS 约束')
+        self.assertNotIn('ssl_context = yf.createPanelSslContext(', text,
+                         '直接传 SSLContext 实例会被 gunicorn 拒掉（Value is not callable）')
         self.assertNotIn('# ssl_version = 5', text,
                          'setting.py 不应保留被注释的旧 ssl_version 写法')
+
+    def test_05b_ssl_context_factory_is_gunicorn_compatible(self):
+        """工厂必须真能被 gunicorn 那样调用（arity=2）并返回 TLS1.2 起步的 context。"""
+        import core.yf as yf  # noqa: E402
+        factory = yf.panelSslContextFactory('/c.pem', '/k.pem', 'DEFAULT')
+        self.assertTrue(callable(factory), 'ssl_context 必须是 callable')
+        arity = len([p for p in __import__('inspect').signature(factory).parameters.values()
+                     if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)])
+        self.assertEqual(2, arity, 'gunicorn 的 validate_callable(2) 要求两个位置参数')
+
+        default_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx = factory(None, lambda: default_ctx)
+        self.assertIs(ctx, default_ctx, '应复用 gunicorn 默认工厂造出来的 context')
+        self.assertEqual(ssl.TLSVersion.TLSv1_2, ctx.minimum_version)
+        # 默认工厂报错时不能把面板拖下水：退回自建 context（不加载证书，避免测试读文件）
+        def _boom():
+            raise ValueError('cafile missing')
+        ctx2 = yf.panelSslContextFactory()(None, _boom)
+        self.assertIsInstance(ctx2, ssl.SSLContext)
+        self.assertEqual(ssl.TLSVersion.TLSv1_2, ctx2.minimum_version)
 
     # ------------------------------ HSTS ------------------------------
 
     def test_06_hsts_only_when_panel_ssl_on(self):
-        """面板 SSL 开启时下发 HSTS，关闭时不发（避免锁死 HTTP 访问）。"""
+        """面板 SSL 真的可用时下发 HSTS；关闭 / 半开状态不发（避免锁死访问）。"""
         self.assertIn('Strict-Transport-Security', _read(ADMIN_INIT),
                       'after_request 未下发 HSTS 头')
         on = _call_request_after(ssl_open=True)
@@ -197,6 +247,10 @@ class ReadmeClaimsHonestyTest(unittest.TestCase):
         off = _call_request_after(ssl_open=False)
         self.assertNotIn('Strict-Transport-Security', off,
                          '面板 SSL 关闭时不应下发 HSTS')
+        # 半开状态（配置 open、证书不可用）：实际仍是明文 HTTP，不能打 HSTS
+        half = _call_request_after(ssl_open=True, ssl_ready=False)
+        self.assertNotIn('Strict-Transport-Security', half,
+                         '证书不可用时不得下发 HSTS（会把浏览器锁在打不开的 https 上）')
 
     # ------------------------ 卸载备份默认勾选 -------------------------
 

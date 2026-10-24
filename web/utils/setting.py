@@ -98,8 +98,11 @@ class setting(object):
         keyPath = pdir+'/ssl/local/private.pem'
         certPath = pdir+'/ssl/local/cert.pem'
 
-        if not os.path.exists(certPath):
-            yf.createLocalSSL()
+        if not os.path.exists(certPath) or not os.path.exists(keyPath):
+            # 生成失败（目录不可写 / 磁盘满 / pyOpenSSL 缺失）时不能弹出堆栈，
+            # 但更不能不报：返回空私钥/证书让前端看出「没东西」，而不是显示一份假的。
+            if not yf.createLocalSSL():
+                yf.writeFileLog('[setting] 面板自签证书生成失败，返回空证书（面板 SSL 不能置为已开启）')
 
         cert = {}
         cert['privateKey'] = yf.readFile(keyPath)
@@ -271,8 +274,12 @@ class setting(object):
         cert = {}
         keyPath = pdir+'/ssl/local/private.pem'
         certPath = pdir+'/ssl/local/cert.pem'
-        if not os.path.exists(certPath):
-            yf.createLocalSSL()
+        if not os.path.exists(certPath) or not os.path.exists(keyPath):
+            # 证书必须真的落盘才能把 open 置真：否则 gunicorn 会退回明文 HTTP，
+            # 而应用侧（302 到 https / Secure Cookie）却按已开启处理，面板会打不开。
+            if not yf.createLocalSSL() or not os.path.exists(certPath) or not os.path.exists(keyPath):
+                yf.writeFileLog('[setting] 面板自签证书生成失败，未开启面板 SSL')
+                return yf.returnData(False, 'setting.py_msg_7a09f6')
 
         panel_ssl_data['choose'] = 'local'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))

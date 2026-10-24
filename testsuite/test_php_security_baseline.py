@@ -62,7 +62,28 @@ if WEB not in sys.path:
 from core import php_sec_baseline as bl   # noqa: E402
 from core import php_sec_scan as scan    # noqa: E402
 
-BASH = shutil.which('bash')
+def find_posix_bash():
+    candidates = [
+        r'C:\Program Files\Git\bin\bash.exe',
+        r'C:\Program Files (x86)\Git\bin\bash.exe',
+        r'C:\Program Files\Git\usr\bin\bash.exe',
+    ]
+    which_bash = shutil.which('bash')
+    if which_bash:
+        candidates.append(which_bash)
+    for cand in candidates:
+        if 'system32' in cand.lower() or 'windowsapps' in cand.lower():
+            continue
+        try:
+            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True,
+                                  text=True, timeout=10)
+        except Exception:
+            continue
+        if proc.returncode == 0 and 'ok' in (proc.stdout or ''):
+            return cand
+    return None
+
+BASH = find_posix_bash()
 
 
 def _read(path):

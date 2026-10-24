@@ -13,7 +13,7 @@ var lan = {
 		return msg;
 	},
 	"index": {
-			"security_title": "Sécurité",
+			"security_title": "Analyse de sécurité",
 			"security_has_risks": "Risques de sécurité détectés, veuillez résoudre rapidement",
 			"sec_item_plain_http": "HTTP en clair",
 			"sec_item_php_sec": "Ligne de base de sécurité PHP",
@@ -21,6 +21,7 @@ var lan = {
 			"sec_plain_http_why_desc": "Sous des connexions HTTP en texte brut sans SSL, n'importe quel nœud réseau intermédiaire peut intercepter vos identifiants et cookies de session.",
 			"sec_plain_http_action_desc": "Il est recommandé d'activer le SSL du panneau dans les « Paramètres du panneau » immédiatement pour un chiffrement HTTPS.",
 			"sec_modal_plain_http_title": "Alerte de risque de sécurité lié à la transmission en texte brut",
+			"sec_enable_self_ssl": "Activer le SSL auto-signé",
 			"sec_goto_setting": "Accéder aux paramètres du panneau",
 			"sec_modal_details_suffix": "Traitement des risques",
 			"php_sec_unknown_version": "Version non reconnue",
