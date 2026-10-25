@@ -221,7 +221,18 @@ class PanelTaskSelfHealTest(unittest.TestCase):
                         '必须先直接后台派发（非阻塞），再退到 init.d；'
                         '先调 init.d 会因 start_task 不支持而白等超时')
 
-    def test_03_release_index_step_registered(self):
+    def test_03_no_daemon_spawn_in_gates(self):
+        """门禁里绝不拉起长驻守护进程（它会继承 stdout 管道，把门禁拖成数小时）。"""
+        src = _read(PANEL_PY)
+        start = src.index('def _spawnPanelTask():')
+        body = src[start:src.index('def ensurePanelTaskRunning():')]
+        self.assertIn("YF_GATE_PARALLEL", body,
+                      '_spawnPanelTask 必须识别门禁环境并跳过拉起'
+                      '（实测：守护进程持有管道 → capture_output 等不到 EOF → 门禁 5 小时）')
+        self.assertLess(body.index('YF_GATE_PARALLEL'), body.index('Popen('),
+                        '门禁判断必须在 Popen 之前（否则已经拉起来了）')
+
+    def test_04_release_index_step_registered(self):
         src = _read(PANEL_TASK_PY)
         self.assertIn('def phpReleaseIndex_step(', src)
         self.assertIn('add_task(phpReleaseIndex_step, PHP_RELEASE_INDEX_INTERVAL)', src,

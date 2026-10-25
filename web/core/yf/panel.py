@@ -134,6 +134,12 @@ def isPanelTaskRunning():
 
 def _spawnPanelTask():
     """非阻塞地后台拉起 panel_task.py；返回是否已派发成功。"""
+    # 测试门禁（testsuite/run_all.py 会给每个子进程设 YF_GATE_PARALLEL=1）里绝不拉起
+    # 长驻守护进程：它会继承门禁进程的 stdout 管道并一直活着，导致
+    # `subprocess.run(capture_output=True)` 迟迟等不到 EOF（实测把一次门禁拖成数小时）。
+    if os.environ.get('YF_GATE_PARALLEL') == '1':
+        writeFileLog('[panel_task] 门禁环境（YF_GATE_PARALLEL=1）跳过自愈拉起守护进程')
+        return False
     try:
         import subprocess as _sp
         import sys
