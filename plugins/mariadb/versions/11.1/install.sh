@@ -1,4 +1,16 @@
 #!/bin/bash
+# yf_verify_archive（按内容魔数校验压缩包）定义在 scripts/github_download.sh，
+# 那是可安全 source 的纯函数库（scripts/lib.sh 是部署脚本，被 source 会 pip install/exit）
+for _yf_gh in "$(dirname "$0")/../../../../scripts/github_download.sh" \
+              "$(dirname "$0")/../../../scripts/github_download.sh" \
+              "/www/server/yufeng_panel/scripts/github_download.sh"; do
+	if [ -f "$_yf_gh" ]; then
+		. "$_yf_gh" >/dev/null 2>&1
+		break
+	fi
+done
+unset _yf_gh
+
 if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
@@ -60,10 +72,16 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	# https://downloads.mariadb.org/interstitial/mariadb-10.9.1/source/mariadb-10.9.1.tar.gz
 	if [ ! -f ${mariadbDir}/mariadb-${MY_VER}.tar.gz ];then
 		wget -nv --no-check-certificate -O ${mariadbDir}/mariadb-${MY_VER}.tar.gz --tries=3 https://archive.mariadb.org/mariadb-${MY_VER}/source/mariadb-${MY_VER}.tar.gz
+		# 下载后按**内容**验一次（HTML 错误页/截断包在这里拦住，而不是等到编译阶段报一堆无关错误）
+		if command -v yf_verify_archive >/dev/null 2>&1 && ! yf_verify_archive "${mariadbDir}/mariadb-${MY_VER}.tar.gz"; then
+			echo "[ERROR] 下载内容无效（不是有效压缩包），请检查网络/镜像: ${mariadbDir}/mariadb-${MY_VER}.tar.gz" >&2
+			rm -f "${mariadbDir}/mariadb-${MY_VER}.tar.gz"
+			exit 1
+		fi
 	fi
 
 	if [ ! -d ${mariadbDir}/mariadb-${MY_VER} ];then
-		 cd ${mariadbDir} && tar -zxf  ${mariadbDir}/mariadb-${MY_VER}.tar.gz
+		 ( cd ${mariadbDir} && tar -zxf ${mariadbDir}/mariadb-${MY_VER}.tar.gz ) || { echo "[ERROR] 解压失败（包损坏），请重试: ${mariadbDir}/mariadb-${MY_VER}.tar.gz" >&2; exit 1; }
 	fi
 	
 	INSTALL_CMD=cmake

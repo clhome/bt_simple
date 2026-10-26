@@ -36,11 +36,32 @@ Install_App()
 	REDIS_DIR=$serverPath/source/redis
 
 
-	if [ ! -f $REDIS_DIR/${FILE_TGZ} ];then
-		wget -nv -O $REDIS_DIR/${FILE_TGZ} https://download.redis.io/releases/${FILE_TGZ}
+	# 下载与校验（与同族脚本同一个坑：`wget -O` 不看退出码、`tar` 失败也往下走，
+	# 结果「下载失败 → 编译一个空目录 → 报一堆无关错误」，或把 HTML 错误页当压缩包）。
+	# 口径：已有包先按**内容**验（gzip -t），坏了就删；下载后必须验；解压失败即中止。
+	_yf_redis_tgz="$REDIS_DIR/${FILE_TGZ}"
+	if [ -f "$_yf_redis_tgz" ] && ! gzip -t "$_yf_redis_tgz" 2>/dev/null; then
+		echo "[WARN] 本地已有的 ${FILE_TGZ} 不是有效压缩包（多为 HTML 错误页/截断），已删除重下"
+		rm -f "$_yf_redis_tgz"
 	fi
-	
-	cd $REDIS_DIR && tar -zxf ${FILE_TGZ}
+	if [ ! -f "$_yf_redis_tgz" ]; then
+		if command -v yf_download >/dev/null 2>&1; then
+			yf_download "$_yf_redis_tgz" "https://download.redis.io/releases/${FILE_TGZ}" 300
+		else
+			wget -nv -T 120 -t 2 -O "$_yf_redis_tgz" "https://download.redis.io/releases/${FILE_TGZ}"
+		fi
+		if [ ! -s "$_yf_redis_tgz" ] || ! gzip -t "$_yf_redis_tgz" 2>/dev/null; then
+			echo "[ERROR] 下载 ${FILE_TGZ} 失败或内容无效（不是 gzip 包），请检查网络/镜像" >&2
+			rm -f "$_yf_redis_tgz"
+			exit 1
+		fi
+	fi
+
+	if ! ( cd "$REDIS_DIR" && tar -zxf "${FILE_TGZ}" ); then
+		echo "[ERROR] 解压 ${FILE_TGZ} 失败（包损坏），已清理，请重试" >&2
+		rm -f "$_yf_redis_tgz"
+		exit 1
+	fi
 
 	# 获取CPU核心数用于多核并行编译加速
 	cpuCore=$(nproc 2>/dev/null)

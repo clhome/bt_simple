@@ -37,6 +37,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COMMON_DIR = os.path.join(ROOT, 'plugins', 'php', 'versions', 'common')
 GH_SH = os.path.join(ROOT, 'scripts', 'github_download.sh')
 CURL_SH = os.path.join(COMMON_DIR, 'curl.sh')
+VERSIONS_DIR = os.path.join(ROOT, 'plugins', 'php', 'versions')
+INDEX_PHP_PY = os.path.join(ROOT, 'plugins', 'php', 'index_php.py')
 
 BASH = shutil.which('bash')
 
@@ -47,13 +49,23 @@ def _read(path):
 
 
 def _common_scripts():
+    """**所有**会用到 `$extFile` 的 PHP 扩展脚本（common/ + 各老分支目录）。
+
+    2026-10-26 复核时发现：只改 `versions/common/` 是不够的 —— `versions/52..71/`
+    里还留着 15 个老脚本用同一套 `ls | grep` 猜目录（`zendguardloader` 之类），
+    它们只在「那 6 个 EOL 分支」上跑，但同样是「编译成功却报产物缺失」的同一个坑。
+    """
     out = []
-    for name in sorted(os.listdir(COMMON_DIR)):
-        if not name.endswith('.sh'):
+    for branch in sorted(os.listdir(VERSIONS_DIR)):
+        bdir = os.path.join(VERSIONS_DIR, branch)
+        if not os.path.isdir(bdir):
             continue
-        path = os.path.join(COMMON_DIR, name)
-        if '$extFile' in _read(path):
-            out.append((name, path))
+        for name in sorted(os.listdir(bdir)):
+            if not name.endswith('.sh'):
+                continue
+            path = os.path.join(bdir, name)
+            if '$extFile' in _read(path):
+                out.append(('%s/%s' % (branch, name), path))
     return out
 
 
@@ -134,6 +146,24 @@ class ExtDirResolutionTest(unittest.TestCase):
                           '没按 php-config 给出的扩展目录解析: %s' % got)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+
+class ExtensionListPythonTest(unittest.TestCase):
+    """面板「扩展列表」页也必须问 php-config，而不是列目录猜名字。"""
+
+    def test_01_index_php_uses_php_config(self):
+        src = _read(INDEX_PHP_PY)
+        self.assertIn('def _php_extension_dir(', src)
+        self.assertIn("'--extension-dir'", src)
+        self.assertIn('_php_extension_dir(php_dir)', src,
+                      'get_php_lib 必须用它解析扩展目录')
+        self.assertNotIn('for sodir in ext_list:', src,
+                         '还在用「列目录找 no-debug-non-zts」那套')
+
+    def test_02_listdir_guarded(self):
+        """目录不存在时不许直接 os.listdir（旧实现 FileNotFoundError → HTTP 500）。"""
+        src = _read(INDEX_PHP_PY)
+        self.assertIn("os.listdir(base) if os.path.isdir(base) else []", src)
 
 
 class GithubDownloadTest(unittest.TestCase):

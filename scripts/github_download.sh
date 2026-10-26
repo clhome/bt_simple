@@ -141,6 +141,93 @@ _gh_get_best_proxy() {
     return 1
 }
 
+# 用法: yf_verify_archive <file>
+#
+# 判一个「刚下下来的压缩包」是不是**真的**压缩包 —— 按内容魔数，不看文件名后缀。
+#
+# 为什么必须有它（真机 2026-10-26，PHP 8.2/8.5 安装失败）：
+#   * 下载校验曾经按文件名后缀决定要不要校验，而调用方常先下到 `xxx.tar.gz.part`
+#     再改名 → 整个校验被跳过 → 代理返回的几十字节错误文本被当成「下载成功」；
+#   * 插件脚本里大量 `wget -O x.tar.gz URL && tar -zxf x.tar.gz` 也不看退出码，
+#     拿到 HTML 错误页后照样往下编译，最后报一堆与网络无关的错误。
+# 口径：认识 gzip / zip / xz / bz2 / zstd / 7z 的魔数；认识就做一次真校验；
+#       不认识且不像 HTML/错误文本时按「未知格式」放行（避免误伤 .tar 等无魔数包）。
+function yf_verify_archive() {
+    local _f=$1
+    [ -f "$_f" ] || return 1
+    local _size
+    _size=$(wc -c < "$_f" 2>/dev/null | tr -d ' ')
+    [ -n "$_size" ] && [ "$_size" -gt 0 ] 2>/dev/null || return 1
+
+    local _magic
+    _magic=$(head -c 6 "$_f" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
+
+    case "$_magic" in
+        1f8b*)
+            gzip -t "$_f" >/dev/null 2>&1 && return 0 || return 1
+            ;;
+        504b*)
+            if command -v unzip >/dev/null 2>&1; then
+                unzip -t "$_f" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        fd377a585a00*)
+            if command -v xz >/dev/null 2>&1; then
+                xz -t "$_f" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        425a68*)        # bz2
+            if command -v bzip2 >/dev/null 2>&1; then
+                bzip2 -t "$_f" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        28b52ffd*)      # zstd
+            if command -v zstd >/dev/null 2>&1; then
+                zstd -t "$_f" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+    esac
+
+    # 没有已知魔数：拒绝 HTML 错误页/认证页与明显的错误文本（代理常见形态）
+    if head -c 200 "$_f" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html)'; then
+        return 1
+    fi
+    if [ "$_size" -lt 512 ] && head -c 64 "$_f" 2>/dev/null             | grep -qiE 'error|invalid|denied|blocked|not found|forbidden'; then
+        return 1
+    fi
+    return 0
+}
+
+# 用法: yf_fetch_archive <file> <url> [timeout]
+#
+# 下载 + 内容校验一体：校验不过就删掉并返回非 0（调用方负责 exit）。
+# 与 `yf_download`（scripts/lib.sh）的区别：那个函数在部署脚本里，插件不能 source；
+# 这里只依赖 `_gh_try_download`，自包含，插件可以直接 source 本文件使用。
+function yf_fetch_archive() {
+    local _f=$1
+    local _url=$2
+    local _to=${3:-300}
+    if [ -f "$_f" ] && yf_verify_archive "$_f"; then
+        return 0
+    fi
+    if [ -f "$_f" ]; then
+        echo "[WARN] 本地已有文件无效（HTML 错误页/截断包），删除重下: $_f" >&2
+        rm -f "$_f"
+    fi
+    if ! _gh_try_download "$_f" "$_url" "$_to"; then
+        return 1
+    fi
+    if ! yf_verify_archive "$_f"; then
+        rm -f "$_f"
+        return 1
+    fi
+    return 0
+}
+
 # 该 URL 是否属于 GitHub（只有它们能被 GitHub 加速节点代理）
 # 用法: _gh_is_github_url <url>
 _gh_is_github_url() {

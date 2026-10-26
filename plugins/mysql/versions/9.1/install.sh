@@ -1,3 +1,15 @@
+# yf_verify_archive（按内容魔数校验压缩包）定义在 scripts/github_download.sh，
+# 那是可安全 source 的纯函数库（scripts/lib.sh 是部署脚本，被 source 会 pip install/exit）
+for _yf_gh in "$(dirname "$0")/../../../../scripts/github_download.sh" \
+              "$(dirname "$0")/../../../scripts/github_download.sh" \
+              "/www/server/yufeng_panel/scripts/github_download.sh"; do
+	if [ -f "$_yf_gh" ]; then
+		. "$_yf_gh" >/dev/null 2>&1
+		break
+	fi
+done
+unset _yf_gh
+
 if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 # -*- coding: utf-8 -*-
 #!/bin/bash
@@ -104,6 +116,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 
 	if [ ! -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
          wget -nv --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.1/mysql-${VERSION}.tar.gz
+         # 下载后按**内容**验一次（HTML 错误页/截断包在这里拦住，而不是等到编译阶段报一堆无关错误）
+         if command -v yf_verify_archive >/dev/null 2>&1 && ! yf_verify_archive "${mysqlDir}/mysql-${VERSION}.tar.gz"; then
+         	echo "[ERROR] 下载内容无效（不是有效压缩包），请检查网络/镜像: ${mysqlDir}/mysql-${VERSION}.tar.gz" >&2
+         	rm -f "${mysqlDir}/mysql-${VERSION}.tar.gz"
+         	exit 1
+         fi
 	fi
 
 	#检测文件是否损坏.
@@ -120,7 +138,7 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 # 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-${VERSION}.tar.gz
+		 ( cd ${mysqlDir} && tar -zxf ${mysqlDir}/mysql-${VERSION}.tar.gz ) || { echo "[ERROR] 解压失败（包损坏），请重试: ${mysqlDir}/mysql-${VERSION}.tar.gz" >&2; exit 1; }
 	fi
 
 	OPTIONS=''
@@ -158,6 +176,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
 		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
 			wget -nv --no-check-certificate -O ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 https://downloads.sourceforge.net/libtirpc/libtirpc-1.3.3.tar.bz2
+			# 下载后按**内容**验一次（HTML 错误页/截断包在这里拦住，而不是等到编译阶段报一堆无关错误）
+			if command -v yf_verify_archive >/dev/null 2>&1 && ! yf_verify_archive "${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2"; then
+				echo "[ERROR] 下载内容无效（不是有效压缩包），请检查网络/镜像: ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2" >&2
+				rm -f "${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2"
+				exit 1
+			fi
 			cd ${mysqlDir} && tar -jxvf libtirpc_1.3.3.orig.tar.bz2
 			cd libtirpc-1.3.3 && ./configure
 		fi

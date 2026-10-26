@@ -14,6 +14,9 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
+import logging
+
+_log = logging.getLogger('yf.php_lib')
 
 app_debug = False
 if yf.isAppleSystem():
@@ -165,6 +168,34 @@ def getPhpinfo(version):
     return str(sock_data, encoding='utf-8', errors='replace')
 
 
+def _php_extension_dir(php_dir):
+    """该 PHP 的共享扩展目录：**问 php-config，别猜**。
+
+    旧实现是「`os.listdir(lib/php/extensions)` 里找名字含 no-debug-non-zts 的那个」，
+    与 `versions/common/*.sh` 同一个坑：全新分支在第一次编译共享扩展之前，这个子目录
+    还不存在（正是 `make install` 才创建的）→ ext_dir 停在 `.../extensions`，
+    后面的 `ext_dir + "/" + name.so` 全部指向错误路径，已装扩展会显示成未安装。
+    （同一轮真机上，PHP 8.5 的 curl 扩展就是这么被判「产物缺失」的。）
+
+    `php-config --extension-dir` 是权威来源；取不到才退回目录探测（且不抛异常）。
+    """
+    try:
+        rc, out, _err = yf.execShellRc(
+            [php_dir + '/bin/php-config', '--extension-dir'], shell=False, timeout=10)
+        text = (out or '').strip()
+        path = text.splitlines()[-1] if text else ''
+        if rc == 0 and path and os.path.isdir(path):
+            return path
+    except Exception as _e:
+        _log.debug('[php] 读取 php-config --extension-dir 失败: %s', _e)
+    base = php_dir + '/lib/php/extensions'
+    # 目录不存在时不要 os.listdir（旧实现直接 FileNotFoundError → HTTP traceback）
+    for sodir in (os.listdir(base) if os.path.isdir(base) else []):
+        if 'no-debug-non-zts' in sodir:
+            return base + '/' + sodir
+    return base
+
+
 def libConfCommon(version):
     fname = getConf(version)
     if not os.path.exists(fname):
@@ -187,14 +218,7 @@ def libConfCommon(version):
         return yf.returnJson(False, '扩展列表配置文件格式错误!')
 
     php_dir = getServerDir() + "/" + version
-    ext_dir = php_dir + "/lib/php/extensions"
-
-    # 未安装/未编译扩展目录时旧实现 os.listdir 直接 FileNotFoundError（真机 HTTP 回 traceback）
-    ext_list = os.listdir(ext_dir) if os.path.isdir(ext_dir) else []
-    for sodir in ext_list:
-        if sodir.find("no-debug-non-zts") > -1:
-            ext_dir += "/"+ sodir
-            break
+    ext_dir = _php_extension_dir(php_dir)
 
     libs = []
     tasks = yf.M('tasks').where("status!=?", ('1',)).field('status,name').select()

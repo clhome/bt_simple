@@ -1119,7 +1119,14 @@ class TestPhpStructure(unittest.TestCase):
     def test_102_index_php_guards(self):
         tree = _tree(IDX_PHP)
         node = _func(tree, 'libConfCommon')
-        self.assertTrue(_calls_any(node, ['isdir']))
+        # 扩展目录解析已经收口到 _php_extension_dir()（它内部先 isdir 再 listdir）；
+        # 这里两种形态都接受，但**必须**有一条通往 isdir 的路 —— 旧实现直接
+        # os.listdir(可能不存在的目录) → FileNotFoundError → HTTP 500。
+        self.assertTrue(_calls_any(node, ['isdir', '_php_extension_dir']))
+        if _calls_any(node, ['_php_extension_dir']):
+            helper = _func(tree, '_php_extension_dir')
+            self.assertTrue(_calls_any(helper, ['isdir']),
+                            '_php_extension_dir 必须先 isdir 再 listdir')
         src = _read(IDX_PHP)
         self.assertIn("if not phpini or isinstance(phpini, bool):", src)
         self.assertIn('requestFcgiPHP', src)
