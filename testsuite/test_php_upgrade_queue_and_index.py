@@ -191,7 +191,8 @@ class TaskQueueSemanticsTest(unittest.TestCase):
             src = _read(path)
             start = src.index('def upgradeToBaseline(')
             body = src[start:src.index('def dropPhpSecSnapshot(')]
-            self.assertIn('_refreshPackageIndex()', body,
+            # 允许带参数（php-apt 会把分支传进去，好让网络诊断说出「放进哪个目录」）
+            self.assertIn('_refreshPackageIndex(', body,
                           '%s 升级前必须刷新包索引（否则候选版本仍是旧的）' % path)
             self.assertIn('no_op', body,
                           '%s 必须识别「0 upgraded / 无可用更新」这种假成功' % path)

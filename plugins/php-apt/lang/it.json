@@ -181,5 +181,9 @@
     "扩展列表配置文件格式错误!": "Formato file di configurazione elenco estensioni non valido!",
     "投递升级任务失败: %s": "Invio dell'attività di aggiornamento non riuscito: %s",
     "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Attività di aggiornamento già in coda o in esecuzione; vedi la casella messaggi",
-    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Aggiornamento in coda (baseline %s); vedi la casella messaggi"
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Aggiornamento in coda (baseline %s); vedi la casella messaggi",
+    "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Pre-verifica dei pacchetti offline non riuscita: %s; azione: inserisci l'insieme completo di .deb del ramo PHP%s (incluse le nuove versioni delle estensioni installate) in %s e riprova%s",
+    "离线包仓库构建失败：%s": "Impossibile creare il repository offline: %s",
+    "离线仓库刷新失败（rc=%s）：%s": "Aggiornamento del repository offline non riuscito (rc=%s): %s",
+    "离线升级未执行：%s": "Aggiornamento offline non eseguito: %s"
 }

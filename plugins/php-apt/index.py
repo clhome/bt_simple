@@ -7,6 +7,7 @@ import time
 import re
 import json
 import shutil
+import tempfile
 
 
 # 动态获取项目根目录，避免因执行脚本时当前工作目录(Cwd)不同而导致 core 依赖导入失败
@@ -22,6 +23,10 @@ import logging
 # P0-2：安全基线表 + 包版本读取（与编译版插件共用同一份基线，不许各写一套）
 from core import php_sec_baseline
 from core import php_sec_scan
+# 索引刷不下来时把「证书校验失败 / 302 到认证页」翻成人话（否则报文只会让用户去改源）
+from core import net_probe
+# 离线 .deb 通道（内网/无外网机器唯一能升级的那条路）
+from core import php_deb_bundle
 
 _log = logging.getLogger('yf.php_apt')
 
@@ -798,13 +803,15 @@ APT_UPGRADE_TIMEOUT = 900
 #: 包索引刷新超时（`apt-get update`）。刷新失败不阻断升级（本地索引可能仍然可用），
 #: 但必须写进日志 —— 「apt 退出码 0 但版本没变」最常见的原因就是索引是旧的。
 APT_REFRESH_TIMEOUT = 300
+#: 离线通道里 `apt-get -s`（模拟）的超时。模拟只读本地文件，正常 1 秒内结束。
+APT_SIMULATE_TIMEOUT = 120
 
 #: 「什么都没升」的判定：apt 在「已是最新/源里没有更新包」时会以 0 退出。
 #:
 #: 必须同时认英文与**中文**摘要：apt 的输出随 locale 变化（真机实测 zh_CN 下是
-#: 「升级了 0 个软件包，新安装了 0 个软件包」），只匹配英文会漏判 → 把「源里没有新版」
-#: 误报成「升级失败但没有原因」。调用方还会补一条**语言无关**的判据
-#: （升级前后包版本串完全相同），这里只是让报错文案更准。
+#: 「升级了 0 个软件包，新安装了 0 个软件包」），只匹配英文会漏判。
+#: **真正的判据是语言无关的**：升级前后 dpkg 包版本串完全相同（`no_op`）。
+#: 这个正则只用来决定报文措辞（「源里没有更新包」还是「升级没生效」）。
 _NO_UPGRADE_RE = re.compile(
     r'0 upgraded,\s*0 newly installed'
     r'|Nothing to do'
@@ -814,20 +821,84 @@ _NO_UPGRADE_RE = re.compile(
     re.I)
 
 
-def _refreshPackageIndex():
-    """刷新包索引，返回 (rc, 摘要)。失败只记录，不阻断（与 apt 自身行为一致）。"""
+def _logLine(msg):
+    """同时写插件日志和 stdout —— 面板任务日志读的是子进程 stdout。"""
+    try:
+        yf.writeFileLog(msg)
+    except Exception as _e:
+        _log.debug('[php-apt] writeFileLog 失败: %s', _e)
+    try:
+        print(msg)
+        sys.stdout.flush()
+    except Exception as _e:
+        _log.debug('[php-apt] 回显失败: %s', _e)
+
+
+def _firstSourceUrl():
+    """从 apt 源配置里取第一个 http(s) 地址（报错原文里没有 URL 时用它做诊断对象）。"""
+    paths = ['/etc/apt/sources.list']
+    conf_dir = '/etc/apt/sources.list.d'
+    try:
+        names = sorted(os.listdir(conf_dir))
+    except OSError:
+        names = []
+    paths += [os.path.join(conf_dir, n) for n in names
+              if n.endswith('.list') or n.endswith('.sources')]
+    for path in paths:
+        try:
+            with open(path, 'r', encoding='utf-8', errors='replace') as fp:
+                for line in fp:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    for tok in line.replace('URIs:', ' ').split():
+                        if tok.startswith('http://') or tok.startswith('https://'):
+                            return tok
+        except OSError:
+            continue
+    return ''
+
+
+def _diagnoseSource(tail, branch=''):
+    """`apt-get update` 失败 → 结构化诊断（类型/结论/处置）。永不抛异常。"""
+    try:
+        url = net_probe.extract_url(tail) or _firstSourceUrl()
+        return net_probe.diagnose(url=url, text=tail, branch=branch)
+    except Exception as ex:            # noqa: BLE001 —— 诊断失败不能拖垮升级流程
+        _log.debug('[php-apt] 网络诊断异常: %s', ex)
+        return {'kind': net_probe.KIND_UNKNOWN, 'blocked': False,
+                'summary': '诊断不可用: %s' % ex, 'advice': '', 'url': '', 'host': ''}
+
+
+def _refreshPackageIndex(branch=''):
+    """刷新包索引，返回 (rc, 摘要, 诊断或 None)。失败只记录，不阻断（与 apt 自身一致）。
+
+    失败时**必须**带上诊断：真机现场的报错是「证书校验失败（上网认证网关劫持）」，
+    旧报文却让用户去「检查 sources.list 与 sury 源」，改一天也改不好。
+    """
     try:
         from core import proc_stream
         # 边跑边回显：apt-get update 可能跑几分钟，捕获输出会让任务日志空白
         rc, tail, _to = proc_stream.run_streaming(['apt-get', 'update'],
-                                                 timeout=APT_REFRESH_TIMEOUT, tail_lines=10)
+                                                 timeout=APT_REFRESH_TIMEOUT, tail_lines=30)
     except Exception as ex:
         _log.debug('[php-apt] apt-get update 异常: %s', ex)
-        return (-1, str(ex))
+        diag = _diagnoseSource(str(ex), branch)
+        _logLine('[php-apt] apt-get update 异常: %s；诊断：%s' % (ex, diag.get('summary')))
+        return (-1, str(ex), diag)
     tail = ' '.join((tail or '').split())[-200:]
-    if rc != 0:
-        yf.writeFileLog('[php-apt] apt-get update 失败（rc=%s）: %s' % (rc, tail))
-    return (rc, tail)
+    # 注意：`apt-get update` 在所有源都因证书失败时**仍以 0 退出**（真机实证，
+    # 面板记录的 refresh_rc 就是 0），所以不能只看 rc —— 输出里有网关/证书指纹就得诊断。
+    suspicious = rc != 0 or net_probe.classify_text(tail) != net_probe.KIND_UNKNOWN
+    if not suspicious:
+        return (rc, tail, None)
+    diag = _diagnoseSource(tail, branch)
+    _logLine('[php-apt] apt-get update %s（rc=%s）: %s'
+             % ('失败' if rc != 0 else '有错误', rc, tail))
+    _logLine('[php-apt] 网络诊断：%s' % (diag.get('summary') or ''))
+    if diag.get('advice'):
+        _logLine('[php-apt] 处置建议：%s' % diag['advice'])
+    return (rc, tail, diag)
 
 
 def _queueUpgrade(ver, branch, floor):
@@ -875,8 +946,119 @@ def submitBaselineUpgrade(version=''):
     return _queueUpgrade(ver, branch, floor)
 
 
+def _simulate_argv(repo_args, pkgs):
+    """`apt-get -s install --only-upgrade <pkgs>`（只读模拟，不动系统）。"""
+    return (['env', 'LC_ALL=C', 'LANG=C', 'apt-get'] + list(repo_args) +
+            ['-s', 'install', '--only-upgrade'] + list(pkgs))
+
+
+def _offlineUpgrade(ver, branch, floor, before_pkg, reason='', report_invalid=False):
+    """离线 .deb 通道：自建本地 apt 仓库 → `apt-get -s` 预演 → 真跑 → 回读断言。
+
+    返回信封（成功/失败都返回），**None 表示没有可用离线包**（调用方继续走在线通道）。
+    为什么不是 `dpkg -i`：sury 的扩展包全部钉死 `php8.4-common (= 精确版本)`，
+    少一个包就会把系统解包到一半再失败（PHP 直接起不来）；apt 会先求解，
+    卸载任何东西或求不出解就在**未动文件**的前提下中止。
+    """
+    try:
+        data_dir = yf.getPanelDataDir()
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[php-apt] 取 data 目录失败: %s', ex)
+        return None
+    bundle = php_deb_bundle.offline_bundle(data_dir, branch, floor)
+    if not bundle['entries']:
+        _logLine('[php-apt] 离线包通道不可用：%s' % bundle['text'])
+        return None
+    if not bundle['ok']:
+        _logLine('[php-apt] 离线包预检未通过：%s' % bundle['text'])
+        if not report_invalid:
+            # 预检不过不等于升级无望：本地索引可能还能用，先让在线通道试一把
+            return None
+        why = ('（在线通道原因：%s）' % reason) if reason else ''
+        # 模板必须写成**一整条字面量**：i18n 门禁按字面量去语言包里找键，
+        # 相邻字符串拼接会让它只看到前半截（变成「漏翻」且语言包里的键成了死键）。
+        return yf.returnJson(
+            False,
+            '离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s'
+            % (bundle['text'], ver, '、'.join(bundle['dirs']), why),
+            {'offline': True, 'problems': bundle['problems'], 'refresh_rc': -1})
+
+    _logLine('[php-apt] 离线包通道就绪：%s' % bundle['text'])
+    tmp_root = tempfile.mkdtemp(prefix='yf_php_deb_')
+    try:
+        repo = php_deb_bundle.build_repo(bundle['entries'], os.path.join(tmp_root, 'repo'))
+        if not repo['ok']:
+            return yf.returnJson(False, '离线包仓库构建失败：%s' % repo['text'],
+                                 {'offline': True})
+        os.chmod(tmp_root, 0o755)   # 让 apt 的 _apt 用户能读（否则日志里会刷权限警告）
+        repo_dir = os.path.dirname(repo['packages'])
+        try:
+            os.chmod(repo_dir, 0o755)
+        except OSError as _e:
+            _log.debug('[php-apt] chmod 离线仓库目录失败（不影响升级）: %s', _e)
+        repo_args = php_deb_bundle.apt_repo_args(repo_dir)
+        from core import proc_stream
+        env = dict(os.environ)
+        # 系统输出解析必须钉死 locale（中文 locale 下 apt 摘要全是中文，判据会失效）
+        env['LC_ALL'] = 'C'
+        env['LANG'] = 'C'
+        rc, tail, _to = proc_stream.run_streaming(
+            ['apt-get'] + repo_args + ['update'],
+            timeout=APT_REFRESH_TIMEOUT, tail_lines=10, env=env)
+        if rc != 0:
+            return yf.returnJson(False, '离线仓库刷新失败（rc=%s）：%s' % (rc, tail),
+                                 {'offline': True, 'rc': rc})
+        pkgs = php_sec_baseline.apt_package_names(branch)
+        # 传**函数调用**而不是裸变量：仓库的 shell 拼接棘轮把「首参是裸变量」
+        #（静态看不到构造过程）一律登记为新债。
+        _sim_rc, sim_out, sim_err = yf.execShellRc(
+            _simulate_argv(repo_args, pkgs), shell=False, timeout=APT_SIMULATE_TIMEOUT)
+        parsed = php_deb_bundle.parse_simulation((sim_out or '') + (sim_err or ''))
+        can_run, why = php_deb_bundle.judge_simulation(parsed)
+        _logLine('[php-apt] 离线升级预演：%s' % why)
+        if not can_run:
+            return yf.returnJson(False, '离线升级未执行：%s' % why,
+                                 {'offline': True, 'simulation': parsed})
+        # 升级前先报一句「要动谁」，任务日志里能对上（卸载/新增一目了然）
+        yf.writeLog('PHP安全升级', 'PHP%s(apt) 离线包升级：%s' % (ver, why))
+        rc, tail, _to = proc_stream.run_streaming(
+            ['apt-get'] + repo_args +
+            ['-o', 'Dpkg::Options::=--force-confdef',
+             '-o', 'Dpkg::Options::=--force-confold',
+             'install', '-y', '--only-upgrade'] + pkgs,
+            timeout=APT_UPGRADE_TIMEOUT, tail_lines=40, env=env)
+        after_pkg = php_sec_scan.read_package_version('apt', branch)
+        after, _raw = php_sec_baseline.parse_package_version(after_pkg)
+        before, _raw0 = php_sec_baseline.parse_package_version(before_pkg)
+        verdict = php_sec_baseline.verify_upgrade(
+            branch, before, after,
+            backport=php_sec_baseline.has_backport_marker('apt', after_pkg))
+        if verdict['ok']:
+            try:
+                restart(ver)
+            except Exception as _e:
+                _log.debug('[php-apt] 离线升级后重启 PHP%s-FPM 异常: %s', ver, _e)
+            dropPhpSecSnapshot()
+            text = '%s（离线包通道）' % verdict['text']
+            yf.writeLog('PHP安全升级', 'PHP%s(apt) %s' % (ver, text))
+            return yf.returnJson(True, text, {'before': before_pkg, 'after': after_pkg,
+                                              'rc': rc, 'offline': True, 'log_tail': tail})
+        try:
+            restart(ver)
+        except Exception as _e:
+            _log.debug('[php-apt] 离线升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
+        dropPhpSecSnapshot()
+        msg = ('离线包升级失败: %s（apt 退出码 %s）；离线通道没有旧版 .deb，无法自动回退，'
+               '如 PHP 已不可用，请把旧版本 .deb 放进同一目录后再升级一次' % (verdict['text'], rc))
+        yf.writeLog('PHP安全升级', 'PHP%s(apt) %s' % (ver, msg))
+        return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
+                                          'offline': True, 'log_tail': tail})
+    finally:
+        shutil.rmtree(tmp_root, ignore_errors=True)
+
+
 def upgradeToBaseline(version=''):
-    """任务队列入口：刷新索引 → apt 升级 → 回读断言 → 失败尝试钉回旧版本。"""
+    """任务队列入口：刷新索引 → （必要时走离线包）→ apt 升级 → 回读断言 → 失败钉回旧版本。"""
     err, ver = versionOrError(version)
     if err:
         return err
@@ -896,7 +1078,18 @@ def upgradeToBaseline(version=''):
         return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
 
     yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
-    upd_rc, upd_tail = _refreshPackageIndex()
+    upd_rc, upd_tail, diag = _refreshPackageIndex(branch)
+    diag = diag or {}
+    diag_text = ('；网络诊断：%s' % diag['summary']) if diag.get('summary') else ''
+    # 索引刷不下来且是「网络出口不通（认证网关/证书挟持/超时）」⇒ 在线通道注定失败，
+    # 直接试离线包；一个包也没扫到才回落到在线通道（保持旧行为：刷新失败不阻断）。
+    if upd_rc != 0 and diag.get('blocked'):
+        _logLine('[php-apt] 在线通道不可用，尝试离线 .deb 通道（实时证据：%s）'
+                 % (diag.get('summary') or 'apt-get update 失败'))
+        env = _offlineUpgrade(ver, branch, floor, before_pkg,
+                              reason=diag.get('summary') or upd_tail)
+        if env is not None:
+            return env
     from core import proc_stream
     # 边跑边回显：apt 升级可能跑几分钟，把输出捕获住会让任务日志空白（看着像卡死）
     rc, tail, _to = proc_stream.run_streaming(
@@ -906,9 +1099,9 @@ def upgradeToBaseline(version=''):
 
     after_pkg = php_sec_scan.read_package_version('apt', branch)
     after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
-    # 语言无关的兜底判据：升级前后 dpkg 包版本串完全相同 ⇒ 确实什么都没升
-    no_op = bool(_NO_UPGRADE_RE.search(combined)) or bool(
-        before_pkg and after_pkg and before_pkg == after_pkg)
+    # 语言无关的判据：升级前后 dpkg 包版本串完全相同 ⇒ 确实什么都没升
+    no_op = bool(before_pkg) and bool(after_pkg) and before_pkg == after_pkg
+    said_no_upgrade = bool(_NO_UPGRADE_RE.search(combined))
     verdict = php_sec_baseline.verify_upgrade(
         branch, before, after,
         backport=php_sec_baseline.has_backport_marker('apt', after_pkg))
@@ -923,32 +1116,44 @@ def upgradeToBaseline(version=''):
         return yf.returnJson(True, verdict['text'], {'before': before_pkg, 'after': after_pkg,
                                                      'rc': rc, 'log_tail': tail})
 
-    # 失败：先试自动钉回旧版本（apt 缓存/源里还有旧包才可能成功）
-    rollback_argv = php_sec_baseline.build_apt_rollback_argv(branch, before_pkg)
-    rb_rc, rb_out, rb_err = (-1, '', '')
-    if rollback_argv:
-        rb_rc, rb_out, rb_err = yf.execShellRc(list(rollback_argv), shell=False,
-                                               timeout=APT_UPGRADE_TIMEOUT)
+    # 失败：**先试离线包通道**（在线源里没有新版本时，离线包往往才是唯一出路）
+    env = _offlineUpgrade(ver, branch, floor, before_pkg,
+                          reason=diag.get('summary') or '', report_invalid=True)
+    if env is not None:
+        return env
+
+    # 只有「包真的换了」才需要钉回旧版；no_op 时回退是空操作，旧实现照样报
+    # 「自动回退成功」，等于给用户假的安心（真机现场就是这么误导的）。
+    rollback_argv = []
+    rb_rc = -1
+    if not no_op:
+        rollback_argv = php_sec_baseline.build_apt_rollback_argv(branch, before_pkg)
+        if rollback_argv:
+            rb_rc, _rb_out, _rb_err = yf.execShellRc(list(rollback_argv), shell=False,
+                                                    timeout=APT_UPGRADE_TIMEOUT)
     try:
         restart(ver)
     except Exception as _e:
         _log.debug('[php-apt] 升级失败后重启 PHP%s-FPM 异常: %s', ver, _e)
     dropPhpSecSnapshot()
-    hint = ' '.join(rollback_argv) if rollback_argv else '（无可用回退命令）'
     extra = ''
     if no_op:
-        # apt 以 0 退出但一个包都没升：这是「源里没有更新版本」，不是「已达标」
-        extra = ('；apt 报告 0 upgraded / 0 newly installed（源里没有比 %s 更新的包）'
-                 '，请检查 /etc/apt/sources.list 与 sury 源，并确认 apt-get update 成功%s'
-                 % (before, '' if upd_rc == 0 else '（本次刷新失败：%s）' % upd_tail))
-    msg = '升级失败: %s（apt 退出码 %s），自动回退%s%s；手工回退请执行: %s' % (
-        verdict['text'], rc, '成功' if rb_rc == 0 else '未成功（apt 不保证旧版本仍在源内）',
-        extra, hint)
+        extra = ('；apt %s（前后包版本串相同：%s），本次未做任何改动'
+                 % ('明确报告无可用更新' if said_no_upgrade else '没有升级任何包', before_pkg))
+    if diag.get('advice'):
+        extra += '；处置：%s' % diag['advice']
+    tail_msg = ''
+    if rollback_argv:
+        tail_msg = '；已尝试回退（%s）：%s\n手工回退：%s' % (
+            '成功' if rb_rc == 0 else '未成功，apt 不保证旧版本仍在源内',
+            before_pkg, ' '.join(rollback_argv))
+    msg = '升级失败: %s（apt 退出码 %s）%s%s%s' % (verdict['text'], rc, extra, diag_text,
+                                            tail_msg)
     yf.writeLog('PHP安全升级', 'PHP%s(apt) 升级失败: %s' % (ver, msg))
     return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
                                       'refresh_rc': upd_rc, 'no_op': no_op,
-                                      'rollback_rc': rb_rc, 'rollback_argv': rollback_argv,
-                                      'log_tail': tail})
+                                      'diagnosis': diag, 'rollback_rc': rb_rc,
+                                      'rollback_argv': rollback_argv, 'log_tail': tail})
 
 
 def dropPhpSecSnapshot():

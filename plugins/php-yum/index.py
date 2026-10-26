@@ -22,6 +22,8 @@ import logging
 # P0-2：安全基线表 + 包版本读取（与编译版/apt 插件共用同一份基线，不许各写一套）
 from core import php_sec_baseline
 from core import php_sec_scan
+# 元数据刷不下来时把「证书校验失败 / 302 到认证页」翻成人话
+from core import net_probe
 
 _log = logging.getLogger('yf.php_yum')
 
@@ -898,20 +900,78 @@ _NO_UPGRADE_RE = re.compile(
     re.I)
 
 
-def _refreshPackageIndex():
-    """刷新 yum 元数据，返回 (rc, 摘要)。失败只记录，不阻断。"""
+def _logLine(msg):
+    """同时写插件日志和 stdout —— 面板任务日志读的是子进程 stdout。"""
+    try:
+        yf.writeFileLog(msg)
+    except Exception as _e:
+        _log.debug('[php-yum] writeFileLog 失败: %s', _e)
+    try:
+        print(msg)
+        sys.stdout.flush()
+    except Exception as _e:
+        _log.debug('[php-yum] 回显失败: %s', _e)
+
+
+def _firstRepoUrl():
+    """从 yum 源配置里取第一个 http(s) 地址（报错原文里没有 URL 时用它做诊断对象）。"""
+    import glob
+    paths = ['/etc/yum.repos.d/*.repo', '/etc/yum.conf',
+             '/etc/dnf/repos.d/*.repo', '/etc/zypp/repos.d/*.repo']
+    for pattern in paths:
+        for path in sorted(glob.glob(pattern)):
+            try:
+                with open(path, 'r', encoding='utf-8', errors='replace') as fp:
+                    for line in fp:
+                        line = line.strip()
+                        if line.startswith('#'):
+                            continue
+                        idx = line.find('http')
+                        if idx < 0:
+                            continue
+                        # 去掉 repo 文件里可能带的引号/分隔符（`baseurl="http://..."`）
+                        tok = line[idx:].split()[0]
+                        for _q in ('"', "'", ',', ';'):
+                            tok = tok.strip(_q)
+                        if tok.startswith('http://') or tok.startswith('https://'):
+                            return tok
+            except OSError:
+                continue
+    return ''
+
+
+def _diagnoseSource(tail, branch=''):
+    """`yum makecache` 失败 → 结构化诊断（类型/结论/处置）。永不抛异常。"""
+    try:
+        url = net_probe.extract_url(tail) or _firstRepoUrl()
+        return net_probe.diagnose(url=url, text=tail, branch=branch)
+    except Exception as ex:            # noqa: BLE001 —— 诊断失败不能拖垮升级流程
+        _log.debug('[php-yum] 网络诊断异常: %s', ex)
+        return {'kind': net_probe.KIND_UNKNOWN, 'blocked': False,
+                'summary': '诊断不可用: %s' % ex, 'advice': '', 'url': '', 'host': ''}
+
+
+def _refreshPackageIndex(branch=''):
+    """刷新 yum 元数据，返回 (rc, 摘要, 诊断或 None)。失败只记录，不阻断。"""
     try:
         from core import proc_stream
         # 边跑边回显：元数据刷新可能跑几分钟，捕获输出会让任务日志空白
         rc, tail, _to = proc_stream.run_streaming(['yum', 'makecache'],
-                                                 timeout=YUM_REFRESH_TIMEOUT, tail_lines=10)
+                                                 timeout=YUM_REFRESH_TIMEOUT, tail_lines=30)
     except Exception as ex:
         _log.debug('[php-yum] yum makecache 异常: %s', ex)
-        return (-1, str(ex))
+        diag = _diagnoseSource(str(ex), branch)
+        _logLine('[php-yum] yum makecache 异常: %s；诊断：%s' % (ex, diag.get('summary')))
+        return (-1, str(ex), diag)
     tail = ' '.join((tail or '').split())[-200:]
     if rc != 0:
-        yf.writeFileLog('[php-yum] yum makecache 失败（rc=%s）: %s' % (rc, tail))
-    return (rc, tail)
+        diag = _diagnoseSource(tail, branch)
+        _logLine('[php-yum] yum makecache 失败（rc=%s）: %s' % (rc, tail))
+        _logLine('[php-yum] 网络诊断：%s' % (diag.get('summary') or ''))
+        if diag.get('advice'):
+            _logLine('[php-yum] 处置建议：%s' % diag['advice'])
+        return (rc, tail, diag)
+    return (rc, tail, None)
 
 
 def _queueUpgrade(ver, branch, floor):
@@ -981,7 +1041,9 @@ def upgradeToBaseline(version=''):
         return yf.returnJson(True, 'PHP%s 已达标（%s ≥ 基线 %s），无需升级' % (ver, before, floor))
 
     yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级开始：%s → 基线 %s' % (ver, before_pkg, floor))
-    upd_rc, upd_tail = _refreshPackageIndex()
+    upd_rc, upd_tail, diag = _refreshPackageIndex(branch)
+    diag = diag or {}
+    diag_text = ('；网络诊断：%s' % diag['summary']) if diag.get('summary') else ''
     from core import proc_stream
     # 边跑边回显：yum update 可能跑几分钟，把输出捕获住会让任务日志空白（看着像卡死）
     rc, tail, _to = proc_stream.run_streaming(
@@ -991,9 +1053,9 @@ def upgradeToBaseline(version=''):
 
     after_pkg = php_sec_scan.read_package_version('yum', branch)
     after, _raw2 = php_sec_baseline.parse_package_version(after_pkg)
-    # 语言无关的兜底判据：升级前后 rpm 包版本串完全相同 ⇒ 确实什么都没升
-    no_op = bool(_NO_UPGRADE_RE.search(combined)) or bool(
-        before_pkg and after_pkg and before_pkg == after_pkg)
+    # 语言无关的判据：升级前后 rpm 包版本串完全相同 ⇒ 确实什么都没升
+    no_op = bool(before_pkg) and bool(after_pkg) and before_pkg == after_pkg
+    said_no_upgrade = bool(_NO_UPGRADE_RE.search(combined))
     verdict = php_sec_baseline.verify_upgrade(
         branch, before, after,
         backport=php_sec_baseline.has_backport_marker('yum', after_pkg))
@@ -1016,14 +1078,17 @@ def upgradeToBaseline(version=''):
     manual = php_sec_baseline.build_yum_rollback_argv(branch, before_pkg)
     extra = ''
     if no_op:
-        extra = ('；yum 报告无可用更新（源里没有比 %s 更新的包），请检查 Remi 源配置'
-                 '并确认 yum makecache 成功%s'
-                 % (before, '' if upd_rc == 0 else '（本次刷新失败：%s）' % upd_tail))
-    msg = '升级失败: %s（yum 退出码 %s），YUM/Remi 不支持自动回退%s，手工回退请执行: %s' % (
-        verdict['text'], rc, extra, ' '.join(manual) if manual else '（无可用回退命令）')
+        extra = ('；yum %s（前后包版本串相同：%s），本次未做任何改动'
+                 % ('明确报告无可用更新' if said_no_upgrade else '没有升级任何包', before_pkg))
+    if diag.get('advice'):
+        extra += '；处置：%s' % diag['advice']
+    msg = '升级失败: %s（yum 退出码 %s）%s%s，YUM/Remi 不支持自动回退，手工回退请执行: %s' % (
+        verdict['text'], rc, extra, diag_text,
+        ' '.join(manual) if manual else '（无可用回退命令）')
     yf.writeLog('PHP安全升级', 'PHP%s(yum) 升级失败: %s' % (ver, msg))
     return yf.returnJson(False, msg, {'before': before_pkg, 'after': after_pkg, 'rc': rc,
                                       'refresh_rc': upd_rc, 'no_op': no_op,
+                                      'diagnosis': diag,
                                       'rollback_argv': manual, 'manual_rollback': True,
                                       'log_tail': tail})
 

@@ -181,5 +181,9 @@
     "扩展列表配置文件格式错误!": "Format du fichier de configuration de la liste d'extensions invalide !",
     "投递升级任务失败: %s": "Échec de la mise en file de la mise à niveau : %s",
     "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Tâche de mise à niveau déjà en file ou en cours ; voir la boîte de messages",
-    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Mise à niveau en file (base %s) ; voir la boîte de messages"
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Mise à niveau en file (base %s) ; voir la boîte de messages",
+    "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Pre-verification des paquets hors ligne echouee : %s ; action : placez le jeu complet de .deb de la branche PHP%s (y compris les nouvelles versions des extensions installees) dans %s puis reessayez%s",
+    "离线包仓库构建失败：%s": "Impossible de construire le depot de paquets hors ligne : %s",
+    "离线仓库刷新失败（rc=%s）：%s": "Echec de l'actualisation du depot hors ligne (rc=%s) : %s",
+    "离线升级未执行：%s": "Mise a niveau hors ligne non executee : %s"
 }

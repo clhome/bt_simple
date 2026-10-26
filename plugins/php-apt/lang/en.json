@@ -181,5 +181,9 @@
     "扩展列表配置文件格式错误!": "Extension list config file format error!",
     "投递升级任务失败: %s": "Failed to queue upgrade task: %s",
     "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Upgrade task already queued or running; see the message box for progress",
-    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Upgrade queued (baseline %s); see the message box for progress"
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Upgrade queued (baseline %s); see the message box for progress",
+    "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Offline package preflight failed: %s; fix: put the complete .deb set of the PHP%s branch (including the new versions of installed extensions) into %s and retry%s",
+    "离线包仓库构建失败：%s": "Failed to build the offline package repository: %s",
+    "离线仓库刷新失败（rc=%s）：%s": "Failed to refresh the offline repository (rc=%s): %s",
+    "离线升级未执行：%s": "Offline upgrade not executed: %s"
 }

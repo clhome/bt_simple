@@ -181,5 +181,9 @@
     "扩展列表配置文件格式错误!": "Fehlerhaftes Format der Konfigurationsdatei der Erweiterungsliste!",
     "投递升级任务失败: %s": "Upgrade-Aufgabe konnte nicht eingereiht werden: %s",
     "该升级任务已在队列中（排队或执行中），请在消息盒子查看进度": "Upgrade-Aufgabe ist bereits in der Warteschlange; Fortschritt im Nachrichtenfeld",
-    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Upgrade eingereiht (Basislinie %s); Fortschritt im Nachrichtenfeld"
+    "已提交升级任务（基线 %s），请在消息盒子查看进度": "Upgrade eingereiht (Basislinie %s); Fortschritt im Nachrichtenfeld",
+    "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Vorpruefung der Offline-Pakete fehlgeschlagen: %s; Abhilfe: legen Sie den vollstaendigen .deb-Satz des Zweigs PHP%s (inklusive neuer Versionen installierter Erweiterungen) in %s ab und wiederholen Sie den Vorgang%s",
+    "离线包仓库构建失败：%s": "Offline-Paketdepot konnte nicht erstellt werden: %s",
+    "离线仓库刷新失败（rc=%s）：%s": "Aktualisierung des Offline-Depots fehlgeschlagen (rc=%s): %s",
+    "离线升级未执行：%s": "Offline-Upgrade nicht ausgefuehrt: %s"
 }
