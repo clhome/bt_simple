@@ -159,16 +159,53 @@ def _compare_version(v1, v2):
 
 
 def getInstalledPhpVersions():
-    """获取系统 apt 安装的已就绪 PHP 版本列表（如 ['7.4', '8.1']）"""
+    """获取系统 apt **确实已安装**的 PHP 版本列表（如 ['7.4', '8.1']）。
+
+    只看目录名是不够的：`apt-get remove` 会留下 `/etc/php/<X.Y>` 与 dpkg 的 `rc`
+    记录（版本串仍可读），旧实现因此把**已卸载**的 PHP 当成已装；
+    真机现场就是这样对 PHP8.2 点「升级到基线」，apt 回
+    `Skipping php8.2-fpm, it is not installed and only upgrades are requested`。
+    判据改为以 dpkg 包状态为准（`php_sec_scan.read_package_version` 已识别 `rc`）。
+    """
     php_dir = getServerDir()
     if not os.path.exists(php_dir):
         return []
     versions = []
     for item in os.listdir(php_dir):
         full_path = os.path.join(php_dir, item)
-        if os.path.isdir(full_path) and re.match(r'^\d+\.\d+$', item):
-            versions.append(item)
+        if not os.path.isdir(full_path) or not re.match(r'^\d+\.\d+$', item):
+            continue
+        if not php_sec_scan.read_package_version('apt', item.replace('.', '')):
+            _log.debug('[php-apt] 跳过未安装（仅剩目录/配置）的 PHP%s: %s', item, full_path)
+            continue
+        versions.append(item)
     return sorted(versions)
+
+
+def missingPackageEnvelope(ver):
+    """读不到已装包时给前端的信封：区分「真没装」与「装过但已卸载（rc 残留）」。"""
+    hint = remnantHint(ver)
+    if hint:
+        _logLine('[php-apt] %s' % hint)
+        return yf.returnJson(False, hint, {'state': 'remnant'})
+    return yf.returnJson(False, '未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装' % ver)
+
+
+def remnantHint(ver):
+    """该版本只剩「已卸载残留」时，给一句可执行的处置办法（不是残留就返回空）。"""
+    branch = str(ver or '').replace('.', '')
+    try:
+        info = php_sec_scan.apt_package_state(branch)
+    except Exception as ex:                # noqa: BLE001 —— 提示失败不能让升级流程崩
+        _log.debug('[php-apt] 读取 dpkg 包状态失败: %s', ex)
+        return ''
+    if not info.get('remnant'):
+        return ''
+    # 注意：purge 的包名**不能**加引号 —— 要让 shell 把 `php8.2-*` 展开成真实包名
+    # （apt 自己不认通配符），写成 `'php8.2-*'` 反而会「找不到软件包」。
+    # 两条命令刻意分开写：语言包键里出现 `&&` 会被 i18n 污染检测当成注入特征。
+    return ('PHP%s 的 apt 包当前状态是 %s（已卸载，仅剩配置文件），apt 无法升级；请先清理残留（两条命令）：apt-get purge -y php%s-* ，再执行 rm -rf /etc/php/%s，然后在面板重新安装 PHP%s'
+            % (ver, info.get('state') or 'rc', ver, ver, ver))
 
 
 def getArgs():
@@ -936,7 +973,7 @@ def submitBaselineUpgrade(version=''):
 
     before_pkg = php_sec_scan.read_package_version('apt', branch)
     if not before_pkg:
-        return yf.returnJson(False, '未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装' % ver)
+        return missingPackageEnvelope(ver)
     before, _raw = php_sec_baseline.parse_package_version(before_pkg)
     if php_sec_baseline.has_backport_marker('apt', before_pkg):
         return yf.returnJson(True, 'PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级'
@@ -1069,7 +1106,7 @@ def upgradeToBaseline(version=''):
 
     before_pkg = php_sec_scan.read_package_version('apt', branch)
     if not before_pkg:
-        return yf.returnJson(False, '未检测到 apt 包 php%s-fpm，请确认已通过 APT 渠道安装' % ver)
+        return missingPackageEnvelope(ver)
     before, _raw = php_sec_baseline.parse_package_version(before_pkg)
     if php_sec_baseline.has_backport_marker('apt', before_pkg):
         return yf.returnJson(True, 'PHP%s 的 apt 包 %s 已带渠道回移补丁标记，无需升级'

@@ -312,13 +312,25 @@ def evaluate(entries, offline=False):
     }
 
 
+def _remnant_text(result):
+    """已卸载残留（`rc`：只剩配置文件）的一句话摘要；没有就返回空串。"""
+    leftovers = (result or {}).get('remnants') or []
+    if not leftovers:
+        return ''
+    names = '、'.join('PHP%s(%s)' % (r.get('branch') or '?', r.get('state') or '?')
+                     for r in leftovers)
+    return ('；另有 %d 个已卸载残留（%s）仅剩配置文件，可用 apt-get purge 清理'
+            % (len(leftovers), names))
+
+
 def summary_text(result):
     """把 `evaluate()` 的结果压成一行中文摘要（写面板日志/接口 msg 用）。"""
     result = result or {}
     state = result.get('state')
     date = result.get('baseline_date') or BASELINE_DATE
+    left_text = _remnant_text(result)
     if state == 'empty':
-        return '未检测到已安装的 PHP，跳过安全基线判定（基线表 %s）' % date
+        return ('未检测到已安装的 PHP，跳过安全基线判定（基线表 %s）%s' % (date, left_text))
     parts = []
     for item in result.get('items') or []:
         label = 'PHP%s(%s)' % (item.get('branch') or '?', item.get('channel') or '?')
@@ -328,8 +340,8 @@ def summary_text(result):
         parts.append('%s %s：%s' % (label, ver, item.get('text') or item.get('status')))
     head = '全部达标' if not parts else '发现 %d 项风险' % len(parts)
     tail = '；'.join(parts)
-    return '%s（基线表 %s%s）%s' % (head, date, '，离线判定' if result.get('offline') else '',
-                                   ('：' + tail) if tail else '')
+    return '%s（基线表 %s%s）%s%s' % (head, date, '，离线判定' if result.get('offline') else '',
+                                   ('：' + tail) if tail else '', left_text)
 
 
 # ---------------------------------------------------------------------------------

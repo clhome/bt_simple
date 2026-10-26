@@ -185,5 +185,6 @@
     "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Offline package preflight failed: %s; fix: put the complete .deb set of the PHP%s branch (including the new versions of installed extensions) into %s and retry%s",
     "离线包仓库构建失败：%s": "Failed to build the offline package repository: %s",
     "离线仓库刷新失败（rc=%s）：%s": "Failed to refresh the offline repository (rc=%s): %s",
-    "离线升级未执行：%s": "Offline upgrade not executed: %s"
+    "离线升级未执行：%s": "Offline upgrade not executed: %s",
+    "PHP%s 的 apt 包当前状态是 %s（已卸载，仅剩配置文件），apt 无法升级；请先清理残留（两条命令）：apt-get purge -y php%s-* ，再执行 rm -rf /etc/php/%s，然后在面板重新安装 PHP%s": "The apt package for PHP%s is in state %s (removed, only config files left), so apt cannot upgrade it; clean the leftovers first (two commands): apt-get purge -y php%s-* then run rm -rf /etc/php/%s, then install PHP%s again from the panel"
 }

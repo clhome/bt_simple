@@ -123,39 +123,117 @@ def collect_compiled(server_php_dir=DEFAULT_SERVER_PHP_DIR, run=_run):
     return out
 
 
-def _apt_package_version(branch, run=_run):
-    """dpkg-query 取 apt 包里 fpm/cli/common 任一已装包的版本串。"""
+#: dpkg 当前状态（第二个字符）里**算已装**的：
+#:   i=installed / U=unpacked / F=half-configured / H=half-installed /
+#:   W=triggers-awaited / t=triggers-pending
+#:
+#: 刻意排除 `c`(config-files) 与 `n`(not-installed)：`rc` 就是「已卸载、只剩配置文件」。
+#: 真机现场（2026-10-26）：`/etc/php/8.2` 目录还在、`dpkg-query -f='${Version}'` 还能
+#: 吐出 8.2.33，但包状态是 `rc` —— 面板因此把 PHP8.2 当成「已安装且低于基线」，
+#: 一键升级跑下去 apt 只说 `Skipping php8.2-fpm, it is not installed and only
+#: upgrades are requested`（0 upgraded），用户看到的就是「升级失败」。
+_DPKG_INSTALLED_CUR_STATES = 'iUFHWt'
+
+#: 一个「装过但已卸载」的残留（`rc`）也算线索：插件要把处置办法告诉用户。
+_DPKG_REMNANT_CUR_STATES = 'c'
+
+
+def parse_dpkg_row(text):
+    """`dpkg-query -W -f='${db:Status-Abbrev}\\t${Version}'` 的一行 → 结构化。
+
+    返回 `{'state','version','installed','remnant'}`。**兼容旧格式**（只有版本串、
+    没有状态列）：这种形态来自旧调用点/测试桩，当作「已装」，不能因为它把
+    真安装漏判成未装（漏判会让巡检静默失明）。
+    """
+    raw = str(text if text is not None else '').strip('\n')
+    if not raw.strip():
+        return {'state': '', 'version': '', 'installed': False, 'remnant': False}
+    if '\t' in raw:
+        state, _, ver = raw.partition('\t')
+        state = state.strip()
+        cur = state[1:2]
+        return {
+            'state': state,
+            'version': ver.strip(),
+            'installed': bool(state) and state[:1] in ('i', 'h')
+            and cur in _DPKG_INSTALLED_CUR_STATES,
+            'remnant': bool(state) and state[:1] == 'r'
+            and cur in _DPKG_REMNANT_CUR_STATES,
+        }
+    return {'state': 'ii', 'version': raw.strip(), 'installed': True, 'remnant': False}
+
+
+def apt_package_state(branch, run=_run):
+    """该分支的 apt 包处于什么状态：`{'package','state','version','installed','remnant'}`。
+
+    按 fpm → cli → common 顺序找第一个「有记录」的包：只要有一个是已装，就算装了；
+    否则记住第一个残留（`rc`），好让插件把「需先清理残留」说清楚。
+    """
     ver = '%s.%s' % (str(branch)[0], str(branch)[1:])
+    empty = {'package': '', 'state': '', 'version': '', 'installed': False, 'remnant': False}
+    remnant = None
     for pkg in ('php%s-fpm' % ver, 'php%s-cli' % ver, 'php%s-common' % ver):
-        rc, out = run(['dpkg-query', '-W', '-f=${Version}', pkg])
-        if rc == 0 and out.strip():
-            return out.strip()
-    return ''
+        rc, out = run(['dpkg-query', '-W', '-f=${db:Status-Abbrev}\t${Version}', pkg])
+        if rc != 0 or not str(out or '').strip():
+            continue
+        info = parse_dpkg_row(out)
+        info['package'] = pkg
+        if info['installed']:
+            return info
+        if info['remnant'] and remnant is None:
+            remnant = info
+    return remnant or empty
 
 
-def collect_apt(apt_root=DEFAULT_APT_ROOT, run=_run):
-    """采集 apt 版（`/etc/php/<X.Y>`）已装实例：数字版本 + 包版本串（渠道标记）。"""
+def _apt_package_version(branch, run=_run):
+    """dpkg-query 取 apt 包里 fpm/cli/common 任一**已安装**包的版本串。"""
+    info = apt_package_state(branch, run=run)
+    return info['version'] if info['installed'] else ''
+
+
+def collect_apt_remnants(apt_root=DEFAULT_APT_ROOT, run=_run):
+    """采集「目录还在但包已卸载（`rc`）」的残留，供巡检/插件提示用户清理。"""
     out = []
+    for name in _apt_version_dirs(apt_root):
+        branch = name.replace('.', '')
+        info = apt_package_state(branch, run=run)
+        if info['installed'] or not info['remnant']:
+            continue
+        out.append({'branch': branch, 'channel': 'apt', 'state': info['state'],
+                    'version': info['version'], 'path': os.path.join(apt_root, name)})
+    return out
+
+
+def _apt_version_dirs(apt_root=DEFAULT_APT_ROOT):
+    """`/etc/php/<X.Y>` 形态的目录名（`X.Y`）。"""
     try:
         names = sorted(os.listdir(apt_root))
     except OSError:
-        return out
-    for name in names:
-        m = _APT_DIR_RE.match(name)
-        if not m:
-            continue
-        path = os.path.join(apt_root, name)
-        if not os.path.isdir(path):
-            continue
-        branch = m.group(1) + m.group(2)
+        return []
+    return [n for n in names
+            if _APT_DIR_RE.match(n) and os.path.isdir(os.path.join(apt_root, n))]
+
+
+def collect_apt(apt_root=DEFAULT_APT_ROOT, run=_run):
+    """采集 apt 版（`/etc/php/<X.Y>`）**已安装**实例：数字版本 + 包版本串（渠道标记）。
+
+    目录在、但包已卸载（`rc`）的不算已装实例 —— 否则巡检会报一个不存在的 PHP
+    「低于基线」，点升级后 apt 只会说 `not installed and only upgrades are requested`。
+    残留由 `collect_apt_remnants()` 单独采，走「提示清理」而不是「告警升级」。
+    """
+    out = []
+    for name in _apt_version_dirs(apt_root):
+        branch = name.replace('.', '')
         pkg_ver = _apt_package_version(branch, run=run)
+        if not pkg_ver:
+            continue
         num, _raw = baseline.parse_package_version(pkg_ver)
         out.append({
             'branch': branch,
             'channel': 'apt',
             'version': num,
             'package_version': pkg_ver,
-            'path': path,
+            'path': os.path.join(apt_root, name),
         })
     return out
 
@@ -217,6 +295,7 @@ def scan(server_php_dir=DEFAULT_SERVER_PHP_DIR, apt_root=DEFAULT_APT_ROOT,
     result['scan_time'] = int(now if now is not None else time.time())
     result['scan_time_text'] = time.strftime('%Y-%m-%d %H:%M:%S',
                                              time.localtime(result['scan_time']))
+    result['remnants'] = collect_apt_remnants(apt_root, run=run)
     result['summary'] = baseline.summary_text(result)
     return result
 

@@ -185,5 +185,6 @@
     "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Pre-verifica dei pacchetti offline non riuscita: %s; azione: inserisci l'insieme completo di .deb del ramo PHP%s (incluse le nuove versioni delle estensioni installate) in %s e riprova%s",
     "离线包仓库构建失败：%s": "Impossibile creare il repository offline: %s",
     "离线仓库刷新失败（rc=%s）：%s": "Aggiornamento del repository offline non riuscito (rc=%s): %s",
-    "离线升级未执行：%s": "Aggiornamento offline non eseguito: %s"
+    "离线升级未执行：%s": "Aggiornamento offline non eseguito: %s",
+    "PHP%s 的 apt 包当前状态是 %s（已卸载，仅剩配置文件），apt 无法升级；请先清理残留（两条命令）：apt-get purge -y php%s-* ，再执行 rm -rf /etc/php/%s，然后在面板重新安装 PHP%s": "Il pacchetto apt di PHP%s e nello stato %s (rimosso, restano solo i file di configurazione), apt non puo aggiornarlo; rimuovi prima i residui (due comandi): apt-get purge -y php%s-* poi esegui rm -rf /etc/php/%s, poi reinstalla PHP%s dal pannello"
 }

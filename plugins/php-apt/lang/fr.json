@@ -185,5 +185,6 @@
     "离线包预检未通过：%s；处置：把 PHP%s 该分支完整的 .deb（包括已装扩展包的新版本）放进 %s 后重试%s": "Pre-verification des paquets hors ligne echouee : %s ; action : placez le jeu complet de .deb de la branche PHP%s (y compris les nouvelles versions des extensions installees) dans %s puis reessayez%s",
     "离线包仓库构建失败：%s": "Impossible de construire le depot de paquets hors ligne : %s",
     "离线仓库刷新失败（rc=%s）：%s": "Echec de l'actualisation du depot hors ligne (rc=%s) : %s",
-    "离线升级未执行：%s": "Mise a niveau hors ligne non executee : %s"
+    "离线升级未执行：%s": "Mise a niveau hors ligne non executee : %s",
+    "PHP%s 的 apt 包当前状态是 %s（已卸载，仅剩配置文件），apt 无法升级；请先清理残留（两条命令）：apt-get purge -y php%s-* ，再执行 rm -rf /etc/php/%s，然后在面板重新安装 PHP%s": "Le paquet apt de PHP%s est dans l'etat %s (desinstalle, seuls les fichiers de configuration restent), apt ne peut pas le mettre a niveau ; nettoyez d'abord les restes (deux commandes) : apt-get purge -y php%s-* puis rm -rf /etc/php/%s, puis reinstallez PHP%s depuis le panneau"
 }
