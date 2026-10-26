@@ -3057,13 +3057,14 @@ function phpSecChannelLabel(channel) {
     return channel || '';
 }
 
-// 渲染单条 PHP 实例（版本 / 结论 / 基线 / 升级按钮）
+// 渲染单条 PHP 实例（版本 / 结论 / 基线 / 迁移建议或升级入口）
 function phpSecRenderItem(item) {
     var version = phpSecEscape(item.version || '-');
     var branch = phpSecEscape(item.branch || '');
     var floor = item.floor ? (t('index.php_sec_baseline', '基线') + ' ' + phpSecEscape(item.floor)) : '';
     var key = PHP_SEC_STATUS_KEYS[item.status] || '';
-    var statusText = key ? t(key, item.text || '') : '';
+    var args = [item.migrate_to || ''];
+    var statusText = key ? t(key, args, item.text || '') : '';
     var color = (item.status === 'ok') ? '#20a53a' : '#ff2020';
     var html = '<div class="php-sec-item" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px dashed var(--border-color, #edf2f7); font-size:12px;">';
     html += '<span class="php-sec-branch" style="font-weight:600; min-width:104px;">PHP ' + branch +
@@ -3075,7 +3076,13 @@ function phpSecRenderItem(item) {
     if (floor) {
         html += '<span class="c9 f11">' + floor + '</span>';
     }
-    if (item.upgrade_hint && item.upgrade_hint !== 'no_fix') {
+    // migrate_to 非空 = 该分支已停止维护（< 8.2），官方不会再给本次漏洞任何修复：
+    // 唯一出路是卸载并迁到 8.2+。这里**不再**挂「升级到安全版本」这种点了也没用的入口
+    // （真机 7.4/8.0/8.1 就是挂着按钮但升不动）。
+    if (item.migrate_to) {
+        html += '<span class="f11 php-sec-migrate" style="margin-left:auto; color:#fa8c16; font-weight:600;">' +
+            phpSecEscape(t('index.php_sec_migrate_advice', args, '')) + '</span>';
+    } else if (item.upgrade_hint && item.upgrade_hint !== 'no_fix') {
         html += '<a class="btlink f11" style="margin-left:auto;" href="javascript:;"' +
             ' data-php-sec-branch="' + branch + '"' +
             ' data-php-sec-plugin="' + phpSecEscape(item.plugin || '') + '"' +

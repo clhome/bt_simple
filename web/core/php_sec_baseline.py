@@ -56,6 +56,14 @@ OFFICIAL_SHA256 = {
 #: 才算合格（纯数字永远追不上，因为官方不会再发这些分支的新版本）。
 BACKPORT_REQUIRED_BRANCHES = ('74', '80', '81')
 
+#: **官方仍在做完整安全维护**的最低分支（= 本面板给出的迁移底线）。
+#:
+#: 为什么单列一个常量：7.4 / 8.0 / 8.1 已经停止维护，本次 CVE 官方**不会**再给它们
+#: 任何修复（最多发行版自己回移）。对这类分支只会在面板上「提醒确认」而不告诉用户
+#: 该怎么活 —— 实际处置只能是：**卸掉它，迁到 8.2 及以上**。所以「建议迁移」的
+#: 目标版本必须和基线表放在同一处（面板里不许出现第二个 8.2）。
+MIGRATION_MIN_BRANCH = '82'
+
 #: 两个洞都**没有任何官方修复**的分支（≤ 7.3）：直接判危，不看渠道标记。
 NO_FIX_MAX_BRANCH = 73
 
@@ -91,9 +99,11 @@ STATUS_UNKNOWN = 'unknown'                # 版本读不出来 / 分支未纳入
 STATUS_TEXT = {
     STATUS_OK: '已达到安全基线',
     STATUS_NEED_UPGRADE: '低于安全基线，需升级',
-    STATUS_BACKPORT_MISSING: '缺少官方 backport 标记，需确认是否已回移补丁',
+    # 7.4/8.0/8.1：官方已停维，本次漏洞不会再修 —— 不要再写「需确认是否已回移补丁」
+    # 这种让人以为「再等等就有补丁」的话（用户明确要求：这类分支应建议卸载并迁移）。
+    STATUS_BACKPORT_MISSING: '分支已停止维护，官方无修复方案（仅发行版可能回移），需迁移',
     STATUS_BACKPORT_UNVERIFIED: '渠道未标注补丁回移，需人工确认',
-    STATUS_NO_FIX: '该分支无官方安全修复，禁止公网使用',
+    STATUS_NO_FIX: '该分支无官方安全修复，禁止公网使用，需迁移',
     STATUS_UNKNOWN: '版本无法识别',
 }
 
@@ -262,7 +272,41 @@ def judge_entry(entry):
         'upgrade_hint': hint,
         'plugin': plugin,
         'text': STATUS_TEXT.get(status, ''),
+        # 迁移建议：分支低于 8.2 时非空（前端拼成「建议卸载并升级到 PHP x.y 及以上」）。
+        # 已达标的 EOL 分支（发行版已回移补丁）不再提示迁移——面板不替用户否定发行版。
+        'migrate_to': ('' if status == STATUS_OK else
+                       (branch_version(MIGRATION_MIN_BRANCH)
+                        if migration_advice(branch) else '')),
+        'advice': '' if status == STATUS_OK else migration_advice(branch),
     }
+
+
+def branch_number(branch):
+    """分支目录名 → 比较用整数（`82` → 82，`8.2` → 82，非法 → 0）。"""
+    raw = str(branch or '').strip().replace('.', '')
+    return int(raw) if raw.isdigit() else 0
+
+
+def migration_advice(branch):
+    """该分支的**迁移建议**（不需要迁移时返回空）。
+
+    口径：分支低于 `MIGRATION_MIN_BRANCH`（= 8.2）就是官方已停维的线 —— 本次 CVE
+    官方不会给它们任何修复，唯一处置是**卸掉并迁到 8.2 及以上**。
+    前端拿 `migrate_to` 拼成一句话，后端日志/摘要拿 `advice` 直接用。
+    """
+    bnum = branch_number(branch)
+    if not bnum or bnum >= branch_number(MIGRATION_MIN_BRANCH):
+        return ''
+    return ('该分支官方已停止维护，本次漏洞不会再修复：建议卸载该 PHP 版本，'
+            '并升级到 PHP %s 及以上' % branch_version(MIGRATION_MIN_BRANCH))
+
+
+def branch_version(branch):
+    """`82` → `8.2`（与面板里的版本写法一致）。"""
+    raw = str(branch or '').strip().replace('.', '')
+    if len(raw) < 2:
+        return ''
+    return '%s.%s' % (raw[0], raw[1:])
 
 
 def upgrade_hint(status, channel, branch):
@@ -278,6 +322,11 @@ def upgrade_hint(status, channel, branch):
     if status == STATUS_OK:
         return '', plugin
     if status == STATUS_NO_FIX:
+        return 'no_fix', plugin
+    # 已停维的分支（< 8.2：7.4/8.0/8.1）**没有「升到安全版」这条路**：官方不会再
+    # 发新版，发行版回移补丁也不由面板装。旧实现在这里给 apt 渠道返回 'apt'，
+    # 首页就挂着一个点了也没用的「升级到安全版本」（真机 7.4 就是这样）。
+    if branch_number(branch) and branch_number(branch) < branch_number(MIGRATION_MIN_BRANCH):
         return 'no_fix', plugin
     channel = str(channel or '').lower()
     if channel == 'src':
