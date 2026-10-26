@@ -3006,9 +3006,16 @@ function phpVersion(siteName) {
 								<div class='info-r'>\
 									<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>";
       var optionSelect = '';
+      var hasCurrent = false;
       for (var i = 0; i < rdata.length; i++) {
-        optionSelect = (version.phpversion == rdata[i].version) ? 'selected' : '';
-        versionSelect += "<option value='" + rdata[i].version + "' " + optionSelect + ">" + rdata[i].name + "</option>";
+        optionSelect = (version.phpversion == rdata[i].version) ? ' selected' : '';
+        if (optionSelect) hasCurrent = true;
+        versionSelect += "<option value='" + rdata[i].version + "'" + optionSelect + ">" + rdata[i].name + "</option>";
+      }
+      // 站点现用的版本已不可用（二进制被删/包已卸载）时，把它也放进下拉并回显，
+      // 否则 select 会默默显示成第一个选项，看起来像“版本自己变了”。
+      if (!hasCurrent && version.phpversion && version.phpversion != '00') {
+        versionSelect += "<option value='" + version.phpversion + "' selected>PHP-" + version.phpversion + "</option>";
       }
       versionSelect += "</select>\
 							<button class='btn btn-success btn-sm' onclick=\"setPHPVersion('" + siteName + "')\">" + ((lan && lan.site && t('site.switch')) || '切换') + "</button>\
@@ -3023,6 +3030,10 @@ function phpVersion(siteName) {
 						</div>\
 					</div>";
       $("#webedit-con").html(versionSelect);
+      // 当前 PHP 已不可用（例如基线折腾后 bin/php 被清空、或包已卸载）→ 红字提示尽快切走
+      if (version.available === false) {
+        $('#php_w').text(t('site.the_specified_php_version'));
+      }
       //验证PHP版本
       $("select[name='phpVersion']").on('change', function () {
         if ($(this).val() == '52') {
@@ -3060,17 +3071,28 @@ function setPHPVersion(siteName) {
 
 //直接在列表页修改PHP版本
 function changePHPVersion(id, siteName, currentVersion) {
-  var currentVersionText = currentVersion == '00' ? lan && lan.site && t('site.change_the_php_version_1') || "" : currentVersion.length == 2 ? currentVersion.substring(0, 1) + '.' + currentVersion.substring(1) : currentVersion;
+  var currentVersionText = currentVersion == '00' ? (lan && lan.site && t('site.change_the_php_version_1') || "") : currentVersion.length == 2 ? currentVersion.substring(0, 1) + '.' + currentVersion.substring(1) : currentVersion;
   $.post('/site/get_php_version', function (data) {
-    var rdata = data.data;
+    var rdata = (data && data.data) ? data.data : [];
+    if (!Array.isArray(rdata)) rdata = [];
     var optionsHtml = '';
+    var hasCurrent = false;
     for (var i = 0; i < rdata.length; i++) {
-      var isSelected = currentVersion == rdata[i].version ? 'selected' : '';
-      optionsHtml += "<option value='" + rdata[i].version + "' " + isSelected + ">" + rdata[i].name + "</option>";
+      var isSelected = currentVersion == rdata[i].version ? ' selected' : '';
+      if (isSelected) hasCurrent = true;
+      optionsHtml += "<option value='" + rdata[i].version + "'" + isSelected + ">" + rdata[i].name + "</option>";
     }
-    var msgHTML = t('site.change_php_version_msg', [siteName, currentVersionText, optionsHtml]);
+    // 站点当前用的版本若已不可用（二进制被删 / 包已卸载），也要把它显示出来：
+    // 否则下拉里看不到现状，用户不知道自己在改什么。
+    if (!hasCurrent) {
+      optionsHtml = "<option value='" + currentVersion + "' selected>PHP-" + currentVersion + "</option>" + optionsHtml;
+    }
+    // 必须是**真的** <select id='newPHPVersion'>：旧实现把 <option> 拼进一段纯文本里，
+    // 浏览器只会把选项当文字显示（真机截图就是这样），用户根本选不出版本。
+    var selectHtml = "<select id='newPHPVersion' class='bt-input-text' style='width:150px'>" + optionsHtml + "</select>";
+    var msgHTML = t('site.change_php_version_msg', [siteName, currentVersionText, selectHtml]);
     var btnHTML = t('site.confirm_change_php');
-    var bodyContent = "<div class='info-r'>" + msgHTML + "</div><div class='info-r'><button class='btn btn-success btn-sm' onclick=\"setPHPVersion('" + siteName + "', '" + currentVersionText + "')\">" + btnHTML + "</button></div>";
+    var bodyContent = "<div class='info-r'>" + msgHTML + "</div><div class='info-r'><button class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('" + siteName + "')\">" + btnHTML + "</button></div>";
     layer.open({
       type: 1,
       skin: 'demo-class',
@@ -3084,36 +3106,29 @@ function changePHPVersion(id, siteName, currentVersion) {
   }, 'json');
 }
 
-//提交列表直接修改的PHP版本并进行二次确认
-function submitChangePHPVersion(siteName, currentVersionText) {
+//提交列表直接修改的PHP版本（弹窗里已确认过一次，这里不再二次确认）
+function submitChangePHPVersion(siteName) {
   var newVersion = $("#newPHPVersion").val();
-  var newVersionText = $("#newPHPVersion option:selected").text();
-  var confirmMsg = (lan && lan.site && t('site.static_3') || "") + siteName + ('</textarea>			<div class=\'info-r\'>				<button id=\'SaveConfigFileBtn\' class=\'btn btn-success btn-sm\' style=\'margin-top:15px;\'>' + (lan && lan.site && t('site.save_5') || '保存') + '</button>				<ul class=\'help-info-text c7 ptb10\'>					<li>' + (lan && lan.site && t('site.this_is_the_site') || '此处为站点主配置文件,若您不了解配置规则,请勿随意修改.') + '</li>				</ul>			</div>		</div>') + currentVersionText + (lan && lan.site && t('site.saving_3') || "") + newVersionText + (lan && lan.site && t('site.empirecms_empire_cms') || "");
-  layer.confirm(confirmMsg, {
-    icon: 3,
-    title: lan && lan.site && t('site.dedecms_dede') || "",
-    closeBtn: 2
-  }, function (index) {
-    layer.close(index);
-    var loadT = layer.msg(lan && lan.site && t('site.mvc_generic_mvc_pseudo') || "", {
-      icon: 16,
-      time: 0,
-      shade: [0.3, '#000']
-    });
-    var data = 'version=' + newVersion + '&siteName=' + siteName;
-    $.post('/site/set_php_version', data, function (rdata) {
-      layer.close(loadT);
-      layer.msg(rdata.msg, {
-        icon: rdata.status ? 1 : 2
-      });
-      if (rdata.status) {
-        layer.closeAll();
-        var php_show_text = newVersion == '00' ? lan && lan.site && t('site.seacms_ocean_cms') || "" : newVersion.length == 2 ? newVersion.substring(0, 1) + '.' + newVersion.substring(1) : newVersion;
-        var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + newVersion + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
-        $("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
-      }
-    }, 'json');
+  if (!newVersion) {
+    layer.msg(t('site.the_specified_php_version'), { icon: 2 });
+    return;
+  }
+  var loadT = layer.msg((lan && lan.site && t('site.saving')) || '正在保存...', {
+    icon: 16,
+    time: 0,
+    shade: [0.3, '#000']
   });
+  $.post('/site/set_php_version', { version: newVersion, siteName: siteName }, function (rdata) {
+    layer.close(loadT);
+    layer.msg(rdata.msg, {
+      icon: rdata.status ? 1 : 2
+    });
+    if (!rdata.status) return;
+    layer.closeAll();
+    var php_show_text = newVersion == '00' ? (lan && lan.site && t('site.static') || '静态') : newVersion.length == 2 ? newVersion.substring(0, 1) + '.' + newVersion.substring(1) : newVersion;
+    var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + newVersion + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
+    $("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
+  }, 'json');
 }
 
 //配置文件

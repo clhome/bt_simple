@@ -38,6 +38,79 @@ _SITE_NAME_SHELL_RE = re.compile(r"[;|&$`()<>{}\'\"]")
 #: 域名（与 addDomain 的历史正则保持一致，另允许泛域名前缀）
 _DOMAIN_RE = re.compile(r"^([\w\-\*]{1,100}\.){1,4}([\w\-]{1,24}|[\w\-]{1,24}\.[\w\-]{1,24})$")
 
+#: 站点可切换的 PHP 版本标识 —— 与各渠道生成的 `enable-php-<标识>.conf` 一一对应：
+#:
+#:   * `00`           纯静态（不发 PHP 请求）
+#:   * `80`/`83`      编译版（`/www/server/php/<NN>`）
+#:   * `apt8.3`       sury / 发行版包（socket `/run/php/php8.3-fpm.sock`）
+#:   * `yum83`        Remi（socket `/var/opt/remi/php83/run/php-fpm/www.sock`）
+#:
+#: 旧实现只认 `^[0-9]{2,3}$`，可下拉里明明同时列着 apt/yum 版本 —— 选中它们
+#: 必然报「指定PHP版本未安装!」（真机现场：站点改 PHP 版本一直失败），
+#: 而前端又把 `<option>` 拼成一段纯文本、确认按钮读了一个不存在的 `#phpVersion`，
+#: 于是用户看到的就是「点修改 PHP 版本没反应 / 改不了」。
+PHP_SITE_VERSION_RE = re.compile(r'^(?:00|[0-9]{2,3}|apt[0-9]{1,3}\.[0-9]{1,3}|yum[0-9]{2,3})$')
+
+
+def phpVersionAvailable(version, server_dir=None):
+    """该「站点 PHP 版本标识」现在是不是**真的可用**（列表与切换共用这一个判据）。
+
+    刻意**不**拿「`enable-php-*.conf` 还在」当依据 —— 卸载 PHP 不会删这个模板，
+    反向拿它当「已安装」就会把死版本列进下拉（真机：apt8.2 已卸载只剩配置，
+    却仍出现在「修改 PHP 版本」的下拉里，选了就挂）：
+
+      * 编译版：`/www/server/php/<NN>/bin/php` 必须存在且**非空**
+        （真机踩过：`bin/php` 变成 0 字节后 `os.path.exists()` 仍为真，面板
+         照样把 PHP-80 列出来，切过去 CLI 全废）；
+      * apt：`dpkg` 包状态必须是已安装（`rc` = 已卸载只剩配置，不算）；
+      * yum：`rpm -q php<NN>-php-fpm` 能取到版本。
+
+    `server_dir` 可注入（testsuite 用临时目录断言，不碰真机目录）。
+    """
+    vid = str(version or '').strip()
+    if not PHP_SITE_VERSION_RE.match(vid):
+        return False
+    if vid == '00':
+        return True
+    base = server_dir or yf.getServerDir()
+    try:
+        from core import php_sec_scan as scan
+    except Exception as ex:            # noqa: BLE001 —— 判存失败不能把面板搞崩
+        _log.debug('[site] 导入 php_sec_scan 失败（退化为目录判存）: %s', ex)
+        scan = None
+    if vid.startswith('apt'):
+        xy = vid[3:]
+        branch = xy.replace('.', '')
+        if scan is not None:
+            try:
+                info = scan.apt_package_state(branch)
+            except Exception as ex:    # noqa: BLE001
+                _log.debug('[site] 读 apt 包状态失败: %s', ex)
+                info = {}
+            if info.get('installed'):
+                return True
+            if info.get('state'):
+                # dpkg 明确给了状态（rc/un/…）⇒ 没装就是没装，别再退回目录判断
+                return False
+        apt_root = getattr(scan, 'DEFAULT_APT_ROOT', '/etc/php') if scan else '/etc/php'
+        return os.path.isdir(os.path.join(apt_root, xy, 'fpm'))
+    if vid.startswith('yum'):
+        branch = vid[3:]
+        if scan is not None:
+            try:
+                if scan.read_package_version('yum', branch):
+                    return True
+            except Exception as ex:    # noqa: BLE001
+                _log.debug('[site] 读 rpm 包版本失败: %s', ex)
+        yum_root = getattr(scan, 'DEFAULT_YUM_ROOT', '/etc/opt/remi') if scan else '/etc/opt/remi'
+        return os.path.isdir(os.path.join(yum_root, 'php%s' % branch))
+    # 编译版：二进制必须存在且非空
+    bin_php = os.path.join(base, 'php', vid, 'bin', 'php')
+    try:
+        return os.path.getsize(bin_php) > 0
+    except OSError:
+        return False
+
 #: 邮箱：用于拼接 acme 命令串，只允许安全字符
 _EMAIL_RE = re.compile(r'^[A-Za-z0-9_.+@\-]*$')
 
@@ -1574,17 +1647,17 @@ class sites(object):
         # 会抛 TypeError（真机实测 /site/get_site_php_version 穿趈名 500）
         if not conf:
             return {'phpversion': '00'}
-        rep = r"enable-php-(.*)\.conf"
+        rep = r"enable-php-(.*?)\.conf"
         find_php_cnf = re.search(rep, conf)
 
         def_pver = '00'
         if find_php_cnf:
             tmp = find_php_cnf.groups()
             def_pver = tmp[0]
-            
-        data = {}
-        data['phpversion'] = def_pver
-        return data
+
+        # `available=False` = 站点正用一个已经不存在的 PHP（二进制被删/包已卸载）——
+        # 前端要把现状显示出来并提示尽快切走，而不是让用户对着下拉框发愣。
+        return {'phpversion': def_pver, 'available': phpVersionAvailable(def_pver)}
 
     def httpToHttps(self, site_name):
         file = self.getHostConf(site_name)
@@ -2560,11 +2633,11 @@ location  {from} {\n\
         version = str(version or '').strip()
         if not siteName:
             return yf.returnData(False, 'site.py_msg_dbd9b9')
-        # 版本号必须真实存在：旧代码任意字符串都会写进 vhost（enable-php-zz.conf
-        # 不存在 -> nginx -t 不过），而接口还报“切换成功”。
-        if not re.match(r'^[0-9]{2,3}$', version):
-            return yf.returnData(False, 'site.py_msg_b8a2ef')
-        if not os.path.exists(self.setupPath + '/php/conf/enable-php-' + version + '.conf'):
+        # 版本标识必须**既在白名单里、又是真的装了**：旧实现只校验
+        # `^[0-9]{2,3}$`，而下拉里分明列着 `apt8.3`/`yum83`，选中它们一律报
+        # 「指定PHP版本未安装!」；后半句的 conf 存在性也挡不住「PHP 已卸载但
+        # 模板还残留」的死版本。
+        if not PHP_SITE_VERSION_RE.match(version):
             return yf.returnData(False, 'site.py_msg_b8a2ef')
 
         # nginx
@@ -2572,10 +2645,23 @@ location  {from} {\n\
         conf = yf.readFile(file)
         if not conf:
             return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
-        rep = r"enable-php-(.*)\.conf"
+        rep = r"enable-php-(.*?)\.conf"
         find_php = re.search(rep, conf)
         if not find_php:
             return yf.returnData(False, 'utils.py_msg_802376', None, siteName)
+
+        # 目标就是当前版本：**不重写配置**，也不因「该版本已不可用」而报错。
+        # 站点正靠已启动的 FPM 跑着，用户很可能只是点开弹窗看了看就点确认；
+        # 在这里报错只会让人以为「改不了」（真机上 8.0 的 CLI 二进制已坏但站点仍在跑）。
+        if find_php.group(1) == version:
+            return yf.returnData(True, yf.getInfo('成功切换网站[{1}]的PHP版本为PHP-{2}',
+                                                (siteName, version)))
+
+        if not phpVersionAvailable(version):
+            return yf.returnData(False, 'site.py_msg_b8a2ef')
+        if not os.path.exists(self.setupPath + '/php/conf/enable-php-' + version
+                              + '.conf'):
+            return yf.returnData(False, 'site.py_msg_b8a2ef')
 
         old_conf = conf
         conf = conf.replace(find_php.group(), 'enable-php-' + version + '.conf')
@@ -3469,43 +3555,54 @@ export PATH
 
 
     def getPhpVersion(self):
-        phpVersions = ('00', '52', '53', '54', '55', '56',
-                       '70', '71', '72', '73', '74', '80',
-                       '81', '82', '83', '84', '85')
-        data = []
-        for val in phpVersions:
-            tmp = {}
-            if val == '00':
-                tmp['version'] = '00'
-                tmp['name'] = '纯静态'
-                data.append(tmp)
+        """站点可选的 PHP 版本列表（只列**真的可用**的）。
 
-            # 标准判断
-            checkPath = yf.getServerDir() + '/php/' + val + '/bin/php'
-            if os.path.exists(checkPath):
-                tmp['version'] = val
-                tmp['name'] = 'PHP-' + val
-                data.append(tmp)
+        旧实现的两道漏洞（真机现场都撞上了）：
+          1. 编译版只判 `bin/php` 存在——`bin/php` 变 0 字节时仍会列出 PHP-80；
+          2. “其他渠道”拿 `enable-php-*.conf` 存在当已安装——卸过的 PHP
+            （`rc` 残留，如 apt8.2）依旧被列进下拉，选了就报“指定PHP版本未安装!”。
+        现在两者都走 `phpVersionAvailable()`（编译版看非空二进制、apt 看 dpkg 包
+        状态、yum 看 rpm），并且**必须同时有 enable 模板**（没模板就切不过去）。
+        """
+        data = [{'version': '00', 'name': '纯静态'}]
+        seen = {'00'}
+        conf_dir = self.setupPath + '/php/conf'
 
-        # 其他PHP安装类型
-        conf_dir = yf.getServerDir() + "/web_conf/php/conf"
-        if not os.path.exists(conf_dir):
-            return data
-        conf_list = os.listdir(conf_dir)
-        l = len(conf_list)
-        rep = r"enable-php-(.*?)\.conf"
+        def _enable_conf_ok(vid):
+            return os.path.exists(os.path.join(conf_dir, 'enable-php-%s.conf' % vid))
+
+        # ① 编译版：以安装目录为准（不靠 conf 残留）
+        php_root = yf.getServerDir() + '/php'
+        try:
+            names = sorted(os.listdir(php_root))
+        except OSError:
+            names = []
+        for name in names:
+            if not re.match(r'^[0-9]{2}$', name) or name in seen:
+                continue
+            if not _enable_conf_ok(name) or not phpVersionAvailable(name):
+                continue
+            data.append({'version': name, 'name': 'PHP-' + name})
+            seen.add(name)
+
+        # ② apt / yum 渠道：模板驱动候选，但由包状态定生死
+        try:
+            conf_list = sorted(os.listdir(conf_dir))
+        except OSError:
+            return yf.returnData(True, 'ok', data)
         for name in conf_list:
-            tmp = {}
-            try:
-                matchVer = re.search(rep, name).groups()[0]
-            except Exception as e:
+            m = re.match(r'^enable-php-(.+)\.conf$', name)
+            if not m:
                 continue
-
-            if matchVer in phpVersions:
+            vid = m.group(1)
+            if vid in seen or not PHP_SITE_VERSION_RE.match(vid) or vid == '00':
                 continue
-
-            tmp['version'] = matchVer
-            tmp['name'] = 'PHP-' + matchVer
-            data.append(tmp)
+            if not (vid.startswith('apt') or vid.startswith('yum')):
+                # 形态怪异的模板（历史手写/已废弃命名）不往下拉里放
+                continue
+            if not phpVersionAvailable(vid):
+                _log.debug('[site] 跳过不可用的 PHP 版本模板 %s（对应包已不存在）', name)
+                continue
+            data.append({'version': vid, 'name': 'PHP-' + vid})
+            seen.add(vid)
         return yf.returnData(True, 'ok', data)
-        # return data
