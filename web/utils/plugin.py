@@ -467,9 +467,12 @@ class plugin(object):
     def applyPhpVersionPolicy(self, plist):
         """PHP 只提供 `PHP_MIN_INSTALL_BRANCH` 及以上（见常量注释）。
 
-        判存**以真实安装为准**（非空 `bin/php` / dpkg / rpm 包状态），不看
-        `install_checks` 目录是否存在 —— 面板卸载 PHP 会留下目录与
-        `enable-php-*.conf`，拿目录当判据就会让「已删掉的 7.4」永久留在列表里。
+        「已装」= 下面**任一**成立就保留（宁可多显示一条红标，也不能让用户找不到卸载入口）：
+          * `install_checks` 目录存在 —— 这是面板自己的「已安装」口径，卸载时会被删掉，
+            所以「删了就不显示」也由它保证；
+          * 判存探针（`php_sec_scan.installed_branches()`）说装了 —— 覆盖「装过但目录不在这」
+            的历史机器（例如装完后目录被手工动过）。
+        两条都不成立 ⇒ 没装过，直接隐藏，不再引导人安装停止维护的版本。
         """
         if not plist:
             return plist
@@ -490,7 +493,7 @@ class plugin(object):
                 installed = self._phpInstalledBranches()
             channel = 'apt' if str(name).endswith('-apt') else (
                 'yum' if str(name).endswith('-yum') else 'src')
-            is_installed = str(branch) in installed.get(channel, set())
+            is_installed = bool(pInfo.get('setup'))                 or str(branch) in installed.get(channel, set())
             if not is_installed:
                 # 未安装的旧分支：不再提供安装入口（官方已停止维护）
                 _log.debug('[plugin] 隐藏未安装的已停维 PHP 分支: %s-%s', name, version)

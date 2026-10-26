@@ -31,6 +31,7 @@ import io
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 import tempfile
@@ -202,10 +203,11 @@ class ShopPhpPolicyTest(unittest.TestCase):
         return obj
 
     def _rows(self):
+        # 默认按「干净的机器」造：旧分支都没装（setup=False），只装了 8.2/8.3。
         return [
-            {'name': 'php-apt', 'versions': '74', 'install_checks': '/x/74', 'setup': True},
+            {'name': 'php-apt', 'versions': '74', 'install_checks': '/x/74', 'setup': False},
             {'name': 'php-apt', 'versions': '82', 'install_checks': '/x/82', 'setup': True},
-            {'name': 'php', 'versions': '80', 'install_checks': '/x/80', 'setup': True},
+            {'name': 'php', 'versions': '80', 'install_checks': '/x/80', 'setup': False},
             {'name': 'php', 'versions': '83', 'install_checks': '/x/83', 'setup': True},
             {'name': 'php-yum', 'versions': '74', 'install_checks': '/x/74', 'setup': False},
             {'name': 'mysql', 'versions': '57', 'install_checks': '/x/57', 'setup': True},
@@ -233,12 +235,21 @@ class ShopPhpPolicyTest(unittest.TestCase):
         self.assertFalse(by_key[('php', '83')].get('php_eol'),
                          '8.3 不该被标成已停维')
 
-    def test_03_setup_follows_real_install(self):
-        """目录残留但包已卸载 ⇒ 没装；不能拿目录当判据。"""
-        out = self._obj({'src': set(), 'apt': {'82'}, 'yum': set()}).applyPhpVersionPolicy(
-            self._rows())
-        keys = [(r['name'], r['versions']) for r in out]
-        self.assertNotIn(('php', '80'), keys)
+    def test_03_installed_dir_keeps_row_with_flag(self):
+        """`install_checks` 目录还在（= 面板认为已装）⇒ 保留并打红标。
+
+        宁可多显示一条红标，也不能让用户找不到卸载入口（真机 PHP 8.0 的 `bin/php`
+        是 0 字节，但目录与 FPM 都在，用户要能一键跳过去卸载）。
+        卸载时面板会删掉这个目录，于是下一次它自然就不显示了。
+        """
+        rows = self._rows()
+        for r in rows:
+            r['setup'] = (r['name'], r['versions']) == ('php', '80')
+        out = self._obj({'src': set(), 'apt': set(), 'yum': set()}).applyPhpVersionPolicy(rows)
+        by_key = {(r['name'], r['versions']): r for r in out}
+        self.assertIn(('php', '80'), by_key, '目录还在却把行藏了 → 用户无从卸载')
+        self.assertTrue(by_key[('php', '80')].get('php_eol'))
+        self.assertNotIn(('php-apt', '74'), by_key, '目录已删且包已卸 → 不再显示')
 
     def test_04_floor_constant_single_source(self):
         self.assertEqual(plugin_mod.PHP_MIN_INSTALL_BRANCH, '82')
@@ -292,6 +303,61 @@ class InstallGuardTest(unittest.TestCase):
         for branch in ('74', '80', '81', '82', '83', '84', '85'):
             self.assertIn(branch, data['versions'],
                           'plugins/php/info.json 缺少 %s（已装的旧分支会不可见）' % branch)
+
+
+class MigrateAdviceJumpTest(unittest.TestCase):
+    """首页「建议卸载该版本并升级到 PHP 8.2 及以上」必须能一步跳到该版本的卸载入口。"""
+
+    def test_01_advice_is_a_link_to_the_store(self):
+        src = _read(INDEX_JS)
+        self.assertIn("class=\"f11 php-sec-migrate\"", src)
+        self.assertNotIn("class=\"f11 php-sec-migrate\" style=\"margin-left:auto; color:#fa8c16; font-weight:600;\">",
+                         src, '仍是不带链接的 span，点不动')
+        self.assertIn("'/plugins/index?soft_type=0&soft_search=php'", src,
+                      '必须带上商店的定位参数（类型 + 搜索，保证目标行在第一页）')
+        self.assertIn("encodeURIComponent(item.plugin || '')", src)
+        self.assertIn("encodeURIComponent(item.branch || '')", src,
+                      '插件名/分支必须编码后再拼 URL')
+
+    def test_02_soft_js_can_focus_a_version_row(self):
+        src = _read(SOFT_JS)
+        self.assertIn('data-version="', src,
+                      '行上必须有 data-version：coexist 插件的每行 data-name 相同，只有版本能区分')
+        self.assertIn('function softFocusTarget(', src)
+        self.assertIn('softFocusTarget();', src,
+                      '渲染完之后必须调用定位函数')
+        self.assertIn("q.soft_name", src)
+        self.assertIn("data-version=\"' + ver + '\"", src)
+        # 参数白名单：不能把任意字符串拼进选择器/或当作插件名请求 /plugins/setting
+        self.assertIn('/^[A-Za-z0-9_-]{1,64}$/', src)
+        self.assertIn('/^[A-Za-z0-9._-]{1,32}$/', src)
+
+    def test_03_bootstrap_presets_type_and_search(self):
+        src = _read(SOFT_JS)
+        self.assertIn("setCookie('soft_type', q.soft_type)", src)
+        self.assertIn('$("#SearchValue").val(q.soft_search)', src)
+
+    @unittest.skipIf(not shutil.which('node'), '本机没有 node，跳过解析用例')
+    def test_04_query_params_parse(self):
+        script = (
+            "const fs=require('fs');"
+            "const src=fs.readFileSync(process.env.YF_SOFT_JS,'utf8');"
+            "function grab(n){const s=src.indexOf('function '+n+'(');let d=0;"
+            "for(let i=src.indexOf('{',s);i<src.length;i++){if(src[i]==='{')d++;"
+            "else if(src[i]==='}'){d--;if(!d)return src.slice(s,i+1);}}}"
+            "global.location={search:'?soft_type=0&soft_search=php&soft_name=php-apt&soft_version=74'};"
+            "const f=new Function(grab('softQueryParams')+chr+'return softQueryParams;'+chr)();"
+            "console.log(JSON.stringify(f()));"
+        ).replace('chr', repr(chr(10)))
+        env = dict(os.environ)
+        env['YF_SOFT_JS'] = SOFT_JS
+        proc = subprocess.run([shutil.which('node'), '-e', script], capture_output=True,
+                              encoding='utf-8', errors='replace', timeout=60, env=env)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        data = json.loads(proc.stdout.strip().splitlines()[-1])
+        self.assertEqual(data.get('soft_name'), 'php-apt')
+        self.assertEqual(data.get('soft_version'), '74')
+        self.assertEqual(data.get('soft_search'), 'php')
 
 
 class ShopBadgeFrontendTest(unittest.TestCase):

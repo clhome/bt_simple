@@ -170,6 +170,50 @@ function clearPluginCache() {
 }
 
 //取软件列表
+// 解析 URL 里的 soft_* 参数（首页「PHP 安全基线」跳转过来时用）
+function softQueryParams() {
+  var q = {};
+  var raw = String(location.search || '').replace(/^\?/, '');
+  if (!raw) return q;
+  var parts = raw.split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split('=');
+    if (!kv[0]) continue;
+    try {
+      q[decodeURIComponent(kv[0])] = decodeURIComponent((kv[1] || '').replace(/\+/g, ' '));
+    } catch (e) {
+      q[kv[0]] = kv[1] || '';
+    }
+  }
+  return q;
+}
+
+// 定位到指定插件的指定版本，并直接打开它的管理面板（卸载按钮在里面）。
+//
+// 使用场景：首页「PHP 安全基线」里 7.4/8.0/8.1 那一行的「建议卸载该版本并升级到
+// PHP 8.2 及以上」是可点的 —— 点了要能一步到那个版本的卸载入口，而不是让用户自己在
+// 几十个插件、多个分页里翻。
+function softFocusTarget() {
+  var q = softQueryParams();
+  var name = q.soft_name || '';
+  if (!name) return;
+  var ver = q.soft_version || '';
+  // 只认面板里的插件名形态（字母/数字/下划线/连字符），避免把任意参数拼进选择器
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(name)) return;
+  if (ver && !/^[A-Za-z0-9._-]{1,32}$/.test(ver)) return;
+  var sel = '#softList tr[data-name="' + name + '"]' + (ver ? '[data-version="' + ver + '"]' : '');
+  var $row = $(sel).first();
+  if (!$row.length) return;
+  $row.css('background-color', '#fff7e6');
+  try {
+    if ($row[0].scrollIntoView) $row[0].scrollIntoView({ block: 'center' });
+  } catch (e) {}
+  if (window.__yfSoftFocused === name + '|' + ver) return;   // 避免轮询反复弹窗
+  window.__yfSoftFocused = name + '|' + ver;
+  var title = $.trim($row.find('td').eq(0).text()) || (name + (ver ? '-' + ver : ''));
+  softMain(name, title, ver);
+}
+
 function getSList(isdisplay) {
   var loadT = null;
   if (isdisplay !== true) {
@@ -407,10 +451,13 @@ function getSList(isdisplay) {
         icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=" + encodeURIComponent(plugin.icon);
       }
       var homeLink = yfSoftUrl(plugin.home) ? ('<a class="btlink" href="' + yfSoftUrl(plugin.home) + '" target="_blank">' + t('soft.official_site', '官网') + '</a>') : '-';
-      sBody += '<tr data-name="' + yfSoftText(plugin.name) + '">' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + yfSoftText(raw_ps) + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + yfSoftText(plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td class="plugin-status-col" data-plugin="' + yfSoftText(plugin.name) + '">' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      // data-version 让「从首页跳过来定位某个 PHP 版本」能精确命中这一行
+      // （coexist 插件每行 data-name 都相同，只有版本不同）
+      sBody += '<tr data-name="' + yfSoftText(plugin.name) + '" data-version="' + yfSoftText(plugin.versions) + '">' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + yfSoftText(raw_ps) + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + yfSoftText(plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td class="plugin-status-col" data-plugin="' + yfSoftText(plugin.name) + '">' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);
+    softFocusTarget();
     $(".menu-sub span").off("click").on('click', function () {
       setCookie('soft_type', $(this).attr('typeid'));
       $(this).addClass("on").siblings().removeClass("on");
@@ -1243,6 +1290,25 @@ function refreshPluginList() {
     });
   });
 }
+// 从首页「PHP 安全基线」的「建议卸载该版本并升级到 PHP 8.2 及以上」跳过来时，
+// URL 带 soft_name/soft_version/soft_search：先把「类型 + 搜索框 + 页码」预设好，
+// 保证目标行落在第一页（否则 40 多个插件、每页 10 条，用户还得自己翻页找），
+// 再由 softFocusTarget() 精确定位并打开该版本的管理面板（卸载入口就在里面）。
+(function () {
+  var q = softQueryParams();
+  if (!q.soft_name) return;
+  try {
+    if (q.soft_type) {
+      setCookie('soft_type', q.soft_type);
+      setCookie('p' + q.soft_type, 1);
+    }
+    if (q.soft_search && $("#SearchValue").length) {
+      $("#SearchValue").val(q.soft_search);
+      if ($("#resetSearchBtn").length) $("#resetSearchBtn").show();
+    }
+  } catch (e) {}
+})();
+
 $(function () {
   // 点击外部隐藏设置下拉框
   $(document).on('click', function (e) {

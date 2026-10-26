@@ -3080,8 +3080,17 @@ function phpSecRenderItem(item) {
     // 唯一出路是卸载并迁到 8.2+。这里**不再**挂「升级到安全版本」这种点了也没用的入口
     // （真机 7.4/8.0/8.1 就是挂着按钮但升不动）。
     if (item.migrate_to) {
-        html += '<span class="f11 php-sec-migrate" style="margin-left:auto; color:#fa8c16; font-weight:600;">' +
-            phpSecEscape(t('index.php_sec_migrate_advice', args, '')) + '</span>';
+        // 可点击：跳到「软件商店」里这个 PHP 版本的那一行并打开管理面板，
+        // 用户在那里直接点卸载（官方无修复，唯一出路就是卸了换 8.2+）。
+        var adviceText = t('index.php_sec_migrate_advice', args, '');
+        var storeUrl = '/plugins/index?soft_type=0&soft_search=php'
+            + '&soft_name=' + encodeURIComponent(item.plugin || '')
+            + '&soft_version=' + encodeURIComponent(item.branch || '');
+        // 直接用普通链接跳转：不需要确认，也避免把一个 URL 拼进 inline onclick
+        html += '<a class="f11 php-sec-migrate" href="' + phpSecEscape(storeUrl) + '"' +
+            ' style="margin-left:auto; color:#fa8c16; font-weight:600; cursor:pointer; text-decoration:underline;"' +
+            ' title="' + phpSecEscape(adviceText) + '">' +
+            phpSecEscape(adviceText) + '</a>';
     } else if (item.upgrade_hint && item.upgrade_hint !== 'no_fix') {
         html += '<a class="btlink f11" style="margin-left:auto;" href="javascript:;"' +
             ' data-php-sec-branch="' + branch + '"' +
