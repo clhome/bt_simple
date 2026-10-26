@@ -202,6 +202,17 @@ class ShopPhpPolicyTest(unittest.TestCase):
         obj._phpInstalledBranches = lambda: installed
         return obj
 
+    def test_00_probe_is_not_cached_on_the_singleton(self):
+        """判存结果**不许**缓存在 plugin 单例上。
+
+        曾经把它缓存在实例属性里（注释写「每个请求只算一次」），实际变成「每个 worker
+        只算一次」：用户卸掉 PHP 8.1 后，那个 worker 仍认为 81 装着，商店里一直挂着
+        `PHP-81`，点「刷新列表」也不消失。
+        """
+        src = _read(os.path.join(WEB, 'utils', 'plugin.py'))
+        self.assertNotIn('_php_installed_cache', src,
+                         '判存结果又被缓存到单例上了（卸载后列表不刷新）')
+
     def _rows(self):
         # 默认按「干净的机器」造：旧分支都没装（setup=False），只装了 8.2/8.3。
         return [
@@ -234,6 +245,20 @@ class ShopPhpPolicyTest(unittest.TestCase):
             self.assertEqual(by_key[key].get('php_eol_min'), '8.2')
         self.assertFalse(by_key[('php', '83')].get('php_eol'),
                          '8.3 不该被标成已停维')
+
+    def test_02b_policy_never_fakes_setup(self):
+        """`setup` 是面板对外的「已安装」语义，策略层不许代为置 True。
+
+        否则 `已安装` 页会冒出一行（filter 看到 setup=True），随后
+        `refreshDynamicStatus()` 又按目录重算成 False —— 同一行显示「安装」按钮，
+        正是真机截图里那条矛盾的 `PHP-81 … 安装`。
+        """
+        rows = self._rows()
+        out = self._obj({'src': {'74', '80'}, 'apt': set(), 'yum': set()}).applyPhpVersionPolicy(rows)
+        for r in out:
+            if (r['name'], r['versions']) == ('php', '80'):
+                self.assertFalse(r['setup'], 'policy 把 setup 改成了 True')
+                self.assertTrue(r.get('php_eol'))
 
     def test_03_installed_dir_keeps_row_with_flag(self):
         """`install_checks` 目录还在（= 面板认为已装）⇒ 保留并打红标。

@@ -451,9 +451,13 @@ class plugin(object):
         return plist
 
     def _phpInstalledBranches(self):
-        """本机**真正装了**的 PHP 分支（每个请求只算一次；判不了一律当没装）。"""
-        if getattr(self, '_php_installed_cache', None) is not None:
-            return self._php_installed_cache
+        """本机**真正装了**的 PHP 分支（判不了一律当没装）。
+
+        **刻意不缓存**：这个缓存曾经挂在 plugin 单例上（注释写的是「每个请求只算一次」），
+        结果变成「每个 worker 进程只算一次」—— 用户卸掉 PHP 8.1 之后，那个 worker 仍认为
+        81 装着，商店里就一直挂着一行 `PHP-81`（点「刷新列表」也不消失）。
+        现在每次列表请求算一次（一条 dpkg-query + 一条 rpm + 一次 listdir，几十毫秒）。
+        """
         data = {'src': set(), 'apt': set(), 'yum': set()}
         try:
             from core import php_sec_scan
@@ -461,10 +465,9 @@ class plugin(object):
         except Exception as _e:
             # 探测失败宁可「当没装」：旧分支会被隐藏，而不是把已卸的版本当已装留在列表里
             _log.debug('[plugin] 探测已装 PHP 分支失败: %s', _e)
-        self._php_installed_cache = data
         return data
 
-    def applyPhpVersionPolicy(self, plist):
+    def applyPhpVersionPolicy(self, plist, installed=None):
         """PHP 只提供 `PHP_MIN_INSTALL_BRANCH` 及以上（见常量注释）。
 
         「已装」= 下面**任一**成立就保留（宁可多显示一条红标，也不能让用户找不到卸载入口）：
@@ -473,11 +476,14 @@ class plugin(object):
           * 判存探针（`php_sec_scan.installed_branches()`）说装了 —— 覆盖「装过但目录不在这」
             的历史机器（例如装完后目录被手工动过）。
         两条都不成立 ⇒ 没装过，直接隐藏，不再引导人安装停止维护的版本。
+
+        注意：**不改 `setup` 字段**。`setup` 是面板对外的「已安装」语义，后续
+        `refreshDynamicStatus()` 还会按 `install_checks` 重算一次；这里若代为置 True，
+        「已安装」页会冒出一行按钮却显示「安装」的矛盾记录。
         """
         if not plist:
             return plist
         floor = _php_branch_of(PHP_MIN_INSTALL_BRANCH)
-        installed = None
         kept = []
         for pInfo in plist:
             name = pInfo.get('name', '')
@@ -500,11 +506,8 @@ class plugin(object):
                 continue
             pInfo['php_eol'] = True
             pInfo['php_eol_min'] = '%s.%s' % (PHP_MIN_INSTALL_BRANCH[0], PHP_MIN_INSTALL_BRANCH[1:])
-            # 「已安装」也以真实安装为准（目录残留不算）
-            pInfo['setup'] = True
             kept.append(pInfo)
         return kept
-
 
     def getIndexList(self, simple=False):
         indexList = thisdb.getOptionByJson('display_index', default=[])
