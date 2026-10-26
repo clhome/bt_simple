@@ -99,25 +99,38 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		INSTALL_CMD=cmake3
 	fi
 
-	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		wget -nv --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
+	# 源码包下载 + 完整性校验（《问题报告》次要-3）
+	#   旧写法 `wget --tries=3` 不看退出码、无任何校验，md5 校验整段被注释掉：
+	#   CDN 返回 403/HTML 错误页时留下 0 字节，守卫 `[ ! -f ]` 下次直接跳过下载，
+	#   `tar -zxf 0 字节` 必死且重跑必死（毒化）。另有真机实测：wget 对
+	#   dev.mysql.com 持续 `No data received`，而同一 URL 的 curl 正常。
+	#   现改为 curl 优先 / wget 兜底 + 「非空 + gzip 完整 + 包内顶层目录名匹配」三项校验，
+	#   失败即删包并 exit 1（不留毒、不假装装上了）。
+	_yf_fetch_lib="${rootPath}/scripts/lib_src_fetch.sh"
+	if [ -f "${_yf_fetch_lib}" ]; then
+		. "${_yf_fetch_lib}"
+	fi
+	_mysql_pkg=${mysqlDir}/mysql-boost-${VERSION}.tar.gz
+	if command -v yf_src_fetch >/dev/null 2>&1; then
+		yf_src_fetch "${_mysql_pkg}" "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz" "mysql-${VERSION}" || exit 1
+	else
+		# 旧实现兜底（lib 缺失时仍保持老行为，但至少不再静默）
+		if [ ! -s "${_mysql_pkg}" ];then
+			wget -nv --no-check-certificate -O "${_mysql_pkg}" --tries=3 "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz" || true
+		fi
+		if [ ! -s "${_mysql_pkg}" ];then
+			rm -f "${_mysql_pkg}"
+			echo "[ERROR] mysql 源码包下载失败: ${_mysql_pkg}" >&2
+			exit 1
+		fi
 	fi
 
-	#检测文件是否损坏
-	# md5_mysql_ok=e0cb61cbf6e1144c452368c4535ae931
-	# if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-	# 	md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
-	# 	if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
-	# 		echo "mysql8.0 file  check ok"
-	# 	else
-	# 		# 重新下载
-	# 		rm -rf ${mysqlDir}/mysql-${VERSION}
-	# 		wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
-	# 	fi
-	# fi
-
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz
+		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz || {
+			echo "[ERROR] mysql 源码包解压失败: ${mysqlDir}/mysql-boost-${VERSION}.tar.gz" >&2
+			rm -f "${mysqlDir}/mysql-boost-${VERSION}.tar.gz"
+			exit 1
+		 }
 	fi
 
 	OPTIONS=''
@@ -144,10 +157,26 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		echo $WHERE_DIR_GPP
 	fi
 
+	if [ "$OSNAME" == "ubuntu" ];then
+		# 构建依赖安装与发行版无关（《问题报告》P2-3）：
+		# 旧实现把整段 apt 安装钉在 `VERSION_ID == 18.04` 分支里，Ubuntu 22.04/24.04
+		# 上一条都不装，cmake 走到 rpc.cmake:113 就报 `Could not find rpc/rpc.h` 必失败。
+		# 这三个包名在 22.04/24.04 上同样有效（libtirpc-dev 1.3.4 真机实测可装）。
+		# 保留“失败即中止”：缺构建依赖时后续 cmake 必死，早失败比晚失败看得清。
+		for _pkg in libudev-dev libtirpc-dev libssl-dev; do
+			if ! apt install -y "$_pkg" >/dev/null 2>&1; then
+			# 新装系统 apt 列表可能还没拉过：update 后重试一次
+				apt-get update -y >/dev/null 2>&1 || true
+				if ! apt install -y "$_pkg"; then
+					echo "[ERROR] 构建依赖安装失败: $_pkg（请手动 apt install $_pkg 后重试）" >&2
+					exit 1
+				fi
+			fi
+		done
+	fi
+
 	if [ "$OSNAME" == "ubuntu" ] && [ "$VERSION_ID" == "18.04" ];then
-		apt install -y libudev-dev
-		apt install -y libtirpc-dev
-		apt install -y libssl-dev
+		# 以下仅对 18.04 有意义（旧发行版需要自建工具链与 gssglue）
 		apt install -y libgssglue-dev
 		apt install -y software-properties-common
 		add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -202,8 +231,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		-DCMAKE_C_COMPILER=$WHERE_DIR_GCC \
 		-DCMAKE_CXX_COMPILER=$WHERE_DIR_GPP \
 		-DDOWNLOAD_BOOST=0 \
-		-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/
-		make -j${cpuCore} && make install && make clean
+		-DWITH_BOOST=${mysqlDir}/mysql-${VERSION}/boost/ && \
+		make -j${cpuCore} && make install && make clean || {
+			echo "[ERROR] cmake / make 失败：mysql 编译安装未完成（见上方 cmake 日志）" >&2
+			exit 1
+		}
+
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}

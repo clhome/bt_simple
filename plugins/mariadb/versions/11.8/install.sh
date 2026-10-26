@@ -95,8 +95,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		-DDEFAULT_CHARSET=utf8mb4 \
 		-DDEFAULT_COLLATION=utf8mb4_general_ci \
 		-DCMAKE_C_COMPILER=/usr/bin/gcc \
-		-DCMAKE_CXX_COMPILER=/usr/bin/g++
-		make -j${cpuCore} && make install && make clean
+		-DCMAKE_CXX_COMPILER=/usr/bin/g++ && \
+		make -j${cpuCore} && make install && make clean || {
+			echo "[ERROR] cmake / make 失败：mariadb 编译安装未完成（见上方 cmake 日志）" >&2
+			exit 1
+		}
+
 
 		if [ -d $serverPath/mariadb ];then
 			echo '11.8' > $serverPath/mariadb/version.pl

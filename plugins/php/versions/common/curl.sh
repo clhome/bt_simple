@@ -74,8 +74,8 @@ Install_lib()
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "ERROR!"
-		return
+		echo "ERROR: ${LIBNAME} 扩展产物缺失: $extFile（编译或安装失败）" >&2
+		return 1
 	fi
 
 

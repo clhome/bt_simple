@@ -79,7 +79,10 @@ yf_php_build() {
 }
 
 yf_make_jobs() {
-  local target_ver="$1"
+  # set -u 保护：调用方可能不传版本（如 apache/mysql 的通用 clamp 片段）。
+  # 旧写法 `local target_ver="$1"` 在 set -euo pipefail 的调用方（plugins/php/install.sh）
+  # 下直接报 "unbound variable"，而 ERR trap 会把整个 PHP 安装/更新打断。
+  local target_ver="${1:-}"
   local cpu=$(nproc 2>/dev/null || echo 1)
   local mem_mb=$(LC_ALL=C free -m 2>/dev/null | awk '/^Mem:/{print $2}')
   [ -z "$mem_mb" ] && mem_mb=1024

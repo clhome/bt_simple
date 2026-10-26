@@ -23,6 +23,15 @@ else
 fi
 
 Install_App(){
+	# 依赖前置提示（《问题报告》次要-2）：本插件本身行为已经是诚实的（index.py
+	# start 回 'ERROR: 请先安装OpenResty' 时这里 exit 1），但那是**建完目录、写完
+	# version.pl 之后**才知道的。依赖提前判一次，用户在点安装的当下就能看到原因，
+	# 也不会在未装 OpenResty 的机器上留下半个插件目录。
+	if [ ! -d "$serverPath/openresty" ]; then
+		echo "安装前置检查未通过：OP负载均衡依赖 OpenResty，请先安装 OpenResty（面板-软件商店-OpenResty）后再回来装本插件" >&2
+		exit 1
+	fi
+
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/op_load_balance
 	echo "${version}" > $serverPath/op_load_balance/version.pl

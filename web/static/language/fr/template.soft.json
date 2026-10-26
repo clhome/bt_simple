@@ -1,6 +1,7 @@
 {
   "soft": {
     "php_upgradable": "Mise à jour disponible",
+    "service_alarm": "Erreur de service",
     "php_upgrade_tip": "PHP sera recompilé (10-30 min), puis FPM redémarre ; en cas d'échec, l'ancienne version est restaurée.",
     "php_upgrade_queued": "Mise à niveau en file ; voir la boîte de messages",
     "type_all": "Tout",

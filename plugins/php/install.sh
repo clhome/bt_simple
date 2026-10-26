@@ -260,7 +260,10 @@ if [ "${action}" == "install" ] && [ -d "${serverPath}/php/${type}" ];then
 	export cpuCore
 	echo "install PHP${type} extend start (cpuCore=${cpuCore})"
 # --- yf adaptive clamp (1C512M -> -j1) ---
-if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
+# 必须把 ${type} 传进去：8.4+ 的 JIT IR 单任务峰值达 1.5G，不传版本就吃不到
+# 《问题报告》里那条「按版本 + 内存」的保护分支（且旧版无参调用在 set -u 下直接
+# unbound variable → ERR trap → 整个 PHP 安装/更新被打断）。
+if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs "${type}" 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
 
 	export PHP_EXT_NO_RESTART=1
 

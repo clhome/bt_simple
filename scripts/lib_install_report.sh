@@ -367,7 +367,12 @@ yf_install_report_fail()
 # yf_require_step "<描述>" <命令...>
 #   执行「必需」步骤：失败即**中止**——记录到报告 failed 列表，
 #   在 stderr 打 [ERROR] + 描述 + 退出码，落盘报告（status=failed）后 exit 1。
-#   成功恒返回 0（失败路径直接退出进程）。
+#   失败路径直接退出进程；成功返回 0。结尾用 `return ${_rc}` 而不是无条件的
+#   `return 0`（《问题报告》P1-5 机制 B）：当前实现里失败必 exit，两种写法行为等价，
+#   但一旦以后有人去掉 exit 改成「返回失败」，无条件 return 0 会把失败吞成成功，
+#   这里不留这个隐阱。
+#   另：步骤脚本失败必须**真的**以非 0 退出 —— 扩展脚本裸 `return` 返回上一条
+#   echo 的状态 0，就是本轮「php 缺 readline 却报 missing:[]」的真正成因。
 yf_require_step()
 {
 	local _desc=""
@@ -395,7 +400,7 @@ yf_require_step()
 	if [ "${_rc}" -ne 0 ]; then
 		yf_install_report_fail "${_desc}" "${_rc}" "${_cmd}"
 	fi
-	return 0
+	return ${_rc}
 }
 
 # yf_install_report_note "<说明>"

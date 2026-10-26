@@ -3640,6 +3640,7 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update verfügbar",
+		"service_alarm": "Dienstfehler",
 		"php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
 		"php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
 			"type_all": "Alle",

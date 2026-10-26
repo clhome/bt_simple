@@ -63,7 +63,13 @@ Install_lib()
 			OPTIONS="$OPTIONS --build=aarch64-unknown-linux-gnu --host=aarch64-unknown-linux-gnu"
 		fi
 
-		cd ${rootPath}/plugins/php/lib && /bin/bash libedit.sh
+		# libedit 是 readline 的唯一外部依赖：它的脚本现在失败即 exit 1，
+		# 这里必须把失败接住（否则会在没有 libedit 的情况下继续 configure，
+		# 最后只留一条含糊的 "Package requirements (libedit) were not met"）
+		cd ${rootPath}/plugins/php/lib && /bin/bash libedit.sh || {
+			echo "ERROR: libedit 安装失败，readline 扩展无法编译（详见上文）" >&2
+			return 1
+		}
 		export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${serverPath}/lib/libedit/lib/pkgconfig
 		OPTIONS="$OPTIONS --with-libedit=${serverPath}/lib/libedit"
 
@@ -74,8 +80,8 @@ Install_lib()
 	fi
 
 	if [ ! -f "$extFile" ];then
-		echo "ERROR!"
-		return
+		echo "ERROR: ${LIBNAME} 扩展产物缺失: $extFile（编译或安装失败）" >&2
+		return 1
 	fi
 
     echo "" >> $serverPath/php/$version/etc/php.ini

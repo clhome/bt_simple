@@ -9,6 +9,12 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+# 版本脚本退出码必须透传（《问题报告》P1-5 机制 C）：见 scripts/lib_version_step.sh
+_yf_step_lib="${rootPath}/scripts/lib_version_step.sh"
+if [ -f "${_yf_step_lib}" ]; then
+	source "${_yf_step_lib}"
+fi
+
 sysName=`uname`
 action=$1
 type=$2
@@ -25,7 +31,7 @@ else
 fi
 
 if [ "${action}" == "upgrade" ];then
-	sh -x $curPath/versions/$2/install.sh $1
+	yf_version_step "${action}" "${VERSION}" "$curPath/versions/$2/install.sh" || exit $?
 	
 	echo "${VERSION}" > $serverPath/apache/version.pl
 
@@ -59,7 +65,7 @@ if [ "${action}" == "uninstall" ];then
 	rm -rf $serverPath/apache
 fi
 
-sh -x $curPath/versions/$2/install.sh $1
+yf_version_step "${action}" "${VERSION}" "$curPath/versions/$2/install.sh" || exit $?
 
 if [ "${action}" == "install" ] && [ -d $serverPath/apache ];then
 	echo "${VERSION}" > $serverPath/apache/version.pl

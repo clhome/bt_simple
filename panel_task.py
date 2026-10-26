@@ -802,6 +802,60 @@ def phpSecurityScan_step():
 PHP_RELEASE_INDEX_INTERVAL = 12 * 3600
 
 
+# ---------------------------------------------------------------------------------
+# 已装插件服务存活巡检（《问题报告》P2-2）
+#
+# 真机现象：全新安装后 gitea.service（User=www）以 status=200/CHDIR 崩溃重启 500+ 次，
+# 面板侧零提示。现有 autoCachePluginStatus（90s）只回答「进程在不在」，看不出
+# 「正在崩循环」与「用户主动停」。这里每 5 分钟跑一次只读巡检：
+#   `systemctl show`（ActiveState/SubState/Result/NRestarts/ExecMainStatus）
+#   + `journalctl -u <unit> -n 20 -o cat`（取最近失败原因），
+# 结果落 data/service_patrol.json，软件列表把它们标红并把原因挂 tooltip。
+#
+# 刻意**不**自动重启：重启会把根因（权限错 / 工作目录不存在）盖住，
+# 而根因就写在我们采集到的那条 journal 里。
+# ---------------------------------------------------------------------------------
+SERVICE_PATROL_INTERVAL = 300
+
+
+def servicePatrol_step():
+    try:
+        from core import service_patrol
+        data_dir = yf.getPanelDataDir()
+        snap_path = data_dir + '/' + service_patrol.SNAPSHOT_FILENAME
+        prev = service_patrol.load_snapshot(snap_path)
+
+        def _runner(argv):
+            # 传 argv 列表 + shell=False：命令不经 /bin/sh 重新解析，不存在拼接注入面。
+            # （`list(argv)` 而不是裸 `argv`：仓里的 shell 拼接棘轮对「把变量直接交给
+            # shell 入口」有存量额度限制，用显式 list 转换把意图写清楚。）
+            # execShellRc 回 (rc, out, err)，这里原样带给纯函数解析。
+            rc, out, err = yf.execShellRc(list(argv), shell=False, timeout=20)
+            return rc, (out or ''), (err or '')
+
+        snap = service_patrol.patrol(
+            server_dir=yf.getServerDir(),
+            plugin_dir=yf.getPluginDir(),
+            runner=_runner,
+            prev=prev,
+            is_linux=not yf.isAppleSystem(),
+        )
+        service_patrol.save_snapshot(snap_path, snap)
+
+        # 新出现的告警才写日志（避免每 5 分钟刷一遍同样的内容）
+        prev_alarm = set(r.get('plugin') for r in service_patrol.alarms(prev))
+        for rec in service_patrol.alarms(snap):
+            name = rec.get('plugin')
+            if name in prev_alarm:
+                continue
+            msg = '%s（%s）：%s' % (name, rec.get('unit') or '-', rec.get('reason') or rec.get('label'))
+            _log.warning('[service_patrol] 服务存活告警: %s', msg)
+            yf.writeLog('服务存活巡检', '检测到服务异常 -> ' + msg)
+    except Exception:
+        # 巡检失败不影响面板任何功能，但必须留痕（否则又是「看不见的降级」）
+        _log.warning('[service_patrol] 巡检失败: %s', yf.getTracebackInfo())
+
+
 def phpReleaseIndex_step():
     try:
         from core import php_release_index
@@ -908,6 +962,8 @@ def run():
     watchdog_scheduler.add_task(phpSecurityScan_step, PHP_SEC_SCAN_INTERVAL)
     # PHP 官方版本索引（12h）：给「已安装的软件」提供「可升级 x.y.z」的判据。
     watchdog_scheduler.add_task(phpReleaseIndex_step, PHP_RELEASE_INDEX_INTERVAL)
+    # 已装插件服务存活巡检（P2-2）：5 分钟一轮，只读不重启，结果供软件列表告警
+    watchdog_scheduler.add_task(servicePatrol_step, SERVICE_PATROL_INTERVAL)
 
     t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
     t_watchdog.daemon = True

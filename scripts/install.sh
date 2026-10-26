@@ -93,6 +93,37 @@ YF_ACME_VERSION="3.1.6"
 # 升级步骤：改 YF_ACME_VERSION 后重新计算官方 tag 源码包的 sha256，并同步 deploy.sh 中的同名常量
 YF_ACME_SHA256="0d3f9000ac44a6331314742a88c475f79134e24fc991997883652adc59efc486"
 
+# /www 目录权限固化（《问题报告》P1-1）
+#
+# 为什么必须显式做：安装器不能假设调用者的 umask。运维按安全基线把 umask 设成
+# 027/077（很常见）时，下面那些 `mkdir -p /www/...` 出来的目录就是 770/700
+# root:root，而 gitea（systemd User=www）、php-fpm（pool user=www）都要以 www
+# 身份进入这些目录 —— 结局是 gitea.service 以 status=200/CHDIR 进崩溃循环、
+# php-fpm 打不开站点目录，而面板侧**一点提示都没有**（只能去 journalctl 才发现）。
+#
+# 取值口径：目录 755（www 只需 r-x 用于穿越与读取），所有者保持 root —— www
+# 不得对 /www 有写权；需要写入的插件数据目录由各自 install.sh 单独 chown www。
+#
+# 回读：chmod 成功不等于 www 进得去（ACL / 挂载选项 / SELinux 都可能挡住），
+# 所以最后真以 www 身份 test 一次，失败即让安装器报错退出（不许假成功）。
+yf_ensure_www_perms() {
+	local _d
+	for _d in /www /www/server /www/wwwroot /www/wwwlogs /www/backup /www/backup/database /www/backup/site; do
+		if [ -d "$_d" ]; then
+			chmod 755 "$_d" || true
+		fi
+	done
+	if ! id www >/dev/null 2>&1; then
+		return 0
+	fi
+	if ! su -s /bin/sh www -c 'test -r /www && test -x /www && test -r /www/server && test -x /www/server' >/dev/null 2>&1; then
+		echo -e "${ERROR} /www 权限固化失败：www 用户无法进入 /www 或 /www/server" >&2
+		echo -e "${ERROR} 请检查 umask / ACL / 挂载选项后重试" >&2
+		return 1
+	fi
+	return 0
+}
+
 # 统一拒绝文案：说明「拒绝什么、为什么、改用哪条路」。调用后直接终止脚本。
 yf_refuse_unverified_source() {
 	echo -e "${ERROR} 拒绝执行未经验证的远端内容：$1" >&2
@@ -445,6 +476,9 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p /www/wwwlogs
 	mkdir -p /www/backup/database
 	mkdir -p /www/backup/site
+
+	# mkdir 之后立刻固化权限：不固化则 umask 027 环境下 www 服务全灭（P1-1）
+	yf_ensure_www_perms || die "/www 权限固化失败，www 用户下的服务（gitea/php-fpm）将无法启动"
 
 	if [ ! -d /www/server/yufeng_panel ];then
 		if [ -f "$PWD/cli.sh" ] && [ -d "$PWD/scripts" ]; then

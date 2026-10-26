@@ -7,6 +7,12 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+# 版本脚本退出码必须透传（《问题报告》P1-5 机制 C）：见 scripts/lib_version_step.sh
+_yf_step_lib="${rootPath}/scripts/lib_version_step.sh"
+if [ -f "${_yf_step_lib}" ]; then
+	source "${_yf_step_lib}"
+fi
+
 action=$1
 type=$2
 
@@ -36,7 +42,7 @@ if [ ! -d "${curPath}/versions/${type}" ];then
 	exit 1
 fi
 
-sh -x "${curPath}/versions/${type}/install.sh" "${action}"
+yf_version_step "${action}" "${type}" "${curPath}/versions/${type}/install.sh" || exit $?
 
 if [ "${action}" == "uninstall" ];then
 	if [ -f /usr/lib/systemd/system/ollama.service ] || [ -f /lib/systemd/system/ollama.service ] ;then

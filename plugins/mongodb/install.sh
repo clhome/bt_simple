@@ -10,6 +10,19 @@ serverPath=$(dirname "$rootPath")
 action=$1
 VERSION=$2
 
+# ==========================================================================
+# 安装报告（《问题报告》P2-4）：mongosh 是**可选客户端**，它失败必须进缺失清单，
+# 而不是拖垮整个服务端安装。报告库与 fail2ban 插件同口径加载。
+# ==========================================================================
+_yf_report_lib="${rootPath}/scripts/lib_install_report.sh"
+if [ ! -f "$_yf_report_lib" ]; then
+	_yf_report_lib="/www/server/yufeng_panel/scripts/lib_install_report.sh"
+fi
+if [ -f "$_yf_report_lib" ]; then
+	# shellcheck source=../scripts/lib_install_report.sh
+	. "$_yf_report_lib"
+fi
+
 sysName=`uname`
 echo "use system: ${sysName}"
 
@@ -96,6 +109,11 @@ fi
 
 Install_app()
 {
+	# 安装报告：可选步骤（mongosh）的缺失项要落盘供面板/运维查看
+	if command -v yf_install_report_init >/dev/null 2>&1; then
+		yf_install_report_init mongodb
+	fi
+
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source/mongodb
     MG_DIR=$serverPath/source/mongodb
@@ -201,16 +219,36 @@ Install_app()
         TOOL_FILE_NAME=mongosh-${mongodb_shell_version}-linux-${MOSH_ARCH}
         TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.tgz
 
-        if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-            wget -nv -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
-        fi
+        # mongosh 只是**客户端 shell**，不是服务端运行必需（《问题报告》P2-4）：
+        #   旧实现在这里 `wget ... || exit 1` 硬中止，而它后面紧跟的是「建用户 /
+        #   写 version.pl / index.py start / initd_install」—— mongosh 的 CDN 一 403，
+        #   主程序 103MB + tools 54MB 都装好了却整个安装失败、服务也没注册。
+        #   另外 `[ ! -f ...tgz ]` 守卫同样会被 0 字节毒化，所以失败必须删包。
+        # 现在：降为可选步骤（失败记缺失清单、服务端继续），且服务注册无条件执行。
+        _yf_install_mongosh() {
+            if [ ! -s "$MG_DIR/${TOOL_FILE_NAME_TGZ}" ]; then
+                rm -f "$MG_DIR/${TOOL_FILE_NAME_TGZ}"
+                if ! wget -nv -T 120 -t 3 -O "$MG_DIR/${TOOL_FILE_NAME_TGZ}" "https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ}"; then
+                    rm -f "$MG_DIR/${TOOL_FILE_NAME_TGZ}"
+                    return 1
+                fi
+            fi
+            if [ ! -d "$MG_DIR/${TOOL_FILE_NAME}" ]; then
+                ( cd "$MG_DIR" && tar -zxf "${TOOL_FILE_NAME_TGZ}" ) || { rm -f "$MG_DIR/${TOOL_FILE_NAME_TGZ}"; return 1; }
+            fi
+            ( cd "$MG_DIR/${TOOL_FILE_NAME}" && cp -rf ./bin/* "$serverPath/mongodb/bin/" ) || { rm -rf "$MG_DIR/${TOOL_FILE_NAME}"; return 1; }
+            rm -rf "$MG_DIR/${TOOL_FILE_NAME}"
+            return 0
+        }
 
-        if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
-            cd $MG_DIR && tar -zxf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
+        if command -v yf_optional_step >/dev/null 2>&1; then
+            yf_optional_step "安装 mongosh 客户端（可选，CDN 403 时服务端照装）" _yf_install_mongosh
+        else
+            _yf_install_mongosh || {
+                rm -f "$MG_DIR/${TOOL_FILE_NAME_TGZ}"
+                echo '[WARN] mongosh 可选步骤失败（服务端继续安装）' >&2
+            }
         fi
-
-        cd ${MG_DIR}/${TOOL_FILE_NAME} && cp -rf ./bin/* $serverPath/mongodb/bin/
-        cd ${MG_DIR} && rm -rf ${MG_DIR}/${TOOL_FILE_NAME}
     fi
 
     id mongodb &> /dev/null
@@ -230,6 +268,11 @@ Install_app()
 
     cd ${rootPath} && python3 ${rootPath}/plugins/mongodb/index.py start
     cd ${rootPath} && python3 ${rootPath}/plugins/mongodb/index.py initd_install
+
+	# 报告落盘（含 missing 清单）；写不出去只 [WARN]，不反过来判安装失败
+	if command -v yf_install_report_finish >/dev/null 2>&1; then
+		yf_install_report_finish
+	fi
 }
 
 Uninstall_app()

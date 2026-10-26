@@ -3640,6 +3640,7 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "可更新",
+		"service_alarm": "服務異常",
 		"php_upgrade_tip": "將重新編譯 PHP（約 10~30 分鐘），完成後自動重啟 FPM；失敗會自動還原舊版本。",
 		"php_upgrade_queued": "已提交升級任務，請在訊息盒查看進度",
 			"type_all": "全部",

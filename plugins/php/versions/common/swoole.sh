@@ -96,12 +96,12 @@ Install_lib()
         echo -e ".\c"
         sleep 0.5
         if [ ! -f "$extFile" ];then
-			echo "ERROR!"
+			echo -n "."
 		fi
         let n+=1
         if [ $n -gt 8 ];then
-        	echo "WAIT " $n "TIMES FAIL!"
-            return;
+        	echo "ERROR: ${LIBNAME} 扩展产物超时未出现: $extFile（等待 ${n} 次）" >&2
+            return 1
         fi
     done
 

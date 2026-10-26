@@ -198,8 +198,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		-DDEFAULT_CHARSET=utf8mb4 \
 		-DDEFAULT_COLLATION=utf8mb4_general_ci \
 		-DCMAKE_C_COMPILER=$WHERE_DIR_GCC \
-		-DCMAKE_CXX_COMPILER=$WHERE_DIR_GPP
-		make -j${cpuCore} && make install && make clean
+		-DCMAKE_CXX_COMPILER=$WHERE_DIR_GPP && \
+		make -j${cpuCore} && make install && make clean || {
+			echo "[ERROR] cmake / make 失败：mysql 编译安装未完成（见上方 cmake 日志）" >&2
+			exit 1
+		}
+
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}

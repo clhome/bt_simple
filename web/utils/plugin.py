@@ -1780,6 +1780,38 @@ class plugin(object):
             _log.debug('[plugin] 计算 PHP 升级信息失败: %s', e)
         return items
 
+    def annotateServiceAlarms(self, items):
+        """给插件条目附上「服务存活告警」（《问题报告》P2-2）。
+
+        取数：`panel_task.py::servicePatrol_step` 每 5 分钟落盘的
+        `data/service_patrol.json`。这里只**读**快照，不现场跑 systemctl ——
+        软件列表是同步渲染路径，不能为它加 40 次 fork。
+
+        任何异常都不影响列表（告警是附加信息，不是列表的前提）。
+        """
+        try:
+            import core.yf as yf
+            from core import service_patrol
+            snap = service_patrol.load_snapshot(
+                yf.getPanelDataDir() + '/' + service_patrol.SNAPSHOT_FILENAME)
+            if not snap:
+                return items
+            for item in items or []:
+                if not isinstance(item, dict):
+                    continue
+                rec = snap.get(item.get('name'))
+                if not isinstance(rec, dict) or not rec.get('alarm'):
+                    continue
+                item['service_alarm'] = {
+                    'state': rec.get('state'),
+                    'unit': rec.get('unit'),
+                    'label': rec.get('label'),
+                    'reason': rec.get('reason'),
+                }
+        except Exception as e:
+            _log.debug('[plugin] 计算服务存活告警失败: %s', e)
+        return items
+
     def getList(
         self,
         type = None,
@@ -1805,7 +1837,8 @@ class plugin(object):
         rdata['type'] = type_list
     
         data = self.getAllPluginList(type, keyword, page, size, show_third_party)
-        rdata['data'] = self.annotatePhpUpdates(self.localizePluginItems(data[0]))
+        rdata['data'] = self.annotateServiceAlarms(
+            self.annotatePhpUpdates(self.localizePluginItems(data[0])))
         rdata['list'] = yf.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
         return rdata
 

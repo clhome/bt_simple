@@ -7,6 +7,12 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+# 版本脚本退出码必须透传（《问题报告》P1-5 机制 C）：见 scripts/lib_version_step.sh
+_yf_step_lib="${rootPath}/scripts/lib_version_step.sh"
+if [ -f "${_yf_step_lib}" ]; then
+	source "${_yf_step_lib}"
+fi
+
 # cd /www/server/yufeng_panel/plugins/mariadb && bash install.sh install 8.2
 # cd /www/server/yufeng_panel && source bin/activate && python3 plugins/mariadb/index.py try_slave_sync_bugfix {}
 # cd /www/server/yufeng_panel && source bin/activate && python3 plugins/mariadb/index.py do_full_sync  {"db":"xxx","sign":"","begin":1}
@@ -58,7 +64,7 @@ if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" 
     fi
 fi
 
-sh -x $curPath/versions/$2/install.sh $1
+yf_version_step "${action}" "${type}" "$curPath/versions/$2/install.sh" || exit $?
 
 if [ "${action}" == "install" ] && [ -d $serverPath/mariadb ];then
 	#初始化 

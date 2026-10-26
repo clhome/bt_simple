@@ -32,8 +32,11 @@ fi
 Install_lib()
 {
 	if [ "$version" -lt "70" ];then
+		# 委托给低版本脚本时必须把它的退出码原样带出来：裸 return 返回的是
+		# 上一条命令（bash）的状态，看起来一样，但 `return` 之后若被包在
+		# 其它片段里就会丢掉；显式 $? 让「委托失败」等于「本次安装失败」。
 		bash $curPath/openssl_low_version.sh $actionType $version
-		return 
+		return $?
 	fi
 
 

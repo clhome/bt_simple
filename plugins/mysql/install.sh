@@ -8,6 +8,12 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+# 版本脚本退出码必须透传（《问题报告》P1-5 机制 C）：见 scripts/lib_version_step.sh
+_yf_step_lib="${rootPath}/scripts/lib_version_step.sh"
+if [ -f "${_yf_step_lib}" ]; then
+	source "${_yf_step_lib}"
+fi
+
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
 fi
@@ -243,7 +249,7 @@ if [ "${action}" == "uninstall" ]; then
         echo '极速版卸载完成'
         exit 0
     else
-        sh -x $curPath/versions/$type/install.sh uninstall
+        yf_version_step uninstall "${type}" "$curPath/versions/$type/install.sh" || exit $?
     fi
 fi
 
@@ -267,7 +273,7 @@ if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" 
     if [ "${is_fast}" == "true" ]; then
         Install_fast_mysql "${type}"
     else
-        sh -x $curPath/versions/$type/install.sh install
+        yf_version_step install "${type}" "$curPath/versions/$type/install.sh" || exit $?
     fi
 
     if [ -d $serverPath/mysql ]; then

@@ -3640,6 +3640,7 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update available",
+		"service_alarm": "Service error",
 		"php_upgrade_tip": "PHP will be recompiled (10-30 min), then FPM restarts; on failure the old version is restored.",
 		"php_upgrade_queued": "Upgrade queued; check the message box for progress",
 			"type_all": "All",

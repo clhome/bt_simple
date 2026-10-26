@@ -378,6 +378,21 @@ function getSList(isdisplay) {
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('soft.php_upgradable', '可更新')) + '</span>';
       }
+      if (plugin.service_alarm) {
+        // 《问题报告》P2-2：已装插件的服务存在崩循环/启动失败/刚被停掉时，
+        // 在插件名旁边打一个红色标记，并把「插件名 + 最近失败原因」放进 tooltip。
+        // 数据来自后台 5 分钟一次的服务存活巡检（data/service_patrol.json），
+        // 前端不做任何探测、不自动重启。
+        var _alarm = plugin.service_alarm || {};
+        var _alarmTip = String(_alarm.label || '') + (String(_alarm.reason || '').trim() ? '：' + String(_alarm.reason) : '');
+        if (_alarm.unit) {
+          _alarmTip += ' [' + String(_alarm.unit) + ']';
+        }
+        plugin_title += '<span class="service-alarm-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
+          'background:#c0392b;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;"' +
+          ' title="' + yfSoftText(_alarmTip) + '">' +
+          yfSoftText(t('soft.service_alarm', '服务异常')) + '</span>';
+      }
       icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=ico.png";
       if (plugin.icon != '') {
         icon_link = "/plugins/file?name=" + encodeURIComponent(plugin.name) + "&f=" + encodeURIComponent(plugin.icon);
