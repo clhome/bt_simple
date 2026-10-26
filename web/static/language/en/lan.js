@@ -41,7 +41,7 @@ var lan = {
 			"php_sec_scan_time": "Last scan",
 			"php_sec_offline": "Offline, using the built-in baseline table",
 			"php_sec_upgrade": "Upgrade to a safe version",
-			"php_sec_refresh": "Scan now",
+			"php_sec_refresh": "Scan again",
 			"H1": "Homepage",
 			"H2": "Server Status",
 			"V1": "version",
@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update available",
+		"php_eol": "Upgrade to {1}+",
+		"php_eol_tip": "This PHP branch is end-of-life with no more security fixes; uninstall it and upgrade to PHP 8.2 or newer.",
 		"service_alarm": "Service error",
 		"php_upgrade_tip": "PHP will be recompiled (10-30 min), then FPM restarts; on failure the old version is restored.",
 		"php_upgrade_queued": "Upgrade queued; check the message box for progress",
@@ -5034,6 +5036,7 @@ var lan = {
 			"py_msg_78cf3e": "DashboardAt most 12 software!",
 			"py_msg_fc8c87": "Deleted successfully!!",
 			"py_msg_5e6038": "Plugin name is missing!",
+			"php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer",
 			"py_msg_988b58": "Version information is missing!",
 			"py_msg_dacbd7": "The configuration file does not exist!",
 			"py_msg_c3ed11": "has InstalltaskAddto the queue!",

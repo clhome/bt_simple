@@ -27,7 +27,7 @@
         "php_sec_scan_time": "Last scan",
         "php_sec_offline": "Offline, using the built-in baseline table",
         "php_sec_upgrade": "Upgrade to a safe version",
-        "php_sec_refresh": "Scan now",
+        "php_sec_refresh": "Scan again",
         "H1": "Homepage",
         "H2": "Server Status",
         "V1": "version",

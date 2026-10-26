@@ -27,7 +27,7 @@
         "php_sec_scan_time": "Letzte Prüfung",
         "php_sec_offline": "Offline, integrierte Basislinientabelle wird verwendet",
         "php_sec_upgrade": "Auf eine sichere Version aktualisieren",
-        "php_sec_refresh": "Jetzt prüfen",
+        "php_sec_refresh": "Erneut pruefen",
         "H1": "Startseite",
         "H2": "Serverstatus",
         "V1": "Version",

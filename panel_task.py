@@ -90,6 +90,29 @@ TASK_MAX_RUNTIME = 7200        # execshell 类任务（含软件编译安装）
 DOWNLOAD_MAX_RUNTIME = 3600    # download 类任务
 
 
+def _isPhpInstallTask(cmd):
+    """任务是不是某个 PHP 渠道的**安装 / 卸载**？
+
+    为什么要在任务结束时看这个：首页安全卡片的快照最长能活 26 小时，而装/卸 PHP
+    不会自动删它。用户卸了 PHP 7.4，卡片却继续报「PHP 74 (apt) 7.4.33 存在风险」
+    （真机现场）。在任务**跑完**后删快照，下一次拉卡片就会重新巡检。
+    """
+    low = str(cmd or '').lower().replace('\\', '/')
+    if '/plugins/php' not in low:
+        return False
+    return (' install ' in low) or (' uninstall' in low) or ('update' in low)
+
+
+def _dropPhpSecSnapshot():
+    """删掉首页安全巡检快照（删失败不影响任务结果，只记日志）。"""
+    try:
+        path = yf.getPanelDir() + '/data/php_sec_scan.json'
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError as e:
+        _log.debug('[panel_task] 删除 PHP 巡检快照失败: %s', e)
+
+
 def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     import subprocess
     import time
@@ -424,6 +447,9 @@ def runPanelTask():
                 thisdb.setTaskData(run_task['id'], end=end)
                 status = 1 if success else 2
                 thisdb.setTaskStatus(run_task['id'], status)
+                # PHP 装/卸完（无论成败）：让首页安全卡片下次拉取时重新巡检（原因见函数注释）
+                if _isPhpInstallTask(run_task.get('cmd')):
+                    _dropPhpSecSnapshot()
 
             if thisdb.getTaskUnexecutedCount() < 1:
                 os.remove(lock_file)

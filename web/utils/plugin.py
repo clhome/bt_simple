@@ -344,6 +344,29 @@ class pg_thread(threading.Thread):
 _PLUGIN_MODULE_LOCK = threading.RLock()
 _PLUGIN_MODULE_MTIME = {}
 
+#: 「PHP 只提供 8.2 及以上」：低于该分支的 PHP 不再出现在软件商店的**可安装**列表里。
+#:
+#: 口径（用户 2026-10-26 确定）：
+#:   * 未安装的旧分支（如 74/80/81）→ 直接从列表里去掉，不再引导人装已停维版本；
+#:   * 已安装了旧分支 → **保留在列表里**（否则用户无法停用/卸载），但标 `php_eol=True`，
+#:     前端打红标「建议升级到 8.2 及以上」；
+#:   * 用户把旧分支删了 → 下一次加载就不再出现（判存以 rpm/dpkg/非空二进制为准，
+#:     不看目录残留）。
+PHP_MIN_INSTALL_BRANCH = '82'
+
+
+def _php_family(name):
+    """是否本面板托管的 PHP 渠道插件（`php` 编译版 / `php-apt` / `php-yum`）。"""
+    n = str(name or '').strip().lower()
+    return n == 'php' or n.startswith('php-') or n.startswith('php_')
+
+
+def _php_branch_of(version):
+    """`84` → 84；非纯数字（如 `8.4`）→ 去掉点再转；判不了返回 0。"""
+    raw = str(version or '').strip().replace('.', '')
+    return int(raw) if raw.isdigit() else 0
+
+
 class plugin(object):
 
     def_plugin_type = [
@@ -426,6 +449,58 @@ class plugin(object):
         for pInfo in plist:
             pInfo['setup'] = os.path.exists(pInfo['install_checks'])
         return plist
+
+    def _phpInstalledBranches(self):
+        """本机**真正装了**的 PHP 分支（每个请求只算一次；判不了一律当没装）。"""
+        if getattr(self, '_php_installed_cache', None) is not None:
+            return self._php_installed_cache
+        data = {'src': set(), 'apt': set(), 'yum': set()}
+        try:
+            from core import php_sec_scan
+            data = php_sec_scan.installed_branches(run=php_sec_scan.make_runner(3))
+        except Exception as _e:
+            # 探测失败宁可「当没装」：旧分支会被隐藏，而不是把已卸的版本当已装留在列表里
+            _log.debug('[plugin] 探测已装 PHP 分支失败: %s', _e)
+        self._php_installed_cache = data
+        return data
+
+    def applyPhpVersionPolicy(self, plist):
+        """PHP 只提供 `PHP_MIN_INSTALL_BRANCH` 及以上（见常量注释）。
+
+        判存**以真实安装为准**（非空 `bin/php` / dpkg / rpm 包状态），不看
+        `install_checks` 目录是否存在 —— 面板卸载 PHP 会留下目录与
+        `enable-php-*.conf`，拿目录当判据就会让「已删掉的 7.4」永久留在列表里。
+        """
+        if not plist:
+            return plist
+        floor = _php_branch_of(PHP_MIN_INSTALL_BRANCH)
+        installed = None
+        kept = []
+        for pInfo in plist:
+            name = pInfo.get('name', '')
+            version = pInfo.get('versions', '')
+            if not _php_family(name) or not isinstance(version, str):
+                kept.append(pInfo)
+                continue
+            branch = _php_branch_of(version)
+            if not branch or branch >= floor:
+                kept.append(pInfo)
+                continue
+            if installed is None:
+                installed = self._phpInstalledBranches()
+            channel = 'apt' if str(name).endswith('-apt') else (
+                'yum' if str(name).endswith('-yum') else 'src')
+            is_installed = str(branch) in installed.get(channel, set())
+            if not is_installed:
+                # 未安装的旧分支：不再提供安装入口（官方已停止维护）
+                _log.debug('[plugin] 隐藏未安装的已停维 PHP 分支: %s-%s', name, version)
+                continue
+            pInfo['php_eol'] = True
+            pInfo['php_eol_min'] = '%s.%s' % (PHP_MIN_INSTALL_BRANCH[0], PHP_MIN_INSTALL_BRANCH[1:])
+            # 「已安装」也以真实安装为准（目录残留不算）
+            pInfo['setup'] = True
+            kept.append(pInfo)
+        return kept
 
 
     def getIndexList(self, simple=False):
@@ -739,6 +814,16 @@ class plugin(object):
         if not _valid_plugin_name(name) or not _valid_plugin_version(version):
             yf.writeFileLog('[plugin] 拒绝安装非法插件参数: name=%r version=%r' % (name, version))
             return yf.returnData(False, 'ARGS_ERR', ())
+
+        # PHP 只提供 PHP_MIN_INSTALL_BRANCH 及以上（用户 2026-10-26 定的口径）：
+        # 低版本官方已停止维护、不再有安全修复，商店里也不展示安装入口。
+        # 这里再拦一道，是因为「前端看不到按钮」不等于「接口调不到」。
+        if _php_family(name):
+            branch = _php_branch_of(version)
+            if branch and branch < _php_branch_of(PHP_MIN_INSTALL_BRANCH):
+                yf.writeFileLog('[plugin] 拒绝安装已停维的 PHP 分支: name=%s version=%s'
+                                % (name, version))
+                return yf.returnData(False, 'plugin.php_eol_branch_install', ())
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:
@@ -1673,6 +1758,7 @@ class plugin(object):
         plist = copy.deepcopy(static_list)
         
         plist = self.refreshSetupStatus(plist)
+        plist = self.applyPhpVersionPolicy(plist)
         
         filtered_list = []
         for p in plist:

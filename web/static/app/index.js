@@ -3173,7 +3173,7 @@ function getPhpSecurityStatus(forceRefresh) {
         if (!forceRefresh && (Date.now() - lastTime < TTL)) return;
     }
 
-    $.post('/get_php_security_status', {}, function(rdata) {
+    $.post('/get_php_security_status', { force: forceRefresh ? 1 : 0 }, function(rdata) {
         if (!rdata || !rdata.status) {
             // 接口失败时不要把卡片当成「无风险」隐藏，明确提示失败
             var msg = (rdata && rdata.msg) ? rdata.msg : 'PHP security baseline scan failed';
@@ -3511,9 +3511,17 @@ var btSecurityCenter = {
         var metaStr = meta.length ? '（' + meta.join(' · ') + '）' : '';
         var bodyHtml = $('#phpSecBody').html() || '';
 
-        return '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">' +
+        // flex-wrap 必须有：标题区右侧现在是「再次巡检」按钮，德/法文长文案下不换行会把按钮压成两行
+        return '<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">' +
                 '<span class="c9 f12">' + phpSecEscape(metaStr) + '</span>' +
-                '<a class="btlink f12" href="javascript:;" onclick="getPhpSecurityStatus(true);">' + phpSecEscape(t('index.php_sec_refresh', '立即巡检')) + '</a>' +
+                // 「再次巡检」= 按钮样式 + 后端**强制重扫**（force=1）。
+                // 以前是个文字链接，而且 forceRefresh 只绕过浏览器缓存、后端照旧发旧快照：
+                // 用户卸了 PHP7.4 点一百次也还是报它。
+                '<button type="button" class="btn btn-success btn-xs" id="phpSecRescanBtn"' +
+                    ' style="padding:2px 10px; font-size:12px;"' +
+                    ' onclick="getPhpSecurityStatus(true);">' +
+                    phpSecEscape(t('index.php_sec_refresh', '再次巡检')) +
+                '</button>' +
             '</div>' +
             '<div class="php-sec-content-list">' + bodyHtml + '</div>';
     },

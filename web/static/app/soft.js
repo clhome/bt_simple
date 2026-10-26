@@ -378,6 +378,15 @@ function getSList(isdisplay) {
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('soft.php_upgradable', '可更新')) + '</span>';
       }
+      // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里
+      // （未安装的直接不返回），这里红字提醒升级，别让人继续拿它跑业务。
+      if (plugin.php_eol) {
+        plugin_title += '<span class="php-eol-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
+          'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;"' +
+          ' title="' + yfSoftText(t('soft.php_eol_tip', '该 PHP 分支官方已停止维护，不再提供安全修复，建议卸载后升级到 PHP 8.2 及以上。')) + '">' +
+          yfSoftText(t('soft.php_eol', [plugin.php_eol_min || '8.2'],
+            '建议升级到 ' + (plugin.php_eol_min || '8.2') + ' 及以上')) + '</span>';
+      }
       if (plugin.service_alarm) {
         // 《问题报告》P2-2：已装插件的服务存在崩循环/启动失败/刚被停掉时，
         // 在插件名旁边打一个红色标记，并把「插件名 + 最近失败原因」放进 tooltip。

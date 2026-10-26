@@ -256,6 +256,15 @@ def get_location_from_pconline(ip):
 _PHP_SEC_SCAN_LOCK = threading.Lock()
 
 
+#: 首页卡片的快照新鲜度上限（秒）。
+#:
+#: 每日巡检会写快照，但**装/卸 PHP 不会删快照**：用户删了 7.4 之后卡片最长还会报 26
+#: 小时（真机现场：删完仍然挂着「PHP 74 (apt) 7.4.33」）。所以卡片读快照时用这个短
+#: 上限——过期就当场重扫一次（实测 0.5s，且接口是异步拉的，不阻塞首屏）。
+#: 用户点「再次巡检」时另外用 `force` 立即重算（见下）。
+_CARD_SNAPSHOT_MAX_AGE = 600
+
+
 @blueprint.route('/get_php_security_status', endpoint='get_php_security_status',
                  methods=['GET', 'POST'])
 @panel_login_required
@@ -264,10 +273,15 @@ def get_php_security_status():
 
     snapshot = yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
     offline = yf.extNetDisabled()
+    # `force=1`：用户点了「再次巡检」→ 不信任意快照，当场重扫并落盘
+    force = str(request.form.get('force', '') or request.args.get('force', '')).strip()
+    force = force in ('1', 'true', 'True', 'yes')
     try:
         with _PHP_SEC_SCAN_LOCK:
             data = php_sec_scan.load_or_scan(
                 snapshot,
+                max_age=_CARD_SNAPSHOT_MAX_AGE,
+                force=force,
                 server_php_dir=yf.getServerDir() + '/php',
                 offline=offline,
                 run=php_sec_scan.make_runner(3),

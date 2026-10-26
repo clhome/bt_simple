@@ -41,7 +41,7 @@ var lan = {
 			"php_sec_scan_time": "Dernière analyse",
 			"php_sec_offline": "Hors ligne, table de référence intégrée utilisée",
 			"php_sec_upgrade": "Mettre à niveau vers une version sûre",
-			"php_sec_refresh": "Analyser maintenant",
+			"php_sec_refresh": "Rescanner",
 			"H1":"Tableau de bord",
 			"H2":"État du serveur",
 			"V1":"Version",
@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Mise à jour disponible",
+		"php_eol": "Passer a {1}+",
+		"php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus.",
 		"service_alarm": "Erreur de service",
 		"php_upgrade_tip": "PHP sera recompilé (10-30 min), puis FPM redémarre ; en cas d'échec, l'ancienne version est restaurée.",
 		"php_upgrade_queued": "Mise à niveau en file ; voir la boîte de messages",
@@ -5034,6 +5036,7 @@ var lan = {
 			"py_msg_78cf3e":"Le tableau de bord ne peut afficher que 12 logiciels au maximum !",
 			"py_msg_fc8c87": "Supprimé avec succès!!",
 			"py_msg_5e6038":"Le plugin Nom est manquant !",
+			"php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
 			"py_msg_988b58":"Les informations de version manquent !",
 			"py_msg_dacbd7":"Le fichier de configuration n'existe pas !",
 			"py_msg_c3ed11":"La tâche « Installer » a été ajoutée à la file d'attente !",

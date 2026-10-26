@@ -27,7 +27,7 @@
         "php_sec_scan_time": "Dernière analyse",
         "php_sec_offline": "Hors ligne, table de référence intégrée utilisée",
         "php_sec_upgrade": "Mettre à niveau vers une version sûre",
-        "php_sec_refresh": "Analyser maintenant",
+        "php_sec_refresh": "Rescanner",
         "H1": "Tableau de bord",
         "H2": "État du serveur",
         "V1": "Version",
@@ -3494,7 +3494,9 @@
         "soft_auto_str_68": " n'est-ce pas ?",
         "soft_auto_str_69": "Vidéage du cache en cours et ActualiserListe...",
         "soft_auto_str_70": "Actualiser avec succès",
-        "management_action": "Gérer"
+        "management_action": "Gérer",
+        "php_eol": "Passer a {1}+",
+        "php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus."
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -3683,7 +3685,8 @@
         "py_msg_f1e512": "L'installation a réussi !",
         "py_msg_99993a": "Échec de l'installation !",
         "py_msg_15c2e0": "Le cache a été vidé",
-        "py_msg_6f3a2d": "Confirmez le script avant l'installation ; réimportez le plugin"
+        "py_msg_6f3a2d": "Confirmez le script avant l'installation ; réimportez le plugin",
+        "php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus"
     },
     "jdk": {
         "manage": "Gestion JDK",

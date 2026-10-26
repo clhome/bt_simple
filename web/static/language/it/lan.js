@@ -41,7 +41,7 @@ var lan = {
 			"php_sec_scan_time": "Ultima scansione",
 			"php_sec_offline": "Offline, tabella di baseline integrata in uso",
 			"php_sec_upgrade": "Aggiorna a una versione sicura",
-			"php_sec_refresh": "Verifica ora",
+			"php_sec_refresh": "Ripeti scansione",
 			"H1": "Dashboard",
 			"H2": "Stato del server",
 			"V1": "Versione",
@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Aggiornamento disponibile",
+		"php_eol": "Aggiorna a {1}+",
+		"php_eol_tip": "Questo ramo PHP e EOL e non riceve piu correzioni; disinstallalo e passa a PHP 8.2 o superiore.",
 		"service_alarm": "Errore del servizio",
 		"php_upgrade_tip": "PHP verrà ricompilato (10-30 min), poi FPM si riavvia; in caso di errore la versione precedente viene ripristinata.",
 		"php_upgrade_queued": "Aggiornamento in coda; vedi la casella messaggi",
@@ -5034,6 +5036,7 @@ var lan = {
 			"py_msg_78cf3e": "La dashboard può visualizzare al massimo 12 applicazioni!",
 			"py_msg_fc8c87": "Eliminato con successo!!",
 			"py_msg_5e6038": "Manca il plug-in Nome!",
+			"php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore",
 			"py_msg_988b58": "Mancano le informazioni sulla versione!",
 			"py_msg_dacbd7": "Il file di configurazione non esiste!",
 			"py_msg_c3ed11": "L'attività \"Installa\" è stata aggiunta alla coda!",

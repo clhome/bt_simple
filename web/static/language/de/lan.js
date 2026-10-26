@@ -41,7 +41,7 @@ var lan = {
 			"php_sec_scan_time": "Letzte Prüfung",
 			"php_sec_offline": "Offline, integrierte Basislinientabelle wird verwendet",
 			"php_sec_upgrade": "Auf eine sichere Version aktualisieren",
-			"php_sec_refresh": "Jetzt prüfen",
+			"php_sec_refresh": "Erneut pruefen",
 			"H1": "Startseite",
 			"H2": "Serverstatus",
 			"V1": "Version",
@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update verfügbar",
+		"php_eol": "Auf {1}+ aktualisieren",
+		"php_eol_tip": "Dieser PHP-Zweig ist EOL und erhaelt keine Sicherheitsfixes mehr; deinstallieren und auf PHP 8.2+ umsteigen.",
 		"service_alarm": "Dienstfehler",
 		"php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
 		"php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
@@ -5034,6 +5036,7 @@ var lan = {
 			"py_msg_78cf3e": "DashboardEs können maximal 12 Software-Pakete angezeigt werden!",
 			"py_msg_fc8c87": "Erfolgreich gelöscht!!",
 			"py_msg_5e6038": "Plugin-Name fehlt!",
+			"php_eol_branch_install": "PHP-Zweige unter 8.2 sind EOL und koennen nicht mehr installiert werden; bitte 8.2 oder neuer waehlen",
 			"py_msg_988b58": "FehltVersionInformationen!",
 			"py_msg_dacbd7": "KonfigurationDateienExistiert nicht!",
 			"py_msg_c3ed11": "Der Installationsauftrag wurde zur Warteschlange hinzugefügt!",

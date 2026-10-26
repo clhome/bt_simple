@@ -27,7 +27,7 @@
         "php_sec_scan_time": "巡检时间",
         "php_sec_offline": "未联网，使用内置基线表",
         "php_sec_upgrade": "升级到安全版本",
-        "php_sec_refresh": "立即巡检",
+        "php_sec_refresh": "再次巡检",
         "H1": "首页",
         "H2": "服务器状态",
         "V1": "版本",
@@ -3494,7 +3494,9 @@
         "soft_auto_str_68": " 吗？",
         "soft_auto_str_69": "正在清理缓存并刷新列表...",
         "soft_auto_str_70": "刷新成功",
-        "management_action": "管理"
+        "management_action": "管理",
+        "php_eol": "建议升级到 {1} 及以上",
+        "php_eol_tip": "该 PHP 分支官方已停止维护，不再提供安全修复，建议卸载后升级到 PHP 8.2 及以上。"
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -3683,7 +3685,8 @@
         "py_msg_f1e512": "安装成功!",
         "py_msg_99993a": "安装失败!",
         "py_msg_15c2e0": "缓存已清除",
-        "py_msg_6f3a2d": "第三方插件需确认安装脚本后再安装，请重新导入确认"
+        "py_msg_6f3a2d": "第三方插件需确认安装脚本后再安装，请重新导入确认",
+        "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本"
     },
     "jdk": {
         "manage": "JDK管理",

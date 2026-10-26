@@ -27,7 +27,7 @@
         "php_sec_scan_time": "巡檢時間",
         "php_sec_offline": "未連網，使用內建基線表",
         "php_sec_upgrade": "升級到安全版本",
-        "php_sec_refresh": "立即巡檢",
+        "php_sec_refresh": "再次巡檢",
         "H1": "首頁",
         "H2": "伺服器狀態",
         "V1": "版本",

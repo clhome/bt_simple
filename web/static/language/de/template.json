@@ -27,7 +27,7 @@
         "php_sec_scan_time": "Letzte Prüfung",
         "php_sec_offline": "Offline, integrierte Basislinientabelle wird verwendet",
         "php_sec_upgrade": "Auf eine sichere Version aktualisieren",
-        "php_sec_refresh": "Jetzt prüfen",
+        "php_sec_refresh": "Erneut pruefen",
         "H1": "Startseite",
         "H2": "Serverstatus",
         "V1": "Version",
@@ -3494,7 +3494,9 @@
         "soft_auto_str_68": " ?",
         "soft_auto_str_69": "Cache wird bereinigt undAktualisierenListe...",
         "soft_auto_str_70": "AktualisierenErfolgreich",
-        "management_action": "Verwalten"
+        "management_action": "Verwalten",
+        "php_eol": "Auf {1}+ aktualisieren",
+        "php_eol_tip": "Dieser PHP-Zweig ist EOL und erhaelt keine Sicherheitsfixes mehr; deinstallieren und auf PHP 8.2+ umsteigen."
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -3683,7 +3685,8 @@
         "py_msg_f1e512": "InstallierenErfolgreich!",
         "py_msg_99993a": "InstallierenFehlgeschlagen!",
         "py_msg_15c2e0": "Cache wurde geleert",
-        "py_msg_6f3a2d": "Skript vor der Installation bestätigen; bitte neu importieren"
+        "py_msg_6f3a2d": "Skript vor der Installation bestätigen; bitte neu importieren",
+        "php_eol_branch_install": "PHP-Zweige unter 8.2 sind EOL und koennen nicht mehr installiert werden; bitte 8.2 oder neuer waehlen"
     },
     "jdk": {
         "manage": "JDK-Verwaltung",

@@ -1,424 +1,427 @@
 {
-  "soft": {
-    "php_upgradable": "Update verfügbar",
-    "service_alarm": "Dienstfehler",
-    "php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
-    "php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
-    "type_all": "Alle",
-    "type_installed": "Installiert",
-    "type_runtime": "Laufzeitumgebung",
-    "type_database": "Datenbank",
-    "type_code_mgr": "Code-Verwaltung",
-    "type_system_tools": "Systemwerkzeuge",
-    "type_other_plugins": "Andere Plugins",
-    "type_php": "PHP",
-    "H1": "Startseite",
-    "H2": "Softwareverwaltung",
-    "TH1": "Softwarename",
-    "TH2": "Typ",
-    "TH3": "Beschreibung",
-    "TH4": "Position",
-    "TH5": "Status",
-    "TH6": "Startseiten-Anzeige",
-    "TH7": "Aktion",
-    "show_third_party": "Drittanbieter-Plugins anzeigen",
-    "clear_cache": "Cache leeren",
-    "soft_name": "Softwarename",
-    "description": "Beschreibung",
-    "official_site": "Webseite",
-    "release_time": "Veröffentlichungsdatum",
-    "location": "Ort",
-    "display_home": "Auf Startseite anzeigen",
-    "processing_please_wait": "Wird verarbeitet,Bitte warten...",
-    "management": "] Verwaltung",
-    "this_action_will_clear": "Diese Aktion leert /www/server/source/ alle heruntergeladenen Paket-Cache-Dateien. Nach der Bereinigung werden Software-Installationspakete erneut aus dem Netzwerk heruntergeladen. Möchten Sie fortfahren?",
-    "clear_the_installation_cache": "Installationscache bereinigen",
-    "clearing_data_please_wait": "Wird bereinigt, bitte warten...",
-    "retrieving_the_list": "Liste wird abgerufen...",
-    "install": "Installieren",
-    "update": "Aktualisieren",
-    "uninstall": "Deinstallieren",
-    "green_task_uninstalling": "Wird deinstalliert...",
-    "green_task_installing": "Wird installiert...",
-    "task_waiting": "Warten...",
-    "size_third_party": "(Drittanbieter)",
-    "target_blank_official_website": "\" target=\"_blank\">Offizielle Website",
-    "checking_the_installation_environment": "Installationsumgebung wird geprüft...",
-    "adding_to_the_installer": "Wird zum Installationsprogramm hinzugefügt...",
-    "installation": "Installieren",
-    "submit": "Absenden",
-    "close": "Schließen",
-    "bt_form_pd_version": "Installationsversion:",
-    "installation_1": "Installieren",
-    "submit_1": "Absenden",
-    "close_1": "Schließen",
-    "bt_form_pd_version_1": "Installationsversion:",
-    "bt_form_pd_red": "⚠️ Warnung: Diese Aktion entfernt den Code des Plugins, zugehörige Konfigurationen sowie Dateien unter /www/server/",
-    "all_executable_files_and": "alle laufenden Dateien und Datenbankdaten (erstellen Sie unbedingt vorher eine Sicherung; einmal gelöscht, können sie nicht wiederhergestellt werden)!",
-    "to_confirm_force_uninstall": "zur Bestätigung:",
-    "confirm_forced_deletion_high": "Erzwungenes Löschen bestätigen (Risikoreiche Operation)",
-    "forced_deletion": "Erzwungen löschen",
-    "cancel": "Abbrechen",
-    "the_plugin_name_you": "Der eingegebene Plugin-Name stimmt nicht überein. Der Vorgang wurde abgebrochen!",
-    "forced_deletion_in_progress": "Wird erzwungen gelöscht,Bitte warten...",
-    "checking_the_uninstallation_environment": "Deinstallationsumgebung wird geprüft...",
-    "red_uninstallation_environment_check": "Die Deinstallations-Umgebungsprüfung ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
-    "uninstall_failure_message": "Hinweis auf Deinstallationsfehler",
-    "forced_deletion_1": "Erzwungen löschen",
-    "cancel_1": "Abbrechen",
-    "red_uninstallation_environment_check_1": "Die Deinstallations-Umgebungsprüfung ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
-    "uninstall_failure_message_1": "Hinweis auf Deinstallationsfehler",
-    "forced_deletion_2": "Erzwungen löschen",
-    "cancel_2": "Abbrechen",
-    "bt_form_pd_line": "Möchten Sie wirklich deinstallieren [",
-    "top_flex_align_items": "]?",
-    "software_uninstallation_confirmation": "Deinstallation der Software bestätigen",
-    "confirm_uninstall": "Deinstallation bestätigen",
-    "cancel_3": "Abbrechen",
-    "processing_please_wait_1": "Wird verarbeitet,Bitte warten...",
-    "red_the_red_plugin": "Die Deinstallation des Plugins ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
-    "uninstall_failure_message_2": "Hinweis auf Deinstallationsfehler",
-    "forced_deletion_3": "Erzwungen löschen",
-    "cancel_4": "Abbrechen",
-    "setup_failed": "Einrichten fehlgeschlagen:",
-    "install_third_party_plugin": "Plugin-Paket eines Drittanbieters installieren",
-    "install_three_plugin_bottom": ".install_three_plugin{padding:25px;padding-bottom:70px} .plugin_user_info p { font-size: 14px;} .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;} .btn-content{text-align: center;margin-top: 25px;} Name:",
-    "version": "Version:",
-    "description_1": "Beschreibung:",
-    "size": "Größe:",
-    "author": "Autor:",
-    "source_btlink": "Quelle: <a class=\"btlink\" href=\"",
-    "quot_gt_confirm_installation": "Installation bestätigen",
-    "upload_failed": "Upload fehlgeschlagen 2!:",
-    "installing_this_may_take": "Wird installiert,Dies kann einige Minuten dauern...",
-    "are_you_sure_you": "Möchten Sie wirklich [",
-    "from": "] von",
-    "upgrade_to": "Aktualisieren auf",
-    "msg_1": "?",
-    "clearing_the_cache_and": "Cache wird bereinigt und Liste aktualisiert...",
-    "refresh_successful": "Erfolgreich aktualisiert",
-    "uninstall_warning1": "Nach der Deinstallation werden zugehörige Dateien von [",
-    "uninstall_warning2": "】alle laufenden Dateien und Datenbankdaten (erstellen Sie unbedingt vorher eine Sicherung; einmal gelöscht, können sie nicht wiederhergestellt werden)!",
-    "uninstall_warning3": "Bitte eingeben",
-    "uninstall_warning4": "zur Bestätigung:",
-    "please_input": "Bitte eingeben",
-    "settings": "Einstellung",
-    "uninstall_confirm_prefix": "Möchten Sie wirklich deinstallieren [",
-    "uninstall_confirm_suffix": "]?",
-    "uninstall_backup_tip": "Vor der Deinstallation werden die Daten gepackt und gesichert nach /www/backup (.tar.gz)",
-    "soft_auto_str_1": "Wird verarbeitet,Bitte warten...",
-    "soft_auto_str_2": "] Verwaltung",
-    "soft_auto_str_3": "DiesAktionwirdLeeren /www/server/source/ alle unterHerunterladenPaket-CacheDateien. Nach der Bereinigung erneutInstallierenDie Software wird erneut ausNetzwerkHerunterladenInstallierenPaket, möchten Sie die Bereinigung bestätigen?",
-    "soft_auto_str_4": "BereinigenInstallierenCache",
-    "soft_auto_str_5": "Wird bereinigt, bitte warten...",
-    "soft_auto_str_6": "Wird abgerufenListe...",
-    "soft_auto_str_7": ")\">Installieren",
-    "soft_auto_str_10": ")\">Deinstallieren",
-    "soft_auto_str_11": "WirdDeinstallieren...",
-    "soft_auto_str_12": "WirdInstallieren...",
-    "soft_auto_str_13": "Warten...",
-    "soft_auto_str_14": "(Drittanbieter)",
-    "soft_auto_str_15": "\" target=\"_blank\">Offizielle Website",
-    "soft_auto_str_16": "Wird geprüftInstallierenUmgebung...",
-    "soft_auto_str_17": "WirdHinzufügennachInstallieren...",
-    "soft_auto_str_18": "Installieren",
-    "soft_auto_str_19": "Absenden",
-    "soft_auto_str_20": "Schließen",
-    "soft_auto_str_21": "InstallierenVersion：",
-    "soft_auto_str_22": "Installieren",
-    "soft_auto_str_23": "Absenden",
-    "soft_auto_str_24": "Schließen",
-    "soft_auto_str_25": "InstallierenVersion：",
-    "soft_auto_str_26": "⚠️ Warnung: DiesAktionentfernt den Code des Plugins, zugehörige Konfigurationen sowie Dateien unter /www/server/",
-    "soft_auto_str_27": "alle laufendenDateienundDatenbankenDaten (erstellen Sie unbedingt vorherSicherung, sobaldLöschenauf keinen FallWiederherstellen）！ Bitte geben Sie den Plugin-Namen ein",
-    "soft_auto_str_28": "zur Bestätigung: LöschenVorher packenSicherungnach /www/backup",
-    "soft_auto_str_29": "ErzwingenLöschenBestätigen (Hohes RisikoAktion)",
-    "soft_auto_str_30": "ErzwingenLöschen",
-    "soft_auto_str_31": "Abbrechen",
-    "soft_auto_str_32": "eingegebenes PluginNamestimmt nicht überein,AktionbereitsAbbrechen！",
-    "soft_auto_str_33": "Wird erzwungenLöschen,Bitte warten...",
-    "soft_auto_str_34": "Wird geprüftDeinstallierenUmgebung...",
-    "soft_auto_str_35": "DeinstallierenUmgebungsprüfung fehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
-    "soft_auto_str_36": "DeinstallierenFehlgeschlagenHinweis",
-    "soft_auto_str_37": "ErzwingenLöschen",
-    "soft_auto_str_38": "Abbrechen",
-    "soft_auto_str_39": "DeinstallierenUmgebungsprüfung fehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
-    "soft_auto_str_40": "DeinstallierenFehlgeschlagenHinweis",
-    "soft_auto_str_41": "ErzwingenLöschen",
-    "soft_auto_str_42": "Abbrechen",
-    "soft_auto_str_43": "Möchten Sie wirklichDeinstallieren【",
-    "soft_auto_str_44": "]? DeinstallierenVorher werden die Daten gepacktSicherungnach /www/backup (.tar.gz)",
-    "soft_auto_str_45": "DeinstallierenSoftware bestätigen",
-    "soft_auto_str_46": "BestätigenDeinstallieren",
-    "soft_auto_str_47": "Abbrechen",
-    "soft_auto_str_48": "Wird verarbeitet, bitte warten...",
-    "soft_auto_str_49": "PluginDeinstallierenfehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
-    "soft_auto_str_50": "DeinstallierenFehlgeschlagenHinweis",
-    "soft_auto_str_51": "ErzwingenLöschen",
-    "soft_auto_str_52": "Abbrechen",
-    "soft_auto_str_53": "Speichern fehlgeschlagen:",
-    "soft_auto_str_54": "InstallierenPlugin-Paket eines Drittanbieters",
-    "soft_auto_str_55": ".install_three_plugin{padding:25px;padding-bottom:70px} .plugin_user_info p { font-size: 14px;} .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;} .btn-content{text-align: center;margin-top: 25px;} Name：",
-    "soft_auto_str_56": "Version：",
-    "soft_auto_str_57": "Beschreibung:",
-    "soft_auto_str_58": "Größe：",
-    "soft_auto_str_59": "Autor:",
-    "soft_auto_str_60": "Quelle: <a class=\"btlink\" href=\"",
-    "soft_auto_str_61": "Dies ist ein von Dritten entwickeltes Plugin, dessen Zuverlässigkeit nicht überprüft werden kann.! InstallierenDer Vorgang kann einige Minuten dauernZeit, bitte haben Sie Geduld! Falls dieses Plugin bereits existiert, wird es ersetzt! Abbrechen <button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
-    "soft_auto_str_63": "HochladenFehlgeschlagen 2!:",
-    "soft_auto_str_64": "WirdInstallieren,Dies kann einige Minuten dauernZeit...",
-    "soft_auto_str_65": "SieBestätigen[",
-    "soft_auto_str_66": "] von ",
-    "soft_auto_str_67": " Aktualisieren auf ",
-    "soft_auto_str_68": " ?",
-    "soft_auto_str_69": "Cache wird bereinigt undAktualisierenListe...",
-    "soft_auto_str_70": "AktualisierenErfolgreich",
-    "management_action": "Verwalten"
-  },
-  "plugins": {
-    "acme_pandominassl_apply": {
-      "title": "ACME-Wildcard-SSL",
-      "ps": "ACME-Wildcard-SSL-Verwaltung mit kostenlosen Let's Encrypt-Zertifikaten und automatischer Verlängerung"
+    "soft": {
+        "php_upgradable": "Update verfügbar",
+        "service_alarm": "Dienstfehler",
+        "php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
+        "php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
+        "type_all": "Alle",
+        "type_installed": "Installiert",
+        "type_runtime": "Laufzeitumgebung",
+        "type_database": "Datenbank",
+        "type_code_mgr": "Code-Verwaltung",
+        "type_system_tools": "Systemwerkzeuge",
+        "type_other_plugins": "Andere Plugins",
+        "type_php": "PHP",
+        "H1": "Startseite",
+        "H2": "Softwareverwaltung",
+        "TH1": "Softwarename",
+        "TH2": "Typ",
+        "TH3": "Beschreibung",
+        "TH4": "Position",
+        "TH5": "Status",
+        "TH6": "Startseiten-Anzeige",
+        "TH7": "Aktion",
+        "show_third_party": "Drittanbieter-Plugins anzeigen",
+        "clear_cache": "Cache leeren",
+        "soft_name": "Softwarename",
+        "description": "Beschreibung",
+        "official_site": "Webseite",
+        "release_time": "Veröffentlichungsdatum",
+        "location": "Ort",
+        "display_home": "Auf Startseite anzeigen",
+        "processing_please_wait": "Wird verarbeitet,Bitte warten...",
+        "management": "] Verwaltung",
+        "this_action_will_clear": "Diese Aktion leert /www/server/source/ alle heruntergeladenen Paket-Cache-Dateien. Nach der Bereinigung werden Software-Installationspakete erneut aus dem Netzwerk heruntergeladen. Möchten Sie fortfahren?",
+        "clear_the_installation_cache": "Installationscache bereinigen",
+        "clearing_data_please_wait": "Wird bereinigt, bitte warten...",
+        "retrieving_the_list": "Liste wird abgerufen...",
+        "install": "Installieren",
+        "update": "Aktualisieren",
+        "uninstall": "Deinstallieren",
+        "green_task_uninstalling": "Wird deinstalliert...",
+        "green_task_installing": "Wird installiert...",
+        "task_waiting": "Warten...",
+        "size_third_party": "(Drittanbieter)",
+        "target_blank_official_website": "\" target=\"_blank\">Offizielle Website",
+        "checking_the_installation_environment": "Installationsumgebung wird geprüft...",
+        "adding_to_the_installer": "Wird zum Installationsprogramm hinzugefügt...",
+        "installation": "Installieren",
+        "submit": "Absenden",
+        "close": "Schließen",
+        "bt_form_pd_version": "Installationsversion:",
+        "installation_1": "Installieren",
+        "submit_1": "Absenden",
+        "close_1": "Schließen",
+        "bt_form_pd_version_1": "Installationsversion:",
+        "bt_form_pd_red": "⚠️ Warnung: Diese Aktion entfernt den Code des Plugins, zugehörige Konfigurationen sowie Dateien unter /www/server/",
+        "all_executable_files_and": "alle laufenden Dateien und Datenbankdaten (erstellen Sie unbedingt vorher eine Sicherung; einmal gelöscht, können sie nicht wiederhergestellt werden)!",
+        "to_confirm_force_uninstall": "zur Bestätigung:",
+        "confirm_forced_deletion_high": "Erzwungenes Löschen bestätigen (Risikoreiche Operation)",
+        "forced_deletion": "Erzwungen löschen",
+        "cancel": "Abbrechen",
+        "the_plugin_name_you": "Der eingegebene Plugin-Name stimmt nicht überein. Der Vorgang wurde abgebrochen!",
+        "forced_deletion_in_progress": "Wird erzwungen gelöscht,Bitte warten...",
+        "checking_the_uninstallation_environment": "Deinstallationsumgebung wird geprüft...",
+        "red_uninstallation_environment_check": "Die Deinstallations-Umgebungsprüfung ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
+        "uninstall_failure_message": "Hinweis auf Deinstallationsfehler",
+        "forced_deletion_1": "Erzwungen löschen",
+        "cancel_1": "Abbrechen",
+        "red_uninstallation_environment_check_1": "Die Deinstallations-Umgebungsprüfung ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
+        "uninstall_failure_message_1": "Hinweis auf Deinstallationsfehler",
+        "forced_deletion_2": "Erzwungen löschen",
+        "cancel_2": "Abbrechen",
+        "bt_form_pd_line": "Möchten Sie wirklich deinstallieren [",
+        "top_flex_align_items": "]?",
+        "software_uninstallation_confirmation": "Deinstallation der Software bestätigen",
+        "confirm_uninstall": "Deinstallation bestätigen",
+        "cancel_3": "Abbrechen",
+        "processing_please_wait_1": "Wird verarbeitet,Bitte warten...",
+        "red_the_red_plugin": "Die Deinstallation des Plugins ist fehlgeschlagen. Möchten Sie das Plugin zwangsweise löschen?",
+        "uninstall_failure_message_2": "Hinweis auf Deinstallationsfehler",
+        "forced_deletion_3": "Erzwungen löschen",
+        "cancel_4": "Abbrechen",
+        "setup_failed": "Einrichten fehlgeschlagen:",
+        "install_third_party_plugin": "Plugin-Paket eines Drittanbieters installieren",
+        "install_three_plugin_bottom": ".install_three_plugin{padding:25px;padding-bottom:70px} .plugin_user_info p { font-size: 14px;} .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;} .btn-content{text-align: center;margin-top: 25px;} Name:",
+        "version": "Version:",
+        "description_1": "Beschreibung:",
+        "size": "Größe:",
+        "author": "Autor:",
+        "source_btlink": "Quelle: <a class=\"btlink\" href=\"",
+        "quot_gt_confirm_installation": "Installation bestätigen",
+        "upload_failed": "Upload fehlgeschlagen 2!:",
+        "installing_this_may_take": "Wird installiert,Dies kann einige Minuten dauern...",
+        "are_you_sure_you": "Möchten Sie wirklich [",
+        "from": "] von",
+        "upgrade_to": "Aktualisieren auf",
+        "msg_1": "?",
+        "clearing_the_cache_and": "Cache wird bereinigt und Liste aktualisiert...",
+        "refresh_successful": "Erfolgreich aktualisiert",
+        "uninstall_warning1": "Nach der Deinstallation werden zugehörige Dateien von [",
+        "uninstall_warning2": "】alle laufenden Dateien und Datenbankdaten (erstellen Sie unbedingt vorher eine Sicherung; einmal gelöscht, können sie nicht wiederhergestellt werden)!",
+        "uninstall_warning3": "Bitte eingeben",
+        "uninstall_warning4": "zur Bestätigung:",
+        "please_input": "Bitte eingeben",
+        "settings": "Einstellung",
+        "uninstall_confirm_prefix": "Möchten Sie wirklich deinstallieren [",
+        "uninstall_confirm_suffix": "]?",
+        "uninstall_backup_tip": "Vor der Deinstallation werden die Daten gepackt und gesichert nach /www/backup (.tar.gz)",
+        "soft_auto_str_1": "Wird verarbeitet,Bitte warten...",
+        "soft_auto_str_2": "] Verwaltung",
+        "soft_auto_str_3": "DiesAktionwirdLeeren /www/server/source/ alle unterHerunterladenPaket-CacheDateien. Nach der Bereinigung erneutInstallierenDie Software wird erneut ausNetzwerkHerunterladenInstallierenPaket, möchten Sie die Bereinigung bestätigen?",
+        "soft_auto_str_4": "BereinigenInstallierenCache",
+        "soft_auto_str_5": "Wird bereinigt, bitte warten...",
+        "soft_auto_str_6": "Wird abgerufenListe...",
+        "soft_auto_str_7": ")\">Installieren",
+        "soft_auto_str_10": ")\">Deinstallieren",
+        "soft_auto_str_11": "WirdDeinstallieren...",
+        "soft_auto_str_12": "WirdInstallieren...",
+        "soft_auto_str_13": "Warten...",
+        "soft_auto_str_14": "(Drittanbieter)",
+        "soft_auto_str_15": "\" target=\"_blank\">Offizielle Website",
+        "soft_auto_str_16": "Wird geprüftInstallierenUmgebung...",
+        "soft_auto_str_17": "WirdHinzufügennachInstallieren...",
+        "soft_auto_str_18": "Installieren",
+        "soft_auto_str_19": "Absenden",
+        "soft_auto_str_20": "Schließen",
+        "soft_auto_str_21": "InstallierenVersion：",
+        "soft_auto_str_22": "Installieren",
+        "soft_auto_str_23": "Absenden",
+        "soft_auto_str_24": "Schließen",
+        "soft_auto_str_25": "InstallierenVersion：",
+        "soft_auto_str_26": "⚠️ Warnung: DiesAktionentfernt den Code des Plugins, zugehörige Konfigurationen sowie Dateien unter /www/server/",
+        "soft_auto_str_27": "alle laufendenDateienundDatenbankenDaten (erstellen Sie unbedingt vorherSicherung, sobaldLöschenauf keinen FallWiederherstellen）！ Bitte geben Sie den Plugin-Namen ein",
+        "soft_auto_str_28": "zur Bestätigung: LöschenVorher packenSicherungnach /www/backup",
+        "soft_auto_str_29": "ErzwingenLöschenBestätigen (Hohes RisikoAktion)",
+        "soft_auto_str_30": "ErzwingenLöschen",
+        "soft_auto_str_31": "Abbrechen",
+        "soft_auto_str_32": "eingegebenes PluginNamestimmt nicht überein,AktionbereitsAbbrechen！",
+        "soft_auto_str_33": "Wird erzwungenLöschen,Bitte warten...",
+        "soft_auto_str_34": "Wird geprüftDeinstallierenUmgebung...",
+        "soft_auto_str_35": "DeinstallierenUmgebungsprüfung fehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
+        "soft_auto_str_36": "DeinstallierenFehlgeschlagenHinweis",
+        "soft_auto_str_37": "ErzwingenLöschen",
+        "soft_auto_str_38": "Abbrechen",
+        "soft_auto_str_39": "DeinstallierenUmgebungsprüfung fehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
+        "soft_auto_str_40": "DeinstallierenFehlgeschlagenHinweis",
+        "soft_auto_str_41": "ErzwingenLöschen",
+        "soft_auto_str_42": "Abbrechen",
+        "soft_auto_str_43": "Möchten Sie wirklichDeinstallieren【",
+        "soft_auto_str_44": "]? DeinstallierenVorher werden die Daten gepacktSicherungnach /www/backup (.tar.gz)",
+        "soft_auto_str_45": "DeinstallierenSoftware bestätigen",
+        "soft_auto_str_46": "BestätigenDeinstallieren",
+        "soft_auto_str_47": "Abbrechen",
+        "soft_auto_str_48": "Wird verarbeitet, bitte warten...",
+        "soft_auto_str_49": "PluginDeinstallierenfehlgeschlagen. Möchten Sie erzwingenLöschendieses Plugin?",
+        "soft_auto_str_50": "DeinstallierenFehlgeschlagenHinweis",
+        "soft_auto_str_51": "ErzwingenLöschen",
+        "soft_auto_str_52": "Abbrechen",
+        "soft_auto_str_53": "Speichern fehlgeschlagen:",
+        "soft_auto_str_54": "InstallierenPlugin-Paket eines Drittanbieters",
+        "soft_auto_str_55": ".install_three_plugin{padding:25px;padding-bottom:70px} .plugin_user_info p { font-size: 14px;} .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;} .btn-content{text-align: center;margin-top: 25px;} Name：",
+        "soft_auto_str_56": "Version：",
+        "soft_auto_str_57": "Beschreibung:",
+        "soft_auto_str_58": "Größe：",
+        "soft_auto_str_59": "Autor:",
+        "soft_auto_str_60": "Quelle: <a class=\"btlink\" href=\"",
+        "soft_auto_str_61": "Dies ist ein von Dritten entwickeltes Plugin, dessen Zuverlässigkeit nicht überprüft werden kann.! InstallierenDer Vorgang kann einige Minuten dauernZeit, bitte haben Sie Geduld! Falls dieses Plugin bereits existiert, wird es ersetzt! Abbrechen <button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+        "soft_auto_str_63": "HochladenFehlgeschlagen 2!:",
+        "soft_auto_str_64": "WirdInstallieren,Dies kann einige Minuten dauernZeit...",
+        "soft_auto_str_65": "SieBestätigen[",
+        "soft_auto_str_66": "] von ",
+        "soft_auto_str_67": " Aktualisieren auf ",
+        "soft_auto_str_68": " ?",
+        "soft_auto_str_69": "Cache wird bereinigt undAktualisierenListe...",
+        "soft_auto_str_70": "AktualisierenErfolgreich",
+        "management_action": "Verwalten",
+        "php_eol": "Auf {1}+ aktualisieren",
+        "php_eol_tip": "Dieser PHP-Zweig ist EOL und erhaelt keine Sicherheitsfixes mehr; deinstallieren und auf PHP 8.2+ umsteigen."
     },
-    "apache": {
-      "title": "Apache",
-      "ps": "Weltweit führende, schnelle, zuverlässige und über einfache APIs erweiterbare Webserver-Software"
+    "plugins": {
+        "acme_pandominassl_apply": {
+            "title": "ACME-Wildcard-SSL",
+            "ps": "ACME-Wildcard-SSL-Verwaltung mit kostenlosen Let's Encrypt-Zertifikaten und automatischer Verlängerung"
+        },
+        "apache": {
+            "title": "Apache",
+            "ps": "Weltweit führende, schnelle, zuverlässige und über einfache APIs erweiterbare Webserver-Software"
+        },
+        "caddy": {
+            "title": "Caddy",
+            "ps": "Leistungsstarker Open-Source-Webserver für Unternehmen mit automatischem HTTPS in Go geschrieben"
+        },
+        "clean": {
+            "title": "Festplattenbereinigung",
+            "ps": "Tiefenprüfung von Systemprotokollen und temporären Caches zur sicheren Freigabe von Festplattenspeicher."
+        },
+        "data_query": {
+            "title": "Datenmanager",
+            "ps": "Einfache Datenverwaltung (Memcached, Redis, MongoDB) zur schnellen Anzeige und Pflege von Schlüssel-Wert-Datenbanken"
+        },
+        "docker": {
+            "title": "YuFeng Docker-Manager",
+            "ps": "YuFeng Docker-Manager mit Hochgeschwindigkeits-Spiegelbeschleunigung für blitzschnelles Container-Management"
+        },
+        "fail2ban": {
+            "title": "YuFeng F2B-Firewall",
+            "ps": "YuFeng F2B-Firewall schützt Dienste und Websites vor Brute-Force-Angriffen und böswilligen IPs"
+        },
+        "gitea": {
+            "title": "Gitea",
+            "ps": "Ein leichtgewichtiger und schmerzloser selbst gehosteter Git-Dienst"
+        },
+        "jdk": {
+            "title": "YuFeng JDK-Manager",
+            "ps": "YuFeng JDK-Manager für die Online-Installation und Umgebungskonfiguration mehrerer JDK-Versionen"
+        },
+        "linux_sys_opt": {
+            "title": "YuFeng Systemoptimierer",
+            "ps": "YuFeng Systemoptimierer für tiefgreifendes Kernel- und Betriebssystem-Leistungs-Tuning"
+        },
+        "mariadb": {
+            "title": "MariaDB",
+            "ps": "Eines der beliebtesten relationalen Open-Source-Datenbankmanagementsysteme"
+        },
+        "mongodb": {
+            "title": "MongoDB",
+            "ps": "Moderne universelle, dokumentbasierte verteilte NoSQL-Datenbank"
+        },
+        "mysql": {
+            "title": "MySQL",
+            "ps": "Das weltweit beliebteste relationale Open-Source-Datenbanksystem"
+        },
+        "ollama": {
+            "title": "Ollama",
+            "ps": "Lokales LLM-Bereitstellungs- und Verwaltungstool"
+        },
+        "op_load_balance": {
+            "title": "Lastausgleicher",
+            "ps": "Hochleistungs-Lastenausgleich und Reverse-Proxy-Cluster-Verwaltung basierend auf OpenResty"
+        },
+        "op_waf": {
+            "title": "YuFeng OP WAF-Webanwendungs-Firewall",
+            "ps": "Hochleistungs-Webanwendungs-Firewall basierend auf OpenResty Lua von YuFeng"
+        },
+        "openresty": {
+            "title": "OpenResty",
+            "ps": "Hochleistungs-Webplattform basierend auf Nginx und Lua"
+        },
+        "pg_docker": {
+            "title": "YuFeng PostgreSQL-Docker",
+            "ps": "Docker-basiertes PostgreSQL-Multi-Instanz-Verwaltungstool von YuFeng"
+        },
+        "pgadmin": {
+            "title": "pgAdmin",
+            "ps": "Leistungsstarkes Web-Verwaltungstool für PostgreSQL"
+        },
+        "php": {
+            "title": "PHP",
+            "ps": "Weit verbreitete quelloffene Allzweck-Skriptsprache"
+        },
+        "php-apt": {
+            "title": "PHP (APT)",
+            "ps": "Vorkompilierte PHP-Umgebung, die schnell über APT installiert wird"
+        },
+        "php-guard": {
+            "title": "PHP-Wächter",
+            "ps": "Überwachen und automatischer Neustart des PHP-FPM-Dienstes bei unerwartetem Beenden"
+        },
+        "php-yum": {
+            "title": "PHP (YUM)",
+            "ps": "Vorkompilierte PHP-Umgebung, die schnell über YUM installiert wird"
+        },
+        "phpmyadmin": {
+            "title": "phpMyAdmin",
+            "ps": "Klassisches webbasiertes grafisches Verwaltungstool für MySQL / MariaDB"
+        },
+        "postgresql": {
+            "title": "PostgreSQL",
+            "ps": "Die weltweit fortschrittlichste hochzuverlässige relationale Open-Source-Datenbank"
+        },
+        "pureftp": {
+            "title": "Pure-FTPd",
+            "ps": "Kostenloser, sicherer und produktionsreifer schlanker FTP-Server"
+        },
+        "python_yf": {
+            "title": "YuFeng Python-Multi-Version-Manager",
+            "ps": "YuFeng Python-Manager basierend auf uv für blitzschnelle Versionen und virtuelle Umgebungen"
+        },
+        "redis": {
+            "title": "Redis",
+            "ps": "In-Memory-Datenstrukturspeicher, der als Datenbank, Cache und Message Broker verwendet wird"
+        },
+        "rsyncd": {
+            "title": "Rsync-Daemon",
+            "ps": "Effizientes und zuverlässiges Tool zur inkrementellen Dateisynchronisierung und Remote-Sicherung"
+        },
+        "sphinx": {
+            "title": "Sphinx",
+            "ps": "Open-Source-Volltext-Suchmaschine für schnelle und effiziente Textsuche"
+        },
+        "supervisor": {
+            "title": "Supervisor",
+            "ps": "Prozesssteuerungs- und Daemon-Verwaltungssystem für Unix-ähnliche Systeme"
+        },
+        "swap": {
+            "title": "YuFeng Swap-Manager",
+            "ps": "YuFeng Swap-Manager zur einfachen Konfiguration und Optimierung des virtuellen Swap-Speichers"
+        },
+        "task_manager": {
+            "title": "Task-Manager",
+            "ps": "Task-Manager"
+        },
+        "valkey": {
+            "title": "Valkey",
+            "ps": "Hochleistungs-Open-Source-Schlüssel-Wert-Speicher, voll kompatibel mit Redis"
+        },
+        "varnish": {
+            "title": "Varnish",
+            "ps": "Hochleistungs-Open-Source-HTTP-Beschleuniger und Reverse-Proxy-Cache-Server"
+        },
+        "webssh": {
+            "title": "WebSSH",
+            "ps": "Browserbasiertes Webterminal zur sicheren Serververwaltung jederzeit und überall"
+        },
+        "webstats": {
+            "title": "Website-Statistiken",
+            "ps": "Echtzeit-Statistiken über Website-Besuche, IPs, PVs, Besucherprofile und Quellen"
+        },
+        "yufeng_systemd": {
+            "title": "YuFeng Systemd-Manager",
+            "ps": "YuFeng Systemd-Manager für die visuelle Verwaltung und Überwachung von Systemdiensten"
+        }
     },
-    "caddy": {
-      "title": "Caddy",
-      "ps": "Leistungsstarker Open-Source-Webserver für Unternehmen mit automatischem HTTPS in Go geschrieben"
-    },
-    "clean": {
-      "title": "Festplattenbereinigung",
-      "ps": "Tiefenprüfung von Systemprotokollen und temporären Caches zur sicheren Freigabe von Festplattenspeicher."
-    },
-    "data_query": {
-      "title": "Datenmanager",
-      "ps": "Einfache Datenverwaltung (Memcached, Redis, MongoDB) zur schnellen Anzeige und Pflege von Schlüssel-Wert-Datenbanken"
-    },
-    "docker": {
-      "title": "YuFeng Docker-Manager",
-      "ps": "YuFeng Docker-Manager mit Hochgeschwindigkeits-Spiegelbeschleunigung für blitzschnelles Container-Management"
-    },
-    "fail2ban": {
-      "title": "YuFeng F2B-Firewall",
-      "ps": "YuFeng F2B-Firewall schützt Dienste und Websites vor Brute-Force-Angriffen und böswilligen IPs"
-    },
-    "gitea": {
-      "title": "Gitea",
-      "ps": "Ein leichtgewichtiger und schmerzloser selbst gehosteter Git-Dienst"
+    "plugin": {
+        "please_do_not_add": "Bitte nicht doppelt hinzufügen!",
+        "the_homepage_can_maximum": "Auf der Startseite können maximal 12 Software-Pakete angezeigt werden!",
+        "deleted_successfully": "Erfolgreich gelöscht!!",
+        "plugin_name_missing": "Plugin-Name fehlt!",
+        "version_information_is_missing": "Versionsinformationen fehlen!",
+        "the_configuration_file_does": "Konfigurationsdatei existiert nicht!",
+        "the_installation_task_has": "Die Installationsaufgabe wurde zur Warteschlange hinzugefügt!",
+        "forced_deletion_successful": "Erzwungenes Löschen erfolgreich!",
+        "uninstallation_was_successful": "Deinstallation erfolgreich ausgeführt!",
+        "only_zip_files_are": "Es werden nur ZIP-Dateien unterstützt!",
+        "no_plugin_information_was": "Im Komprimierungsarchiv wurden keine Plugin-Informationen gefunden,Bitte überprüfen Sie das Plugin-Paket!",
+        "data_name_important_plugin": "[' + data['name'] + '],Wichtige Plugins können nicht geändert werden!",
+        "the_temporary_file_does": "Temporäre Datei nicht vorhanden,Bitte erneut hochladen!",
+        "installation_successful": "Installation erfolgreich!",
+        "installation_failed": "Installation fehlgeschlagen!",
+        "the_cache_has_been": "Cache wurde geleert",
+        "py_msg_72dee7": "Bitte nicht erneut hinzufügen!",
+        "py_msg_78cf3e": "DashboardEs können maximal 12 Software-Pakete angezeigt werden!",
+        "py_msg_fc8c87": "Erfolgreich gelöscht!!",
+        "py_msg_5e6038": "Plugin-Name fehlt!",
+        "py_msg_988b58": "FehltVersionInformationen!",
+        "py_msg_dacbd7": "KonfigurationDateienExistiert nicht!",
+        "py_msg_c3ed11": "Der Installationsauftrag wurde zur Warteschlange hinzugefügt!",
+        "py_msg_c956b1": "ErzwingenErfolgreich gelöscht!",
+        "py_msg_dcd822": "Deinstallation erfolgreich ausgeführt!",
+        "py_msg_7ed95c": "Es werden nur ZIP-Dateien unterstützt!",
+        "py_msg_311637": "Im Archiv wurden keine Plugin-Informationen gefunden. Bitte prüfen Sie das Plugin-Paket!",
+        "py_msg_7e5f20": "[' + data['name'] + '],Wichtige Plugins können nichtÄndern!",
+        "py_msg_2ca3e3": "Die temporäre Datei existiert nicht. Bitte erneut hochladen!",
+        "py_msg_f1e512": "InstallierenErfolgreich!",
+        "py_msg_99993a": "InstallierenFehlgeschlagen!",
+        "py_msg_15c2e0": "Cache wurde geleert",
+        "py_msg_6f3a2d": "Skript vor der Installation bestätigen; bitte neu importieren",
+        "php_eol_branch_install": "PHP-Zweige unter 8.2 sind EOL und koennen nicht mehr installiert werden; bitte 8.2 oder neuer waehlen"
     },
     "jdk": {
-      "title": "YuFeng JDK-Manager",
-      "ps": "YuFeng JDK-Manager für die Online-Installation und Umgebungskonfiguration mehrerer JDK-Versionen"
-    },
-    "linux_sys_opt": {
-      "title": "YuFeng Systemoptimierer",
-      "ps": "YuFeng Systemoptimierer für tiefgreifendes Kernel- und Betriebssystem-Leistungs-Tuning"
-    },
-    "mariadb": {
-      "title": "MariaDB",
-      "ps": "Eines der beliebtesten relationalen Open-Source-Datenbankmanagementsysteme"
-    },
-    "mongodb": {
-      "title": "MongoDB",
-      "ps": "Moderne universelle, dokumentbasierte verteilte NoSQL-Datenbank"
-    },
-    "mysql": {
-      "title": "MySQL",
-      "ps": "Das weltweit beliebteste relationale Open-Source-Datenbanksystem"
-    },
-    "ollama": {
-      "title": "Ollama",
-      "ps": "Lokales LLM-Bereitstellungs- und Verwaltungstool"
-    },
-    "op_load_balance": {
-      "title": "Lastausgleicher",
-      "ps": "Hochleistungs-Lastenausgleich und Reverse-Proxy-Cluster-Verwaltung basierend auf OpenResty"
-    },
-    "op_waf": {
-      "title": "YuFeng OP WAF-Webanwendungs-Firewall",
-      "ps": "Hochleistungs-Webanwendungs-Firewall basierend auf OpenResty Lua von YuFeng"
-    },
-    "openresty": {
-      "title": "OpenResty",
-      "ps": "Hochleistungs-Webplattform basierend auf Nginx und Lua"
-    },
-    "pg_docker": {
-      "title": "YuFeng PostgreSQL-Docker",
-      "ps": "Docker-basiertes PostgreSQL-Multi-Instanz-Verwaltungstool von YuFeng"
-    },
-    "pgadmin": {
-      "title": "pgAdmin",
-      "ps": "Leistungsstarkes Web-Verwaltungstool für PostgreSQL"
-    },
-    "php": {
-      "title": "PHP",
-      "ps": "Weit verbreitete quelloffene Allzweck-Skriptsprache"
-    },
-    "php-apt": {
-      "title": "PHP (APT)",
-      "ps": "Vorkompilierte PHP-Umgebung, die schnell über APT installiert wird"
-    },
-    "php-guard": {
-      "title": "PHP-Wächter",
-      "ps": "Überwachen und automatischer Neustart des PHP-FPM-Dienstes bei unerwartetem Beenden"
-    },
-    "php-yum": {
-      "title": "PHP (YUM)",
-      "ps": "Vorkompilierte PHP-Umgebung, die schnell über YUM installiert wird"
-    },
-    "phpmyadmin": {
-      "title": "phpMyAdmin",
-      "ps": "Klassisches webbasiertes grafisches Verwaltungstool für MySQL / MariaDB"
-    },
-    "postgresql": {
-      "title": "PostgreSQL",
-      "ps": "Die weltweit fortschrittlichste hochzuverlässige relationale Open-Source-Datenbank"
-    },
-    "pureftp": {
-      "title": "Pure-FTPd",
-      "ps": "Kostenloser, sicherer und produktionsreifer schlanker FTP-Server"
+        "manage": "JDK-Verwaltung",
+        "invalid_path": "Ungültiger JDK-Pfad, muss mit /bin/java enden",
+        "path_not_exists": "Der angegebene JDK-Pfad existiert nicht",
+        "verify_failed": "Überprüfung fehlgeschlagen: keine gültige Java-Ausführungsdatei",
+        "already_exists": "Dieses benutzerdefinierte JDK ist bereits in der Liste",
+        "add_success": "Benutzerdefiniertes JDK erfolgreich hinzugefügt",
+        "param_error": "Parameterfehler: Version oder Download-URL darf nicht leer sein",
+        "already_installed": "Diese JDK-Version ist bereits installiert",
+        "task_added": "JDK-Installationsaufgabe zur Hintergrundwarteschlange hinzugefügt",
+        "in_use_error": "Dieses JDK wird derzeit von aktiven Prozessen verwendet und kann nicht deinstalliert werden",
+        "uninstall_success": "JDK erfolgreich deinstalliert/entfernt",
+        "set_default_success": "Systemstandard-JDK erfolgreich festgelegt",
+        "type_panel": "Panel-installiert",
+        "type_custom": "Benutzerdefiniert",
+        "type_sys": "System vorinstalliert",
+        "sys_default": "Systemstandard",
+        "click_open_dir": "Klicken, um Verzeichnis zu öffnen",
+        "is_default": "Bereits Standard",
+        "set_as_default": "Als Standard festlegen",
+        "installing": "Wird installiert...",
+        "sys_built_in": "Systemintegriert",
+        "remove_record": "Eintrag entfernen",
+        "no_operation": "Keine Aktion",
+        "no_jdk_available": "Keine JDK-Versionen verfügbar",
+        "add_custom": "Benutzerdefiniertes JDK hinzufügen",
+        "th_version": "JDK-Version",
+        "th_path": "JDK-Pfad",
+        "set_default_confirm": "Möchten Sie [{1}] wirklich als globalen Standard-JDK festlegen? Dies ändert die Umgebungsvariablen in /etc/profile.d/java.sh.",
+        "remove_action": "Entfernen",
+        "uninstall_warning": "Dieser Vorgang löscht alle Dateien im JDK-Verzeichnis. Bitte stellen Sie sicher, dass es nicht verwendet wird!",
+        "remove_warning": "Entfernt nur den Panel-Eintrag, löscht keine Dateien.",
+        "confirm_action": "Möchten Sie [{2}] {1}? {3}",
+        "install_confirm": "Möchten Sie [{1}] wirklich installieren? Es wird im Hintergrund heruntergeladen und entpackt.",
+        "add_custom_title": "Benutzerdefiniertes JDK hinzufügen",
+        "path_label": "JDK-Pfad:",
+        "custom_tip": "Hinweis: Bitte geben Sie den vollständigen Pfad zur ausführbaren Java-Datei manuell ein.",
+        "please_input_path": "Bitte geben Sie den JDK-Pfad ein",
+        "invalid_version": "Ungültige JDK-Version",
+        "invalid_url": "Ungültige Download-URL (nur http(s) .tar.gz von vertrauenswürdigen Mirrors)",
+        "uninstall_failed": "Deinstallation fehlgeschlagen, Nutzung und Rechte prüfen",
+        "set_default_failed": "Standard-JDK konnte nicht gesetzt werden",
+        "save_failed": "JDK-Konfiguration konnte nicht gespeichert werden",
+        "install_script_failed": "Installationsskript konnte nicht geschrieben werden"
     },
     "python_yf": {
-      "title": "YuFeng Python-Multi-Version-Manager",
-      "ps": "YuFeng Python-Manager basierend auf uv für blitzschnelle Versionen und virtuelle Umgebungen"
-    },
-    "redis": {
-      "title": "Redis",
-      "ps": "In-Memory-Datenstrukturspeicher, der als Datenbank, Cache und Message Broker verwendet wird"
-    },
-    "rsyncd": {
-      "title": "Rsync-Daemon",
-      "ps": "Effizientes und zuverlässiges Tool zur inkrementellen Dateisynchronisierung und Remote-Sicherung"
-    },
-    "sphinx": {
-      "title": "Sphinx",
-      "ps": "Open-Source-Volltext-Suchmaschine für schnelle und effiziente Textsuche"
-    },
-    "supervisor": {
-      "title": "Supervisor",
-      "ps": "Prozesssteuerungs- und Daemon-Verwaltungssystem für Unix-ähnliche Systeme"
-    },
-    "swap": {
-      "title": "YuFeng Swap-Manager",
-      "ps": "YuFeng Swap-Manager zur einfachen Konfiguration und Optimierung des virtuellen Swap-Speichers"
-    },
-    "task_manager": {
-      "title": "Task-Manager",
-      "ps": "Task-Manager"
-    },
-    "valkey": {
-      "title": "Valkey",
-      "ps": "Hochleistungs-Open-Source-Schlüssel-Wert-Speicher, voll kompatibel mit Redis"
-    },
-    "varnish": {
-      "title": "Varnish",
-      "ps": "Hochleistungs-Open-Source-HTTP-Beschleuniger und Reverse-Proxy-Cache-Server"
-    },
-    "webssh": {
-      "title": "WebSSH",
-      "ps": "Browserbasiertes Webterminal zur sicheren Serververwaltung jederzeit und überall"
-    },
-    "webstats": {
-      "title": "Website-Statistiken",
-      "ps": "Echtzeit-Statistiken über Website-Besuche, IPs, PVs, Besucherprofile und Quellen"
-    },
-    "yufeng_systemd": {
-      "title": "YuFeng Systemd-Manager",
-      "ps": "YuFeng Systemd-Manager für die visuelle Verwaltung und Überwachung von Systemdiensten"
+        "uv_not_found": "uv-Umgebung nicht gefunden, bitte installieren Sie zuerst uv",
+        "specify_install_ver": "Bitte geben Sie die zu installierende Python-Version an",
+        "install_task_added": "Installationsaufgabe übermittelt",
+        "specify_uninstall_ver": "Bitte geben Sie die zu deinstallierende Python-Version an",
+        "uninstall_success": "Erfolgreich deinstalliert",
+        "specify_ver_path": "Bitte Version und Projektpfad angeben",
+        "venv_create_success": "Virtuelle Umgebung erfolgreich erstellt",
+        "param_error": "Parameterfehler: Version oder Pfad darf nicht leer sein",
+        "del_success": "Erfolgreich gelöscht",
+        "venv_not_exists": "Virtuelle Umgebung existiert nicht oder Eintrag wurde entfernt"
     }
-  },
-  "plugin": {
-    "please_do_not_add": "Bitte nicht doppelt hinzufügen!",
-    "the_homepage_can_maximum": "Auf der Startseite können maximal 12 Software-Pakete angezeigt werden!",
-    "deleted_successfully": "Erfolgreich gelöscht!!",
-    "plugin_name_missing": "Plugin-Name fehlt!",
-    "version_information_is_missing": "Versionsinformationen fehlen!",
-    "the_configuration_file_does": "Konfigurationsdatei existiert nicht!",
-    "the_installation_task_has": "Die Installationsaufgabe wurde zur Warteschlange hinzugefügt!",
-    "forced_deletion_successful": "Erzwungenes Löschen erfolgreich!",
-    "uninstallation_was_successful": "Deinstallation erfolgreich ausgeführt!",
-    "only_zip_files_are": "Es werden nur ZIP-Dateien unterstützt!",
-    "no_plugin_information_was": "Im Komprimierungsarchiv wurden keine Plugin-Informationen gefunden,Bitte überprüfen Sie das Plugin-Paket!",
-    "data_name_important_plugin": "[' + data['name'] + '],Wichtige Plugins können nicht geändert werden!",
-    "the_temporary_file_does": "Temporäre Datei nicht vorhanden,Bitte erneut hochladen!",
-    "installation_successful": "Installation erfolgreich!",
-    "installation_failed": "Installation fehlgeschlagen!",
-    "the_cache_has_been": "Cache wurde geleert",
-    "py_msg_72dee7": "Bitte nicht erneut hinzufügen!",
-    "py_msg_78cf3e": "DashboardEs können maximal 12 Software-Pakete angezeigt werden!",
-    "py_msg_fc8c87": "Erfolgreich gelöscht!!",
-    "py_msg_5e6038": "Plugin-Name fehlt!",
-    "py_msg_988b58": "FehltVersionInformationen!",
-    "py_msg_dacbd7": "KonfigurationDateienExistiert nicht!",
-    "py_msg_c3ed11": "Der Installationsauftrag wurde zur Warteschlange hinzugefügt!",
-    "py_msg_c956b1": "ErzwingenErfolgreich gelöscht!",
-    "py_msg_dcd822": "Deinstallation erfolgreich ausgeführt!",
-    "py_msg_7ed95c": "Es werden nur ZIP-Dateien unterstützt!",
-    "py_msg_311637": "Im Archiv wurden keine Plugin-Informationen gefunden. Bitte prüfen Sie das Plugin-Paket!",
-    "py_msg_7e5f20": "[' + data['name'] + '],Wichtige Plugins können nichtÄndern!",
-    "py_msg_2ca3e3": "Die temporäre Datei existiert nicht. Bitte erneut hochladen!",
-    "py_msg_f1e512": "InstallierenErfolgreich!",
-    "py_msg_99993a": "InstallierenFehlgeschlagen!",
-    "py_msg_15c2e0": "Cache wurde geleert",
-    "py_msg_6f3a2d": "Skript vor der Installation bestätigen; bitte neu importieren"
-  },
-  "jdk": {
-    "manage": "JDK-Verwaltung",
-    "invalid_path": "Ungültiger JDK-Pfad, muss mit /bin/java enden",
-    "path_not_exists": "Der angegebene JDK-Pfad existiert nicht",
-    "verify_failed": "Überprüfung fehlgeschlagen: keine gültige Java-Ausführungsdatei",
-    "already_exists": "Dieses benutzerdefinierte JDK ist bereits in der Liste",
-    "add_success": "Benutzerdefiniertes JDK erfolgreich hinzugefügt",
-    "param_error": "Parameterfehler: Version oder Download-URL darf nicht leer sein",
-    "already_installed": "Diese JDK-Version ist bereits installiert",
-    "task_added": "JDK-Installationsaufgabe zur Hintergrundwarteschlange hinzugefügt",
-    "in_use_error": "Dieses JDK wird derzeit von aktiven Prozessen verwendet und kann nicht deinstalliert werden",
-    "uninstall_success": "JDK erfolgreich deinstalliert/entfernt",
-    "set_default_success": "Systemstandard-JDK erfolgreich festgelegt",
-    "type_panel": "Panel-installiert",
-    "type_custom": "Benutzerdefiniert",
-    "type_sys": "System vorinstalliert",
-    "sys_default": "Systemstandard",
-    "click_open_dir": "Klicken, um Verzeichnis zu öffnen",
-    "is_default": "Bereits Standard",
-    "set_as_default": "Als Standard festlegen",
-    "installing": "Wird installiert...",
-    "sys_built_in": "Systemintegriert",
-    "remove_record": "Eintrag entfernen",
-    "no_operation": "Keine Aktion",
-    "no_jdk_available": "Keine JDK-Versionen verfügbar",
-    "add_custom": "Benutzerdefiniertes JDK hinzufügen",
-    "th_version": "JDK-Version",
-    "th_path": "JDK-Pfad",
-    "set_default_confirm": "Möchten Sie [{1}] wirklich als globalen Standard-JDK festlegen? Dies ändert die Umgebungsvariablen in /etc/profile.d/java.sh.",
-    "remove_action": "Entfernen",
-    "uninstall_warning": "Dieser Vorgang löscht alle Dateien im JDK-Verzeichnis. Bitte stellen Sie sicher, dass es nicht verwendet wird!",
-    "remove_warning": "Entfernt nur den Panel-Eintrag, löscht keine Dateien.",
-    "confirm_action": "Möchten Sie [{2}] {1}? {3}",
-    "install_confirm": "Möchten Sie [{1}] wirklich installieren? Es wird im Hintergrund heruntergeladen und entpackt.",
-    "add_custom_title": "Benutzerdefiniertes JDK hinzufügen",
-    "path_label": "JDK-Pfad:",
-    "custom_tip": "Hinweis: Bitte geben Sie den vollständigen Pfad zur ausführbaren Java-Datei manuell ein.",
-    "please_input_path": "Bitte geben Sie den JDK-Pfad ein",
-    "invalid_version": "Ungültige JDK-Version",
-    "invalid_url": "Ungültige Download-URL (nur http(s) .tar.gz von vertrauenswürdigen Mirrors)",
-    "uninstall_failed": "Deinstallation fehlgeschlagen, Nutzung und Rechte prüfen",
-    "set_default_failed": "Standard-JDK konnte nicht gesetzt werden",
-    "save_failed": "JDK-Konfiguration konnte nicht gespeichert werden",
-    "install_script_failed": "Installationsskript konnte nicht geschrieben werden"
-  },
-  "python_yf": {
-    "uv_not_found": "uv-Umgebung nicht gefunden, bitte installieren Sie zuerst uv",
-    "specify_install_ver": "Bitte geben Sie die zu installierende Python-Version an",
-    "install_task_added": "Installationsaufgabe übermittelt",
-    "specify_uninstall_ver": "Bitte geben Sie die zu deinstallierende Python-Version an",
-    "uninstall_success": "Erfolgreich deinstalliert",
-    "specify_ver_path": "Bitte Version und Projektpfad angeben",
-    "venv_create_success": "Virtuelle Umgebung erfolgreich erstellt",
-    "param_error": "Parameterfehler: Version oder Pfad darf nicht leer sein",
-    "del_success": "Erfolgreich gelöscht",
-    "venv_not_exists": "Virtuelle Umgebung existiert nicht oder Eintrag wurde entfernt"
-  }
 }

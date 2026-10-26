@@ -41,7 +41,7 @@ var lan = {
 			"php_sec_scan_time": "巡檢時間",
 			"php_sec_offline": "未連網，使用內建基線表",
 			"php_sec_upgrade": "升級到安全版本",
-			"php_sec_refresh": "立即巡檢",
+			"php_sec_refresh": "再次巡檢",
 			"H1": "首頁",
 			"H2": "伺服器狀態",
 			"V1": "版本",
@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "可更新",
+		"php_eol": "建議升級到 {1} 或以上",
+		"php_eol_tip": "該 PHP 分支官方已停止維護，不再提供安全修復，建議卸載後升級到 PHP 8.2 或以上。",
 		"service_alarm": "服務異常",
 		"php_upgrade_tip": "將重新編譯 PHP（約 10~30 分鐘），完成後自動重啟 FPM；失敗會自動還原舊版本。",
 		"php_upgrade_queued": "已提交升級任務，請在訊息盒查看進度",
@@ -5034,6 +5036,7 @@ var lan = {
 			"py_msg_78cf3e": "首頁最多隻能顯示12個軟體!",
 			"py_msg_fc8c87": "刪除成功!!",
 			"py_msg_5e6038": "缺少外掛程式名稱!",
+			"php_eol_branch_install": "PHP 8.2 以下的版本官方已停止維護，不再支援安裝；請選擇 8.2 或以上版本",
 			"py_msg_988b58": "缺少版本信息!",
 			"py_msg_dacbd7": "設定檔案不存在!",
 			"py_msg_c3ed11": "已將安裝任務新增到隊列!",

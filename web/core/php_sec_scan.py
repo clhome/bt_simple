@@ -300,6 +300,59 @@ def scan(server_php_dir=DEFAULT_SERVER_PHP_DIR, apt_root=DEFAULT_APT_ROOT,
     return result
 
 
+def installed_branches(server_php_dir=DEFAULT_SERVER_PHP_DIR, apt_root=DEFAULT_APT_ROOT,
+                       yum_root=DEFAULT_YUM_ROOT, run=_run):
+    """本机**真的装了**哪些 PHP 分支：`{'src': set(), 'apt': set(), 'yum': set()}`。
+
+    给软件商店过滤用（「只提供 8.2 及以上」），所以必须**便宜**：
+    每个渠道只起一次外部命令，不能像 `collect_*` 那样按版本逐个探。
+
+      * src：`/www/server/php/<NN>/bin/php` 存在且**非空**（纯文件系统）；
+      * apt：一条 `dpkg-query -W -f='${Package} ${db:Status-Abbrev}' 'php*-fpm'`；
+      * yum：一条 `rpm -qa --qf '%{NAME}\\n'`，筛 `php<NN>-php-fpm`。
+
+    只认「已装」（apt 的 `rc` 残留不算），否则卸掉的版本会永久留在列表里。
+    """
+    out = {'src': set(), 'apt': set(), 'yum': set()}
+    # ① 编译版
+    try:
+        names = sorted(os.listdir(server_php_dir))
+    except OSError:
+        names = []
+    for name in names:
+        if not re.match(r'^\d{2}$', name):
+            continue
+        try:
+            if os.path.getsize(os.path.join(server_php_dir, name, 'bin', 'php')) > 0:
+                out['src'].add(name)
+        except OSError:
+            continue
+    # ② apt（一条命令拿全部）
+    rc, text = run(['dpkg-query', '-W', '-f=${Package} ${db:Status-Abbrev}\\n', 'php*-fpm'])
+    if rc in (0, 1):
+        for line in str(text or '').splitlines():
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            m = re.match(r'^php(\d)\.(\d)-fpm$', parts[0])
+            if not m:
+                continue
+            state = parts[1]
+            if not state or state[:1] not in ('i', 'h'):
+                continue
+            if state[1:2] not in _DPKG_INSTALLED_CUR_STATES:
+                continue
+            out['apt'].add(m.group(1) + m.group(2))
+    # ③ yum（Remi）
+    rc, text = run(['rpm', '-qa', '--qf', '%{NAME}\\n'])
+    if rc == 0:
+        for line in str(text or '').splitlines():
+            m = re.match(r'^php(\d{2})-php-fpm$', line.strip())
+            if m:
+                out['yum'].add(m.group(1))
+    return out
+
+
 def write_snapshot(data, path):
     """原子写快照：先写 `.tmp` 再 rename，中断不会留下半个 JSON。"""
     tmp = path + '.tmp'
@@ -327,13 +380,18 @@ def load_snapshot(path, max_age=DEFAULT_MAX_AGE, now=None):
 
 def load_or_scan(path, max_age=DEFAULT_MAX_AGE, server_php_dir=DEFAULT_SERVER_PHP_DIR,
                  apt_root=DEFAULT_APT_ROOT, yum_root=DEFAULT_YUM_ROOT,
-                 offline=False, run=_run, now=None):
-    """优先读快照；没有/过期则**即时巡检一次**并把结果落盘。
+                 offline=False, run=_run, now=None, force=False):
+    """优先读快照；没有/过期/`force=True` 则**即时巡检一次**并把结果落盘。
 
     这是首页告警卡片的取数入口：正常情况下读每日巡检留下的快照（O(1)）；
-    面板任务进程未运行 / 刚装完时退化成一次即时巡检（Web 侧应传短超时 runner）。
+    面板任务进程未运行 / 刚装完 / 用户点了「再次巡检」时当场重算。
+
+    `force=True` 为什么必须存在：「卸载 PHP 7.4」之后快照最长能活 26 小时，
+    卡片就会一直报一个已经不存在的 PHP（真机现场：用户删了 7.4，弹窗里还挂着
+    「PHP 74 (apt) 7.4.33」）。前端那个「立即巡检」以前只绕过浏览器缓存、
+    后端照旧发旧快照 —— 点一百次也不会变。
     """
-    data = load_snapshot(path, max_age=max_age, now=now)
+    data = None if force else load_snapshot(path, max_age=max_age, now=now)
     if data is not None:
         return data
     data = scan(server_php_dir=server_php_dir, apt_root=apt_root, yum_root=yum_root,

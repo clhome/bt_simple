@@ -27,7 +27,7 @@
         "php_sec_scan_time": "Dernière analyse",
         "php_sec_offline": "Hors ligne, table de référence intégrée utilisée",
         "php_sec_upgrade": "Mettre à niveau vers une version sûre",
-        "php_sec_refresh": "Analyser maintenant",
+        "php_sec_refresh": "Rescanner",
         "H1": "Tableau de bord",
         "H2": "État du serveur",
         "V1": "Version",

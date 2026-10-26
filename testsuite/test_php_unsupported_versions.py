@@ -12,11 +12,26 @@ CentOS/RHEL 的 Remi **安全回移补丁**）。
 拍板路线是「下架 + 自担风险路径」：默认列表只留 82~85，旧版本只能显式
 `YF_ALLOW_UNSAFE_PHP=1` 强装；CI 也不再真装 53~81，改为断言它们**必须被拒绝**。
 
+**2026-10-26 口径调整（两层：注册表 vs 可安装集合）**：旧分支不再从 info.json 里删掉，
+否则「已经装了 8.0/8.1 的机器」在软件商店里**彻底看不到**这个 PHP（连卸载入口都没了）。
+现在改成：
+
+  * `info.json.versions` = 面板**认识**的分支注册表（含 74/80/81），用于展示已装实例；
+  * **可安装 / 可展示集合**由策略决定：`web/utils/plugin.py::applyPhpVersionPolicy()`
+    把低于 8.2 且**未安装**的分支从列表里去掉；已装的保留并打 `php_eol` 红标；
+  * 接口层再拦一道：`plugin.install()` 对 < 8.2 的分支直接拒绝
+    （`plugin.php_eol_branch_install`）；
+  * `plugins/php/install.sh` 自带的危险版本拦截块保持不变。
+
+因此本文件的断言分两类：info.json 是「含 82~85 且升序无重复」的注册表；
+「旧版本不得被提供安装」由策略/接口/install.sh 三层断言保证
+（行为用例见 `testsuite/test_php_rescan_and_shop_policy.py`）。
+
 这条约束极易在后续维护中回退（最典型的一行改动：把某个老版本号加回 info.json），
 所以这里逐条钉死：
 
-1. `plugins/php/info.json` 的 `versions` **精确等于** `['82','83','84','85']`
-   —— 精确断言而不是「不含 xx」，是因为「加一个 81」比「删光」更容易发生；
+1. `plugins/php/info.json` 的 `versions` 必须**包含** 82~85、升序、无重复
+   （旧分支允许登记，但不等于允许安装）；
 2. `plugins/php-apt/info.json` 不含 52/53/54/55/56/70/71/72/73（5.2~7.3 连
    APT 渠道也不再列，因为没有官方补丁可回移）；同时仍保留 74/80/81/82~85
    —— 7.4/8.0/8.1 的**安全路径就是 APT/YUM**，这两个渠道不能跟着一起砍；
@@ -96,23 +111,35 @@ def guard_block(text):
 
 
 class CompiledInfoJsonTest(unittest.TestCase):
-    """① 编译版清单：只留 82~85（精确断言，防「加一个老版本」式回退）。"""
+    """① 编译版清单：**包含** 82~85（注册表）；「不许安装旧版」由策略/接口/install.sh 守。"""
 
-    def test_01_compiled_versions_exactly_supported_set(self):
+    def test_01_compiled_versions_cover_supported_set(self):
+        """注册表必须包含 82~85（面板至少认识这些）；旧分支允许登记（用于显示已装实例）。"""
         versions = info_versions('php')
-        self.assertEqual(versions, EXPECTED_COMPILED_VERSIONS,
-                         'plugins/php/info.json 的 versions 必须是 %s，实际 %s\n'
-                         '—— 5.2~7.3 存在已知未修复 RCE（CVE-2026-109618/109619），'
-                         '7.4/8.0/8.1 的编译版已下架，这些版本只允许走 '
-                         'YF_ALLOW_UNSAFE_PHP=1 的自担风险路径'
-                         % (EXPECTED_COMPILED_VERSIONS, versions))
+        missing = [v for v in EXPECTED_COMPILED_VERSIONS if v not in versions]
+        self.assertEqual(missing, [],
+                         'plugins/php/info.json 缺了 %s（现为 %s）\n'
+                         '—— 82~85 是唯一支持安装的区间，必须登记'
+                         % (missing, versions))
 
-    def test_02_compiled_versions_exclude_all_delisted(self):
-        versions = info_versions('php')
-        bad = [v for v in UNSAFE_VERSIONS + DELISTED_COMPILED_VERSIONS if v in versions]
-        self.assertEqual(bad, [],
-                         'plugins/php/info.json 又列回了已下架版本 %s（现为 %s）'
-                         % (bad, versions))
+    def test_02_old_branches_never_installable(self):
+        """旧分支**不得被提供安装**：由策略 + 接口 + install.sh 三层保证。
+
+        2026-10-26 口径调整：旧分支不再从 info.json 里删掉（删了之后「已装 8.0/8.1」
+        的机器在商店里彻底看不到它，连卸载入口都没了），改为：info.json 是注册表，
+        可安装/可展示集由 `applyPhpVersionPolicy()` 决定，接口层再拦一道。
+        """
+        policy = _read(os.path.join(ROOT, 'web', 'utils', 'plugin.py'))
+        self.assertIn("PHP_MIN_INSTALL_BRANCH = '82'", policy,
+                      '缺少「PHP 只提供 8.2 及以上」的单一常量')
+        self.assertIn('def applyPhpVersionPolicy(', policy,
+                      '缺少按真实安装情况过滤旧分支的策略函数')
+        self.assertIn('plist = self.applyPhpVersionPolicy(plist)', policy,
+                      '策略没接进 getAllPluginList（等于没写）')
+        self.assertIn("return yf.returnData(False, 'plugin.php_eol_branch_install'",
+                      policy,
+                      'install() 必须直接拒绝安装已停维分支（前端看不到按钮≠接口调不到）')
+        self.assertIn('YF_UNSAFE_PHP_VERSIONS=', _read(PHP_INSTALL_SH))
 
     def test_03_only_supported_versions_have_no_extra_gap(self):
         """82~85 之间不得断档：断档说明是「误删」而不是「下架」。"""
