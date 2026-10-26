@@ -11,6 +11,19 @@ if [ -f "$_gh_lib" ]; then
 fi
 
 
+# 附加模块获取器（下载 → gzip 完整性 → 解压 → 标记文件校验，失败清理重试）
+for _yf_addon_lib in "${curPath}/../common/nginx_addon_fetch.sh" \
+	"/www/server/yufeng_panel/plugins/openresty/versions/common/nginx_addon_fetch.sh"; do
+	if [ -f "$_yf_addon_lib" ]; then
+		. "$_yf_addon_lib"
+		break
+	fi
+done
+if ! command -v yf_nginx_addon_fetch >/dev/null 2>&1; then
+	echo "[ERROR] 缺少附加模块获取器 nginx_addon_fetch.sh，停止安装（避免残缺模块进 configure）"
+	exit 1
+fi
+
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -170,23 +183,29 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	fi
 
 	# ngx_cache_purge
-	if [ ! -d ${openrestyDir}/ngx_cache_purge-master ];then
-		github_download ${openrestyDir}/ngx_cache_purge.tar.gz https://github.com/nginx-modules/ngx_cache_purge/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxf ngx_cache_purge.tar.gz
+	# ngx_cache_purge-master：下载/解压/标记文件三段校验，失败清理重试（见 common/nginx_addon_fetch.sh）
+	if ! yf_nginx_addon_fetch "${openrestyDir}" ngx_cache_purge-master \
+		"https://github.com/nginx-modules/ngx_cache_purge/archive/refs/heads/master.tar.gz" config \
+		"https://github.com/nginx-modules/ngx_cache_purge.git"; then
+		exit 1
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_cache_purge-master"
 
 	# nginx-http-concat
-	if [ ! -d ${openrestyDir}/nginx-http-concat-master ];then
-		github_download ${openrestyDir}/nginx-http-concat.tar.gz https://github.com/alibaba/nginx-http-concat/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxf nginx-http-concat.tar.gz
+	# nginx-http-concat-master：下载/解压/标记文件三段校验，失败清理重试（见 common/nginx_addon_fetch.sh）
+	if ! yf_nginx_addon_fetch "${openrestyDir}" nginx-http-concat-master \
+		"https://github.com/alibaba/nginx-http-concat/archive/refs/heads/master.tar.gz" config \
+		"https://github.com/alibaba/nginx-http-concat.git"; then
+		exit 1
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/nginx-http-concat-master"
 
 	# ngx_http_substitutions_filter_module
-	if [ ! -d ${openrestyDir}/ngx_http_substitutions_filter_module-master ];then
-		github_download ${openrestyDir}/ngx_http_substitutions_filter_module.tar.gz https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxf ngx_http_substitutions_filter_module.tar.gz
+	# ngx_http_substitutions_filter_module-master：下载/解压/标记文件三段校验，失败清理重试（见 common/nginx_addon_fetch.sh）
+	if ! yf_nginx_addon_fetch "${openrestyDir}" ngx_http_substitutions_filter_module-master \
+		"https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/refs/heads/master.tar.gz" config \
+		"https://github.com/yaoweibin/ngx_http_substitutions_filter_module.git"; then
+		exit 1
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_http_substitutions_filter_module-master"
 

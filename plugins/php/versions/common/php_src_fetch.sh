@@ -149,11 +149,15 @@ yf_php_offline_dirs() {
 yf_php_candidate_urls() {
 	local _ver=$1
 	local _file="php-${_ver}.tar.xz"
-	if [ -n "${YF_PHP_MIRROR}" ]; then
-		case "${YF_PHP_MIRROR}" in
-			*'{file}'*) echo "${YF_PHP_MIRROR//\{file\}/$_file}" ;;
-			*'/'*)      echo "${YF_PHP_MIRROR}${_file}" ;;
-			*)          echo "${YF_PHP_MIRROR}/${_file}" ;;
+	# 注意 ${VAR:-} 不能省：调用方（install.sh / 测试）可能开着 `set -u`，
+	# 直接引用未定义变量会当场 unbound variable 退出，报错信息还会退化成
+	# 「已尝试 0 个地址」这种完全看不出原因的形状（CI 实测踩过）。
+	local _mirror="${YF_PHP_MIRROR:-}"
+	if [ -n "$_mirror" ]; then
+		case "$_mirror" in
+			*'{file}'*) echo "${_mirror//\{file\}/$_file}" ;;
+			*/)         echo "${_mirror}${_file}" ;;
+			*)          echo "${_mirror}/${_file}" ;;
 		esac
 	fi
 	local _prefix

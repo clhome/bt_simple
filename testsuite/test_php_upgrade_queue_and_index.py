@@ -310,6 +310,32 @@ class SourceFetchScriptTest(unittest.TestCase):
             shutil.rmtree(work, ignore_errors=True)
 
     @unittest.skipIf(BASH is None, '本机没有可用的 bash')
+    def test_04b_mirror_url_composition(self):
+        """自定义镜像前缀的拼装：目录必须补 `/`，模板必须替换 `{file}`。"""
+        work = tempfile.mkdtemp()
+        try:
+            script = (
+                'set -u; rootPath="%s"; serverPath="%s"; sourcePath="%s"; . "%s"; '
+                'echo "no-slash:"; YF_PHP_MIRROR=https://mirror.lan/php yf_php_candidate_urls 8.3.36 | head -1; '
+                'echo "with-slash:"; YF_PHP_MIRROR=https://mirror.lan/php/ yf_php_candidate_urls 8.3.36 | head -1; '
+                'echo "template:"; YF_PHP_MIRROR="https://m.lan/dl/{file}?v=1" yf_php_candidate_urls 8.3.36 | head -1; '
+                'echo "unset:ok"'
+                % (_p(work), _p(work), _p(work), _p(FETCH_SH))
+            )
+            proc = subprocess.run([BASH, '-c', script], capture_output=True, text=True, timeout=60)
+            out = (proc.stdout or '') + (proc.stderr or '')
+            self.assertIn('no-slash:\nhttps://mirror.lan/php/php-8.3.36.tar.xz', out,
+                          '未以 / 结尾的镜像前缀必须自动补 /（否则拼成 phpphp-…）: %s' % out)
+            self.assertIn('with-slash:\nhttps://mirror.lan/php/php-8.3.36.tar.xz', out)
+            self.assertIn('template:\nhttps://m.lan/dl/php-8.3.36.tar.xz?v=1', out,
+                          '{file} 模板必须被替换')
+            self.assertIn('unset:ok', out,
+                          '未设置 YF_PHP_MIRROR 时不得因 set -u 报 unbound variable'
+                          '（CI 实测过：整个函数当场退出，报错退化成「已尝试 0 个地址」）')
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+    @unittest.skipIf(BASH is None, '本机没有可用的 bash')
     @unittest.skipIf(os.name == 'nt',
                      'Windows/MSYS 对「无扩展名脚本」的可执行位处理不可靠，'
                      '假 wget 装不上；该场景在 Linux（CI 与真机）覆盖')
