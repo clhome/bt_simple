@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Mise à jour disponible",
+		"os_unsupported_tip": "Ce canal n'est pas pris en charge par ce systeme ; les versions installees restent arretables et desinstallables ici.",
+		"os_unsupported": "Non pris en charge",
 		"php_eol": "Passer a {1}+",
 		"php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus.",
 		"service_alarm": "Erreur de service",
@@ -5036,6 +5038,7 @@ var lan = {
 			"py_msg_78cf3e":"Le tableau de bord ne peut afficher que 12 logiciels au maximum !",
 			"py_msg_fc8c87": "Supprimé avec succès!!",
 			"py_msg_5e6038":"Le plugin Nom est manquant !",
+			"os_family_install": "Ce canal d'installation PHP n'est pas pris en charge par ce systeme ; utilisez un canal adapte (APT / YUM / compile)",
 			"php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
 			"py_msg_988b58":"Les informations de version manquent !",
 			"py_msg_dacbd7":"Le fichier de configuration n'existe pas !",

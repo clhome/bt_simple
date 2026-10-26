@@ -175,7 +175,9 @@
         "soft_auto_str_70": "Actualiser avec succès",
         "management_action": "Gérer",
         "php_eol": "Passer a {1}+",
-        "php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus."
+        "php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus.",
+        "os_unsupported": "Non pris en charge",
+        "os_unsupported_tip": "Ce canal n'est pas pris en charge par ce systeme ; les versions installees restent arretables et desinstallables ici."
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -365,7 +367,8 @@
         "py_msg_99993a": "Échec de l'installation !",
         "py_msg_15c2e0": "Le cache a été vidé",
         "py_msg_6f3a2d": "Confirmez le script avant l'installation ; réimportez le plugin",
-        "php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus"
+        "php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
+        "os_family_install": "Ce canal d'installation PHP n'est pas pris en charge par ce systeme ; utilisez un canal adapte (APT / YUM / compile)"
     },
     "jdk": {
         "manage": "Gestion JDK",

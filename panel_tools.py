@@ -189,6 +189,29 @@ def _repairPanel():
     except Exception as ex:            # noqa: BLE001
         bad('异常: %s' % ex)
 
+    # ③b 系统族与 PHP 渠道支持矩阵（只读自检，便于排查「为什么软件商店少了一行」）
+    try:
+        from core import os_family as _osf
+        info = _osf.detect()
+        parts = []
+        for pname, label in (('php-apt', 'PHP[APT]'), ('php-yum', 'PHP[YUM]'),
+                             ('php', 'PHP(编译版)')):
+            info_file = os.path.join(panel_dir, 'plugins', pname, 'info.json')
+            fams = []
+            try:
+                with open(info_file, 'r', encoding='utf-8') as fp:
+                    data = json.load(fp)
+                fams = data.get('os_family') if isinstance(data.get('os_family'), list) else []
+            except (OSError, ValueError) as _e:
+                _log.debug('[panel_tools] 读取 %s 失败: %s', info_file, _e)
+            supported = _osf.family_supports(info.get('family'), fams)
+            parts.append('%s %s' % (label, '✓' if supported else '✗(已隐藏)'))
+        print('      系统族: %s（%s %s）｜ 渠道: %s'
+              % (info.get('family'), info.get('id') or '-', info.get('version_id') or '',
+                 '  '.join(parts)))
+    except Exception as ex:                # noqa: BLE001 —— 自检失败不影响修复流程
+        print('      系统族: 读取失败（%s）' % ex)
+
     # ④ 日志轮转（与 yf_start 同一脚本）
     step('4/5', '重下发日志轮转配置')
     try:

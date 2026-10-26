@@ -467,6 +467,87 @@ class plugin(object):
             _log.debug('[plugin] 探测已装 PHP 分支失败: %s', _e)
         return data
 
+    def _osFamilyInfo(self):
+        """当前系统家族（每次请求算一次；识别失败一律 `unknown`）。"""
+        try:
+            from core import os_family as _osf
+            return _osf.detect()
+        except Exception as _e:          # noqa: BLE001 —— 识别失败不能拖垮软件列表
+            _log.debug('[plugin] 识别系统家族失败: %s', _e)
+            return {'family': 'unknown', 'id': '', 'id_like': [], 'version_id': '',
+                    'pretty': ''}
+
+    def applyPhpChannelPolicy(self, plist, os_info=None):
+        """按发行版家族隐藏「本机根本装不了」的渠道插件（如 Debian 上的 php-yum）。
+
+        口径（三条，缺一不可）：
+
+          1. **不写 `os_family` = 全平台**：老插件、第三方插件都不受影响；
+          2. **系统认不出来（`unknown`）= 一律不隐藏**：宁可多显示，不可误伤；
+          3. **已装了就不隐藏**：否则用户失去「停用 / 卸载」入口（与 PHP 版本策略
+             同一条教训）。这种行保留但标 `os_unsupported=True` + `installable=False`，
+             前端打标、接口拒绝再次安装。
+
+        返回的条目可能被**删掉**（未装的、系统不支持的渠道），所以调用方要在分页
+        之前调用 —— 现有接线位置（`getAllPluginList` 里 `refreshSetupStatus` 之后）
+        正好在分页之前。
+        """
+        if not plist:
+            return plist
+        try:
+            from core import os_family as _osf
+        except Exception as _e:          # noqa: BLE001
+            _log.debug('[plugin] 导入 os_family 失败，跳过渠道过滤: %s', _e)
+            return plist
+
+        info = os_info if isinstance(os_info, dict) else self._osFamilyInfo()
+        family = str(info.get('family') or _osf.FAMILY_UNKNOWN)
+
+        need_probe = set()
+        for pInfo in plist:
+            fams = pInfo.get('os_family') or []
+            if not isinstance(fams, list) or not fams:
+                continue
+            if _osf.family_supports(family, fams):
+                continue
+            need_probe.add(pInfo.get('name'))
+
+        # 只有「真的涉及不支持渠道」时才去探已装分支（正常机器零开销）
+        installed_branches = None
+
+        kept = []
+        for pInfo in plist:
+            fams = pInfo.get('os_family') or []
+            if not isinstance(fams, list) or not fams                     or _osf.family_supports(family, fams):
+                kept.append(pInfo)
+                continue
+
+            name = str(pInfo.get('name') or '')
+            version = pInfo.get('versions')
+            branch = str(version) if isinstance(version, str) else ''
+
+            # 目录判存（面板口径）或探针判存，任一成立都算「装了」
+            row_installed = pInfo.get('setup') is True
+            if not row_installed and name in need_probe:
+                if installed_branches is None:
+                    installed_branches = self._phpInstalledBranches()
+                channel = 'apt' if name.endswith('-apt') else (
+                    'yum' if name.endswith('-yum') else 'src')
+                row_installed = branch in installed_branches.get(channel, set())
+
+            if not row_installed:
+                _log.debug('[plugin] 隐藏系统不支持的渠道插件: %s-%s（当前 %s，需要 %s）',
+                           name, version, family, fams)
+                continue
+
+            pInfo['os_unsupported'] = True
+            pInfo['os_family_now'] = family
+            pInfo['os_family_need'] = ','.join(fams)
+            pInfo['os_family_label'] = _osf.family_label(family)
+            pInfo['installable'] = False
+            kept.append(pInfo)
+        return kept
+
     def applyPhpVersionPolicy(self, plist, installed=None):
         """PHP 只提供 `PHP_MIN_INSTALL_BRANCH` 及以上（见常量注释）。
 
@@ -842,6 +923,21 @@ class plugin(object):
 
         info_data = json.loads(yf.readFile(info_file))
 
+        # 发行版不支持的渠道（如 Debian 上装 php-yum）：前端已隐藏，接口再拦一道。
+        # 「前端看不到按钮」不等于「接口调不到」——用户/NAT 脚本可以直接 POST。
+        try:
+            from core import os_family as _osf
+            declared = info_data.get('os_family') if isinstance(info_data, dict) else None
+            if isinstance(declared, list) and declared:
+                now_family = _osf.detect().get('family') or _osf.FAMILY_UNKNOWN
+                if not _osf.family_supports(now_family, declared):
+                    yf.writeFileLog('[plugin] 拒绝在不支持的系统上安装渠道插件: '
+                                    'name=%s version=%s os=%s need=%s'
+                                    % (name, version, now_family, declared))
+                    return yf.returnData(False, 'plugin.os_family_install', ())
+        except Exception as _e:          # noqa: BLE001 —— 判定失败按「支持」处理，不阻安装
+            _log.debug('[plugin] 系统家族判定失败，跳过渠道拦截: %s', _e)
+
         # 第三方插件包「安装前确认」：必须携带与包内容绑定的有效凭据。
         # 官方插件（未登记为第三方）不走此门，既有安装成功率不变。
         if _plugin_is_third_party(name):
@@ -1160,6 +1256,9 @@ class plugin(object):
             "home": info.get('home', ''),
             "date": info.get('date', ''),
             "display_status": info.get('display_status', True),
+            # 平台能力声明：`os_family: ["deb"]` / `["rpm"]` / 不写=全平台。
+            # 供 applyPhpChannelPolicy() 与 install() 共用（见 core/os_family.py）。
+            "os_family": info.get('os_family') if isinstance(info.get('os_family'), list) else [],
         }
 
         if 'icon' in info:
@@ -1764,6 +1863,8 @@ class plugin(object):
         plist = copy.deepcopy(static_list)
         
         plist = self.refreshSetupStatus(plist)
+        # 渠道过滤先于版本过滤：「这个插件在本机能不能用」比「哪个版本该显示」更靠前
+        plist = self.applyPhpChannelPolicy(plist)
         plist = self.applyPhpVersionPolicy(plist)
         
         filtered_list = []

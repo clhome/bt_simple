@@ -175,7 +175,9 @@
         "soft_auto_str_70": "Refreshsuccessful",
         "management_action": "Manage",
         "php_eol": "Upgrade to {1}+",
-        "php_eol_tip": "This PHP branch is end-of-life with no more security fixes; uninstall it and upgrade to PHP 8.2 or newer."
+        "php_eol_tip": "This PHP branch is end-of-life with no more security fixes; uninstall it and upgrade to PHP 8.2 or newer.",
+        "os_unsupported": "Not supported",
+        "os_unsupported_tip": "This install channel is not supported on the current OS; installed versions can still be stopped or uninstalled here."
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -365,7 +367,8 @@
         "py_msg_99993a": "Installfailed!",
         "py_msg_15c2e0": "Cache cleared",
         "py_msg_6f3a2d": "Confirm the plugin script before installing; re-import to confirm",
-        "php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer"
+        "php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer",
+        "os_family_install": "This PHP install channel is not supported on the current OS; use a matching channel (APT / YUM / compiled)"
     },
     "jdk": {
         "manage": "JDK Management",

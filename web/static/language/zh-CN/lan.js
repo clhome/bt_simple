@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "可更新",
+		"os_unsupported_tip": "当前系统不支持该安装渠道；已安装的版本仍可在这里停用或卸载。",
+		"os_unsupported": "系统不支持",
 		"php_eol": "建议升级到 {1} 及以上",
 		"php_eol_tip": "该 PHP 分支官方已停止维护，不再提供安全修复，建议卸载后升级到 PHP 8.2 及以上。",
 		"service_alarm": "服务异常",
@@ -5036,6 +5038,7 @@ var lan = {
 			"py_msg_78cf3e": "首页最多只能显示12个软件!",
 			"py_msg_fc8c87": "删除成功!!",
 			"py_msg_5e6038": "缺少插件名称!",
+			"os_family_install": "当前系统不支持该 PHP 安装渠道，请改用与系统匹配的渠道（APT / YUM / 编译版）",
 			"php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本",
 			"py_msg_988b58": "缺少版本信息!",
 			"py_msg_dacbd7": "配置文件不存在!",

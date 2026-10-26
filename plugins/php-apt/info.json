@@ -23,5 +23,8 @@
     "date": "2026-05-28",
     "home": "https://www.php.net",
     "type": "server",
-    "pid": "6"
+    "pid": "6",
+    "os_family": [
+        "deb"
+    ]
 }

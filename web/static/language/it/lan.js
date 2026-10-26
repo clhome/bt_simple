@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Aggiornamento disponibile",
+		"os_unsupported_tip": "Questo canale non e supportato dal sistema; le versioni installate si possono comunque fermare o disinstallare qui.",
+		"os_unsupported": "Non supportato",
 		"php_eol": "Aggiorna a {1}+",
 		"php_eol_tip": "Questo ramo PHP e EOL e non riceve piu correzioni; disinstallalo e passa a PHP 8.2 o superiore.",
 		"service_alarm": "Errore del servizio",
@@ -5036,6 +5038,7 @@ var lan = {
 			"py_msg_78cf3e": "La dashboard può visualizzare al massimo 12 applicazioni!",
 			"py_msg_fc8c87": "Eliminato con successo!!",
 			"py_msg_5e6038": "Manca il plug-in Nome!",
+			"os_family_install": "Questo canale di installazione PHP non e supportato dal sistema attuale; usa un canale adatto (APT / YUM / compilato)",
 			"php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore",
 			"py_msg_988b58": "Mancano le informazioni sulla versione!",
 			"py_msg_dacbd7": "Il file di configurazione non esiste!",

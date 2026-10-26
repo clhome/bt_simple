@@ -175,7 +175,9 @@
         "soft_auto_str_70": "刷新成功",
         "management_action": "管理",
         "php_eol": "建议升级到 {1} 及以上",
-        "php_eol_tip": "该 PHP 分支官方已停止维护，不再提供安全修复，建议卸载后升级到 PHP 8.2 及以上。"
+        "php_eol_tip": "该 PHP 分支官方已停止维护，不再提供安全修复，建议卸载后升级到 PHP 8.2 及以上。",
+        "os_unsupported": "系统不支持",
+        "os_unsupported_tip": "当前系统不支持该安装渠道；已安装的版本仍可在这里停用或卸载。"
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -365,7 +367,8 @@
         "py_msg_99993a": "安装失败!",
         "py_msg_15c2e0": "缓存已清除",
         "py_msg_6f3a2d": "第三方插件需确认安装脚本后再安装，请重新导入确认",
-        "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本"
+        "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本",
+        "os_family_install": "当前系统不支持该 PHP 安装渠道，请改用与系统匹配的渠道（APT / YUM / 编译版）"
     },
     "jdk": {
         "manage": "JDK管理",

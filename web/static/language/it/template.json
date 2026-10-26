@@ -3496,7 +3496,9 @@
         "soft_auto_str_70": "Aggiorna completato con successo",
         "management_action": "Gestisci",
         "php_eol": "Aggiorna a {1}+",
-        "php_eol_tip": "Questo ramo PHP e EOL e non riceve piu correzioni; disinstallalo e passa a PHP 8.2 o superiore."
+        "php_eol_tip": "Questo ramo PHP e EOL e non riceve piu correzioni; disinstallalo e passa a PHP 8.2 o superiore.",
+        "os_unsupported": "Non supportato",
+        "os_unsupported_tip": "Questo canale non e supportato dal sistema; le versioni installate si possono comunque fermare o disinstallare qui."
     },
     "plugins": {
         "acme_pandominassl_apply": {
@@ -3686,7 +3688,8 @@
         "py_msg_99993a": "Installazione fallita!",
         "py_msg_15c2e0": "cache cancellata",
         "py_msg_6f3a2d": "Conferma lo script prima dell'installazione; reimporta il plugin",
-        "php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore"
+        "php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore",
+        "os_family_install": "Questo canale di installazione PHP non e supportato dal sistema attuale; usa un canale adatto (APT / YUM / compilato)"
     },
     "jdk": {
         "manage": "Gestione JDK",

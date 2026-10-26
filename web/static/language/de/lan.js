@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update verfügbar",
+		"os_unsupported_tip": "Dieser Kanal wird vom aktuellen System nicht unterstuetzt; installierte Versionen lassen sich hier weiterhin stoppen oder entfernen.",
+		"os_unsupported": "Nicht unterstuetzt",
 		"php_eol": "Auf {1}+ aktualisieren",
 		"php_eol_tip": "Dieser PHP-Zweig ist EOL und erhaelt keine Sicherheitsfixes mehr; deinstallieren und auf PHP 8.2+ umsteigen.",
 		"service_alarm": "Dienstfehler",
@@ -5036,6 +5038,7 @@ var lan = {
 			"py_msg_78cf3e": "DashboardEs können maximal 12 Software-Pakete angezeigt werden!",
 			"py_msg_fc8c87": "Erfolgreich gelöscht!!",
 			"py_msg_5e6038": "Plugin-Name fehlt!",
+			"os_family_install": "Dieser PHP-Installationskanal wird vom aktuellen System nicht unterstuetzt; bitte einen passenden Kanal nutzen (APT / YUM / kompiliert)",
 			"php_eol_branch_install": "PHP-Zweige unter 8.2 sind EOL und koennen nicht mehr installiert werden; bitte 8.2 oder neuer waehlen",
 			"py_msg_988b58": "FehltVersionInformationen!",
 			"py_msg_dacbd7": "KonfigurationDateienExistiert nicht!",

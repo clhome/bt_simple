@@ -3641,6 +3641,8 @@ var lan = {
 
 	"soft": {
 		"php_upgradable": "Update available",
+		"os_unsupported_tip": "This install channel is not supported on the current OS; installed versions can still be stopped or uninstalled here.",
+		"os_unsupported": "Not supported",
 		"php_eol": "Upgrade to {1}+",
 		"php_eol_tip": "This PHP branch is end-of-life with no more security fixes; uninstall it and upgrade to PHP 8.2 or newer.",
 		"service_alarm": "Service error",
@@ -5036,6 +5038,7 @@ var lan = {
 			"py_msg_78cf3e": "DashboardAt most 12 software!",
 			"py_msg_fc8c87": "Deleted successfully!!",
 			"py_msg_5e6038": "Plugin name is missing!",
+			"os_family_install": "This PHP install channel is not supported on the current OS; use a matching channel (APT / YUM / compiled)",
 			"php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer",
 			"py_msg_988b58": "Version information is missing!",
 			"py_msg_dacbd7": "The configuration file does not exist!",

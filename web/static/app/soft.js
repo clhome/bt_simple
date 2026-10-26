@@ -323,6 +323,14 @@ function getSList(isdisplay) {
       }
 
       var handle = '<a class="btlink" onclick="addVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(version_info) + '\',\'' + yfSoftJsStr(plugin.tip) + '\',this,\'' + yfSoftJsStr(display_title) + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
+      // 系统不支持的渠道（如 Debian 上的 PHP[YUM]）：不给安装入口，只留一行说明。
+      // 后端 install() 也会拒绝，这里只是不让人白点一次。
+      if (plugin.installable === false) {
+        handle = '<span class="c9" title="' +
+          yfSoftText(t('soft.os_unsupported_tip',
+            '当前系统不支持该安装渠道；已安装的版本仍可在这里停用或卸载。')) + '">' +
+          yfSoftText(t('soft.os_unsupported', '系统不支持')) + '</span>';
+      }
       if (plugin.setup == true) {
         var mupdate = '';
         var latest_version = '';
@@ -424,6 +432,16 @@ function getSList(isdisplay) {
       }
       // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里
       // （未安装的直接不返回），这里红字提醒升级，别让人继续拿它跑业务。
+      // 系统不支持的渠道（已装的行仍会显示，方便停用/卸载）
+      if (plugin.os_unsupported) {
+        plugin_title += '<span class="os-unsupported-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
+          'background:#fa8c16;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;"' +
+          ' title="' + yfSoftText(t('soft.os_unsupported_tip',
+            '当前系统不支持该安装渠道；已安装的版本仍可在这里停用或卸载。')) + '">' +
+          yfSoftText(plugin.os_family_label
+            ? t('soft.os_unsupported', '系统不支持') + '（' + plugin.os_family_label + '）'
+            : t('soft.os_unsupported', '系统不支持')) + '</span>';
+      }
       if (plugin.php_eol) {
         plugin_title += '<span class="php-eol-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;"' +
