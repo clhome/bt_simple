@@ -305,6 +305,67 @@ class InstallGuardTest(unittest.TestCase):
                           'plugins/php/info.json 缺少 %s（已装的旧分支会不可见）' % branch)
 
 
+class StoreUpgradeBadgeTest(unittest.TestCase):
+    """已停维分支不得在商店里露「可更新 / 升级到 8.1.34」——那是一条死路。
+
+    真机现场：PHP-81 8.1.33 挂着「可更新」+「升级到 8.1.34」，点了编译十几分钟，
+    最后报「PHP81 没有编译版安全基线，请改用 APT/YUM 渠道升级」。两头都不对：
+    8.1.34 同样不含本次 CVE 的修复；「改用 APT/YUM」对普通用户也不是可执行动作。
+    """
+
+    def test_01_update_for_skips_eol_branch(self):
+        from core import php_release_index as rel
+        index = {'81': {'version': '8.1.34', 'sha256': 'a' * 64, 'source': 'php.net'},
+                 '82': {'version': '8.2.35', 'sha256': 'b' * 64, 'source': 'php.net'}}
+        self.assertIsNone(rel.update_for('8.1.33', '81', index),
+                         '8.1 已停维，不该给出「升级到 8.1.34」的目标')
+        self.assertIsNone(rel.update_for('8.0.30', '80', index))
+        info = rel.update_for('8.2.30', '82', index)
+        self.assertIsNotNone(info, '8.2 是维护中的分支，仍要给可更新提示')
+        self.assertEqual(info['latest'], '8.2.35')
+
+    def test_02_annotate_items_no_badge_for_eol(self):
+        from core import php_release_index as rel
+        index = {'81': {'version': '8.1.34', 'sha256': 'a' * 64},
+                 '82': {'version': '8.2.35', 'sha256': 'b' * 64}}
+        items = [{'name': 'php', 'versions': '81', 'setup': True},
+                 {'name': 'php-apt', 'versions': '82', 'setup': True}]
+        installed = [{'branch': '81', 'channel': 'src', 'version': '8.1.33'},
+                     {'branch': '82', 'channel': 'apt', 'version': '8.2.30'}]
+        out = rel.annotate_items(items, installed, index)
+        by = {i['versions']: i for i in out}
+        self.assertFalse(by['81'].get('php_update_available'),
+                         '8.1 不许挂「可更新」徽标')
+        self.assertNotIn('php_update', by['81'])
+        self.assertEqual(by['81'].get('php_current_version'), '8.1.33',
+                         '当前版本仍要带上（界面展示用）')
+        self.assertTrue(by['82'].get('php_update_available'))
+        self.assertEqual(by['82']['php_update']['latest'], '8.2.35')
+
+    def test_03_plugin_message_tells_you_to_migrate(self):
+        src = _read(os.path.join(ROOT, 'plugins', 'php', 'index.py'))
+        self.assertIn('官方已停止维护，本次漏洞不会再修复', src)
+        self.assertIn('卸载该版本并升级到 PHP 8.2 及以上', src)
+        self.assertNotIn('请改用 APT/YUM 渠道升级', src,
+                         '别再让用户「改用 APT/YUM」——那是内部渠道名，不是可执行动作')
+        # getUpgradeTarget 对已停维分支直接返回空
+        start = src.index('def getUpgradeTarget(')
+        body = src[start:start + 1600]
+        self.assertIn("return ('', '', '')", body)
+        self.assertIn('MIGRATION_MIN_BRANCH', body)
+
+    def test_04_lang_key_replaced_in_all_languages(self):
+        old = 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级'
+        new = 'PHP%s 官方已停止维护，本次漏洞不会再修复：请卸载该版本并升级到 PHP 8.2 及以上'
+        for lang in LANGS:
+            path = os.path.join(ROOT, 'plugins', 'php', 'lang', '%s.json' % lang)
+            with io.open(path, encoding='utf-8') as fp:
+                data = json.load(fp)
+            self.assertNotIn(old, data, '%s 还留着旧话术' % lang)
+            self.assertIn(new, data, '%s 缺新话术（外语界面会漏翻）' % lang)
+            self.assertIn('8.2', data[new])
+
+
 class MigrateAdviceJumpTest(unittest.TestCase):
     """首页「建议卸载该版本并升级到 PHP 8.2 及以上」必须能一步跳到该版本的卸载入口。"""
 

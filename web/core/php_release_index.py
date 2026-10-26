@@ -453,8 +453,25 @@ CHANNEL_PLUGIN = {
 }
 
 
+def _is_eol_branch(branch):
+    """该分支是否已停止维护（< 8.2）。
+
+    官方对 7.4/8.0/8.1 只可能发「最后一次」版本（如 8.1.34），**不含**本次 CVE 的修复，
+    所以对这些分支推「可更新 / 升级到 8.1.34」是把用户往更深的坑里带（真机现场：
+    点了「升级到 8.1.34」→ 编译十几分钟 → 报「PHP81 没有编译版安全基线」）。
+    正确处置是卸载并迁到 8.2+，由 `php_sec_baseline.migration_advice()` 给话术。
+    """
+    num = baseline.branch_number(branch)
+    if not num:
+        return False
+    return num < baseline.branch_number(baseline.MIGRATION_MIN_BRANCH)
+
+
 def update_for(current_version, branch, index):
     """算某个已装实例的升级信息；没有可用目标版本时返回 None。"""
+    if _is_eol_branch(branch):
+        # 已停维分支不提供「升级到 x.y.z」：那个版本同样没有本次漏洞的修复
+        return None
     entry = (index or {}).get(str(branch))
     if not entry:
         return None
@@ -509,6 +526,12 @@ def annotate_items(items, installed, index):
             if key not in by_plugin_branch:
                 continue
             current = by_plugin_branch[key]
+            if _is_eol_branch(version):
+                # 已停维分支：只带上当前版本号（界面显示用），**不**给「可更新」徽标；
+                # 软件商店对这类条目已经有红色「建议升级到 8.2 及以上」提示。
+                item['php_current_version'] = current
+                item['php_update_available'] = False
+                continue
             info = update_for(current, version, index)
             if not info:
                 # 已是最新（或索引里没有该分支）：只带上当前版本号，便于界面展示

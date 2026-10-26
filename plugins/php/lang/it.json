@@ -1,5 +1,5 @@
 {
-    "PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级": "PHP %s non ha una baseline di sicurezza per la versione compilata, usa il canale APT/YUM",
+    "PHP%s 官方已停止维护，本次漏洞不会再修复：请卸载该版本并升级到 PHP 8.2 及以上": "PHP %s e EOL e questa vulnerabilita non sara piu corretta; disinstalla e passa a PHP 8.2 o superiore",
     "投递升级任务失败: %s": "Impossibile accodare l'attivita di aggiornamento: %s",
     "缺少安装脚本: %s": "Script di installazione mancante: %s",
     "升级前备份旧二进制失败，已取消升级: %s": "Backup dei vecchi binari non riuscito, aggiornamento annullato: %s",

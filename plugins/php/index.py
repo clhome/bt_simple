@@ -1744,6 +1744,11 @@ def getUpgradeTarget(version):
     —— 没有哈希的编译任务等于关掉完整性校验。
     """
     branch = str(version or '').strip()
+    # 已停维分支（< 8.2）：官方新发的版本同样不带本次 CVE 的修复，不给目标版本。
+    bnum = php_sec_baseline.branch_number(branch)
+    if bnum and bnum < php_sec_baseline.branch_number(php_sec_baseline.MIGRATION_MIN_BRANCH):
+        _log.debug('[php] PHP%s 已停止维护，不提供升级目标（应卸载后迁到 8.2+）', branch)
+        return ('', '', '')
     floor = php_sec_baseline.branch_floor(branch)
     candidate = ''
     sha = ''
@@ -1789,7 +1794,7 @@ def submitBaselineUpgrade(version=''):
         return err
     floor = php_sec_baseline.branch_floor(ver)
     if not floor:
-        return yf.returnJson(False, 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级' % ver)
+        return yf.returnJson(False, 'PHP%s 官方已停止维护，本次漏洞不会再修复：请卸载该版本并升级到 PHP 8.2 及以上' % ver)
     if not isInstalled(ver):
         return yf.returnJson(False, 'PHP版本未安装!')
 
@@ -1861,7 +1866,7 @@ def upgradeToBaseline(version=''):
         return err
     floor = php_sec_baseline.branch_floor(ver)
     if not floor:
-        return yf.returnJson(False, 'PHP%s 没有编译版安全基线，请改用 APT/YUM 渠道升级' % ver)
+        return yf.returnJson(False, 'PHP%s 官方已停止维护，本次漏洞不会再修复：请卸载该版本并升级到 PHP 8.2 及以上' % ver)
     if not isInstalled(ver):
         return yf.returnJson(False, 'PHP版本未安装!')
 
