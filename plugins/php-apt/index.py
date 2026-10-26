@@ -510,7 +510,28 @@ def phpFpmWwwReplace(version):
             yf.writeLog('php-apt', '动态配置 FPM 进程数失败: ' + str(e))
 
         yf.writeFile(service_php_fpm_yf, content)
-    return True
+
+    # ---- pool 关键项自愈（真机 2026-10-26：php-apt 8.2 装完 nginx 报
+    # `connect() to unix:/run/php/php{ver}-fpm.sock failed (13: Permission denied)`）----
+    # 根因：yf.conf 只在「文件不存在」时从模板生成，**存量机器永远不会被更新**；
+    # 老模板没有 `listen.mode = 0666`，fpm 用默认 0660 → 只要 socket 属主不是
+    # nginx worker 的运行用户（本机 worker=www，sury 默认池=www-data）就连不上。
+    # 这里对**已存在**的 yf.conf 做幂等补齐，返回 True = 改了配置，调用方应重启 FPM。
+    healed = False
+    try:
+        from core import php_pool_heal as _heal
+        listen_path = ('/run/php/php%s-fpm.sock' % version)
+        healed, _changes, _err = _heal.heal_pool_file(
+            service_php_fpm_yf, owner='www', group='www', listen=listen_path)
+        if healed:
+            yf.writeLog('[php-apt]', 'pool 配置自愈 (PHP%s): %s'
+                        % (version, '; '.join(_changes)))
+        elif _err and _err != 'not found':
+            yf.writeFileLog('[php-apt] pool 自愈跳过: %s' % _err)
+    except Exception as _e:
+        _log.debug('[php-apt] pool 自愈异常: %s', _e)
+    return healed
+
 
 
 def deleteConfList(version):

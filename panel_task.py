@@ -15,6 +15,7 @@
 
 import sys
 import os
+import re
 import json
 import time
 import signal
@@ -797,6 +798,98 @@ def getPhpSecSnapshotFile():
     return yf.getPanelDataDir() + '/' + php_sec_scan.SNAPSHOT_FILENAME
 
 
+# ---------------------------------------------------------------------------------
+# php-fpm pool 自愈（真机 2026-10-26）
+#
+# 现象：面板里 php-apt 8.2 装完「无缺失项」，网站却 `connect() to
+# unix:/run/php/php8.2-fpm.sock failed (13: Permission denied)`；同机 8.5 正常。
+# 差异只有 pool 里的 `listen.mode = 0666` —— 老模板生成的 pool 没有这一行，
+# fpm 用默认 0660，socket 属主又不是 nginx worker 用户（worker=www / sury=www-data）。
+#
+# 为什么要在后台任务里做：`phpFpmWwwReplace()` 只在 pool 文件**不存在**时生成，
+# 存量机器永远不会被更新；用户也不会为了一个权限问题去重装 PHP。
+# 本步每天跑一次，**只在真的改了配置时**才重启对应 FPM（幂等，正常机器零动作）。
+# ---------------------------------------------------------------------------------
+PHP_POOL_HEAL_INTERVAL = 86400
+
+
+def phpPoolHeal_step():
+    try:
+        from core import php_pool_heal
+        server_dir = yf.getServerDir()
+        healed_any = False
+
+        def _restart(unit):
+            try:
+                rc, out, err = yf.execShellRc(['systemctl', 'restart', unit], shell=False,
+                                              timeout=yf.EXEC_SERVICE_TIMEOUT)
+                if rc != 0:
+                    _log.warning('[php_pool_heal] 重启 %s 失败 rc=%s: %s', unit, rc, (err or out)[:200])
+            except Exception as _e:      # noqa: BLE001 —— 重启失败不影响其它版本
+                _log.warning('[php_pool_heal] 重启 %s 异常: %s', unit, _e)
+
+        # ① apt 渠道：/etc/php/<X.Y>/fpm/pool.d/yf.conf
+        apt_root = '/etc/php'
+        try:
+            names = sorted(os.listdir(apt_root))
+        except OSError:
+            names = []
+        for name in names:
+            m = re.match(r'^(\d+)\.(\d+)$', name)
+            if not m:
+                continue
+            # 只处理**已安装**的（`rc` 残留的 pool 改了也没意义）
+            try:
+                from core import php_sec_scan
+                state = php_sec_scan.apt_package_state(m.group(1) + m.group(2))
+            except Exception as _e:      # noqa: BLE001
+                _log.debug('[php_pool_heal] 读取 %s 包状态失败: %s', name, _e)
+                continue
+            if not state.get('installed'):
+                continue
+            pool = os.path.join(apt_root, name, 'fpm', 'pool.d', 'yf.conf')
+            changed, changes, err = php_pool_heal.heal_pool_file(
+                pool, owner='www', group='www',
+                listen='/run/php/php%s-fpm.sock' % name)
+            if changed:
+                healed_any = True
+                _log.warning('[php_pool_heal] PHP%s pool 已自愈: %s', name, '; '.join(changes))
+                yf.writeLog('PHP-FPM 自愈', 'PHP%s(%s) pool 配置已修正: %s'
+                            % (name, pool, '; '.join(changes)))
+                _restart('php%s-fpm' % name)
+
+        # ② 编译版：<server>/php/<NN>/etc/php-fpm.d/www.conf
+        php_root = server_dir + '/php'
+        try:
+            branch_names = sorted(os.listdir(php_root))
+        except OSError:
+            branch_names = []
+        for branch in branch_names:
+            if not re.match(r'^\d{2}$', branch):
+                continue
+            try:
+                if os.path.getsize(os.path.join(php_root, branch, 'bin', 'php')) <= 0:
+                    continue
+            except OSError:
+                continue
+            pool = os.path.join(php_root, branch, 'etc', 'php-fpm.d', 'www.conf')
+            changed, changes, err = php_pool_heal.heal_pool_file(
+                pool, owner='www', group='www',
+                listen='/tmp/php-cgi-%s.sock' % branch)
+            if changed:
+                healed_any = True
+                _log.warning('[php_pool_heal] PHP%s pool 已自愈: %s', branch, '; '.join(changes))
+                yf.writeLog('PHP-FPM 自愈', 'PHP%s(%s) pool 配置已修正: %s'
+                            % (branch, pool, '; '.join(changes)))
+                _restart('php%s' % branch)
+
+        if healed_any:
+            _log.info('[php_pool_heal] 本轮有配置被修正并已重启对应 FPM')
+    except Exception:
+        # 自愈失败不影响任何业务功能；但不能静默（否则「配好了却没生效」无从追查）
+        _log.warning('[php_pool_heal] 执行失败: %s', yf.getTracebackInfo())
+
+
 def phpSecurityScan_step():
     try:
         from core import php_sec_scan
@@ -986,6 +1079,8 @@ def run():
     # 采集本身只读几个版本号（`php -v` / `dpkg-query` / `rpm`，毫秒级），
     # 但要把结果落快照供首页告警卡片读取，所以放在通道 1 的每日槽位。
     watchdog_scheduler.add_task(phpSecurityScan_step, PHP_SEC_SCAN_INTERVAL)
+    # php-fpm pool 自愈（listen.mode 等）；只在真改了配置时才重启 FPM
+    watchdog_scheduler.add_task(phpPoolHeal_step, PHP_POOL_HEAL_INTERVAL)
     # PHP 官方版本索引（12h）：给「已安装的软件」提供「可升级 x.y.z」的判据。
     watchdog_scheduler.add_task(phpReleaseIndex_step, PHP_RELEASE_INDEX_INTERVAL)
     # 已装插件服务存活巡检（P2-2）：5 分钟一轮，只读不重启，结果供软件列表告警

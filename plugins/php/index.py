@@ -679,7 +679,21 @@ def phpFpmPoolReplace(version, pool = 'www'):
             yf.writeLog('php', '动态配置 FPM 进程数失败: ' + str(e))
 
         yf.writeFile(service_php_fpmwww, content)
-    return True
+
+    # ---- pool 关键项自愈（同一族缺陷，见 web/core/php_pool_heal.py 文档）----
+    # 编译版 socket 在 /tmp，nginx worker=www；只要 pool 的 listen.owner 与 worker
+    # 用户不一致，0660 就会让 nginx 拿到 EACCES。存量 pool 不会被模板更新，故此处幂等补齐。
+    healed = False
+    try:
+        from core import php_pool_heal as _heal
+        healed, _changes, _err = _heal.heal_pool_file(
+            service_php_fpmwww, owner='www', group='www',
+            listen='/tmp/php-cgi-%s.sock' % version)
+        if healed:
+            yf.writeLog('[php]', 'pool 配置自愈 (PHP%s): %s' % (version, '; '.join(_changes)))
+    except Exception as _e:
+        _log.debug('[php] pool 自愈异常: %s', _e)
+    return healed
 
 
 DEFAULT_DISABLE_FUNCTIONS = (
