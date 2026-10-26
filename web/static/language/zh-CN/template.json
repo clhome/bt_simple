@@ -1655,7 +1655,7 @@
     "after_installing_new_version": "安装新的PHP版本后此处需要重新设置",
     "how_to_add_wildcard_1": "泛解析添加方法 *.domain.com",
     "if_an_additional_port_1": "如另加端口格式为 www.domain.com:88",
-    "change_php_version_msg": "修改域名【{1}】，目前PHP版本为：[{2}] 确定修改 PHP 版本号为：[{3}] 吗？ 温馨提示：如果切换失败，请尝试在服务器终端执行：bt 16 修复面板。",
+    "change_php_version_msg": "修改域名【{1}】，目前PHP版本为：{2}",
     "confirm_change_php": "确认修改PHP版本",
     "import_conflict_msg": "(冲突: {1} 个，另外有 {2} 个没有冲突的站点将直接导入)",
     "import_confirm": "导入确认",

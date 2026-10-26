@@ -91,6 +91,146 @@ def _refreshInitScript():
         yf.writeFileLog('[panel_tools] 刷新服务脚本异常: %s' % e)
 
 
+def _repairPanel():
+    """`yf 16`（修复面板）：把「面板坏了但服务还能跑」的常见原因逐项修一遍。
+
+    为什么需要：用户看到「切换失败，请执行 yf 16 修复面板」时手里应该有**真能跑**的
+    命令（旧文案还写着宝塔的 `bt 16`，而 `yf` 的菜单里根本没有 16 —— 两头都不对）。
+
+    做什么（步骤独立、非致命，能修多少修多少，最后重启服务）：
+      1. **重生成服务脚本**：`/etc/rc.d/init.d/yf` 只在面板启动成功时渲染，
+         升级后没跑起来时它就是旧的（曾因此 `yf 1` 挂死）；
+      2. **库结构对齐 + 完整性检查**：转调 `deploy.sh migrate`（与 `yf migrate`
+         同一份实现，不另写一套）；面板库损坏是「面板起不来/页面 500」的第一嫌疑；
+      3. **关键目录/文件修复**：`logs`/`data`/`tmp` 建齐、权限归一化；
+      4. **日志轮转重下发**（与 `yf start` 同路径）；
+      5. **重启面板服务**，并打印最新访问信息。
+    """
+    panel_dir = yf.getPanelDir()
+    print("======================== 修复面板 ==========================")
+    fails = []
+
+    def step(no, title):
+        print("[%s] %s ..." % (no, title), end=' ', flush=True)
+
+    def ok(extra=''):
+        print("\033[32mOK\033[0m" + ((' ' + extra) if extra else ''))
+
+    def bad(why):
+        print("\033[31mFAIL\033[0m %s" % why)
+        fails.append(why)
+
+    # ① 服务脚本
+    step('1/5', '重生成服务脚本')
+    try:
+        _refreshInitScript()
+        if os.path.exists(INIT_CMD):
+            ok(INIT_CMD)
+        else:
+            bad('服务脚本仍然不存在: %s' % INIT_CMD)
+    except Exception as ex:            # noqa: BLE001 —— 任何一步失败都继续往下修
+        bad('异常: %s' % ex)
+
+    # ② 面板库：完整性检查（只读）+ 结构对齐（自愈）
+    step('2/5', '检查并自愈面板数据库')
+    db_path = os.path.join(panel_dir, 'data', 'panel.db')
+    try:
+        import sqlite3
+        if not os.path.exists(db_path):
+            bad('面板库不存在: %s（请重跑安装脚本）' % db_path)
+        else:
+            conn = sqlite3.connect('file:%s?mode=ro' % db_path, uri=True, timeout=5)
+            try:
+                row = conn.execute('PRAGMA integrity_check').fetchone()
+            finally:
+                conn.close()
+            verdict = (row[0] if row else '') or ''
+            if verdict.lower() != 'ok':
+                bad('数据库完整性检查未通过: %s' % verdict[:120])
+            else:
+                script = os.path.join(panel_dir, 'deploy.sh')
+                if not os.path.exists(script):
+                    bad('缺少 %s，无法对齐库结构' % script)
+                else:
+                    # 与 `yf migrate` 同一条路径（单一实现，不另写一份 schema 对齐）
+                    rc, out, err = yf.execShellRc(['bash', script, 'migrate'], shell=False,
+                                                  timeout=600)
+                    if rc == 0:
+                        ok('完整性 OK，结构已对齐')
+                    else:
+                        bad('结构对齐失败 rc=%s: %s' % (rc, (err or out or '')[:160]))
+    except Exception as ex:            # noqa: BLE001
+        bad('异常: %s' % ex)
+
+    # ③ 关键目录与权限
+    step('3/5', '修复关键目录/权限')
+    try:
+        fixed = []
+        for name in ('logs', 'data', 'tmp', 'web'):
+            path = os.path.join(panel_dir, name)
+            if not os.path.isdir(path):
+                os.makedirs(path, exist_ok=True)
+                fixed.append(name + '(新建)')
+            try:
+                os.chmod(path, 0o755)
+            except OSError as ex:
+                _log.debug('[panel_tools] chmod %s 失败: %s', path, ex)
+        # 面板 CLI 与部署脚本必须可执行（升级解压丢权限位时很常见）
+        for rel in ('cli.sh', 'deploy.sh', 'scripts/init.d/yf.tpl'):
+            path = os.path.join(panel_dir, rel)
+            if os.path.exists(path) and not os.access(path, os.X_OK) \
+                    and not rel.endswith('.tpl'):
+                try:
+                    os.chmod(path, 0o755)
+                    fixed.append(rel + '(补执行位)')
+                except OSError as ex:
+                    _log.debug('[panel_tools] chmod %s 失败: %s', path, ex)
+        ok('、'.join(fixed) if fixed else '无需修改')
+    except Exception as ex:            # noqa: BLE001
+        bad('异常: %s' % ex)
+
+    # ④ 日志轮转（与 yf_start 同一脚本）
+    step('4/5', '重下发日志轮转配置')
+    try:
+        script = os.path.join(panel_dir, 'scripts', 'install', 'logrotate', 'install.sh')
+        if not os.path.exists(script):
+            ok('（跳过：无 logrotate 安装脚本）')
+        else:
+            rc, out, err = yf.execShellRc(['bash', script], shell=False, timeout=120)
+            ok() if rc == 0 else bad('logrotate 下发失败 rc=%s: %s'
+                                    % (rc, (err or out or '')[:160]))
+    except Exception as ex:            # noqa: BLE001
+        bad('异常: %s' % ex)
+
+    # ⑤ 重启服务
+    step('5/5', '重启面板服务')
+    try:
+        rc, out, err = yf.execShellRc([INIT_CMD, 'restart'], shell=False,
+                                      timeout=SERVICE_TIMEOUT)
+        if rc == 0:
+            ok()
+        else:
+            bad('重启失败 rc=%s: %s' % (rc, (err or out or '')[:200]))
+    except Exception as ex:            # noqa: BLE001
+        bad('异常: %s' % ex)
+
+    print("------------------------------------------------------------")
+    if fails:
+        print("修复未全部完成（%d 项失败）：" % len(fails))
+        for item in fails:
+            print("  - %s" % item)
+        print("可继续尝试：`yf 13` 看错误日志、`yf db-check` 只读诊断、"
+              "`yf rollback` 回滚到上一版。")
+    else:
+        print("面板修复完成。可执行 `yf 10` 查看当前访问信息。")
+    try:
+        yf.writeLog('面板修复', 'CLI 修复面板：%s'
+                    % ('全部成功' if not fails else '；'.join(fails)[:500]))
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[panel_tools] 写修复日志失败: %s', ex)
+    return 0 if not fails else 1
+
+
 def yf_input_cmd(msg):
     if sys.version_info[0] == 2:
         in_val = raw_input(msg)
@@ -130,6 +270,7 @@ def yfcli(yf_input=0):
             '(13)   显示面板错误日志',
             '(14)   关闭面板访问',
             '(15)   开启面板访问',
+            '(16)   修复面板',
             '(20)   关闭BasicAuth认证',
             '(21)   解除域名绑定',
             '(22)   解除面板SSL绑定',
@@ -170,7 +311,7 @@ def yfcli(yf_input=0):
 
     nums = [
         1, 2, 3, 4, 5, 6, 7, 9,
-        10, 11, 12, 13, 14, 15,
+        10, 11, 12, 13, 14, 15, 16,
         20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
         100, 101, 
         200, 201, 202
@@ -289,6 +430,8 @@ def yfcli(yf_input=0):
             yf.echoInfo("开启面板访问成功!")
         else:
             yf.echoInfo("已开启面板访问!")
+    elif yf_input == 16:
+        _repairPanel()
     elif yf_input == 20:
         basic_auth = thisdb.getOptionByJson('basic_auth', default={'open':False})
         if basic_auth['open']:

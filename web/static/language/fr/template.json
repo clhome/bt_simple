@@ -1655,7 +1655,7 @@
     "after_installing_new_version": "Après l'installation d'une nouvelle version de PHP, il faudra reconfigurer ce paramètre.",
     "how_to_add_wildcard_1": "Méthode d'ajout d'une résolution générique *.domain.com",
     "if_an_additional_port_1": "Si un port supplémentaire est ajouté, le format est le suivant : www.domain.com:88",
-    "change_php_version_msg": "Modification du nom de domaine [{1}]. La version actuelle de PHP est : [{2}] . Voulez-vous vraiment modifier le numéro de version de PHP et le remplacer par : [{3}] ? Remarque : si la mise à jour échoue, veuillez essayer d'exécuter la commande suivante dans le terminal du serveur : bt 16 pour réparer le panneau de configuration.",
+    "change_php_version_msg": "Domaine [{1}], version PHP actuelle : {2}",
     "confirm_change_php": "Confirmer la modification de la version de PHP",
     "import_conflict_msg": "(Conflits : {1}, {2} autres sites sans conflit seront importés directement)",
     "import_confirm": "Confirmation de l'importation",

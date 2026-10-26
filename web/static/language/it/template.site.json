@@ -658,7 +658,7 @@
     "after_installing_new_version": "Questo deve essere ripristinato dopo aver installato una nuova versione PHP",
     "how_to_add_wildcard_1": "Metodo di aggiunta Pan-Analytics *.domain.com",
     "if_an_additional_port_1": "Se il formato della porta aggiuntiva è www.dominio.com:88",
-    "change_php_version_msg": "Modifica il nome del dominio [{1}], la versione corrente di PHP è: [{2}] Sei sicuro di modificare il numero di versione di PHP in: [{3}]? Promemoria: se il passaggio non funziona, prova a eseguire: pannello di riparazione bt 16 nel terminale del server.",
+    "change_php_version_msg": "Dominio [{1}], versione PHP attuale: {2}",
     "confirm_change_php": "Conferma la versione PHP modificata",
     "import_conflict_msg": "(Conflitti: {1} e {2} siti senza conflitti verranno importati direttamente)",
     "import_confirm": "Conferma dell'importazione",

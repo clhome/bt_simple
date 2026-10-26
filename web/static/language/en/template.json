@@ -1655,7 +1655,7 @@
     "after_installing_new_version": "Install new PHPAfter changing the version, you need to re-set hereset",
     "how_to_add_wildcard_1": "Wildcard resolution adding method: *.domain.com",
     "if_an_additional_port_1": "If adding another port, the format is www.domain.com:88",
-    "change_php_version_msg": "Modify domain [{1}], the current PHP version is: [{2}] Are you sure you want to change the PHP version to: [{3}]? Friendly tip: if the switch fails, please try to run bt 16 in the server terminal to repair the panel.",
+    "change_php_version_msg": "Domain [{1}], current PHP version: {2}",
     "confirm_change_php": "confirmmodifyPHPversion",
     "import_conflict_msg": "(conflict: {1}  ,Also there are  {2}  non-conflictingsitewill be directly imported)",
     "import_confirm": "Import confirmation",

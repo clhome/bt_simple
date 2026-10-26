@@ -658,7 +658,7 @@
     "after_installing_new_version": "Neue installierenPHPNach der Version muss dies hier neu eingerichtet werden",
     "how_to_add_wildcard_1": "Methode zum Hinzufügen einer Wildcard-Auflösung *.domain.com",
     "if_an_additional_port_1": "Bei zusätzlichem Port lautet das Format www.domain.com:88",
-    "change_php_version_msg": "Domain ändern [{1}], derzeitPHPVersion:[{2}] Änderung bestätigen PHP Versionsnummer:[{3}] ? Hinweis: Falls der Wechsel fehlschlägt, versuchen Sie, im Server-Terminal Folgendes auszuführen:bt 16 Panel reparieren.",
+    "change_php_version_msg": "Domain [{1}], aktuelle PHP-Version: {2}",
     "confirm_change_php": "Änderung bestätigenPHPVersion",
     "import_conflict_msg": "(Konflikt: {1} , außerdem gibt es {2} Website(s) ohne Konflikt werden direkt importiert)",
     "import_confirm": "Import bestätigen",

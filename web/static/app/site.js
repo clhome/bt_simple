@@ -3090,14 +3090,28 @@ function changePHPVersion(id, siteName, currentVersion) {
     // 必须是**真的** <select id='newPHPVersion'>：旧实现把 <option> 拼进一段纯文本里，
     // 浏览器只会把选项当文字显示（真机截图就是这样），用户根本选不出版本。
     var selectHtml = "<select id='newPHPVersion' class='bt-input-text' style='width:150px'>" + optionsHtml + "</select>";
-    var msgHTML = t('site.change_php_version_msg', [siteName, currentVersionText, selectHtml]);
-    var btnHTML = t('site.confirm_change_php');
-    var bodyContent = "<div class='info-r'>" + msgHTML + "</div><div class='info-r'><button class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('" + siteName + "')\">" + btnHTML + "</button></div>";
+    // 版式与面板其它弹窗一致：一句话说明 → 一行表单（标签 + 下拉）→ 右下角取消/确定。
+    // 标题/标签/按钮全部走语言包（site.change_the_php_version_1 / _the_php_version / cancel / confirm）。
+    var lineHTML = t('site.change_php_version_msg', [siteName, currentVersionText]);
+    var labelHTML = t('site.change_the_php_version');
+    var cancelHTML = t('site.cancel');
+    var okHTML = t('site.confirm');
+    var bodyContent = "<div class='bt-form pd20' style='padding-bottom:50px;'>" +
+      "<p style='font-size:14px;'>" + lineHTML + "</p>" +
+      "<p class='line' style='margin-top:15px;'>" +
+        "<span class='tname' style='width:120px;text-align:left;'>" + labelHTML + "</span>" +
+        selectHtml +
+      "</p>" +
+      "<div class='bt-form-submit-btn'>" +
+        "<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>" + cancelHTML + "</button>" +
+        "<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('" + siteName + "')\">" + okHTML + "</button>" +
+      "</div>" +
+      "</div>";
     layer.open({
       type: 1,
       skin: 'demo-class',
       area: '480px',
-      title: lan && lan.site && t('site.saving_2') || "",
+      title: t('site.change_the_php_version_1'),
       closeBtn: 1,
       shift: 0,
       shadeClose: false,

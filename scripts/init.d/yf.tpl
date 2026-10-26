@@ -390,6 +390,12 @@ yf_migrate(){
     bash "${script}" migrate
 }
 
+# 修复面板（服务脚本重建 / 库完整性 + 结构对齐 / 权限 / 日志轮转 / 重启）
+# 与交互式 `yf` 菜单里的 (16) 是同一个实现（panel_tools.py cli 16）
+yf_repair(){
+    cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py cli 16
+}
+
 yf_mirror()
 {
     LOCAL_ADDR=common
@@ -641,6 +647,7 @@ yf_list(){
     echo -e "yf rollback        - 回滚到上一次升级前的版本"
     echo -e "yf db-check        - 诊断面板库结构（只读）"
     echo -e "yf migrate         - 对齐面板库结构（自愈）"
+    echo -e "yf repair          - 修复面板（服务脚本/库/权限/日志轮转，重启）"
     echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
     echo -e "yf debug           - 调式开发面板"
     echo -e "yf list            - 显示命令列表"
@@ -726,6 +733,7 @@ case "$1" in
     'rollback') yf_rollback;;
     'db-check') yf_db_check;;
     'migrate') yf_migrate;;
+    'repair') yf_repair;;
     'dev') yf_dev;;
     'update_dev') yf_update_dev;;
     'install_app') yf_install_app;;
