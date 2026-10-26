@@ -18,8 +18,16 @@ if [ -d $serverPath/php/${version}/lib64 ];then
 	LIB_PATH_NAME=lib64
 fi
 
-NON_ZTS_FILENAME=`ls $serverPath/php/${version}/${LIB_PATH_NAME}/extensions | grep no-debug-non-zts`
-extFile=$serverPath/php/${version}/${LIB_PATH_NAME}/extensions/${NON_ZTS_FILENAME}/${LIBNAME}.so
+# 扩展目录**不能**靠 `ls extensions | grep no-debug-non-zts` 猜：全新分支在第一次
+# 编译共享扩展之前，该子目录还不存在（正是本次 `make install` 才创建的）→ 猜出空串，
+# extFile 变成 `extensions//xxx.so`，于是「编译成功却报产物缺失」（真机 PHP8.5/curl）。
+# 以 php-config 为准；取不到才退回目录探测（只取第一行，目录不存在时不报错）。
+NON_ZTS_FILENAME=`ls $serverPath/php/${version}/${LIB_PATH_NAME}/extensions 2>/dev/null | grep no-debug-non-zts | head -1`
+extDir=`$serverPath/php/${version}/bin/php-config --extension-dir 2>/dev/null`
+if [ -z "${extDir}" ]; then
+	extDir=$serverPath/php/${version}/${LIB_PATH_NAME}/extensions/${NON_ZTS_FILENAME}
+fi
+extFile=${extDir}/${LIBNAME}.so
 
 
 if [ "$sysName" == "Darwin" ];then

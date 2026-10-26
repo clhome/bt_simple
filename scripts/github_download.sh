@@ -141,6 +141,17 @@ _gh_get_best_proxy() {
     return 1
 }
 
+# 该 URL 是否属于 GitHub（只有它们能被 GitHub 加速节点代理）
+# 用法: _gh_is_github_url <url>
+_gh_is_github_url() {
+    case "$1" in
+        https://github.com/*|https://objects.githubusercontent.com/*|        https://codeload.github.com/*|https://raw.githubusercontent.com/*|        https://gist.githubusercontent.com/*|https://release-assets.githubusercontent.com/*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
 # 将原始 GitHub URL 加上代理前缀
 # 用法: _gh_proxy_url <proxy_prefix> <original_url>
 # 例如: _gh_proxy_url "https://ghfast.top/" "https://github.com/foo/bar.tar.gz"
@@ -173,18 +184,33 @@ _gh_verify_file() {
     local size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
     if [ "$size" -eq 0 ] 2>/dev/null; then return 1; fi
 
-    # 如果是 gzip 压缩包
-    if [[ "$file" == *.tar.gz ]] || [[ "$file" == *.tgz ]] || [[ "$file" == *.gz ]]; then
-        if gzip -t "$file" 2>/dev/null; then return 0; else return 1; fi
+    # **按内容（魔数）判，不按文件名后缀**：
+    # 调用方普遍先下到 `<name>.tar.gz.part` 再改名，旧实现按后缀判断会跳过
+    # gzip 校验，于是代理返回的 48 字节错误文本也被当成「下载成功」
+    # （真机日志：「✓ 下载成功」紧跟「该源不可用或包损坏」）。
+    local magic=$(head -c 8 "$file" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
+
+    case "$magic" in
+        1f8b*)                      # gzip（.tar.gz / .tgz / .gz）
+            if gzip -t "$file" 2>/dev/null; then return 0; else return 1; fi
+            ;;
+        504b0304*|504b0506*|504b0708*)   # zip
+            if unzip -t "$file" >/dev/null 2>&1; then return 0; else return 1; fi
+            ;;
+        fd377a58*)                  # xz
+            if command -v xz >/dev/null 2>&1; then
+                if xz -t "$file" 2>/dev/null; then return 0; else return 1; fi
+            fi
+            ;;
+    esac
+
+    # 普通文件（.sh / 二进制）：必须不是 HTML 错误页/登录页
+    if head -c 200 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html)'; then
+        return 1
     fi
-    # 如果是 zip 压缩包
-    if [[ "$file" == *.zip ]]; then
-        if unzip -t "$file" >/dev/null 2>&1; then return 0; else return 1; fi
-    fi
-    
-    # 针对普通文件（如 .sh 或二进制），检测是否被代理篡改为 HTML 错误页
-    # 简单检查文件头部是否为明显的 HTML 标签
-    if head -c 100 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html)'; then
+    # 纯文本但不是脚本、又只有几十字节 → 基本是代理的错误提示（如 48 字节的
+    # "invalid url"），一律当失败，交给上层换源
+    if [ "$size" -lt 512 ] && head -c 32 "$file" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|请|错误'; then
         return 1
     fi
 
@@ -318,6 +344,19 @@ github_download() {
 
     echo "[github_download] 开始下载: $url"
     echo "[github_download] 保存路径: $file"
+
+    # **非 GitHub 的地址一律直连**：GitHub 加速节点只能代理 github.com 系的 URL，
+    # 把 https://thrysoee.dk/... 塞进 https://gh.con.sh/ 只换来一段几十字节的错误文本
+    # （真机 PHP8.2 安装就卡在这里：libedit 两个源都被判「包损坏」）。
+    if ! _gh_is_github_url "$url"; then
+        echo "[github_download] 非 GitHub 地址，直连下载 (${timeout}s)..."
+        if _gh_try_download "$file" "$url" "$timeout"; then
+            echo "[github_download] ✓ 下载成功"
+            return 0
+        fi
+        echo "[github_download] ✗ 直连下载失败: $url"
+        return 1
+    fi
 
     # 获取最佳节点（缓存读取或极速测速）
     _gh_get_best_proxy >/dev/null
