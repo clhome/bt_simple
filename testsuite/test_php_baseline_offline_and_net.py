@@ -318,10 +318,14 @@ class PhpDebBundlePureTest(unittest.TestCase):
 
     def test_10_packages_stanza_and_apt_args(self):
         stanza = deb.packages_stanza('Package: php8.4-fpm\nVersion: 8.4.27-1',
-                                     'php8.4-fpm_8.4.27-1_amd64.deb', 123, 'md5x', 'shax')
+                                     'php8.4-fpm_8.4.27-1_amd64.deb', 123, 'shax')
         for token in ('Package: php8.4-fpm', 'Version: 8.4.27-1', 'Filename: php8.4-fpm_',
-                      'Size: 123', 'MD5sum: md5x', 'SHA256: shax'):
+                      'Size: 123', 'SHA256: shax'):
             self.assertIn(token, stanza)
+        # MD5 不是安全摘要：bandit B324 判 HIGH、会让 CI 的安全扫描阻断 → 索引不带它
+        self.assertNotIn('MD5sum', stanza, 'Packages 索引不许再带弱哈希 MD5')
+        src = _read(DEB_BUNDLE_PY).lower()
+        self.assertNotIn('hashlib.md5', src, 'php_deb_bundle 不该再用 hashlib.md5')
         args = deb.apt_repo_args('/tmp/repo')
         joined = ' '.join(args)
         # 关键：必须让 apt **只看**本地仓库，否则它会去读系统源（无外网时会卡在超时上）
@@ -336,12 +340,10 @@ class PhpDebBundlePureTest(unittest.TestCase):
         text = deb.release_text(b'Packages-1', b'gz-1',
                                 date='Mon, 26 Oct 2026 00:00:00 GMT')
         self.assertIn('Date: Mon, 26 Oct 2026 00:00:00 GMT', text)
-        self.assertIn('MD5Sum:', text)
         self.assertIn('SHA256:', text)
+        self.assertNotIn('MD5Sum', text, 'Release 里不该再有 MD5Sum 段（弱哈希）')
         for name in ('Packages', 'Packages.gz'):
             self.assertIn(name, text)
-        self.assertRegex(text, r'(?m)^ [0-9a-f]{32} 10 Packages$')
-        self.assertRegex(text, r'(?m)^ [0-9a-f]{32} 4 Packages.gz$')
         self.assertRegex(text, r'(?m)^ [0-9a-f]{64} 10 Packages$')
         self.assertRegex(text, r'(?m)^ [0-9a-f]{64} 4 Packages.gz$')
 

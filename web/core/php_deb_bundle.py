@@ -305,18 +305,15 @@ def _sha256_of(path):
     return h.hexdigest()
 
 
-def _md5_of(path):
-    h = hashlib.md5()
-    with open(path, 'rb') as fp:
-        for chunk in iter(lambda: fp.read(1024 * 512), b''):
-            h.update(chunk)
-    return h.hexdigest()
+def packages_stanza(control, filename, size, sha256):
+    """一条 `Packages` 段落（control 原文 + 仓库定位/摘要字段）。纯函数。
 
-
-def packages_stanza(control, filename, size, md5, sha256):
-    """一条 `Packages` 段落（control 原文 + 仓库定位/摘要字段）。纯函数。"""
-    return '%s\nFilename: %s\nSize: %d\nMD5sum: %s\nSHA256: %s\n' % (
-        str(control or '').strip('\n'), filename, int(size), md5, sha256)
+    **刻意不写 `MD5sum:`**：MD5 对安全毫无意义（bandit B324 直接判 HIGH，会让
+    CI 的安全扫描阻断），而 SHA256 已经足够了 —— apt 接受只带 SHA256 的条目。
+    离线包真正的信任边界是「运维自己放进来的文件」+ 本模块的 SHA256。
+    """
+    return '%s\nFilename: %s\nSize: %d\nSHA256: %s\n' % (
+        str(control or '').strip('\n'), filename, int(size), sha256)
 
 
 def release_text(packages_bytes, gz_bytes, date=None):
@@ -336,11 +333,9 @@ def release_text(packages_bytes, gz_bytes, date=None):
         'Components: main',
         'Description: yf-panel PHP offline .deb bundle',
         'Date: %s' % stamp,
-        'MD5Sum:',
+        'SHA256:',
     ]
-    for name, blob in (('Packages', packages_bytes), ('Packages.gz', gz_bytes)):
-        lines.append(' %s %d %s' % (hashlib.md5(blob).hexdigest(), len(blob), name))
-    lines.append('SHA256:')
+    # 只写 SHA256：MD5 不是安全摘要（bandit B324 判 HIGH 阻断 CI），apt 用最强可用的那个。
     for name, blob in (('Packages', packages_bytes), ('Packages.gz', gz_bytes)):
         lines.append(' %s %d %s' % (hashlib.sha256(blob).hexdigest(), len(blob), name))
     return '\n'.join(lines) + '\n'
@@ -382,7 +377,7 @@ def build_repo(entries, repo_dir):
                     'text': '无法读取 %s 的 control 信息' % name}
         try:
             size = os.path.getsize(dst)
-            stanza = packages_stanza(control, name, size, _md5_of(dst), _sha256_of(dst))
+            stanza = packages_stanza(control, name, size, _sha256_of(dst))
         except OSError as ex:
             return {'ok': False, 'packages': '', 'count': 0,
                     'text': '读取 %s 失败: %s' % (name, ex)}

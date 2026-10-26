@@ -350,6 +350,39 @@ class SupplyChainGuardTest(unittest.TestCase):
             total, 7,
             'bandit 豁免数量异常减少（%d）；若确实是修好了某条，请同步调整本用例' % total)
 
+    def test_18_no_new_weak_hash_in_scanned_dirs(self):
+        """bandit B324（弱哈希）是 **HIGH**，一旦出现 CI 的安全扫描就直接阻断。
+
+        2026-10-26 真事：`web/core/php_deb_bundle.py` 给离线 apt 仓库生成 `MD5sum`
+        字段时用了 `hashlib.md5()`，CI 报两条 HIGH 变红。弱哈希在这里毫无必要
+        （SHA256 就够，apt 用最强可用的那个）。
+        判据：扫描目录里每一处 `hashlib.md5(` / `hashlib.sha1(` **必须**同行带
+        `# nosec B324` 且写明理由；否则一律红 —— 让作者在本地就撞到，而不是等 CI。
+        """
+        import re as _re
+        problems = []
+        for base in ('web', 'scripts'):
+            root = os.path.join(ROOT, base)
+            for dirpath, dirnames, filenames in os.walk(root):
+                dirnames[:] = [d for d in dirnames
+                               if d not in ('__pycache__', 'node_modules', 'test')]
+                for fn in filenames:
+                    if not fn.endswith('.py'):
+                        continue
+                    path = os.path.join(dirpath, fn)
+                    rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
+                    with open(path, encoding='utf-8', errors='replace') as fp:
+                        for i, line in enumerate(fp, 1):
+                            if not _re.search(r'hashlib\.(md5|sha1)\s*\(', line):
+                                continue
+                            if '# nosec B324' not in line:
+                                problems.append('%s:%d %s' % (rel, i, line.strip()[:70]))
+                            elif '  # ' not in line.split('# nosec B324', 1)[1]:
+                                problems.append('%s:%d nosec B324 缺理由' % (rel, i))
+        self.assertEqual(problems, [],
+                         '弱哈希会让 bandit(B324/HIGH) 阻断 CI，且必须写明理由：'
+                         + chr(10) + chr(10).join(problems))
+
     def test_17_basic_auth_no_longer_stores_md5(self):
         """B324 收口：basic_auth 与旧密码校验改走统一兼容层，不再自存 MD5。
 
