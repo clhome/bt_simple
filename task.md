@@ -276,3 +276,69 @@ mysql -uroot -p'<面板里的口令>' -h 127.0.0.1 -e 'select 1'   # 报 1045 �
 - **P2-2 服务崩溃无告警**：本轮无复现场景，未复测；需先补 kill 服务进程的复现脚本再定级。
 - **mysql 分发包的「官方 sha256 基线」**：仓库里没有权威校验值，当前做的是「记录 + 有 .sha256 就比对 +
   完整性校验 + 产物回读」；若要做固定值强校验，需要按版本/架构维护一张表（属产品决策）。
+
+---
+
+# 追加任务（2026-10-27 二次）：MySQL 5.7 装完仍报「数据库密码错误」+「日志」页 500
+
+## 现场
+
+```
+[orm] socket 文件不存在（/www/server/mysql/mysql.sock），退回 TCP 连接 localhost:3306
+[orm] query 连接失败: (1045, "Access denied for user 'root'@'127.0.0.1' (using password: YES)")
+→ 数据库密码错误,在管理列表-点击【修复】!
+点「日志」：
+FileNotFoundError: [Errno 2] No such file or directory: '/www/server/mysql/data'
+```
+
+## 根因（本轮新发现，上一轮的「全 host 写口令」修不到这一类）
+
+`getMysqldPid()` 取的是**机器上任意 mysqld**。如果机器上另有系统装的 MySQL/MariaDB
+占着 3306（apt/yum 装过、或以前装过别家面板），面板会：
+
+1. 把**别人的**实例当成自己的（`status()` → start，`initd_install` 也认这个 unit）；
+2. 所有 SQL 打到别人的库 → 口令不同 → `1045 root@127.0.0.1`，而【修复】还会去
+   停别人的实例、加 skip-grant-tables、改**别人**的 root 口令（破坏系统库）；
+3. 自己的 `/www/server/mysql/data` 从未初始化 → 「日志」页 `listdir` 直接 500。
+
+WSL 上已复现同形：系统 `mariadbd`（datadir=/var/lib/mysql）与临时实例并存时，
+`/proc` 里能看到两个 mariadbd，而旧代码无法区分。
+
+## 修复
+
+- [x] `plugins/mysql/index.py` 新增**实例归属判定**（只读 `/proc`，不启子进程）：
+      `_procAvailable()` / `getRunningMysqldProcs()`（按 **exe 基名** 认 mysqld/mariadbd，
+      不用 cmdline 子串——`bash -c "... mariadbd ..."` 会误判）/ `instanceOwnership()`
+      → `ok | not_running | foreign_only | mixed | datadir_missing`，附中文处置建议。
+- [x] `runInfo`（性能优化/当前状态）先判归属：foreign/mixed/数据目录缺失 → 直接报
+      「实例异常: …」并给出「先停掉冲突实例」的步骤，**不再**诱导用户白点【修复】。
+- [x] `fixDbAccess`（【修复】）拒绝 foreign/mixed：不再停用并改写别人的 root 口令；
+      修复成功后追加 `selfCheck()`，不通过不谎报「修复成功」。
+- [x] `selfCheck()` + `index.py self_check`：归属 → 数据目录 → socket/TCP 连通性，
+      用退出码表达结果。
+- [x] `binLog` / `binLogList`：数据目录缺失返回可读错误（不再 traceback 500）。
+- [x] `getSocketFile()`：配置里的 socket 不存在时，采信**本插件自己**那个 mysqld 的
+      `--socket=`（别人的 socket 绝不用）；避免因 unit 与 my.cnf 不一致而退化到 TCP。
+- [x] `plugins/mysql/install.sh`：装完跑 `self_check`，不通过即 `exit 1` 并提示端口冲突。
+- [x] mariadb 同步最小加固：`runInfo` 判数据目录；`install.sh` 装后校验 `data/mysql`。
+- [x] i18n：新增 `实例异常:` / `数据目录不存在:` / `连接自检失败:` / `自检通过` /
+      `修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）` 六语言键。
+
+## 验证
+
+- 真机（WSL Debian，系统 mariadbd + 临时实例并存）：
+  `getRunningMysqldProcs()` 正确列出 2 个 mariadbd（bash 进程不再误入），
+  `instanceOwnership()` → `foreign_only`，`runInfo` 返回
+  「实例异常: 本机正在运行的 mysqld/mariadbd 不是本面板的实例…先停掉它…再重装本插件」。
+- 新增守卫：`testsuite/test_mysql_instance_ownership.py`（16 项：5 种归属状态、
+  runInfo/fixDbAccess 拒绝 foreign、binLog 降级、socket 只认自己人、install 自检接线）。
+- 全量门禁：**315 模块 / 4167 个 test 方法 / 0 隔离 / 全绿**。
+
+## 现场处置建议（升级后）
+
+```bash
+systemctl status mysql mariadb 2>/dev/null     # 看 3306 到底是谁在听
+ss -lntp | grep 3306
+```
+若是系统装的实例：`systemctl stop mysql mariadb && apt remove --purge mysql-server mariadb-server`
+（或直接 `systemctl disable --now`），再到面板重装本插件的 MySQL。

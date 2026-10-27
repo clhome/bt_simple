@@ -399,5 +399,6 @@
   "权限类型不合法!": "Tipo di permesso non valido!",
   "数据库不存在!": "Database non esiste!",
   "切换失败!": "Cambio non riuscito!",
-  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Riparazione non riuscita: impossibile impostare/verificare la password root, vedere i log."
+  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Riparazione non riuscita: impossibile impostare/verificare la password root, vedere i log.",
+  "实例异常:": "Errore istanza:"
 }

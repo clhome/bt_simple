@@ -192,8 +192,38 @@ def getDbServerId():
     return _cnfValue(r'server-id\s*=\s*(.*)', '1')
 
 
+def _socketFromRunningInstance():
+    """从**本插件自己的** mysqld 进程命令行里找实际在用的 socket。
+
+    为什么需要：my.cnf 里写的 socket 与 systemd 启动参数可能不一致（自定义 unit、
+    升级后残留的旧 unit、或 my.cnf 被换过），此时 socket 文件不在配置路径上，
+    面板 ORM 会退化到 TCP，而 `skip_name_resolve=1` 下走 TCP 就要匹配
+    `root@127.0.0.1`（口令历史遗留问题时就是 1045）。
+    只在「进程确认是我们的实例」时才采信，避免把别的 MySQL 的 socket 当自己的。
+    """
+    try:
+        own = instanceOwnership()
+        if own.get('status') != 'ok':
+            return ''
+        for p in own.get('ours') or []:
+            m = re.search(r'--socket=(\S+)', p.get('cmdline') or '')
+            if m:
+                cand = m.group(1).strip('"').strip("'")
+                if os.path.exists(cand):
+                    return cand
+    except Exception as _e:
+        _log.debug('[mysql] 从运行实例解析 socket 失败: %s', _e)
+    return ''
+
+
 def getSocketFile():
     sock = _cnfValue(r'socket\s*=\s*(.*)')
+    if sock and os.path.exists(sock):
+        return sock
+    # 配置里的 socket 不存在：先看运行中的实例到底用哪个 socket
+    running = _socketFromRunningInstance()
+    if running:
+        return running
     if sock:
         return sock
     for s in ['/tmp/mysql.sock', '/var/run/mysqld/mysqld.sock', getServerDir() + '/mysql.sock']:
@@ -497,6 +527,194 @@ def getMysqldPid():
     return None
 
 
+# ---------------------------------------------------------------------------
+# 实例归属判定（2026-10-27 真机：装完仍报「数据库密码错误」）
+#
+#   `getMysqldPid()` 取的是「机器上任意 mysqld」。若机器上另有系统装的 MySQL/MariaDB
+#   占着 3306（apt/yum 装过、或以前装过别家的面板），面板会误判「我的实例在跑」：
+#     * 所有 SQL 都打到那个实例上 → 口令不同 → 1045 root@127.0.0.1；
+#     * 我们自己的 /www/server/mysql/data 压根没初始化（连目录都不存在）→
+#       「日志」页 listdir 直接 FileNotFoundError（500 traceback）。
+#   这里把「进程是谁」查清楚，供 install 自检 / 修复 / 性能页判断使用。
+# ---------------------------------------------------------------------------
+def _readProcLink(pid, name):
+    try:
+        return os.readlink('/proc/%d/%s' % (pid, name))
+    except Exception:
+        return ''
+
+
+def _readProcCmdline(pid):
+    try:
+        with open('/proc/%d/cmdline' % pid, 'rb') as fp:
+            return fp.read().decode('utf-8', 'replace').replace(chr(0), ' ').strip()
+    except Exception:
+        return ''
+
+
+def _readProcCwd(pid):
+    try:
+        return os.readlink('/proc/%d/cwd' % pid)
+    except Exception:
+        return ''
+
+
+def _procAvailable():
+    """本机是否有 /proc（Linux）。没有就无法判定实例归属，调用方按「未知」处理。"""
+    return os.path.isdir('/proc')
+
+
+def getRunningMysqldProcs():
+    """列出所有存活的 mysqld 进程：`[{'pid', 'exe', 'cmdline', 'data_dir'}]`。
+
+    只读 /proc（不启子进程）；/proc 不可用（macOS 等）时返回空列表，调用方按
+    「无法判定」处理，不能据此断言实例有问题。
+    """
+    procs = []
+    if not _procAvailable():
+        return procs
+    try:
+        names = os.listdir('/proc')
+    except Exception as _e:
+        _log.debug('[mysql] 读取 /proc 失败: %s', _e)
+        return procs
+    for name in names:
+        if not name.isdigit():
+            continue
+        pid = int(name)
+        exe = _readProcLink(pid, 'exe')
+        cmdline = _readProcCmdline(pid)
+        # 只认**可执行文件本身**是 mysqld/mariadbd 的进程。
+        # 不能拿整条 cmdline 做子串匹配：`bash -c "... mariadbd ..."` 这种命令行里
+        # 带关键字的 shell 会被误判成数据库进程（实测踩过）。
+        # MariaDB 的守护进程叫 mariadbd，也必须覆盖（面板 mysql 插件可能指向 MariaDB）。
+        base = os.path.basename(exe).lower() if exe else ''
+        if base:
+            if not (base.startswith('mysqld') or base.startswith('mariadbd')):
+                continue
+        else:
+            # /proc/<pid>/exe 读不到（权限/内核限制）时才退回 argv[0]
+            argv0 = os.path.basename((cmdline.split(' ') or [''])[0]).lower()
+            if not (argv0.startswith('mysqld') or argv0.startswith('mariadbd')):
+                continue
+        # mysqld 会把工作目录切到 datadir；也支持命令行显式 --datadir=
+        data_dir = ''
+        m = re.search(r'--datadir=(\S+)', cmdline)
+        if m:
+            data_dir = m.group(1).strip('"').strip("'")
+        if not data_dir:
+            data_dir = _readProcCwd(pid)
+        procs.append({'pid': pid, 'exe': exe, 'cmdline': cmdline, 'data_dir': data_dir})
+    return procs
+
+
+def instanceOwnership():
+    """判定「正在跑的 mysqld 是不是本插件这个实例」。
+
+    返回 dict：
+      status: ok | not_running | foreign_only | mixed | unknown
+      ours / foreign: 进程列表
+      datadir_exists: 本插件的 datadir 是否存在（初始化过）
+      socket_exists:  本插件的 socket 文件是否存在
+      reason:         面向用户的中文说明（status 非 ok 时非空）
+    """
+    serverdir = getServerDir()
+    our_exe = os.path.realpath(serverdir + '/bin/mysqld')
+    our_prefix = os.path.realpath(serverdir) + os.sep
+    datadir = ''
+    try:
+        datadir = getDataDir()
+    except Exception as _e:
+        _log.debug('[mysql] 读取 datadir 失败: %s', _e)
+    # 注意：这里不能调 getSocketFile()——它会反过来调本函数（判定实例归属），
+    # 直接形成递归。只读配置里的 socket 路径即可满足「文件在不在」的判定。
+    socket_file = ''
+    try:
+        socket_file = _cnfValue(r'socket\s*=\s*(.*)') or (serverdir + '/mysql.sock')
+    except Exception as _e:
+        _log.debug('[mysql] 读取 socket 失败: %s', _e)
+
+    procs = getRunningMysqldProcs()
+    if not procs and not _procAvailable():
+        return {'status': 'unknown', 'ours': [], 'foreign': [],
+                'datadir_exists': bool(datadir) and os.path.isdir(datadir),
+                'socket_exists': bool(socket_file) and os.path.exists(socket_file),
+                'reason': ''}
+
+    ours = []
+    foreign = []
+    for p in procs:
+        exe = os.path.realpath(p['exe']) if p['exe'] else ''
+        if exe and exe in (our_exe, os.path.join(serverdir, 'bin', 'mariadbd')):
+            ours.append(p)
+        elif our_prefix in (exe + os.sep) or (our_prefix + 'bin/mysqld') in p['cmdline']                 or (our_prefix + 'bin/mariadbd') in p['cmdline']:
+            ours.append(p)
+        else:
+            foreign.append(p)
+
+    datadir_exists = bool(datadir) and os.path.isdir(datadir)
+    socket_exists = bool(socket_file) and os.path.exists(socket_file)
+
+    if not procs:
+        status = 'not_running'
+        reason = 'MySQL 进程未运行'
+    elif ours and not foreign:
+        status = 'ok'
+        reason = ''
+    elif foreign and not ours:
+        status = 'foreign_only'
+        reason = ('本机正在运行的 mysqld/mariadbd 不是本面板的实例（进程：%s），'
+                  '很可能是系统里另装过 MySQL/MariaDB 占用了 3306。'
+                  '请先停掉它（systemctl stop mysql / systemctl stop mariadb / '
+                  'apt remove --purge mysql-server mariadb-server）再重装本插件'
+                  % ', '.join('%s(%s)' % (p['pid'], p['exe'] or p['cmdline'][:60])
+                              for p in foreign[:3]))
+    else:
+        status = 'mixed'
+        reason = '同时存在本面板与其他 MySQL 实例，端口冲突会导致口令/数据错乱，请只保留一个'
+
+    if status == 'ok' and not datadir_exists:
+        status = 'datadir_missing'
+        reason = '数据目录不存在（%s）：MySQL 未完成初始化（install 阶段被跳过或失败）' % (datadir or '未知')
+
+    return {'status': status, 'ours': ours, 'foreign': foreign,
+            'datadir_exists': datadir_exists, 'socket_exists': socket_exists,
+            'reason': reason}
+
+
+def selfCheck(version=''):
+    """安装/修复后的整体自检：归属 → 数据目录 → socket/TCP 连通性。
+
+    存在的意义：旧 install.sh 只要 `[ -d $serverPath/mysql ]` 就算成功，
+    于是「端口被别的实例占着、自己的 data 没初始化」也能报「安装完成」，
+    用户点性能优化才看到「数据库密码错误」。
+    """
+    own = instanceOwnership()
+    if own['status'] == 'foreign_only':
+        return yf.returnJson(False, '实例异常: ' + own['reason'])
+    if own['status'] == 'mixed':
+        return yf.returnJson(False, '实例异常: ' + own['reason'])
+    if not own['datadir_exists']:
+        return yf.returnJson(False, '实例异常: ' + (own['reason'] or '数据目录不存在'))
+    if own['status'] == 'not_running':
+        return yf.returnJson(False, 'MySQL未启动')
+
+    serverdir = getServerDir()
+    pwd = getRootPwd()
+    res = db_root.apply_root_pwd(
+        mysql_bin=serverdir + '/bin/mysql',
+        version=version or '5.7',
+        pwd=pwd,
+        myconf=serverdir + '/etc/my.cnf',
+        socket_file=getSocketFile(),
+        port=getDbPort(),
+        current_pwd=pwd,
+    )
+    if not res.ok:
+        return yf.returnJson(False, '连接自检失败: ' + (res.detail or str(res)))
+    return yf.returnJson(True, '自检通过')
+
+
 def cleanOrphanSockets():
     """
     安全清理残留的孤儿套接字（仅在没有任何存活 mysqld 进程时生效，防止启动死锁）
@@ -639,6 +857,12 @@ def binLog(version = ''):
         restart(version)
     else:
         path = getDataDir()
+        # 数据目录不存在（未初始化 / 端口被别的实例占着）时不能直接 listdir：
+        # 真机就是这样 500 的（binLog → FileNotFoundError: /www/server/mysql/data）
+        if not os.path.isdir(path):
+            own = instanceOwnership()
+            return yf.returnJson(False, '数据目录不存在: %s%s'
+                                 % (path, ('（' + own['reason'] + '）') if own['reason'] else ''))
         if 'status' in args:
             dsize = 0
             for n in os.listdir(path):
@@ -683,6 +907,8 @@ def binLogList():
         page_size = 100
 
     data_dir = getDataDir()
+    if not os.path.isdir(data_dir):
+        return yf.returnJson(False, '数据目录不存在: %s' % data_dir)
     log_bin_name = getLogBinName()
 
     alist = os.listdir(data_dir)
@@ -1336,6 +1562,15 @@ def runInfo(version):
 
     if status(version) == 'stop':
         return yf.returnJson(False, 'MySQL未启动', [])
+
+    # 先判「跑着的是不是我们这一个实例」：旧实现在「系统另有 MySQL 占着 3306」时
+    # 会把自己的 status 判成 start，然后拿自己的口令去连别人的库 → 1045，
+    # 面板只能提示「数据库密码错误」，怎么点【修复】都没用。
+    own = instanceOwnership()
+    if own['status'] in ('foreign_only', 'mixed'):
+        return yf.returnJson(False, '实例异常: ' + own['reason'], [])
+    if not own['datadir_exists']:
+        return yf.returnJson(False, '实例异常: ' + (own['reason'] or '数据目录不存在'), [])
 
     db = pMysqlDb()
     data = db.query('show global status')
@@ -3166,6 +3401,13 @@ def fixDbAccess(version):
     if not os.path.exists(mdb_ddir):
         return yf.returnJson(False, '数据目录不存在,尝试重启重建!')
 
+    # 【修复】只允许动「我们自己的实例」：机器上若另有一个 MySQL/MariaDB 占着 3306，
+    # 旧实现会把那个实例停掉、加 skip-grant-tables、改它 root 口令——既修不好本插件，
+    # 又破坏了系统里原有的数据库。这里先判归属，不认识就直接给出处置建议。
+    own = instanceOwnership()
+    if own['status'] in ('foreign_only', 'mixed'):
+        return yf.returnJson(False, '修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）')
+
     try:
         data = pdb.query('show databases')
         isError = isSqlError(data)
@@ -3190,6 +3432,9 @@ def fixDbAccess(version):
                 # 不能报「修复成功」：那会让用户以为好了，实际仍然连不上。
                 # 日志里已有失败细节（口令已打码）。
                 return yf.returnJson(False, '修复失败: 无法写入并验证 root 口令，请查看面板日志！')
+            check = selfCheck(version)
+            if not check.get('status'):
+                return check
             return yf.returnJson(True, '修复成功!')
         return yf.returnJson(True, '正常无需修复!')
     except Exception as e:
@@ -5775,6 +6020,10 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'self_check':
+        _sc = selfCheck(version)
+        print(json.dumps(_sc, ensure_ascii=False))
+        sys.exit(0 if _sc.get('status') else 1)
 
     elif func == 'start':
         print(start(version))

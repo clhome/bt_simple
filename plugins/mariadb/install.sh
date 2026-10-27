@@ -70,4 +70,12 @@ if [ "${action}" == "install" ] && [ -d $serverPath/mariadb ];then
 	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py initd_install ${type}
+
+	# 装后自检：数据目录必须真的初始化出来（否则面板只能报「数据库密码错误」，
+	# 典型原因是 3306 已被系统里另装的 MySQL/MariaDB 占用）
+	if [ ! -d "$serverPath/mariadb/data/mysql" ]; then
+		echo "[ERROR] MariaDB 自检未通过：$serverPath/mariadb/data 未初始化。" >&2
+		echo "        常见原因：3306 端口被系统中另装的 MySQL/MariaDB 占用 → 先停掉它再重装本插件。" >&2
+		exit 1
+	fi
 fi

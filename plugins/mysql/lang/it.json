@@ -451,5 +451,10 @@
   "数据库不存在!": "Database non esiste!",
   "切换失败!": "Cambio non riuscito!",
   "修改失败: 新口令无法连接数据库，请重试或查看面板日志！": "Non riuscito: la nuova password non si connette, riprova o controlla i log.",
-  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Riparazione non riuscita: impossibile impostare/verificare la password root, vedere i log."
+  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Riparazione non riuscita: impossibile impostare/verificare la password root, vedere i log.",
+  "实例异常:": "Errore istanza:",
+  "数据目录不存在:": "Directory dati mancante:",
+  "连接自检失败:": "Connessione autotest fallita:",
+  "自检通过": "Autotest superato",
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Riparazione non riuscita: errore istanza (porta forse occupata da altro MySQL/MariaDB)"
 }

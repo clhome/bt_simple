@@ -399,5 +399,6 @@
   "权限类型不合法!": "Ungültiger Berechtigungstyp!",
   "数据库不存在!": "Datenbank existiert nicht!",
   "切换失败!": "Wechsel fehlgeschlagen!",
-  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Reparatur fehlgeschlagen: Root-Passwort kann nicht gesetzt/geprüft werden, Logs prüfen."
+  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Reparatur fehlgeschlagen: Root-Passwort kann nicht gesetzt/geprüft werden, Logs prüfen.",
+  "实例异常:": "Instanzfehler:"
 }

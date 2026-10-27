@@ -1213,6 +1213,17 @@ def runInfo(version):
     if status(version) == 'stop':
         return yf.returnJson(False, 'MySQL未启动', [])
 
+    # 与 mysql 插件同一类现场（2026-10-27）：数据目录不存在时下面 query 必然失败，
+    # 报出来的又是「数据库密码错误」，用户怎么点【修复】都没用。这里先判目录。
+    datadir = ''
+    try:
+        datadir = getDataDir()
+    except Exception as _e:
+        _log.debug('[mariadb] 读取 datadir 失败: %s', _e)
+    if not datadir or not os.path.isdir(datadir):
+        return yf.returnJson(False, '实例异常: 数据目录不存在（%s），MariaDB 未完成初始化或端口被其他实例占用'
+                             % (datadir or '未知'), [])
+
     db = pMysqlDb()
     data = db.query('show global status')
     isError = isSqlError(data)

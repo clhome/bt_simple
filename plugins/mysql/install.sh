@@ -317,5 +317,16 @@ if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" 
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py fix_db_access ${type}
+
+        # 装后自检（2026-10-27 真机：装完「成功」但点性能优化只报「数据库密码错误」）
+        #   典型现场：机器上另有系统装的 MySQL/MariaDB 占着 3306，面板误判自己的实例在跑，
+        #   所有 SQL 打到别人的库 → 1045；自己的 /www/server/mysql/data 根本没初始化。
+        #   自检把「实例归属 / 数据目录 / 连通性」一次判清楚，不通过就非 0 退出。
+        echo "MySQL 安装自检..."
+        if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py self_check ${type}); then
+            echo "[ERROR] MySQL 自检未通过：实例不可用（详见上方 JSON 的 reason）。" >&2
+            echo "        常见原因：3306 端口被系统中另装的 MySQL/MariaDB 占用 → 先停掉它再重装本插件。" >&2
+            exit 1
+        fi
     fi
 fi
