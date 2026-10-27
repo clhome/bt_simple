@@ -560,3 +560,58 @@ MariaDB 10.6+ 的 CMake 默认 `-DWITH_SSL=bundled`（自带 wolfSSL），本来
 OpenSSL，因此不存在「系统 OpenSSL 3.x 与新版本不兼容」的问题；显式去指系统/自建
 反而会引入与 MySQL 5.6 同类的版本错配风险，所以本用例直接把「MariaDB 不得出现
 WITH_SSL / lib/openssl」写成了断言。
+
+---
+
+# 追加任务（2026-10-27 七次）：CI 两个红 —— MySQL 5.6 仍编不过 + 门禁缺 jsdom
+
+## 一、`install Mysql56` 第三次红：`WITH_SSL=system`
+
+```
+-- CRYPTO_LIBRARY = /usr/lib/x86_64-linux-gnu/libcrypto.so
+-- OPENSSL_MAJOR_VERSION =
+CMake Error: Cannot find appropriate system libraries for WITH_SSL=system.
+```
+
+**上一轮我判断错了**：以为「不指定 `WITH_SSL`」= 用自带 yaSSL。下载 `mysql-5.6.51.tar.gz` 实查后确认：
+
+- `extra/yassl` **不存在**（5.6.51 已移除 bundled yaSSL）；
+- `cmake/ssl.cmake` 只认 `system` / `yes` / `<path>` 三种值 —— `bundled` 会直接报
+  「Wrong option or path for WITH_SSL=bundled」；
+- 不指定时默认 `WITH_SSL=system` → OpenSSL 3.x 的发行版上必然失败。
+
+**结论：5.5/5.6 在 OpenSSL 3.x 上只有一条路 —— 自建 OpenSSL 1.0.x 再 `-DWITH_SSL=<path>`。**
+两个版本都改成**默认自建 OpenSSL 1.0.2**（`openssl_10.sh` 内有判存，已装过的机器直接跳过）。
+
+顺带核对 `-fcommon` 的传递方式（下载 1.0.2u 的 `Configure` 逐行确认）：
+**1.0.2 的 Configure 不读 `CFLAGS` 环境变量**（只读 CC/RANLIB/AR/PERL/MAKE），
+而是把任何 `-*` 命令行参数原样并进 cflags（`$flags.=$_` → `$cflags="$flags$cflags"`）。
+所以 `-fcommon` **必须作为 `./config` 的参数**；只 export CFLAGS 在 1.0.2 上是空操作
+（中途我改错过一次，靠新增断言 `./config -fcommon` 抓住）。
+
+## 二、门禁红：`test_crontab_frontend_inline_js` 缺 jsdom
+
+```
+Error: Cannot find module 'jsdom'
+```
+
+CI 只装 Python 依赖，没有 `node_modules`。原夹具 `require('jsdom')` 直接失败。
+
+**修法：拆两层，彻底去掉第三方 node 依赖**
+
+- `testsuite/js/crontab_row_actions_probe.js`：只用 node 内置 `vm` 跑 `crontab.js`，
+  输出**生成的 HTML 字符串** + 委派点击的实参；不再 require 任何模块；
+- `testsuite/test_crontab_frontend_inline_js.py`：用标准库 `html.parser` 做**真实
+  HTML 解析**（属性实体解码、引号截断按浏览器语义），断言行内链接无参数化 JS、
+  `data-cron-*` 能原样回读；再把解析出的属性通过环境变量喂回 node，验证委派实参。
+
+关键能力没丢：任务名带双引号时「HTML 属性被截断」正是靠 `html.parser` 抓出来的
+（正则做不到这点）。用例从 5 项扩到 8 项（源码层 / 渲染 / 委派实参 / 弹窗 / 空 id）。
+
+## 验证
+
+- 本地**删掉 `node_modules`** 后重跑该用例 → 8 项全绿（证明真的不再依赖 jsdom）。
+- 新增/更新守卫：`test_mysql_openssl_wiring.py`（5.6 不得出现 `-DWITH_SSL=bundled`、
+  必须默认自建 1.0.2）、`test_db_ssl_version_matrix.py`（5.5/5.6 不得写 bundled）、
+  `./config -fcommon` 必须存在。
+- 全量门禁：**318 模块 / 4208 个 test 方法 / 0 隔离 / 全绿**。

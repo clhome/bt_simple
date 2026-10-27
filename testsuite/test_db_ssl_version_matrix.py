@@ -159,6 +159,17 @@ class TestMysqlSslMatrix(unittest.TestCase):
                 bad.append(v)
         self.assertEqual([], bad, 'OPENSSL_VERSION 空值没有兜底（会打 integer expression expected）：%s' % bad)
 
+    def test_05b_no_bundled_yassl_claim(self):
+        """MySQL 5.5/5.6 的 tar 包里没有 bundled yaSSL（5.6.51 实测），
+        任何 `-DWITH_SSL=bundled` 都会被 cmake 拒绝（bad option）。"""
+        bad = []
+        for v in ('5.5', '5.6'):
+            code = _code_only(_read(os.path.join(MYSQL_V, v, 'install.sh')))
+            if 'WITH_SSL=bundled' in code:
+                bad.append(v)
+        self.assertEqual([], bad,
+                         '这些版本写了 -DWITH_SSL=bundled，但源码里没有 bundled yaSSL：%s' % bad)
+
     def test_06_mysql55_unsupported_is_not_fake_success(self):
         """5.5 在 Debian 13 上明确不支持，必须非 0 退出（旧代码 exit 0 = 假成功）。"""
         code = _code_only(_read(os.path.join(MYSQL_V, '5.5', 'install.sh')))

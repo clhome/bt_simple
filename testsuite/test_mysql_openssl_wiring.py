@@ -108,6 +108,10 @@ class TestOpensslLibScripts(unittest.TestCase):
         self.assertIn('--openssldir=${SERVER_ROOT}/openssl10/ssl', code)
         self.assertIn('-fcommon', code,
                       'OpenSSL 1.0.2 在 gcc>=10 上需要 -fcommon，否则链接失败')
+        # 必须作为 ./config 的参数：1.0.2 的 Configure 不读 CFLAGS 环境变量
+        # （只读 CC/RANLIB/AR/PERL/MAKE），只 export CFLAGS 是空操作。
+        self.assertIn('./config -fcommon', code,
+                      '-fcommon 必须作为 ./config 的命令行参数（1.0.2 不读 CFLAGS 环境变量）')
 
     def test_02_all_openssl_scripts_verify_and_fail_loud(self):
         for name, sub in (('openssl_10.sh', 'openssl10'), ('openssl_11.sh', 'openssl11'),
@@ -136,17 +140,19 @@ class TestMysql56SslWiring(unittest.TestCase):
         self.assertNotIn('openssl11', code,
                          'MySQL 5.6 不能指向 lib/openssl11（那是 5.7 的 1.1；5.6 只支持 1.0.x 或自带 yaSSL）')
 
-    def test_02_default_uses_bundled_yassl(self):
+    def test_02_no_bundled_switch(self):
+        """5.6.51 源码里**没有** extra/yassl（已实测下载核对），`-DWITH_SSL=bundled`
+        会被 cmake 直接拒绝；不指定则默认 `system`（OpenSSL 3.x 上编不过）。
+        因此 5.6 必须**默认自建 OpenSSL 1.0.2**。"""
         code = _code_only(_read(MYSQL56))
-        # WITH_SSL 只能出现在显式开关里
-        self.assertIn('YF_MYSQL56_CUSTOM_SSL', code,
-                      '5.6 应默认用自带 yaSSL，自建 OpenSSL 只在显式开关下启用')
-        idx_flag = code.index('YF_MYSQL56_CUSTOM_SSL')
-        idx_ssl = code.index('WITH_SSL')
-        self.assertLess(idx_flag, idx_ssl, 'WITH_SSL 必须写在显式开关的 if 分支里')
-        # 光秃秃的「系统 openssl >= 3 就自建」不能再出现
-        self.assertNotRegex(code, r'if\s+\[\s+"\$\{OPENSSL_VERSION\}"\s+-ge\s+"3"\s+\];then\s*\n\s*#?.*openssl',
-                            '5.6 不应再按系统 OpenSSL 版本自动切换到自建 1.1')
+        self.assertNotIn('WITH_SSL=bundled', code,
+                         'MySQL 5.6.51 已移除 bundled yaSSL，-DWITH_SSL=bundled 会被 cmake 拒绝')
+        self.assertIn('openssl_10.sh', code, '5.6 必须默认自建 OpenSSL 1.0.2')
+        self.assertIn('-DWITH_SSL=', code,
+                      '必须显式指定 WITH_SSL（默认 system 在 OpenSSL 3.x 上编不过）')
+        # 不再按「系统 openssl 版本」决定是否自建（5.6 无条件自建）
+        self.assertNotRegex(code, r'OPENSSL_VERSION.*-ge\s+"3"',
+                            '5.6 不应再按系统 OpenSSL 版本决定是否自建')
 
     def test_03_custom_ssl_verifies_dir(self):
         code = _code_only(_read(MYSQL56))

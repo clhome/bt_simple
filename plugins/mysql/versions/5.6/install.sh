@@ -146,30 +146,25 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	fi
 
 	OPTIONS=''
-	# MySQL 5.5/5.6 自带 yaSSL（bundled）：**不指定 WITH_SSL** 时就用它，不依赖系统
-	# OpenSSL，因此在 OpenSSL 3.x 的新发行版（Ubuntu 22.04 / Debian 12）上也能编过
-	# —— 5.5 一直走这条路，CI 长期是绿的。
-	# 2026-10-27 CI 红的原因就是这里照抄了 5.7 的逻辑：要自建 OpenSSL 1.1（5.6 编不过
-	# 1.1/3.x），而且脚本名写错（openssl10.sh 实际叫 openssl_10.sh），最终把
-	# WITH_SSL 指向不存在的 ${serverPath}/lib/openssl11 →
-	#   cmake: Wrong option or path for WITH_SSL=/www/server/lib/openssl11
-	# 需要 TLS1.2（yaSSL 只到 TLS1.1）这类场景，可显式开启自建 OpenSSL 1.0.2：
-	#   YF_MYSQL56_CUSTOM_SSL=1 bash install.sh install 5.6
-	if [ "${YF_MYSQL56_CUSTOM_SSL:-0}" = "1" ]; then
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh || {
-			echo "[ERROR] 自建 OpenSSL 1.0.2 失败，MySQL ${VERSION} 无法使用自定义 SSL（见上方日志）" >&2
-			exit 1
-		}
-		_ossl_dir="${serverPath}/lib/openssl10"
-		if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
-			echo "[ERROR] 未找到可用的 OpenSSL 1.0.2：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
-			exit 1
-		fi
-		export PKG_CONFIG_PATH=${_ossl_dir}/lib/pkgconfig:${_ossl_dir}/lib64/pkgconfig
-		OPTIONS="-DWITH_SSL=${_ossl_dir}"
-	else
-		echo "MySQL ${VERSION} 使用自带 yaSSL（不指定 WITH_SSL），不依赖系统 OpenSSL"
+	# MySQL 5.6 在 OpenSSL 3.x 的发行版上只有一条可行路径：自建 OpenSSL 1.0.x。
+	# 三条都实测过（2026-10-27，下载 mysql-5.6.51 源码逐条核对）：
+	#   ① 不指定 WITH_SSL → CMake 默认 `WITH_SSL=system` →
+	#      「Cannot find appropriate system libraries for WITH_SSL=system」（CI 第二次红）；
+	#   ② `-DWITH_SSL=bundled` → **5.6.51 已移除 extra/yassl**，ssl.cmake 只认
+	#      system/yes/<path>，bundled 会直接报「Wrong option or path」；
+	#   ③ `-DWITH_SSL=<自建 1.0.2 路径>` → 唯一能编过的（5.6 只支持 1.0.x）。
+	# 自建脚本内有判存：已经装过 OpenSSL 1.0.2 的机器会直接跳过，不会重复编译。
+	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh || {
+		echo "[ERROR] 自建 OpenSSL 1.0.2 失败，MySQL ${VERSION} 无法编译（见上方 openssl10 日志）" >&2
+		exit 1
+	}
+	_ossl_dir="${serverPath}/lib/openssl10"
+	if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
+		echo "[ERROR] 未找到可用的 OpenSSL 1.0.2：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
+		exit 1
 	fi
+	export PKG_CONFIG_PATH=${_ossl_dir}/lib/pkgconfig:${_ossl_dir}/lib64/pkgconfig:${PKG_CONFIG_PATH}
+	OPTIONS="-DWITH_SSL=${_ossl_dir}"
 
 	if [ -d $serverPath/mysql ] && [ ! -f $serverPath/mysql/bin/mysql ]; then
 		echo "检测到残留的不完整 MySQL 编译安装目录，正在清理..."

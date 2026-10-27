@@ -177,7 +177,22 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		Install_dep
 	fi
 
+	# 与 5.6 同一个坑：CMake 默认 `WITH_SSL=system`，OpenSSL 3.x 的发行版上会报
+	# 「Cannot find appropriate system libraries for WITH_SSL=system」；
+	# 而 5.5 只支持 OpenSSL 1.0.x（1.1/3.x 的结构体不兼容）。
+	# 因此默认自建 OpenSSL 1.0.2 并显式指向它（openssl_10.sh 内有判存，已装过就跳过）。
 	OPTIONS=''
+	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh || {
+		echo "[ERROR] 自建 OpenSSL 1.0.2 失败，MySQL ${VERSION} 无法编译（见上方 openssl10 日志）" >&2
+		exit 1
+	}
+	_ossl_dir="${serverPath}/lib/openssl10"
+	if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
+		echo "[ERROR] 未找到可用的 OpenSSL 1.0.2：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
+		exit 1
+	fi
+	export PKG_CONFIG_PATH=${_ossl_dir}/lib/pkgconfig:${_ossl_dir}/lib64/pkgconfig:${PKG_CONFIG_PATH}
+	OPTIONS="-DWITH_SSL=${_ossl_dir}"
 
 	if [ "$OSNAME" == "debian" ] && [ "$VERSION_ID" == "13" ];then
 		# 实测在 Debian 13（glibc 2.41 / OpenSSL 3.x）上 MySQL 5.5 编不过。

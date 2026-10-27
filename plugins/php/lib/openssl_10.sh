@@ -58,7 +58,11 @@ if ! _yf_ossl_ready; then
     # 关键：--prefix 才是安装目的地；--openssldir 只是配置目录（旧写法把它当 prefix 用了）
     # `-fcommon`：OpenSSL 1.0.2 有多个 tentatively-defined 全局变量，gcc>=10
     # 默认 -fno-common 会直接链接失败（Debian 12 / Ubuntu 22.04 上必踩）。
-    export CFLAGS="${CFLAGS:-} -fcommon"
+    # 传递方式很关键：OpenSSL **1.0.2 的 Configure 不读 CFLAGS 环境变量**
+    # （只读 CC/RANLIB/AR/PERL/MAKE），它把任何 `-*` 命令行参数原样并进 cflags
+    # （Configure 里 `$flags.=$_` → `$cflags="$flags$cflags"`，已核对 1.0.2u 源码）。
+    # 所以 -fcommon **必须作为 ./config 的参数**；只 export CFLAGS 在 1.0.2 上是空操作。
+    export CFLAGS="-fcommon ${CFLAGS:-}"
     ./config -fcommon --prefix=${SERVER_ROOT}/openssl10 \
              --openssldir=${SERVER_ROOT}/openssl10/ssl \
              zlib-dynamic shared || { echo "[openssl10][ERROR] ./config 失败" >&2; exit 1; }
