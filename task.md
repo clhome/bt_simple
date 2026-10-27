@@ -150,3 +150,66 @@
   → 日志弹窗打开、`runBtnInlineOnclick=null`、`startTaskCalls=[{"data":"id=2"}]`、`errors=[]`。
 - 真 bash：同一份脚本，`YF_CRON_FORCE=1` → `RAN_OK`；不设 → `跳过执行：未到允许的开始时间`。
 - 全量门禁：`python testsuite/run_all.py` → **312 模块 / 4113 个 test 方法 / 0 隔离 / 全绿**。
+
+---
+
+# 追加任务（2026-10-27）：MySQL/MariaDB「安装完就提示数据库密码错误」
+
+## 现场
+MySQL 5.7 装完，点「性能优化」/「当前状态」：
+```
+[orm] query 连接失败: (1045, "Access denied for user 'root'@'127.0.0.1' (using password: YES)")
+sql=show global status
+→ 数据库密码错误,在管理列表-点击【修复】!
+```
+点【修复】也修不好。
+
+## 结论：**是共性 bug**（mysql 与 mariadb 两个插件、5.5/5.6/5.7/8.x/9.x 全部命中）
+
+- [x] 真机复现（WSL Debian + MariaDB 10.11，`test/probe_root_hosts.sh`）：
+      `mariadb-install-db` 建的是 `root@localhost` / `root@127.0.0.1` / `root@::1`
+      三条**各自独立口令**；面板只 ALTER `root@localhost` →
+      ```
+      5. socket + 新口令 → socket-ok
+      6. TCP 127.0.0.1 + 新口令 → ERROR 1045 (28000): Access denied for user 'root'@'127.0.0.1' (using password: YES)
+      ```
+      与用户报错逐字一致。
+- 根因三条叠加：
+  1. `getShell`/初始化 SQL 只写 `root@localhost`；
+  2. 插件 my.cnf 全带 `skip_name_resolve=1` → `127.0.0.1` 不反解成 localhost，
+     必须匹配独立的 `root@127.0.0.1` 账户；
+  3. 面板 ORM 在 **socket 文件不存在**时静默退回 TCP（`web/core/orm.py`）。
+- 第二处硬伤：所有写入步骤**不检查执行结果**，失败也 `_saveRootPwd(pwd)`
+  → 面板记新口令、库里还是旧（空）口令 → 永久 1045；【修复】走的又是同一套单 host 逻辑。
+
+## 修复
+- [x] 新增 `web/core/db_root.py`（mysql/mariadb 共用唯一实现）：
+      `build_set_root_sql()` 幂等覆盖 **localhost / 127.0.0.1 / ::1**
+      （5.5/5.6 用 `GRANT ... IDENTIFIED BY`；5.7+/MariaDB 用
+      `CREATE USER IF NOT EXISTS` + `ALTER USER` + `GRANT`，开头先 `FLUSH PRIVILEGES`
+      以适配 `--skip-grant-tables`）；`apply_root_pwd()` 执行后**真连一次库验证**。
+- [x] mysql 插件：`initMysqlPwd` / `initMysql8Pwd` / `resetDbRootPwd` / `setRootPwd` /
+      `setRootPwdForce` 全部改走共享实现；**验证通过才 `_saveRootPwd`**；
+      `fixDbAccess` 失败不再回「修复成功」；固定 `sleep` 换成探活（`_waitDbReady`）。
+      顺带删掉 8.x 那条「先把口令设成字面量 `root` 再用 `-proot` 执行 ALTER」的怪操作。
+- [x] mariadb 插件：`initMariaDbPwd` / `resetDbRootPwd` / `setRootPwd` 同样改走共享实现。
+- [x] `web/core/orm.py`：socket 文件不存在而退回 TCP 时记一条日志（同一路径只告警一次），
+      现场再遇到能直接看出「为什么走了 TCP」，而不是只看到密码错误。
+- [x] 转义单一来源：`_mysqlSqlLiteral` / `_mysqlOptionValue` 改为委托
+      `db_root.sql_literal` / `db_root.option_escape`（避免两份循环漂移）。
+
+## 验证
+- 真 MariaDB（`test/verify_db_root_pwd.sh`）：无凭证写入 → socket+TCP 双验证通过；
+  幂等重跑；轮换口令（旧口令作凭证）、旧口令随即失效；
+  特殊字符口令 `p'a\b;"c`d$e` 可写入并连上；错误口令判失败。
+- 新增 `testsuite/test_db_root_pwd_matrix.py`（18 项：SQL 矩阵 / 判定矩阵 / 插件静态断言）。
+- 更新 `testsuite/test_mysql_root_pwd_safety.py` 以匹配「写入搬到 db_root」的新结构
+  （口令不进 argv、日志打码、5.6 走旧语法）。
+- 全量门禁：`python testsuite/run_all.py` → **313 模块 / 4131 个 test 方法 / 0 隔离 / 全绿**。
+
+## 用户侧自助排查（升级后）
+```bash
+ls -l /www/server/mysql/mysql.sock          # 不存在 → 面板会走 TCP
+mysql -uroot -p'<面板里的口令>' -h 127.0.0.1 -e 'select 1'   # 报 1045 → 旧版单 host 缺陷
+```
+升级后点一次【修复】（改口令/重置）即会补齐 `root@127.0.0.1`、`root@::1` 并验证。

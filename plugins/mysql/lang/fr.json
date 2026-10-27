@@ -449,5 +449,7 @@
   "访问地址不合法:": "Adresse d'accès invalide :",
   "权限类型不合法!": "Type de permission invalide !",
   "数据库不存在!": "La base de données n'existe pas !",
-  "切换失败!": "Échec du basculement !"
+  "切换失败!": "Échec du basculement !",
+  "修改失败: 新口令无法连接数据库，请重试或查看面板日志！": "Échec : le nouveau mot de passe ne peut pas se connecter, réessayez ou consultez les journaux.",
+  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Réparation échouée : impossible de définir/vérifier le mot de passe root, voir les journaux."
 }

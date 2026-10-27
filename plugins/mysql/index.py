@@ -20,6 +20,7 @@ if os.path.exists(web_dir):
 
 import core.yf as yf
 import core.db_pwd as db_pwd
+import core.db_root as db_root
 import logging
 
 _log = logging.getLogger('yf.mysql')
@@ -874,40 +875,60 @@ def initMysql8Data():
 
 
 
-def initMysqlPwd(version='5.7'):
-    # MySQL 5.7 使用 --initialize-insecure 初始化，首次启动后 root 无密码
-    # 5.7 中 PASSWORD() 函数已废弃，需使用与 8.x 相同的方式设置密码
+def _applyRootPwd(pwd, version, current_pwd=None, scene='初始化'):
+    """把 root 口令写入**全部本地 host**（localhost / 127.0.0.1 / ::1）并验证。
 
+    为什么不能只改 `root@localhost`（2026-10-27 真机复现）：
+      * `mariadb-install-db` / 旧 `mysql_install_db` 会建 `root@127.0.0.1`、
+        `root@::1`，只改 localhost 时它们的口令仍是空的；
+      * 插件 my.cnf 均带 `skip_name_resolve=1`，此时 127.0.0.1 **不会**反解成
+        localhost，必须存在独立的 `root@127.0.0.1` 账户；
+      * 面板 ORM（`web/core/orm.py`）在 socket 文件不存在时会静默退回 TCP。
+    三者相遇就是「安装完点性能优化/当前状态 → 数据库密码错误」：
+    `Access denied for user 'root'@'127.0.0.1' (using password: YES)`。
+
+    并且**验证通过才保存口令** —— 旧实现无论写入成败都 `_saveRootPwd(pwd)`，
+    失败时面板记了新口令、数据库里还是旧口令，从此每次连接都是 1045。
+
+    返回 True 表示「写入成功且能用新口令连上」。
+    """
+    serverdir = getServerDir()
+    res = db_root.apply_root_pwd(
+        mysql_bin=serverdir + '/bin/mysql',
+        version=version,
+        pwd=pwd,
+        myconf=serverdir + '/etc/my.cnf',
+        socket_file=getSocketFile(),
+        port=getDbPort(),
+        current_pwd=current_pwd,
+    )
+    if res.ok:
+        _saveRootPwd(pwd)
+        return True
+    # 日志不带口令（db_root 已打码），但要让运维看得出是哪一步、为什么
+    yf.writeFileLog('[mysql] %s时写入 root 口令失败（未保存新口令）: %s'
+                    % (scene, res.detail or res))
+    return False
+
+
+def initMysqlPwd(version='5.7'):
+    """首次安装后设置 root 口令（5.5/5.6/5.7）。
+
+    初始化阶段 root 无口令（`--initialize-insecure` / `mysql_install_db`），
+    因此 `current_pwd=None`；写入后立即验证，失败则**不保存**并报错。
+    """
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = yf.getRandomString(16)
 
-    if version.startswith('5.7'):
-        # MySQL 5.7: flush privileges + ALTER USER (与 8.x 一致)
-        time.sleep(5)
-        auth_policy = getAuthPolicy()
+    # mysql_install_db / mariadb-install-db 起来后需要一点时间做初始化，
+    # 但固定 sleep 不可靠（慢机器不够、快机器白等）：改为等待一个可用的连接。
+    _waitDbReady(myconf)
 
-        alter_root_pwd = 'flush privileges;'
-        alter_root_pwd += "UPDATE mysql.user SET authentication_string='' WHERE user='root';"
-        alter_root_pwd += "flush privileges;"
-        alter_root_pwd += "alter user 'root'@'localhost' IDENTIFIED by '" + pwd + "';"
-        alter_root_pwd += "alter user 'root'@'localhost' IDENTIFIED WITH " + auth_policy + " by '" + pwd + "';"
-        alter_root_pwd += "flush privileges;"
-
-        tmp_file = "/tmp/mysql_init_tmp.log"
-        yf.writeFile(tmp_file, alter_root_pwd)
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
-        data = yf.execShell(cmd_pass)
-        # print(data)
-        os.remove(tmp_file)
-    else:
-        # MySQL 5.5 / 5.6: 使用旧的 PASSWORD() 函数方式
-        time.sleep(5)
-        db_option = " -S " + getSocketFile()
-        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
-        data = yf.execShell(cmd_pass)
-        # print(data)
+    if not _applyRootPwd(pwd, version, current_pwd=None, scene='首次安装初始化'):
+        # 不保存没生效的口令（否则面板记的口令与数据库永远对不上）。
+        # 返回 False 让调用方记日志；服务本身是好的，不该因此拦住启动。
+        return False
 
     # 删除空账户
     drop_empty_user = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -p"' + \
@@ -937,53 +958,48 @@ def initMysqlPwd(version='5.7'):
             yf.shlexQuote("drop user 'root'@'" + sql_hostname + "'")
         yf.execShell(drop_root_hostname)
 
-    _saveRootPwd(pwd)
+    # 口令已由 `_applyRootPwd` 在验证通过后保存，此处不重复写。
     return True
 
+
+def _waitDbReady(myconf, timeout=60):
+    """等 mysql 可无口令连上（初始化后首次启动可能还在做数据目录初始化）。
+
+    旧实现是固定 `time.sleep(5)` 就发 SQL：慢机器上服务还没 ready，命令失败，
+    而失败又不检查，于是「面板记了新口令、库里还是空口令」→ 之后全是 1045。
+    """
+    serverdir = getServerDir()
+    mysql_bin = serverdir + '/bin/mysql'
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        ok, _detail = db_root.run_sql(mysql_bin, 'SELECT 1;', myconf=myconf, pwd=None, timeout=15)
+        if ok:
+            return True
+        time.sleep(2)
+    yf.writeFileLog('[mysql] 等待数据库就绪超时（%ss），仍将尝试写入 root 口令\n' % timeout)
+    return False
+
+
 def initMysql8Pwd():
-    time.sleep(8)
+    """首次安装后设置 root 口令（8.x / 9.x）。
 
-
-    auth_policy = getAuthPolicy()
-
+    旧实现先用 `mysqladmin password root` 把口令临时设成字面量 `root`，再用 `-proot`
+    去执行 ALTER —— 一旦 ALTER 失败，库里口令就是 `root`、面板却存了随机口令，
+    从此“密码错误”。现在统一走 `_applyRootPwd`（无凭证连接 + 全 host 写入 + 验证）。
+    """
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
-
     pwd = yf.getRandomString(16)
 
-    alter_root_pwd = 'flush privileges;'
+    _waitDbReady(myconf)
 
-    alter_root_pwd = alter_root_pwd + \
-        "UPDATE mysql.user SET authentication_string='' WHERE user='root';"
-    alter_root_pwd = alter_root_pwd + "flush privileges;"
-    alter_root_pwd = alter_root_pwd + \
-        "alter user 'root'@'localhost' IDENTIFIED by '" + pwd + "';"
-    alter_root_pwd = alter_root_pwd + \
-        "alter user 'root'@'localhost' IDENTIFIED WITH "+auth_policy+" by '" + pwd + "';"
-    alter_root_pwd = alter_root_pwd + "flush privileges;"
-
-    cmd_pass = serverdir + '/bin/mysqladmin --defaults-file=' + \
-        myconf + ' -uroot password root'
-    data = yf.execShell(cmd_pass)
-    # print(cmd_pass)
-    # print(data)
-
-    tmp_file = "/tmp/mysql_init_tmp.log"
-    fd = os.open(tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, 'w') as fh:
-        fh.write(alter_root_pwd)
-    cmd_pass = serverdir + '/bin/mysql --defaults-file=' + \
-        myconf + ' -uroot -proot < ' + tmp_file
-
-    data = yf.execShell(cmd_pass)
-    os.remove(tmp_file)
+    if not _applyRootPwd(pwd, '8.0', current_pwd=None, scene='首次安装初始化'):
+        return False
 
     # 删除测试数据库
     drop_test_db = serverdir + '/bin/mysql  --defaults-file=' + \
         myconf + ' -uroot -p"' + pwd + '" -e "drop database test";'
     yf.execShell(drop_test_db)
-
-    _saveRootPwd(pwd)
 
     # 删除冗余账户
     # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
@@ -1018,7 +1034,10 @@ def myOp(version, method):
             else:
                 yf.execShell('systemctl start mysql')
 
-            initMysqlPwd(version)
+            if not initMysqlPwd(version):
+                yf.writeFileLog('[mysql] 首次安装后设置 root 口令失败（性能/当前状态会报密码错误），'
+                                '请在数据库管理列表点【修复】重试')
+
 
             if not yf.isSupportSystemctl():
                 yf.execShell('service ' + getPluginName() + ' stop')
@@ -1065,9 +1084,13 @@ def my8cmd(version, method):
                 mydb_status = process_status()
                 if mydb_status == 'start':
                     if yf.inArray(mdb8, version):
-                        initMysql8Pwd()
+                        _init_ok = initMysql8Pwd()
                     else:
-                        initMysqlPwd(version)
+                        _init_ok = initMysqlPwd(version)
+                    if not _init_ok:
+                        yf.writeFileLog('[mysql] 首次安装后设置 root 口令失败（性能/当前状态会报密码错误），'
+                                        '请在数据库管理列表点【修复】重试')
+
                     break
                 time.sleep(1)
 
@@ -2417,30 +2440,11 @@ def _mysqlSqlLiteral(s):
 
     注意：这是 **SQL 字面量**规则，与 mysql option 文件的转义规则**不同**，
     两者不能互相复用（option 文件侧见 `_mysqlOptionValue()`）。
+
+    实现只有一处：`web/core/db_root.py::sql_literal`（mariadb 插件共用），
+    这里保留函数名给既有调用点，避免两份循环逐步漂移。
     """
-    if s is None:
-        s = ''
-    if not isinstance(s, str):
-        s = str(s)
-    out = []
-    for ch in s:
-        if ch == '\\':
-            out.append('\\\\')
-        elif ch == "'":
-            out.append("\\'")
-        elif ch == '"':
-            out.append('\\"')
-        elif ch == '\x00':
-            out.append('\\0')
-        elif ch == '\n':
-            out.append('\\n')
-        elif ch == '\r':
-            out.append('\\r')
-        elif ch == '\x1a':
-            out.append('\\Z')
-        else:
-            out.append(ch)
-    return ''.join(out)
+    return db_root.sql_literal(s)
 
 
 def _mysqlOptionValue(s):
@@ -2458,28 +2462,10 @@ def _mysqlOptionValue(s):
 
     option 文件没有 ``\\0``/``\\Z`` 转义序列（SQL 有），所以这两个字符不做特殊处理——
     正常口令不会含 NUL，含 NUL 的口令本身也无法经命令行/option 文件承载。
+
+    实现只有一处：`web/core/db_root.py::option_escape`（mariadb 插件共用）。
     """
-    if s is None:
-        s = ''
-    if not isinstance(s, str):
-        s = str(s)
-    out = []
-    for ch in s:
-        if ch == '\\':
-            out.append('\\\\')
-        elif ch == '"':
-            out.append('\\"')
-        elif ch == '\n':
-            out.append('\\n')
-        elif ch == '\r':
-            out.append('\\r')
-        elif ch == '\t':
-            out.append('\\t')
-        elif ch == '\b':
-            out.append('\\b')
-        else:
-            out.append(ch)
-    return ''.join(out)
+    return db_root.option_escape(s)
 
 
 def _mysqlClientDefaultsFile(pwd):
@@ -2569,24 +2555,15 @@ def setRootPwdForce(new_password,version=''):
     # 等待MySQL安全模式启动...
     time.sleep(5)
 
-    if version.startswith("5.5") or version.startswith("5.6"):
-        # 5.5/5.6：口令经 _mysqlSqlLiteral 转义后只出现在 SQL 文本里，argv 直传
-        sql_mod_root = ("UPDATE mysql.user SET Password=PASSWORD('"
-                        + _mysqlSqlLiteral(new_password)
-                        + "') WHERE user='root'; FLUSH PRIVILEGES;")
-        rc, _out, err = yf.execShellRc(
-            [mysql_bin, '-u', 'root', '-e', sql_mod_root],
-            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
-        if rc != 0:
-            _mysqlLogFailure('安全模式下用 PASSWORD() 写入 root 口令', rc, err, new_password)
-    else:
-        sql_clear_root = ("UPDATE mysql.user SET authentication_string = '' "
-                          "WHERE user = 'root'; FLUSH PRIVILEGES;")
-        rc, _out, err = yf.execShellRc(
-            [mysql_bin, '-u', 'root', '-e', sql_clear_root],
-            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
-        if rc != 0:
-            _mysqlLogFailure('安全模式下清空 root authentication_string', rc, err)
+    # 安全模式（skip-grant-tables）下写口令：一次覆盖 localhost / 127.0.0.1 / ::1。
+    # 只改 localhost 是历史故障根因 —— skip_name_resolve=1 时 127.0.0.1 不会反解成
+    # localhost，走 TCP 的调用会拿 root@127.0.0.1 的旧（空）口令去连，报 1045。
+    # 此时无凭证连接（skip-grant 不校验口令），SQL 开头自带 FLUSH PRIVILEGES。
+    sql_set_root = db_root.build_set_root_sql(version, new_password)
+    _ok_sql, _detail = db_root.run_sql(mysql_bin, sql_set_root, pwd=None,
+                                       timeout=_MYSQL_CLI_TIMEOUT, secret=new_password)
+    if not _ok_sql:
+        yf.writeFileLog('[mysql] 安全模式下写入 root 口令失败（口令已打码）: %s' % _detail)
 
     # 同上：纯字面量 pipeline，无外部输入，保留。
     data = yf.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
@@ -2595,19 +2572,9 @@ def setRootPwdForce(new_password,version=''):
     start(version)
     time.sleep(5)
 
-    if not version.startswith("5.5") and not version.startswith("5.6"):
-        # 针对MySQL 8.0+调整密码策略
-        if version.startswith("8."):
-            adjust_password_policy(version)
-        # 设置新密码（SQL 字面量转义 + argv 直传，不经 shell）
-        sql_newpass = ("ALTER USER 'root'@'localhost' IDENTIFIED BY '"
-                       + _mysqlSqlLiteral(new_password)
-                       + "'; FLUSH PRIVILEGES;")
-        rc, _out, err = yf.execShellRc(
-            [mysql_bin, '-u', 'root', '-e', sql_newpass],
-            shell=False, timeout=_MYSQL_CLI_TIMEOUT)
-        if rc != 0:
-            _mysqlLogFailure('ALTER USER 设置 root 新口令', rc, err, new_password)
+    if version.startswith("8."):
+        # 针对 MySQL 8.0+ 调整密码策略（口令已在安全模式里设好，这里只放宽策略）
+        adjust_password_policy(version)
 
     # 验证密码：口令只进 0600 临时 option 文件（--defaults-extra-file 必须是第一个参数），
     # 不进 argv、不进 shell；用完立刻删。
@@ -2648,9 +2615,12 @@ def setRootPwd(version=''):
     if 'force' in args and args['force'] == '2':
         force = 2
         ok = setRootPwdForce(password,version)
-
+        if not ok:
+            # 没验证通过就不该把口令记进面板库（否则「面板记的」与「库里实际的」
+            # 从此对不上，每次连接都是 1045）
+            return yf.returnJson(False, '修改失败: 新口令无法连接数据库，请重试或查看面板日志！')
         _saveRootPwd(password)
-        if ok and version.startswith("8"):
+        if version.startswith("8"):
             pdb = pMysqlDb()
             pdb.query("SET GLOBAL validate_password.policy=MEDIUM;")
         return yf.returnJson(True, '【强制】数据库root密码修改成功!')
@@ -2662,18 +2632,11 @@ def setRootPwd(version=''):
         if isError != None:
             return isError
 
-        if not (version.startswith('5.5') or version.startswith('5.6')):
-            pdb.execute(
-                "UPDATE mysql.user SET authentication_string='' WHERE user='root'")
-            pdb.execute(
-                "ALTER USER 'root'@'localhost' IDENTIFIED BY '%s'" % password)
-            pdb.execute(
-                "ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY '%s'" % password)
-        else:
-            result = pdb.execute(
-                "update mysql.user set Password=password('" + password + "') where User='root'")
-        pdb.execute("flush privileges")
-        _saveRootPwd(password)
+        # 用「当前能连上的旧口令」作凭证，一次覆盖 localhost / 127.0.0.1 / ::1，
+        # 并**验证通过后才保存**（只改 localhost 会让走 TCP 的调用继续用旧口令）。
+        current_pwd = getRootPwd()
+        if not _applyRootPwd(password, version, current_pwd=current_pwd, scene='修改 root 口令'):
+            return yf.returnJson(False, '修改错误: 新口令写入失败或无法用新口令连接数据库！')
 
         msg = ''
         if force == 1:
@@ -3164,46 +3127,37 @@ def closeSkipGrantTables():
 
 
 def resetDbRootPwd(version):
-    serverdir = getServerDir()
-    myconf = serverdir + "/etc/my.cnf"
+    """在 `--skip-grant-tables` 模式下重置 root 口令（【修复】按钮走这里）。
+
+    关键改动（2026-10-27）：
+      1. 先写入口令、**验证通过后才保存**（旧实现先 `_saveRootPwd` 再执行 SQL，
+         SQL 失败就变成「面板记了新口令、库里还是旧口令」的永久 1045）；
+      2. 覆盖 localhost / 127.0.0.1 / ::1（只改 localhost 时，走 TCP 的那条路
+         仍然用空口令连接 → `Access denied for user 'root'@'127.0.0.1'`）；
+      3. skip-grant-tables 下无凭证连接，因此 `current_pwd=None`。
+    """
     pwd = yf.getRandomString(16)
-
-    _saveRootPwd(pwd)
-
-    mdb8 = getMdb8Ver()
-    # MySQL 5.7+ 和 8.x/9.x 都使用 flush privileges + ALTER USER 方式重置密码
-    # 5.5/5.6 使用旧的 PASSWORD() 函数方式
-    if not yf.inArray(mdb8, version) and not version.startswith('5.7'):
-        # MySQL 5.5 / 5.6 旧方式
-        db_option = " -S " + getSocketFile()
-        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
-        data = yf.execShell(cmd_pass)
-        # print(data)
-    else:
-        # MySQL 5.7+ / 8.x / 9.x 使用 flush privileges + ALTER USER
-        auth_policy = getAuthPolicy()
-
-        reset_pwd = 'flush privileges;'
-        reset_pwd = reset_pwd + \
-            "UPDATE mysql.user SET authentication_string='' WHERE user='root';"
-        reset_pwd = reset_pwd + "flush privileges;"
-        reset_pwd = reset_pwd + \
-            "alter user 'root'@'localhost' IDENTIFIED by '" + pwd + "';"
-        reset_pwd = reset_pwd + \
-            "alter user 'root'@'localhost' IDENTIFIED WITH "+auth_policy+" by '" + pwd + "';"
-        reset_pwd = reset_pwd + "flush privileges;"
-
-        tmp_file = "/tmp/mysql_init_tmp.log"
-        fd = os.open(tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, 'w') as fh:
-            fh.write(reset_pwd)
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
-
-        data = yf.execShell(cmd_pass)
-        # print(data)
-        os.remove(tmp_file)
+    # skip-grant 模式下任何口令都能连（服务端不看），所以直接用无凭证路径
+    ok = _applyRootPwd(pwd, version, current_pwd=None, scene='修复 root 口令')
+    if not ok:
+        return False
     return True
+
+
+def _waitSkipGrantReady(timeout=30):
+    """在 `--skip-grant-tables` 模式下等实例真正可连（旧实现固定 sleep 5，不够会静默失败）。"""
+    serverdir = getServerDir()
+    mysql_bin = serverdir + '/bin/mysql'
+    myconf = serverdir + '/etc/my.cnf'
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        ok, _detail = db_root.run_sql(mysql_bin, 'SELECT 1;', myconf=myconf, pwd=None, timeout=10)
+        if ok:
+            return True
+        time.sleep(2)
+    yf.writeFileLog('[mysql] 等待 skip-grant-tables 模式就绪超时（%ss）' % timeout)
+    return False
+
 
 def fixDbAccess(version):
 
@@ -3222,9 +3176,9 @@ def fixDbAccess(version):
             time.sleep(2)
             openSkipGrantTables()
             appCMD(version, 'start')
-            # 等待 MySQL 在 skip-grant-tables 模式下完全启动
-            time.sleep(5)
-            resetDbRootPwd(version)
+            # 等待 MySQL 在 skip-grant-tables 模式下完全启动（改为探活，不靠固定 sleep）
+            _waitSkipGrantReady()
+            reset_ok = resetDbRootPwd(version)
 
             appCMD(version, 'stop')
             time.sleep(2)
@@ -3232,6 +3186,10 @@ def fixDbAccess(version):
             appCMD(version, 'start')
             time.sleep(3)
 
+            if not reset_ok:
+                # 不能报「修复成功」：那会让用户以为好了，实际仍然连不上。
+                # 日志里已有失败细节（口令已打码）。
+                return yf.returnJson(False, '修复失败: 无法写入并验证 root 口令，请查看面板日志！')
             return yf.returnJson(True, '修复成功!')
         return yf.returnJson(True, '正常无需修复!')
     except Exception as e:

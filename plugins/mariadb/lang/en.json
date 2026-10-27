@@ -398,5 +398,6 @@
   "获取数据库用户失败!": "Failed to get DB user!",
   "权限类型不合法!": "Invalid permission type!",
   "数据库不存在!": "Database does not exist!",
-  "切换失败!": "Switch failed!"
+  "切换失败!": "Switch failed!",
+  "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Repair failed: cannot set or verify root password, check panel logs."
 }

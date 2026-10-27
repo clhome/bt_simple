@@ -17,6 +17,7 @@ if os.path.exists(web_dir):
 
 import core.yf as yf
 import core.db_pwd as db_pwd
+import core.db_root as db_root
 import logging
 
 _log = logging.getLogger('yf.mariadb')
@@ -931,26 +932,62 @@ def initMysqlData():
     return True
 
 
-def initMariaDbPwd():
-    time.sleep(5)
+def _applyRootPwd(pwd, current_pwd=None, scene='初始化'):
+    """把 root 口令写入**全部本地 host**（localhost / 127.0.0.1 / ::1）并验证。
 
+    与 mysql 插件同一个实现（`web/core/db_root.py`）。只改 `root@localhost` 是
+    「安装完就提示数据库密码错误」的根因：`mariadb-install-db` 会建
+    `root@127.0.0.1` / `root@::1`，插件 my.cnf 又带 `skip_name_resolve=1`，
+    此时走 TCP 的连接会拿 127.0.0.1 那条的**旧（空）口令**去认证，报 1045。
+
+    验证通过才保存口令（旧实现无论成败都先 `_saveRootPwd`，失败后
+    面板记的口令与库里永远对不上）。
+    """
+    serverdir = getServerDir()
+    res = db_root.apply_root_pwd(
+        mysql_bin=serverdir + '/bin/mariadb',
+        version='10.0',
+        pwd=pwd,
+        myconf=serverdir + '/etc/my.cnf',
+        socket_file=getSocketFile(),
+        port=getDbPort(),
+        current_pwd=current_pwd,
+    )
+    if res.ok:
+        _saveRootPwd(pwd)
+        return True
+    yf.writeFileLog('[mariadb] %s时写入 root 口令失败（未保存新口令）: %s'
+                    % (scene, res.detail or res))
+    return False
+
+
+def _waitDbReady(myconf, timeout=60):
+    """等 mariadb 可无口令连上（初始化后首次启动可能还在做数据目录初始化）。"""
+    serverdir = getServerDir()
+    mysql_bin = serverdir + '/bin/mariadb'
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        ok, _detail = db_root.run_sql(mysql_bin, 'SELECT 1;', myconf=myconf, pwd=None, timeout=15)
+        if ok:
+            return True
+        time.sleep(2)
+    yf.writeFileLog('[mariadb] 等待数据库就绪超时（%ss），仍将尝试写入 root 口令' % timeout)
+    return False
+
+
+def initMariaDbPwd():
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = yf.getRandomString(16)
 
-    db_option = "-S " + getSocketFile()
-    cmd_pass = serverdir + '/bin/mysql ' + db_option + ' -uroot -e'
-    cmd_pass = cmd_pass + \
-        "\"flush privileges;use mysql;ALTER USER 'root'@'localhost' IDENTIFIED BY '" + pwd + "';"
-    cmd_pass = cmd_pass + "grant all privileges on *.* to 'root'@'localhost' with grant option;"
-    cmd_pass = cmd_pass + "flush privileges;\""
+    # 固定 sleep 不可靠（慢机器没 ready 就发 SQL，失败又没人看）：改为探活
+    _waitDbReady(myconf)
 
-    # print(cmd_pass)
-    data = yf.execShell(cmd_pass)
-    # print(data)
-    if data[1].find("ERROR") != -1:
-        print("init mariadb password fail:" + data[1])
-        exit(1)
+    if not _applyRootPwd(pwd, current_pwd=None, scene='首次安装初始化'):
+        # 不保存没生效的口令，返回 False 让调用方记日志（服务本身是好的）
+        return False
+
+    db_option = "-S " + getSocketFile()
 
     # 删除空账户
     drop_empty_user = serverdir + '/bin/mysql ' + db_option + ' -uroot -p' + \
@@ -961,8 +998,6 @@ def initMariaDbPwd():
     drop_test_db = serverdir + '/bin/mysql ' + db_option + ' -uroot -p' + \
         pwd + ' -e "drop database test";'
     yf.execShell(drop_test_db)
-
-    _saveRootPwd(pwd)
 
     # 删除冗余账户
     # hostname 来自 `hostname` 命令输出（OS 派生）：既进 shell 又进 SQL。
@@ -1000,7 +1035,9 @@ def myOp(version, method):
             else:
                 yf.execShell('systemctl start mariadb')
 
-            initMariaDbPwd()
+            if not initMariaDbPwd():
+                yf.writeFileLog('[mariadb] 首次安装后设置 root 口令失败（性能/当前状态会报密码错误），'
+                                '请在数据库管理列表点【修复】重试')
 
             if yf.isAppleSystem():
                 setSkipGrantTables(False)
@@ -2093,13 +2130,11 @@ def setRootPwd(version=''):
                 return yf.returnJson(True, '【强制修改】数据库root密码修改成功(不意为成功连接数据)!')
             return isError
 
-        cmd = "ALTER USER 'root'@'localhost' IDENTIFIED BY '" + password + "';"
-        r = pdb.execute(cmd)
-        # print(r)
-
-        _saveRootPwd(password)
-        orm = pMysqlDb()
-        orm.execute("flush privileges")
+        # 用「当前能连上的旧口令」作凭证，一次覆盖 localhost / 127.0.0.1 / ::1，
+        # 并**验证通过后才保存**（只改 localhost 会让走 TCP 的调用继续用旧口令）。
+        current_pwd = getRootPwd()
+        if not _applyRootPwd(password, current_pwd=current_pwd, scene='修改 root 口令'):
+            return yf.returnJson(False, '修改错误: 新口令写入失败或无法用新口令连接数据库！')
 
         msg = ''
         if force == 1:
@@ -2569,21 +2604,14 @@ def closeSkipGrantTables():
 
 
 def resetDbRootPwd(version):
-    serverdir = getServerDir()
-    myconf = serverdir + "/etc/my.cnf"
+    """在 `--skip-grant-tables` 模式下重置 root 口令（【修复】按钮走这里）。
+
+    先写入口令、**验证通过后才保存**，并覆盖 localhost / 127.0.0.1 / ::1
+    （只改 localhost 时走 TCP 的那条路仍然用空口令，报 1045）。
+    skip-grant 模式下无凭证连接，因此 `current_pwd=None`。
+    """
     pwd = yf.getRandomString(16)
-    _saveRootPwd(pwd)
-
-    db_option = "-S " + getSocketFile()
-    cmd_pass = serverdir + '/bin/mariadb ' + db_option + ' -uroot -e'
-    cmd_pass = cmd_pass + \
-        "\"flush privileges;use mysql;ALTER USER 'root'@'localhost' IDENTIFIED BY '" + pwd + "';"
-    cmd_pass = cmd_pass + "grant all privileges on *.* to 'root'@'localhost' with grant option;"
-    cmd_pass = cmd_pass + "flush privileges;\""
-
-    data = yf.execShell(cmd_pass)
-    # print(data)
-    return True
+    return _applyRootPwd(pwd, current_pwd=None, scene='修复 root 口令')
 
 def fixDbAccess(version):
 
@@ -2602,11 +2630,14 @@ def fixDbAccess(version):
             openSkipGrantTables()
             appCMD(version, 'start')
             time.sleep(3)
-            resetDbRootPwd(version)
+            reset_ok = resetDbRootPwd(version)
 
             appCMD(version, 'stop')
             closeSkipGrantTables()
             appCMD(version, 'start')
+            if not reset_ok:
+                # 不能报「修复成功」：否则用户以为好了，实际连不上（口令已打码写进日志）
+                return yf.returnJson(False, '修复失败: 无法写入并验证 root 口令，请查看面板日志！')
             return yf.returnJson(True, '修复成功!')
         return yf.returnJson(True, '正常无需修复!')
     except Exception as e:

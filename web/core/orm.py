@@ -109,6 +109,9 @@ class SimpleMySQLPool:
 _pools = {}
 _pools_lock = threading.Lock()
 
+#: 已告警过的「socket 不存在」路径（避免每个请求都刷一条日志）
+_warned_missing_sockets = set()
+
 
 class ORM:
     __DB_PASS = None
@@ -166,6 +169,16 @@ class ORM:
                                                          port=int(self.__DB_PORT), charset=self.__DB_CHARSET, connect_timeout=self.__DB_TIMEOUT,
                                                          unix_socket=self.__DB_SOCKET, cursorclass=pymysql.cursors.DictCursor)
                 else:
+                    # socket 文件不存在 → 只能退回 TCP。
+                    # 这里必须留一条日志：`skip_name_resolve=1` 的库在 TCP 下按来源 IP
+                    # 匹配账户（`root@127.0.0.1`），而历史实现只维护 `root@localhost`，
+                    # 于是报 1045 `Access denied for user 'root'@'127.0.0.1'`。
+                    # 不记日志时现场完全看不出「为什么走了 TCP」，只能看到密码错误。
+                    # 同一路径只告警一次，避免每个请求都刷一条。
+                    if self.__DB_SOCKET not in _warned_missing_sockets:
+                        _warned_missing_sockets.add(self.__DB_SOCKET)
+                        log.warning('[orm] socket 文件不存在（%s），退回 TCP 连接 %s:%s'
+                                    % (self.__DB_SOCKET, self.__DB_HOST, self.__DB_PORT))
                     try:
                         return pymysql.connect(host=self.__DB_HOST, user=self.__DB_USER, passwd=self.__DB_PASS,
                                                          database=self.__DB_NAME,

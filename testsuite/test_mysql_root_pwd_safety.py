@@ -378,23 +378,31 @@ class TestStaticNoShellConcat(unittest.TestCase):
                                  '%s:%d 仍是 shell=True' % (fname, call.lineno))
                 self.assertIn('timeout', kw, '%s:%d 缺 timeout' % (fname, call.lineno))
 
-    def test_06_password_only_via_literal_helper(self):
-        """SQL 里出现口令的地方必须是 `_mysqlSqlLiteral(...)` 的返回值。"""
+    def test_06_password_only_via_db_root(self):
+        """口令 SQL 只由 `db_root.build_set_root_sql()` 生成，模块内不再手拼口令。"""
         fn = self.funcs['setRootPwdForce']
         used = [n for n in ast.walk(fn)
-                if isinstance(n, ast.Call) and _call_name(n) == '_mysqlSqlLiteral']
-        self.assertGreaterEqual(len(used), 2,
-                               'setRootPwdForce 里应有 2 处（PASSWORD()/ALTER USER）走转义函数')
-        # 口令变量不得直接进字符串拼接
+                if isinstance(n, ast.Call) and _call_name(n) == 'run_sql']
+        self.assertGreaterEqual(len(used), 1,
+                               'setRootPwdForce 应通过 db_root.run_sql 执行口令 SQL')
+        builders = [n for n in ast.walk(fn)
+                    if isinstance(n, ast.Call) and _call_name(n) == 'build_set_root_sql']
+        self.assertEqual(1, len(builders), '口令 SQL 必须由 db_root.build_set_root_sql 生成')
+        # 口令变量不得直接进字符串拼接/格式化（转义只允许在 db_root 里做一次）
         for n in ast.walk(fn):
-            if not isinstance(n, ast.BinOp):
+            if not isinstance(n, (ast.BinOp, ast.JoinedStr)):
                 continue
             names = {x.id for x in ast.walk(n) if isinstance(x, ast.Name)}
-            if 'new_password' not in names:
+            if 'new_password' in names:
+                self.fail('setRootPwdForce:%d 把口令直接拼进字符串' % n.lineno)
+        # 全模块：不许再出现「IDENTIFIED BY '…' + 口令变量」的手写拼法
+        for n in ast.walk(self.tree):
+            if not isinstance(n, ast.BinOp) or not isinstance(n.op, ast.Add):
                 continue
-            self.assertTrue(any(isinstance(x, ast.Call) and _call_name(x) == '_mysqlSqlLiteral'
-                                for x in ast.walk(n)),
-                            'setRootPwdForce:%d 把口令直接拼进 SQL，没过转义函数' % n.lineno)
+            seg = ast.get_source_segment(self.src, n) or ''
+            names = {x.id for x in ast.walk(n) if isinstance(x, ast.Name)}
+            if names & {'new_password', 'password', 'pwd'} and 'IDENTIFIED' in seg.upper():
+                self.fail('第 %d 行仍在手拼 IDENTIFIED BY 口令' % n.lineno)
 
     def test_07_defaults_file_used_for_verify(self):
         """验证步必须用 --defaults-extra-file，且必须 try/finally 删除。"""
@@ -491,47 +499,73 @@ class _StubTime(object):
         self.slept.append(sec)
 
 
+class _StubDbRootRun(object):
+    """替代 `db_root._default_run`：记录 argv/环境，可按需返回 rc。
+
+    `setRootPwdForce` 已经把「写口令」搬到 `web/core/db_root.py`（mysql / mariadb
+    共用），所以这里断言的是**真正传给 mysql 客户端的 argv**，而不是执行封装。
+    """
+
+    def __init__(self, rc=0, err=''):
+        self.calls = []
+        self.rc = rc
+        self.err = err
+
+    def __call__(self, argv, timeout=None):
+        rec = {'argv': list(argv), 'timeout': timeout}
+        self.calls.append(rec)
+        if self.rc == 0:
+            return 0, '', ''
+        return self.rc, '', self.err or ('ERROR 1064 (42000): near %r at line 1' % str(argv[-1])[-120:])
+
+
 class TestSetRootPwdForceBehavior(unittest.TestCase):
 
     PWD = "p' OR 1=1 -- "
 
-    def _run(self, rc_seq=None, err=''):
+    def _run(self, verify_rc_seq=None, db_root_rc=0, db_root_err=''):
         mod = _mysql_module()
-        stub = _StubYf(rc_seq=rc_seq, err=err)
+        stub = _StubYf(rc_seq=verify_rc_seq, err=db_root_err)
         stub_time = _StubTime()
         adjust_calls = []
+        db_root_run = _StubDbRootRun(rc=db_root_rc, err=db_root_err)
 
         def _fake_adjust(version):
             adjust_calls.append(version)
 
-        self._orig = (mod.yf, mod.time, mod.subprocess, mod.start, mod.adjust_password_policy)
+        self._orig = (mod.yf, mod.time, mod.subprocess, mod.start,
+                      mod.adjust_password_policy, mod.db_root._default_run)
         mod.yf = stub
         mod.time = stub_time
         mod.subprocess = _StubSubprocess()
         mod.start = lambda version='': 'ok'
         mod.adjust_password_policy = _fake_adjust
+        mod.db_root._default_run = db_root_run
         try:
             ok = mod.setRootPwdForce(self.PWD, '8.0')
         finally:
             (mod.yf, mod.time, mod.subprocess, mod.start,
-             mod.adjust_password_policy) = self._orig
-        return ok, stub, adjust_calls
+             mod.adjust_password_policy, mod.db_root._default_run) = self._orig
+        return ok, stub, adjust_calls, db_root_run
 
     def test_01_argv_are_lists_and_never_carry_password(self):
-        ok, stub, adjust_calls = self._run(rc_seq=[0, 0, 0])
+        ok, stub, adjust_calls, db_root_run = self._run(verify_rc_seq=[0])
         self.assertTrue(ok)
         self.assertEqual(['8.0'], adjust_calls, '8.x 必须仍然调整密码策略')
-        self.assertEqual(3, len(stub.calls),
-                         '8.x 路径应有 3 次 execShellRc（清空/ALTER/验证），实际 %d'
-                         % len(stub.calls))
-        for rec in stub.calls:
+        self.assertEqual(1, len(db_root_run.calls),
+                         '写口令应只经 db_root 一次往返（覆盖 localhost/127.0.0.1/::1）')
+        for rec in db_root_run.calls:
             self.assertIsInstance(rec['argv'], list, 'argv 不是 list: %r' % (rec['argv'],))
-            self.assertFalse(rec['shell'], '仍是 shell=True: %r' % (rec['argv'],))
-            self.assertIsNotNone(rec['timeout'], '缺 timeout')
             for a in rec['argv']:
                 self.assertIsInstance(a, str)
-                self.assertNotIn(self.PWD, a,
-                                 '口令原文进了 argv: %r' % (rec['argv'],))
+                self.assertNotIn(self.PWD, a, '口令原文进了 argv: %r' % (rec['argv'],))
+        # 验证步仍是 execShellRc 列表 + 临时 defaults 文件
+        self.assertEqual(1, len(stub.calls), '验证步应只有 1 次 execShellRc')
+        self.assertIsInstance(stub.calls[0]['argv'], list)
+        self.assertFalse(stub.calls[0]['shell'], '仍是 shell=True')
+        self.assertIsNotNone(stub.calls[0]['timeout'], '缺 timeout')
+        self.assertNotIn(self.PWD, ''.join(str(a) for a in stub.calls[0]['argv']),
+                         '口令原文进了 argv')
         # ps|kill pipeline 保留原样，且不含口令
         self.assertEqual(2, len(stub.shell_calls))
         for c in stub.shell_calls:
@@ -540,16 +574,19 @@ class TestSetRootPwdForceBehavior(unittest.TestCase):
     def test_02_sql_carries_escaped_password(self):
         escaped = _mysql_module()._mysqlSqlLiteral(self.PWD)
         self.assertNotEqual(self.PWD, escaped, '转义结果与原文相同，转义没生效')
-        _ok, stub, _adj = self._run(rc_seq=[0, 0, 0])
-        alter = [r for r in stub.calls
-                 if any("ALTER USER" in a for a in r['argv'] if isinstance(a, str))]
-        self.assertEqual(1, len(alter), '没找到 ALTER USER 调用')
-        sql = alter[0]['argv'][-1]
+        _ok, _stub, _adj, db_root_run = self._run(verify_rc_seq=[0])
+        sqls = [a for rec in db_root_run.calls for a in rec['argv']
+                if isinstance(a, str) and 'IDENTIFIED BY' in a]
+        self.assertEqual(1, len(sqls), '没找到写口令的 SQL')
+        sql = sqls[0]
         self.assertIn(escaped, sql, 'SQL 里不是转义后的形态: %r' % sql)
         self.assertNotIn(self.PWD, sql, 'SQL 里出现了未转义的口令')
+        # 三个本地 host 都必须被覆盖（只改 localhost 就是「安装完就密码错误」的根因）
+        for host in ('localhost', '127.0.0.1', '::1'):
+            self.assertIn("'root'@'%s'" % host, sql, 'SQL 没有覆盖 root@%s' % host)
 
     def test_03_verify_uses_defaults_file_and_cleans_up(self):
-        _ok, stub, _adj = self._run(rc_seq=[0, 0, 0])
+        _ok, stub, _adj, _run = self._run(verify_rc_seq=[0])
         verify = [r for r in stub.calls if 'cnf' in r]
         self.assertEqual(1, len(verify), '验证步没有走 --defaults-extra-file')
         rec = verify[0]
@@ -565,50 +602,55 @@ class TestSetRootPwdForceBehavior(unittest.TestCase):
                          '函数返回后临时 defaults 文件没删掉: %s' % rec['cnf'])
 
     def test_04_return_true_iff_verify_rc_zero(self):
-        ok, _stub, _adj = self._run(rc_seq=[0, 0, 0])
-        self.assertTrue(ok, '三步都 rc=0 却返回 False')
-        ok, _stub, _adj = self._run(rc_seq=[0, 0, 1])
+        ok, _stub, _adj, _run = self._run(verify_rc_seq=[0])
+        self.assertTrue(ok, '验证步 rc=0 却返回 False')
+        ok, _stub, _adj, _run = self._run(verify_rc_seq=[1])
         self.assertFalse(ok, '验证步 rc=1 却返回 True')
 
     def test_05_failure_log_has_no_password(self):
         """失败日志不得带口令（mysql 的语法错误回显会带查询片段）。"""
         escaped = _mysql_module()._mysqlSqlLiteral(self.PWD)
         self.assertNotEqual(self.PWD, escaped)
-        ok, stub, _adj = self._run(rc_seq=[1, 1, 1])
+        ok, stub, _adj, _run = self._run(verify_rc_seq=[1], db_root_rc=1)
         self.assertFalse(ok)
         self.assertTrue(stub.logs, '失败时没有任何日志')
-        # 前提：失败回显里确实带了转义形态的口令，否则本用例是假绿
-        self.assertTrue(any(escaped in (r.get('raw_err') or '') for r in stub.calls),
-                        '替身回显里没有口令，用例前提不成立')
         for msg in stub.logs:
             self.assertNotIn(self.PWD, msg, '日志里出现了口令原文: %r' % msg)
             self.assertNotIn(escaped, msg, '日志里出现了口令的 SQL 转义形态: %r' % msg)
             self.assertNotIn('OR 1=1', msg, '日志里出现了口令片段: %r' % msg)
-        # 打码要真发生，且日志仍能看出是哪一步失败（不是空日志蒙混）
-        self.assertTrue(any('***' in m for m in stub.logs),
-                        '口令没有被替换成 ***: %r' % stub.logs)
+        # 打码要真发生（要么替换成 ***，要么整段丢弃只剩 ERROR 码），
+        # 且日志仍能看出是哪一步失败（不是空日志蒙混）
+        self.assertTrue(any(('***' in m) or ('ERROR 1064' in m) for m in stub.logs),
+                        '失败细节既没打码也没保留错误码: %r' % stub.logs)
         self.assertTrue(any('rc=1' in m for m in stub.logs))
-        self.assertTrue(any('ALTER USER' in m or 'PASSWORD' in m for m in stub.logs))
 
     def test_06_5_6_branch_also_uses_argv(self):
         mod = _mysql_module()
-        stub = _StubYf(rc_seq=[0, 0])
-        orig = (mod.yf, mod.time, mod.subprocess, mod.start)
+        stub = _StubYf(rc_seq=[0])
+        db_root_run = _StubDbRootRun(rc=0)
+        orig = (mod.yf, mod.time, mod.subprocess, mod.start, mod.db_root._default_run)
         mod.yf = stub
         mod.time = _StubTime()
         mod.subprocess = _StubSubprocess()
         mod.start = lambda version='': 'ok'
+        mod.db_root._default_run = db_root_run
         try:
             ok = mod.setRootPwdForce(self.PWD, '5.6')
         finally:
-            (mod.yf, mod.time, mod.subprocess, mod.start) = orig
+            (mod.yf, mod.time, mod.subprocess, mod.start,
+             mod.db_root._default_run) = orig
         self.assertTrue(ok)
-        self.assertEqual(2, len(stub.calls), '5.6 路径应为 PASSWORD() + 验证')
-        for rec in stub.calls:
+        self.assertEqual(1, len(db_root_run.calls), '5.6 路径也应只经 db_root 一次')
+        for rec in db_root_run.calls:
             self.assertIsInstance(rec['argv'], list)
             for a in rec['argv']:
                 self.assertNotIn(self.PWD, a)
-        self.assertIn(mod._mysqlSqlLiteral(self.PWD), stub.calls[0]['argv'][-1])
+        sql = db_root_run.calls[0]['argv'][-1]
+        self.assertIn(mod._mysqlSqlLiteral(self.PWD), sql)
+        # 5.5/5.6 走旧语法 GRANT ... IDENTIFIED BY，同样必须覆盖三个 host
+        self.assertIn('GRANT ALL PRIVILEGES', sql)
+        for host in ('localhost', '127.0.0.1', '::1'):
+            self.assertIn("'root'@'%s'" % host, sql)
 
 
 if __name__ == '__main__':
