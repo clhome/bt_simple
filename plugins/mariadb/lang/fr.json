@@ -400,5 +400,7 @@
   "数据库不存在!": "La base de données n'existe pas !",
   "切换失败!": "Échec du basculement !",
   "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Réparation échouée : impossible de définir/vérifier le mot de passe root, voir les journaux.",
-  "实例异常:": "Erreur d'instance :"
+  "实例异常:": "Erreur d'instance :",
+  "清理未彻底: mariadbd 仍在运行（pid=%s）": "Nettoyage incomplet : mariadbd tourne encore (pid=%s)",
+  "卸载清理完成": "Nettoyage de désinstallation terminé"
 }

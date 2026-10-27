@@ -200,6 +200,21 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 
 Uninstall_mysql()
 {
+	# 先停进程再删目录（2026-10-27）：只 rm -rf 会让 mysqld 带着已删除的
+	# datadir/socket 继续占着 3306，重装后表现为「数据库密码错误」。
+	# stop_and_kill 只杀 exe 属于本插件的进程，不动系统里别的 MySQL/MariaDB。
+	if [ -f "${serverPath}/yufeng_panel/plugins/mysql/index.py" ]; then
+		(cd "${serverPath}/yufeng_panel" && python3 "${serverPath}/yufeng_panel/plugins/mysql/index.py" stop_and_kill 2>/dev/null) || true
+	fi
+	if command -v pgrep >/dev/null 2>&1; then
+		for _pid in $(pgrep -f "^${serverPath}/mysql/bin/mysqld" 2>/dev/null); do
+			kill "$_pid" 2>/dev/null || true
+		done
+		sleep 1
+		for _pid in $(pgrep -f "^${serverPath}/mysql/bin/mysqld" 2>/dev/null); do
+			kill -9 "$_pid" 2>/dev/null || true
+		done
+	fi
 	rm -rf $serverPath/mysql
 	echo '卸载完成'
 }

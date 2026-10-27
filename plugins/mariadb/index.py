@@ -1123,8 +1123,71 @@ def initdUinstall():
     if yf.isAppleSystem():
         return "Apple Computer does not support"
 
+    # 只 disable 不 stop：进程会带着已删除的 datadir 继续占着 3306，
+    # 重装后表现为「数据库密码错误」（与 mysql 插件同一类现场）
+    yf.execShell('systemctl stop mariadb')
     yf.execShell('systemctl disable mariadb')
     return 'ok'
+
+
+def stopAndKill(version=''):
+    """停服务 + 杀掉「exe 属于本插件」的残留 mariadbd/mysqld（卸载/重装前调用）。
+
+    旧卸载路径只有 rm -rf（initd_uninstall 也只 disable 不 stop），
+    僵尸进程会占着 3306，导致下一次安装完仍不可用。
+    """
+    import signal as _sig
+    import time as _time
+
+    logs = []
+    try:
+        stop(version)
+        logs.append('已请求停止 mariadb 服务')
+    except Exception as _e:
+        logs.append('停止服务异常: %s' % _e)
+
+    serverdir = os.path.realpath(getServerDir())
+    ours = []
+    if os.path.isdir('/proc'):
+        for name in os.listdir('/proc'):
+            if not name.isdigit():
+                continue
+            try:
+                exe = os.path.realpath(os.readlink('/proc/%s/exe' % name))
+            except Exception:
+                continue
+            if exe.startswith(serverdir + os.sep) and os.path.basename(exe) in ('mariadbd', 'mysqld'):
+                ours.append(int(name))
+    for sig, wait in ((_sig.SIGTERM, 2.0), (_sig.SIGKILL, 1.0)):
+        for pid in ours:
+            try:
+                os.kill(pid, sig)
+            except Exception as _e:
+                _log.debug('[mariadb] kill(%s) 失败: %s', pid, _e)
+        if not ours:
+            break
+        _time.sleep(wait)
+        alive = []
+        for pid in ours:
+            try:
+                os.kill(pid, 0)
+                alive.append(pid)
+            except OSError as _e:
+                # 进程已退出（ESRCH）/无权限：都不算「还活着」
+                _log.debug('[mariadb] pid %s 存活探测失败（视为已退出）: %s', pid, _e)
+        if not alive:
+            logs.append('残留进程已清理')
+            break
+        ours = alive
+
+    try:
+        initdUinstall()
+    except Exception as _e:
+        logs.append('移除自启配置异常: %s' % _e)
+
+    if ours:
+        return yf.returnJson(False, '清理未彻底: mariadbd 仍在运行（pid=%s）' % ours)
+    return yf.returnJson(True, '卸载清理完成')
 
 
 def getMyDbPos():
@@ -4802,6 +4865,8 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'stop_and_kill':
+        print(stopAndKill(version))
     elif func == 'start':
         print(start(version))
     elif func == 'stop':

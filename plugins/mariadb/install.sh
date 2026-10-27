@@ -43,10 +43,19 @@ if [ ! -d $curPath/versions/$2 ];then
 fi
 
 if [ "${action}" == "uninstall" ];then
-	
+	# 卸载必须先停进程再删目录（否则 mariadbd 带着已删除的 datadir 继续占着 3306，
+	# 重装后表现为「数据库密码错误」——与 mysql 插件同一类现场）
+	if [ -f "${rootPath}/plugins/mariadb/index.py" ]; then
+		if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py stop_and_kill ${type}); then
+			echo "[WARN] 停止/清理残留 mariadbd 时报告了异常（见上方输出），继续卸载" >&2
+		fi
+	fi
+
 	if [ -f /usr/lib/systemd/system/mariadb.service ] || [ -f /lib/systemd/system/mariadb.service ];then
-		systemctl stop mariadb
-		systemctl disable mariadb
+		if ! systemctl stop mariadb 2>/dev/null; then
+			echo "[WARN] systemctl stop mariadb 失败（进程可能不在或不受 systemd 管理）" >&2
+		fi
+		systemctl disable mariadb 2>/dev/null
 		rm -rf /usr/lib/systemd/system/mariadb.service
 		rm -rf /lib/systemd/system/mariadb.service
 		systemctl daemon-reload

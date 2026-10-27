@@ -191,7 +191,6 @@
   "数据库管理": "Datenbankverwaltung",
   "数据库连接失败,请检查数据库服务是否启动!": "Die Verbindung zur Datenbank ist fehlgeschlagen. Bitte überprüfen Sie, ob der Datenbankdienst gestartet ist!",
   "数据校验": "Datenüberprüfung",
-  "数据目录不存在,尝试重启重建!": "Das Datenverzeichnis existiert nicht. Versuchen Sie, es durch einen Neustart neu zu erstellen!",
   "文件名称": "Dateiname",
   "文件大小": "Dateigröße",
   "文件突然消失?": "Sind Ihre Dateien plötzlich verschwunden?",
@@ -456,5 +455,9 @@
   "实例异常:": "Instanzfehler:",
   "数据目录不存在:": "Datenverzeichnis fehlt:",
   "连接自检失败:": "Selbsttest-Verbindung fehlgeschlagen:",
-  "自检通过": "Selbsttest bestanden"
+  "自检通过": "Selbsttest bestanden",
+  "无残留进程": "Kein Restprozess",
+  "卸载清理完成": "Deinstallations-Bereinigung abgeschlossen",
+  "清理未彻底: 本插件的 mysqld 仍在运行（pid=%s）": "Bereinigung unvollständig: eigener mysqld läuft noch (pid=%s)",
+  "本插件实例已清理；但机器上还有其它 MySQL/MariaDB 在运行（pid=%s，占用 3306 会导致下一次安装不可用，请先停掉）": "Eigene Instanz bereinigt; andere MySQL/MariaDB laufen noch (pid=%s, bitte zuerst beenden)"
 }

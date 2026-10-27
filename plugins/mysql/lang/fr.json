@@ -191,7 +191,6 @@
   "数据库管理": "Gestion de base de données",
   "数据库连接失败,请检查数据库服务是否启动!": "La connexion à la base de données a échoué, veuillez vérifier si le service de base de données est démarré !",
   "数据校验": "Vérification des données",
-  "数据目录不存在,尝试重启重建!": "Le répertoire de données n'existe pas. Essayez de redémarrer pour le recréer !",
   "文件名称": "Nom du fichier",
   "文件大小": "taille du fichier",
   "文件突然消失?": "Un fichier a soudainement disparu ?",
@@ -456,5 +455,9 @@
   "数据目录不存在:": "Répertoire de données manquant :",
   "连接自检失败:": "Échec de la connexion autotest :",
   "自检通过": "Autotest réussi",
-  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Réparation échouée : erreur d'instance (port peut-être utilisé par un autre MySQL/MariaDB)"
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Réparation échouée : erreur d'instance (port peut-être utilisé par un autre MySQL/MariaDB)",
+  "无残留进程": "Aucun processus résiduel",
+  "卸载清理完成": "Nettoyage de désinstallation terminé",
+  "清理未彻底: 本插件的 mysqld 仍在运行（pid=%s）": "Nettoyage incomplet : notre mysqld tourne encore (pid=%s)",
+  "本插件实例已清理；但机器上还有其它 MySQL/MariaDB 在运行（pid=%s，占用 3306 会导致下一次安装不可用，请先停掉）": "Notre instance est nettoyée ; d'autres MySQL/MariaDB tournent encore (pid=%s, arrêtez-les d'abord)"
 }

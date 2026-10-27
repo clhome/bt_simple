@@ -271,13 +271,26 @@ Install_fast_mysql() {
 
 
 if [ "${action}" == "uninstall" ]; then
-	
+	# 卸载必须先把「本插件的 mysqld 进程」彻底停掉再删目录（2026-10-27 真机）：
+	#   旧实现只 rm -rf，进程会带着已删除的 datadir/socket 继续占着 3306；
+	#   下次装完面板退回 TCP 就连到这个僵尸进程上 → 永远「数据库密码错误」，
+	#   而 /www/server/mysql/data 根本没初始化成功 → 「日志」页 500。
+	# stop_and_kill 只杀 exe 属于本插件的进程，不会动系统里别的 MySQL/MariaDB。
+	if [ -f "${rootPath}/plugins/mysql/index.py" ]; then
+		# 清理是「尽力而为」：失败要留一行可读日志，但不应阻断后面的删目录
+		if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py stop_and_kill ${type}); then
+			echo "[WARN] 停止/清理残留 mysqld 时报告了异常（见上方输出），继续卸载" >&2
+		fi
+	fi
+
 	if [ -f /usr/lib/systemd/system/mysql.service ] || [ -f /lib/systemd/system/mysql.service ];then
-		systemctl stop mysql
-		systemctl disable mysql
+		if ! systemctl stop mysql 2>/dev/null; then
+			echo "[WARN] systemctl stop mysql 失败（进程可能不在或不受 systemd 管理）" >&2
+		fi
+		systemctl disable mysql 2>/dev/null
 		rm -rf /usr/lib/systemd/system/mysql.service
 		rm -rf /lib/systemd/system/mysql.service
-		systemctl daemon-reload
+		systemctl daemon-reload 2>/dev/null
 	fi
 
     if [ "${is_fast}" == "true" ]; then
@@ -287,9 +300,26 @@ if [ "${action}" == "uninstall" ]; then
     else
         yf_version_step uninstall "${type}" "$curPath/versions/$type/install.sh" || exit $?
     fi
+
+	# 卸载后回读：进程还在就明确告警（否则下一次安装会踩这个坑）
+	if [ -f "${rootPath}/plugins/mysql/index.py" ]; then
+		if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py stop_and_kill ${type}); then
+			echo "[WARN] 卸载后自检发现仍有 mysqld 残留，请手动确认：ps -ef | grep mysqld" >&2
+		fi
+	fi
 fi
 
 if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" == "upgrade" ]; then
+    # 装前清理：上次卸载只 rm -rf 没停进程时，mysqld 会带着已删除的程序文件
+    # 与 datadir 继续占着 3306；此时装完 start() 会误以为「已在运行」而跳过初始化，
+    # data 目录永远造不出来（真机现场 2026-10-27）。clean_stale 只杀这种僵尸进程，
+    # 不碰正常运行的实例（健康实例走下面的「平滑升级」分支）。
+    if [ -f "${rootPath}/plugins/mysql/index.py" ]; then
+        if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py clean_stale ${type}); then
+            echo "[WARN] 清理卸载残留进程失败（若 3306 被占用，安装会在自检阶段报错）" >&2
+        fi
+    fi
+
     if [ -d $serverPath/mysql ]; then
         if [ -f $serverPath/mysql/bin/mysql ]; then
             echo "检测到 MySQL 已存在部署实例，正在执行平滑无损升级与环境自愈 (版本: ${type})..."

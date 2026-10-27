@@ -559,6 +559,10 @@ def _readProcCwd(pid):
         return ''
 
 
+#: /proc 扫描结果缓存（TTL 2s，见 getRunningMysqldProcs）
+_PROC_CACHE = {'at': 0.0, 'procs': []}
+
+
 def _procAvailable():
     """本机是否有 /proc（Linux）。没有就无法判定实例归属，调用方按「未知」处理。"""
     return os.path.isdir('/proc')
@@ -570,6 +574,13 @@ def getRunningMysqldProcs():
     只读 /proc（不启子进程）；/proc 不可用（macOS 等）时返回空列表，调用方按
     「无法判定」处理，不能据此断言实例有问题。
     """
+    # status()/start()/stop() 会高频调用；/proc 扫描每次要 readlink 上百个 pid。
+    # 2 秒 TTL 既够快，又不会让「刚杀掉的进程」在 UI 上残留太久。
+    global _PROC_CACHE
+    now = time.time()
+    if _PROC_CACHE.get('at') and now - _PROC_CACHE['at'] < 2:
+        return [dict(x) for x in _PROC_CACHE['procs']]
+
     procs = []
     if not _procAvailable():
         return procs
@@ -604,7 +615,16 @@ def getRunningMysqldProcs():
             data_dir = m.group(1).strip('"').strip("'")
         if not data_dir:
             data_dir = _readProcCwd(pid)
-        procs.append({'pid': pid, 'exe': exe, 'cmdline': cmdline, 'data_dir': data_dir})
+        # 卸载时若没停进程，程序文件被删但进程还在：readlink 会带 ' (deleted)'。
+        # 这必须认成「我们自己的僵尸进程」，否则会被误判成「别人的实例」，
+        # 结果是既不敢杀、也不会重新初始化（真机现场就是这样：3306 上是
+        # /www/server/mysql/bin/mysqld，但那个文件其实已被删过一轮）。
+        deleted = exe.endswith(' (deleted)')
+        if deleted:
+            exe = exe[:-len(' (deleted)')]
+        procs.append({'pid': pid, 'exe': exe, 'cmdline': cmdline,
+                      'data_dir': data_dir, 'deleted': deleted})
+    _PROC_CACHE = {'at': time.time(), 'procs': [dict(x) for x in procs]}
     return procs
 
 
@@ -642,9 +662,13 @@ def instanceOwnership():
                 'reason': ''}
 
     ours = []
+    stale = []
     foreign = []
     for p in procs:
         exe = os.path.realpath(p['exe']) if p['exe'] else ''
+        if exe and exe in (our_exe, os.path.join(serverdir, 'bin', 'mariadbd')) and p.get('deleted'):
+            stale.append(p)
+            continue
         if exe and exe in (our_exe, os.path.join(serverdir, 'bin', 'mariadbd')):
             ours.append(p)
         elif our_prefix in (exe + os.sep) or (our_prefix + 'bin/mysqld') in p['cmdline']                 or (our_prefix + 'bin/mariadbd') in p['cmdline']:
@@ -655,7 +679,12 @@ def instanceOwnership():
     datadir_exists = bool(datadir) and os.path.isdir(datadir)
     socket_exists = bool(socket_file) and os.path.exists(socket_file)
 
-    if not procs:
+    if stale:
+        status = 'stale_ours'
+        reason = ('本插件的 mysqld 是上次卸载/升级残留（程序文件已删除但进程还在，pid=%s），'
+                  '它会一直占着 3306 并让新实例无法初始化。点面板「卸载」或重装本插件即可清理'
+                  % [p['pid'] for p in stale])
+    elif not procs:
         status = 'not_running'
         reason = 'MySQL 进程未运行'
     elif ours and not foreign:
@@ -677,9 +706,107 @@ def instanceOwnership():
         status = 'datadir_missing'
         reason = '数据目录不存在（%s）：MySQL 未完成初始化（install 阶段被跳过或失败）' % (datadir or '未知')
 
-    return {'status': status, 'ours': ours, 'foreign': foreign,
+    return {'status': status, 'ours': ours + stale, 'stale': stale, 'foreign': foreign,
             'datadir_exists': datadir_exists, 'socket_exists': socket_exists,
             'reason': reason}
+
+
+def _killOurs(sig, timeout=1.0):
+    """给「属于本插件」的 mysqld（含僵尸）发信号，返回还活着的 pid 列表。"""
+    import signal as _sig
+    global _PROC_CACHE
+    _PROC_CACHE = {'at': 0.0, 'procs': []}   # 杀掉后要让下一次扫描看到真实结果
+    pids = [p['pid'] for p in instanceOwnership().get('ours') or []]
+    for pid in pids:
+        try:
+            os.kill(pid, sig)
+        except Exception as _e:
+            _log.debug('[mysql] kill(%s, %s) 失败: %s', pid, sig, _e)
+    if not pids:
+        return []
+    time.sleep(timeout)
+    alive = []
+    for pid in pids:
+        try:
+            os.kill(pid, 0)
+            alive.append(pid)
+        except OSError as _e:
+            # 进程已退出（ESRCH）/无权限：都不算「还活着」
+            _log.debug('[mysql] pid %s 存活探测失败（视为已退出）: %s', pid, _e)
+    _PROC_CACHE = {'at': 0.0, 'procs': []}
+    return alive
+
+
+def cleanStale(version=''):
+    """只清理「我们自己、且程序文件已被删除」的僵尸进程（安装/启动前调用）。
+
+    与 stopAndKill 的区别：**不碰正常运行的实例**——安装流程里如果已有一个健康的
+    实例在跑，走的是「平滑升级」分支，不能被这里误停。
+    """
+    own = instanceOwnership()
+    if own.get('status') != 'stale_ours':
+        return yf.returnJson(True, '无残留进程')
+    yf.writeFileLog('[mysql] 发现卸载残留的 mysqld（程序文件已删除），清理: %s'
+                    % [p['pid'] for p in own.get('stale') or []])
+    return stopAndKill(version)
+
+
+def stopAndKill(version=''):
+    """停服务 + 杀掉「属于本插件」的 mysqld 残留进程（卸载 / 重装前调用）。
+
+    为什么必须有（2026-10-27 真机）：旧卸载路径只有 `rm -rf $serverPath/mysql`
+    （`initd_uninstall` 也只 `disable` 不 `stop`），mysqld 会带着**已被删除的
+    datadir/socket** 继续占着 3306。之后再装：
+      * 新实例的 socket 路径不存在 → 面板 ORM 退回 TCP；
+      * TCP 连上的其实是那个僵尸进程 → 口令与前一次不同 → 1045；
+      * 自己的 /www/server/mysql/data 从未初始化成功 → 「日志」页 listdir 500。
+    也就是用户看到的「卸载重装还是不行」。
+
+    顺序：先按服务管理器停 → 再按 exe 归属杀（TERM→KILL）→ 删 unit → 清 socket。
+    """
+    logs = []
+    # 1. 先走正常停止（失败不拦：僵尸进程常常已经不受 unit 管理）
+    try:
+        stop(version)
+        logs.append('已请求停止 mysql 服务')
+    except Exception as _e:
+        logs.append('停止服务异常: %s' % _e)
+
+    # 2. 按 exe 归属强杀（只杀我们自己的，绝不动系统里的其它 MySQL/MariaDB）
+    import signal as _sig
+    alive = _killOurs(_sig.SIGTERM, timeout=2.0)
+    if alive:
+        logs.append('SIGTERM 后仍在运行的 pid: %s，改发 SIGKILL' % alive)
+        alive = _killOurs(_sig.SIGKILL, timeout=1.0)
+    if alive:
+        logs.append('SIGKILL 后仍存活: %s' % alive)
+    else:
+        logs.append('残留 mysqld 进程已清理')
+
+    # 3. 删 systemd/initd 自启配置
+    try:
+        initdUinstall()
+        logs.append('已移除服务自启配置')
+    except Exception as _e:
+        logs.append('移除自启配置异常: %s' % _e)
+
+    # 4. 清 socket（目录删掉后 socket 文件会变成孤儿）
+    for sock in (getSocketFile(), getServerDir() + '/mysql.sock', '/tmp/mysql.sock'):
+        if sock and os.path.exists(sock):
+            try:
+                os.remove(sock)
+            except Exception as _e:
+                _log.debug('[mysql] 删除 socket 失败 %s: %s', sock, _e)
+
+    # 5. 结论：机器上还有没有 mysqld 在跑（可能是别人的实例 → 必须讲清楚）
+    own = instanceOwnership()
+    left_ours = [p['pid'] for p in own.get('ours') or []]
+    foreign = [p['pid'] for p in own.get('foreign') or []]
+    if left_ours:
+        return yf.returnJson(False, '清理未彻底: 本插件的 mysqld 仍在运行（pid=%s）' % left_ours)
+    if foreign:
+        return yf.returnJson(True, '本插件实例已清理；但机器上还有其它 MySQL/MariaDB 在运行（pid=%s，占用 3306 会导致下一次安装不可用，请先停掉）' % foreign)
+    return yf.returnJson(True, '卸载清理完成')
 
 
 def selfCheck(version=''):
@@ -750,6 +877,14 @@ def status(version=''):
         checkPluginUpgrade(version)
     except Exception as _e:
         _log.debug('[mysql] status 异常已忽略: %s', _e)
+
+    # 0.5 僵尸进程（程序文件已删）不能算「在跑」：它对面板完全不可用，
+    #     还会让 start() 误以为无需初始化。只有 stale 时判 stop。
+    try:
+        if instanceOwnership().get('status') == 'stale_ours':
+            return 'stop'
+    except Exception as _e:
+        _log.debug('[mysql] status 归属判定异常（按原逻辑继续）: %s', _e)
 
     # 1. 优先检查标准 PID 文件中的进程真实存活性
     pid_file = getPidFile()
@@ -1352,6 +1487,20 @@ def appCMD(version, action):
 
 
 def start(version=''):
+    # 0. 僵尸进程处理（2026-10-27 真机）：上次卸载只 rm -rf 没停进程时，
+    #    mysqld 会带着已删除的 datadir/socket 继续占 3306。此时 status() 会把它
+    #    当「在跑」→ 直接 return ok → **初始化被整段跳过**（/www/server/mysql/data
+    #    永远造不出来），之后所有查询都连到这个僵尸上（密码不符 → 1045）。
+    #    这里先把它清掉，让下面的正常流程去做 initialize + 设口令。
+    try:
+        _own = instanceOwnership()
+        if _own.get('status') == 'stale_ours':
+            yf.writeFileLog('[mysql] 发现卸载残留的 mysqld（程序文件已删除），先清理: %s'
+                            % [p['pid'] for p in _own.get('stale') or []])
+            stopAndKill(version)
+    except Exception as _e:
+        _log.debug('[mysql] 僵尸进程清理异常（继续按常规启动）: %s', _e)
+
     # 1. 状态自愈与防误杀：若服务已在正常运行，坚决禁止 pkill -9 强杀！
     if status(version) == 'start':
         return 'ok'
@@ -1376,6 +1525,14 @@ def stop(version=''):
         if status(version) == 'stop':
             break
         time.sleep(1)
+    # 僵尸进程（不受 unit 管理 / 程序文件已删）unit stop 管不到，按 exe 归属补一刀
+    try:
+        if instanceOwnership().get('status') == 'stale_ours':
+            import signal as _sig
+            if _killOurs(_sig.SIGTERM, timeout=2.0):
+                _killOurs(_sig.SIGKILL, timeout=1.0)
+    except Exception as _e:
+        _log.debug('[mysql] stop 时清理僵尸进程失败: %s', _e)
     return res
 
 
@@ -1459,6 +1616,9 @@ def initdUinstall():
         return 'ok'
 
     if yf.isSupportSystemctl():
+        # 只 disable 不 stop 是旧实现的最大坑：进程会带着已删除的 datadir/socket
+        # 继续占着 3306，下次装完面板就连到它上面（表现为「密码错误」）
+        yf.execShell('systemctl stop mysql')
         yf.execShell('systemctl disable mysql')
         systemd_path = '/usr/lib/systemd/system/mysql.service'
         if os.path.exists(systemd_path):
@@ -1560,17 +1720,19 @@ def setMyPort(version):
 
 def runInfo(version):
 
-    if status(version) == 'stop':
-        return yf.returnJson(False, 'MySQL未启动', [])
-
-    # 先判「跑着的是不是我们这一个实例」：旧实现在「系统另有 MySQL 占着 3306」时
-    # 会把自己的 status 判成 start，然后拿自己的口令去连别人的库 → 1045，
-    # 面板只能提示「数据库密码错误」，怎么点【修复】都没用。
+    # 先判「跑着的是不是我们这一个可用实例」，再看 status：
+    #   * stale_ours：上次卸载残留的僵尸进程（程序文件已删）占着 3306；
+    #   * foreign_only / mixed：机器上另装的 MySQL/MariaDB 占着端口。
+    # 这两种情况下拿自己的口令去连 → 1045，面板只会提示「数据库密码错误」，
+    # 用户怎么点【修复】都没用（真机现场 2026-10-27）。
     own = instanceOwnership()
-    if own['status'] in ('foreign_only', 'mixed'):
+    if own['status'] in ('stale_ours', 'foreign_only', 'mixed'):
         return yf.returnJson(False, '实例异常: ' + own['reason'], [])
     if not own['datadir_exists']:
         return yf.returnJson(False, '实例异常: ' + (own['reason'] or '数据目录不存在'), [])
+
+    if status(version) == 'stop':
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     db = pMysqlDb()
     data = db.query('show global status')
@@ -3399,7 +3561,10 @@ def fixDbAccess(version):
     pdb = pMysqlDb()
     mdb_ddir = getDataDir()
     if not os.path.exists(mdb_ddir):
-        return yf.returnJson(False, '数据目录不存在,尝试重启重建!')
+        # 数据目录都不在时，重设口令没有意义（连不上任何可用的库）。
+        # 典型成因：上次卸载只删了目录、进程还占着 3306；或安装在中途失败。
+        return yf.returnJson(False, '数据目录不存在: %s（请先在管理列表【卸载】本插件再重新安装）'
+                             % mdb_ddir)
 
     # 【修复】只允许动「我们自己的实例」：机器上若另有一个 MySQL/MariaDB 占着 3306，
     # 旧实现会把那个实例停掉、加 skip-grant-tables、改它 root 口令——既修不好本插件，
@@ -6020,6 +6185,10 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'clean_stale':
+        print(cleanStale(version))
+    elif func == 'stop_and_kill':
+        print(stopAndKill(version))
     elif func == 'self_check':
         _sc = selfCheck(version)
         print(json.dumps(_sc, ensure_ascii=False))

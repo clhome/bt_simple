@@ -46,7 +46,8 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 WEB = os.path.join(ROOT, 'web')
-IDX = os.path.join(ROOT, 'plugins', 'mysql', 'index.py')
+PLUGINS = os.path.join(ROOT, 'plugins')
+IDX = os.path.join(PLUGINS, 'mysql', 'index.py')
 INSTALL_SH = os.path.join(ROOT, 'plugins', 'mysql', 'install.sh')
 
 for _p in (WEB, ROOT):
@@ -164,9 +165,14 @@ class _Fixture(object):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     # 便捷构造
-    def ours_proc(self, cmdline='', datadir=''):
+    def ours_proc(self, cmdline='', datadir='', deleted=False):
         return {'pid': 111, 'exe': os.path.join(self.server, 'bin', 'mysqld'),
-                'cmdline': cmdline, 'data_dir': datadir or self.data}
+                'cmdline': cmdline, 'data_dir': datadir or self.data,
+                'deleted': deleted}
+
+    def stale_proc(self):
+        """卸载时没停进程：程序文件已删（readlink 带 ' (deleted)'），进程还在。"""
+        return self.ours_proc(deleted=True)
 
     def foreign_proc(self):
         return {'pid': 222, 'exe': '/usr/sbin/mysqld',
@@ -212,6 +218,16 @@ class TestOwnership(unittest.TestCase):
         own = self.fx.mod.instanceOwnership()
         self.assertEqual('mixed', own['status'], own)
         self.assertIn('端口冲突', own['reason'])
+
+    def test_04b_stale_ours_deleted_binary(self):
+        """卸载残留：程序文件已删但进程还在 → 必须认成「我们自己的僵尸」，
+        不能当成「别人的实例」（否则既不敢杀、也不会重新初始化）。"""
+        self.fx.install_defaults(procs=[self.fx.stale_proc()])
+        own = self.fx.mod.instanceOwnership()
+        self.assertEqual('stale_ours', own['status'], own)
+        self.assertEqual([111], [p['pid'] for p in own.get('stale') or []])
+        self.assertIn('卸载', own['reason'])
+        self.assertIn('3306', own['reason'])
 
     def test_05_datadir_missing(self):
         """我们的进程在跑，但数据目录不存在（初始化被跳过）→ 单独一类。"""
@@ -316,6 +332,119 @@ class TestCallersRefuseAndDegrade(unittest.TestCase):
         res = _as_dict(self.fx.mod.binLogList())
         self.assertIs(res.get('status'), False, res)
         self.assertIn('数据目录不存在', res['msg'])
+
+
+class TestStaleZombie(unittest.TestCase):
+    """卸载残留（程序文件已删、进程还在）必须被识别并清理。
+
+    真机复现（WSL）：把我们的 mysqld 复制到 <server>/bin/mysqld 起实例，
+    然后删掉整个目录 → `instanceOwnership()` = stale_ours，
+    `status()` = stop，`runInfo()` 给出「上次卸载残留」的说明，
+    `stopAndKill()` 之后 = not_running。
+    """
+
+    def setUp(self):
+        self.fx = _Fixture()
+
+    def tearDown(self):
+        self.fx.close()
+
+    def test_01_status_reports_stop(self):
+        self.fx.install_defaults(procs=[self.fx.stale_proc()])
+        self.assertEqual('stop', self.fx.mod.status('5.7'),
+                         '僵尸进程不能算「在跑」，否则 start() 会跳过初始化')
+
+    def test_02_run_info_explains_stale(self):
+        self.fx.install_defaults(procs=[self.fx.stale_proc()])
+        res = _as_dict(self.fx.mod.runInfo('5.7'))
+        self.assertIs(res.get('status'), False, res)
+        self.assertIn('实例异常', res['msg'])
+        self.assertIn('残留', res['msg'])
+
+    def test_03_start_cleans_stale_then_continues(self):
+        """start() 必须先清僵尸，再走正常启动（初始化才不会被跳过）。"""
+        killed = []
+        self.fx.install_defaults(procs=[self.fx.stale_proc()])
+        self.fx.patch(
+            stopAndKill=lambda version='': killed.append(version) or {'status': True},
+            status=lambda *a, **k: 'stop',
+            cleanOrphanSockets=lambda: None,
+            appCMD=lambda *a, **k: 'ok',
+        )
+        self.fx.mod.start('5.7')
+        self.assertTrue(killed, 'start() 没有清理僵尸进程 → 初始化会被跳过')
+        self.assertEqual(['5.7'], killed)
+
+    def test_04_clean_stale_does_not_touch_healthy(self):
+        """clean_stale 只杀僵尸；健康实例不能被误停（安装流程走平滑升级）。"""
+        os.makedirs(os.path.join(self.fx.data, 'mysql'), exist_ok=True)
+        open(self.fx.sock, 'w').close()
+        called = []
+        self.fx.install_defaults(procs=[self.fx.ours_proc()])
+        self.fx.patch(stopAndKill=lambda version='': called.append(version) or {'status': True})
+        res = _as_dict(self.fx.mod.cleanStale('5.7'))
+        self.assertTrue(res.get('status'), res)
+        self.assertEqual([], called, '健康实例被 clean_stale 停掉了')
+
+    def test_05_clean_stale_kills_zombie(self):
+        called = []
+        self.fx.install_defaults(procs=[self.fx.stale_proc()])
+        self.fx.patch(stopAndKill=lambda version='': called.append(version) or {'status': True})
+        res = _as_dict(self.fx.mod.cleanStale('5.7'))
+        self.assertTrue(res.get('status'), res)
+        self.assertEqual(['5.7'], called)
+
+
+class TestUninstallLeavesNothingBehind(unittest.TestCase):
+    """卸载必须「先停进程再删目录」——这是真机「重装还是不行」的根因。"""
+
+    def _code(self, path):
+        return _code_only(_read(path))
+
+    def test_01_outer_uninstall_stops_before_rm(self):
+        code = self._code(INSTALL_SH)
+        idx_kill = code.index('stop_and_kill')
+        idx_rm = code.index('rm -rf $serverPath/mysql')
+        self.assertLess(idx_kill, idx_rm,
+                        '卸载必须先 stop_and_kill 再 rm -rf（否则进程占着 3306）')
+
+    def test_02_version_scripts_stop_and_kill(self):
+        versions = os.path.join(PLUGINS, 'mysql', 'versions')
+        names = [d for d in os.listdir(versions) if os.path.isdir(os.path.join(versions, d))]
+        self.assertGreaterEqual(len(names), 5, '版本目录数量异常')
+        for name in names:
+            code = self._code(os.path.join(versions, name, 'install.sh'))
+            m = re.search(r'Uninstall_mysql\(\)\s*\{(.*?)' + chr(10) + r'\}', code, re.S)
+            self.assertTrue(m, '%s 缺 Uninstall_mysql' % name)
+            body = m.group(1)
+            self.assertIn('stop_and_kill', body,
+                          '%s 的卸载没有先停进程（只 rm -rf 会留下僵尸占 3306）' % name)
+            self.assertIn('pgrep', body, '%s 缺按 exe 归属的兜底杀进程' % name)
+
+    def test_03_initd_uninstall_stops_service(self):
+        src = self._code(IDX)
+        pat = r'\ndef initdUinstall\(\):(.*?)\n(?=\ndef )'
+        m = re.search(pat, src, re.S)
+        self.assertTrue(m)
+        body = m.group(1)
+        self.assertIn('systemctl stop mysql', body,
+                      'initdUinstall 只 disable 不 stop → 进程继续占着 3306')
+
+    def test_04_install_cleans_stale_first(self):
+        code = self._code(INSTALL_SH)
+        self.assertIn('clean_stale', code,
+                      '安装前必须清僵尸进程，否则 start() 会误判「已在运行」而跳过初始化')
+
+    def test_05_mariadb_same(self):
+        code = self._code(os.path.join(PLUGINS, 'mariadb', 'install.sh'))
+        self.assertIn('stop_and_kill', code)
+        m_idx = code.index('stop_and_kill')
+        r_idx = code.index('rm -rf $serverPath/mariadb') if 'rm -rf $serverPath/mariadb' in code else -1
+        if r_idx > 0:
+            self.assertLess(m_idx, r_idx, 'mariadb 卸载也要先停进程再删目录')
+        idx = self._code(os.path.join(PLUGINS, 'mariadb', 'index.py'))
+        self.assertIn('def stopAndKill', idx)
+        self.assertIn('systemctl stop mariadb', idx, 'mariadb 的 initdUinstall 也必须 stop')
 
 
 class TestInstallSelfCheck(unittest.TestCase):

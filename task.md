@@ -342,3 +342,66 @@ ss -lntp | grep 3306
 ```
 若是系统装的实例：`systemctl stop mysql mariadb && apt remove --purge mysql-server mariadb-server`
 （或直接 `systemctl disable --now`），再到面板重装本插件的 MySQL。
+
+---
+
+# 追加任务（2026-10-27 三次）：卸载不彻底 → 端口被占 → 重装后「密码错误」
+
+## 现场（用户实测）
+
+```
+ss -lntp | grep 3306
+LISTEN 0 80 *:3306 *:* users:(("mysqld",pid=4156983,fd=31))
+systemctl status mysql
+  Active: active (running) since Thu 2026-10-08 12:05:55 CST; 2 weeks 5 days ago
+  `-4156983 /www/server/mysql/bin/mysqld --defaults-file=/www/server/mysql/etc/my.cnf
+```
+
+3306 上的进程 **就是本面板的** `/www/server/mysql/bin/mysqld`，但已跑了 2 周 5 天，
+而 `/www/server/mysql/data` 却不存在 —— 「程序文件/数据目录都删了，进程还活着」。
+
+## 结论：是卸载不彻底导致的（用户判断正确）
+
+- `plugins/mysql/versions/*/install.sh` 的 `Uninstall_mysql()` 只有 `rm -rf $serverPath/mysql`；
+  外层 `install.sh` 的 `-fast` 分支同样只 `rm -rf`；`initdUinstall()` 只 `disable` **不 stop**。
+- 于是 mysqld 带着**已删除的 datadir/socket/程序文件**继续占着 3306。
+- 再装时：`start()` 先看 `status()` → `getMysqldPid()` 命中这个僵尸 → 直接 `return 'ok'`，
+  **初始化被整段跳过**（`mysqld --initialize-insecure` 从不执行）→ `/www/server/mysql/data` 永远不存在；
+  面板 ORM 找不到 socket → 退回 TCP → 连到僵尸 → 口令与前次不同 → 1045「数据库密码错误」。
+  上一轮修的「全 host 写口令」与「实例归属」都解释不了 root@127.0.0.1，因为对方根本不是活着的实例配置。
+
+## 修复
+
+- [x] `stopAndKill()`（mysql / mariadb）+ `cleanStale()`：停服务 → 按 **exe 归属**杀（TERM→KILL，
+      只杀自己人）→ 删 unit → 清 socket → **回读**是否还有残留（并区分「别人的实例」）。
+- [x] `initdUinstall()`：`systemctl stop` 之后再 `disable`（mysql + mariadb）。
+- [x] 各 `versions/*/install.sh` 的 `Uninstall_mysql()`：先 `stop_and_kill` +
+      `pgrep -f "^<server>/mysql/bin/mysqld"` 兜底 TERM/KILL，再 `rm -rf`。
+- [x] 外层 `install.sh`：卸载分支先 `stop_and_kill` 再删目录（fast 与编译版都覆盖），
+      卸载后二次回读并告警；安装分支先 `clean_stale`（只清僵尸，不动健康实例，
+      健康实例仍走「平滑升级」）。
+- [x] `instanceOwnership()` 新增 **`stale_ours`**：`/proc/<pid>/exe` 带 ` (deleted)` 的
+      我们自己进程就是「卸载残留」。之前它会被误判成「别人的实例」→ 既不敢杀也不敢重装。
+- [x] `status()` 遇 `stale_ours` 返回 `stop`；`start()` 先清理僵尸再走正常启动（初始化不再被跳过）；
+      `stop()` 额外补一刀；`runInfo` 给出「上次卸载/升级残留」的处置说明；
+      `fixDbAccess` 数据目录缺失时提示「先卸载再重装」。
+- [x] `/proc` 扫描加 2 秒 TTL 缓存（`status()` 高频调用，避免每次 readlink 上百个 pid）。
+
+## 验证
+
+- 真机（WSL，用真 mariadbd 复制成 `<server>/mysql/bin/mysqld` 起实例）：
+  1) 运行中 → `instanceOwnership()` = `ok`；
+  2) 删掉整个目录（模拟旧卸载）→ `stale_ours`，`status()` = `stop`，
+     `runInfo` = 「本插件的 mysqld 是上次卸载/升级残留…」；
+  3) `stopAndKill()` → 「卸载清理完成」，归属变 `not_running`，进程消失；
+  4) 跑真 `versions/5.7/install.sh uninstall`（含 pgrep 兜底路径）→ rc=0，
+     **进程 GONE、目录已删**（修复前这里是 ALIVE）。
+- 新增守卫：`testsuite/test_mysql_instance_ownership.py` 扩到 27 项
+  （stale 识别 / status / runInfo / start 清理 / clean_stale 不误伤健康实例 /
+  卸载先停后删 / initdUinstall 必须 stop / mariadb 同款）。
+- 全量门禁：**315 模块 / 4178 个 test 方法 / 0 隔离 / 全绿**。
+
+## 现场处置（升级后）
+
+面板里对这个 MySQL 点一次【卸载】（新版会先杀掉 4156983 再删目录），然后重新安装；
+若懒得卸载，也可以直接 `systemctl stop mysql && kill -9 4156983`，再重装。
