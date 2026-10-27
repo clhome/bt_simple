@@ -15,11 +15,21 @@ PHP_VER=82
 Install_php()
 {
 #------------------------ install start ------------------------------------#
-yum install -y php82 php82-php-fpm 
-if [ "$?" == "0" ];then
-	mkdir -p $serverPath/php-yum/${PHP_VER}
+# P1-新：yum 失败必须中止。
+#   历史写法是 `yum install -y ...` 后只判 `$?` 去 mkdir，失败也就「不建目录」，
+#   函数返回 0 → 外层当成安装成功；在 Debian/Ubuntu 上 `yum` 直接 127，
+#   面板任务却是 exit 0（虚假成功）。这里失败即非 0 退出，并把原因说清楚。
+if ! command -v yum >/dev/null 2>&1; then
+	echo "[ERROR] 当前系统没有 yum，PHP[YUM] 渠道只支持 RHEL 系（CentOS/Rocky/Alma/RHEL/openEuler 等）；Debian/Ubuntu 请用 PHP[APT] 渠道" >&2
+	exit 1
 fi
 
+if ! yum install -y php82 php82-php-fpm; then
+	echo "[ERROR] yum 安装 php82 / php82-php-fpm 失败（见上方 yum 输出）" >&2
+	exit 1
+fi
+
+mkdir -p "$serverPath/php-yum/${PHP_VER}"
 #------------------------ install end ------------------------------------#
 }
 

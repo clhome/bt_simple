@@ -12,6 +12,39 @@ serverPath=$(dirname "$rootPath")
 
 VERSION=$2
 
+# --------------------------------------------------------------------------
+# P1-新：参数闸门（裸调必须明确失败，不能「装了个寂寞」还 exit 0）
+#   现场：`bash install.sh install`（无版本号）→ 拼出 redis-.tar.gz（404），
+#   日志里写「安装失败!」，脚本最终却是 EXIT=0，面板照样报「安装完成」。
+#   与 0cdc966 里 php-apt/php-yum/pureftp/valkey/mongodb/ollama 的 fail-fast 对齐。
+# --------------------------------------------------------------------------
+_yf_redis_action=$(printf '%s' "${1:-}" | tr -d '\r')
+case "${_yf_redis_action}" in
+	install|update|upgrade|uninstall) ;;
+	'')
+		echo "[ERROR] 缺少动作参数（用法：bash install.sh install <版本号>，例如 install 7.4.8）" >&2
+		exit 1
+		;;
+	*)
+		echo "[ERROR] 不支持的动作：${_yf_redis_action}（仅支持 install / update / upgrade / uninstall）" >&2
+		exit 1
+		;;
+esac
+
+if [ "${_yf_redis_action}" != "uninstall" ]; then
+	case "${VERSION}" in
+		''|*[!0-9.]*|*.*.*.*)
+			echo "[ERROR] 版本号缺失或非法：'${VERSION}'（应形如 7.4.8），拒绝拼 redis-.tar.gz 这类空版本包" >&2
+			exit 1
+			;;
+		*.*.*) ;;
+		*)
+			echo "[ERROR] 版本号缺失或非法：'${VERSION}'（应形如 7.4.8）" >&2
+			exit 1
+			;;
+	esac
+fi
+
 Install_App()
 {
 	if [ -d $serverPath/redis ] && [ -f $serverPath/redis/bin/redis-server ]; then
@@ -72,10 +105,25 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	fi
 
 	CMD_MAKE=`which gmake`
+	# 编译/安装失败必须中止。旧写法在 `cd redis-<ver>` 失败（解包目录名不符）或 make
+	# 报错时只是「没装上」，随后走到 `[ -d $serverPath/redis ]` 的 else 分支打印
+	# 「安装失败!」然后 exit 0 —— 面板看到的是成功。
 	if [ "$?" == "0" ];then
-		cd redis-${VERSION} && gmake BUILD_TLS=yes -j ${cpuCore} PREFIX=$serverPath/redis install
+		if ! ( cd "redis-${VERSION}" && gmake BUILD_TLS=yes -j ${cpuCore} PREFIX="$serverPath/redis" install ); then
+			echo "[ERROR] redis 编译/安装失败（gmake，见上方输出）" >&2
+			exit 1
+		fi
 	else
-		cd redis-${VERSION} && make BUILD_TLS=yes -j ${cpuCore} PREFIX=$serverPath/redis install
+		if ! ( cd "redis-${VERSION}" && make BUILD_TLS=yes -j ${cpuCore} PREFIX="$serverPath/redis" install ); then
+			echo "[ERROR] redis 编译/安装失败（make，见上方输出）" >&2
+			exit 1
+		fi
+	fi
+
+	# 装后回读：没有 redis-server 就等于没装上（不能写 version.pl、不能报「安装完成」）
+	if [ ! -x "$serverPath/redis/bin/redis-server" ]; then
+		echo "[ERROR] 安装产物缺失：$serverPath/redis/bin/redis-server 不存在或不可执行" >&2
+		exit 1
 	fi
 
 	if [ -d $serverPath/redis ];then
@@ -113,7 +161,9 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		cd ${rootPath} && python3 ${rootPath}/plugins/redis/index.py initd_install
 		
 	else
-		echo '安装失败!'
+		# 不能只打一句「安装失败!」就 exit 0：面板会当成成功。
+		echo "[ERROR] 安装失败：${serverPath}/redis 目录不存在" >&2
+		exit 1
 	fi
 
 	if [ -d ${REDIS_DIR}/redis-${VERSION} ];then
@@ -148,7 +198,7 @@ Uninstall_App()
 	echo "卸载redis成功"
 }
 
-action="${1//$'\r'/}"
+action="${_yf_redis_action}"
 if [ "${action}" == 'install' ] || [ "${action}" == 'update' ] || [ "${action}" == 'upgrade' ];then
 	Install_App
 else

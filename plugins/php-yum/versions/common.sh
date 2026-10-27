@@ -32,31 +32,38 @@ fi
 FILE=${curPath}/${version}/${extName}.sh
 FILE_COMMON=${curPath}/common/${extName}.sh
 
+# 退出码必须向上传递（旧实现跑完 bash 就继续往下，失败也 exit 0 → 面板显示成功）
+_rc=0
 if [ "$action" == 'install' ];then
 	if [ -f "$FILE" ];then
-		bash "${curPath}/${version}/${extName}.sh" install
+		bash "${curPath}/${version}/${extName}.sh" install || _rc=$?
 	elif [ -f "$FILE_COMMON" ];then
-		bash "${FILE_COMMON}" install "${version}"
+		bash "${FILE_COMMON}" install "${version}" || _rc=$?
 	else
 		# 智能精确安装，避免盲目双重调用
 		if [ "$extName" == "redis" ]; then
-			yum install -y php${version}-php-pecl-redis5 2>/dev/null || yum install -y php${version}-php-pecl-redis
+			yum install -y php${version}-php-pecl-redis5 2>/dev/null || yum install -y php${version}-php-pecl-redis || _rc=$?
 		elif [ "$extName" == "memcached" ] || [ "$extName" == "mongodb" ] || [ "$extName" == "zip" ] || [ "$extName" == "mcrypt" ]; then
-			yum install -y php${version}-php-pecl-${extName} 2>/dev/null || yum install -y php${version}-php-${extName}
+			yum install -y php${version}-php-pecl-${extName} 2>/dev/null || yum install -y php${version}-php-${extName} || _rc=$?
 		else
-			yum install -y php${version}-php-${extName} 2>/dev/null || yum install -y php${version}-php-pecl-${extName}
+			yum install -y php${version}-php-${extName} 2>/dev/null || yum install -y php${version}-php-pecl-${extName} || _rc=$?
 		fi
 	fi
 fi
 
 if [ "$action" == 'uninstall' ];then
 	if [ -f "$FILE" ];then
-		bash "${curPath}/${version}/${extName}.sh" uninstall
+		bash "${curPath}/${version}/${extName}.sh" uninstall || _rc=$?
 	elif [ -f "$FILE_COMMON" ];then
-		bash "${FILE_COMMON}" uninstall "${version}"
+		bash "${FILE_COMMON}" uninstall "${version}" || _rc=$?
 	else
 		yum remove -y php${version}-php-${extName} php${version}-php-pecl-${extName} php${version}-php-pecl-redis5 2>/dev/null || true
 	fi
+fi
+
+if [ "${_rc}" != "0" ]; then
+	echo "[ERROR] ${action} ${extName} 失败（退出码 ${_rc}）" >&2
+	exit "${_rc}"
 fi
 
 if [ "$PHP_EXT_NO_RESTART" != "1" ]; then

@@ -85,12 +85,26 @@ Install_lib()
 			return 1
 		}
 		export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${serverPath}/lib/libedit/lib/pkgconfig
+		# libedit.sh 退出 0 也要回读一次 pkg-config：否则 configure 只留一句含糊的
+		# "Package requirements (libedit) were not met"，看不出是依赖没装成。
+		if ! pkg-config --exists libedit 2>/dev/null; then
+			echo "ERROR: libedit 已安装但 pkg-config 找不到 libedit.pc（PKG_CONFIG_PATH=${PKG_CONFIG_PATH}）" >&2
+			echo "       请检查 ${serverPath}/lib/libedit/lib/pkgconfig/libedit.pc 是否存在" >&2
+			return 1
+		fi
 		OPTIONS="$OPTIONS --with-libedit=${serverPath}/lib/libedit"
 
 		cd $sourcePath/php${version}/ext/${LIBNAME}
 		$serverPath/php/$version/bin/phpize
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		make clean && make -j${cpuCore:-1} && make install && make clean
+		if ! ./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS; then
+			echo "ERROR: ${LIBNAME} 扩展 configure 失败（见上方输出）" >&2
+			return 1
+		fi
+		if ! ( make clean && make -j${cpuCore:-1} && make install ); then
+			echo "ERROR: ${LIBNAME} 扩展编译/安装失败，已中止" >&2
+			return 1
+		fi
+		make clean || true
 	fi
 
 	# 这个目录可能就是刚才 `make install` 才创建的：判存前重新解析一次

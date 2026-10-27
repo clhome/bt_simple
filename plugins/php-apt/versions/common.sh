@@ -38,24 +38,31 @@ fi
 FILE=${curPath}/${version}/${extName}.sh
 FILE_COMMON=${curPath}/common/${extName}.sh
 
+# 退出码必须向上传递（旧实现跑完 bash 就继续往下，失败也 exit 0 → 面板显示成功）
+_rc=0
 if [ "$action" == 'install' ];then
 	if [ -f "$FILE" ];then
-		bash "${curPath}/${version}/${extName}.sh" install "$version"
+		bash "${curPath}/${version}/${extName}.sh" install "$version" || _rc=$?
 	elif [ -f "$FILE_COMMON" ];then
-		bash "${FILE_COMMON}" install "${version}"
+		bash "${FILE_COMMON}" install "${version}" || _rc=$?
 	else
-		apt-get install -y "php${version}-${extName}"
+		apt-get install -y "php${version}-${extName}" || _rc=$?
 	fi
 fi
 
 if [ "$action" == 'uninstall' ];then
 	if [ -f "$FILE" ];then
-		bash "${curPath}/${version}/${extName}.sh" uninstall "$version"
+		bash "${curPath}/${version}/${extName}.sh" uninstall "$version" || _rc=$?
 	elif [ -f "$FILE_COMMON" ];then
-		bash "${FILE_COMMON}" uninstall "${version}"
+		bash "${FILE_COMMON}" uninstall "${version}" || _rc=$?
 	else
-		apt-get remove -y "php${version}-${extName}"
+		apt-get remove -y "php${version}-${extName}" || _rc=$?
 	fi
+fi
+
+if [ "${_rc}" != "0" ]; then
+	echo "[ERROR] ${action} ${extName} 失败（退出码 ${_rc}）" >&2
+	exit "${_rc}"
 fi
 
 if [ "$PHP_EXT_NO_RESTART" != "1" ]; then

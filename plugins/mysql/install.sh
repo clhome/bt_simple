@@ -170,6 +170,35 @@ Install_fast_mysql() {
                 if command -v file >/dev/null 2>&1; then
                     local file_type=$(file -b "${tmp_file}")
                     if [[ "${file_type}" == *"XZ compressed"* ]] || [[ "${file_type}" == *"gzip compressed"* ]] || [[ "${file_type}" == *"tar archive"* ]]; then
+                        # 校验三：压缩流完整性（截断包/坏包在这里拦住，别等解压才报）
+                        if [[ "${ext}" == "tar.xz" ]]; then
+                            if command -v xz >/dev/null 2>&1 && ! xz -t "${tmp_file}" >/dev/null 2>&1; then
+                                echo "校验失败：xz 完整性检查不通过（包被截断），切换下一个节点..."
+                                rm -f "${tmp_file}"
+                                continue
+                            fi
+                        elif command -v gzip >/dev/null 2>&1 && ! gzip -t "${tmp_file}" >/dev/null 2>&1; then
+                            echo "校验失败：gzip 完整性检查不通过（包被截断），切换下一个节点..."
+                            rm -f "${tmp_file}"
+                            continue
+                        fi
+                        # 校验四：记录 sha256（官方未提供统一校验文件，故记录到面板日志备查；有 .sha256 时严格比对）
+                        if command -v sha256sum >/dev/null 2>&1; then
+                            local _sha
+                            _sha=$(sha256sum "${tmp_file}" | awk '{print $1}')
+                            echo "包 sha256: ${_sha}" 
+                            local _sha_txt
+                            _sha_txt=$( (curl -fsSL -m 20 "${mirror_url}.sha256" 2>/dev/null | head -c 200) || echo '')
+                            if [ -n "${_sha_txt}" ]; then
+                                if printf '%s' "${_sha_txt}" | grep -qi "${_sha}"; then
+                                    echo "sha256 官方校验通过"
+                                else
+                                    echo "校验失败：sha256 与官方 .sha256 不一致，切换下一个节点..."
+                                    rm -f "${tmp_file}"
+                                    continue
+                                fi
+                            fi
+                        fi
                         echo "包下载完成且校验通过。"
                         mv -f "${tmp_file}" "${my_dir}/${tar_file}"
                         download_success=true
@@ -215,6 +244,13 @@ Install_fast_mysql() {
         tar -zxf ${tar_file} --strip-components=1 -C ${serverPath}/mysql/
     fi
     
+    # 装后回读：解压出来必须真有 bin/mysqld，否则就是「解压成功但内容不对」
+    if [ ! -x "${serverPath}/mysql/bin/mysqld" ]; then
+        echo "[ERROR] 解压后缺少 ${serverPath}/mysql/bin/mysqld，安装包内容异常" >&2
+        rm -rf ${serverPath}/mysql
+        exit 1
+    fi
+
     # 优化二：清理占用数百MB空间的无效测试和文档目录，提高 I/O 效率
     echo "正在清理无关的测试组件与文档，释放磁盘空间..."
     rm -rf ${serverPath}/mysql/mysql-test

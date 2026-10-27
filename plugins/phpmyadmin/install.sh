@@ -14,6 +14,27 @@ fi
 sysName=`uname`
 echo "use system: ${sysName}"
 
+# --------------------------------------------------------------------------
+# 问题报告「phpmyadmin 版本接线」：请求 5.2.1 却实装 5.2.3。
+#   根因不是 URL 拼接，而是 **bash 函数有自己的位置参数**：`VER="${2:-}"` 写在
+#   Install_phpmyadmin() 里，而调用处是无参调用，于是函数内 $2 恒为空 → 永远退回
+#   默认 5.2.3。必须在**脚本层**取 $2（见下面的 SCRIPT_VER）。
+# --------------------------------------------------------------------------
+SCRIPT_VER="${2:-}"
+
+_yf_pma_action="$(printf '%s' "${1:-}" | tr -d '')"
+case "${_yf_pma_action}" in
+	install|uninstall) ;;
+	'')
+		echo "[ERROR] 缺少动作参数（用法：bash install.sh install <版本号>，例如 install 5.2.1）" >&2
+		exit 1
+		;;
+	*)
+		echo "[ERROR] 不支持的动作：${_yf_pma_action}（仅支持 install / uninstall）" >&2
+		exit 1
+		;;
+esac
+
 Install_phpmyadmin()
 {
 	if [ -d $serverPath/phpmyadmin ];then
@@ -25,9 +46,11 @@ Install_phpmyadmin()
 	# 《问题报告》次要-1：旧实现把 VER 写死为 5.2.3、不读传入的版本参数，
 	# 面板上选 5.2.1 却装出 5.2.3（info.json 里还挂着 4.4.15/4.9.11/5.2.1）。
 	# 现在：以 $2 为准，空则用默认 5.2.3；4.x 早期版本没有 .tar.xz，所以两种包都试。
-	VER="${2:-}"
+	VER="${SCRIPT_VER}"
 	if [ -z "${VER}" ]; then
-		VER=5.2.3
+		# 面板总会传版本；此处仅为手工调用兜底：取 info.json 声明的最后一个版本
+		VER=$(sed -n 's/.*"\([0-9][0-9.]*\)".*//p' "$curPath/info.json" 2>/dev/null | tail -n 1)
+		[ -n "${VER}" ] || VER=5.2.3
 	fi
 	# 版本号会进 URL 与目录名，白名单拦住路径穿越/命令注入
 	case "${VER}" in
@@ -93,10 +116,25 @@ Install_phpmyadmin()
 	cd $serverPath/phpmyadmin/ && mv $FDIR phpmyadmin
 	rm -rf $serverPath/source/phpmyadmin/$FDIR
 
+	# 产物回读：安装布局是 <server>/phpmyadmin/phpmyadmin/（index.py 启动时再改名为随机子目录），
+	# 已归一化的机器则是 <server>/phpmyadmin/index.php —— 两种都算装好。
+	if [ ! -f ${serverPath}/phpmyadmin/index.php ] && 	   [ ! -f ${serverPath}/phpmyadmin/phpmyadmin/index.php ]; then
+		echo "[ERROR] 安装产物缺失：${serverPath}/phpmyadmin 下没有 index.php（phpMyAdmin 未解包成功）" >&2
+		exit 1
+	fi
+
 	echo "${VER}" > ${serverPath}/phpmyadmin/version.pl
-	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py start
-	
-	echo '安装完成'
+	_installed=$(cat ${serverPath}/phpmyadmin/version.pl 2>/dev/null)
+	if [ "${_installed}" != "${VER}" ]; then
+		echo "[ERROR] 版本回读不一致：请求 ${VER}，落盘 ${_installed}" >&2
+		exit 1
+	fi
+
+	# 面板侧启动失败不改变「已装好」的结论，但不能静默
+	(cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py start) || 		echo "[WARN] phpMyAdmin 已安装，但面板侧启动失败（可在面板里手动启动）" >&2
+
+	echo "安装完成（phpMyAdmin ${VER}）"
+
 }
 
 Uninstall_phpmyadmin()
@@ -107,8 +145,7 @@ Uninstall_phpmyadmin()
 	echo '卸载完成'
 }
 
-action=$1
-if [ "${1}" == 'install' ];then
+if [ "${_yf_pma_action}" == 'install' ];then
 	Install_phpmyadmin
 else
 	Uninstall_phpmyadmin

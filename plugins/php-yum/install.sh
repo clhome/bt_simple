@@ -89,6 +89,25 @@ if [ ! -d "$curPath/versions/$type" ];then
 fi
 
 # --------------------------------------------------------------------------
+# P1-新：平台闸门（非 RHEL 系必须明确失败，不能「装了个寂寞」）
+#   现场：Ubuntu 上 `bash install.sh install 82` 两次都 exit 0（4-5s），
+#   日志里只有 `yum: command not found`（127），php-yum 目录根本没创建，
+#   面板却报「安装完成」——因为下面的 `if [ -d ... ]` 把整段安装跳过了。
+#   这里先判包管理器，没有 yum/dnf 就直接失败并指明该用哪个渠道。
+# --------------------------------------------------------------------------
+_yf_pkg_mgr=""
+for _m in yum dnf; do
+	if command -v "${_m}" >/dev/null 2>&1; then
+		_yf_pkg_mgr="${_m}"
+		break
+	fi
+done
+if [ "${action}" == "install" ] && [ -z "${_yf_pkg_mgr}" ]; then
+	echo "[ERROR] 当前系统没有 yum/dnf：PHP[YUM] 渠道只能装在 RHEL 系（CentOS / Rocky / AlmaLinux / RHEL / openEuler 等）。Debian/Ubuntu 请改用 PHP[APT] 渠道。" >&2
+	yf_install_report_fail "检测包管理器（yum/dnf 均不存在）" 127 "command -v yum"
+fi
+
+# --------------------------------------------------------------------------
 # 辅助函数
 # --------------------------------------------------------------------------
 
@@ -231,13 +250,17 @@ fi
 
 # Remi 源依赖 EPEL，前置保障
 # rpm -q 是纯探测：未安装返回非 0 是「预期内的否定」，所以放在 if 里而不是 || true
-if ! rpm -q epel-release >/dev/null 2>&1; then
-	# 装 EPEL 可能因网络/源签名失败；它不是 PHP 本体，失败记缺失不中止
-	yf_optional_step --quiet "安装 EPEL 源（yum install epel-release）" yum install -y epel-release
+# 只在真有 yum/dnf 的机器上做（Debian 上连 rpm 都没有，不该在这里报「必需步骤失败」）
+if [ -n "${_yf_pkg_mgr}" ] && ! rpm -q epel-release >/dev/null 2>&1; then
+	# EPEL 是 Remi 的前置：装不上时后面的 `yum install phpNN` 必然失败。
+	# 历史写法记成「可选缺失」→ 最终仍 exit 0（P1-新：虚假成功）。
+	# 现在按必需步骤处理：失败即中止，报告里也落进 failed 列表。
+	# 注：Debian/Ubuntu 走前面平台闸门时就已失败，不会到这里。
+	yf_require_step "安装 EPEL 源（yum install epel-release）" "${_yf_pkg_mgr:-yum}" install -y epel-release
 fi
 
 # 安装 Remi 源（支持 CentOS / Alma / Rocky / RHEL / Aliyun / Anolis / Euler / Fedora）
-if ! rpm -q remi-release >/dev/null 2>&1; then
+if [ -n "${_yf_pkg_mgr}" ] && ! rpm -q remi-release >/dev/null 2>&1; then
 	is_cn=$(is_cn_env)
 	if [ "$OSNAME" == "alma" ] || [ "$OSNAME" == "rocky" ] || [ "$OSNAME" == "centos" ] || [ "$OSNAME" == "rhel" ] || [ "$OSNAME" == "aliyun" ] || [ "$OSNAME" == "euler" ] || [ "$OSNAME" == "fedora" ]; then
 		# Remi 源装不上会导致后面的 yum install phpNN 失败并中止（不会静默），
@@ -260,6 +283,13 @@ fi
 
 # 真正安装 PHP 本体的地方：versions/<NN>/install.sh 失败必须中止
 cd ${curPath} && yf_require_step "安装 PHP${type} 本体（versions/${type}/install.sh）" sh -x $curPath/versions/$2/install.sh $1
+
+# P1-新：产物闸门。旧代码只在目录存在时才继续后面的配置，目录不存在就直接
+# 落到 `yf_install_report_finish`（exit 0）→ 面板报成功但什么都没装。
+if [ "${action}" == "install" ] && [ ! -d "${serverPath}/php-yum/${type}" ]; then
+	echo "[ERROR] PHP-YUM[${type}] 安装产物缺失：${serverPath}/php-yum/${type} 不存在，PHP 本体未真正安装" >&2
+	yf_install_report_fail "校验 PHP[YUM] 安装产物（${serverPath}/php-yum/${type}）" 1 "test -d ${serverPath}/php-yum/${type}"
+fi
 
 if [ "${action}" == "install" ] && [ -d "${serverPath}/php-yum/${type}" ];then
 
@@ -316,12 +346,15 @@ if [ "${action}" == "install" ] && [ -d "${serverPath}/php-yum/${type}" ];then
 
 	if systemctl is-active --quiet php${type}-php-fpm 2>/dev/null; then
 		echo "PHP-YUM[${type}] service is active and running."
+		echo "PHP-YUM[${type}] start ok"
 	else
 		echo "Notice: php${type}-php-fpm service status:"
 		# 探活失败时的诊断输出；status 本身失败没有额外含义，属纯诊断
 		systemctl status php${type}-php-fpm --no-pager -l 2>/dev/null | tail -n 15 || true  # yf-keep: 纯诊断输出
+		# 服务起不来 = 装了个不能用的 PHP：必须非 0 退出，不能打「start ok」蒙过去
+		echo "[ERROR] php${type}-php-fpm 未处于 active 状态，PHP-YUM[${type}] 不可用" >&2
+		yf_install_report_fail "启动 php${type}-php-fpm 并探活" 1 "systemctl is-active php${type}-php-fpm"
 	fi
-	echo "PHP-YUM[${type}] start ok"
 fi
 
 _yf_report_keep_notes

@@ -4,6 +4,15 @@ export PATH=$PATH:/opt/homebrew/bin
 
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
+# 编译期依赖探测库（纯函数，可安全 source）
+for _yf_deps in "${curPath}/php_ext_deps.sh" 	"/www/server/yufeng_panel/plugins/php/versions/common/php_ext_deps.sh"; do
+	if [ -f "${_yf_deps}" ]; then
+		. "${_yf_deps}"
+		break
+	fi
+done
+unset _yf_deps
+
 rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
@@ -76,11 +85,33 @@ Install_lib()
 		fi		
 
 
+		# Linux 上 curl 扩展要求系统有 libcurl 开发包（pkg-config 可见 libcurl>=7.61）。
+		# 旧实现不检查：机器上没有 libcurl-dev 时 configure 失败，最后只报一句
+		# 「扩展产物缺失」，看不出根因（真机 php84 #23）。这里先探测/自动补齐，
+		# 补不上就带着可照抄的安装命令立刻失败。
+		if [ "$sysName" != "Darwin" ]; then
+			if ! declare -F yf_ext_ensure_pkgconfig >/dev/null 2>&1; then
+				echo "ERROR: 缺少依赖探测脚本 php_ext_deps.sh，无法确认 libcurl 开发包" >&2
+				return 1
+			fi
+			if ! yf_ext_ensure_pkgconfig libcurl "libcurl4-openssl-dev libcurl4-gnutls-dev" "libcurl-devel" "7.61.0"; then
+				echo "ERROR: ${LIBNAME} 扩展缺少编译依赖（libcurl 开发包），已中止" >&2
+				return 1
+			fi
+		fi
+
 		$serverPath/php/$version/bin/phpize
 		echo "./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS"
-		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		
-		make clean && make -j${cpuCore:-1} && make install && make clean
+		if ! ./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS; then
+			echo "ERROR: ${LIBNAME} 扩展 configure 失败（多为缺少 libcurl 开发包，见上方输出）" >&2
+			return 1
+		fi
+
+		if ! ( make clean && make -j${cpuCore:-1} && make install ); then
+			echo "ERROR: ${LIBNAME} 扩展编译/安装失败，已中止" >&2
+			return 1
+		fi
+		make clean || true
 		
 		# if [ -d $sourcePath/php${version} ];then
 		# cd ${sourcePath} && rm -rf $sourcePath/php${version}

@@ -213,3 +213,66 @@ ls -l /www/server/mysql/mysql.sock          # 不存在 → 面板会走 TCP
 mysql -uroot -p'<面板里的口令>' -h 127.0.0.1 -e 'select 1'   # 报 1045 → 旧版单 host 缺陷
 ```
 升级后点一次【修复】（改口令/重置）即会补齐 `root@127.0.0.1`、`root@::1` 并验证。
+
+---
+
+# 追加任务（2026-10-27）：核对《问题报告与修改指引（0cdc966）》遗留项
+
+报告基线 `0cdc966`，核对基线 **HEAD `cb27cb288`（比报告多 16 个提交）**。
+逐条核 + 能真跑的真跑（WSL Debian + 真 bash，断网用 `http_proxy=127.0.0.1:1`）。
+
+## 核对结论
+
+| 报告条目 | 现状 | 处理 |
+|---|---|---|
+| P1-新 php-yum 在 Ubuntu 假成功 | **仍存在** | 已修 |
+| P1-新 redis/sphinx 空版本 exit 0 | **仍存在** | 已修 |
+| P1-新 php85 curl 扩展「产物缺失」 | **根因已由 8bc4fd868 修掉**（63 个扩展脚本全部改 `php-config --extension-dir`），但**失败会被 common.sh 吞掉** | 已修（退出码透传） |
+| P1-新 php 扩展构建依赖不自带 | **仍存在**（mac 侧有 brew 分支，Linux 侧不检查 libcurl） | 已修（探测 + 自动装 + 可照抄命令） |
+| P2 phpmyadmin 版本未接线 | **仍存在，且根因与报告写的不一样** | 已修 |
+| 次要 mysql classic.cnf 缺口 | **已修**（`initDreplace` 幂等补 classic.cnf/gtid.cnf） | 无需再改，补守卫 |
+| 待办 次要 mysql 下载无校验 | 部分（有大小 + `file` 魔数） | 已加强（xz/gzip 完整性 + sha256 + 产物回读） |
+| 待办 P2-2 服务崩溃无告警 | **未复现**（本轮无崩溃场景） | 未动，需补复现场景再定级 |
+
+## 逐条修复
+
+- [x] **php-yum**：新增平台闸门（无 `yum/dnf` 立即失败并指明该用 PHP[APT]）；7 个
+      `versions/*/install.sh` 的 yum 失败改为 `exit 1`（原来是判 `$?` 后不建目录就返回 0）；
+      EPEL 从「可选缺失」改为必需步骤；新增**产物闸门**（`$serverPath/php-yum/<ver>` 必须存在）；
+      fpm 未 active 时不再打印「start ok」而是失败。EPEL/Remi 段只在真有 yum/dnf 的机器上执行
+      （否则 Debian 上连 uninstall 都会被 rpm 缺失打断）。
+- [x] **redis / sphinx**：动作白名单（空参数不再落到「卸载」分支）+ 版本 fail-fast
+      （sphinx 只接受 info.json 里的 8 个版本）；下载/解压/编译失败即 `exit 1`；
+      sphinx 不再先 `mkdir $serverPath/sphinx`（那正是「目录在=已装好」的假象），
+      改为 **staging 目录 + searchd 二进制回读**后再落正式目录；成功文案移到回读之后。
+- [x] **phpmyadmin 版本接线**：根因是 **bash 函数有自己的位置参数** —— `VER="${2:-}"` 写在
+      `Install_phpmyadmin()` 里、调用处无参 → 函数内 `$2` 恒空 → 永远退回 5.2.3。
+      改为脚本层 `SCRIPT_VER="${2:-}"`；另加动作白名单、产物回读（含 index.php 的两种布局）、
+      `version.pl` 回读一致性校验；面板侧启动失败只 WARN。
+- [x] **php 扩展退出码**：`plugins/php|php-apt|php-yum/versions/common.sh` 三份全部透传
+      扩展脚本退出码（原来跑完 bash 只 echo 调试行就 exit 0 → 面板永远显示「安装扩展成功」）；
+      脚本缺失 → 非 0。
+- [x] **php 扩展依赖**：新增 `plugins/php/versions/common/php_ext_deps.sh`
+      （`yf_pkgconfig_has` / `yf_ext_ensure_pkgconfig`）；`curl.sh` 编译前确保 libcurl 开发包
+      （Debian 装 `libcurl4-openssl-dev/-gnutls-dev`，RHEL 装 `libcurl-devel`），
+      补不上就带可照抄命令失败；`configure`/`make` 失败即 `return 1`；
+      `readline.sh` 增加 `pkg-config libedit` 回读（避免只留一句含糊的 were not met）。
+- [x] **mysql 下载校验**：补 xz/gzip 完整性校验（截断包当轮切节点）、sha256 记录 +
+      有官方 `.sha256` 时严格比对、解压后回读 `bin/mysqld`。
+
+## 验证
+
+- 真跑（WSL Debian）：`php-yum install 82` → rc=1 且提示「没有 yum/dnf…改用 PHP[APT]」；
+  `php-yum uninstall 82` → rc=0（不再被 rpm 缺失打断）；
+  `redis install`（无版本）→ rc=1；`sphinx install`（无版本 / 9.9.9）→ rc=1；
+  `redis install 4.0.14` → 通过版本闸门，断网时明确报「下载失败」；
+  `common.sh 85 install fakeext`（脚本 exit 3）→ rc=3；`nosuchext` → rc=1；
+  `phpmyadmin install 5.2.1` → 日志开头即「准备安装 phpMyAdmin 5.2.1」（修复前是 5.2.3）。
+- 新增守卫：`testsuite/test_report_0cdc966_fixes.py`（20 项，含 6 项真跑）。
+- 全量门禁：`python testsuite/run_all.py` → **314 模块 / 4151 个 test 方法 / 0 隔离 / 全绿**。
+
+## 未处理（需产品/环境配合）
+
+- **P2-2 服务崩溃无告警**：本轮无复现场景，未复测；需先补 kill 服务进程的复现脚本再定级。
+- **mysql 分发包的「官方 sha256 基线」**：仓库里没有权威校验值，当前做的是「记录 + 有 .sha256 就比对 +
+  完整性校验 + 产物回读」；若要做固定值强校验，需要按版本/架构维护一张表（属产品决策）。
