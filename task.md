@@ -462,3 +462,54 @@ systemctl status mysql
   机器上若另有同名服务在跑，仍可能误判「已在运行」。这属于「连的是谁」那一类，
   mysql 已用 `instanceOwnership()` 解决；其余插件要逐个改，风险与工作量都大，
   本轮只做「卸载不彻底」这一条（用户报的正是它）。
+
+---
+
+# 追加任务（2026-10-27 五次）：GitHub Actions `install Mysql56` 编译失败（OpenSSL 接线）
+
+## 现场（CI，ubuntu-22.04）
+
+```
+CMake Error at cmake/ssl.cmake:66 (MESSAGE):
+  Please install the appropriate openssl developer package.
+Wrong option or path for WITH_SSL=/www/server/lib/openssl11.
+```
+
+## 根因（两处叠加 + 两个同族问题）
+
+1. **脚本名写错**：`plugins/mysql/versions/5.6/install.sh` 调 `openssl10.sh`，
+   仓库里的文件叫 `openssl_10.sh` → 自建 OpenSSL **从未执行**，且没判返回值。
+2. **版本张冠李戴**：5.6 把 `WITH_SSL` 指向 `lib/openssl11`（那是 5.7 用的 1.1），
+   对 5.6 既不兼容（只支持 1.0.x 或自带 yaSSL），目录也不存在。
+3. **`openssl_10.sh` 装错地方**：只写了 `--openssldir`（配置目录）没写 `--prefix`，
+   OpenSSL 被装进 `/usr/local`；`lib/openssl10` 下没有 include/lib 但**目录存在**
+   → 之后永远跳过重装 → 依赖它的编译（MySQL 5.5/5.6、PHP 7.0）永久报
+   「Wrong option or path」。
+4. 三个 openssl 自建脚本（`openssl.sh` / `openssl_10.sh` / `openssl_11.sh`）：
+   判存只看目录、失败不返回非 0、OpenSSL 1.0.2 在 gcc>=10 上缺 `-fcommon`。
+
+## 修复
+
+- [x] **MySQL 5.6 默认不指定 `WITH_SSL`** → 用它自带的 bundled yaSSL（与 5.5 同路子，
+      不依赖系统 OpenSSL，ubuntu-22.04 上可编过）；需要 TLS1.2 时显式开
+      `YF_MYSQL56_CUSTOM_SSL=1`（走修好的 openssl_10.sh + 回读 ssl.h）。
+- [x] `openssl_10.sh`：`--prefix=${SERVER_ROOT}/openssl10` + `--openssldir=.../ssl`，
+      `-fcommon`（CFLAGS + config 参数双保险），判存改成「ssl.h + libssl 都在」，
+      下载/解压/config/make/install 每步失败即 `exit 1`，**装后回读**。
+- [x] `openssl_11.sh` / `openssl.sh`：同样把「目录存在」改成「装好了」+ 装后回读 + 失败非 0。
+
+## 验证
+
+- 新增守卫 `testsuite/test_mysql_openssl_wiring.py`（9 项）：
+  ① 全仓扫描「`bash .../plugins/php/lib/xxx.sh`」引用的脚本**必须存在**（专治脚本名打错）；
+  ② 5.6 不得出现 `openssl11`、`WITH_SSL` 必须在 `YF_MYSQL56_CUSTOM_SSL` 开关内；
+  ③ 三个 openssl 自建脚本都必须有 `_yf_ossl_ready` 回读 + 非 0 退出；
+  ④ `openssl_10.sh` 必须用 `--prefix` 且带 `-fcommon`。
+  旧代码上跑该用例 **7 项红**（证明能抓住本次缺陷），新代码全绿。
+- 全量门禁：**317 模块 / 4195 个 test 方法 / 0 隔离 / 全绿**。
+
+## 说明（为什么 5.6 不用自建 OpenSSL 1.1）
+
+MySQL 5.6 只能链接 OpenSSL 1.0.x；1.1/3.x 的 API 与结构体不兼容。
+要 TLS1.2 就得编 1.0.2（本次已修好 `openssl_10.sh` 的路径与 `-fcommon`）。
+默认走 yaSSL 是为了「不联网、不额外编译也能装成功」，与 5.5 的历史行为一致。

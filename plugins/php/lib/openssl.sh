@@ -25,7 +25,23 @@ SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 mkdir -p $SOURCE_ROOT
 
-if [ ! -d ${SERVER_ROOT}/openssl ];then
+# 判存不能只看目录在不在：中断过的安装会留下空目录，之后再也不会重装，
+# 依赖它的编译只会报「Wrong option or path」这种看不懂的错。
+_yf_ossl_ready() {
+    [ -f "${SERVER_ROOT}/openssl/include/openssl/ssl.h" ] || return 1
+    for _d in "${SERVER_ROOT}/openssl/lib" "${SERVER_ROOT}/openssl/lib64"; do
+        if [ -f "${_d}/libssl.so" ] || [ -f "${_d}/libssl.a" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! _yf_ossl_ready; then
+    if [ -d "${SERVER_ROOT}/openssl" ]; then
+        echo "[openssl][WARN] ${SERVER_ROOT}/openssl 存在但缺 include/lib，重新编译安装"
+        rm -rf "${SERVER_ROOT}/openssl"
+    fi
     cd ${SOURCE_ROOT}
     if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
         github_download ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://github.com/openssl/openssl/releases/download/openssl-${opensslVersion}/openssl-${opensslVersion}.tar.gz
@@ -33,7 +49,8 @@ if [ ! -d ${SERVER_ROOT}/openssl ];then
     tar -zxf openssl-${opensslVersion}.tar.gz
     cd openssl-${opensslVersion}
     ./config --prefix=${SERVER_ROOT}/openssl zlib-dynamic shared
-    make -j${cpuCore:-1} && make install
+    make -j${cpuCore:-1} || { echo "[openssl][ERROR] make 失败" >&2; exit 1; }
+    make install || { echo "[openssl][ERROR] make install 失败" >&2; exit 1; }
 
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/openssl-${opensslVersion}
 fi
@@ -42,4 +59,10 @@ if [ ! -d ${SERVER_ROOT}/openssl/lib64 ] && [ -d ${SERVER_ROOT}/openssl/lib ]; t
     ln -sf ${SERVER_ROOT}/openssl/lib ${SERVER_ROOT}/openssl/lib64
 elif [ ! -d ${SERVER_ROOT}/openssl/lib ] && [ -d ${SERVER_ROOT}/openssl/lib64 ]; then
     ln -sf ${SERVER_ROOT}/openssl/lib64 ${SERVER_ROOT}/openssl/lib
+fi
+
+# 装完回读：缺 ssl.h/libssl 就明确失败（让调用方拿到非 0，而不是后续 cmake/configure 报怪错）
+if ! _yf_ossl_ready; then
+    echo "[openssl][ERROR] ${SERVER_ROOT}/openssl 安装后仍缺 include/openssl/ssl.h 或 libssl" >&2
+    exit 1
 fi
