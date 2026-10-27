@@ -513,3 +513,50 @@ Wrong option or path for WITH_SSL=/www/server/lib/openssl11.
 MySQL 5.6 只能链接 OpenSSL 1.0.x；1.1/3.x 的 API 与结构体不兼容。
 要 TLS1.2 就得编 1.0.2（本次已修好 `openssl_10.sh` 的路径与 `-fcommon`）。
 默认走 yaSSL 是为了「不联网、不额外编译也能装成功」，与 5.5 的历史行为一致。
+
+---
+
+# 追加任务（2026-10-27 六次）：OpenSSL 接线的**全版本**复查（mysql / mariadb / php）
+
+## 逐版本核对结论
+
+| 版本 | 自建脚本 | WITH_SSL 目标 | 结论 |
+|---|---|---|---|
+| mysql 5.5 | （Debian 13 分支）| lib/openssl10 | ❌ **假成功**：该分支 `exit 0`，面板显示装好但什么都没装 → 已改 `exit 1` 并删掉无意义的 openssl 预编译 |
+| mysql 5.6 | openssl_10.sh | yaSSL（默认）/ openssl10 | ✅ 上一轮已修 |
+| mysql 5.7 | openssl_11.sh | lib/openssl11 | ⚠️ 版本正确，但**缺失败中止 + 回读 + 空值保护** → 已加固 |
+| mysql 8.0~9.7（10 个） | openssl.sh | lib/openssl | ⚠️ 同上 → 已加固 |
+| mariadb 10.6~12.1（16 个） | 无 | **不设 WITH_SSL**（MariaDB 自带 bundled wolfSSL） | ✅ 无此问题 |
+| php 5.2~5.6 | 无 | 走系统/patch | ✅ |
+| php 7.0 | openssl_10.sh | lib/openssl10 | ⚠️ 缺失败中止/回读 → 已加固 |
+| php 7.1~8.3（9 个） | openssl_11.sh | lib/openssl11 | ⚠️ 同上 → 已加固 |
+| php 8.4 / 8.5 | 无 | `--with-openssl`（系统库，Ubuntu 22.04 = 3.0） | ✅ 版本兼容 |
+
+## 本轮改动
+
+- [x] **mysql 5.7 / 8.x / 9.x（11 个）**：`openssl version` 空值兜底（无 openssl 时
+      `[ "" -ge "3" ]` 会打 `integer expression expected`）、自建调用失败即 `exit 1`、
+      装后回读 `include/openssl/ssl.h`、`PKG_CONFIG_PATH` 改为追加而不是覆盖。
+- [x] **mysql 5.5**：Debian 13 分支由 `exit 0`（假成功）改为 `exit 1` 并给出替代版本建议。
+- [x] **php 7.0~8.3（9 个）**：同样的「失败中止 + 回读 ssl.h」（这些脚本原来失败会继续
+      `./configure --with-openssl=<空目录>`，最后只留一句含糊的
+      `Package requirements (openssl) were not met`）。
+- [x] 修正一处自己引入的缺陷：批量替换时把守卫自身那行
+      `_ossl_dir="${serverPath}/lib/opensslXX"` 也替换成了 `_ossl_dir="${_ossl_dir}"`
+      （自引用）—— 由新增用例 `_ossl_dir 自引用` 抓到后修好。
+
+## 验证
+
+- 新增 `testsuite/test_db_ssl_version_matrix.py`（9 项）：版本↔OpenSSL 兼容矩阵
+  （5.5/5.6 只许 1.0.x 或 yaSSL、5.7 只许 1.1、8.x/9.x 只许 3.x；PHP 7.0 只许 1.0.x、
+  7.1~8.3 只许 1.1、8.4/8.5 不自建）、构建脚本存在性、失败中止、ssl.h 回读、
+  版本探测空值兜底、5.5 不得假成功、MariaDB 必须保持 bundled。
+  旧代码上 4 项红（证明能抓住），新代码全绿。
+- 全量门禁：**318 模块 / 4204 个 test 方法 / 0 隔离 / 全绿**。
+
+## 说明（为什么 MariaDB 不动）
+
+MariaDB 10.6+ 的 CMake 默认 `-DWITH_SSL=bundled`（自带 wolfSSL），本来就不吃系统
+OpenSSL，因此不存在「系统 OpenSSL 3.x 与新版本不兼容」的问题；显式去指系统/自建
+反而会引入与 MySQL 5.6 同类的版本错配风险，所以本用例直接把「MariaDB 不得出现
+WITH_SSL / lib/openssl」写成了断言。

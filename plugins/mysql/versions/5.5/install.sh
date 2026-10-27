@@ -180,19 +180,12 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	OPTIONS=''
 
 	if [ "$OSNAME" == "debian" ] && [ "$VERSION_ID" == "13" ];then
-		Install_dep_debain13
-		# export CFLAGS="-D__s64=long long -D__u64='unsigned long long' -D__s32=int -D__u32='unsigned int' -D__u16='unsigned short'"
-		# export CXXFLAGS="$CFLAGS"
-		# OPTIONS="${OPTIONS} -DCMAKE_C_FLAGS=${CFLAGS}"
-		# OPTIONS="${OPTIONS} -DCMAKE_CXX_FLAGS=${CXXFLAGS}"
-
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
-		export PKG_CONFIG_PATH=${serverPath}/lib/openssl10/lib/pkgconfig
-		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl10"
-
-		# 经过测试，无法安装
-		echo "debain13不支持5.5低版本编译"
-		exit 0
+		# 实测在 Debian 13（glibc 2.41 / OpenSSL 3.x）上 MySQL 5.5 编不过。
+		# 旧代码在这里 `exit 0` —— 面板会显示「安装成功」，而机器上什么都没有
+		# （假成功）。必须非 0 退出并指明替代版本。
+		# 也不要先白编一遍 OpenSSL 1.0.2（约 3 分钟）再宣布不支持。
+		echo "[ERROR] Debian 13 无法编译 MySQL 5.5（glibc/OpenSSL 过新），请改用 MySQL 5.7+ 或 MariaDB 10.6+" >&2
+		exit 1
 	fi
 
 	if [ -d $serverPath/mysql ] && [ ! -f $serverPath/mysql/bin/mysql ]; then

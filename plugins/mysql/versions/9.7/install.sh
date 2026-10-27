@@ -104,12 +104,25 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 
 	OPTIONS=''
 	##check openssl version
-	OPENSSL_VERSION=`openssl version|awk '{print $2}'|awk -F '.' '{print $1}'`
-	if [ "${OPENSSL_VERSION}" -ge "3" ];then
-		#openssl version to high
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh
-		export PKG_CONFIG_PATH=$serverPath/lib/openssl/lib/pkgconfig
-		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl"
+	# 系统 OpenSSL>=3 与老版 MySQL 不兼容时，自建一份专用 OpenSSL 再指向它。
+	# 判空 / 失败即中止 / 装后回读（2026-10-27）：旧写法这三件都没做，
+	# 自建失败会继续跑，最终 cmake 只报「Wrong option or path for WITH_SSL=...」。
+	OPENSSL_VERSION=$(openssl version 2>/dev/null | awk '{print $2}' | awk -F '.' '{print $1}')
+	case "${OPENSSL_VERSION}" in
+		'' | *[!0-9]*) OPENSSL_VERSION=0 ;;   # 无 openssl / LibreSSL：按 0 处理，走系统 SSL
+	esac
+	if [ "${OPENSSL_VERSION}" -ge "3" ]; then
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh || {
+			echo "[ERROR] 自建 OpenSSL 3.x 失败，MySQL ${VERSION} 无法编译（见上方 openssl 日志）" >&2
+			exit 1
+		}
+		_ossl_dir="${serverPath}/lib/openssl"
+		if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
+			echo "[ERROR] 未找到可用的 OpenSSL 3.x：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
+			exit 1
+		fi
+		export PKG_CONFIG_PATH="${_ossl_dir}/lib/pkgconfig:${_ossl_dir}/lib64/pkgconfig:${PKG_CONFIG_PATH}"
+		OPTIONS="-DWITH_SSL=${_ossl_dir}"
 	fi
 
 	WHERE_DIR_GCC=/usr/bin/gcc

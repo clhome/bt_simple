@@ -216,9 +216,19 @@ fi
 		export OPENSSL_CFLAGS="-I${LIB_DEPEND_DIR}/include"
 		export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
 	else
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
-		export PKG_CONFIG_PATH=$serverPath/lib/openssl11/lib/pkgconfig:$PKG_CONFIG_PATH
-		OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl11"
+		# 自建失败必须中止（2026-10-27，与 MySQL 5.6 事故同族）：否则会拿空目录去
+		# configure，最终只留一句含糊的 "Package requirements (openssl) were not met"。
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh || {
+			echo "[ERROR] 自建 OpenSSL 1.1 失败，PHP ${version} 无法编译（见上方 openssl11 日志）" >&2
+			exit 1
+		}
+		_ossl_dir="${serverPath}/lib/openssl11"
+		if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
+			echo "[ERROR] 未找到可用的 OpenSSL 1.1：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
+			exit 1
+		fi
+		export PKG_CONFIG_PATH=${_ossl_dir}/lib/pkgconfig:$PKG_CONFIG_PATH
+		OPTIONS="$OPTIONS --with-openssl=${_ossl_dir}"
 	fi
 
 	# echo "$sourcePath/php/php${PHP_VER}"
