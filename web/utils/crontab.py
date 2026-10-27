@@ -61,6 +61,14 @@ _CRON_NAME_RE = re.compile(r'^[A-Za-z0-9_.-]{1,64}$')
 CRON_CYCLE_TYPES = ('day', 'day-n', 'hour', 'hour-n', 'minute-n', 'week', 'month')
 CRON_TASK_STYPES = ('toShell', 'toFile', 'toUrl', 'rememory', 'logs', 'site', 'path', 'database')
 
+# 手动执行（面板「执行」按钮 / startTask）用的环境开关：脚本里「执行时段限制」
+# 「日期类型限制」这两段前置判定只拦 cron 触发，手动执行必须立刻跑，
+# 否则「每N分钟执行(限制: 从09:00起)」的任务点执行只会写一条「跳过执行」。
+CRON_FORCE_ENV = 'YF_CRON_FORCE'
+# 脚本里的能力标记：存量脚本没有它说明是旧版（不认 CRON_FORCE_ENV），
+# startTask 会就地把脚本重生一次（自愈，不必让用户重新保存任务）。
+CRON_FORCE_MARKER = '#YF_CRON_FORCE_SUPPORTED'
+
 
 def _cron_safe_name(echo):
     """把 echo 收敛为合法脚本名；不合规（空格/分号/换行/路径分隔符等）返回空串拒绝。"""
@@ -312,13 +320,63 @@ class crontab(object):
         except Exception:
             return False
 
+    def _prepare_manual_run_script(self, cron_id, data, cmd_file):
+        """手动执行前把脚本准备好（**只碰 /www/server/cron 下的脚本文件，不碰系统 crontab**）。
+
+        三种情况：
+          * 脚本已存在且带能力标记（`CRON_FORCE_MARKER`）→ 直接用；
+          * 脚本已存在但没标记（升级前生成的旧脚本，时段限制无条件生效）→ 重生一次；
+          * 脚本不存在（停用中的任务，或历史同步被拒）→ 仅生成脚本文件。
+            停用任务手动执行也要能立刻跑，所以这里**不能**走 syncToCrond：
+            status=0 会被它直接拒掉，写 crontab 还会把「停用」复活。
+
+        返回 False 表示脚本确实生成不出来（echo 未过白名单 / 写盘失败 / toFile 脚本丢失）。
+        写盘走 getShell → yf.writeFile（临时文件 + os.replace 原子替换），
+        正在执行的那一份拿着旧 inode，不会被改写打断。
+        """
+        existed = os.path.exists(cmd_file)
+        if existed:
+            try:
+                if CRON_FORCE_MARKER in (yf.readFile(cmd_file) or ''):
+                    return True
+            except Exception as _e:
+                _log.debug('[crontab] 读取任务脚本失败（任务 %s）: %s', cron_id, _e)
+                return False
+            # toFile：脚本内容是用户自己上传的整份文件，没有我们生成的头部，
+            # 重生会把它覆盖掉（param 里也没有 sFile）—— 直接不动。
+            if str(data.get('stype', '')) == 'toFile':
+                return True
+        try:
+            info = dict(data)
+            if 'where_hour' in info:
+                info['hour'] = info['where_hour']
+                info['minute'] = info['where_minute']
+                info['week'] = info['where1']
+            name = self.getShell(info)
+            if not name:
+                return False
+            if existed:
+                yf.writeFileLog('[crontab] 任务 %s 的存量脚本已重生为支持手动执行（忽略时段限制）\n' % cron_id)
+            else:
+                yf.writeFileLog('[crontab] 任务 %s 的脚本不存在，已为手动执行重新生成\n' % cron_id)
+            return True
+        except Exception as _e:
+            _log.debug('[crontab] 为手动执行准备脚本失败（任务 %s）: %s', cron_id, _e)
+            return False
+
     def startTask(self, cron_id):
         data = thisdb.getCrond(cron_id)
         if data is None:
             return yf.returnData(False, 'common.param_error')
         cmd_file = yf.getServerDir() + '/cron/' + data['echo']
-        if not os.path.exists(cmd_file):
-             self.syncToCrond(cron_id)
+        if not self._prepare_manual_run_script(cron_id, data, cmd_file):
+            # 没有脚本就不能假报「已执行」：否则用户看到成功、日志一行没新增。
+            # 最常见原因是历史任务的 echo 未过白名单（提示编辑后重新保存）；
+            # 其余情况（写盘失败/toFile 脚本丢失）提示文件写入失败。
+            status = cron_name_status(data.get('echo'))
+            if not status['sync_ok']:
+                return yf.returnData(False, status['sync_reason'])
+            return yf.returnData(False, 'crontab.py_msg_77c6a9')
         try:
             os.chmod(cmd_file, 0o750)
         except Exception as _e:
@@ -329,9 +387,14 @@ class crontab(object):
         self.cleanupStaleCron(cron_id)
         pid_file = self._cron_pid_file(cron_id)
         proc = None
+        # 手动执行必须「立刻跑」：注入 CRON_FORCE_ENV=1，脚本里的
+        # 执行时段限制/日期类型限制整段被跳过（cron 触发时不带这个变量，判定照旧）。
+        env = dict(os.environ)
+        env[CRON_FORCE_ENV] = '1'
         try:
             lf = open(log_file, 'a')
-            proc = _sp.Popen([cmd_file], stdout=lf, stderr=_sp.STDOUT, start_new_session=True, close_fds=True)
+            proc = _sp.Popen([cmd_file], stdout=lf, stderr=_sp.STDOUT, start_new_session=True,
+                             close_fds=True, env=env)
             try:
                 yf.writeFile(pid_file, str(proc.pid))
             except Exception as _e:
@@ -342,7 +405,9 @@ class crontab(object):
                 _log.debug('[crontab] 关闭日志句柄失败: %s', _e)
         except Exception as _e:
             try:
-                yf.execShell(yf.shlexQuote(cmd_file) + ' >> ' + yf.shlexQuote(log_file) + ' 2>&1 &')
+                # 兜底路径（Popen 失败时）同样要带开关；
+                # 变量统一走 yf.shlexQuote，避免 shell 拼接（棘轮门禁要求）。
+                yf.execShell(yf.shlexQuote(CRON_FORCE_ENV) + '=1 ' + yf.shlexQuote(cmd_file) + ' >> ' + yf.shlexQuote(log_file) + ' 2>&1 &')
             except Exception as _e2:
                 yf.writeFileLog('[crontab] 启动任务脚本彻底失败: %s / %s' % (_e, _e2))
         thisdb.setCrontabData(cron_id, {'last_run_time': yf.formatDate()})
@@ -774,6 +839,7 @@ YF_ToSeconds()
     fi
 }
 START_YF_SHELL_TIME=`date +%s`
+''' + CRON_FORCE_MARKER + '''
 '''
 
             source_bin_activate = '''
@@ -785,7 +851,8 @@ fi''' % (yf.getPanelDir(),)
 
             head = head + start_head + source_bin_activate + "\n"
             
-            # 分钟N执行时段限制
+            # 执行时段/日期限制（cron 触发时才生效；面板点「执行」会带 CRON_FORCE_ENV=1 立刻跑）
+            gate_checks = ''
             if 'type' in param and param['type'] == 'minute-n':
                 time_check = '''
 # 执行时段限制判定
@@ -813,7 +880,7 @@ if [ "$CURRENT_HM" -gt "$MIN_END_HM" ]; then
     exit 0
 fi
 ''' % (end_hm,)
-                head = head + time_check
+                gate_checks += time_check
 
             if 'day_type' in param and (str(param['day_type']) != '0'):
                 day_type = str(param['day_type'])
@@ -858,7 +925,23 @@ else
     fi
 fi
 ''' % (check_logic, check_desc)
-                head = head + workday_check
+                gate_checks += workday_check
+
+            if gate_checks:
+                # 手动执行（面板「执行」按钮）必须立刻跑：Popen 时会给脚本注入
+                # CRON_FORCE_ENV=1，这里把整段前置判定包起来跳过，
+                # 否则「每N分钟执行(限制:从09:00起)」的任务点执行只会写一条
+                # 「跳过执行：未到允许的开始时间」，看起来像按钮失灵。
+                head = head + ('''
+# 执行时段/日期限制：只在 cron 触发时判定。
+# 面板点「执行」（手动执行）会带 CRON_FORCE_ENV=1，忽略这些限制立刻执行。
+if [ "${''' + CRON_FORCE_ENV + ''':-0}" = "1" ]; then
+    echo "----------------------------------------------------------------------------"
+    echo "★[$(date +"%Y-%m-%d %H:%M:%S")] 手动执行：已忽略执行时段/日期限制"
+    echo "----------------------------------------------------------------------------"
+else
+''' + gate_checks + '''fi
+''')
             log = '.log'
 
             #所有

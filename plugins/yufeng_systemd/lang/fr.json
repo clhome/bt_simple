@@ -3,7 +3,6 @@
     "# 2. 创建名为 venv 的虚拟环境": "# 2. Créez un environnement virtuel nommé venv",
     "# 3. 激活虚拟环境并安装 requirements.txt 依赖": "# 3. Activez l'environnement virtuel et installez les dépendances requises.txt",
     "Django/Gunicorn 服务启动：": "Outil de réparation d'optimisation MongoDB",
-    "JavaScript 运行错误": "Erreur d'exécution JavaScript",
     "Python 虚拟环境使用方法 (venv)": "Comment utiliser l'environnement virtuel Python (venv)",
     "Python 虚拟环境启动示例：": "Exemple de démarrage d'un environnement virtuel Python :",
     "root (最高权限，极不推荐Web服务使用)": "root (autorité la plus élevée, fortement déconseillée pour les services Web)",

@@ -287,12 +287,20 @@ class TestRouteAndDbGuards(unittest.TestCase):
 
     def test_29_js_escapes_task_name_and_logs(self):
         src = _read(CRONTAB_JS)
-        self.assertIn("title='\" + cronEsc(rdata.data[i].name)", src,
+        self.assertIn('title=\'" + cronEsc(row_name)', src,
                       '任务名必须转义后再拼进列表 HTML（存储型 XSS）')
         self.assertIn('textContent = rdata.msg', src, '任务日志必须当纯文本渲染')
         self.assertNotIn('$("#crontab_log").html(rdata.msg)', src)
         self.assertIn('function cronEsc(', src)
-        self.assertIn('function cronEscJs(', src)
+        # 用户数据一律不进内联 JS（任务名带引号时会被截断成
+        # 「Uncaught SyntaxError: missing ) after argument list」，日志按钮直接点不动）
+        code = '\n'.join(l for l in src.splitlines() if not l.strip().startswith('//'))
+        for bad in ('javascript:startTask(', 'javascript:getLogs(',
+                    'javascript:editTaskInfo(', 'javascript:planDel(',
+                    'onclick="startTask(', 'function cronEscJs('):
+            self.assertNotIn(bad, code, '仍有用户数据拼进内联 JS：%s' % bad)
+        self.assertIn('data-cron-act="log"', code)
+        self.assertIn("$(document).off('click.cronRowAct').on('click.cronRowAct', '.cron-row-act'", code)
 
 
 if __name__ == '__main__':

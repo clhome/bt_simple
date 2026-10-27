@@ -19,9 +19,11 @@ function getDayTypeText(day_type) {
 
 //查看任务日志
 function getLogs(id, task_name) {
-  if (typeof task_name == 'undefined') {
+  if (id === undefined || id === null || String(id) === '') return; // 没有 id 就别发请求：/crontab/logs 只会 500
+  if (typeof task_name == 'undefined' || task_name === null) {
     task_name = '';
   }
+  task_name = String(task_name);
   var reqTimer = null;
   var reqCount = 0;
   var tips = layer.msg(lan && lan.crontab && t('crontab.loading_please_wait') || "", {
@@ -29,7 +31,7 @@ function getLogs(id, task_name) {
     time: 0,
     shade: [0.3, '#000']
   });
-  var req_log_args = 'id=' + id;
+  var req_log_args = 'id=' + encodeURIComponent(id);
   function requestLogs(layerIndex) {
     var is_refresh = $("#log_refresh_switch").prop('checked');
     if (reqCount > 0 && !is_refresh) return;
@@ -71,9 +73,18 @@ function getLogs(id, task_name) {
         clearInterval(reqTimer);
       }
     },
-    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.public.auto_refresh || '自动刷新') + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + '\', true)">' + t('crontab.execute_task', '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + t('crontab.task_name', '任务名称') + ':' + '</span><span style="margin-left: 10px; font-weight: bold;">' + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
+    // 任务名/ID 一律不进内联 JS：以前这里是
+    //   onclick="startTask(' + id + ', '<任务名>', true)"
+    // 名字里带一个双引号（例如同步来的 [系统任务] "/root/.acme.sh" --cron）就会被
+    // HTML 解析截断成 startTask(437, '[系统任——点「执行任务」直接 SyntaxError。
+    // 现在改成 success 里用闭包变量绑事件，名字只作为文本（转义后）显示。
+    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.public.auto_refresh || '自动刷新') + '</label>' + '<button type="button" id="cron_log_run" class="btn btn-default btn-sm">' + t('crontab.execute_task', '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + t('crontab.task_name', '任务名称') + ':' + '</span><span style="margin-left: 10px; font-weight: bold;">' + cronEsc(task_name) + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
     success: function (layero, index) {
       requestLogs(index);
+      // 用闭包里的 id/task_name，不经过任何字符串拼接
+      layero.find('#cron_log_run').on('click', function () {
+        startTask(id, task_name, true);
+      });
       reqTimer = setInterval(function () {
         if (document.visibilityState !== 'visible') return; // 后台标签页暂停日志轮询
         requestLogs(index);
@@ -101,13 +112,41 @@ function getLogs(id, task_name) {
 function cronEsc(v) {
   return (v == null ? '' : String(v)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 }
-// javascript: 链接里的字符串参数：先做 JS 转义，再做 HTML 转义
-// （属性值里的实体在执行前会被浏览器解码，顺序反了就白做）
-function cronEscJs(v) {
-  var s = v == null ? '' : String(v);
-  s = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n');
-  return cronEsc(s);
+// 行内操作的事件委派（执行/编辑/日志/删除/启停）
+// 背景（真实现场）：这些链接原来是 href="javascript:getLogs(' + id + ", '" + name + '\');"
+// 这种「把数据拼进代码」的写法，而且拼接处还拼错了一个引号：
+//     '<a href="javascript:getLogs(\'' + id + ", '" + name + '\');">'
+// 生成的是 getLogs('437, 'test') —— id 被包进了前面那个字符串里，收尾引号丢了。
+// 结果：每一行的「日志」和「删除」一点就报
+//     Uncaught SyntaxError: missing ) after argument list (at VM###:1:9)
+// 弹窗根本打不开（第 9 列正好是那个多余的引号）。名字里带引号同样会炸。
+// 现在改成：用户数据只进 data-* 属性（经 cronEsc 转义），点击走事件委派，
+// 代码里不再有任何来自数据的字面量。public.js 的失败任务日志链接用的是同一套写法。
+function cronRowAction(e) {
+  e.preventDefault();
+  var el = this;
+  var act = el.getAttribute('data-cron-act') || '';
+  var id = el.getAttribute('data-cron-id');
+  var name = el.getAttribute('data-cron-name') || '';
+  if (id === null || id === '') return;
+  if (act === 'run') {
+    startTask(id, name);
+  } else if (act === 'edit') {
+    editTaskInfo(id);
+  } else if (act === 'log') {
+    getLogs(id, name);
+  } else if (act === 'del') {
+    planDel(id, name);
+  } else if (act === 'toggle') {
+    var st = el.getAttribute('data-cron-status');
+    setTaskStatus(id, st === null ? 0 : parseInt(st, 10) || 0);
+  }
 }
+function cronBindRowActions() {
+  // 命名空间 + off 先解绑：pjax 每次进本页都会重新执行本文件，防止监听器叠加
+  $(document).off('click.cronRowAct').on('click.cronRowAct', '.cron-row-act', cronRowAction);
+}
+cronBindRowActions();
 function getBackupName(hook_data, name) {
   for (var i = 0; i < hook_data.length; i++) {
     if (hook_data[i]['name'] == name) {
@@ -131,8 +170,16 @@ function getCronData(page) {
       cbody = lan && lan.crontab && t('crontab.colspan_align_center_no') || "";
     } else {
       for (var i = 0; i < rdata.data.length; i++) {
+        // 行内操作（执行/编辑/日志/删除/启停）一律走 data-* + 事件委派。
+        // 把任务名拼进 javascript:/onclick 里是个雷：名字里带 " ' \\ 或换行时，
+        // 浏览器把属性截断/自己解码一遍，就会在点击时抛
+        // Uncaught SyntaxError: missing ) after argument list（日志/执行/删除全点不动）。
+        var row_id = rdata.data[i]['id'] == null ? '' : String(rdata.data[i]['id']);
+        var row_name = rdata.data[i]['name'] == null ? '' : String(rdata.data[i]['name']);
+        var id_attr = cronEsc(row_id);
+        var name_attr = cronEsc(row_name);
         //状态
-        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ',0)" style="color:rgb(92, 184, 92);cursor:pointer" title="' + t('crontab.disable_task_tip', '停用该计划任务') + '">' + (lan && lan.public && lan.public.normal || '正常') + '<span class="glyphicon glyphicon-play"></span></a>' : '<span onclick="setTaskStatus(' + rdata.data[i].id + ',1)" class="btClose" style="color:red;cursor:pointer" title="' + t('crontab.enable_task_tip', '启用该计划任务') + '">' + (lan && lan.crontab && lan.crontab.stopped || '停用') + '<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></a>';
+        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen cron-row-act" data-cron-act="toggle" data-cron-status="0" data-cron-id="' + id_attr + '" style="color:rgb(92, 184, 92);cursor:pointer" title="' + t('crontab.disable_task_tip', '停用该计划任务') + '">' + (lan && lan.public && lan.public.normal || '正常') + '<span class="glyphicon glyphicon-play"></span></a>' : '<span class="btClose cron-row-act" data-cron-act="toggle" data-cron-status="1" data-cron-id="' + id_attr + '" style="color:red;cursor:pointer" title="' + t('crontab.enable_task_tip', '启用该计划任务') + '">' + (lan && lan.crontab && lan.crontab.stopped || '停用') + '<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></a>';
         var cron_save = '--';
         if (rdata.data[i]['save'] != '') {
           cron_save = rdata.data[i]['save'] + (lan && lan.crontab && t('crontab.portion') || "");
@@ -151,8 +198,8 @@ function getCronData(page) {
         if (rdata.data[i]['sync_ok'] === false) {
           sync_mark = ' <span class="cron-sync-rejected" title="' + cronEsc(rdata.data[i]['sync_reason'] || '') + '" style="display:inline-block;margin-left:6px;padding:0 6px;border-radius:3px;background:#e74c3c;color:#fff;font-size:12px;white-space:nowrap;cursor:help;">' + cronEsc(t('crontab.cron_sync_rejected', '同步被拒')) + '</span>';
         }
-        cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + cronEsc(rdata.data[i].name) + "' name='id' value='" + rdata.data[i].id + "'></td>\
-					<td>" + cronEsc(rdata.data[i].name) + sync_mark + "</td>\
+        cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + cronEsc(row_name) + "' name='id' value='" + id_attr + "'></td>\
+					<td>" + cronEsc(row_name) + sync_mark + "</td>\
 					<td>" + status + "</td>\
 					<td>" + cronEsc(rdata.data[i].type) + "</td>\
 					<td>" + cronEsc(rdata.data[i].cycle) + "</td>\
@@ -161,7 +208,7 @@ function getCronData(page) {
 					<td>" + getDayTypeText(rdata.data[i].day_type) + "</td>\
 					<td>" + cronEsc(rdata.data[i].last_run_time) + "</td>\
 					<td>\
-						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:editTaskInfo(\'' + rdata.data[i].id + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:getLogs(\'' + rdata.data[i].id + ", '" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:planDel(\'' + rdata.data[i].id + " ,'" + cronEscJs(rdata.data[i].name) + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
+						<a href=\"javascript:;\" class=\'btlink cron-row-act\' data-cron-act=\"run\" data-cron-id=\"" + id_attr + "\" data-cron-name=\"" + name_attr + "\">" + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="edit" data-cron-id="' + id_attr + '">' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="log" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="del" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
       }
     }
     $('#cronbody').html(cbody);
@@ -214,14 +261,14 @@ function startTask(id, task_name, is_log_open) {
     time: 0,
     shade: [0.3, '#000']
   });
-  var data = 'id=' + id;
+  var data = 'id=' + encodeURIComponent(id);
   $.post('/crontab/start_task', data, function (rdata) {
     layer.close(loadT);
     if (rdata.status) {
       if (!is_log_open) {
         getLogs(id, task_name);
       } else {
-        $.post('/crontab/logs', 'id=' + id, function (rdata) {
+        $.post('/crontab/logs', 'id=' + encodeURIComponent(id), function (rdata) {
           if (!rdata.status) return;
           var ob = document.getElementById('crontab_log');
           if (ob) {
@@ -246,7 +293,7 @@ function closeLogs(id, is_refresh) {
     time: 0,
     shade: [0.3, '#000']
   });
-  var data = 'id=' + id;
+  var data = 'id=' + encodeURIComponent(id);
   $.post('/crontab/del_logs', data, function (rdata) {
     layer.close(loadT);
     if (rdata.status && is_refresh) {
@@ -269,7 +316,7 @@ function planDel(id, name) {
       time: 0,
       shade: [0.3, '#000']
     });
-    var data = 'id=' + id;
+    var data = 'id=' + encodeURIComponent(id);
     $.post('/crontab/del', data, function (rdata) {
       showMsg(rdata.msg, function () {
         layer.closeAll();

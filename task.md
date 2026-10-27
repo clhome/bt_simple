@@ -106,3 +106,47 @@
   仍是老的 `wget --tries=3` 形状（本轮只把报告点名的 **mysql 8.0** 换成了 `yf_src_fetch`）。
   获取器已就位，后续把每个版本脚本的下载行替换成 `yf_src_fetch` 即可，属机械改造。
 - 报告「历史遗留未落地项」（宝塔三缺口、Actions 门禁、战略四项）按报告自述属待立项/待拍板，本轮不动。
+
+---
+
+# 追加任务（2026-10-26 ~ 10-27）：计划任务两个前端/执行相关缺陷
+
+## 目标
+1. 计划任务列表点「日志」报 `Uncaught SyntaxError: missing ) after argument list` + `console.fail is not a function`，日志弹窗打不开。
+2. 计划任务点「执行」时被自己设的「执行时段限制 / 日期类型限制」挡住，日志只写
+   `跳过执行：未到允许的开始时间(0900)`，看起来像按钮失灵。**手动执行必须立刻跑**。
+
+## 拆解与结论
+
+### 缺陷 1：行内 JS 拼串（P0，日志/删除点不动）
+- [x] 真 Chrome 复现定死根因：`getCronData()` 拼的是
+      `'<a href="javascript:getLogs(\'' + id + ", '" + name + '\');"'` → 生成
+      `getLogs('437, 'test')`（id 被包进字符串，收尾引号丢了）。**与任务名无关，每一行都炸**；
+      `planDel` 同一拼法 → 删除同样废。报错位置 `:1:9` 与现场截图一致。
+- [x] 行内操作（执行/编辑/日志/删除/启停）改为 `data-cron-act/-id/-name` + 事件委派
+      （`$(document).off('click.cronRowAct').on(...)`，pjax 重进不叠加），删除 `cronEscJs`。
+- [x] 日志弹窗「执行任务」改 `#cron_log_run` + `success` 里闭包绑定；弹窗任务名 `cronEsc` 转义。
+- [x] `plugins/yufeng_systemd/js/yufeng_systemd.js::window.onerror`：`console.fail`（不存在）→
+      `console.error` + 去重 + 转义后非阻塞提示（原来处理器自己抛 TypeError，把真错吞了）。
+- [x] 守卫：`testsuite/test_crontab_frontend_inline_js.py` + `testsuite/js/crontab_row_actions_probe.js`
+      （jsdom 真解析 HTML、真触发委派点击；7 类畸形任务名，310 条断言）。
+
+### 缺陷 2：手动执行被时段/日期限制挡住（P1，点了等于没点）
+- [x] `web/utils/crontab.py`：`getShell()` 把「执行时段限制」「日期类型限制」收进
+      `gate_checks`，统一包成 `if [ "${YF_CRON_FORCE:-0}" = "1" ]; then … else <gate> fi`；
+      脚本头加能力标记 `#YF_CRON_FORCE_SUPPORTED`。
+- [x] `startTask()`：`Popen(..., env=YF_CRON_FORCE=1)`（sh 兜底路径同样带开关），
+      cron 触发不带该变量 → 判定照旧。
+- [x] 存量脚本自愈：`_ensure_force_run_script()` 发现脚本没有能力标记就重生一次（原子替换，
+      不影响正在跑的那一份），升级后不必让用户重新保存任务。
+- [x] 顺带修掉假成功：脚本生成不出来时（如历史任务 echo 未过白名单）改为明确失败
+      （`sync_reason` / `crontab.py_msg_77c6a9`），不再返回「已执行」；
+      停用中的任务点执行也能跑（`_prepare_manual_run_script()` 只生成脚本、不碰系统 crontab）。
+- [x] 守卫：`testsuite/test_crontab_manual_run_force.py`（9 项，含 4 项**真 bash 跑真脚本**：
+      不带开关 → 仍跳过；带开关 → 真跑；日期限制同样跳过且不发节日接口请求）。
+
+## 验证
+- 真 Chrome headless：4 种任务名（含 `[系统任务] "/root/.acme.sh/acme.sh" --cron …`）
+  → 日志弹窗打开、`runBtnInlineOnclick=null`、`startTaskCalls=[{"data":"id=2"}]`、`errors=[]`。
+- 真 bash：同一份脚本，`YF_CRON_FORCE=1` → `RAN_OK`；不设 → `跳过执行：未到允许的开始时间`。
+- 全量门禁：`python testsuite/run_all.py` → **312 模块 / 4113 个 test 方法 / 0 隔离 / 全绿**。

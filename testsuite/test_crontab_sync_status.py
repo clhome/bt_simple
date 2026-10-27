@@ -384,7 +384,7 @@ class FrontendAndI18nTest(unittest.TestCase):
                       '标记文案必须走 i18n 键')
         self.assertIn('cron-sync-rejected', src, '缺少可定位的标记 class')
         # 标记必须挂在任务名后面（列表可见位置的第二列），不能只塞进 title
-        self.assertRegex(src, r"cronEsc\(rdata\.data\[i\]\.name\) \+ sync_mark")
+        self.assertRegex(src, r"cronEsc\(row_name\) \+ sync_mark")
 
     def test_04e_upgrade_note_in_doc(self):
         doc = _read(LIFECYCLE_DOC)

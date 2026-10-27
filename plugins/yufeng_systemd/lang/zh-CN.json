@@ -3,7 +3,6 @@
     "# 2. 创建名为 venv 的虚拟环境": "# 2. 创建名为 venv 的虚拟环境",
     "# 3. 激活虚拟环境并安装 requirements.txt 依赖": "# 3. 激活虚拟环境并安装 requirements.txt 依赖",
     "Django/Gunicorn 服务启动：": "Django/Gunicorn 服务启动：",
-    "JavaScript 运行错误": "JavaScript 运行错误",
     "Python 虚拟环境使用方法 (venv)": "Python 虚拟环境使用方法 (venv)",
     "Python 虚拟环境启动示例：": "Python 虚拟环境启动示例：",
     "root (最高权限，极不推荐Web服务使用)": "root (最高权限，极不推荐Web服务使用)",

@@ -1,13 +1,33 @@
 var api = YfPlugin.createApi('yufeng_systemd');
 var pt = YfI18n.createPluginTranslator('yufeng_systemd');
 // 全局 JS 错误捕获，方便诊断无反应的异常
+// 注意：这里以前写的是 console.fail(...)，浏览器没有这个方法 → 处理器自己先抛
+//   Uncaught TypeError: console.fail is not a function
+// 把真正的报错吞掉（后续的弹窗根本不执行，用户只能看到两条风马牛不相及的错）。
+// 另外：同一个错只提示一次，且用非阻塞的 layer.msg（别每错一次弹一个必须点掉的 modal）。
+var _ys_err_seen = {};
+var _ys_prev_onerror = window.onerror;
 window.onerror = function(message, source, lineno, colno, error) {
     var err_msg = pt('JS 异常: ') + message + '\n' + pt('文件: ') + source + '\n' + pt('行号: ') + lineno + ':' + colno;
-    console.fail(err_msg, error);
-    if (window.layer) {
-        layer.alert(err_msg.replace(/\n/g, '<br>'), {icon: 2, title: pt("JavaScript 运行错误")});
-    } else {
-        alert(err_msg);
+    try {
+        if (window.console && typeof console.error === 'function') {
+            console.error('yufeng_systemd onerror: ' + err_msg, error || '');
+        }
+    } catch (e) {}
+    try {
+        if (!_ys_err_seen[err_msg] && Object.keys(_ys_err_seen).length < 50) {
+            _ys_err_seen[err_msg] = 1;
+            if (window.layer && typeof layer.msg === 'function') {
+                // 错误文本可能带着任务名/路径（用户可控），必须转义再当 HTML 显示
+                layer.msg(ysEsc(err_msg).replace(/\n/g, '<br>'), {icon: 2, time: 5000});
+            } else if (typeof alert === 'function') {
+                alert(err_msg);
+            }
+        }
+    } catch (e) {}
+    // 交回上一个处理器（如果存在），别把别人的错误上报吞掉
+    if (typeof _ys_prev_onerror === 'function' && _ys_prev_onerror !== window.onerror) {
+        try { return _ys_prev_onerror(message, source, lineno, colno, error); } catch (e) {}
     }
     return false;
 };

@@ -32,7 +32,9 @@ global.$ = function(selector) {
             ptimeHtml += val;
             return this;
         },
-        on: function() {},
+        on: function() { return this; },
+        // 行内操作改成了事件委派（$(document).off(...).on(...)），stub 必须支持链式 off
+        off: function() { return this; },
         removeAttr: function() { return this; },
         val: function() { return ''; }
     };
