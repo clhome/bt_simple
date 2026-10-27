@@ -7,6 +7,19 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+# 「卸载前彻底停进程」共享库（scripts/lib_service_stop.sh，纯函数，可安全 source）。
+# 只 systemctl stop 是不够的：进程若不是该 unit 起的（上次卸载删了 unit／手工启动），
+# 就会带着已删除的 datadir/程序文件继续占着端口 —— 见 2026-10-27 MySQL 现场。
+for _yf_svc_lib in "${rootPath}/scripts/lib_service_stop.sh" \
+                   "${serverPath}/yufeng_panel/scripts/lib_service_stop.sh"; do
+	if [ -f "${_yf_svc_lib}" ]; then
+		. "${_yf_svc_lib}"
+		break
+	fi
+done
+unset _yf_svc_lib
+
+
 action=$1
 VERSION=$2
 
@@ -277,6 +290,8 @@ Install_app()
 
 Uninstall_app()
 {
+	# 卸载前置：停 unit + 按「可执行文件在本插件目录下」杀残留（含程序文件已删的僵尸）
+	yf_svc_force_stop "${serverPath}/mongodb" mongodb || echo "[WARN] mongodb 仍有进程残留（见上方日志），卸载继续但端口可能被占" >&2
 	cd ${rootPath} && python3 ${rootPath}/plugins/mongodb/index.py stop
 	
     if [ "$OS_SYS" != "macos" ]; then

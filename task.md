@@ -405,3 +405,60 @@ systemctl status mysql
 
 面板里对这个 MySQL 点一次【卸载】（新版会先杀掉 4156983 再删目录），然后重新安装；
 若懒得卸载，也可以直接 `systemctl stop mysql && kill -9 4156983`，再重装。
+
+---
+
+# 追加任务（2026-10-27 四次）：同类问题普查 —— 其它插件卸载是否也「只删目录不停进程」
+
+## 普查方法
+
+写扫描脚本逐个读 36 个插件的卸载入口（`Uninstall_*()` / `action == uninstall` 分支），
+看四件事：有没有 `stop`、有没有按进程归属 `kill/pgrep`、有没有删 systemd unit、
+`rm -rf 安装目录` 是否发生在「停进程」之后。
+
+## 结论
+
+| 插件 | 卸载现状 | 判定 |
+|---|---|---|
+| mysql / mariadb | 已修（`stop_and_kill` + 各版本脚本 pgrep 兜底） | ✅ |
+| redis / valkey / gitea / pureftp / rsyncd / supervisor / sphinx / postgresql / openresty / apache | 只有 `systemctl stop <unit>` + `initd stop` | ⚠️ **同款风险**：进程不是该 unit 起的（上次卸载删了 unit / 手工启动）就杀不掉 |
+| **mongodb** | `rm -rf $serverPath/mongodb` 写在 `systemctl stop mongodb` **之前** | ❌ **确定性缺陷**（比 mysql 还直接） |
+| **pg_docker** | 只 `rm -rf`，compose 起的 `pg-<inst>` 容器照跑并占端口 | ❌ 确定性缺陷 |
+| **php-fpm（16 个版本脚本）** | `init.d/phpNN stop` 后 `rm -rf` | ⚠️ 同款风险 |
+| docker | 故意只删插件目录、保留宿主机引擎与容器（注释里写明） | ✅ 设计如此，不改 |
+| clean / swap / jdk / phpmyadmin / webssh / webstats / data_query / task_manager / linux_sys_opt / op_* / ollama / python_yf / yufeng_systemd / php-guard / php-apt / php-yum / phpmyadmin | 无常驻的本插件进程（或管理的是别的服务） | ✅ 不适用 |
+
+## 修复
+
+- [x] 新增共享库 `scripts/lib_service_stop.sh`（纯函数，可安全 source）：
+      `yf_svc_stop_units`（systemctl / service / init.d 三路）、
+      **`yf_kill_by_exe_prefix <dir>`**（只杀 `/proc/<pid>/exe` 位于该目录下的进程，TERM→KILL，
+      且对 ` (deleted)` 后缀做了归一化 → 能杀「程序文件已删的僵尸」；
+      对 `/`、空串、`/usr`、`/bin`、`/var` 等危险前缀**拒绝执行**）、
+      `yf_svc_rm_units`、`yf_svc_force_stop`（组合 + 回读）。
+- [x] 11 个 daemon 插件的卸载入口在 `rm -rf` **之前**调用 `yf_svc_force_stop`：
+      redis / valkey / mongodb / gitea / pureftp / rsyncd / supervisor / sphinx /
+      postgresql / openresty / apache（mongodb 的「先删后停」顺序一并纠正）。
+- [x] php 16 个版本脚本的 `Uninstall_php()`：`yf_svc_force_stop "$serverPath/php/<ver>" php<ver>`
+      + initd stop 兜底。
+- [x] mariadb 18 个版本脚本的 `Uninstall_app()`：同上（+ pgrep 兜底）。
+- [x] pg_docker：卸载先按 `instances.json` `docker rm -f pg-<inst>`，再按 compose label
+      兜底清理残留容器，最后删目录（数据卷不动）。
+
+## 验证（真跑）
+
+- 共享库单测（WSL + 真 mariadbd 冒充）：把 mariadbd 复制成 `<dir>/bin/svc` 起实例，
+  **删掉可执行文件**后再调 `yf_kill_by_exe_prefix <dir>` → 该进程被杀（GONE）；
+  目录外 `/usr/sbin/mariadbd` 起的实例 **不受影响**（ALIVE）。
+- 端到端：真跑 `plugins/redis/install.sh uninstall`（假 redis-server 同上手法）→
+  日志出现 `[svc] 残留进程已清理: <pid>`，rc=0，进程 GONE、目录已删。
+- 守卫：`testsuite/test_uninstall_service_stop.py`（8 项：库 API / 危险前缀 /
+  真跑「只杀自己人」/ 各插件调用点早于 rm -rf / unit 名正确 / 版本脚本 / pg_docker 容器）。
+- 全量门禁：**316 模块 / 4186 个 test 方法 / 0 隔离 / 全绿**。
+
+## 仍未覆盖（如实记录）
+
+- **「启动/状态判定」侧的同族问题**：各插件的 `status()` 多数按「进程名/pgrep」判断，
+  机器上若另有同名服务在跑，仍可能误判「已在运行」。这属于「连的是谁」那一类，
+  mysql 已用 `instanceOwnership()` 解决；其余插件要逐个改，风险与工作量都大，
+  本轮只做「卸载不彻底」这一条（用户报的正是它）。

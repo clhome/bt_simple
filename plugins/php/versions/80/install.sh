@@ -221,7 +221,17 @@ fi
 
 Uninstall_php()
 {
-	$serverPath/php/init.d/php${PHP_VER} stop
+	# 先彻底停 php-fpm（init.d stop 失败也能按「可执行文件在本版本目录下」杀掉），
+	# 否则 php-fpm 会带着已删除的二进制继续占着 fpm socket（同 MySQL 现场）。
+	for _yf_svc_lib in "${rootPath}/scripts/lib_service_stop.sh" \
+	                   "${serverPath}/yufeng_panel/scripts/lib_service_stop.sh"; do
+		[ -f "${_yf_svc_lib}" ] && . "${_yf_svc_lib}" && break
+	done
+	if command -v yf_svc_force_stop >/dev/null 2>&1; then
+		yf_svc_force_stop "${serverPath}/php/${PHP_VER}" "php${PHP_VER}" || \
+			echo "[WARN] php-fpm(${PHP_VER}) 仍有进程残留，卸载继续但端口/socket 可能被占" >&2
+	fi
+	$serverPath/php/init.d/php${PHP_VER} stop 2>/dev/null
 	rm -rf $serverPath/php/${PHP_VER}
 	echo "卸载php-${version}..."
 }

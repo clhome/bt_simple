@@ -128,6 +128,27 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 
 Uninstall_app()
 {
+	# 先停进程再删目录（2026-10-27）：只 rm -rf 会让 mariadbd 带着已删除的
+	# datadir/socket 继续占着 3306，重装后表现为「数据库密码错误」。
+	# yf_svc_force_stop 只杀「可执行文件在本插件目录下」的进程，不动系统里别的实例。
+	for _yf_svc_lib in "${rootPath}/scripts/lib_service_stop.sh" \
+	                   "${serverPath}/yufeng_panel/scripts/lib_service_stop.sh"; do
+		[ -f "${_yf_svc_lib}" ] && . "${_yf_svc_lib}" && break
+	done
+	if command -v yf_svc_force_stop >/dev/null 2>&1; then
+		yf_svc_force_stop "${serverPath}/mariadb" mariadb || \
+			echo "[WARN] mariadbd 仍有进程残留（见上方日志），卸载继续但 3306 可能被占" >&2
+	else
+		if command -v pgrep >/dev/null 2>&1; then
+			for _pid in $(pgrep -f "^${serverPath}/mariadb/bin/mariadbd" 2>/dev/null); do
+				kill "$_pid" 2>/dev/null
+			done
+			sleep 1
+			for _pid in $(pgrep -f "^${serverPath}/mariadb/bin/mariadbd" 2>/dev/null); do
+				kill -9 "$_pid" 2>/dev/null
+			done
+		fi
+	fi
 	rm -rf $serverPath/mariadb
 	echo '卸载完成'
 }
