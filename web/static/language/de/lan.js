@@ -3398,7 +3398,8 @@ var lan = {
 			"py_msg_b4c393": "Der Download-Auftrag wurde zur Warteschlange hinzugefügt!",
 			"recycle_bin_confirm": "Möchten Sie die Datei [{1}] wirklich in den Papierkorb verschieben?",
 			"recycle_bin_confirm_dir": "Möchten Sie das Verzeichnis [{1}] wirklich in den Papierkorb verschieben?",
-			"force_refresh": "Aktualisierung erzwingen"
+			"force_refresh": "Aktualisierung erzwingen",
+			"msg_dir_unavailable": "Dieses Verzeichnis kann nicht geöffnet werden"
 		},
 
 	"firewall": {

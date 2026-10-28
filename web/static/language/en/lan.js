@@ -3398,7 +3398,8 @@ var lan = {
 			"py_msg_b4c393": "has DownloadtaskAddto the queue!",
 			"recycle_bin_confirm": "Are you sure you want to move file [{1}] to the recycle bin?",
 			"recycle_bin_confirm_dir": "Are you sure you want to move directory [{1}] to the recycle bin?",
-			"force_refresh": "Force Refresh"
+			"force_refresh": "Force Refresh",
+			"msg_dir_unavailable": "This directory cannot be opened"
 		},
 
 	"firewall": {

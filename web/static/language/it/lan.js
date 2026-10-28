@@ -3398,7 +3398,8 @@ var lan = {
 			"py_msg_b4c393": "L'attività \"Scarica\" è stata aggiunta alla coda!",
 			"recycle_bin_confirm": "Sei sicuro di voler spostare il file [{1}] nel cestino?",
 			"recycle_bin_confirm_dir": "Sei sicuro di voler spostare la cartella [{1}] nel cestino?",
-			"force_refresh": "Aggiornamento forzato"
+			"force_refresh": "Aggiornamento forzato",
+			"msg_dir_unavailable": "Impossibile aprire questa directory"
 		},
 
 	"firewall": {

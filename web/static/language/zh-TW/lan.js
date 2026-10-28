@@ -3398,7 +3398,8 @@ var lan = {
 			"py_msg_b4c393": "已將下載任務新增到隊列!",
 			"recycle_bin_confirm": "您確實要把此檔案[{1}]放入資源回收筒嗎?",
 			"recycle_bin_confirm_dir": "您確實要把此目錄[{1}]放入資源回收筒嗎?",
-			"force_refresh": "強制重新整理頁面"
+			"force_refresh": "強制重新整理頁面",
+			"msg_dir_unavailable": "該目錄無法開啟"
 		},
 
 	"firewall": {

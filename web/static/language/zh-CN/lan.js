@@ -3398,7 +3398,8 @@ var lan = {
 			"py_msg_b4c393": "已将下载任务添加到队列!",
 			"recycle_bin_confirm": "您确实要把此文件[{1}]放入回收站吗?",
 			"recycle_bin_confirm_dir": "您确实要把此目录[{1}]放入回收站吗?",
-			"force_refresh": "强制刷新页面"
+			"force_refresh": "强制刷新页面",
+			"msg_dir_unavailable": "该目录无法打开"
 		},
 
 	"firewall": {

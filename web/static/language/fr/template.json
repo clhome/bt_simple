@@ -2293,7 +2293,8 @@
         "py_msg_b4c393": "La tâche « Télécharger » a été ajoutée à la file d'attente !",
         "recycle_bin_confirm": "Voulez-vous vraiment mettre le fichier [{1}] dans la corbeille ?",
         "recycle_bin_confirm_dir": "Voulez-vous vraiment mettre le répertoire [{1}] dans la corbeille ?",
-        "force_refresh": "Actualisation forcée"
+        "force_refresh": "Actualisation forcée",
+        "msg_dir_unavailable": "Impossible d'ouvrir ce répertoire"
     },
     "file": {
         "dir_empty": "Le répertoire ne doit pas être vide !",

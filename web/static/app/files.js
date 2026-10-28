@@ -511,6 +511,26 @@ function getFiles(Path) {
     $.post('/files/get_dir', post, function(rdata) {
         layer.close(loadT);
 
+        // 列举失败时后端回的是 {status:false, msg:...}：safePath 会拒 /www、/www/server
+        // 以及面板敏感子目录（如 <面板根>/data），登录态失效同理。这种 payload 里没有
+        // dir 也没有 files。点面包屑上层路径（/www/server/xxx -> www -> server）就走到
+        // 这里；以前会一路落到「按文件列表渲染」那一步，对 undefined 取 length 直接
+        // 抛 TypeError，列表停在上一个目录、loading 已关闭，用户只看到控制台红字。
+        // 这里必须早退并给出提示。
+        if (!rdata || typeof rdata !== 'object' || rdata.status === false) {
+            var dirFailMsg = (rdata && rdata.msg) ? rdata.msg : t('files.msg_dir_unavailable', '该目录无法打开');
+            layer.msg(yfMsgEscape(dirFailMsg), {icon: 5, time: 3000});
+            return;
+        }
+        // 正常返回也兜一层：dir/files 缺失按空列表处理（空目录后端会给 []，
+        // 但历史版本/插件回调不保证），避免下面任何一处 .length 再炸
+        if (rdata.dir == null) {
+            rdata.dir = [];
+        }
+        if (rdata.files == null) {
+            rdata.files = [];
+        }
+
         // 路径与条目名都来自用户可控目录：模板拼接统一用转义后的值，
         // 地址栏/标签页/cookie/后续请求仍用原始值（rawPath / rawName）避免影响正常路径
         var rawPath = rdata.path;
@@ -544,10 +564,6 @@ function getFiles(Path) {
 
         //构建分页
         makeFilePage(file_row,rdata.page);
-
-        if(rdata.dir == null) {
-            rdata.dir = [];
-        }
 
         var calcText = (window.lan && lan.files && lan.files.calculate) || t('files.calculate', '计算');
         var copyPathText = (window.lan && lan.files && lan.files.copy_path) || t('files.copy_path', '复制路径');
