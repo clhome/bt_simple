@@ -490,10 +490,11 @@ def db_installable_versions(name):
 
 
 #: 真正实现「极速安装（Tar 二进制）」的插件：只有它们的 install.sh 认 `-fast` 后缀
-#: （`plugins/mysql/install.sh` 里 `type="${type%-fast}"` + `Install_fast_mysql`）。
-#: 其它插件收到 `-fast` 必须**拒掉**：mariadb 的 install.sh 面对未知版本目录是
-#: `echo '缺少安装脚本2...' && exit 0`，放进去就是「任务显示完成、其实什么都没装」。
-FAST_INSTALL_PLUGINS = ('mysql',)
+#:   * `plugins/mysql/install.sh`   → `Install_fast_mysql`（官方预编译包）
+#:   * `plugins/mariadb/install.sh` → `Install_fast_mariadb`（官方 bintar，仅 x86_64）
+#: 其它插件收到 `-fast` 必须**拒掉**（返回 ARGS_ERR）：它们的 install.sh 面对未知
+#: 版本目录是「提示 + exit 1」，放进去只会得到一条难懂的失败日志。
+FAST_INSTALL_PLUGINS = ('mysql', 'mariadb')
 
 
 def db_install_ver_key(version):
@@ -516,6 +517,21 @@ def is_fast_install_supported(name):
     return str(name or '').strip().lower() in FAST_INSTALL_PLUGINS
 
 
+def fast_install_gate_key(name, version):
+    """插件级 `-fast` 门禁：返回 i18n key（空串 = 放行）。
+
+    只有 `FAST_INSTALL_PLUGINS`（mysql / mariadb）的 install.sh 真实现了 Tar 二进制
+    部署；其它插件收到 `xxx-fast` 会带着未知版本号进 install.sh → 打印
+    「缺少安装脚本」并 exit 1。与其让用户看到这种日志，不如在接口层按参数错误拒掉。
+    """
+    ver = str(version or '').strip()
+    if not ver.endswith('-fast'):
+        return ''
+    if is_fast_install_supported(name):
+        return ''
+    return 'ARGS_ERR'
+
+
 def db_install_reject_key(name, version):
     """mysql/mariadb 的安装白名单判定：返回 i18n key（空串 = 允许安装）。"""
     nm = str(name or '').strip().lower()
@@ -524,12 +540,7 @@ def db_install_reject_key(name, version):
     allowed = db_installable_versions(nm)
     if not allowed:
         return ''
-    ver_key = db_install_ver_key(version)
-    if not is_fast_install_supported(nm) and ver_key != str(version or '').strip():
-        # 不支持极速安装的插件不许带 `-fast`：原样比对会「查无此版本」而放行到
-        # install.sh，那边是 `exit 0` 的假成功。
-        return 'ARGS_ERR'
-    if ver_key in allowed:
+    if db_install_ver_key(version) in allowed:
         return ''
     return ('plugin.mysql_eol_branch_install' if nm == 'mysql'
             else 'plugin.mariadb_eol_branch_install')
@@ -1243,6 +1254,13 @@ class plugin(object):
             return yf.returnData(False, 'ARGS_ERR', ())
 
         _name_l = str(name).strip().lower()
+
+        # 极速安装（`<版本>-fast`）只有 mysql/mariadb 支持：其余插件一律按参数错误拒绝
+        _fast_key = fast_install_gate_key(_name_l, version)
+        if _fast_key:
+            yf.writeFileLog('[plugin] 拒绝给不支持极速安装的插件下发 -fast: name=%s version=%s'
+                            % (name, version))
+            return yf.returnData(False, _fast_key, ())
 
         # PHP 只提供 PHP_MIN_INSTALL_BRANCH 及以上（用户 2026-10-26 定的口径）：
         # 低版本官方已停止维护、不再有安全修复，商店里也不展示安装入口。

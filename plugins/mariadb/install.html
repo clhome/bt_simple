@@ -1,0 +1,38 @@
+<div class='line' style='margin-top:15px;display:flex;align-items:center;'>
+    <span style='margin-right:15px;'>安装方式：</span>
+    <label style='font-weight:normal;cursor:pointer;margin-bottom:0;display:flex;align-items:center;'><input type='radio' name='mariadb_install_type' value='fast' checked='checked' style='margin:0 5px 0 0;' /> 极速安装(Tar)</label>
+    <label style='font-weight:normal;cursor:pointer;margin-left:15px;margin-bottom:0;display:flex;align-items:center;'><input type='radio' name='mariadb_install_type' value='compile' style='margin:0 5px 0 0;' /> 源码编译</label>
+</div>
+<div style='margin-top:20px;background:#f5f6fa;border-left:4px solid #20a53a;padding:12px 15px;border-radius:2px;'>
+    <div id='mariadb_install_tips_fast'>
+        <p style='margin-bottom:5px;font-weight:bold;color:#333;font-size:14px;'>极速安装 <span style='font-weight:normal;color:#888;font-size:12px;'>(预计 2~5 分钟)</span></p>
+        <p style='margin-bottom:0;color:#666;font-size:13px;line-height:1.5;'>直接部署 MariaDB 官方预编译包（约 340MB），省时省力。仅支持 x86_64 架构；网络受限时请改用源码编译。</p>
+    </div>
+    <div id='mariadb_install_tips_compile' style='display:none;'>
+        <p style='margin-bottom:5px;font-weight:bold;color:#333;font-size:14px;'>源码编译 <span style='font-weight:normal;color:#888;font-size:12px;'>(预计 20~60 分钟)</span></p>
+        <p style='margin-bottom:0;color:#666;font-size:13px;line-height:1.5;'>根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境，以及非 x86_64 架构。</p>
+    </div>
+</div>
+
+<script>
+    // 与 plugins/mysql/install.html 同一套契约：soft.js 在点「提交」时调用
+    // window.install_hook_<插件名>(版本号)，返回值就是下发给 /plugins/install 的 version。
+    // 后端 plugins/mariadb/install.sh 认 `<版本>-fast` 并走 Install_fast_mariadb。
+    $("input[name='mariadb_install_type']").on('change', function() {
+        if ($(this).val() === 'compile') {
+            $('#mariadb_install_tips_compile').show();
+            $('#mariadb_install_tips_fast').hide();
+        } else {
+            $('#mariadb_install_tips_compile').hide();
+            $('#mariadb_install_tips_fast').show();
+        }
+    });
+
+    window.install_hook_mariadb = function(version) {
+        var install_method = $("input[name='mariadb_install_type']:checked").val();
+        if (install_method === "fast") {
+            return version + "-fast";
+        }
+        return version;
+    };
+</script>

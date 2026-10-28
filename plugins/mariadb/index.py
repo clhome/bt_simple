@@ -529,9 +529,24 @@ def comparePluginVersion(v1, v2):
 
 
 def getMariadbPid():
+    """精准检测系统中正在运行的 mariadbd / mysqld 守护进程 PID。
+
+    2026-10-28 真机事故（极速安装装完 datadir 不存在、服务没起，却一路 "ok"）：
+    旧实现用 `pgrep -f '[m]ariadb'` —— 而**我们自己的命令行**里就含 "mariadb"
+    （`python3 /www/server/yufeng_panel/plugins/mariadb/index.py start 11.4`、
+    `bash .../plugins/mariadb/install.sh install 11.4-fast`）→ **自匹配** →
+    `status()` 回 'start' → `start()` 直接 `return 'ok'` → 初始化被整段跳过。
+
+    现在优先用 /proc 精确判定：只认「可执行文件本身是 mariadbd/mysqld」的进程
+    （见 `getRunningMariadbdProcs`）。只有 /proc 不可用（macOS）时才退回旧逻辑——
+    那时 pgrep 仍可能自匹配，但只在 Darwin 上，且上面会先看 pid 文件。
     """
-    精准检测系统中正在运行的 mariadbd / mariadb / mysqld 守护进程 PID
-    """
+    if _procAvailable():
+        try:
+            pids = [p['pid'] for p in getRunningMariadbdProcs() if not p.get('deleted')]
+            return pids[0] if pids else None
+        except Exception as _e:
+            _log.debug('[mariadb] /proc 扫描失败，退回 pgrep 判定: %s', _e)
     try:
         # 1. 优先使用 pgrep
         for proc in ['[m]ariadbd', '[m]ariadb', '[m]ysqld']:
@@ -706,10 +721,31 @@ def instanceOwnership():
         else:
             foreign.append(p)
 
+    # 只把「监听同一个端口」的算作冲突；不同端口可以并存（mysql=3306 / mariadb=33106）
+    my_port = ''
+    try:
+        my_port = str(getDbPort() or '').strip()
+    except Exception as _e:
+        _log.debug('[mariadb] 读取端口失败: %s', _e)
+    try:
+        ports_map = db_root.listen_ports_by_pid()
+    except Exception as _e:
+        _log.debug('[mariadb] 端口映射扫描失败，按冲突处理: %s', _e)
+        ports_map = {}
+    conflicting = []
+    others = []
+    for p in foreign:
+        ports = ports_map.get(p['pid'])
+        if not my_port or not ports or my_port in ports:
+            # 拿不到端口信息时按「冲突」处理（保守），拿到且不同端口才放行
+            conflicting.append(p)
+        else:
+            others.append(p)
+
     datadir_exists = bool(datadir) and os.path.isdir(datadir)
     socket_exists = bool(socket_file) and os.path.exists(socket_file)
 
-    if stale and not ours and not foreign:
+    if stale and not ours and not conflicting:
         status = 'stale_ours'
         reason = ('本插件的 mariadbd 是上次卸载/升级残留（程序文件已删除但进程还在，pid=%s），'
                   '它会一直占着 3306 并让新实例无法初始化。点面板「卸载」或重装本插件即可清理'
@@ -717,17 +753,17 @@ def instanceOwnership():
     elif not procs:
         status = 'not_running'
         reason = 'MariaDB 进程未运行'
-    elif ours and not foreign:
+    elif ours and not conflicting:
         status = 'ok'
         reason = ''
-    elif foreign and not (ours or stale):
+    elif conflicting and not (ours or stale):
         status = 'foreign_only'
         reason = ('本机正在运行的 mariadbd/mysqld 不是本面板的实例（进程：%s），'
                   '很可能是系统里另装过 MySQL/MariaDB 占用了 3306。'
                   '请先停掉它（systemctl stop mysql / systemctl stop mariadb / '
                   'apt remove --purge mysql-server mariadb-server）再重装本插件'
                   % ', '.join('%s(%s)' % (p['pid'], p['exe'] or p['cmdline'][:60])
-                              for p in foreign[:3]))
+                              for p in conflicting[:3]))
     else:
         status = 'mixed'
         reason = '同时存在本面板与其他 MySQL/MariaDB 实例，端口冲突会导致口令/数据错乱，请只保留一个'
@@ -736,7 +772,13 @@ def instanceOwnership():
         status = 'datadir_missing'
         reason = '数据目录不存在（%s）：MariaDB 未完成初始化（install 阶段被跳过或失败）' % (datadir or '未知')
 
-    return {'status': status, 'ours': ours + stale, 'stale': stale, 'foreign': foreign,
+    if status == 'ok' and others:
+        reason = ('另有 %d 个其它端口的 MySQL/MariaDB 实例在运行（不冲突，已忽略）：%s'
+                  % (len(others),
+                     ', '.join('%s(%s)' % (p['pid'], p['exe'] or p['cmdline'][:60])
+                               for p in others[:3])))
+    return {'status': status, 'ours': ours + stale, 'stale': stale,
+            'foreign': conflicting, 'others': others,
             'datadir_exists': datadir_exists, 'socket_exists': socket_exists,
             'reason': reason}
 

@@ -406,5 +406,13 @@
   "MariaDB未启动": "MariaDB has not started",
   "连接自检失败:": "Self-check connection failed:",
   "自检通过": "Self-check passed",
-  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Repair failed: instance error (port may be taken by another MySQL/MariaDB)"
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Repair failed: instance error (port may be taken by another MySQL/MariaDB)",
+  "安装方式：": "Installation Method:",
+  "极速安装(Tar)": "Fast Install (Tar)",
+  "源码编译": "Compile from Source",
+  "极速安装": "Fast Install",
+  "(预计 20~60 分钟)": "(Est. 20-60 min)",
+  "(预计 2~5 分钟)": "(~2-5 min)",
+  "直接部署 MariaDB 官方预编译包（约 340MB），省时省力。仅支持 x86_64 架构；网络受限时请改用源码编译。": "Deploy the official MariaDB prebuilt package (~340MB). x86_64 only; use source build on slow networks.",
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境，以及非 x86_64 架构。": "Optimized build for this server's hardware and OS. Best for high-spec production hosts needing top DB performance, or non-x86_64."
 }

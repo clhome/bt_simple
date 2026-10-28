@@ -629,3 +629,199 @@ github_api_get() {
     echo "[github_api_get] ✗ 所有 API 请求方式均失败: $url" >&2
     return 1
 }
+
+# ---------------------------------------------------------------------------
+# yf_multi_download <url> <outfile> [conns] [sha256|-] [timeout]
+#
+# 多连接分段下载 + 续传 + 强校验。为一个具体问题而写（2026-10-28）：
+#   MariaDB 官方 bintar 只在大陆**不可用**的 archive.mariadb.org 上，
+#   单连接实测 13~24 KB/s（340MB 要 4 小时），但同一主机 8 连接聚合 ~150 KB/s。
+#   所以「能不能装」在代码之外还取决于下载器并发度。
+#
+# 行为：
+#   1. 已有文件且 sha256（若给了）/内容 都对 → 直接复用，不重下；
+#   2. 有 aria2c → 用它（自带多连接 + 续传）；
+#   3. 否则 HEAD 取 content-length，按连接数切段并行 curl，逐段核对后拼接；
+#      拿不到长度 / 不支持 Range / 文件太小 → 退回单线程 `curl -C -`（续传）重试 3 次；
+#   4. 最后校验 sha256（给了才校验）+ 内容魔数（yf_verify_archive）。
+# 返回：0 = 成功且校验通过；非 0 = 失败（并删除半成品，避免下次拿坏包当缓存）
+# ---------------------------------------------------------------------------
+function yf_multi_download() {
+    local url=$1
+    local out=$2
+    local conns=${3:-8}
+    local want_sha=${4:--}
+    local to=${5:-3600}
+
+    if [ -z "$url" ] || [ -z "$out" ]; then
+        echo "[yf_multi_download] 用法: yf_multi_download <url> <outfile> [conns] [sha256|-] [timeout]" >&2
+        return 1
+    fi
+    case "$conns" in ''|*[!0-9]*) conns=8 ;; esac
+    [ "$conns" -ge 1 ] 2>/dev/null || conns=8
+    [ "$conns" -gt 16 ] && conns=16
+
+    # 1) 复用已有文件
+    if [ -f "$out" ]; then
+        local _have=0
+        if [ "$want_sha" != "-" ] && [ -n "$want_sha" ] && command -v sha256sum >/dev/null 2>&1; then
+            [ "$(sha256sum "$out" | awk '{print $1}')" = "$want_sha" ] && _have=1
+        elif yf_verify_archive "$out" 2>/dev/null; then
+            _have=1
+        fi
+        if [ "$_have" = "1" ]; then
+            return 0
+        fi
+        echo "[yf_multi_download] 已有文件不完整或校验不符，删除重下: $out" >&2
+        rm -f "$out"
+    fi
+    mkdir -p "$(dirname "$out")" 2>/dev/null
+
+    local _got=0
+    # 2) aria2c
+    if command -v aria2c >/dev/null 2>&1; then
+        if aria2c -x"$conns" -s"$conns" --continue=true --allow-overwrite=true \
+                  --auto-file-renaming=false --console-log-level=warn \
+                  --summary-interval=0 --timeout=30 --max-tries=3 \
+                  -d "$(dirname "$out")" -o "$(basename "$out")" "$url" >/dev/null 2>&1; then
+            _got=1
+        else
+            echo "[yf_multi_download] aria2c 失败，改用 curl 分段下载" >&2
+            rm -f "$out"
+        fi
+    fi
+
+    # 3) 并行分段 curl
+    if [ "$_got" != "1" ]; then
+        _yf_multi_curl "$url" "$out" "$conns" "$to" || _got=0
+        [ -f "$out" ] && _got=1
+    fi
+    if [ "$_got" != "1" ]; then
+        echo "[yf_multi_download] 下载失败: $url" >&2
+        rm -f "$out"
+        return 1
+    fi
+
+    # 4) 强校验
+    if [ "$want_sha" != "-" ] && [ -n "$want_sha" ] && command -v sha256sum >/dev/null 2>&1; then
+        local _sha
+        _sha=$(sha256sum "$out" | awk '{print $1}')
+        if [ "$_sha" != "$want_sha" ]; then
+            echo "[yf_multi_download] sha256 不匹配（期望 ${want_sha} 实际 ${_sha}），删除: $out" >&2
+            rm -f "$out"
+            return 1
+        fi
+    fi
+    if ! yf_verify_archive "$out" 2>/dev/null; then
+        # 没有已知魔数的普通文件不拦（yf_verify_archive 只拦 HTML 错误页/无效压缩包）
+        echo "[yf_multi_download] 内容校验未通过（可能是错误页/截断），删除: $out" >&2
+        rm -f "$out"
+        return 1
+    fi
+    return 0
+}
+
+# 分段并行下载的内部实现（不对外承诺稳定；失败会删半成品）。
+#
+# 分块策略（2026-10-28 实测教训）：**不要把一个文件平均切成 N 大块**。
+# 第一次实现按 349MB/8 ≈ 43MB 切，8 条连接跑 40 分钟后有两条断流，
+# 整批作废（"期望 349220601 实际 242864858"），40 分钟白等。
+# 现在改成「固定 4MB 小块 + 有限轮次补缺」：断流只损失 4MB，下一轮只重下缺块，
+# 且越到后面并发越集中在慢块上（尾延迟不再被单条慢连接支配）。
+function _yf_multi_curl() {
+    local url=$1 out=$2 conns=$3 to=$4
+    local size="" hdr=""
+    hdr=$(curl -sIL -m 20 "$url" 2>/dev/null)
+    size=$(printf '%s' "$hdr" | awk 'tolower($1)=="content-length:" {v=$2} END{print v}' | tr -d '')
+    case "$size" in ''|*[!0-9]*) size="" ;; esac
+
+    # 小于 8MB 或拿不到长度：单线程 + 续传重试
+    if [ -z "$size" ] || [ "$size" -lt 8388608 ] || [ "$conns" -le 1 ]; then
+        local n=0 got=""
+        while [ "$n" -lt 3 ]; do
+            if curl -sL -C - --retry 3 --retry-delay 2 --max-time "$to" -o "$out" "$url" 2>/dev/null                     && [ -s "$out" ]; then
+                if [ -n "$size" ]; then
+                    got=$(wc -c < "$out" 2>/dev/null | tr -d ' ')
+                    if [ "$got" = "$size" ] && yf_verify_archive "$out" 2>/dev/null; then
+                        return 0
+                    fi
+                elif yf_verify_archive "$out" 2>/dev/null; then
+                    return 0
+                fi
+            fi
+            n=$(( n + 1 ))
+            sleep 2
+        done
+        rm -f "$out"
+        return 1
+    fi
+
+    local part_dir="${out}.parts"
+    rm -rf "$part_dir"
+    mkdir -p "$part_dir" || return 1
+
+    local chunk=4194304                     # 4MB/块：断流损失小、补缺便宜
+    local total=$(( (size + chunk - 1) / chunk ))
+    local round=0 missing=1 idx st en exp f got running
+    while [ "$missing" = "1" ] && [ "$round" -lt 4 ]; do
+        round=$(( round + 1 ))
+        missing=0
+        running=0
+        idx=0
+        while [ "$idx" -lt "$total" ]; do
+            st=$(( idx * chunk ))
+            en=$(( st + chunk - 1 ))
+            [ "$en" -ge "$size" ] && en=$(( size - 1 ))
+            exp=$(( en - st + 1 ))
+            f="${part_dir}/p_${idx}"
+            got=""
+            [ -f "$f" ] && got=$(wc -c < "$f" 2>/dev/null | tr -d ' ')
+            if [ "$got" = "$exp" ]; then
+                idx=$(( idx + 1 ))
+                continue
+            fi
+            missing=1
+            rm -f "$f"
+            ( curl -sL --retry 3 --retry-delay 2 --max-time "$to" -r "${st}-${en}" -o "$f" "$url" 2>/dev/null ) &
+            running=$(( running + 1 ))
+            if [ "$running" -ge "$conns" ]; then
+                wait
+                running=0
+            fi
+            idx=$(( idx + 1 ))
+        done
+        [ "$running" -gt 0 ] && wait
+        if [ "$round" -gt 1 ]; then
+            echo "[yf_multi_download] 第 ${round} 轮补下缺失分块..." >&2
+        fi
+    done
+
+    # 逐块核对后按序拼接
+    : > "$out"
+    idx=0
+    while [ "$idx" -lt "$total" ]; do
+        f="${part_dir}/p_${idx}"
+        if [ ! -f "$f" ]; then
+            echo "[yf_multi_download] 缺少分块 ${idx}，放弃" >&2
+            rm -rf "$part_dir" "$out"
+            return 1
+        fi
+        cat "$f" >> "$out" 2>/dev/null || { rm -rf "$part_dir" "$out"; return 1; }
+        idx=$(( idx + 1 ))
+    done
+    rm -rf "$part_dir"
+
+    got=$(wc -c < "$out" 2>/dev/null | tr -d ' ')
+    if [ "$got" != "$size" ]; then
+        echo "[yf_multi_download] 分段下载不完整（期望 ${size} 实际 ${got:-0} 字节），放弃" >&2
+        rm -f "$out"
+        return 1
+    fi
+    # 拼完立刻验内容（错误页/截断包在这里拦下，别等调用方）
+    if ! yf_verify_archive "$out" 2>/dev/null; then
+        echo "[yf_multi_download] 分段拼接后内容校验未通过，放弃: $out" >&2
+        rm -f "$out"
+        return 1
+    fi
+    return 0
+}

@@ -403,3 +403,68 @@ def apply_root_pwd(mysql_bin, version, pwd, myconf=None, socket_file=None, port=
     if not res.ok and not res.detail:
         res.detail = '口令写入后无法用新口令连接数据库'
     return res
+
+
+# ---------------------------------------------------------------------------
+# 监听端口映射（判定「端口冲突」用；mysql / mariadb 两个插件共用）
+# ---------------------------------------------------------------------------
+_PORT_TOKEN_RE = None
+
+
+def parse_listen_ports(text):
+    """从 `ss -ltnp` / `netstat -ltnp` 的输出解析 {pid: {port, ...}}（纯函数，易测）。
+
+    背景（2026-10-28 真机）：mysql 与 mariadb 两个插件**可以并存**，只要端口不同
+    （实测 mysql=3306、mariadb=33106）。但「机器上还有别的 mysqld/mariadbd」并不等于
+    端口冲突 —— 之前两边自检互相报 mixed（都说「请只保留一个」）。判定必须落到端口。
+
+    两种输出形态都要认：
+        ss      : `LISTEN 0 80 0.0.0.0:3306 0.0.0.0:* users:(("mysqld",pid=111,fd=32))`
+        netstat : `tcp 0 0 0.0.0.0:3306 0.0.0.0:* LISTEN 111/mysqld`
+    """
+    import re as _re
+    mapping = {}
+    for line in (text or '').splitlines():
+        line = line.strip()
+        if not line or line.lower().startswith(('state', 'proto', 'active')):
+            continue
+        parts = line.split()
+        local = ''
+        for tok in parts:
+            m = _re.search(r'[:.](\d+)$', tok)
+            if m:
+                local = m.group(1)
+                break
+        if not local:
+            continue
+        pids = set()
+        for tok in parts:
+            for m in _re.finditer(r'pid=(\d+)', tok):
+                pids.add(int(m.group(1)))
+        if not pids:
+            for tok in parts:
+                m = _re.match(r'^(\d+)/\S+$', tok)
+                if m:
+                    pids.add(int(m.group(1)))
+                    break
+        for pid in pids:
+            mapping.setdefault(pid, set()).add(str(local))
+    return mapping
+
+
+def listen_ports_by_pid(run=None):
+    """pid -> 监听端口集合。`ss` 取不到时退回 `netstat`；都取不到返回 `{}`。"""
+    import logging as _logging
+    _log = _logging.getLogger('yf.db_root')
+    run = run or _default_run
+    for argv in (['ss', '-ltnp'], ['netstat', '-ltnp']):
+        try:
+            rc, out, err = run(argv)
+        except Exception as _e:                      # 命令不存在/无权限：换下一个
+            _log.debug('[db_root] %s 执行失败: %s', argv[0], _e)
+            continue
+        if rc == 0 and out:
+            mapping = parse_listen_ports(out)
+            if mapping:
+                return mapping
+    return {}

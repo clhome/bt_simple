@@ -406,5 +406,13 @@
   "MariaDB未启动": "MariaDB non è in esecuzione",
   "连接自检失败:": "Connessione autotest fallita:",
   "自检通过": "Autotest superato",
-  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Riparazione non riuscita: errore istanza (porta forse occupata da altro MySQL/MariaDB)"
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Riparazione non riuscita: errore istanza (porta forse occupata da altro MySQL/MariaDB)",
+  "安装方式：": "Metodo di installazione:",
+  "极速安装(Tar)": "Installazione rapida (Tar)",
+  "源码编译": "Compila dai sorgenti",
+  "极速安装": "Installazione rapida",
+  "(预计 20~60 分钟)": "(circa 20-60 min)",
+  "(预计 2~5 分钟)": "(~2-5 min)",
+  "直接部署 MariaDB 官方预编译包（约 340MB），省时省力。仅支持 x86_64 架构；网络受限时请改用源码编译。": "Distribuisci il pacchetto binario ufficiale MariaDB (~340MB). Solo x86_64; usa la compilazione da sorgente su reti lente.",
+  "根据当前服务器硬件与系统环境进行深度优化编译。适合配置较高、对数据库性能有极致要求的生产环境，以及非 x86_64 架构。": "Compilazione ottimizzata per questo server. Per host di produzione potenti o architetture non x86_64."
 }

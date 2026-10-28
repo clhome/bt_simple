@@ -676,6 +676,28 @@ def instanceOwnership():
         else:
             foreign.append(p)
 
+    # 只把「监听同一个端口」的算作冲突（2026-10-28 实测：mysql=3306、mariadb=33106
+    # 两插件可并存；旧逻辑把「别的 mysqld/mariadbd」一律当冲突，导致两边自检互相报 mixed）
+    my_port = ''
+    try:
+        my_port = str(getDbPort() or '').strip()
+    except Exception as _e:
+        _log.debug('[mysql] 读取端口失败: %s', _e)
+    try:
+        ports_map = db_root.listen_ports_by_pid()
+    except Exception as _e:
+        _log.debug('[mysql] 端口映射扫描失败，按冲突处理: %s', _e)
+        ports_map = {}
+    conflicting = []
+    others = []
+    for p in foreign:
+        ports = ports_map.get(p['pid'])
+        if not my_port or not ports or my_port in ports:
+            conflicting.append(p)      # 拿不到端口信息时保守按冲突处理
+        else:
+            others.append(p)
+    foreign = conflicting
+
     datadir_exists = bool(datadir) and os.path.isdir(datadir)
     socket_exists = bool(socket_file) and os.path.exists(socket_file)
 
@@ -706,7 +728,13 @@ def instanceOwnership():
         status = 'datadir_missing'
         reason = '数据目录不存在（%s）：MySQL 未完成初始化（install 阶段被跳过或失败）' % (datadir or '未知')
 
-    return {'status': status, 'ours': ours + stale, 'stale': stale, 'foreign': foreign,
+    if status == 'ok' and others:
+        reason = ('另有 %d 个其它端口的 MySQL/MariaDB 实例在运行（不冲突，已忽略）：%s'
+                  % (len(others),
+                     ', '.join('%s(%s)' % (p['pid'], p['exe'] or p['cmdline'][:60])
+                               for p in others[:3])))
+    return {'status': status, 'ours': ours + stale, 'stale': stale,
+            'foreign': conflicting, 'others': others,
             'datadir_exists': datadir_exists, 'socket_exists': socket_exists,
             'reason': reason}
 
