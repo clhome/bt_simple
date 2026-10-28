@@ -137,15 +137,30 @@ class TestMysqlSslMatrix(unittest.TestCase):
         self.assertEqual([], bad, '自建 OpenSSL 失败会继续往下跑：%s' % bad)
 
     def test_04_presence_check_before_use(self):
-        """WITH_SSL 分支必须回读 include/openssl/ssl.h。"""
+        """自建 OpenSSL 的版本必须回读 include/openssl/ssl.h（system 则不需要）。"""
         bad = []
         for v in _versions(MYSQL_V):
             code = _code_only(_read(os.path.join(MYSQL_V, v, 'install.sh')))
             if 'WITH_SSL' not in code:
                 continue
-            if 'include/openssl/ssl.h' not in code:
+            has_custom = re.search(r'openssl_1[01]\.sh|openssl\.sh', code) is not None
+            if has_custom and 'include/openssl/ssl.h' not in code:
                 bad.append(v)
-        self.assertEqual([], bad, '这些版本设了 WITH_SSL 却没回读 ssl.h：%s' % bad)
+        self.assertEqual([], bad, '这些版本会自建 OpenSSL 却没回读 ssl.h：%s' % bad)
+
+    def test_04b_57_and_up_prefer_system_openssl(self):
+        """5.7 及以后：系统库能用就用（实测 5.7.44 / 8.0.46 + OpenSSL 3.0.22 都通过
+        cmake 的 SSL 检查），只有系统缺开发包时才自建 —— 少编一次、少一个失败面。"""
+        bad = []
+        for v in ('5.7', '8.0', '8.2', '8.3', '8.4', '9.0', '9.1', '9.2', '9.3', '9.4', '9.7'):
+            code = _code_only(_read(os.path.join(MYSQL_V, v, 'install.sh')))
+            if 'yf_openssl_system_usable' not in code:
+                bad.append('%s 没有「优先用系统 OpenSSL」的判断' % v)
+            elif '-DWITH_SSL=system' not in code:
+                bad.append('%s 缺 -DWITH_SSL=system 分支' % v)
+            elif 'yf_openssl_build_dir' not in code:
+                bad.append('%s 缺「系统不可用时自建」的兜底' % v)
+        self.assertEqual([], bad, '5.7+ 的 OpenSSL 选择逻辑不完整：%s' % bad)
 
     def test_05_openssl_version_probe_is_safe(self):
         """`openssl version` 的解析要防空（无 openssl 时 `[ "" -ge 3 ]` 会报错）。"""

@@ -615,3 +615,48 @@ CI 只装 Python 依赖，没有 `node_modules`。原夹具 `require('jsdom')` �
   必须默认自建 1.0.2）、`test_db_ssl_version_matrix.py`（5.5/5.6 不得写 bundled）、
   `./config -fcommon` 必须存在。
 - 全量门禁：**318 模块 / 4208 个 test 方法 / 0 隔离 / 全绿**。
+
+---
+
+# 追加任务（2026-10-27 八次）：MySQL 5.7 及以上是否有同类问题 —— 实测后改为「优先系统 OpenSSL」
+
+## 实测（下载各版本源码，真跑 cmake 配置）
+
+| 版本 | 源码里的判据 | 与系统 OpenSSL 3.0.22 的实测结果 |
+|---|---|---|
+| mysql 5.6.51 | `cmake/ssl.cmake` 只认 `system`/`yes`/`<path>`；**`extra/yassl` 不存在** | `system` → 失败（只接受 1.0.x 库） |
+| mysql 5.7.44 | `(OPENSSL_MAJOR_VERSION STREQUAL "1" OR "3")` 都算找到 | **`-DWITH_SSL=system` 通过**（`OPENSSL_VERSION (system) is 3.0.22`） |
+| mysql 8.0.46 | `MIN_OPENSSL_VERSION_REQUIRED = "1.0.0"` | **`-DWITH_SSL=system` 通过**（同上） |
+
+（两次都停在 `cmake/readline.cmake`，那是缺 libedit/ncurses 开发包，与 SSL 无关。）
+
+## 结论：5.7 及以上**没有** 5.6 那两处错，但有「白编一次 OpenSSL」的浪费
+
+上一轮我写进记忆的「5.7 只到 OpenSSL 1.1」**是错的** —— 5.7.44 的 ssl.cmake 明确接受
+major 3。所以「系统 >=3 就自建 1.1 / 3.x」不是必须的：
+
+- 每次安装多花 3~15 分钟编译 OpenSSL；
+- 多一个「openssl release 下载失败」的失败面；
+- 用官方未测试过的组合（如 8.0.46 + OpenSSL 3.5.2）。
+
+## 修复
+
+- [x] 新增共享选择器 `plugins/php/lib/openssl_pick.sh`：
+      `yf_openssl_system_version` / `yf_openssl_version_ge`（**支持 `1.0.2u` 这类带字母后缀的归一化**）/
+      `yf_openssl_system_usable` / `yf_openssl_build_dir`（自建 1.1 或 3.x，失败 exit 1 + 回读 ssl.h）。
+- [x] **5.7 / 8.0~9.7（11 个）**：改为「系统 OpenSSL 能用就用 `-DWITH_SSL=system`，
+      缺开发包或版本过旧才自建」。
+- [x] **5.5 / 5.6 保持不变**（只支持 OpenSSL 1.0.x，必须自建 1.0.2）。
+- [x] 守卫：`test_db_ssl_version_matrix.py` 新增「5.7+ 必须优先系统库 + 必须有自建兜底」、
+      `test_mysql_openssl_wiring.py` 新增选择器 API/归一化断言。
+
+## 验证
+
+- 选择器真跑（WSL）：`1.0.2u >= 1.0.2` → YES、`3.0.22 >= 1.0.0` → YES、
+  `1.0.1 >= 1.0.2` → NO、`LibreSSL` → NO、`system usable(9.9.9)` → NO。
+- 全量门禁：**318 模块 / 4210 个 test 方法 / 0 隔离 / 全绿**。
+
+## 收益
+
+CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
+也把「openssl-1.1.1w / 3.5.2 下载失败」这一类偶发红一并消掉。5.5/5.6 仍走自建（无法避免）。

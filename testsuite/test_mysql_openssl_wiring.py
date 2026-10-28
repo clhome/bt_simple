@@ -160,6 +160,19 @@ class TestMysql56SslWiring(unittest.TestCase):
                       '自建 OpenSSL 后必须回读 ssl.h（缺了要立刻失败，而不是交给 cmake 报怪错）')
         self.assertIn('lib/openssl10', code)
 
+    def test_05_shared_openssl_picker_exists(self):
+        """5.7+ 用共享选择器（openssl_pick.sh）：系统库能用就用，否则自建。"""
+        pick = os.path.join(PHP_LIB, 'openssl_pick.sh')
+        self.assertTrue(os.path.isfile(pick), '缺少 plugins/php/lib/openssl_pick.sh')
+        code = _code_only(_read(pick))
+        for fn in ('yf_openssl_system_version', 'yf_openssl_version_ge',
+                   'yf_openssl_system_usable', 'yf_openssl_build_dir'):
+            self.assertIn('%s()' % fn, code, '选择器缺少函数 %s' % fn)
+        # 1.0.2u 这类带字母后缀的版本要能归一化（否则会误判「系统库不可用」）
+        self.assertIn('[0-9][0-9.]*', code)
+        # 危险路径/未知系列要拒绝
+        self.assertIn('不支持的大版本', code)
+
     def test_04_openssl10_referenced_with_correct_name(self):
         code = _code_only(_read(MYSQL56))
         self.assertNotIn('openssl10.sh', code.replace('openssl_10.sh', ''),

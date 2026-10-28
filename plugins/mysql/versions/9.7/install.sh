@@ -22,6 +22,15 @@ curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
+for _yf_ossl_lib in "${rootPath}/plugins/php/lib/openssl_pick.sh" \
+                     "/www/server/yufeng_panel/plugins/php/lib/openssl_pick.sh"; do
+	if [ -f "${_yf_ossl_lib}" ]; then
+		. "${_yf_ossl_lib}"
+		break
+	fi
+done
+unset _yf_ossl_lib
+
 
 if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
@@ -104,23 +113,18 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 
 	OPTIONS=''
 	##check openssl version
-	# 系统 OpenSSL>=3 与老版 MySQL 不兼容时，自建一份专用 OpenSSL 再指向它。
-	# 判空 / 失败即中止 / 装后回读（2026-10-27）：旧写法这三件都没做，
-	# 自建失败会继续跑，最终 cmake 只报「Wrong option or path for WITH_SSL=...」。
-	OPENSSL_VERSION=$(openssl version 2>/dev/null | awk '{print $2}' | awk -F '.' '{print $1}')
-	case "${OPENSSL_VERSION}" in
-		'' | *[!0-9]*) OPENSSL_VERSION=0 ;;   # 无 openssl / LibreSSL：按 0 处理，走系统 SSL
-	esac
-	if [ "${OPENSSL_VERSION}" -ge "3" ]; then
-		cd ${rootPath}/plugins/php/lib && /bin/bash openssl.sh || {
-			echo "[ERROR] 自建 OpenSSL 3.x 失败，MySQL ${VERSION} 无法编译（见上方 openssl 日志）" >&2
-			exit 1
-		}
-		_ossl_dir="${serverPath}/lib/openssl"
-		if [ ! -f "${_ossl_dir}/include/openssl/ssl.h" ]; then
-			echo "[ERROR] 未找到可用的 OpenSSL 3.x：${_ossl_dir}/include/openssl/ssl.h 不存在" >&2
-			exit 1
-		fi
+	# OpenSSL 选择（2026-10-27 按各版本源码实测的兼容矩阵）：
+	#   * 5.7.44 的 ssl.cmake 明确接受 major 1 与 **3**（实测 3.0.22 通过 SSL 检查）；
+	#   * 8.0+ 的 MIN_OPENSSL_VERSION_REQUIRED 只有 1.0.0。
+	# 所以**系统库能用就直接用**（-DWITH_SSL=system），不再白编一份 OpenSSL。
+	if declare -F yf_openssl_system_usable >/dev/null 2>&1 && \
+	   yf_openssl_system_usable "1.0.0"; then
+		OPTIONS="-DWITH_SSL=system"
+		echo "MySQL ${VERSION} 使用系统 OpenSSL（$(yf_openssl_system_version)）"
+	else
+		# 系统缺开发包或版本过旧：自建 3（失败即 exit 1，并回读 ssl.h）
+		echo "系统 OpenSSL 不可用（$(yf_openssl_system_version 2>/dev/null || echo 无)），自建 OpenSSL 3"
+		_ossl_dir="$(yf_openssl_build_dir "3")"
 		export PKG_CONFIG_PATH="${_ossl_dir}/lib/pkgconfig:${_ossl_dir}/lib64/pkgconfig:${PKG_CONFIG_PATH}"
 		OPTIONS="-DWITH_SSL=${_ossl_dir}"
 	fi
