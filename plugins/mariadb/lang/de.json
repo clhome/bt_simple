@@ -402,5 +402,9 @@
   "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Reparatur fehlgeschlagen: Root-Passwort kann nicht gesetzt/geprüft werden, Logs prüfen.",
   "实例异常:": "Instanzfehler:",
   "清理未彻底: mariadbd 仍在运行（pid=%s）": "Bereinigung unvollständig: mariadbd läuft noch (pid=%s)",
-  "卸载清理完成": "Deinstallations-Bereinigung abgeschlossen"
+  "卸载清理完成": "Deinstallations-Bereinigung abgeschlossen",
+  "MariaDB未启动": "MariaDB wurde nicht gestartet",
+  "连接自检失败:": "Selbsttest-Verbindung fehlgeschlagen:",
+  "自检通过": "Selbsttest bestanden",
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Reparatur fehlgeschlagen: Instanzfehler (Port evtl. von anderem MySQL/MariaDB belegt)"
 }

@@ -83,7 +83,7 @@ class TestSafePath(unittest.TestCase):
     def setUpClass(cls):
         src = _read('web/utils/file.py')
         tree = ast.parse(src)
-        want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+        want_assign = {'ALLOW_ALL_PATHS', '_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
                        '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
         want_func = {'safePath', '_posix_norm'}
         keep = []
@@ -111,26 +111,36 @@ class TestSafePath(unittest.TestCase):
             ok, _reason = self.safePath(p)
             self.assertTrue(ok, p)
 
-    def test_blocks_sensitive_system_paths(self):
+    # ---- 2026-10-28 政策变更：文件管理不再按目录黑名单拦截 ----
+    # 用户裁定「不要拦截，所有目录都允许用户访问」。下面三条原来断言「必须被拒」，
+    # 现在反转为「必须放行」，以便这条产品口径有回归守卫（想重新收紧就把
+    # `ALLOW_ALL_PATHS` 置 False 并同步改回这三条）。
+
+    def test_allows_sensitive_system_paths(self):
         for p in ('/etc/passwd', '/etc/shadow', '/etc/ssh/sshd_config',
                   '/root/.ssh/authorized_keys', '/etc/cron.d/evil',
-                  '/var/spool/cron/root', '/etc/passwd/..'):
+                  '/var/spool/cron/root'):
             ok, reason = self.safePath(p)
-            self.assertFalse(ok, p)
-            self.assertEqual(reason, 'FILE_DANGER')
+            self.assertTrue(ok, '%s 被拦了（新政策要求全部放行）: %s' % (p, reason))
 
-    def test_blocks_system_roots(self):
+    def test_allows_system_roots(self):
         for p in ('/', '/etc', '/www', '/www/server', '/root', '/usr'):
-            ok, _reason = self.safePath(p)
-            self.assertFalse(ok, p)
+            ok, reason = self.safePath(p)
+            self.assertTrue(ok, '%s 被拦了（面包屑就是要能点到这些层）: %s' % (p, reason))
 
-    def test_blocks_panel_own_assets(self):
+    def test_allows_panel_own_assets(self):
         for p in ('/www/server/yufeng_panel/data/panel.db',
                   '/www/server/yufeng_panel/ssl/private.pem',
                   '/www/server/yufeng_panel/web/admin/__init__.py'):
             ok, reason = self.safePath(p)
-            self.assertFalse(ok, p)
-            self.assertEqual(reason, 'FILE_DANGER')
+            self.assertTrue(ok, '%s 被拦了: %s' % (p, reason))
+
+    def test_policy_switch_is_reversible(self):
+        """放宽是**开关式**的：`ALLOW_ALL_PATHS` 常量在，黑名单判定代码也还在。"""
+        src = _read('web/utils/file.py')
+        self.assertIn('ALLOW_ALL_PATHS = True', src, '政策开关常量不存在')
+        self.assertIn('if write:', src, 'safePath 的写模式判定被整段删了（无法回溯收紧）')
+        self.assertIn('_SENSITIVE_DATA_PREFIXES', src, '关键数据目录黑名单常量被删了')
 
     def test_rejects_empty_and_nul(self):
         for p in ('', None, '/tmp/a\x00b'):

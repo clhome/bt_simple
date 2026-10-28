@@ -402,5 +402,9 @@
   "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Repair failed: cannot set or verify root password, check panel logs.",
   "实例异常:": "Instance error:",
   "清理未彻底: mariadbd 仍在运行（pid=%s）": "Cleanup incomplete: mariadbd is still running (pid=%s)",
-  "卸载清理完成": "Uninstall cleanup finished"
+  "卸载清理完成": "Uninstall cleanup finished",
+  "MariaDB未启动": "MariaDB has not started",
+  "连接自检失败:": "Self-check connection failed:",
+  "自检通过": "Self-check passed",
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Repair failed: instance error (port may be taken by another MySQL/MariaDB)"
 }

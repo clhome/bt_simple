@@ -129,6 +129,36 @@ class TestMariaUpgradeTarget(unittest.TestCase):
         self.assertEqual(('5.7', '8.0', '8.4', '9.7'), ns['db_installable_versions']('mysql'))
         self.assertEqual((), ns['db_installable_versions']('redis'))
 
+    def test_04_fast_install_suffix_must_pass_whitelist(self):
+        """极速安装传的是 `5.7-fast`：剥掉后缀后必须能过 LTS 白名单。
+
+        2026-10-28 真机事故：软件商店「极速安装」按钮 POST `version=5.7-fast`，
+        而白名单直接拿整串比对 → 判成「非 LTS」→ 直接拒绝、任务不入队，
+        消息盒子「当前没有任务」，用户看到的现象就是「mysql 所有版本都装不上」。
+        """
+        ns = _ns()
+        reject = ns['db_install_reject_key']
+        for name, ver in (('mysql', '5.7-fast'), ('mysql', '8.0-fast'),
+                          ('mysql', '8.4-fast'), ('mysql', '9.7-fast'),
+                          ('mariadb', '10.11-fast'), ('mariadb', '11.4-fast')):
+            self.assertEqual('', reject(name, ver),
+                             '%s 的极速安装 %s 被误拒（白名单未剥 -fast 后缀）' % (name, ver))
+        # 非 LTS 带不带后缀都要拒
+        for name, ver in (('mysql', '8.2'), ('mysql', '8.2-fast'),
+                          ('mariadb', '10.7'), ('mariadb', '12.0-fast')):
+            self.assertNotEqual('', reject(name, ver), '%s %s 不该放行' % (name, ver))
+        # 其它插件不受该策略影响
+        self.assertEqual('', reject('redis', '7.2'))
+        self.assertEqual('', reject('php', '84'))
+
+    def test_05_install_uses_normalized_whitelist(self):
+        """`plugin.install()` 必须走归一化后的判定（防再退回整串比对）。"""
+        body = _read(PLUGIN_PY)
+        self.assertIn('db_install_reject_key(_name_l, version)', body,
+                      'install() 未使用 db_install_reject_key()')
+        self.assertNotIn('_allowed and str(version).strip() not in _allowed', body,
+                         'install() 又变回「整串 version 直接比对白名单」了')
+
 
 class TestMariaInstallScriptUpgrade(unittest.TestCase):
 

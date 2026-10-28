@@ -402,5 +402,9 @@
   "修复失败: 无法写入并验证 root 口令，请查看面板日志！": "Réparation échouée : impossible de définir/vérifier le mot de passe root, voir les journaux.",
   "实例异常:": "Erreur d'instance :",
   "清理未彻底: mariadbd 仍在运行（pid=%s）": "Nettoyage incomplet : mariadbd tourne encore (pid=%s)",
-  "卸载清理完成": "Nettoyage de désinstallation terminé"
+  "卸载清理完成": "Nettoyage de désinstallation terminé",
+  "MariaDB未启动": "MariaDB ne s'est pas lancé",
+  "连接自检失败:": "Échec de la connexion autotest :",
+  "自检通过": "Autotest réussi",
+  "修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）": "Réparation échouée : erreur d'instance (port peut-être utilisé par un autre MySQL/MariaDB)"
 }

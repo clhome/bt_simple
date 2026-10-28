@@ -137,7 +137,7 @@ def _call_name(call):
 # 被测代码装载：AST 抽出校验函数 + unzip/uncompress，yf 全 mock（不起 Flask、不连库）
 # ---------------------------------------------------------------------------
 _KEEP_ASSIGN = {
-    '_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_SENSITIVE_DATA_PREFIXES',
+    'ALLOW_ALL_PATHS', '_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_SENSITIVE_DATA_PREFIXES',
     '_PANEL_SENSITIVE_REL',
     '_ARCHIVE_CTRL_RE', '_ARCHIVE_DRIVE_RE', '_SEVENZ_RECORD_SEP_RE',
     '_ARCHIVE_REJECT_MSG',

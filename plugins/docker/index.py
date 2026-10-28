@@ -348,6 +348,33 @@ def getArgs():
     return tmp
 
 
+def _resultDict(res):
+    """把「可能是 JSON 字符串的内部结果」统一成 dict。
+
+    为什么需要：本插件里许多内部函数（如 `repoList()`）返回的是
+    `yf.returnJson(...)` 给的 **str**（它们同时被命令行 `print(...)` 使用，不能改
+    返回类型），调用方却按 dict 用 `.get(...)`——旧写法 `isinstance(x, dict)` 恒假，
+    要么静默走错分支（私库拉取永远报「未登录」），要么直接 AttributeError。
+    统一在这里归一化：dict 原样 / JSON 串解析 / 其余按失败文本。
+    """
+    if isinstance(res, dict):
+        return res
+    if isinstance(res, (bytes, bytearray)):
+        try:
+            res = res.decode('utf-8', 'replace')
+        except Exception:
+            res = str(res)
+    if isinstance(res, str):
+        try:
+            val = json.loads(res)
+            if isinstance(val, dict):
+                return val
+        except Exception as _e:
+            _log.debug('[docker] 内部结果不是 JSON，按失败文本处理: %s', _e)
+        return {'status': False, 'msg': res}
+    return {'status': False, 'msg': str(res)}
+
+
 def checkArgs(data, ck=[]):
     if not isinstance(data, dict):
         return (False, yf.returnJson(False, '缺少必要参数: ' + ','.join(ck)))
@@ -770,8 +797,12 @@ def dockerPullPrivateNew():
     if check:
         return yf.getJson(check)
 
-    my_repo = repoList()
-    if not isinstance(my_repo, dict) or not my_repo.get('data'):
+    # `repoList()` 的返回值是 `yf.returnJson(...)` 给的 **JSON 字符串**（它同时被
+    # 命令行 `print(repoList())` 使用，所以不能改返回类型）。旧写法对它做
+    # isinstance(..., dict) 判断 → 恒为 False → **私库拉取 100% 报**
+    # 「未登录任何私人存储库」，即使已经登录。这里先归一化成 dict 再用。
+    my_repo = _resultDict(repoList())
+    if not my_repo.get('data'):
         return yf.returnJson(False, '未登录任何私人存储库，请登录然后拉取')
     return dockerPlulPath(path)
 

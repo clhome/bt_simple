@@ -107,13 +107,16 @@ class TestInstallApiGate(unittest.TestCase):
         m = re.search(r'\n    def install\(self.*?(?=\n    def )', code, re.S)
         self.assertTrue(m, '没找到 plugin.install')
         body = m.group(0)
-        self.assertIn("'mysql'", body, 'install() 没有单独处理 mysql')
-        # 2026-10-27 起改为「按 LTS 允许列表拦截」（mysql 与 mariadb 共用同一段逻辑）
-        self.assertIn('db_installable_versions', body,
-                      'install() 没有按 LTS 允许列表拦截已下架版本')
-        self.assertIn('plugin.mysql_eol_branch_install', body,
+        # 2026-10-27 起改为「按 LTS 允许列表拦截」；2026-10-28 起收敛进
+        # db_install_reject_key()：它先剥掉 -fast（极速安装）后缀再比对白名单，
+        # 否则 5.7-fast 会被整串比对判成非 LTS → 拒绝 → 任务不入队。
+        self.assertIn('db_install_reject_key(', body,
+                      'install() 没有走统一的 LTS 白名单判定')
+        self.assertIn('db_installable_versions', code,
+                      '缺少按 LTS 允许列表拦截的实现')
+        self.assertIn('plugin.mysql_eol_branch_install', code,
                       '拦截必须返回 i18n 键，不能拼中文（外语界面会漏翻）')
-        self.assertIn('MYSQL_LTS_VERSIONS', _code_only(_read(PLUGIN_PY)),
+        self.assertIn('MYSQL_LTS_VERSIONS', code,
                       '缺少 MySQL 的 LTS 允许列表常量')
 
 

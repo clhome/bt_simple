@@ -199,13 +199,12 @@ def get_dir():
     path = request.form.get('path', '')
     if not os.path.exists(path):
         path = yf.getFatherDir() + '/wwwroot'
-    # 文件管理器「根目录」入口：面包屑根节点会 getFiles('/')，此路由**只读列举**
-    # （只返回目录/文件名列表，不读内容、不写不删），故对 '/' 这一个路径显式放行。
-    # safePath 的全局语义保持不变（'/' 在其它路由仍敏感），也不顺带放行 /etc 等系统目录。
-    if path != '/':
-        ok, reason = file.safePath(path)
-        if not ok:
-            return yf.returnData(False, reason)
+    # 2026-10-28 政策：文件管理**不拦截任何目录**（用户要求：「所有目录都允许用户访问」）。
+    # safePath 仍然调一下：它现在只挡「输入本身不合法」（空/非字符串/NUL），
+    # 同时保留单一收口点 —— 日后要重新收紧只改 safePath 一处。
+    ok, reason = file.safePath(path)
+    if not ok:
+        return yf.returnData(False, reason)
     search = request.form.get('search', '').strip().lower()
     search_all = request.form.get('all', '').strip().lower()
     page = request.form.get('p', '1').strip().lower()

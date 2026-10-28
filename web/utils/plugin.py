@@ -489,6 +489,35 @@ def db_installable_versions(name):
     return ()
 
 
+def db_install_ver_key(version):
+    """剥掉「极速安装」后缀，得到用于白名单比对的版本号。
+
+    软件商店的极速安装按钮传的是 `5.7-fast` / `10.11-fast`，`install.sh` 自己会
+    `type="${type%-fast}"` 切到 Tar 二进制模式。面板侧的 LTS 白名单只认 `5.7` /
+    `8.0` / …，**比对前必须同样剥掉后缀**，否则所有极速安装都会被判成「非 LTS」
+    直接拒绕（真机实测 2026-10-28：mysql 的 5.7-fast / 8.0-fast / 8.4-fast 全被拒，
+    前端只弹一条错误、消息盒子「当前没有任务」，看着就像「装不上」）。
+    """
+    v = str(version or '').strip()
+    if v.endswith('-fast'):
+        v = v[:-len('-fast')]
+    return v
+
+
+def db_install_reject_key(name, version):
+    """mysql/mariadb 的安装白名单判定：返回 i18n key（空串 = 允许安装）。"""
+    nm = str(name or '').strip().lower()
+    if nm not in ('mysql', 'mariadb'):
+        return ''
+    allowed = db_installable_versions(nm)
+    if not allowed:
+        return ''
+    if db_install_ver_key(version) in allowed:
+        return ''
+    return ('plugin.mysql_eol_branch_install' if nm == 'mysql'
+            else 'plugin.mariadb_eol_branch_install')
+
+
 
 def _php_family(name):
     """是否本面板托管的 PHP 渠道插件（`php` 编译版 / `php-apt` / `php-yum`）。"""
@@ -1212,14 +1241,14 @@ class plugin(object):
         #   * MySQL：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）下架；
         #   * MariaDB：10.7~10.9 / 11.0~11.3 / 11.5~11.7 / 12.x 非 LTS 下架。
         # 版本脚本仍保留 —— 已装用户要能卸载，升级流程也要用它们做中转/回滚。
-        if _name_l in ('mysql', 'mariadb'):
-            _allowed = db_installable_versions(_name_l)
-            if _allowed and str(version).strip() not in _allowed:
-                yf.writeFileLog('[plugin] 拒绝安装非 LTS 的 %s 版本: name=%s version=%s'
-                                % (_name_l, name, version))
-                _key = ('plugin.mysql_eol_branch_install' if _name_l == 'mysql'
-                        else 'plugin.mariadb_eol_branch_install')
-                return yf.returnData(False, _key, ('/'.join(_allowed),))
+        # 注意：比对必须经 `db_install_reject_key()`（它会剥掉 `-fast` 极速安装后缀），
+        # 否则「极速安装」入口传的 `5.7-fast` 会被当成非 LTS 全量拒绝。
+        _db_reject_key = db_install_reject_key(_name_l, version)
+        if _db_reject_key:
+            yf.writeFileLog('[plugin] 拒绝安装非 LTS 的 %s 版本: name=%s version=%s'
+                            % (_name_l, name, version))
+            return yf.returnData(False, _db_reject_key,
+                                 ('/'.join(db_installable_versions(_name_l)),))
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:

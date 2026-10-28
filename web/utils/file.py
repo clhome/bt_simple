@@ -932,7 +932,31 @@ def checkDir(path):
     return not path in sense_dir
 
 
+# ---------------------------------------------------------------------------
+# 路径校验策略（**用户 2026-10-28 明确要求**：文件管理不要拦截，所有目录都允许访问）
+#
+# 背景：面包屑点 `/www` 或 `/www/server` 会弹「请不要花样作死」（safePath 拒），
+# 用户裁定「不要拦截，所有目录都允许用户访问」。因此 `safePath()` 只保留
+# **输入本身不合法**的拦截（空/非字符串/NUL/无法规范化），不再按目录黑名单拒绝。
+#
+# 由此主动放弃的防护（记录在案：不要再当成 bug 回滚）：
+#   * 不再拒 `/etc/passwd`、`/root/.ssh/*` 等敏感文件；
+#   * 不再拒面板自身的 `data/ keys/ ssl/ web/core/` 等目录（文件管理器可改写）；
+#   * 写/删/下载不再拒数据库目录（`/www/server/mysql` 等）。
+#   理由：面板以 root 运行、文件管理就是给运维用的；同类面板（BT）也允许浏览这些目录。
+#
+# 仍然保留的**独立**防护（不依赖本函数，别一起删）：
+#   * 回收站条目必须落在回收站目录内（`_recycleBinEntry`）；
+#   * 解压/打包的 archive-slip 校验（`_safeMembers`/成员路径检查）；
+#   * 上传文件名的分隔符清洗（`upload_file` / `uploadSegment`）；
+#   * 面板 URL 安全入口、CSRF、登录态。
+#
+# 想重新收紧时：把 `ALLOW_ALL_PATHS` 置 False（下面的黑名单常量与判定逻辑原样保留）。
+# ---------------------------------------------------------------------------
+ALLOW_ALL_PATHS = True
+
 # 敏感系统路径黑名单：不允许通过文件管理器读写/删除
+# （仅在 ALLOW_ALL_PATHS = False 时生效；保留是为了可逆）
 _SENSITIVE_PATHS = (
     '/etc/passwd', '/etc/shadow', '/etc/gshadow', '/etc/sudoers',
     '/etc/sudoers.d', '/etc/ssh', '/etc/pam.d', '/etc/ld.so.preload',
@@ -977,21 +1001,29 @@ def _posix_norm(path):
 
 
 def safePath(path, write=False):
-    """文件管理器统一路径安全校验。返回 (ok, reason)。
+    """文件管理器路径校验。返回 (ok, reason)。
 
-    1. POSIX 词法规范化（消除 .. 与重复分隔符），拒绝空/NUL/根目录；
-    2. 拒绝访问敏感系统文件与目录（含软链 realpath 指向）；
-    3. 拒绝直接操作面板自身的敏感数据/密钥/核心代码。
+    **策略口径（2026-10-28，用户裁定）**：文件管理不拦截任何目录 —— 只要输入
+    本身合法就放行（见 `ALLOW_ALL_PATHS` 上方的长注释）。这里只保留两类真·非法输入：
 
-    说明：本面板以 root 运行，文件管理本身需要较高权限，这里是纵深防御，
-    用于堵住 CSRF/会话盗用等场景下的“一击致毁”，不限制 /www、站点根等正常运维路径。
+    1. 空 / 非字符串 / 含 NUL：拼进 shell / 文件 API 会抛异常或截断；
+    2. 无法做 POSIX 词法规范化（例如 bytes、异常路径对象）。
+
+    `write` 参数保留只为兼容 39 处调用点，当前不再影响结果。
+
+    想重新收紧时：把 `ALLOW_ALL_PATHS` 置 False，下面的黑名单判定原样恢复。
     """
     if not path or not isinstance(path, str) or '\x00' in path:
         return False, 'FILE_DANGER'
     try:
-        lexical = _posix_norm(path)
+        _posix_norm(path)
     except Exception:
         return False, 'FILE_DANGER'
+
+    if ALLOW_ALL_PATHS:
+        return True, 'OK'
+
+    lexical = _posix_norm(path)
     if lexical in ('', '/', '.', '..'):
         return False, 'FILE_DANGER'
 

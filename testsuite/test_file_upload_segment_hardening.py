@@ -246,7 +246,8 @@ class _RealShellYf(_FakeYf):
         return ('', '')
 
 
-_KEEP_ASSIGN = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT', '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
+_KEEP_ASSIGN = {'ALLOW_ALL_PATHS', '_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+                '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
 _KEEP_FUNC = {'_posix_norm', 'safePath', 'uploadSegment'}
 
 

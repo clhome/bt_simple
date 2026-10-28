@@ -557,6 +557,270 @@ def getMariadbPid():
     return None
 
 
+# ---------------------------------------------------------------------------
+# 实例归属判定 + 装后自检（2026-10-28：与 mysql 插件对齐）
+#
+#   为什么需要（mysql 侧已修，mariadb 是同一个口子）：
+#   `getMariadbPid()` 取的是「机器上任意 mariadbd/mysqld」。若机器上另有系统装的
+#   MySQL/MariaDB 占着 3306（apt/yum 装过、或以前装过别家的面板），面板会误判
+#   「我的实例在跑」：
+#     * `status()` 回 'start' → `start()` 立刻 return 'ok' → 首次安装的
+#       `initMariaDbPwd()`（写 root 口令）被整段跳过 → 面板记的口令与库里永远对不上，
+#       用户看到的就是「安装完成，但点数据库管理报 Access denied (using password: YES)」；
+#     * 所有 SQL 都打到别人那个实例上；
+#     * `fixDbAccess`（面板【修复】）更危险：会把**别人的**实例停掉、开
+#       skip-grant-tables、改它的 root 口令。
+#   这里把「进程是谁」查清楚，供 start / 自检 / 修复 使用。
+#  ---------------------------------------------------------------------------
+def _readProcLink(pid, name):
+    try:
+        return os.readlink('/proc/%d/%s' % (pid, name))
+    except Exception:
+        return ''
+
+
+def _readProcCmdline(pid):
+    try:
+        with open('/proc/%d/cmdline' % pid, 'rb') as fp:
+            return fp.read().decode('utf-8', 'replace').replace(chr(0), ' ').strip()
+    except Exception:
+        return ''
+
+
+def _readProcCwd(pid):
+    try:
+        return os.readlink('/proc/%d/cwd' % pid)
+    except Exception:
+        return ''
+
+
+#: /proc 扫描结果缓存（TTL 2s，见 getRunningMariadbdProcs）
+_PROC_CACHE = {'at': 0.0, 'procs': []}
+
+
+def _procAvailable():
+    """本机是否有 /proc（Linux）。没有就无法判定实例归属，调用方按「未知」处理。"""
+    return os.path.isdir('/proc')
+
+
+def getRunningMariadbdProcs():
+    """列出所有存活的 mariadbd/mysqld 进程：`[{'pid','exe','cmdline','data_dir'}]`。
+
+    只读 /proc（不启子进程）；/proc 不可用（macOS 等）时返回空列表，调用方按
+    「无法判定」处理，不能据此断言实例有问题。
+    """
+    global _PROC_CACHE
+    now = time.time()
+    if _PROC_CACHE.get('at') and now - _PROC_CACHE['at'] < 2:
+        return [dict(x) for x in _PROC_CACHE['procs']]
+
+    procs = []
+    if not _procAvailable():
+        return procs
+    try:
+        names = os.listdir('/proc')
+    except Exception as _e:
+        _log.debug('[mariadb] 读取 /proc 失败: %s', _e)
+        return procs
+    for name in names:
+        if not name.isdigit():
+            continue
+        pid = int(name)
+        exe = _readProcLink(pid, 'exe')
+        cmdline = _readProcCmdline(pid)
+        # 只认**可执行文件本身**是 mariadbd/mysqld 的进程：不能拿整条 cmdline 做
+        # 子串匹配，`bash -c "... mariadbd ..."` 这种命令行会被误当成数据库进程。
+        base = os.path.basename(exe).lower() if exe else ''
+        if base:
+            if not (base.startswith('mariadbd') or base.startswith('mysqld')):
+                continue
+        else:
+            argv0 = os.path.basename((cmdline.split(' ') or [''])[0]).lower()
+            if not (argv0.startswith('mariadbd') or argv0.startswith('mysqld')):
+                continue
+        data_dir = ''
+        m = re.search(r'--datadir=(\S+)', cmdline)
+        if m:
+            data_dir = m.group(1).strip('"').strip("'")
+        if not data_dir:
+            data_dir = _readProcCwd(pid)
+        # 卸载时只删目录没停进程：程序文件被删但进程还在，readlink 带 ' (deleted)'。
+        # 这必须认成「我们自己的僵尸进程」，否则会被误判成「别人的实例」。
+        deleted = exe.endswith(' (deleted)')
+        if deleted:
+            exe = exe[:-len(' (deleted)')]
+        procs.append({'pid': pid, 'exe': exe, 'cmdline': cmdline,
+                      'data_dir': data_dir, 'deleted': deleted})
+    _PROC_CACHE = {'at': time.time(), 'procs': [dict(x) for x in procs]}
+    return procs
+
+
+def instanceOwnership():
+    """判定「正在跑的 mariadbd/mysqld 是不是本插件这个实例」。
+
+    返回 dict：
+      status: ok | not_running | foreign_only | mixed | stale_ours |
+              datadir_missing | unknown
+      ours / stale / foreign: 进程列表
+      datadir_exists / socket_exists: 本插件的数据目录、socket 是否就位
+      reason: 面向用户的中文说明（status 非 ok 时非空）
+    """
+    serverdir = getServerDir()
+    our_dir = os.path.realpath(serverdir)
+    our_exes = set()
+    for _n in ('mariadbd', 'mysqld'):
+        our_exes.add(os.path.realpath(os.path.join(our_dir, 'bin', _n)))
+    datadir = ''
+    try:
+        datadir = getDataDir()
+    except Exception as _e:
+        _log.debug('[mariadb] 读取 datadir 失败: %s', _e)
+    # 这里不能用 getSocketFile()（它在某些分支里会回到进程探测，容易递归），
+    # 只读配置里的 socket 路径即可满足「文件在不在」的判定。
+    socket_file = ''
+    try:
+        socket_file = _cnfValue(r'socket\s*=\s*(.*)') or (serverdir + '/mysql.sock')
+    except Exception as _e:
+        _log.debug('[mariadb] 读取 socket 失败: %s', _e)
+
+    procs = getRunningMariadbdProcs()
+    if not procs and not _procAvailable():
+        return {'status': 'unknown', 'ours': [], 'stale': [], 'foreign': [],
+                'datadir_exists': bool(datadir) and os.path.isdir(datadir),
+                'socket_exists': bool(socket_file) and os.path.exists(socket_file),
+                'reason': ''}
+
+    ours = []
+    stale = []
+    foreign = []
+    our_cmd_marks = (our_dir + '/bin/mariadbd', our_dir + '/bin/mysqld')
+    for p in procs:
+        exe = os.path.realpath(p['exe']) if p['exe'] else ''
+        is_ours = bool(exe) and (exe in our_exes or exe.startswith(our_dir + os.sep))
+        if not is_ours and exe:
+            is_ours = any(mark in p['cmdline'] for mark in our_cmd_marks)
+        if is_ours and p.get('deleted'):
+            stale.append(p)
+        elif is_ours:
+            ours.append(p)
+        else:
+            foreign.append(p)
+
+    datadir_exists = bool(datadir) and os.path.isdir(datadir)
+    socket_exists = bool(socket_file) and os.path.exists(socket_file)
+
+    if stale and not ours and not foreign:
+        status = 'stale_ours'
+        reason = ('本插件的 mariadbd 是上次卸载/升级残留（程序文件已删除但进程还在，pid=%s），'
+                  '它会一直占着 3306 并让新实例无法初始化。点面板「卸载」或重装本插件即可清理'
+                  % [p['pid'] for p in stale])
+    elif not procs:
+        status = 'not_running'
+        reason = 'MariaDB 进程未运行'
+    elif ours and not foreign:
+        status = 'ok'
+        reason = ''
+    elif foreign and not (ours or stale):
+        status = 'foreign_only'
+        reason = ('本机正在运行的 mariadbd/mysqld 不是本面板的实例（进程：%s），'
+                  '很可能是系统里另装过 MySQL/MariaDB 占用了 3306。'
+                  '请先停掉它（systemctl stop mysql / systemctl stop mariadb / '
+                  'apt remove --purge mysql-server mariadb-server）再重装本插件'
+                  % ', '.join('%s(%s)' % (p['pid'], p['exe'] or p['cmdline'][:60])
+                              for p in foreign[:3]))
+    else:
+        status = 'mixed'
+        reason = '同时存在本面板与其他 MySQL/MariaDB 实例，端口冲突会导致口令/数据错乱，请只保留一个'
+
+    if status == 'ok' and not datadir_exists:
+        status = 'datadir_missing'
+        reason = '数据目录不存在（%s）：MariaDB 未完成初始化（install 阶段被跳过或失败）' % (datadir or '未知')
+
+    return {'status': status, 'ours': ours + stale, 'stale': stale, 'foreign': foreign,
+            'datadir_exists': datadir_exists, 'socket_exists': socket_exists,
+            'reason': reason}
+
+
+def _result(status, msg):
+    """构造**内部**结果 dict：翻译照做（走 i18n），但**不**序列化成 JSON 字符串。
+
+    不能直接用 `yf.returnJson`：那是给「即将输出到 HTTP/CLI 的最后一步」用的，
+    返回 str；内部函数一旦返回 str，调用方 `.get('status')` 就炸。
+    """
+    try:
+        res = yf.returnMsg(status, msg)
+        if isinstance(res, dict):
+            return {'status': bool(res.get('status')), 'msg': res.get('msg', msg)}
+    except Exception as _e:
+        _log.debug('[mariadb] returnMsg 异常，回退原文案: %s', _e)
+    return {'status': bool(status), 'msg': msg}
+
+
+def _resultDict(res):
+    """把内部返回值统一成 dict（dict 原样 / JSON 串解析 / 其余按失败文本）。
+
+    历史坑（mysql 插件踩过、CI 直接红在 `'str' object has no attribute 'get'`）：
+    某个内部函数返回了 JSON **字符串**，调用方却按 dict 用 `.get('status')`。
+    这里做一次归一化，保证无论上游返回哪种形态都不会崩、也不会「假失败」。
+    """
+    if isinstance(res, dict):
+        return res
+    if isinstance(res, (bytes, bytearray)):
+        try:
+            res = res.decode('utf-8', 'replace')
+        except Exception:
+            res = str(res)
+    if isinstance(res, str):
+        try:
+            val = json.loads(res)
+            if isinstance(val, dict):
+                return val
+        except Exception as _e:
+            _log.debug('[mariadb] 内部结果不是 JSON，按失败文本处理: %s', _e)
+        return {'status': False, 'msg': res}
+    return {'status': False, 'msg': str(res)}
+
+
+def selfCheck(version=''):
+    """安装/修复后的整体自检：归属 → 数据目录 → socket/TCP 连通性。
+
+    存在的意义：旧 install.sh 只看 `[ -d $serverPath/mariadb/data/mysql ]` 就算成功，
+    于是「3306 被别的实例占着、自己的 data 没初始化 / root 口令与面板不一致」也能报
+    「安装完成」，用户点数据库管理才看到「数据库密码错误」。
+
+    返回值必须是 **dict**（`{'status': bool, 'msg': str}`）：调用方（`fix_db_access`
+    与 `self_check` 命令行）都按 dict 取值，想输出 JSON 由调用方自己 `json.dumps`。
+    """
+    own = instanceOwnership()
+    if own['status'] in ('foreign_only', 'mixed', 'stale_ours'):
+        return _result(False, '实例异常: ' + own['reason'])
+    if not own['datadir_exists']:
+        return _result(False, '实例异常: ' + (own['reason'] or '数据目录不存在'))
+    if own['status'] == 'not_running':
+        return _result(False, 'MariaDB未启动')
+
+    serverdir = getServerDir()
+    mysql_bin = serverdir + '/bin/mariadb'
+    if not os.path.exists(mysql_bin):
+        mysql_bin = serverdir + '/bin/mysql'
+    pwd = getRootPwd()
+    sock = getSocketFile()
+    port = getDbPort()
+
+    # 只读验证，不改口令：口令不一致属于「点【修复】」的场景，不该在自检里偷偷改库。
+    details = []
+    if sock and os.path.exists(sock):
+        ok, d = db_root.verify_pwd(mysql_bin, pwd, socket_file=sock, timeout=15)
+        if ok:
+            return _result(True, '自检通过')
+        details.append('socket: ' + d)
+    ok, d = db_root.verify_pwd(mysql_bin, pwd, port=port, host='127.0.0.1', timeout=15)
+    if ok:
+        return _result(True, '自检通过')
+    details.append('TCP: ' + d)
+    return _result(False, '连接自检失败: ' + ' | '.join(details))
+
+
 def cleanOrphanSockets():
     """
     仅在确认没有任何 mariadb/mysqld 进程存活时，安全清理残留孤儿套接字死锁
@@ -1067,6 +1331,21 @@ def appCMD(version, action):
 
 
 def start(version=''):
+    # 0. 僵尸进程处理（与 mysql 插件同一口径）：上次卸载只 rm -rf 没停进程时，
+    #    mariadbd 会带着已删除的 datadir/socket 继续占 3306。此时 status() 会把它
+    #    当「在跑」→ 直接 return ok → **初始化被整段跳过**（/www/server/mariadb/data
+    #    永远造不出来），之后所有查询都连到这个僵尸上（密码不符 → 1045）。
+    #    这里先把它清掉，让下面的正常流程去做 initialize + 设口令。
+    try:
+        _own = instanceOwnership()
+        if _own.get('status') == 'stale_ours':
+            yf.writeFileLog('[mariadb] 发现卸载残留的 mariadbd（程序文件已删除），先清理: %s'
+                            % [p['pid'] for p in _own.get('stale') or []])
+            stopAndKill(version)
+    except Exception as _e:
+        _log.debug('[mariadb] 僵尸进程清理异常（继续按常规启动）: %s', _e)
+
+    # 1. 状态自愈与防误杀：若服务已在正常运行，坚决禁止 pkill -9 强杀！
     st = status(version)
     if st == 'start':
         return 'ok'
@@ -2749,6 +3028,13 @@ def fixDbAccess(version):
     if not os.path.exists(mdb_ddir):
         return yf.returnJson(False, '数据目录不存在,尝试重启重建!')
 
+    # 【修复】只允许动「我们自己的实例」（与 mysql 插件同一口径，2026-10-28）：
+    # 机器上若另有一个 MySQL/MariaDB 占着 3306，旧实现会把那个实例停掉、加
+    # skip-grant-tables、改它 root 口令——既修不好本插件，又破坏系统里原有的数据库。
+    own = instanceOwnership()
+    if own['status'] in ('foreign_only', 'mixed'):
+        return yf.returnJson(False, '修复失败: 实例异常（端口可能被其他 MySQL/MariaDB 占用）')
+
     try:
         psdb = pSqliteDb('databases')
         data = pdb.query('show databases')
@@ -2767,6 +3053,10 @@ def fixDbAccess(version):
             if not reset_ok:
                 # 不能报「修复成功」：否则用户以为好了，实际连不上（口令已打码写进日志）
                 return yf.returnJson(False, '修复失败: 无法写入并验证 root 口令，请查看面板日志！')
+            # 修好之后跑一次自检：回「修复成功」但实际仍连不上，比直接报错更坏
+            check = _resultDict(selfCheck(version))
+            if not check.get('status'):
+                return yf.getJson(check)
             return yf.returnJson(True, '修复成功!')
         return yf.returnJson(True, '正常无需修复!')
     except Exception as e:
@@ -4920,6 +5210,12 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'self_check':
+        # 归一化：selfCheck 正常返回 dict；万一被外部/历史实现换成 JSON 串也不会崩
+        #（mysql 插件旧写法在这里 AttributeError → 自检通过却 exit 1）
+        _sc = _resultDict(selfCheck(version))
+        print(json.dumps(_sc, ensure_ascii=False))
+        sys.exit(0 if _sc.get('status') else 1)
     elif func == 'mariadb_upgrade':
         print(runMariaUpgrade(version))
     elif func == 'stop_and_kill':

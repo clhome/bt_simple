@@ -257,12 +257,19 @@ if [ "${action}" == "install" ] && [ -d $serverPath/mariadb ];then
 	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py start ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py initd_install ${type}
+	cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py fix_db_access ${type}
 
-	# 装后自检：数据目录必须真的初始化出来（否则面板只能报「数据库密码错误」，
-	# 典型原因是 3306 已被系统里另装的 MySQL/MariaDB 占用）
-	if [ ! -d "$serverPath/mariadb/data/mysql" ]; then
-		echo "[ERROR] MariaDB 自检未通过：$serverPath/mariadb/data 未初始化。" >&2
+	# 装后自检（与 mysql 插件同一口径，2026-10-28）：
+	# 只查 `data/mysql` 目录在不在是不够的——目录早就初始化过、但 3306 上跑的是
+	# 系统里另装的 MySQL/MariaDB 时，上面每条命令都会「成功」，面板却永远连不上
+	# （1045 Access denied），用户只能看到「装完成功、点数据库报密码错误」。
+	# self_check 把「实例归属 → 数据目录 → socket/TCP 连通性」一次判清楚，
+	# 不通过就非 0 退出，绝不当成功。
+	echo "MariaDB 安装自检..."
+	if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py self_check ${type}); then
+		echo "[ERROR] MariaDB 自检未通过：实例不可用（详见上方 JSON 的 msg）。" >&2
 		echo "        常见原因：3306 端口被系统中另装的 MySQL/MariaDB 占用 → 先停掉它再重装本插件。" >&2
+		echo "        排查：ps -ef | grep -E '[m]ariadbd|[m]ysqld'；ss -ltnp | grep 3306" >&2
 		exit 1
 	fi
 fi

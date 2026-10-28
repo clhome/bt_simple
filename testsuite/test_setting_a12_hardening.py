@@ -380,7 +380,7 @@ def _load_safepath():
     """从 utils/file.py 抽取 safePath 纯函数（避免导入 flask/thisdb）。"""
     src = _read(os.path.join(ROOT, 'web', 'utils', 'file.py'))
     tree = ast.parse(src)
-    want_assign = {'_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
+    want_assign = {'ALLOW_ALL_PATHS', '_SENSITIVE_PATHS', '_SENSITIVE_EXACT',
                    '_SENSITIVE_DATA_PREFIXES', '_PANEL_SENSITIVE_REL'}
     want_func = {'safePath', '_posix_norm'}
     keep = []
@@ -507,12 +507,28 @@ class DirOptionHardeningTest(unittest.TestCase):
             self.assertEqual(eff['setOption'], [], '路径未变不应写库')
             self.assertEqual(eff['writeLog'], [], '路径未变不应产生审计流水')
 
-    def test_02_rejects_empty_relative_and_sensitive(self):
-        for bad in ('', '   ', 'relative/path', '../etc', '/', '/etc', '/www', '/root',
-                    'web/yf_a12dir_relprobe'):
+    def test_02_rejects_empty_and_relative(self):
+        """入参形态非法（空/相对路径）必须拒。
+
+        注意 2026-10-28 政策变更：`/etc`、`/www`、`/` 这类**绝对路径不再按目录黑名单拒绝**
+        （用户要求文件管理不拦截任何目录），见 `test_02b` 的正向断言。
+        """
+        for bad in ('', '   ', 'relative/path', '../etc', 'web/yf_a12dir_relprobe'):
             path, err = self._check(bad, kind='backup')
             self.assertEqual(path, '', '非法入参 %r 必须被拒' % bad)
             self.assertTrue(err, '非法入参 %r 必须给出错误键' % bad)
+
+    def test_02b_absolute_dirs_are_no_longer_blacklisted(self):
+        """政策正向断言：绝对路径只按「存在/是目录/可写」判定，不再按目录黑名单拦。
+
+        用 mock 固定「存在 + 是目录 + 可写」：真实跑会在 Windows 上创建 C:/etc 之类的目录。
+        """
+        from unittest import mock as _mock
+        with _mock.patch('os.path.exists', return_value=True),                 _mock.patch('os.path.isdir', return_value=True),                 _mock.patch('os.access', return_value=True):
+            for p in ('/', '/etc', '/www', '/www/server', '/root'):
+                path, err = self._check(p, kind='backup')
+                self.assertEqual(err, '', '%s 仍被拦: %r' % (p, err))
+                self.assertTrue(path, '%s 返回值不应为空' % p)
 
     def test_03_rejects_file_and_accepts_dir(self):
         base = tempfile.mkdtemp(prefix='yf_a12dir_')
@@ -547,13 +563,10 @@ class DirOptionHardeningTest(unittest.TestCase):
         finally:
             shutil.rmtree(base, ignore_errors=True)
 
-    def test_05_site_kind_uses_path_error_key(self):
-        path, err = self._check('/etc', kind='site')
-        self.assertEqual(path, '')
-        self.assertEqual(err, 'PATH_ERROR')
+    def test_05_site_kind_empty_and_relative(self):
+        """site 口子的空/相对路径判定（`/etc` 这类绝对路径已不再拦，见 test_02b）。"""
         _path2, err2 = self._check('', kind='site')
         self.assertEqual(err2, 'DIR_EMPTY')
-        # 相对路径用「参数错误」而不是「关键目录」文案（语义准确）
         _path3, err3 = self._check('relative/x', kind='site')
         self.assertEqual(err3, 'py_msg_e05503')
 
