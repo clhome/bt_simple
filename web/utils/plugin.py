@@ -387,6 +387,30 @@ def _mysql_is_eol_branch(version):
     return cur < _mysql_min_branch()
 
 
+def mysql_eol_upgrade_target(installed, available):
+    """已安装的版本若已被下架，给出「同型号（同主版本）的最高可用版本」作为升级建议。
+
+    为什么限定同主版本（用户 2026-10-27 定的口径）：
+      * 升级目标必须是**最接近的同型号大版本**，跨主版本（如 5.5 → 9.7）会直接
+        触发 MySQL 的数据字典/系统表不兼容，属于「升了也用不了」；
+      * 例：5.5/5.6 → 5.7；8.2/8.3 → 8.4；9.0~9.4 → 9.7；8.0/5.7/8.4/9.7 → 无建议。
+
+    返回 '' 表示「不需要/没有建议」：
+      * 已装版本仍在 `available`（候选安装列表）里 —— 没被下架；
+      * 同主版本已经没有可用版本 —— 不给建议（避免把用户导向跨主版本）。
+    """
+    cur = _mysql_branch_of(installed)
+    if not cur or not available:
+        return ''
+    avail = [str(v) for v in available if _mysql_branch_of(v)]
+    if str(installed) in avail:
+        return ''
+    same_major = [v for v in avail if _mysql_branch_of(v)[0] == cur[0]]
+    if not same_major:
+        return ''
+    return max(same_major, key=_mysql_branch_of)
+
+
 def _php_family(name):
     """是否本面板托管的 PHP 渠道插件（`php` 编译版 / `php-apt` / `php-yum`）。"""
     n = str(name or '').strip().lower()
@@ -916,6 +940,18 @@ class plugin(object):
                             return True
         return False
 
+    @staticmethod
+    def _mysqlEolUpgradeTo(pInfo):
+        """`mysql` 且已装版本已下架时返回建议升级目标，否则返回 ''（其它插件恒为 ''）。"""
+        try:
+            if str(pInfo.get('name', '')).strip().lower() != 'mysql':
+                return ''
+            return mysql_eol_upgrade_target(pInfo.get('setup_version') or '',
+                                            pInfo.get('versions') or [])
+        except Exception as _e:      # 判定失败不能影响列表渲染
+            _log.debug('[plugin] 计算 MySQL 升级建议失败: %s', _e)
+            return ''
+
     def install(self, name, version,
         upgrade = None,
         confirm_token = ''
@@ -989,10 +1025,18 @@ class plugin(object):
                                 % (name, version, reason))
                 return yf.returnData(False, 'plugin.py_msg_6f3a2d')
 
-        exec_bash = 'cd {0} && bash {1} install {2}'.format(
+        # MySQL 的「更新」在已装其它版本时是真升级（停服 → 备份 → 换二进制 → 回填 data
+        # → 启动 → 失败回滚），install.sh 要求显式开关才肯动，避免误点把库升级坏。
+        # 同版本时该变量不生效（走自愈分支），所以只在 upgrade=True 时带。
+        _upgrade_env = ''
+        if upgrade is True and str(name).strip().lower() == 'mysql':
+            _upgrade_env = 'YF_MYSQL_ALLOW_UPGRADE=1 '
+
+        exec_bash = 'cd {0} && {3}bash {1} install {2}'.format(
             yf.shlexQuote(yf.getPluginDir() + '/'+name),
             yf.shlexQuote(info_data['shell']),
-            yf.shlexQuote(version)
+            yf.shlexQuote(version),
+            _upgrade_env
         )
 
         self.hookInstall(info_data)
@@ -1328,6 +1372,8 @@ class plugin(object):
             else:
                 pInfo['setup_version'] = yf.readFile(pInfo['install_checks']).strip()
 
+        pInfo['eol_upgrade_to'] = self._mysqlEolUpgradeTo(pInfo)
+
         if 'install_pre_inspection' in info:
             pInfo['install_pre_inspection'] = info['install_pre_inspection']
         if 'uninstall_pre_inspection' in info:
@@ -1444,7 +1490,9 @@ class plugin(object):
                     pInfo['setup_version'] = yf.readFile(install_checks).strip()
             else:
                 pInfo['setup_version'] = ""
-                
+
+            pInfo['eol_upgrade_to'] = self._mysqlEolUpgradeTo(pInfo)
+
             display = False
             if coexist:
                 if type(version) == list:

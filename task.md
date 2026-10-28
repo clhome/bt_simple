@@ -713,3 +713,63 @@ CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
   手工调 `/plugins/install` 传 5.5/5.6 会被拒并提示最低 5.7。
 - **已装 5.5/5.6 的机器**：完全不受影响 —— 管理/卸载照旧（`setup_version` 读
   `server/mysql/version.pl`，与 `info.json` 的 versions 无关），「更新」按钮照旧指向最新版。
+
+---
+
+# 追加任务（2026-10-27 十次）：MySQL 只留 LTS + 已下架版本一键升级到同系列 LTS
+
+## 一、安装列表只留 LTS（用户 2026-10-27 定）
+
+| 版本 | 类型（官方口径） | 处理 |
+|---|---|---|
+| 5.5 / 5.6 | 早已 EOL | 下架（上一轮已做） |
+| **8.2 / 8.3** | **Innovation**（只支持到下个 Innovation 发布） | 下架 |
+| **9.0 ~ 9.4** | **Innovation** | 下架 |
+| 5.7 | LTS（已 EOL 但用户要求保留为地板） | 保留 |
+| **8.0** | LTS | 保留 |
+| **8.4** | **LTS** ✅（官方文档：`8.4.0 LTS`、`mysql-8.4-lts`） | 保留 |
+| **9.7** | **LTS** ✅（官方文档：`9.7.x LTS`、`mysql-9.7-lts-community`） | 保留 |
+
+`plugins/mysql/info.json` → `versions: ['5.7','8.0','8.4','9.7']`，`todo_versions` 同步。
+**版本脚本全部保留**（已装用户卸载 + 升级中转/回滚要用）。
+
+## 二、已下架版本 → 同系列 LTS 一键升级（用户可选）
+
+- [x] **目标版本计算**：`web/utils/plugin.py::mysql_eol_upgrade_target(installed, available)`
+      —— 只给**同主版本**的最高可用版本：
+      5.5/5.6→5.7、8.2/8.3→8.4、9.0~9.4→9.7；已是 LTS 或同主版本无可用版本 → 空。
+      跨主版本（5.x→8.x/9.x）**不给建议**（MySQL 数据字典跨主版本不兼容）。
+- [x] **列表字段**：`makePluginInfo` / `refreshDynamicStatus` 两处都算 `eol_upgrade_to`。
+- [x] **前端**：`soft.js`
+      ① 「更新」判断从「versions 最后一项」改为「**同主版本最高可用版本**」
+         —— 顺带修掉「8.0 用户永远看不到更新到 8.4」的老问题；
+      ② 有 `eol_upgrade_to` 时显示红标「已下架」+ 「升级到 X」（复用 `softUpdate` 的确认弹窗，
+         升不升由用户决定）。
+- [x] **真升级**（关键）：`plugins/mysql/install.sh` 原来在「已装 mysql」时**无条件自愈 + exit 0**，
+      面板点「更新」根本不换二进制。现在分两支：
+      * 已装版本 == 目标版本 → 只自愈（原行为）；
+      * 已装版本 != 目标版本 → `_yf_mysql_upgrade()`：
+        **① 停服务 → ② 备份 `server/mysql`（含 data，先查磁盘空间）→ ③ 旧目录改名保留
+        （`.mysql_prev_<ts>`）→ ④ 装目标版本 → ⑤ 回填 data（mv，省时省空间）→
+        ⑥ 启动 + mysql_upgrade + initd + self_check → ⑦ 任一步失败则自动回滚（旧目录换回来 + 重启旧版本）**。
+      * 跨主版本直接拒绝；未带 `YF_MYSQL_ALLOW_UPGRADE=1`（面板升级入口会带）也拒绝，防误点。
+- [x] `plugins/mysql/index.py` 新增 `mysql_upgrade` 命令入口（5.7 需要；8.0+ 由 mysqld 自动升级）。
+- [x] i18n：`soft.eol_version` / `eol_version_tip` / `eol_upgrade_tip`（6 语言 × 3 文件）。
+
+## 验证
+
+- 新增 `testsuite/test_mysql_lts_upgrade.py`（16 项）：
+  LTS 列表逐项核对、Innovation 版本彻底移除、版本脚本仍在、
+  升级目标映射（含「跨主版本不给建议」）、install.sh 的分支/备份先于改目录/回滚/磁盘检查、
+  后端字段与前端接线、i18n key 存在；
+  **真跑 shell 两段**：备份→改名→回填 data（数据标记完好）、安装失败→回滚（版本与数据都回到原样）。
+- 升级流程里的 7 处 `|| true` 改为「显式 if + WARN」（棘轮不许新增吞失败写法）。
+- 全量门禁：**320 模块 / 4234 个 test 方法 / 0 隔离 / 全绿**。
+
+## 已知边界（如实记录）
+
+- 5.5/5.6 → 5.7 官方只承诺「5.5→5.6→5.7 逐级」，面板允许直接升（会打印提示），
+  失败自动回滚；是否接受该风险由用户决定（这正是用户要求的「升级权限交给客户」）。
+- 升级过程会**完整备份**，因此需要与 `server/mysql` 同量级的空闲空间（脚本会先检查并明确报错）。
+- 升级**不迁移**用户自定义的 `my.cnf`（新版本用新模板，旧参数在新版本可能非法导致起不来）；
+  原 `my.cnf` 在备份包与 `.mysql_prev_*` 目录里，可手工取回。

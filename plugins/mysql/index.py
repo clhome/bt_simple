@@ -737,6 +737,51 @@ def _killOurs(sig, timeout=1.0):
     return alive
 
 
+def runMysqlUpgrade(version=''):
+    """跨版本升级后跑 `mysql_upgrade`（8.0+ 由 mysqld 自动升级数据字典，不需要）。
+
+    为什么单独一个入口：`_yf_mysql_upgrade`（install.sh）在启动新版本后调用它；
+    失败不阻断（升级已经把数据与二进制都换好了，系统表升级失败只影响新特性，
+    会在 self_check 的连通性检查里体现出来），但必须把输出写进任务日志便于追查。
+    """
+    ver = str(version or '').strip()
+    if not ver.startswith('5.7'):
+        return yf.returnJson(True, 'skip: MySQL 8.0+ upgrades the data dictionary automatically')
+
+    serverdir = getServerDir()
+    upgrader = serverdir + '/bin/mysql_upgrade'
+    if not os.path.isfile(upgrader):
+        return yf.returnJson(False, 'mysql_upgrade not found: %s' % upgrader)
+
+    pwd = getRootPwd()
+    try:
+        cnf = _mysqlClientDefaultsFile(pwd)
+    except Exception as e:
+        yf.writeFileLog('[mysql] mysql_upgrade 创建临时 option 文件失败（口令未记录）: %s'
+                        % str(e)[:200])
+        return yf.returnJson(False, 'mysql_upgrade: cannot prepare credentials')
+
+    try:
+        rc, out, err = yf.execShellRc(
+            [upgrader, '--defaults-extra-file=' + cnf, '--force'],
+            shell=False, timeout=1800)
+    except Exception as e:
+        yf.writeFileLog('[mysql] mysql_upgrade 执行异常: %s' % str(e)[:200])
+        return yf.returnJson(False, 'mysql_upgrade: execution error')
+    finally:
+        try:
+            os.remove(cnf)
+        except OSError as e:
+            _log.debug('[mysql] 删除 mysql_upgrade 临时 option 文件失败: %s', e)
+
+    text = ' '.join(((out or '') + ' ' + (err or '')).split())[:400]
+    if rc != 0:
+        yf.writeFileLog('[mysql] mysql_upgrade 返回 %s: %s' % (rc, text))
+        return yf.returnJson(False, 'mysql_upgrade rc=%s: %s' % (rc, text))
+    yf.writeFileLog('[mysql] mysql_upgrade 完成: %s' % text)
+    return yf.returnJson(True, 'mysql_upgrade ok')
+
+
 def cleanStale(version=''):
     """只清理「我们自己、且程序文件已被删除」的僵尸进程（安装/启动前调用）。
 
@@ -6188,6 +6233,8 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'mysql_upgrade':
+        print(runMysqlUpgrade(version))
     elif func == 'clean_stale':
         print(cleanStale(version))
     elif func == 'stop_and_kill':

@@ -98,6 +98,12 @@ cd /www/server/yufeng_panel/plugins/php/versions && bash all_test.sh
 >   每次安装多 3~15 分钟且多一个下载失败面。
 >   **已安装的机器不受影响**：`plugins/mysql/versions/{5.5,5.6}/install.sh` 与
 >   `conf/my5.{5,6}.cnf` 均保留，可正常卸载与查看原配置模板。
+> * **MySQL 只保留 LTS**：安装列表为 `5.7` / `8.0` / `8.4` / `9.7`
+>   （8.4 与 9.7 官方均为 LTS）。**8.2/8.3/9.0~9.4 是 Innovation 短期版本**（只支持到
+>   下一个 Innovation 发布），已与 5.5/5.6 一起从安装列表下架：
+>   已装用户可在软件商店点「升级到 X」一键升到**同主版本的 LTS**
+>   （5.5/5.6→5.7、8.2/8.3→8.4、9.0~9.4→9.7），升级会先完整备份 `server/mysql`（含 data），
+>   失败自动回滚；是否升级由用户决定。跨主版本（5.x→8.x/9.x）不给建议也拒绝执行。
 > * **MySQL 5.7 及以上**：当前默认支持区间。编译期 OpenSSL 选择见
 >   `plugins/php/lib/openssl_pick.sh`：**系统库能用就用 `-DWITH_SSL=system`**
 >   （5.7.44 / 8.0.46 的 CMake 都接受 OpenSSL 3.x，实测 3.0.22 通过），

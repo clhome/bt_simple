@@ -341,6 +341,32 @@ function getSList(isdisplay) {
             latest_version = plugin.versions[plugin.versions.length - 1];
           }
         }
+        // 「更新」只在**同主版本**内提示：跨主版本（5.x→9.x）会触发 MySQL/PHP 的
+        // 数据字典或二进制依赖不兼容，面板不做跨主版本的一键升级。
+        // 因此这里取「同主版本的最高可用版本」，而不是 versions 的最后一项
+        //（后者是全局最新，8.0 用户看到它只会被判「跨主版本」而永远不出现更新入口）。
+        var sameMajor = '';
+        (function () {
+          var curMajor = String(plugin.setup_version || '').split('.')[0];
+          function verCmp(a, b) {
+            var ap = String(a).split('.'), bp = String(b).split('.');
+            var n = Math.max(ap.length, bp.length);
+            for (var i = 0; i < n; i++) {
+              var x = parseInt(ap[i]) || 0, y = parseInt(bp[i]) || 0;
+              if (x !== y) return x > y ? 1 : -1;
+            }
+            return 0;
+          }
+          var cand = [];
+          if (Array.isArray(plugin.versions)) { cand = plugin.versions; }
+          else if (typeof plugin.versions === 'string' && plugin.versions) { cand = [plugin.versions]; }
+          cand.forEach(function (v) {
+            if (String(v).split('.')[0] !== curMajor) return;
+            if (verCmp(v, plugin.setup_version) <= 0) return;
+            if (!sameMajor || verCmp(v, sameMajor) > 0) { sameMajor = v; }
+          });
+        })();
+
         if (plugin.setup_version && latest_version && plugin.setup_version != latest_version) {
           // 主版本一致性安全校验，防止跨分支/大版本强制升级导致依赖的服务及数据崩溃
           var current_major = plugin.setup_version.toString().split('.')[0];
@@ -363,7 +389,9 @@ function getSList(isdisplay) {
               }
             }
             if (needUpdate) {
-              mupdate = '<a class="btlink" onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(latest_version) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' + t('public.update', '更新') + '</a> | ';
+              // 同主版本内的最高可用版本（含 LTS 跃迁，如 8.0 → 8.4）
+              var updTarget = sameMajor || latest_version;
+              mupdate = '<a class="btlink" onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(updTarget) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' + t('public.update', '更新') + '</a> | ';
             }
           }
         }
@@ -379,7 +407,21 @@ function getSList(isdisplay) {
             '\',\'' + yfSoftJsStr(plugin.php_update.current || '') + '\',\'' + yfSoftJsStr(plugin.php_update.latest || '') + '\')">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.php_update.latest || '') + '</a> | ';
         }
-        handle = mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
+        // 已下架版本（如 MySQL 5.5/5.6、8.2/8.3、9.0~9.4）：给红标 + 「升级到 X」入口。
+        // 升级目标由后端按「同主版本最高可用版本」算好（plugin.eol_upgrade_to），
+        // 是否升级由用户决定（复用 softUpdate 的确认弹窗，会自动备份并支持失败回滚）。
+        var eolUpgradeLink = '';
+        if (plugin.eol_upgrade_to) {
+          eolUpgradeLink = '<a class="btlink" style="color:#ff2020" title="' +
+            yfSoftText(t('soft.eol_upgrade_tip', '当前版本已停止维护（官方不再提供安全更新）。升级会先完整备份数据目录，失败自动回滚；请自行决定是否升级。')) + '"' +
+            ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.eol_upgrade_to) +
+            '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
+            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.eol_upgrade_to) + '</a> | ';
+          mupdate = '<span class="btlink" style="color:#ff2020;cursor:help" title="' +
+            yfSoftText(t('soft.eol_version_tip', '该版本已停止维护，建议升级到同系列的长期支持版本')) + '">' +
+            yfSoftText(t('soft.eol_version', '已下架')) + '</span> | ' + mupdate;
+        }
+        handle = eolUpgradeLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
         titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {

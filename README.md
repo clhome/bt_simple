@@ -144,15 +144,24 @@
 | `which` 命令依赖 | 全仓约 49 处调用 ✅ | 已适配：Debian 13 显式补装 `which` 包（幂等） |
 | 面板更新检测 | ~~`web/utils/system/update.py:34`~~ ✅ | 已适配：优先 `packaging.version`，回退 `distutils` |
 | Python 3.13 依赖分档 | `requirements.txt` / `version/` ✅ | 已适配：新增 `version/r3.13.txt`；14 个零引用历史依赖待独立清理 |
-| MySQL 5.5 / 5.6 安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：商店不再提供 5.5/5.6 安装入口，接口层也拦截；版本脚本保留仅供已装用户卸载 |
+| MySQL 非 LTS 版本安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）不再提供安装；列表只留 LTS（5.7 / 8.0 / 8.4 / 9.7），已装旧版可在商店一键升级到同系列 LTS |
 | PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
 | Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
 
-> **MySQL 版本口径（2026-10-27）**：最低 **5.7**。5.5/5.6 上游已 EOL，且其 CMake 只认 OpenSSL 1.0.x
-> （5.6.51 已移除自带 yaSSL）—— 在 OpenSSL 3.x 的发行版上必须自建一份 OpenSSL 1.0.2 才能编译，
-> 代价与失败面都大，因此已从安装列表下架。**已安装 5.5/5.6 的机器不受影响**：卸载脚本与 `my5.{5,6}.cnf`
-> 模板都保留，可正常卸载/查看配置。
-> 守卫：`testsuite/test_mysql_min_install_branch.py`。
+> **MySQL 版本口径（2026-10-27）**：安装列表只保留 **LTS** —— `5.7` / `8.0` / `8.4` / `9.7`
+> （8.4 与 9.7 官方均为 LTS；8.2/8.3/9.0~9.4 是 Innovation 短期版本，只支持到下个 Innovation 发布，
+> 不适合生产，已下架；5.5/5.6 早已 EOL，且 CMake 只认 OpenSSL 1.0.x，在 OpenSSL 3.x 的系统上
+> 必须自建 OpenSSL 1.0.2 才能编译，代价与失败面都大）。
+>
+> **已装旧版的机器不受影响，且面板给一键升级入口**：软件商店里会对已下架版本显示
+> 「已下架」红标 + 「升级到 X」（X = **同主版本的 LTS**：5.5/5.6→5.7、8.2/8.3→8.4、9.0~9.4→9.7）。
+> 升不升由用户决定；点升级后 `install.sh` 会 **先完整备份 `server/mysql`（含 data）**，
+> 备份失败即中止，备份成功才动目录；新版本启动/自检失败会**自动回滚**（旧目录原样换回来），
+> 升级前的完整目录与备份包都保留，便于人工核对。跨主版本（5.x→8.x/9.x）不给建议也拒绝执行
+> —— MySQL 的数据字典在跨主版本时不兼容。
+>
+> 守卫：`testsuite/test_mysql_min_install_branch.py`（下架口径）、
+> `testsuite/test_mysql_lts_upgrade.py`（LTS 列表 + 升级目标 + 备份/回滚流程）。
 
 > **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
 
