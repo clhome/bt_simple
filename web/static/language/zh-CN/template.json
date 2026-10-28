@@ -3689,6 +3689,7 @@
         "py_msg_15c2e0": "缓存已清除",
         "py_msg_6f3a2d": "第三方插件需确认安装脚本后再安装，请重新导入确认",
         "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本",
+        "mysql_eol_branch_install": "MySQL 5.7 以下的版本官方已停止维护（且只支持 OpenSSL 1.0.x），不再支持安装；请选择 5.7 及以上版本",
         "os_family_install": "当前系统不支持该 PHP 安装渠道，请改用与系统匹配的渠道（APT / YUM / 编译版）"
     },
     "jdk": {

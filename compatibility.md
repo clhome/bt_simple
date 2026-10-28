@@ -65,7 +65,7 @@ cd /www/server/yufeng_panel/plugins/php/versions && bash all_test.sh
 
 
 
-| 系统名称 			| MySQL55|MySQL56|MySQL57|MySQL80|
+| 系统名称 			| ~~MySQL55~~|~~MySQL56~~|MySQL57|MySQL80|
 | ----------------- |-------|--------|-------|-------|
 | CentOS 7.9 		|✅		|✅		 |✅	 |✅	 |
 | CentOS 8.4 		|✅		|✅	  	 |✅	 |✅	 |	
@@ -85,3 +85,22 @@ cd /www/server/yufeng_panel/plugins/php/versions && bash all_test.sh
 | Arch Linux 	 	|✅		|✅	   	 |✅	 |✅	 |	
 | openSUSE 15.4 	|✅		|✅	   	 |✅	 |✅	 |
 | openEuler 22.03 	|✅		|✅	   	 |✅	 |✅	 |
+
+> **MySQL 版本支持状态说明（2026-10-27 起）**
+>
+> 上表 MySQL55 / MySQL56 两列的 ✅ 表示「**历史版本曾在对应系统上编译/运行通过**」，
+> **不代表当前仍在支持列表内**：
+>
+> * **MySQL 5.5 / 5.6**：已从安装列表**下架**（`plugins/mysql/info.json` 的 `versions`
+>   不再包含，`web/utils/plugin.py::install()` 再拦一道）。原因：上游已 EOL，且它们的
+>   `cmake/ssl.cmake` **只认 OpenSSL 1.0.x**（5.6.51 还移除了自带 yaSSL）—— 在 OpenSSL 3.x
+>   的发行版（Debian 12 / Ubuntu 22.04 等）上必须自建一份 OpenSSL 1.0.2 才能编译，
+>   每次安装多 3~15 分钟且多一个下载失败面。
+>   **已安装的机器不受影响**：`plugins/mysql/versions/{5.5,5.6}/install.sh` 与
+>   `conf/my5.{5,6}.cnf` 均保留，可正常卸载与查看原配置模板。
+> * **MySQL 5.7 及以上**：当前默认支持区间。编译期 OpenSSL 选择见
+>   `plugins/php/lib/openssl_pick.sh`：**系统库能用就用 `-DWITH_SSL=system`**
+>   （5.7.44 / 8.0.46 的 CMake 都接受 OpenSSL 3.x，实测 3.0.22 通过），
+>   只有系统缺开发包或版本过旧才自建（5.7 自建 1.1、8.x 自建 3.x）。
+>
+> 守卫用例：`testsuite/test_mysql_min_install_branch.py`、`testsuite/test_db_ssl_version_matrix.py`。

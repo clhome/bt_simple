@@ -368,6 +368,7 @@
         "py_msg_15c2e0": "緩存已清除",
         "py_msg_6f3a2d": "第三方外掛需確認安裝腳本後再安裝，請重新匯入確認",
         "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止維護，不再支援安裝；請選擇 8.2 或以上版本",
+        "mysql_eol_branch_install": "MySQL 5.7 以下的版本官方已停止維護（且只支援 OpenSSL 1.0.x），不再支援安裝；請選擇 5.7 及以上版本",
         "os_family_install": "目前系統不支援該 PHP 安裝管道，請改用與系統相符的管道（APT / YUM / 編譯版）"
     },
     "jdk": {

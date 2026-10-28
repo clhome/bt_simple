@@ -368,6 +368,7 @@
         "py_msg_15c2e0": "cache cancellata",
         "py_msg_6f3a2d": "Conferma lo script prima dell'installazione; reimporta il plugin",
         "php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore",
+        "mysql_eol_branch_install": "MySQL precedente alla 5.7 e EOL (e supporta solo OpenSSL 1.0.x); installazione non piu supportata, scegliere 5.7 o superiore",
         "os_family_install": "Questo canale di installazione PHP non e supportato dal sistema attuale; usa un canale adatto (APT / YUM / compilato)"
     },
     "jdk": {

@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038": "Plugin name is missing!",
 			"os_family_install": "This PHP install channel is not supported on the current OS; use a matching channel (APT / YUM / compiled)",
 			"php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer",
+			"mysql_eol_branch_install": "MySQL below 5.7 is EOL (and only supports OpenSSL 1.0.x); installing it is no longer supported, please choose 5.7 or newer",
 			"py_msg_988b58": "Version information is missing!",
 			"py_msg_dacbd7": "The configuration file does not exist!",
 			"py_msg_c3ed11": "has InstalltaskAddto the queue!",

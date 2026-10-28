@@ -354,6 +354,38 @@ _PLUGIN_MODULE_MTIME = {}
 #:     不看目录残留）。
 PHP_MIN_INSTALL_BRANCH = '82'
 
+#: 「MySQL 只提供 5.7 及以上」（用户 2026-10-27 确定）：5.5/5.6 上游已 EOL，
+#: 且它们的 CMake 只认 OpenSSL 1.0.x —— 在 OpenSSL 3.x 的新发行版上必须自建
+#: 一份 OpenSSL 1.0.2 才能编译，安装代价与失败面都明显更大。
+#:
+#: 口径（与 PHP 那条一致）：
+#:   * **安装入口**：`info.json` 的 `versions` 已移除 5.5/5.6，商店不再展示；
+#:   * **接口层**：`install()` 再拦一道（前端看不到 ≠ 接口调不到）；
+#:   * **卸载能力必须保留**：`plugins/mysql/versions/{5.5,5.6}/install.sh` 与
+#:     `conf/my5.{5,6}.cnf` 都**不删** —— 已装用户还要能卸载/看配置，删了就变成
+#:     「装得上、卸不掉」。
+MYSQL_MIN_INSTALL_BRANCH = '5.7'
+
+
+def _mysql_branch_of(version):
+    """`5.7` → (5, 7)；`8.0` → (8, 0)；`5.5-fork` 这类先取前缀数字；判不了返回 ()。"""
+    m = re.match(r'^\s*(\d+)(?:\.(\d+))?', str(version or ''))
+    if not m:
+        return ()
+    return (int(m.group(1)), int(m.group(2) or 0))
+
+
+def _mysql_min_branch():
+    return _mysql_branch_of(MYSQL_MIN_INSTALL_BRANCH)
+
+
+def _mysql_is_eol_branch(version):
+    """该版本是否低于 `MYSQL_MIN_INSTALL_BRANCH`（判不了按「不拦」处理，交给后面的白名单）。"""
+    cur = _mysql_branch_of(version)
+    if not cur:
+        return False
+    return cur < _mysql_min_branch()
+
 
 def _php_family(name):
     """是否本面板托管的 PHP 渠道插件（`php` 编译版 / `php-apt` / `php-yum`）。"""
@@ -911,6 +943,15 @@ class plugin(object):
                 yf.writeFileLog('[plugin] 拒绝安装已停维的 PHP 分支: name=%s version=%s'
                                 % (name, version))
                 return yf.returnData(False, 'plugin.php_eol_branch_install', ())
+
+        # MySQL 只提供 MYSQL_MIN_INSTALL_BRANCH（5.7）及以上（用户 2026-10-27 定的口径）。
+        # 5.5/5.6 的 CMake 只认 OpenSSL 1.0.x，在 OpenSSL 3.x 的系统上必须自建 1.0.2，
+        # 安装代价与失败面都大。版本脚本仍保留，供已装用户卸载。
+        if str(name).strip().lower() == 'mysql' and _mysql_is_eol_branch(version):
+            yf.writeFileLog('[plugin] 拒绝安装已下架的 MySQL 版本: name=%s version=%s'
+                            % (name, version))
+            return yf.returnData(False, 'plugin.mysql_eol_branch_install',
+                                 (MYSQL_MIN_INSTALL_BRANCH,))
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:

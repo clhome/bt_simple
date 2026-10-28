@@ -660,3 +660,56 @@ major 3。所以「系统 >=3 就自建 1.1 / 3.x」不是必须的：
 
 CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
 也把「openssl-1.1.1w / 3.5.2 下载失败」这一类偶发红一并消掉。5.5/5.6 仍走自建（无法避免）。
+
+---
+
+# 追加任务（2026-10-27 九次）：MySQL 安装最低从 5.7 开始（下架 5.5 / 5.6）
+
+## 用户口径
+
+`MySQL` 安装**直接去掉 5.5、5.6**，最低从 5.7 开始。
+
+## 依据（同日实测）
+
+5.5 / 5.6 上游已 EOL，且它们的 `cmake/ssl.cmake` **只认 OpenSSL 1.0.x**
+（5.6.51 还移除了自带 yaSSL）→ 在 OpenSSL 3.x 的发行版上必须自建 OpenSSL 1.0.2
+才能编译（每次多 3~15 分钟 + 一个下载失败面）。而 5.7.44 / 8.0.46 的 CMake
+**都接受系统 OpenSSL 3.x**（实测 3.0.22 通过），没有这个负担。
+
+## 改动（对齐 PHP `PHP_MIN_INSTALL_BRANCH` 的既有口径）
+
+- [x] **安装入口**：`plugins/mysql/info.json` 的 `versions` 与 `todo_versions`
+      去掉 5.5 / 5.6，最低 5.7。
+- [x] **接口层**：`web/utils/plugin.py` 新增 `MYSQL_MIN_INSTALL_BRANCH = '5.7'` +
+      `_mysql_branch_of()` / `_mysql_is_eol_branch()`，在 `install()` 里拦一道
+      （前端看不到 ≠ 接口调不到），返回 i18n 键 `plugin.mysql_eol_branch_install`
+      （带最低版本号）。不拼中文，外语界面不漏翻。
+- [x] **卸载能力必须保留**：`plugins/mysql/versions/{5.5,5.6}/install.sh` 与
+      `conf/my5.{5,6}.cnf` **都不删** —— 已装用户还要能卸载、能看回原配置模板。
+      「装得上、卸不掉」是比「不支持安装」更坏的状态。
+- [x] **兜底版本**：`plugins/mysql/index.py` 里读不到 `version.pl` 时
+      原为 `5.6`，改为 `5.7`（面板最老的受支持版本）。
+- [x] **CI**：删除 `python-app-mysql55.yml` / `python-app-mysql56.yml`
+      （留着就等于声明「支持安装 5.5/5.6」，手动跑必然红）；
+      `test_ci_workflows_hardening.py` 的 `HEAVY_WORKFLOWS` 同步收窄。
+- [x] **i18n**：新增 `plugin.mysql_eol_branch_install`（6 语言 × `lan.js` /
+      `template.json` / `template.soft.json`，共 18 处）。
+- [x] **文档**：`README.md` 的「已知限制」表改成「已下架」；`compatibility.md` 的
+      MySQL 兼容性表把 5.5/5.6 两列划掉，并加「历史测试结果 ≠ 当前支持」的说明。
+
+## 验证
+
+- 新增守卫 `testsuite/test_mysql_min_install_branch.py`（8 项）：
+  `info.json` 首版必须是 5.7、不得含 5.5/5.6；`todo_versions` 同样干净；
+  两个旧 workflow 已删、5.7 的保留；`_mysql_is_eol_branch` 对
+  5.5/5.6/5.6.51 为真、对 5.7/8.0/9.7/空值为假；`install()` 必须返回 i18n 键；
+  **5.5/5.6 的卸载脚本与配置模板必须仍在**；兜底版本不再是 5.6。
+  旧代码上 5 项失败 + 1 错误，新代码全绿。
+- 全量门禁：**319 模块 / 4218 个 test 方法 / 0 隔离 / 全绿**。
+
+## 影响面
+
+- **新装**：商店里 MySQL 只剩 5.7 / 8.0 / 8.2 / 8.3 / 8.4 / 9.0~9.7；
+  手工调 `/plugins/install` 传 5.5/5.6 会被拒并提示最低 5.7。
+- **已装 5.5/5.6 的机器**：完全不受影响 —— 管理/卸载照旧（`setup_version` 读
+  `server/mysql/version.pl`，与 `info.json` 的 versions 无关），「更新」按钮照旧指向最新版。

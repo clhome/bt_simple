@@ -368,6 +368,7 @@
         "py_msg_15c2e0": "Le cache a été vidé",
         "py_msg_6f3a2d": "Confirmez le script avant l'installation ; réimportez le plugin",
         "php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
+        "mysql_eol_branch_install": "MySQL inferieur a 5.7 est EOL (et ne supporte que OpenSSL 1.0.x) ; installation non prise en charge, choisissez 5.7 ou plus",
         "os_family_install": "Ce canal d'installation PHP n'est pas pris en charge par ce systeme ; utilisez un canal adapte (APT / YUM / compile)"
     },
     "jdk": {

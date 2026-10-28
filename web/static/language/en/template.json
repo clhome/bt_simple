@@ -3689,6 +3689,7 @@
         "py_msg_15c2e0": "Cache cleared",
         "py_msg_6f3a2d": "Confirm the plugin script before installing; re-import to confirm",
         "php_eol_branch_install": "PHP branches below 8.2 are end-of-life and can no longer be installed; choose 8.2 or newer",
+        "mysql_eol_branch_install": "MySQL below 5.7 is EOL (and only supports OpenSSL 1.0.x); installing it is no longer supported, please choose 5.7 or newer",
         "os_family_install": "This PHP install channel is not supported on the current OS; use a matching channel (APT / YUM / compiled)"
     },
     "jdk": {

@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038": "缺少插件名称!",
 			"os_family_install": "当前系统不支持该 PHP 安装渠道，请改用与系统匹配的渠道（APT / YUM / 编译版）",
 			"php_eol_branch_install": "PHP 8.2 以下的版本官方已停止维护，不再支持安装；请选择 8.2 及以上版本",
+			"mysql_eol_branch_install": "MySQL 5.7 以下的版本官方已停止维护（且只支持 OpenSSL 1.0.x），不再支持安装；请选择 5.7 及以上版本",
 			"py_msg_988b58": "缺少版本信息!",
 			"py_msg_dacbd7": "配置文件不存在!",
 			"py_msg_c3ed11": "已将安装任务添加到队列!",

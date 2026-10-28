@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038":"Le plugin Nom est manquant !",
 			"os_family_install": "Ce canal d'installation PHP n'est pas pris en charge par ce systeme ; utilisez un canal adapte (APT / YUM / compile)",
 			"php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
+			"mysql_eol_branch_install": "MySQL inferieur a 5.7 est EOL (et ne supporte que OpenSSL 1.0.x) ; installation non prise en charge, choisissez 5.7 ou plus",
 			"py_msg_988b58":"Les informations de version manquent !",
 			"py_msg_dacbd7":"Le fichier de configuration n'existe pas !",
 			"py_msg_c3ed11":"La tâche « Installer » a été ajoutée à la file d'attente !",

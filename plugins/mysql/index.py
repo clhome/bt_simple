@@ -3300,7 +3300,9 @@ def delDb():
             try:
                 db_version = version
             except NameError:
-                db_version = "5.6"
+                # 读不到 version.pl 时的兜底：面板最老的受支持版本是 5.7
+                # （5.5/5.6 已从安装列表下架）
+                db_version = "5.7"
                 version_pl = getServerDir() + "/version.pl"
                 if os.path.exists(version_pl):
                     db_version = yf.readFile(version_pl).strip()
@@ -6174,7 +6176,8 @@ def checkPluginUpgrade(version=''):
 if __name__ == "__main__":
     func = sys.argv[1]
 
-    version = "5.6"
+    # 兜底版本 = 面板最老的受支持版本（5.5/5.6 已从安装列表下架）
+    version = "5.7"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
         version = yf.readFile(version_pl).strip()

@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038": "缺少外掛程式名稱!",
 			"os_family_install": "目前系統不支援該 PHP 安裝管道，請改用與系統相符的管道（APT / YUM / 編譯版）",
 			"php_eol_branch_install": "PHP 8.2 以下的版本官方已停止維護，不再支援安裝；請選擇 8.2 或以上版本",
+			"mysql_eol_branch_install": "MySQL 5.7 以下的版本官方已停止維護（且只支援 OpenSSL 1.0.x），不再支援安裝；請選擇 5.7 及以上版本",
 			"py_msg_988b58": "缺少版本信息!",
 			"py_msg_dacbd7": "設定檔案不存在!",
 			"py_msg_c3ed11": "已將安裝任務新增到隊列!",

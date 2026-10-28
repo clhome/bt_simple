@@ -52,9 +52,10 @@ CORE_WORKFLOW = 'core-regression.yml'
 # 重型集成冒烟 workflow → 它实际安装的插件目录。
 # 这层映射不是装饰：test_24 会交叉核对文件里确实调用 `<插件目录>/install.sh`，
 # 防止「paths 写了一个和 workflow 无关的目录」这种假收窄。
+#: 2026-10-27：MySQL 5.5/5.6 已从安装列表下架（`info.json` 不再提供、接口层拦截），
+#: 对应的 `python-app-mysql55.yml` / `mysql56.yml` 一并删除 —— 留着它们就是在声明
+#: 「支持安装 5.5/5.6」，手动跑必然红。
 HEAVY_WORKFLOWS = {
-    'python-app-mysql55.yml': 'plugins/mysql/',
-    'python-app-mysql56.yml': 'plugins/mysql/',
     'python-app-mysql57.yml': 'plugins/mysql/',
     'python-app-mysql80.yml': 'plugins/mysql/',
     'python-app-op.yml': 'plugins/openresty/',

@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038": "Plugin-Name fehlt!",
 			"os_family_install": "Dieser PHP-Installationskanal wird vom aktuellen System nicht unterstuetzt; bitte einen passenden Kanal nutzen (APT / YUM / kompiliert)",
 			"php_eol_branch_install": "PHP-Zweige unter 8.2 sind EOL und koennen nicht mehr installiert werden; bitte 8.2 oder neuer waehlen",
+			"mysql_eol_branch_install": "MySQL unter 5.7 ist EOL (und unterstuetzt nur OpenSSL 1.0.x); Installation nicht mehr moeglich, bitte 5.7 oder neuer waehlen",
 			"py_msg_988b58": "FehltVersionInformationen!",
 			"py_msg_dacbd7": "KonfigurationDateienExistiert nicht!",
 			"py_msg_c3ed11": "Der Installationsauftrag wurde zur Warteschlange hinzugefügt!",

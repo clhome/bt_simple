@@ -144,9 +144,15 @@
 | `which` 命令依赖 | 全仓约 49 处调用 ✅ | 已适配：Debian 13 显式补装 `which` 包（幂等） |
 | 面板更新检测 | ~~`web/utils/system/update.py:34`~~ ✅ | 已适配：优先 `packaging.version`，回退 `distutils` |
 | Python 3.13 依赖分档 | `requirements.txt` / `version/` ✅ | 已适配：新增 `version/r3.13.txt`；14 个零引用历史依赖待独立清理 |
-| MySQL 5.5 源码编译 | `plugins/mysql/versions/5.5/install.sh:163` | 脚本显式判定 trixie 无法编译并退出（设计限制，非 Bug） |
+| MySQL 5.5 / 5.6 安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：商店不再提供 5.5/5.6 安装入口，接口层也拦截；版本脚本保留仅供已装用户卸载 |
 | PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
 | Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
+
+> **MySQL 版本口径（2026-10-27）**：最低 **5.7**。5.5/5.6 上游已 EOL，且其 CMake 只认 OpenSSL 1.0.x
+> （5.6.51 已移除自带 yaSSL）—— 在 OpenSSL 3.x 的发行版上必须自建一份 OpenSSL 1.0.2 才能编译，
+> 代价与失败面都大，因此已从安装列表下架。**已安装 5.5/5.6 的机器不受影响**：卸载脚本与 `my5.{5,6}.cnf`
+> 模板都保留，可正常卸载/查看配置。
+> 守卫：`testsuite/test_mysql_min_install_branch.py`。
 
 > **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
 

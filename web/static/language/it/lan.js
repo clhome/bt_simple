@@ -5040,6 +5040,7 @@ var lan = {
 			"py_msg_5e6038": "Manca il plug-in Nome!",
 			"os_family_install": "Questo canale di installazione PHP non e supportato dal sistema attuale; usa un canale adatto (APT / YUM / compilato)",
 			"php_eol_branch_install": "I rami PHP inferiori a 8.2 sono EOL e non installabili; scegli 8.2 o superiore",
+			"mysql_eol_branch_install": "MySQL precedente alla 5.7 e EOL (e supporta solo OpenSSL 1.0.x); installazione non piu supportata, scegliere 5.7 o superiore",
 			"py_msg_988b58": "Mancano le informazioni sulla versione!",
 			"py_msg_dacbd7": "Il file di configurazione non esiste!",
 			"py_msg_c3ed11": "L'attività \"Installa\" è stata aggiunta alla coda!",
