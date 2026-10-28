@@ -40,6 +40,41 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
+    # 为什么要先清理镜像自带的 MySQL（2026-10-27）：
+    #   GitHub 托管的 ubuntu-22.04 镜像**预装 MySQL 8.0.x**（root/root，默认 disabled），
+    #   而本插件的 systemd unit 也叫 mysql.service（写到 /lib/systemd/system/mysql.service）。
+    #   两套 MySQL 并存时，只要 unit 覆盖没生效（模板读不到 / 写失败 / daemon-reload 未生效）、
+    #   或 apt 又把包里的 unit 恢复回来，`systemctl start mysql` 起的就是系统那套，
+    #   面板 ORM 连上去就是 1045 (using password: YES) —— 「装完假成功、其实连不到自己的库」。
+    #   CI 里环境干净比保留无用组件重要：停掉 + 卸掉，让插件成为机器上唯一的 MySQL。
+    #   守卫：testsuite/test_ci_workflows_hardening.py（不得用 `|| true` 掩盖失败，故全部走 if 判定）
+    - name: 清理镜像预装的 MySQL 8.0（避免端口 / mysql.service 名冲突）
+      run: |
+        set -e
+        if systemctl is-active --quiet mysql.service; then sudo systemctl stop mysql.service; fi
+        if systemctl is-enabled --quiet mysql.service; then sudo systemctl disable mysql.service; fi
+        _pkgs=""
+        for _p in mysql-server mysql-server-8.0 mysql-server-core-8.0; do
+          if dpkg-query -W -f='${Status}' "$_p" 2>/dev/null | grep -q 'install ok installed'; then
+            _pkgs="$_pkgs $_p"
+          fi
+        done
+        if [ -n "$_pkgs" ]; then
+          echo "卸载镜像预装包：$_pkgs"
+          sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y $_pkgs
+        fi
+        sudo rm -rf /var/lib/mysql /etc/mysql
+        sudo systemctl daemon-reload
+        if ss -ltn | grep -q ':3306 '; then
+          echo "::error::清理后 3306 仍被占用，插件实例无法监听"
+          ss -ltnp | grep 3306
+          exit 1
+        fi
+        if [ -e /usr/sbin/mysqld ]; then
+          echo "::error::/usr/sbin/mysqld 仍在 —— 镜像自带的 MySQL 没卸干净"
+          exit 1
+        fi
+        echo "镜像自带 MySQL 已清理：无 /usr/sbin/mysqld、3306 空闲"
     - name: Install YFPanel
       run: |
         sudo bash scripts/install_dev.sh

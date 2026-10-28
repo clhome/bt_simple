@@ -334,6 +334,123 @@ class TestCallersRefuseAndDegrade(unittest.TestCase):
         self.assertIn('数据目录不存在', res['msg'])
 
 
+class _FakeDbRoot(object):
+    """替掉 `db_root.apply_root_pwd`（自检里的连通性验证）。"""
+
+    class _R(object):
+        def __init__(self, ok):
+            self.ok = ok
+            self.detail = '' if ok else 'boom'
+
+        def __str__(self):
+            return 'fake-root-pwd-result(ok=%s)' % self.ok
+
+    def __init__(self, ok=True):
+        self._ok = ok
+
+    def apply_root_pwd(self, **kw):
+        return _FakeDbRoot._R(self._ok)
+
+
+class TestSelfCheckReturnsDict(unittest.TestCase):
+    """自检结果必须是 dict，绝不能是 JSON 字符串（2026-10-27 CI 真实红灯）。
+
+    现场（GitHub Actions，`python3 plugins/mysql/index.py self_check 5.7`）：
+
+        MySQL 安装自检...
+        "{\"status\": true, \"msg\": \"自检通过\"}"     ← 双编码，其实是「通过」
+          File ".../plugins/mysql/index.py", line 6245, in <module>
+            sys.exit(0 if _sc.get('status') else 1)
+        AttributeError: 'str' object has no attribute 'get'
+        [ERROR] MySQL 自检未通过 ... → Error: Process completed with exit code 1.
+
+    同一次运行的【修复】还打印了
+        {"status": false, "msg": "修复失败,错误: 'str' object has no attribute 'get'"}
+    —— 实例明明已经修好、自检也通过，是脚本自己把结论判反了。
+    """
+
+    def setUp(self):
+        self.fx = _Fixture()
+
+    def tearDown(self):
+        self.fx.close()
+
+    def test_01_abnormal_branch_returns_dict(self):
+        self.fx.install_defaults(procs=[self.fx.foreign_proc()])
+        res = self.fx.mod.selfCheck('5.7')
+        self.assertIsInstance(res, dict, 'selfCheck 返回了 %s，调用方按 dict 用必崩' % type(res))
+        self.assertIs(res.get('status'), False, res)
+        self.assertIn('实例异常', res.get('msg') or '')
+
+    def test_02_ok_branch_returns_dict(self):
+        os.makedirs(os.path.join(self.fx.data, 'mysql'), exist_ok=True)
+        open(self.fx.sock, 'w').close()
+        self.fx.install_defaults(procs=[self.fx.ours_proc()])
+        self.fx.patch(
+            getRootPwd=lambda *a, **k: 'pwd',
+            getSocketFile=lambda *a, **k: self.fx.sock,
+            getDbPort=lambda *a, **k: 3306,
+            db_root=_FakeDbRoot(ok=True),
+        )
+        res = self.fx.mod.selfCheck('5.7')
+        self.assertIsInstance(res, dict, '自检通过时也必须返回 dict（不能是 JSON 串）')
+        self.assertIs(res.get('status'), True, res)
+        self.assertEqual('自检通过', res.get('msg'))
+
+    def test_03_connect_failure_returns_dict(self):
+        os.makedirs(os.path.join(self.fx.data, 'mysql'), exist_ok=True)
+        open(self.fx.sock, 'w').close()
+        self.fx.install_defaults(procs=[self.fx.ours_proc()])
+        self.fx.patch(
+            getRootPwd=lambda *a, **k: 'pwd',
+            getSocketFile=lambda *a, **k: self.fx.sock,
+            getDbPort=lambda *a, **k: 3306,
+            db_root=_FakeDbRoot(ok=False),
+        )
+        res = self.fx.mod.selfCheck('5.7')
+        self.assertIsInstance(res, dict, '连接失败时也必须返回 dict')
+        self.assertIs(res.get('status'), False, res)
+        self.assertIn('连接自检失败', res.get('msg') or '')
+
+    def test_04_result_dict_normalizes_any_shape(self):
+        m = self.fx.mod
+        self.assertIs(m._resultDict({'status': True})['status'], True)
+        self.assertIs(m._resultDict('{"status": true, "msg": "ok"}')['status'], True)
+        self.assertEqual('ok', m._resultDict('{"status": true, "msg": "ok"}')['msg'])
+        self.assertIs(m._resultDict('not json')['status'], False)
+        self.assertIs(m._resultDict(None)['status'], False)
+        self.assertIs(m._resultDict(b'{"status": true}')['status'], True)
+
+    def test_05_callers_normalize(self):
+        """两个调用点都必须先归一化再取 status（命令行退出码 + 面板【修复】）。"""
+        src = _read(IDX)
+        self.assertIn('_sc = _resultDict(selfCheck(version))', src,
+                      'self_check 入口没做归一化（自检通过也可能 exit 1）')
+        self.assertIn('check = _resultDict(selfCheck(version))', src,
+                      'fixDbAccess 没做归一化（修好了也会报「修复失败」）')
+
+    def test_06_panel_repair_returns_json_string(self):
+        """面板要求 JSON 字符串：自检失败时必须是可解析的串，不是裸 dict。"""
+        m = self.fx.mod
+        self.fx.install_defaults(procs=[self.fx.ours_proc()])
+        os.makedirs(os.path.join(self.fx.data, 'mysql'), exist_ok=True)
+        self.fx.patch(
+            appCMD=lambda *a, **k: 'ok',
+            _waitSkipGrantReady=lambda *a, **k: True,
+            resetDbRootPwd=lambda *a, **k: True,
+            openSkipGrantTables=lambda *a, **k: True,
+            closeSkipGrantTables=lambda *a, **k: True,
+            selfCheck=lambda *a, **k: {'status': False, 'msg': '连接自检失败: x'},
+            pMysqlDb=lambda *a, **k: type('D', (), {
+                'query': lambda s, q, *a2, **k2: 'Can not connect'})(),
+            isSqlError=lambda d: True,
+        )
+        res = m.fixDbAccess('5.7')
+        self.assertIsInstance(res, str, '面板接口必须回 JSON 字符串，不能回 dict')
+        self.assertIs(json.loads(res).get('status'), False)
+        self.assertIn('连接自检失败', json.loads(res).get('msg') or '')
+
+
 class TestStaleZombie(unittest.TestCase):
     """卸载残留（程序文件已删、进程还在）必须被识别并清理。
 

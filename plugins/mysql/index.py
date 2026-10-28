@@ -854,22 +854,69 @@ def stopAndKill(version=''):
     return yf.returnJson(True, '卸载清理完成')
 
 
+def _result(status, msg):
+    """构造**内部**结果 dict：翻译照做（走 i18n），但**不**序列化成 JSON 字符串。
+
+    为什么不直接用 `yf.returnJson`：那是给「即将输出到 HTTP/CLI 的最后一步」用的，
+    返回的是 str。内部函数一旦返回 str，调用方 `.get('status')` 就炸（见 `_resultDict`）。
+    """
+    try:
+        res = yf.returnMsg(status, msg)
+        if isinstance(res, dict):
+            return {'status': bool(res.get('status')), 'msg': res.get('msg', msg)}
+    except Exception as _e:
+        _log.debug('[mysql] returnMsg 异常，回退原文案: %s', _e)
+    return {'status': bool(status), 'msg': msg}
+
+
+def _resultDict(res):
+    """把 selfCheck 等内部返回值统一成 dict（2026-10-27 CI 红的根因守卫）。
+
+    历史坑：selfCheck 曾用 `yf.returnJson` 返回 **JSON 字符串**，两个调用点却当 dict
+    用 `.get('status')` → `AttributeError: 'str' object has no attribute 'get'`：
+      * `index.py self_check`：自检其实通过了（已打印 {"status": true}），但进程带着
+        traceback 退出 1，install.sh 判「自检未通过」→ CI 直接红；
+      * 面板【修复】：实例已经修好，却报「修复失败,错误: 'str' object has no attribute 'get'」。
+    这里做一次归一化（dict 原样、JSON 串解析、其余按失败文本），保证同样的写法
+    无论上游返回哪种形态都不会再崩，也不会「假失败」。
+    """
+    if isinstance(res, dict):
+        return res
+    if isinstance(res, (bytes, bytearray)):
+        try:
+            res = res.decode('utf-8', 'replace')
+        except Exception:
+            res = str(res)
+    if isinstance(res, str):
+        try:
+            val = json.loads(res)
+            if isinstance(val, dict):
+                return val
+        except Exception as _e:
+            _log.debug('[mysql] 内部结果不是 JSON，按失败文本处理: %s', _e)
+        return {'status': False, 'msg': res}
+    return {'status': False, 'msg': str(res)}
+
+
 def selfCheck(version=''):
     """安装/修复后的整体自检：归属 → 数据目录 → socket/TCP 连通性。
 
     存在的意义：旧 install.sh 只要 `[ -d $serverPath/mysql ]` 就算成功，
     于是「端口被别的实例占着、自己的 data 没初始化」也能报「安装完成」，
     用户点性能优化才看到「数据库密码错误」。
+
+    返回值必须是 **dict**（`{'status': bool, 'msg': str}`）：调用方（`fix_db_access`
+    与 `self_check` 命令行）都按 dict 取值。想输出 JSON 由调用方自己 `json.dumps`。
     """
     own = instanceOwnership()
     if own['status'] == 'foreign_only':
-        return yf.returnJson(False, '实例异常: ' + own['reason'])
+        return _result(False, '实例异常: ' + own['reason'])
     if own['status'] == 'mixed':
-        return yf.returnJson(False, '实例异常: ' + own['reason'])
+        return _result(False, '实例异常: ' + own['reason'])
     if not own['datadir_exists']:
-        return yf.returnJson(False, '实例异常: ' + (own['reason'] or '数据目录不存在'))
+        return _result(False, '实例异常: ' + (own['reason'] or '数据目录不存在'))
     if own['status'] == 'not_running':
-        return yf.returnJson(False, 'MySQL未启动')
+        return _result(False, 'MySQL未启动')
 
     serverdir = getServerDir()
     pwd = getRootPwd()
@@ -883,8 +930,8 @@ def selfCheck(version=''):
         current_pwd=pwd,
     )
     if not res.ok:
-        return yf.returnJson(False, '连接自检失败: ' + (res.detail or str(res)))
-    return yf.returnJson(True, '自检通过')
+        return _result(False, '连接自检失败: ' + (res.detail or str(res)))
+    return _result(True, '自检通过')
 
 
 def cleanOrphanSockets():
@@ -3644,9 +3691,10 @@ def fixDbAccess(version):
                 # 不能报「修复成功」：那会让用户以为好了，实际仍然连不上。
                 # 日志里已有失败细节（口令已打码）。
                 return yf.returnJson(False, '修复失败: 无法写入并验证 root 口令，请查看面板日志！')
-            check = selfCheck(version)
+            check = _resultDict(selfCheck(version))
             if not check.get('status'):
-                return check
+                # 自检不通过：把它的结论原样回前端（此前 `return check` 会漏出裸 dict）
+                return yf.getJson(check)
             return yf.returnJson(True, '修复成功!')
         return yf.returnJson(True, '正常无需修复!')
     except Exception as e:
@@ -6240,7 +6288,9 @@ if __name__ == "__main__":
     elif func == 'stop_and_kill':
         print(stopAndKill(version))
     elif func == 'self_check':
-        _sc = selfCheck(version)
+        # 归一化：selfCheck 正常返回 dict；万一被外部/历史实现换成 JSON 串也不会崩
+        #（旧写法在这里 AttributeError → 自检通过却 exit 1，CI 直接红）
+        _sc = _resultDict(selfCheck(version))
         print(json.dumps(_sc, ensure_ascii=False))
         sys.exit(0 if _sc.get('status') else 1)
 

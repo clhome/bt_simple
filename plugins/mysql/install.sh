@@ -552,8 +552,9 @@ if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" 
         #   自检把「实例归属 / 数据目录 / 连通性」一次判清楚，不通过就非 0 退出。
         echo "MySQL 安装自检..."
         if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py self_check ${type}); then
-            echo "[ERROR] MySQL 自检未通过：实例不可用（详见上方 JSON 的 reason）。" >&2
+            echo "[ERROR] MySQL 自检未通过：实例不可用（详见上方 JSON 的 msg）。" >&2
             echo "        常见原因：3306 端口被系统中另装的 MySQL/MariaDB 占用 → 先停掉它再重装本插件。" >&2
+            echo "        排查：ps -ef | grep -E '[m]ysqld|[m]ariadbd'；ss -ltnp | grep 3306" >&2
             exit 1
         fi
     fi
