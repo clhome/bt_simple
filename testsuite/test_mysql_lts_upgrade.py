@@ -211,14 +211,18 @@ class TestBackendAndFrontendWiring(unittest.TestCase):
         src = _read(SOFT_JS)
         self.assertIn('sameMajor', src, '前端没有按「同主版本最高可用」挑更新目标')
         self.assertIn('plugin.eol_upgrade_to', src, '前端没有用后端给的升级建议')
-        self.assertIn("t('soft.eol_version'", src, '缺少「已下架」标记')
+        # 红标文案改成「已下架 / 已过维护期」两枚（eol_kind），不再是单一 eol_version
+        self.assertIn("t('soft.eol_kind_removed'", src, '缺少「已下架」标记')
+        self.assertIn("t('soft.eol_kind_eol'", src, '缺少「已过维护期」标记')
 
     def test_03_i18n_keys_present(self):
         zh = _read(os.path.join(ROOT, 'web', 'static', 'language', 'zh-CN', 'template.soft.json'))
         data = json.loads(zh)
         soft = data.get('soft') or data
-        for key in ('eol_version', 'eol_version_tip', 'eol_upgrade_tip'):
+        for key in ('eol_kind_removed', 'eol_kind_eol', 'eol_version_tip', 'eol_upgrade_tip'):
             self.assertIn(key, soft, '缺少 i18n 键 soft.%s' % key)
+        # eol_version 已被 eol_kind_* 取代，必须删掉（否则是死键）
+        self.assertNotIn('eol_version', soft, 'soft.eol_version 已成死键，应删除')
 
 
 class TestUpgradeFlowRealRun(unittest.TestCase):

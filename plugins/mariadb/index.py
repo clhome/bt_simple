@@ -8,6 +8,7 @@ import subprocess
 import re
 import json
 import shlex
+import tempfile
 
 
 web_dir = os.getcwd() + "/web"
@@ -1128,6 +1129,60 @@ def initdUinstall():
     yf.execShell('systemctl stop mariadb')
     yf.execShell('systemctl disable mariadb')
     return 'ok'
+
+
+def runMariaUpgrade(version=''):
+    """跨版本升级后跑 `mariadb-upgrade`（10.4+ 才有这个命令；老版本用 mysql_upgrade）。
+
+    失败不阻断升级（二进制与数据都已换好，系统表升级失败只影响新特性，会在
+    装后自检的连通性里体现），但必须把输出写进任务日志便于追查。
+    """
+    serverdir = getServerDir()
+    bin_path = ''
+    for cand in ('/bin/mariadb-upgrade', '/bin/mysql_upgrade'):
+        if os.path.isfile(serverdir + cand):
+            bin_path = serverdir + cand
+            break
+    if not bin_path:
+        return yf.returnJson(False, 'mariadb-upgrade not found under %s/bin' % serverdir)
+
+    pwd = getRootPwd()
+    fd = None
+    path = ''
+    try:
+        fd, path = tempfile.mkstemp(prefix='bt_mariadb_upg_', suffix='.cnf')
+        content = '[client]\nuser=root\npassword="%s"\nsocket=%s\n' % (
+            str(pwd).replace('\\', '\\\\').replace('"', '\\"'),
+            getSocketFile())
+        with os.fdopen(fd, 'w', encoding='utf-8', newline='\n') as fh:
+            fh.write(content)
+        try:
+            os.chmod(path, 0o600)
+        except OSError as e:
+            _log.debug('[mariadb] 收紧 mariadb-upgrade 临时文件权限失败: %s', e)
+    except Exception as e:
+        return yf.returnJson(False, 'mariadb_upgrade: cannot prepare credentials (%s)'
+                             % str(e)[:80])
+
+    try:
+        rc, out, err = yf.execShellRc(
+            [bin_path, '--defaults-extra-file=' + path, '--force'],
+            shell=False, timeout=1800)
+    except Exception as e:
+        yf.writeFileLog('[mariadb] mariadb-upgrade 执行异常: %s' % str(e)[:200])
+        return yf.returnJson(False, 'mariadb_upgrade: execution error')
+    finally:
+        try:
+            os.remove(path)
+        except OSError as e:
+            _log.debug('[mariadb] 删除 mariadb-upgrade 临时文件失败: %s', e)
+
+    text = ' '.join(((out or '') + ' ' + (err or '')).split())[:400]
+    if rc != 0:
+        yf.writeFileLog('[mariadb] mariadb-upgrade 返回 %s: %s' % (rc, text))
+        return yf.returnJson(False, 'mariadb_upgrade rc=%s: %s' % (rc, text))
+    yf.writeFileLog('[mariadb] mariadb-upgrade 完成: %s' % text)
+    return yf.returnJson(True, 'mariadb_upgrade ok')
 
 
 def stopAndKill(version=''):
@@ -4865,6 +4920,8 @@ if __name__ == "__main__":
         print(upgradeSelfHealing(version))
     elif func == 'status':
         print(status(version))
+    elif func == 'mariadb_upgrade':
+        print(runMariaUpgrade(version))
     elif func == 'stop_and_kill':
         print(stopAndKill(version))
     elif func == 'start':

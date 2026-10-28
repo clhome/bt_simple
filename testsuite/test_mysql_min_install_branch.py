@@ -108,11 +108,13 @@ class TestInstallApiGate(unittest.TestCase):
         self.assertTrue(m, '没找到 plugin.install')
         body = m.group(0)
         self.assertIn("'mysql'", body, 'install() 没有单独处理 mysql')
-        self.assertIn('_mysql_is_eol_branch(version)', body,
-                      'install() 没有调用 _mysql_is_eol_branch 拦截 5.5/5.6')
+        # 2026-10-27 起改为「按 LTS 允许列表拦截」（mysql 与 mariadb 共用同一段逻辑）
+        self.assertIn('db_installable_versions', body,
+                      'install() 没有按 LTS 允许列表拦截已下架版本')
         self.assertIn('plugin.mysql_eol_branch_install', body,
                       '拦截必须返回 i18n 键，不能拼中文（外语界面会漏翻）')
-        self.assertIn('MYSQL_MIN_INSTALL_BRANCH', body, '提示里要带最低版本号')
+        self.assertIn('MYSQL_LTS_VERSIONS', _code_only(_read(PLUGIN_PY)),
+                      '缺少 MySQL 的 LTS 允许列表常量')
 
 
 class TestUninstallStillPossible(unittest.TestCase):

@@ -110,3 +110,16 @@ cd /www/server/yufeng_panel/plugins/php/versions && bash all_test.sh
 >   只有系统缺开发包或版本过旧才自建（5.7 自建 1.1、8.x 自建 3.x）。
 >
 > 守卫用例：`testsuite/test_mysql_min_install_branch.py`、`testsuite/test_db_ssl_version_matrix.py`。
+
+> **MariaDB 版本支持状态说明（2026-10-27 起）**
+>
+> * **只保留 LTS**：`10.6` / `10.11` / `11.4` / `11.8`（官方 `release_support_type = Long Term Support`）。
+>   Rolling 短期版本（10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS、13.x）已从安装列表下架；
+>   版本脚本保留，供已装用户卸载与升级中转。
+> * **已装旧版可一键升级**到**同系列最接近**的 LTS：10.7~10.9 → 10.11、11.0~11.3 → 11.4、
+>   11.5~11.7 → 11.8；12.x 无对应 LTS 脚本，不给跨主版本建议。升级同样是「先完整备份 → 换二进制
+>   → 回填 data → 启动 + `mariadb-upgrade` → 失败自动回滚」。
+> * **10.6 的官方维护期已结束（EOL 2026-07-06）**：仍可安装，但面板会标红「已过维护期」并建议
+>   升级到 10.11。
+>
+> 守卫用例：`testsuite/test_mariadb_lts_upgrade.py`。

@@ -9,6 +9,7 @@
 # ---------------------------------------------------------------------------------
 
 import os
+import time
 import sys
 import re
 import json
@@ -387,7 +388,7 @@ def _mysql_is_eol_branch(version):
     return cur < _mysql_min_branch()
 
 
-def mysql_eol_upgrade_target(installed, available):
+def db_eol_upgrade_target(installed, available, allow_in_available=False):
     """已安装的版本若已被下架，给出「同型号（同主版本）的最高可用版本」作为升级建议。
 
     为什么限定同主版本（用户 2026-10-27 定的口径）：
@@ -403,12 +404,90 @@ def mysql_eol_upgrade_target(installed, available):
     if not cur or not available:
         return ''
     avail = [str(v) for v in available if _mysql_branch_of(v)]
-    if str(installed) in avail:
+    if not allow_in_available and str(installed) in avail:
         return ''
-    same_major = [v for v in avail if _mysql_branch_of(v)[0] == cur[0]]
+    # 「最接近」= 同主版本里**刚好比当前高**的那一档（最少跳版 = 最小风险）：
+    #   MariaDB 11.0~11.3 → 11.4（不是 11.8）；11.5~11.7 → 11.8。
+    # MySQL 每个主版本只有一档 LTS，取最小与取最高等价。
+    same_major = [v for v in avail
+                  if _mysql_branch_of(v)[0] == cur[0] and _mysql_branch_of(v) > cur]
     if not same_major:
         return ''
-    return max(same_major, key=_mysql_branch_of)
+    return min(same_major, key=_mysql_branch_of)
+
+
+#: `mysql_eol_upgrade_target` 保留旧名（早前提交的用例/调用点引用了它）。
+mysql_eol_upgrade_target = db_eol_upgrade_target
+
+#: MariaDB 只提供 LTS（用户 2026-10-27 定）。官方 REST API 实查的口径：
+#:   10.6 LTS（EOL **2026-07-06，已过**，按用户要求仍保留安装入口）
+#:   10.11 LTS（EOL 2028-02-16）、11.4 LTS（2029-05-29）、11.8 LTS（2030-02-13）
+#:   其余（10.7~10.9 / 11.0~11.3 / 11.5~11.7 / 12.x 非 LTS / 13.x）= Rolling 短期版
+MARIADB_MIN_INSTALL_BRANCH = '10.6'
+MARIADB_LTS_VERSIONS = ('10.6', '10.11', '11.4', '11.8')
+#: MySQL 只提供 LTS（5.7 按用户要求作为地板保留）
+MYSQL_LTS_VERSIONS = ('5.7', '8.0', '8.4', '9.7')
+
+#: 「已过官方维护期」的 LTS 版本 → EOL 日期。仍在安装列表里，但面板会劝退（不强制）。
+DB_EOL_SINCE = {
+    'mariadb': {'10.6': '2026-07-06'},
+}
+
+
+def _db_branch_tuple(version):
+    """`10.11` → (10, 11)；`8.0` → (8, 0)；判不了返回 ()。"""
+    m = re.match(r'^\s*(\d+)(?:\.(\d+))?', str(version or ''))
+    if not m:
+        return ()
+    return (int(m.group(1)), int(m.group(2) or 0))
+
+
+def db_eol_state(name, installed, available):
+    """判断「已装版本是否已不再推荐」，返回 `(kind, target)`。
+
+    kind:
+      * ``'removed'`` —— 该版本已从安装列表下架（如 MariaDB 10.7、MySQL 8.2）；
+      * ``'eol'``     —— 还在列表里，但官方维护期已过（如 MariaDB 10.6，EOL 2026-07-06）；
+      * ``''``        —— 正常，无需提示。
+
+    target: 同主版本的最高可用版本（`''` 表示没有更合适的同系列版本，不给建议）。
+    **跨主版本一律不给建议**：MySQL/MariaDB 的数据字典在跨主版本时不兼容。
+    """
+    nm = str(name or '').strip().lower()
+    if nm not in ('mysql', 'mariadb'):
+        return '', ''
+    cur = str(installed or '').strip()
+    if not _db_branch_tuple(cur):
+        return '', ''
+    avail = [str(v) for v in (available or []) if _db_branch_tuple(v)]
+    if not avail:
+        return '', ''
+
+    target = db_eol_upgrade_target(cur, avail)
+    if cur not in avail:
+        return 'removed', target
+    # 仍在列表里：看是否已过官方维护期
+    eol_map = DB_EOL_SINCE.get(nm) or {}
+    if cur in eol_map:
+        try:
+            today = time.strftime('%Y-%m-%d')
+        except Exception:
+            today = ''
+        if today and today > eol_map[cur]:
+            # 仍在列表里但已过维护期：目标要允许「当前版本在 available 中」才算得出来
+            return 'eol', db_eol_upgrade_target(cur, avail, allow_in_available=True)
+    return '', ''
+
+
+def db_installable_versions(name):
+    """该插件当前允许**新装**的版本元组（空元组 = 不限制，走 info.json 原有逻辑）。"""
+    nm = str(name or '').strip().lower()
+    if nm == 'mysql':
+        return MYSQL_LTS_VERSIONS
+    if nm == 'mariadb':
+        return MARIADB_LTS_VERSIONS
+    return ()
+
 
 
 def _php_family(name):
@@ -941,16 +1020,21 @@ class plugin(object):
         return False
 
     @staticmethod
-    def _mysqlEolUpgradeTo(pInfo):
-        """`mysql` 且已装版本已下架时返回建议升级目标，否则返回 ''（其它插件恒为 ''）。"""
+    def _dbApplyEolHint(pInfo):
+        """给列表条目挂上「已下架 / 已过维护期」标记与同系列升级建议。
+
+        只对 mysql / mariadb 生效（其它插件 `db_eol_state` 直接返回空）。
+        `eol_upgrade_to=''` 时前端不显示升级入口，但 `eol_kind` 仍会显示红标。
+        """
         try:
-            if str(pInfo.get('name', '')).strip().lower() != 'mysql':
-                return ''
-            return mysql_eol_upgrade_target(pInfo.get('setup_version') or '',
-                                            pInfo.get('versions') or [])
+            kind, target = db_eol_state(pInfo.get('name'), pInfo.get('setup_version'),
+                                        pInfo.get('versions') or [])
         except Exception as _e:      # 判定失败不能影响列表渲染
-            _log.debug('[plugin] 计算 MySQL 升级建议失败: %s', _e)
-            return ''
+            _log.debug('[plugin] 计算版本下架/维护期提示失败: %s', _e)
+            return pInfo
+        pInfo['eol_kind'] = kind
+        pInfo['eol_upgrade_to'] = target
+        return pInfo
 
     def install(self, name, version,
         upgrade = None,
@@ -980,14 +1064,19 @@ class plugin(object):
                                 % (name, version))
                 return yf.returnData(False, 'plugin.php_eol_branch_install', ())
 
-        # MySQL 只提供 MYSQL_MIN_INSTALL_BRANCH（5.7）及以上（用户 2026-10-27 定的口径）。
-        # 5.5/5.6 的 CMake 只认 OpenSSL 1.0.x，在 OpenSSL 3.x 的系统上必须自建 1.0.2，
-        # 安装代价与失败面都大。版本脚本仍保留，供已装用户卸载。
-        if str(name).strip().lower() == 'mysql' and _mysql_is_eol_branch(version):
-            yf.writeFileLog('[plugin] 拒绝安装已下架的 MySQL 版本: name=%s version=%s'
-                            % (name, version))
-            return yf.returnData(False, 'plugin.mysql_eol_branch_install',
-                                 (MYSQL_MIN_INSTALL_BRANCH,))
+        # MySQL / MariaDB 只提供 LTS（用户 2026-10-27 定的口径）：
+        #   * MySQL：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）下架；
+        #   * MariaDB：10.7~10.9 / 11.0~11.3 / 11.5~11.7 / 12.x 非 LTS 下架。
+        # 版本脚本仍保留 —— 已装用户要能卸载，升级流程也要用它们做中转/回滚。
+        _name_l = str(name).strip().lower()
+        if _name_l in ('mysql', 'mariadb'):
+            _allowed = db_installable_versions(_name_l)
+            if _allowed and str(version).strip() not in _allowed:
+                yf.writeFileLog('[plugin] 拒绝安装非 LTS 的 %s 版本: name=%s version=%s'
+                                % (_name_l, name, version))
+                _key = ('plugin.mysql_eol_branch_install' if _name_l == 'mysql'
+                        else 'plugin.mariadb_eol_branch_install')
+                return yf.returnData(False, _key, ('/'.join(_allowed),))
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:
@@ -1029,8 +1118,12 @@ class plugin(object):
         # → 启动 → 失败回滚），install.sh 要求显式开关才肯动，避免误点把库升级坏。
         # 同版本时该变量不生效（走自愈分支），所以只在 upgrade=True 时带。
         _upgrade_env = ''
-        if upgrade is True and str(name).strip().lower() == 'mysql':
-            _upgrade_env = 'YF_MYSQL_ALLOW_UPGRADE=1 '
+        if upgrade is True:
+            _uname = str(name).strip().lower()
+            if _uname == 'mysql':
+                _upgrade_env = 'YF_MYSQL_ALLOW_UPGRADE=1 '
+            elif _uname == 'mariadb':
+                _upgrade_env = 'YF_MARIADB_ALLOW_UPGRADE=1 '
 
         exec_bash = 'cd {0} && {3}bash {1} install {2}'.format(
             yf.shlexQuote(yf.getPluginDir() + '/'+name),
@@ -1372,7 +1465,7 @@ class plugin(object):
             else:
                 pInfo['setup_version'] = yf.readFile(pInfo['install_checks']).strip()
 
-        pInfo['eol_upgrade_to'] = self._mysqlEolUpgradeTo(pInfo)
+        self._dbApplyEolHint(pInfo)
 
         if 'install_pre_inspection' in info:
             pInfo['install_pre_inspection'] = info['install_pre_inspection']
@@ -1491,7 +1584,7 @@ class plugin(object):
             else:
                 pInfo['setup_version'] = ""
 
-            pInfo['eol_upgrade_to'] = self._mysqlEolUpgradeTo(pInfo)
+            self._dbApplyEolHint(pInfo)
 
             display = False
             if coexist:

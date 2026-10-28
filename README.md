@@ -145,6 +145,7 @@
 | 面板更新检测 | ~~`web/utils/system/update.py:34`~~ ✅ | 已适配：优先 `packaging.version`，回退 `distutils` |
 | Python 3.13 依赖分档 | `requirements.txt` / `version/` ✅ | 已适配：新增 `version/r3.13.txt`；14 个零引用历史依赖待独立清理 |
 | MySQL 非 LTS 版本安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）不再提供安装；列表只留 LTS（5.7 / 8.0 / 8.4 / 9.7），已装旧版可在商店一键升级到同系列 LTS |
+| MariaDB 非 LTS 版本安装 | `plugins/mariadb/info.json` | **已下架**（2026-10-27）：只留 LTS（10.6 / 10.11 / 11.4 / 11.8），Rolling 短期版（10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS）不再提供安装，已装旧版可一键升级到同系列最接近的 LTS |
 | PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
 | Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
 
@@ -162,6 +163,16 @@
 >
 > 守卫：`testsuite/test_mysql_min_install_branch.py`（下架口径）、
 > `testsuite/test_mysql_lts_upgrade.py`（LTS 列表 + 升级目标 + 备份/回滚流程）。
+
+> **MariaDB 版本口径（2026-10-27）**：安装列表只保留 **LTS** —— `10.6` / `10.11` / `11.4` / `11.8`
+> （官方 REST API `downloads.mariadb.org/rest-api/mariadb/` 实查：四者 `release_support_type` 均为
+> `Long Term Support`；10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS、13.x 均为 `Rolling`）。
+> 已下架的短期版本同样**提供一键升级**：10.7~10.9 → 10.11、11.0~11.3 → 11.4、11.5~11.7 → 11.8
+> （取**同系列最接近**的 LTS，跳版越少风险越低）；12.x 没有对应的 LTS 脚本，不给跨主版本建议。
+> 另外 10.6 的官方维护期已于 **2026-07-06** 结束，面板会给「已过维护期」红标并建议升到 10.11
+> （仍可安装，是否升级由用户决定）。
+>
+> 守卫：`testsuite/test_mariadb_lts_upgrade.py`。
 
 > **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
 

@@ -407,9 +407,19 @@ function getSList(isdisplay) {
             '\',\'' + yfSoftJsStr(plugin.php_update.current || '') + '\',\'' + yfSoftJsStr(plugin.php_update.latest || '') + '\')">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.php_update.latest || '') + '</a> | ';
         }
-        // 已下架版本（如 MySQL 5.5/5.6、8.2/8.3、9.0~9.4）：给红标 + 「升级到 X」入口。
-        // 升级目标由后端按「同主版本最高可用版本」算好（plugin.eol_upgrade_to），
+        // 已下架 / 已过维护期：给红标 + 「升级到 X」入口。
+        // 升级目标由后端按「同主版本最接近的 LTS」算好（plugin.eol_upgrade_to），
         // 是否升级由用户决定（复用 softUpdate 的确认弹窗，会自动备份并支持失败回滚）。
+        // plugin.eol_kind：'removed'（已从安装列表下架）/ 'eol'（仍在列表但官方维护期已过）
+        var eolBadge = '';
+        if (plugin.eol_kind) {
+          var eolLabel = plugin.eol_kind === 'eol'
+            ? t('soft.eol_kind_eol', '已过维护期')
+            : t('soft.eol_kind_removed', '已下架');
+          eolBadge = '<span class="btlink" style="color:#ff2020;cursor:help" title="' +
+            yfSoftText(t('soft.eol_version_tip', '该版本已停止维护，建议升级到同系列的长期支持版本')) + '">' +
+            yfSoftText(eolLabel) + '</span> | ';
+        }
         var eolUpgradeLink = '';
         if (plugin.eol_upgrade_to) {
           eolUpgradeLink = '<a class="btlink" style="color:#ff2020" title="' +
@@ -417,11 +427,8 @@ function getSList(isdisplay) {
             ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.eol_upgrade_to) +
             '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.eol_upgrade_to) + '</a> | ';
-          mupdate = '<span class="btlink" style="color:#ff2020;cursor:help" title="' +
-            yfSoftText(t('soft.eol_version_tip', '该版本已停止维护，建议升级到同系列的长期支持版本')) + '">' +
-            yfSoftText(t('soft.eol_version', '已下架')) + '</span> | ' + mupdate;
         }
-        handle = eolUpgradeLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
+        handle = eolBadge + eolUpgradeLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
         titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {

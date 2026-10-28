@@ -773,3 +773,66 @@ CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
 - 升级过程会**完整备份**，因此需要与 `server/mysql` 同量级的空闲空间（脚本会先检查并明确报错）。
 - 升级**不迁移**用户自定义的 `my.cnf`（新版本用新模板，旧参数在新版本可能非法导致起不来）；
   原 `my.cnf` 在备份包与 `.mysql_prev_*` 目录里，可手工取回。
+
+---
+
+# 追加任务（2026-10-27 十一次）：MariaDB 只留 LTS（10.6 / 10.11 / 11.4 / 11.8）
+
+## 官方口径（`downloads.mariadb.org/rest-api/mariadb/` 实查）
+
+| 版本 | status | support_type | EOL |
+|---|---|---|---|
+| **10.6** | Stable | **Long Term Support** | **2026-07-06（已过）** |
+| **10.11** | Stable | **Long Term Support** | 2028-02-16 |
+| **11.4** | Stable | **Long Term Support** | 2029-05-29 |
+| **11.8** | Stable | **Long Term Support** | 2030-02-13 |
+| 12.3 | Stable | Long Term Support | 2029-06-12（本仓库无 12.3 脚本，未收录） |
+| 13.0 / 13.1 | Stable / RC | Rolling | — |
+| 10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS | — | Rolling（短期） | — |
+
+用户指定的 4 个版本（10.6 / 10.11 / 11.4 / 11.8）**确认都是 LTS**。
+
+## 改动
+
+- [x] **安装列表只留 4 个 LTS**：`plugins/mariadb/info.json` 的 `versions`
+      （原 15 项：10.6~10.9、10.11、11.0~11.8、12.0）→ `['10.6','10.11','11.4','11.8']`。
+      **版本脚本全部保留**（已装用户卸载 + 升级中转/回滚要用）。
+- [x] **接口层拦截**：`web/utils/plugin.py` 新增
+      `MARIADB_LTS_VERSIONS` / `MYSQL_LTS_VERSIONS` / `db_installable_versions()`，
+      `install()` 对 mysql 与 mariadb 统一按 LTS 允许列表拒绝非 LTS 版本
+      （返回 i18n 键 `plugin.mariadb_eol_branch_install` / `plugin.mysql_eol_branch_install`）。
+- [x] **一键升级（同系列最接近的 LTS）**：`db_eol_state(name, installed, available)` →
+      `(kind, target)`：
+        * `removed`（已从列表下架）10.7~10.9→10.11、11.0~11.3→**11.4**、11.5~11.7→11.8；
+          12.x 无 LTS 脚本 → 只标红不给目标；
+        * `eol`（仍在列表但维护期已过）10.6→10.11（官方 EOL 2026-07-06）；
+        * 跨主版本一律不给建议。
+      **「最接近」= 同主版本里刚好比当前高的那一档**（此前 MySQL 用的是「同主版本最高」，
+      对 MySQL 等价；MariaDB 11.x 有两个 LTS，取最接近的 11.4 更稳）。
+- [x] **列表字段**：`makePluginInfo` / `refreshDynamicStatus` 统一走 `_dbApplyEolHint()`，
+      输出 `eol_kind`（removed / eol）+ `eol_upgrade_to`。
+- [x] **前端**：红标按 `eol_kind` 显示「已下架」/「已过维护期」，右侧给「升级到 X」
+      （`softUpdate` 确认弹窗，用户可选择不升）。i18n 新增 `soft.eol_kind_removed` /
+      `soft.eol_kind_eol`，并删掉已成死键的 `soft.eol_version`。
+- [x] **真升级**：`plugins/mariadb/install.sh` 原来「已装实例 → 自愈 + exit 0」，点更新不换二进制。
+      现在：同版本只自愈；跨版本 `_yf_maria_upgrade()`：
+      停服 → **先完整备份 `server/mariadb`（含 data，先查磁盘空间）** → 旧目录改名
+      `.mariadb_prev_<ts>` → 装目标版本 → 回填 data（mv）→ 启动 + `mariadb-upgrade` + 数据目录校验
+      → 任一步失败**自动回滚**。跨主版本拒绝；未带 `YF_MARIADB_ALLOW_UPGRADE=1`（面板升级入口才带）拒绝。
+- [x] `plugins/mariadb/index.py` 新增 `mariadb_upgrade` 入口（口令走 0600 `--defaults-extra-file`，
+      不进 argv；老版本兜底 `mysql_upgrade`）。
+
+## 验证
+
+- 新增 `testsuite/test_mariadb_lts_upgrade.py`（14 项）：LTS 列表逐项、Rolling 版本彻底移除、
+  版本脚本仍在、**升级目标矩阵**（含 11.0~11.3→11.4 这种「最接近」而非「最高」）、
+  其它插件不受影响、install.sh 的备份先于改目录/回滚/磁盘检查、index.py 入口与口令不外泄、
+  后端给 mariadb 传升级开关、i18n 键存在。
+- 全量门禁：**321 模块 / 4248 个 test 方法 / 0 隔离 / 全绿**。
+
+## 提示（需用户知晓）
+
+**10.6 的官方维护期已于 2026-07-06 结束**。按你的口径它仍在安装列表里（可继续装/继续用），
+但面板会对「已装 10.6」显示「已过维护期」红标 + 「升级到 10.11」入口。
+如果你希望把 10.6 也一并下架（与 MySQL 5.5/5.6 同样处理），告诉我即可 —— 改动很小
+（`MARIADB_LTS_VERSIONS` 去掉 10.6 + `DB_EOL_SINCE` 保留映射让老用户仍被引导升级）。

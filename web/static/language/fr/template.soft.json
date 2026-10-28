@@ -94,7 +94,8 @@
         "are_you_sure_you": "Êtes-vous sûr de vouloir [",
         "from": "】À partir de",
         "upgrade_to": "Passer à",
-        "eol_version": "Version EOL",
+        "eol_kind_eol": "EOL",
+        "eol_kind_removed": "Retire",
         "eol_version_tip": "Cette version est EOL ; passez a la version LTS de la meme serie",
         "eol_upgrade_tip": "Cette version est EOL (plus de correctifs de securite). La mise a niveau sauvegarde d'abord le repertoire de donnees et revient en arriere en cas d'echec ; a vous de decider.",
         "msg_1": "n'est-ce pas ?",
@@ -372,6 +373,7 @@
         "py_msg_6f3a2d": "Confirmez le script avant l'installation ; réimportez le plugin",
         "php_eol_branch_install": "Les branches PHP inferieures a 8.2 sont en fin de vie et ne peuvent plus etre installees ; choisissez 8.2 ou plus",
         "mysql_eol_branch_install": "MySQL inferieur a 5.7 est EOL (et ne supporte que OpenSSL 1.0.x) ; installation non prise en charge, choisissez 5.7 ou plus",
+        "mariadb_eol_branch_install": "MariaDB ne propose que des versions LTS (10.6 / 10.11 / 11.4 / 11.8) ; les autres versions courtes ne sont plus installables",
         "os_family_install": "Ce canal d'installation PHP n'est pas pris en charge par ce systeme ; utilisez un canal adapte (APT / YUM / compile)"
     },
     "jdk": {

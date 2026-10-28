@@ -3415,7 +3415,8 @@
         "are_you_sure_you": "您確定要將【",
         "from": "】從",
         "upgrade_to": "升級到",
-        "eol_version": "已下架",
+        "eol_kind_eol": "已過維護期",
+        "eol_kind_removed": "已下架",
         "eol_version_tip": "該版本已停止維護，建議升級到同系列的長期支援版本",
         "eol_upgrade_tip": "目前版本已停止維護（官方不再提供安全更新）。升級會先完整備份資料目錄，失敗自動回滾；請自行決定是否升級。",
         "msg_1": "嗎？",
@@ -3693,6 +3694,7 @@
         "py_msg_6f3a2d": "第三方外掛需確認安裝腳本後再安裝，請重新匯入確認",
         "php_eol_branch_install": "PHP 8.2 以下的版本官方已停止維護，不再支援安裝；請選擇 8.2 或以上版本",
         "mysql_eol_branch_install": "MySQL 5.7 以下的版本官方已停止維護（且只支援 OpenSSL 1.0.x），不再支援安裝；請選擇 5.7 及以上版本",
+        "mariadb_eol_branch_install": "MariaDB 只提供 LTS 版本（10.6 / 10.11 / 11.4 / 11.8），不再支援安裝其它短期版本",
         "os_family_install": "目前系統不支援該 PHP 安裝管道，請改用與系統相符的管道（APT / YUM / 編譯版）"
     },
     "jdk": {
