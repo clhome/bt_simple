@@ -47,8 +47,10 @@ else
 fi
 
 if [ "${type}" == "" ];then
+	# 必须非 0：面板按退出码判定安装结果，`exit 0` 会让「版本脚本都不存在」
+	# 也显示成「安装成功」（假成功家族，2026-10-28 统一收紧）
 	echo '缺少安装脚本...'
-	exit 0
+	exit 1
 fi 
 
 echo "[DEBUG] curPath is: '${curPath}'"
@@ -58,8 +60,10 @@ echo "[DEBUG] pwd is: '$(pwd)'"
 echo "[DEBUG] Checking if directory exists: ${curPath}/versions/${type}"
 
 if [ "${is_fast}" == "false" ] && [ ! -d "$curPath/versions/$type" ];then
-	echo '缺少源码编译安装脚本...'
-	exit 0
+	# 必须非 0：面板按退出码判定安装结果，`exit 0` 会让「版本脚本都不存在」
+	# 也显示成「安装成功」（假成功家族，2026-10-28 统一收紧）
+	echo '缺少源码编译安装脚本...' >&2
+	exit 1
 fi
 
 

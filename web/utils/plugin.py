@@ -489,6 +489,13 @@ def db_installable_versions(name):
     return ()
 
 
+#: 真正实现「极速安装（Tar 二进制）」的插件：只有它们的 install.sh 认 `-fast` 后缀
+#: （`plugins/mysql/install.sh` 里 `type="${type%-fast}"` + `Install_fast_mysql`）。
+#: 其它插件收到 `-fast` 必须**拒掉**：mariadb 的 install.sh 面对未知版本目录是
+#: `echo '缺少安装脚本2...' && exit 0`，放进去就是「任务显示完成、其实什么都没装」。
+FAST_INSTALL_PLUGINS = ('mysql',)
+
+
 def db_install_ver_key(version):
     """剥掉「极速安装」后缀，得到用于白名单比对的版本号。
 
@@ -504,6 +511,11 @@ def db_install_ver_key(version):
     return v
 
 
+def is_fast_install_supported(name):
+    """该插件是否支持 `-fast`（极速安装）后缀。"""
+    return str(name or '').strip().lower() in FAST_INSTALL_PLUGINS
+
+
 def db_install_reject_key(name, version):
     """mysql/mariadb 的安装白名单判定：返回 i18n key（空串 = 允许安装）。"""
     nm = str(name or '').strip().lower()
@@ -512,7 +524,12 @@ def db_install_reject_key(name, version):
     allowed = db_installable_versions(nm)
     if not allowed:
         return ''
-    if db_install_ver_key(version) in allowed:
+    ver_key = db_install_ver_key(version)
+    if not is_fast_install_supported(nm) and ver_key != str(version or '').strip():
+        # 不支持极速安装的插件不许带 `-fast`：原样比对会「查无此版本」而放行到
+        # install.sh，那边是 `exit 0` 的假成功。
+        return 'ARGS_ERR'
+    if ver_key in allowed:
         return ''
     return ('plugin.mysql_eol_branch_install' if nm == 'mysql'
             else 'plugin.mariadb_eol_branch_install')

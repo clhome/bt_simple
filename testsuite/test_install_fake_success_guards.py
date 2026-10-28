@@ -196,6 +196,49 @@ class ExitCodePropagationTest(unittest.TestCase):
 # =====================================================================================
 # 防线 2：下载校验
 # =====================================================================================
+class MissingVersionExitCodeTest(unittest.TestCase):
+    """「版本号缺失 / 版本目录不存在」必须非 0 退出（2026-10-28 统一收紧）。
+
+    背景：apache / mariadb / mysql / openresty / postgresql 的 install.sh 里，
+    这两条前置判定原本是 `echo '缺少安装脚本...' && exit 0` —— 面板按退出码判定
+    结果，于是「版本目录根本不存在」也会显示成「安装成功」，任务日志里只有一行
+    `缺少安装脚本2...`。这与「不许假成功」的口径冲突，也和 mysql 极速安装被拒时
+    的现象（任务列表空空、看不出原因）属于同一族。
+
+    判据：所有 `plugins/*/install.sh` 里，凡是打印「缺少…脚本」的分支，
+    其后 3 行内不得出现 `exit 0`。`ollama` 早已是 `exit 1`，作为正面范式。
+    """
+
+    def test_01_no_exit_0_after_missing_script(self):
+        import glob
+        import re
+        bad = []
+        for path in sorted(glob.glob(os.path.join(PLUGINS, '*', 'install.sh'))):
+            with io.open(path, encoding='utf-8', errors='replace') as fh:
+                lines = fh.read().splitlines()
+            for i, line in enumerate(lines):
+                if '缺少' not in line or '脚本' not in line:
+                    continue
+                for j in range(i + 1, min(i + 4, len(lines))):
+                    if re.match(r'\s*exit\s+0\s*$', lines[j]):
+                        bad.append('%s:%d 「%s」之后 exit 0'
+                                   % (os.path.basename(os.path.dirname(path)),
+                                      j + 1, line.strip()[:40]))
+                        break
+        self.assertEqual([], bad,
+                         '这些安装入口把「缺版本」当成功: ' + ' | '.join(bad))
+
+    def test_02_positive_control_ollama(self):
+        """正对照：ollama 一直是 exit 1，说明判据本身不会把正确写法误报。"""
+        with io.open(os.path.join(PLUGINS, 'ollama', 'install.sh'),
+                     encoding='utf-8') as fh:
+            text = fh.read()
+        self.assertIn('缺少安装脚本2...', text)
+        seg = text[text.index('缺少安装脚本2...'):]
+        self.assertTrue(seg.splitlines()[1].strip().startswith('exit 1'),
+                        'ollama 的缺版本分支应是 exit 1')
+
+
 class DownloadVerificationTest(unittest.TestCase):
 
     def test_01_apache_uses_archive_and_verifies(self):

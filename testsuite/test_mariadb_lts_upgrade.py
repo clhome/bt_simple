@@ -139,10 +139,16 @@ class TestMariaUpgradeTarget(unittest.TestCase):
         ns = _ns()
         reject = ns['db_install_reject_key']
         for name, ver in (('mysql', '5.7-fast'), ('mysql', '8.0-fast'),
-                          ('mysql', '8.4-fast'), ('mysql', '9.7-fast'),
-                          ('mariadb', '10.11-fast'), ('mariadb', '11.4-fast')):
+                          ('mysql', '8.4-fast'), ('mysql', '9.7-fast')):
             self.assertEqual('', reject(name, ver),
                              '%s 的极速安装 %s 被误拒（白名单未剥 -fast 后缀）' % (name, ver))
+        # mariadb **不支持**极速安装（没有 install.html 的 install_hook，
+        # install.sh 也不认 -fast）：带后缀一律按参数错误拒掉。
+        # 放行会更糟——mariadb 的 install.sh 面对未知版本目录是「提示 + exit 1」之前
+        # 是 exit 0，等于「任务显示完成、什么都没装」。
+        for ver in ('10.11-fast', '11.4-fast'):
+            self.assertEqual('ARGS_ERR', reject('mariadb', ver),
+                             'mariadb 不支持极速安装，%s 必须按参数错误拒绝' % ver)
         # 非 LTS 带不带后缀都要拒
         for name, ver in (('mysql', '8.2'), ('mysql', '8.2-fast'),
                           ('mariadb', '10.7'), ('mariadb', '12.0-fast')):
@@ -150,6 +156,23 @@ class TestMariaUpgradeTarget(unittest.TestCase):
         # 其它插件不受该策略影响
         self.assertEqual('', reject('redis', '7.2'))
         self.assertEqual('', reject('php', '84'))
+
+    def test_04b_fast_support_is_explicit_per_plugin(self):
+        """`-fast` 只对真正实现极速安装的插件放行（当前仅 mysql）。"""
+        ns = _ns()
+        self.assertTrue(ns['is_fast_install_supported']('mysql'))
+        self.assertFalse(ns['is_fast_install_supported']('mariadb'))
+        self.assertFalse(ns['is_fast_install_supported']('redis'))
+        self.assertEqual(('mysql',), tuple(ns['FAST_INSTALL_PLUGINS']))
+        # mysql 的 install.sh 必须真的认 `-fast`（否则放行就是假成功源头）
+        sh_mysql = _read('plugins/mysql/install.sh')
+        self.assertIn('-fast', sh_mysql, 'mysql/install.sh 未实现 -fast 分支')
+        self.assertIn('Install_fast_mysql', sh_mysql, 'mysql/install.sh 缺少极速安装实现')
+        # mariadb 的 install.sh 必须完全不认 `-fast`（正面确认「它没有这个功能」）
+        sh_maria = _read('plugins/mariadb/install.sh')
+        self.assertNotIn('-fast', sh_maria,
+                         'mariadb/install.sh 出现了 -fast：要么真做了极速安装并同步 '
+                         'FAST_INSTALL_PLUGINS，要么这是误改')
 
     def test_05_install_uses_normalized_whitelist(self):
         """`plugin.install()` 必须走归一化后的判定（防再退回整串比对）。"""
