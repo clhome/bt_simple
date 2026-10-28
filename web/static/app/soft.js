@@ -322,7 +322,15 @@ function getSList(isdisplay) {
         display_title = raw_title + ' ' + plugin.setup_version;
       }
 
-      var handle = '<a class="btlink" onclick="addVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(version_info) + '\',\'' + yfSoftJsStr(plugin.tip) + '\',this,\'' + yfSoftJsStr(display_title) + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
+      // 「按系列安装」的插件（redis）：把「推荐系列」与各系列的说明文案挂到安装链接的
+      // data-* 上（安装弹窗读它们做预选与说明）。系列号本身由后端在安装时解析成当前
+      // 最新补丁版，前端永远不必跟着上游补丁版改代码。
+      var version_default = plugin.version_default || '';
+      var version_notes = '';
+      if (plugin.version_notes && typeof plugin.version_notes === 'object') {
+        try { version_notes = JSON.stringify(plugin.version_notes); } catch (e) { version_notes = ''; }
+      }
+      var handle = '<a class="btlink" data-vdefault="' + yfSoftText(version_default) + '" data-vnotes="' + yfSoftText(version_notes) + '" onclick="addVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(version_info) + '\',\'' + yfSoftJsStr(plugin.tip) + '\',this,\'' + yfSoftJsStr(display_title) + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
       // 系统不支持的渠道（如 Debian 上的 PHP[YUM]）：不给安装入口，只留一行说明。
       // 后端 install() 也会拒绝，这里只是不让人白点一次。
       if (plugin.installable === false) {
@@ -395,6 +403,9 @@ function getSList(isdisplay) {
             }
           }
         }
+        // 按系列安装的插件（redis）一律走后端算好的 series_update，不用下面那套
+        // 「拿 versions 最后一个与已装版本比大小」的通用逻辑（那不是同一种东西）。
+        if (plugin.version_series) { mupdate = ''; }
         var settingsLink = '<a class="btlink" onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')">' + t('public.set', '设置') + '</a>';
         var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
         // PHP 分支有新补丁版时给一个「升级到 x.y.z」入口：只投递后台任务
@@ -428,7 +439,19 @@ function getSList(isdisplay) {
             '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.eol_upgrade_to) + '</a> | ';
         }
-        handle = eolBadge + eolUpgradeLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
+        // 「按系列安装」的插件（redis）：后端已把系列号解析成当前最新补丁版
+        // （plugin.series_update = {current, latest, series}），这里只负责给入口。
+        // 前端不自己做版本比较：系列号（7.2）与已装补丁版（7.2.13）不同形，
+        // 在浏览器里比大小必然判错（旧通用逻辑会把 7.2 当成比 7.2.13 更旧）。
+        var seriesUpdateLink = '';
+        if (plugin.series_update && plugin.series_update.latest) {
+          seriesUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
+            yfSoftText(t('soft.series_patch_update_tip', '同大版本内的补丁升级：先停服、备份数据与配置，再换二进制；失败自动回滚。')) + '"' +
+            ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.series_update.latest) +
+            '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
+            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.series_update.latest) + '</a> | ';
+        }
+        handle = eolBadge + eolUpgradeLink + seriesUpdateLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
         titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {
@@ -626,11 +649,43 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   if (window.YfI18n && typeof window.YfI18n.loadPluginLangAsync === 'function') {
     window.YfI18n.loadPluginLangAsync(name);
   }
+  // 「按系列安装」的插件（redis）：安装链接上挂着推荐系列与各系列的说明文案
+  // （后端 info.json 的 version_default / version_notes，见 /plugins/list）。
+  var vdefault = '';
+  var vnotes = {};
+  // 两个字段分别容错：说明文案是坏 JSON 时不能把「推荐系列」一起丢掉
+  // （丢掉就变成没预选，用户不选直接提交时装的不再是推荐版本）
+  try {
+    if (obj && typeof $ === 'function') {
+      vdefault = String($(obj).attr('data-vdefault') || '');
+    }
+  } catch (e) {
+    vdefault = '';
+  }
+  try {
+    var rawNotes = (obj && typeof $ === 'function') ? ($(obj).attr('data-vnotes') || '') : '';
+    if (rawNotes) { vnotes = JSON.parse(rawNotes) || {}; }
+  } catch (e) {
+    vnotes = {};
+  }
   if (ver.indexOf('|') >= 0) {
     var veropt = ver.split("|");
     var selectVersion = '';
-    for (var i = veropt.length - 1; i >= 0; i--) {
-      selectVersion += '<option>' + yfSoftText(name + ' ' + veropt[i]) + '</option>';
+    // 有推荐系列时按**后端声明顺序**列（推荐项在最前）并预选它；
+    // 没有时沿用历史行为：倒序（最新版本在最前，共存插件依赖它）。
+    var order = vdefault ? veropt.slice() : veropt.slice().reverse();
+    for (var oi = 0; oi < order.length; oi++) {
+      var one = order[oi];
+      var label = name + ' ' + one;
+      var note = '';
+      if (vnotes[one]) {
+        note = t(vnotes[one], '');
+        if (note) { label += ' · ' + note; }
+      }
+      var isDefault = !!(vdefault && one === vdefault);
+      if (isDefault) { label += ' (' + t('soft.recommended', '推荐') + ')'; }
+      selectVersion += '<option value="' + yfSoftText(name + ' ' + one) + '"' +
+        (isDefault ? ' selected' : '') + '>' + yfSoftText(label) + '</option>';
     }
     option = "<select id='selectVersion' class='bt-input-text' style='margin-left:30px'>" + selectVersion + "</select>";
   } else {

@@ -3640,6 +3640,11 @@ var lan = {
 		},
 
 	"soft": {
+			"recommended":"Empfohlen",
+			"redis_series_72":"Klassisch stabil, reine Open-Source-Lizenz, erste Wahl für Produktion",
+			"redis_series_82":"LTS, langfristige Weiterentwicklung mit neuen Funktionen",
+			"redis_series_62":"Sehr leichtgewichtig, passt auf 512MB-RAM-Server",
+			"series_patch_update_tip":"Patch-Upgrade in derselben Hauptversion: Dienst stoppen, Daten und Konfiguration sichern, Binärdateien tauschen; automatischer Rücklauf bei Fehlern.",
 		"php_upgradable": "Update verfügbar",
 		"os_unsupported_tip": "Dieser Kanal wird vom aktuellen System nicht unterstuetzt; installierte Versionen lassen sich hier weiterhin stoppen oder entfernen.",
 		"os_unsupported": "Nicht unterstuetzt",
@@ -5022,6 +5027,7 @@ var lan = {
 		},
 
 	"plugin": {
+			"series_resolve_fail":"Serie {1} kann nicht auf die neueste Patch-Version abgebildet werden (verfügbar: {2}). Netzwerk prüfen und erneut versuchen.",
 			"please_do_not_add": "Bitte nicht doppelt hinzufügen!",
 			"the_homepage_can_maximum": "Auf der Startseite können maximal 12 Software-Pakete angezeigt werden!",
 			"deleted_successfully": "Erfolgreich gelöscht!!",

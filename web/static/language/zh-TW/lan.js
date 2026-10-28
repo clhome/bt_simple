@@ -3640,6 +3640,11 @@ var lan = {
 		},
 
 	"soft": {
+			"recommended":"推薦",
+			"redis_series_72":"經典穩定，純開源協議，生產首選",
+			"redis_series_82":"LTS 長期演進，支援新特性",
+			"redis_series_62":"極簡輕量，適合 512MB 記憶體機器",
+			"series_patch_update_tip":"同大版本內的補丁升級：先停服、備份資料與設定，再換二進位檔；失敗自動回滾。",
 		"php_upgradable": "可更新",
 		"os_unsupported_tip": "目前系統不支援該安裝管道；已安裝的版本仍可在這裡停用或卸載。",
 		"os_unsupported": "系統不支援",
@@ -5022,6 +5027,7 @@ var lan = {
 		},
 
 	"plugin": {
+			"series_resolve_fail":"無法把系列 {1} 解析成目前最新補丁版（可選系列：{2}），請檢查網路後重試",
 			"please_do_not_add": "請不要重復新增!",
 			"the_homepage_can_maximum": "首頁最多隻能顯示12個軟體!",
 			"deleted_successfully": "刪除成功!!",

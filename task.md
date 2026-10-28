@@ -836,3 +836,131 @@ CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
 但面板会对「已装 10.6」显示「已过维护期」红标 + 「升级到 10.11」入口。
 如果你希望把 10.6 也一并下架（与 MySQL 5.5/5.6 同样处理），告诉我即可 —— 改动很小
 （`MARIADB_LTS_VERSIONS` 去掉 10.6 + `DB_EOL_SINCE` 保留映射让老用户仍被引导升级）。
+
+---
+
+# 追加任务（2026-10-28 十二次）：Redis 收敛为 3 个系列 + 自动取最新补丁版 + 同大版本真升级
+
+## 用户口径（原文）
+
+> redis 的安装版本 12 个三位版本号直接精简为 3 个系列：
+> Redis 7.2（经典稳定 - 纯开源协议，生产首选）：默认推荐，兼容性极强，涵盖 95% 的用户。
+> Redis 8.2（LTS - 长期演进，支持新特性）：追求高性能及现代数据结构的用户首选。
+> Redis 6.2（极简轻量 - 适合 512MB 内存机器）：超低资源占用备选。
+> 面板底层逻辑优化：用户选择 Redis 7.2 时，面板脚本自动去拉取 7.2.x（如目前最新的 7.2.17）
+> 执行安装；如此设计，面板无论未来升级多少个修复补丁，前端都无需再新增任何一行选项，
+> 界面清爽且永远保持安全。
+> 注意：需要考虑老用户的升级情况，相同大版本支持升级
+
+当面确认的三条边界：
+1. 已装版本不在 3 个系列里 → 标「已不在列表」；**只有当同大版本存在更高版本时**才给
+   「升级到 X」入口（7.4.8 / 8.4.2 / 8.6.3 **不降级**；4.x / 5.x 无同大版本系列，只标不推）；
+2. 本轮必须实现**真正的**同大版本升级（旧行为点「更新」只自愈、不换二进制 = 假成功）—— **仅同大版本**；
+3. 系列→补丁版解析 = 在线索引 + 12h 缓存 + 内置兜底。
+
+## 实测依据（`download.redis.io/releases/`，2026-10-28）
+
+目录列表里共 281 个正式版包；三个系列各自的最新补丁版：
+
+| 系列 | 最新补丁版 | 说明 |
+|---|---|---|
+| 7.2 | **7.2.17** | 与用户举例一致 |
+| 8.2 | **8.2.11** | info.json 原先写 8.2.5（落后 6 个补丁） |
+| 6.2 | **6.2.24** | info.json 原先写 6.2.21 |
+
+解析必须按**数值**比较：`7.2.9 < 7.2.17`、`8.2.11 < 8.10.3`，字典序两条都会判反；
+`redis-X.Y.Z-rcN.tar.gz` 因为正则要求 `.tar.gz` 紧跟三段版本号而天然被排除。
+
+## 改动
+
+- [x] **界面只留 3 个系列**：`plugins/redis/info.json` 的 `versions` →
+      `["7.2","8.2","6.2"]`，并新增
+      `version_series: true`、`version_default: "7.2"`、
+      `version_notes: {7.2|8.2|6.2 → soft.redis_series_*}`（说明文案走 i18n，不硬编码中文）。
+- [x] **系列→最新补丁版的解析**：新增 `web/core/redis_release_index.py`
+      （纯标准库 + 可注入抓取器）：
+      `parse_listing` / `pick_by_series`（数值比较）/ `builtin_index`（内置兜底）/
+      `load_cache` / `save_cache`（原子替换，写失败只记日志）/ `refresh`（联网，
+      目录列表解析不出 → 报「可能是网络劫持/认证页」并回退，不把「抓不到」当「没有新版」）/
+      `offline_index`（**不联网**，列表页专用）/ `resolve` / `series_state`（状态矩阵）。
+- [x] **安装时解析**：`web/utils/plugin.py::install()` 对 `SERIES_INDEX_PLUGINS=('redis',)`
+      先把系列号解析成补丁版再下发任务（任务标题 `安装[redis-7.2.17]`，命令
+      `bash install.sh install 7.2.17`）；解析失败返回 `status=False` +
+      i18n 键 `plugin.series_resolve_fail`（**不拼空版本包**）。
+      注意 `yf.returnData` 第三个位置参数是 `data`，插值参数必须写成 `None, args...`。
+- [x] **列表提示**：`_seriesApplyVersionHint()`（`makePluginInfo` 里紧跟 `_dbApplyEolHint`）：
+      同系列有补丁版 → `series_update={current,latest,series}`；系列已下架 → 复用既有红标字段
+      `eol_kind='removed'` + 必要时 `eol_upgrade_to`。**只读缓存/内置表，不联网**。
+- [x] **任务标题系列匹配**：`checkSetupTask` 增加按**版本段**比较的
+      `_series_prefix_match`（`7.2.17` 属于系列 `7.2`；按字符串前缀会把 `6.20.1` 误判成 `6.2`），
+      否则安装过程中列表行不显示「正在安装」。
+- [x] **真升级**：`plugins/redis/install.sh` 重写升级路径：
+      同版本 → 只自愈（原行为）；换版本 → 必须带 `YF_REDIS_ALLOW_UPGRADE=1`（面板升级入口才带）
+      → 拒绝跨主版本、拒绝降级 → `_yf_redis_upgrade()`：停服 → 备份 `data` + `redis.conf`
+      （先 `du`/`df -Pk` 查空间，失败退回整目录备份）→ 备份包 `tar -tzf` 回验 →
+      编译新版到 `.redis.new.<ts>` → `bin` 改名为 `redis.bin.prev.<ts>` 后换入 →
+      启动 + 回读 `redis-server -v` 必须是目标版本 → 失败自动回滚。
+      顺带修掉：新装时 `sed ... redis.conf` 用的是相对路径（面板外 cwd 下没有该文件 →
+      生成 **0 字节**配置，只能靠 `detectAndFixConf` 兜底）；现在读 `${curPath}/config/redis.conf`。
+      不能吞失败：所有中止/回滚路径统一走 `_yf_redis_try_start/_try_stop`（打 [WARN]），
+      不用 `|| true`（`test_plugin_install_strict_mode` 的棘轮也不许）。
+- [x] **系列号兜底解析（防御纵深）**：`plugins/redis/index.py` 新增
+      `getSeriesList()` / `resolveVersion()` 与 CLI `resolve_version`；`install.sh` 收到两段版本号
+      时转调它（手工 `bash install.sh install 7.2` 同样安全）。`detectAndFixVersion` 的兜底
+      不再把系列号写进 `version.pl`（只读离线索引解析成补丁版，**不联网**：status 路径会反复调用）。
+- [x] **每日刷新**：`panel_task.py` 新增 `redisReleaseIndex_step`（12h，与 PHP 索引同槽位），
+      日志里能看到 `[redis_release] 官方发布索引已刷新: 7.2→7.2.17, ...`。
+- [x] **前端**：`soft.js`
+      * 安装链接多挂 `data-vdefault` / `data-vnotes`（系列元数据，来自 `/plugins/list`）；
+      * `addVersion` 渲染 `<option value="redis 7.2">redis 7.2 · 经典稳定… (推荐)</option>`
+        并**预选**推荐系列；有推荐系列时按声明顺序（7.2 在最前），无则沿用历史倒序；
+        两项容错**分开**做（说明文案是坏 JSON 时不能把预选一起丢掉）；
+      * 已装行按后端给的 `series_update` 给「升级到 X」（复用会备份/回滚的 `softUpdate`），
+        并对 `version_series` 插件**关掉**原来的通用版本比较（系列号与补丁版不是同一种东西）。
+- [x] **i18n**：新增 `soft.recommended` / `soft.redis_series_72|82|62` /
+      `soft.series_patch_update_tip` / `plugin.series_resolve_fail`，6 语言 × lan.js + 载体。
+      载体用**定点插入**（既有 4 空格风格），不跑 `export_lang_carriers.py --apply`
+      —— 那会把 1000+ 行载体按 2 空格整体重写（实测 4 万行空白 diff），评审时看不见真实变更。
+
+## 验证
+
+### 本地门禁
+- 新增 `testsuite/test_redis_version_series.py`（47 项）+ Node 行为夹具
+  `testsuite/i18n_scripts/tools/test_soft_addversion_series.js`（3 个场景）。
+- 变异自证 **10/10**（脚本 `tmp/mutate_redis_series.py`，属本地临时件、不入库）：塞回三段式版本号、字符串排序、
+  去掉升级开关、不备份、不传升级开关、去掉系列匹配、选项不写 value、不给 series_update、
+  解析失败仍返回成功、列表页改成联网刷新 —— 逐条都能把对应用例打红。
+- 前端另有 2 个内置变异自证（排序退回无条件倒序、去掉 selected）。
+- 全量门禁：**322 模块 / 4304 个 test 方法 / 0 隔离 / 4 静态门禁 / 全绿**。
+
+### 真机（172.17.60.248，Debian 12）
+- `index.py resolve_version`：7.2→**7.2.17**、8.2→**8.2.11**、6.2→**6.2.24**、9.9→空（fail-fast）。
+- **全新装 7.2**：解析到 7.2.17 → gmake 编译 → `version.pl=7.2.17`、
+  `redis-server -v = 7.2.17`、`redis.conf` **1710 字节**（不再是 0 字节）、服务 active。
+- **拒绝路径**（逐条实测文案）：无版本号 / `7..2` → fail-fast；已装 7.2.17 装 7.2.9 无开关 →
+  「需要显式确认」；带开关 → 「拒绝降级：… 读不了新版本写出的 RDB/AOF」；
+  带开关装 6.2 → 「拒绝跨主版本升级」；装 9.9 → 「无法把系列号 '9.9' 解析成具体补丁版」。
+- **真升级 7.2.9 → 7.2（→7.2.17）**：备份 `/www/server/backup/redis_7.2.9_to_7.2.17_<ts>.tar.gz`、
+  换 bin、服务 active、`version.pl=7.2.17`、**升级前写入的 key 仍在**（`yf_e2e_before=729-ok`）、
+  旧 bin 保留在 `/www/server/redis.bin.prev.<ts>`、临时前缀已清理。
+- **回滚**（故障注入：把「换完 bin 的版本回读」改成恒失败）：`FAULT_RC=1`、
+  日志「已回滚到 Redis 7.2.9」、旧 bin 已换回、服务 active、数据完好（`yf_rollback_probe=yes2`）。
+- **面板列表**（真进程里调 `plugin.getList`）：`versions=['7.2','8.2','6.2']`、
+  `version_default='7.2'`、`version_notes` 三键齐全；
+  已装 7.2.9 → `series_update={current:7.2.9, latest:7.2.17}`；
+  已装 7.0.15 → `eol_kind=removed` + `eol_upgrade_to=7.2.17`；
+  已装 7.4.8 / 8.6.3 / 4.0.14 → `removed` 且**无目标**（不降级）。
+- **下发任务**：`install('redis','7.2')` → `安装[redis-7.2.17]` +
+  `bash install.sh install 7.2.17`；带 upgrade → 命令行前缀 `YF_REDIS_ALLOW_UPGRADE=1`；
+  解析失败 → `{"status": false, "msg": "无法把系列 7.2 解析成当前最新补丁版（可选系列：7.2/8.2/6.2）…"}`。
+- `data/redis_release_index.json` 落盘（6.2/7.2/8.2 三条），panel_task 日志
+  `[redis_release] 官方发布索引已刷新: 7.2→7.2.17, 8.2→8.2.11, 6.2→6.2.24`。
+
+## 已知边界（如实记录）
+
+- **上游删除某个补丁版**（如 7.2.17 被撤下）时，缓存/内置表仍指向它 → 下载会失败并明确报
+  「下载 ... 失败或内容无效」。这是 fail-fast，不是静默降级；下次 12h 刷新会自愈。
+- **在线索引只证明「版本号存在」**，不做 tarball 的 sha256 校验（与改动前的 redis 安装口径一致；
+  PHP 侧才有基线哈希）。如需强校验，要另加官方哈希源。
+- **跨大版本不做一键升级**（6.x→7.x、7.x→8.x）：RDB/AOF 与配置项差异大，保留「备份后卸载重装」。
+- 7.4.8 / 8.4.2 / 8.6.3 这类「比在售系列新」的实例只标「已下架」，面板**不会**引导降级。

@@ -99,6 +99,61 @@ def getConf():
     return detectAndFixConf()
 
 
+def getSeriesList():
+    """info.json 里声明的在售系列（`['7.2','8.2','6.2']`，保持声明顺序）。"""
+    try:
+        import json
+        info_file = getPluginDir() + '/info.json'
+        if not os.path.exists(info_file):
+            return []
+        info_data = json.loads(yf.readFile(info_file))
+        vers = info_data.get('versions', [])
+        if isinstance(vers, str):
+            vers = [vers]
+        if not isinstance(vers, list):
+            return []
+        out = []
+        for item in vers:
+            text = str(item or '').strip()
+            if text and text not in out:
+                out.append(text)
+        return out
+    except Exception as _e:
+        _log.debug('[redis] 读取 info.json 系列列表失败: %s', _e)
+        return []
+
+
+def resolveVersion(series=''):
+    """系列号（`7.2`）→ 当前最新补丁版（`7.2.17`）；解析不了返回 ''。
+
+    面板下发安装任务前已经解析过（`web/utils/plugin.py`），这里是**兜底**：
+    直接跑 `bash install.sh install 7.2`、或者从旧版本面板残留的任务里进来时，
+    install.sh 会转调本入口。解析失败必须返回空串，让调用方 fail-fast ——
+    绝不能拼出 `redis-.tar.gz` 这种空版本包（历史上就是这么 404 的）。
+    """
+    try:
+        from core import redis_release_index as _rri
+    except Exception as _e:
+        _log.debug('[redis] 导入发布索引失败: %s', _e)
+        return ''
+
+    text = str(series or '').strip()
+    if not text and len(sys.argv) > 2:
+        text = str(sys.argv[2]).strip()
+    if _rri.is_version(text):
+        return text
+    if not _rri.is_series(text):
+        return ''
+
+    series_list = getSeriesList() or [text]
+    try:
+        mapping, _info = _rri.refresh(yf.getPanelDataDir(), series_list)
+    except Exception as _e:
+        _log.debug('[redis] 刷新发布索引失败（回退内置表）: %s', _e)
+        mapping, _info = _rri.builtin_index(series_list), {}
+    return _rri.resolve(text, series_list, mapping)
+
+
 def detectAndFixVersion():
     version_pl = getServerDir() + '/version.pl'
     if os.path.exists(version_pl):
@@ -128,16 +183,15 @@ def detectAndFixVersion():
             _log.debug('[redis] detectAndFixVersion 异常已忽略: %s', _e)
 
     if not detected_ver:
-        info_file = getPluginDir() + '/info.json'
-        if os.path.exists(info_file):
+        # 兜底：info.json 里放的是**系列号**（7.2 / 8.2 / 6.2），不能直接写进 version.pl
+        # ——那会让面板把「7.2」当成已装版本，永远显示「可更新」。这里只读缓存/内置表
+        # 解析成具体补丁版（**不联网**：本函数在 status/启动路径上会被反复调用）。
+        series_list = getSeriesList()
+        if series_list:
             try:
-                import json
-                info_data = json.loads(yf.readFile(info_file))
-                vers = info_data.get('versions', [])
-                if isinstance(vers, list) and len(vers) > 0:
-                    detected_ver = vers[0]
-                elif isinstance(vers, str) and vers:
-                    detected_ver = vers
+                from core import redis_release_index as _rri
+                _mapping, _meta = _rri.offline_index(yf.getPanelDataDir(), series_list)
+                detected_ver = _rri.resolve(series_list[0], series_list, _mapping)
             except Exception as _e:
                 _log.debug('[redis] detectAndFixVersion 异常已忽略: %s', _e)
 
@@ -1597,6 +1651,9 @@ if __name__ == "__main__":
         print(readConfigTpl())
     elif func == 'detect_version':
         print(detectAndFixVersion())
+    elif func == 'resolve_version':
+        # 系列号 → 具体补丁版（install.sh 的兜底解析入口；空串=解析失败）
+        print(resolveVersion(sys.argv[2] if len(sys.argv) > 2 else ''))
     else:
         print('error')
 

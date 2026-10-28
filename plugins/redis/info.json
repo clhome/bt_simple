@@ -5,19 +5,17 @@
     "title": "Redis",
     "shell": "install.sh",
     "versions": [
-        "4.0.14",
-        "5.0.14",
-        "6.0.20",
-        "6.2.21",
-        "7.0.15",
-        "7.2.13",
-        "7.4.8",
-        "8.0.6",
-        "8.2.5",
-        "8.4.2",
-        "8.6.1",
-        "8.6.3"
+        "7.2",
+        "8.2",
+        "6.2"
     ],
+    "version_series": true,
+    "version_default": "7.2",
+    "version_notes": {
+        "7.2": "soft.redis_series_72",
+        "8.2": "soft.redis_series_82",
+        "6.2": "soft.redis_series_62"
+    },
     "tip": "soft",
     "checks": "server/redis",
     "path": "server/redis",

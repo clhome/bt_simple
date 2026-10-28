@@ -3640,6 +3640,11 @@ var lan = {
 		},
 
 	"soft": {
+			"recommended":"Recommandé",
+			"redis_series_72":"Stable classique, licence open source pure, idéal en production",
+			"redis_series_82":"LTS, évolution long terme avec nouvelles fonctions",
+			"redis_series_62":"Très léger, adapté aux serveurs 512 Mo",
+			"series_patch_update_tip":"Correctif dans la même version majeure : arrêt, sauvegarde des données et de la config, remplacement des binaires ; retour arrière automatique en cas d’échec.",
 		"php_upgradable": "Mise à jour disponible",
 		"os_unsupported_tip": "Ce canal n'est pas pris en charge par ce systeme ; les versions installees restent arretables et desinstallables ici.",
 		"os_unsupported": "Non pris en charge",
@@ -5022,6 +5027,7 @@ var lan = {
 		},
 
 	"plugin": {
+			"series_resolve_fail":"Impossible de résoudre la série {1} vers le dernier correctif (disponibles : {2}). Vérifiez le réseau et réessayez.",
 			"please_do_not_add":"Merci de ne pas l'ajouter plusieurs fois !",
 			"the_homepage_can_maximum":"La page d'accueil ne peut afficher que 12 logiciels au maximum !",
 			"deleted_successfully":"Supprimé avec succès!!",

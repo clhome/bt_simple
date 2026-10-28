@@ -123,3 +123,25 @@ cd /www/server/yufeng_panel/plugins/php/versions && bash all_test.sh
 >   升级到 10.11。
 >
 > 守卫用例：`testsuite/test_mariadb_lts_upgrade.py`。
+
+> **Redis 版本支持状态说明（2026-10-28 起）**
+>
+> * **界面只保留 3 个系列**：`7.2`（默认推荐，纯开源协议 RSAL/AGPL 路线之外的最稳选择）、
+>   `8.2`（LTS，长期演进 + 新特性）、`6.2`（极简轻量，适合 512MB 内存机器）。
+>   原来的 12 个三段式补丁版号（4.0.14 … 8.6.3）不再出现在安装界面上。
+> * **系列号在安装时解析成当前最新补丁版**：`web/core/redis_release_index.py` 抓
+>   `download.redis.io/releases/` 的目录列表（按**数值**取每个系列最大值，排除 rc/beta），
+>   落 `data/redis_release_index.json`（12h TTL，`panel_task` 每 12h 刷新一次），
+>   断网/内网时回退内置表（7.2.17 / 8.2.11 / 6.2.24）。列表页**不联网**（同步渲染路径），
+>   只有安装/升级下发任务时才联网刷新。
+> * **同大版本可升级**：已装 `7.2.13` → 「升级到 7.2.17」；已装 `7.0.15`/`6.0.20`/`8.0.6`
+>   → 「已下架」+「升级到 7.2.17 / 6.2.24 / 8.2.11」。升级流程 =
+>   停服 → 备份 `data` + `redis.conf`（先查磁盘空间）→ 编译新版到临时前缀 → 换 `bin`
+>   → 启动 + 回读 `redis-server -v` → 失败自动回滚（旧 `bin` 保留为 `redis.bin.prev.<ts>`）。
+> * **绝不降级、不跨大版本**：`7.4.8` / `8.4.2` / `8.6.3` 只标「已下架」不给目标
+>   （降级读不了新版本写出的 RDB/AOF）；`6.x → 7.x` 拒绝执行，需备份后重装。
+> * 防御纵深：`install.sh` 自身也能把系列号解析成补丁版（`index.py resolve_version`），
+>   手工 `bash install.sh install 7.2` 同样安全；解析失败一律 fail-fast，
+>   **绝不拼 `redis-.tar.gz` 这类空版本包**。
+>
+> 守卫用例：`testsuite/test_redis_version_series.py`。

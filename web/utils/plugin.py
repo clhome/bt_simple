@@ -502,6 +502,110 @@ def _php_branch_of(version):
     return int(raw) if raw.isdigit() else 0
 
 
+#: 「按系列安装」的插件（info.json 里 `version_series: true`）。
+#:
+#: 语义：`versions` 里放的是**系列号**（Redis：`7.2` / `8.2` / `6.2`），不是具体补丁版；
+#: 真正的安装版本由面板在下发任务前解析成「该系列当前最新补丁版」
+#: （见 `core/redis_release_index.py`）。这样上游每发一个补丁版，前端零改动。
+#: 目前只有 redis 声明，其它插件即使写了 `version_series` 也会因不在本元组而被忽略。
+SERIES_INDEX_PLUGINS = ('redis',)
+
+
+def _redis_release_index():
+    """惰性导入 Redis 发布索引模块。
+
+    不做模块级 import：`web/utils/plugin.py` 被大量测试以「截取源码片段 exec」的方式
+    复用（如 `test_mariadb_lts_upgrade.py::_ns`），模块级 import 会让那片纯函数无法单独执行。
+    """
+    from core import redis_release_index
+    return redis_release_index
+
+
+def _redis_is_series(version):
+    """`7.2` → True；`7.2.17` → False（前者需要面板解析，后者直接用）。"""
+    try:
+        return _redis_release_index().is_series(version)
+    except Exception as _e:      # noqa: BLE001 —— 判不了就当「不是系列号」，维持旧行为
+        _log.debug('[plugin] 判定 Redis 系列号失败: %s', _e)
+        return False
+
+
+def _series_list_of(info_data):
+    """从 info.json 取「在售系列」列表（去掉空值与重复，保留声明顺序）。"""
+    raw = (info_data or {}).get('versions') if isinstance(info_data, dict) else None
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw:
+        text = str(item or '').strip()
+        if text and text not in out:
+            out.append(text)
+    return out
+
+
+def _redis_resolve_series(version, series_list):
+    """系列号 → 当前最新补丁版（联网刷新失败的缓存/内置表兜底）；解析不了返回 ''。"""
+    try:
+        rri = _redis_release_index()
+        mapping, _info = rri.refresh(yf.getPanelDataDir(), series_list or None)
+        return rri.resolve(version, series_list, mapping)
+    except Exception as _e:      # noqa: BLE001 —— 解析链路任何异常都只能报错，不能拼空版本
+        _log.debug('[plugin] 解析 Redis 系列 %r 失败: %s', version, _e)
+        return ''
+
+
+def _is_series_text(value):
+    """`7.2` → True；`7.2.17` / `7` → False。"""
+    parts = str(value or '').strip().split('.')
+    return len(parts) == 2 and all(p.isdigit() for p in parts)
+
+
+def _series_prefix_match(remainder, series):
+    """任务标题里的版本 `7.2.17` 是否属于声明的系列号 `7.2`（**按段**比较）。
+
+    为什么不直接 `remainder.startswith(series + '.')`：系列 `6.2` 会把 `6.20.1`
+    也判成同系列。按段比较（`['6','2'] == ['6','2']`）不会误判。
+
+    用途：按系列安装的插件（redis）下发的任务标题带的是解析后的补丁版
+    （`安装[redis-7.2.17]`），而列表里声明的版本是系列号（`7.2`）；否则安装过程中
+    列表行不会显示「正在安装」。
+    """
+    if not _is_series_text(series):
+        return False
+    rparts = str(remainder or '').strip().split('.')
+    sparts = str(series).strip().split('.')
+    if len(rparts) <= len(sparts):
+        return False
+    return rparts[:len(sparts)] == sparts
+
+
+def _series_of_text(version):
+    """`7.2.13` → `7.2`；判不了返回 ''。纯字符串运算（面板与测试两边都能用）。"""
+    parts = str(version or '').strip().split('.')
+    if len(parts) < 2 or not parts[0].isdigit() or not parts[1].isdigit():
+        return ''
+    return '%d.%d' % (int(parts[0]), int(parts[1]))
+
+
+def _series_state_of(name, installed, series_list):
+    """已装版本相对「在售系列」的状态 → `(kind, target)`（不联网）。
+
+    kind：`'update'`（同系列有更新的补丁版）/ `'removed'`（所属系列已下架）/ `''`。
+    """
+    nm = str(name or '').strip().lower()
+    if nm not in SERIES_INDEX_PLUGINS or not series_list:
+        return '', ''
+    try:
+        rri = _redis_release_index()
+        mapping, _meta = rri.offline_index(yf.getPanelDataDir(), series_list)
+        return rri.series_state(installed, series_list, mapping)
+    except Exception as _e:      # noqa: BLE001 —— 提示信息是附加项，不能影响列表渲染
+        _log.debug('[plugin] 计算 %s 系列升级信息失败: %s', nm, _e)
+        return '', ''
+
+
 class plugin(object):
 
     def_plugin_type = [
@@ -1020,6 +1124,44 @@ class plugin(object):
         return False
 
     @staticmethod
+    def _seriesApplyVersionHint(pInfo):
+        """给「按系列安装」的插件（redis）挂上「补丁版可更新 / 系列已下架」提示。
+
+        口径（用户 2026-10-28 定）：
+          * 同系列有新补丁版（7.2.13 → 7.2.17）→ `series_update`，界面给「更新」链接；
+          * 已装系列已下架（7.0.15 / 7.4.8 / 4.0.14 / 8.6.3）→ `eol_kind='removed'` 红标；
+            其中「同大版本且在售系列里能找到更高版本」时（7.0.15 → 7.2.17）才给
+            `eol_upgrade_to`，否则只标不推（**降级建议一定不能给**）。
+
+        数据来源只读缓存/内置表（`offline_index`，不联网）：软件列表是同步渲染路径，
+        不允许为它等网络（与 PHP 升级提示同口径，见 `annotatePhpUpdates`）。
+        """
+        if not pInfo.get('version_series') or pInfo.get('setup') is not True:
+            return pInfo
+        name = str(pInfo.get('name') or '').strip().lower()
+        if name not in SERIES_INDEX_PLUGINS:
+            return pInfo
+        installed = str(pInfo.get('setup_version') or '').strip()
+        series_list = [str(v).strip() for v in (pInfo.get('versions') or []) if str(v).strip()]
+        if not installed or not series_list:
+            return pInfo
+
+        kind, target = _series_state_of(name, installed, series_list)
+        pInfo['series_current'] = installed
+        pInfo['series_kind'] = kind
+        if kind == 'update':
+            pInfo['series_update'] = {
+                'current': installed,
+                'latest': target,
+                'series': _series_of_text(installed),
+            }
+        elif kind == 'removed':
+            # 复用 MySQL/MariaDB 的下架/维护期 UI（红标 + 可选「升级到 X」）
+            pInfo['eol_kind'] = 'removed'
+            pInfo['eol_upgrade_to'] = target
+        return pInfo
+
+    @staticmethod
     def _dbApplyEolHint(pInfo):
         """给列表条目挂上「已下架 / 已过维护期」标记与同系列升级建议。
 
@@ -1054,6 +1196,8 @@ class plugin(object):
             yf.writeFileLog('[plugin] 拒绝安装非法插件参数: name=%r version=%r' % (name, version))
             return yf.returnData(False, 'ARGS_ERR', ())
 
+        _name_l = str(name).strip().lower()
+
         # PHP 只提供 PHP_MIN_INSTALL_BRANCH 及以上（用户 2026-10-26 定的口径）：
         # 低版本官方已停止维护、不再有安全修复，商店里也不展示安装入口。
         # 这里再拦一道，是因为「前端看不到按钮」不等于「接口调不到」。
@@ -1068,7 +1212,6 @@ class plugin(object):
         #   * MySQL：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）下架；
         #   * MariaDB：10.7~10.9 / 11.0~11.3 / 11.5~11.7 / 12.x 非 LTS 下架。
         # 版本脚本仍保留 —— 已装用户要能卸载，升级流程也要用它们做中转/回滚。
-        _name_l = str(name).strip().lower()
         if _name_l in ('mysql', 'mariadb'):
             _allowed = db_installable_versions(_name_l)
             if _allowed and str(version).strip() not in _allowed:
@@ -1088,6 +1231,25 @@ class plugin(object):
             return yf.returnData(False, 'plugin.py_msg_dacbd7', ())
 
         info_data = json.loads(yf.readFile(info_file))
+
+        # Redis 只提供 3 个系列（7.2 / 8.2 / 6.2，用户 2026-10-28 定的口径）：
+        # 前端永远只有这 3 个选项，**系列号在这里解析成当前最新补丁版**再下发任务
+        # （实测 2026-10-28：7.2→7.2.17、8.2→8.2.11、6.2→6.2.24）。
+        # 上游每发一个补丁版，前端一行都不用改；解析不出来就明确报错，绝不拼空版本包。
+        if _name_l in SERIES_INDEX_PLUGINS and _redis_is_series(version):
+            _series_list = _series_list_of(info_data)
+            _resolved = _redis_resolve_series(version, _series_list)
+            if not _resolved:
+                yf.writeFileLog('[plugin] 无法解析 %s 的系列版本号: version=%s series=%r'
+                                % (_name_l, version, _series_list))
+                _cycle = '/'.join(_series_list) if _series_list else '-'
+                # 注意 returnData 的第三个位置参数是 data（不是插值参数）：
+                # 想插值必须显式传 None 再跟参数，否则文案里的 {1}/{2} 会原样显示。
+                return yf.returnData(False, 'plugin.series_resolve_fail',
+                                     None, version, _cycle)
+            yf.writeFileLog('[plugin] %s 系列 %s 解析为当前最新补丁版 %s'
+                            % (_name_l, version, _resolved))
+            version = _resolved
 
         # 发行版不支持的渠道（如 Debian 上装 php-yum）：前端已隐藏，接口再拦一道。
         # 「前端看不到按钮」不等于「接口调不到」——用户/NAT 脚本可以直接 POST。
@@ -1124,6 +1286,10 @@ class plugin(object):
                 _upgrade_env = 'YF_MYSQL_ALLOW_UPGRADE=1 '
             elif _uname == 'mariadb':
                 _upgrade_env = 'YF_MARIADB_ALLOW_UPGRADE=1 '
+            elif _uname == 'redis':
+                # Redis 同大版本换二进制要停服 + 备份 data + 失败回滚，
+                # 只有面板的「升级到 x.y.z」入口才带这个开关（防误点、防脚本误调）。
+                _upgrade_env = 'YF_REDIS_ALLOW_UPGRADE=1 '
 
         exec_bash = 'cd {0} && {3}bash {1} install {2}'.format(
             yf.shlexQuote(yf.getPluginDir() + '/'+name),
@@ -1343,7 +1509,11 @@ class plugin(object):
             valid_versions = version if isinstance(version, list) else [version]
             matched = False
             for v in valid_versions:
-                if remainder == v or remainder.startswith(v + '-'):
+                # 第三个分支：按系列安装的插件（redis）任务标题带的是解析后的补丁版
+                # （`安装[redis-7.2.17]`），而列表里声明的版本是系列号（`7.2`）——
+                # 按版本段比较，不能只靠字符串前缀（`6.2` 会误匹配 `6.20.1`）。
+                if (remainder == v or remainder.startswith(v + '-')
+                        or _series_prefix_match(remainder, v)):
                     matched = True
                     break
             
@@ -1437,6 +1607,12 @@ class plugin(object):
             # 平台能力声明：`os_family: ["deb"]` / `["rpm"]` / 不写=全平台。
             # 供 applyPhpChannelPolicy() 与 install() 共用（见 core/os_family.py）。
             "os_family": info.get('os_family') if isinstance(info.get('os_family'), list) else [],
+            # 「按系列安装」的插件（redis）：`versions` 里放系列号，安装时由后端解析成
+            # 当前最新补丁版（见 `SERIES_INDEX_PLUGINS` / `core/redis_release_index.py`）。
+            "version_series": bool(info.get('version_series')),
+            # 默认/推荐系列（前端据此预选并标「推荐」）与各系列的说明文案 i18n 键。
+            "version_default": str(info.get('version_default') or ''),
+            "version_notes": info.get('version_notes') if isinstance(info.get('version_notes'), dict) else {},
         }
 
         if 'icon' in info:
@@ -1466,6 +1642,7 @@ class plugin(object):
                 pInfo['setup_version'] = yf.readFile(pInfo['install_checks']).strip()
 
         self._dbApplyEolHint(pInfo)
+        self._seriesApplyVersionHint(pInfo)
 
         if 'install_pre_inspection' in info:
             pInfo['install_pre_inspection'] = info['install_pre_inspection']
@@ -1585,6 +1762,7 @@ class plugin(object):
                 pInfo['setup_version'] = ""
 
             self._dbApplyEolHint(pInfo)
+            self._seriesApplyVersionHint(pInfo)
 
             display = False
             if coexist:

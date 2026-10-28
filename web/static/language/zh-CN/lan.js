@@ -3640,6 +3640,11 @@ var lan = {
 		},
 
 	"soft": {
+			"recommended":"推荐",
+			"redis_series_72":"经典稳定，纯开源协议，生产首选",
+			"redis_series_82":"LTS 长期演进，支持新特性",
+			"redis_series_62":"极简轻量，适合 512MB 内存机器",
+			"series_patch_update_tip":"同大版本内的补丁升级：先停服、备份数据与配置，再换二进制；失败自动回滚。",
 		"php_upgradable": "可更新",
 		"os_unsupported_tip": "当前系统不支持该安装渠道；已安装的版本仍可在这里停用或卸载。",
 		"os_unsupported": "系统不支持",
@@ -5022,6 +5027,7 @@ var lan = {
 		},
 
 	"plugin": {
+			"series_resolve_fail":"无法把系列 {1} 解析成当前最新补丁版（可选系列：{2}），请检查网络后重试",
 			"please_do_not_add": "请不要重复添加!",
 			"the_homepage_can_maximum": "首页最多只能显示12个软件!",
 			"deleted_successfully": "删除成功!!",

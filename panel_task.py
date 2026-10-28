@@ -920,6 +920,60 @@ def phpSecurityScan_step():
 # ---------------------------------------------------------------------------------
 PHP_RELEASE_INDEX_INTERVAL = 12 * 3600
 
+# ---------------------------------------------------------------------------------
+# Redis 官方发布索引（3 个系列 7.2 / 8.2 / 6.2 的「当前最新补丁版」）
+#
+# 软件商店只展示 3 个系列，安装时由面板把系列号解析成该系列当前最新的补丁版
+# （`core/redis_release_index.py`）。这份映射要能自己滚动，否则「点 7.2 装到的是
+# 很久以前的 7.2.13」。与 PHP 索引同口径：每 12 小时抓一次
+# `download.redis.io/releases/`，落 `data/redis_release_index.json`；
+# 抓不到只记日志并保留旧缓存/内置表，绝不阻塞其它任务，也绝不把「抓不到」
+# 当成「没有新补丁版」。
+# ---------------------------------------------------------------------------------
+REDIS_RELEASE_INDEX_INTERVAL = 12 * 3600
+
+
+def _redisSeriesList():
+    """读插件 info.json 里声明的在售系列（列表页与安装共用同一份真源）。"""
+    import json
+    info_file = yf.getPluginDir() + '/redis/info.json'
+    try:
+        with open(info_file, 'r', encoding='utf-8') as fh:
+            data = json.load(fh)
+    except Exception:
+        return []
+    vers = data.get('versions') if isinstance(data, dict) else None
+    if isinstance(vers, str):
+        vers = [vers]
+    if not isinstance(vers, list):
+        return []
+    out = []
+    for item in vers:
+        text = str(item or '').strip()
+        if text and text not in out:
+            out.append(text)
+    return out
+
+
+def redisReleaseIndex_step():
+    try:
+        from core import redis_release_index
+        series = _redisSeriesList()
+        if not series:
+            return
+        mapping, info = redis_release_index.refresh(yf.getPanelDataDir(), series)
+        summary = ', '.join('%s→%s' % (s, mapping.get(s)) for s in series)
+        if info.get('online'):
+            _log.info('[redis_release] 官方发布索引已刷新: %s', summary)
+            yf.writeFileLog('[redis_release] 官方发布索引已刷新: %s' % summary)
+        else:
+            _log.info('[redis_release] 使用缓存/内置版本表（%s）', info.get('error') or '未联网')
+            yf.writeFileLog('[redis_release] 使用缓存/内置版本表（%s）: %s'
+                            % (info.get('error') or '未联网', summary))
+    except Exception:
+        # 取不到最新补丁版不影响安装（安装时会再试一次，之后回退内置表）
+        _log.warning('[redis_release] 刷新失败: %s', yf.getTracebackInfo())
+
 
 # ---------------------------------------------------------------------------------
 # 已装插件服务存活巡检（《问题报告》P2-2）
@@ -1083,6 +1137,8 @@ def run():
     watchdog_scheduler.add_task(phpPoolHeal_step, PHP_POOL_HEAL_INTERVAL)
     # PHP 官方版本索引（12h）：给「已安装的软件」提供「可升级 x.y.z」的判据。
     watchdog_scheduler.add_task(phpReleaseIndex_step, PHP_RELEASE_INDEX_INTERVAL)
+    # Redis 官方发布索引（12h）：7.2 / 8.2 / 6.2 三个系列各自的当前最新补丁版
+    watchdog_scheduler.add_task(redisReleaseIndex_step, REDIS_RELEASE_INDEX_INTERVAL)
     # 已装插件服务存活巡检（P2-2）：5 分钟一轮，只读不重启，结果供软件列表告警
     watchdog_scheduler.add_task(servicePatrol_step, SERVICE_PATROL_INTERVAL)
 
