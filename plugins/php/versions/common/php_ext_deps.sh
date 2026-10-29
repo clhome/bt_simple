@@ -41,7 +41,7 @@ yf_ext_pkg_mgr() {
 	fi
 }
 
-# $1=模块名 $2=apt 包名 $3=rpm 包名 [$4=最低版本]
+# $1=模块名 $2=apt 包名(可多个候选，空格分隔，依次尝试) $3=rpm 包名 [$4=最低版本]
 # 已满足 → 0；缺失但自动装成功后满足 → 0；否则 1（并打印可照抄的修复命令）
 yf_ext_ensure_pkgconfig() {
 	local _mod="${1:-}"
@@ -49,21 +49,36 @@ yf_ext_ensure_pkgconfig() {
 	local _rpm_pkg="${3:-}"
 	local _min="${4:-}"
 	local _mgr=""
+	local _last_err=""
 
 	if yf_pkgconfig_has "${_mod}" "${_min}"; then
 		return 0
 	fi
 
-	echo "[deps] 未检测到 ${_mod}${_min:+>=${_min}}，尝试安装开发包（${_apt_pkg:-?} / ${_rpm_pkg:-?}）..." >&2
+	echo "[deps] 未检测到 ${_mod}${_min:+>=${_min}}，尝试自动补齐开发包..." >&2
 	_mgr="$(yf_ext_pkg_mgr)"
 	case "${_mgr}" in
 		apt)
 			[ -n "${_apt_pkg}" ] || return 1
-			DEBIAN_FRONTEND=noninteractive apt-get install -y ${_apt_pkg} >/dev/null 2>&1 || true
+			local _cand=""
+			for _cand in ${_apt_pkg}; do
+				echo "[deps] 正在尝试通过 apt 安装 ${_cand}..." >&2
+				_last_err=$(DEBIAN_FRONTEND=noninteractive apt-get install -y "${_cand}" 2>&1) || true
+				if yf_pkgconfig_has "${_mod}" "${_min}"; then
+					break
+				fi
+			done
 			;;
 		dnf|yum)
 			[ -n "${_rpm_pkg}" ] || return 1
-			"${_mgr}" install -y ${_rpm_pkg} >/dev/null 2>&1 || true
+			local _cand=""
+			for _cand in ${_rpm_pkg}; do
+				echo "[deps] 正在尝试通过 ${_mgr} 安装 ${_cand}..." >&2
+				_last_err=$("${_mgr}" install -y "${_cand}" 2>&1) || true
+				if yf_pkgconfig_has "${_mod}" "${_min}"; then
+					break
+				fi
+			done
 			;;
 		*)
 			echo "[deps][ERROR] 未识别的包管理器，无法自动安装 ${_mod} 开发包" >&2
@@ -76,12 +91,91 @@ yf_ext_ensure_pkgconfig() {
 		return 0
 	fi
 
+	if [ -n "${_last_err}" ]; then
+		echo "[deps][WARN] 包管理器执行输出摘要：" >&2
+		printf '%s\n' "${_last_err}" | tail -n 8 | sed 's/^/    /' >&2
+	fi
+
+	local _pref_apt=$(echo "${_apt_pkg}" | awk '{print $1}')
+	local _pref_rpm=$(echo "${_rpm_pkg}" | awk '{print $1}')
 	echo "[deps][ERROR] 缺少 ${_mod}${_min:+>=${_min}} 开发包，扩展无法编译。请手动安装后重试：" >&2
-	if [ -n "${_apt_pkg}" ]; then
-		echo "    Debian/Ubuntu:  apt-get install -y ${_apt_pkg}" >&2
+	if [ -n "${_pref_apt}" ]; then
+		echo "    Debian/Ubuntu:  apt-get install -y ${_pref_apt}" >&2
 	fi
-	if [ -n "${_rpm_pkg}" ]; then
-		echo "    RHEL/CentOS:    yum install -y ${_rpm_pkg}" >&2
+	if [ -n "${_pref_rpm}" ]; then
+		echo "    RHEL/CentOS:    yum install -y ${_pref_rpm}" >&2
 	fi
+	return 1
+}
+
+# 确保 PHP 本体编译所需的核心底层开发依赖（报告 N10：防止新机时序窗口缺少 libxml2 等包导致 configure 失败）
+# 返回：0=核心依赖已全部满足；1=依赖缺失且自动补齐失败（已输出可照抄的手工安装指令）
+yf_php_ensure_core_build_deps() {
+	local _mgr="$(yf_ext_pkg_mgr)"
+	local _missing=()
+
+	if ! command -v pkg-config >/dev/null 2>&1; then
+		_missing+=("pkg-config")
+	fi
+
+	if ! yf_pkgconfig_has "libxml-2.0" "2.9.4"; then
+		_missing+=("libxml2")
+	fi
+
+	if ! yf_pkgconfig_has "sqlite3"; then
+		_missing+=("sqlite3")
+	fi
+
+	if [ "${#_missing[@]}" -eq 0 ]; then
+		return 0
+	fi
+
+	echo "[deps] 检测到 PHP 主构建核心依赖未就绪: ${_missing[*]}，正在尝试自动安装..." >&2
+
+	local _apt_pkgs="pkg-config libxml2-dev libsqlite3-dev zlib1g-dev libssl-dev"
+	local _rpm_pkgs="pkgconfig libxml2-devel sqlite-devel zlib-devel openssl-devel"
+
+	case "${_mgr}" in
+		apt)
+			for _p in ${_apt_pkgs}; do
+				DEBIAN_FRONTEND=noninteractive apt-get install -y "${_p}" >/dev/null 2>&1 || true
+			done
+			;;
+		dnf|yum)
+			for _p in ${_rpm_pkgs}; do
+				"${_mgr}" install -y "${_p}" >/dev/null 2>&1 || true
+			done
+			;;
+		*)
+			;;
+	esac
+
+	local _still_missing=()
+	if ! command -v pkg-config >/dev/null 2>&1; then
+		_still_missing+=("pkg-config")
+	fi
+	if ! yf_pkgconfig_has "libxml-2.0" "2.9.4"; then
+		_still_missing+=("libxml2-dev(libxml-2.0>=2.9.4)")
+	fi
+
+	if [ "${#_still_missing[@]}" -eq 0 ]; then
+		echo "[deps] PHP 主构建核心依赖已就绪" >&2
+		return 0
+	fi
+
+	echo "[deps][ERROR] PHP 主构建核心开发依赖缺失: ${_still_missing[*]}，构建前中止。" >&2
+	echo "请先手动安装所需依赖后重试：" >&2
+	case "${_mgr}" in
+		apt)
+			echo "    Debian/Ubuntu:  apt-get update && apt-get install -y ${_apt_pkgs}" >&2
+			;;
+		dnf|yum)
+			echo "    RHEL/CentOS:    ${_mgr} install -y ${_rpm_pkgs}" >&2
+			;;
+		*)
+			echo "    Debian/Ubuntu:  apt-get update && apt-get install -y ${_apt_pkgs}" >&2
+			echo "    RHEL/CentOS:    yum install -y ${_rpm_pkgs}" >&2
+			;;
+	esac
 	return 1
 }

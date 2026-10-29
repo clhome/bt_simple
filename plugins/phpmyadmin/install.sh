@@ -67,24 +67,46 @@ Install_phpmyadmin()
 		FILE=phpMyAdmin-${VER}-all-languages.${_ext}
 		_try_path=$serverPath/source/phpmyadmin/$FILE
 
+		# 确保已加载完整校验库
+		if ! command -v yf_verify_archive >/dev/null 2>&1; then
+			if [ -f "${rootPath}/scripts/github_download.sh" ]; then
+				source "${rootPath}/scripts/github_download.sh"
+			fi
+		fi
+
 		# 优先从项目 GitHub Release 下载（自带国内代理加速）
 		GH_URL="https://github.com/clhome/bt_simple/releases/download/init/$FILE"
-		if ! github_download "$_try_path" "$GH_URL" >/dev/null 2>&1; then
-			# GitHub 源不可用：不是失败（下面还有官方源回退），清掉残留半成品
+		if github_download "$_try_path" "$GH_URL" >/dev/null 2>&1; then
+			if command -v yf_verify_archive >/dev/null 2>&1; then
+				if ! yf_verify_archive "$_try_path"; then
+					echo "[WARN] GitHub 节点下载的 ${FILE} 完整性校验失败（可能遭遇网络截断或代理错误），清理后回退" >&2
+					rm -f "$_try_path" 2>/dev/null
+				fi
+			fi
+		else
 			rm -f "$_try_path" 2>/dev/null
 		fi
 
 		# 回退：尝试官方源
-		if [ ! -s "$_try_path" ]; then
+		if [ ! -f "$_try_path" ] || [ ! -s "$_try_path" ]; then
 			rm -f "$_try_path" 2>/dev/null
-			echo "GitHub 源不可用，尝试官方源: ${FILE}"
+			echo "GitHub 源不可用或包损坏，尝试官方源: ${FILE}"
 			OFFICIAL_URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
 			if command -v curl >/dev/null 2>&1; then
-				curl -fsSL -L --connect-timeout 15 --max-time 300 -o "$_try_path" "$OFFICIAL_URL" || rm -f "$_try_path"
+				curl -fsSL -L --connect-timeout 15 --max-time 300 -o "$_try_path" "$OFFICIAL_URL" || rm -f "$_try_path" 2>/dev/null
+			elif command -v wget >/dev/null 2>&1; then
+				wget -q -O "$_try_path" --timeout=300 "$OFFICIAL_URL" || rm -f "$_try_path" 2>/dev/null
+			fi
+
+			if [ -f "$_try_path" ] && command -v yf_verify_archive >/dev/null 2>&1; then
+				if ! yf_verify_archive "$_try_path"; then
+					echo "[WARN] 官方源下载的 ${FILE} 校验失败，继续尝试下一格式..." >&2
+					rm -f "$_try_path" 2>/dev/null
+				fi
 			fi
 		fi
 
-		if [ -s "$_try_path" ]; then
+		if [ -f "$_try_path" ] && [ -s "$_try_path" ]; then
 			FILEPATH=$_try_path
 			break
 		fi

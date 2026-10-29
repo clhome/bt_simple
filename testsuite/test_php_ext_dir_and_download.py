@@ -40,7 +40,14 @@ CURL_SH = os.path.join(COMMON_DIR, 'curl.sh')
 VERSIONS_DIR = os.path.join(ROOT, 'plugins', 'php', 'versions')
 INDEX_PHP_PY = os.path.join(ROOT, 'plugins', 'php', 'index_php.py')
 
-BASH = shutil.which('bash')
+def _find_bash():
+    git_bash = r'C:\Program Files\Git\bin\bash.exe'
+    if os.name == 'nt' and os.path.exists(git_bash):
+        return git_bash
+    return shutil.which('bash')
+
+
+BASH = _find_bash()
 
 
 def _read(path):

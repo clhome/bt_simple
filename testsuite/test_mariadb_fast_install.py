@@ -37,7 +37,14 @@ MARIA_SH = os.path.join(ROOT, 'plugins', 'mariadb', 'install.sh')
 MARIA_HTML = os.path.join(ROOT, 'plugins', 'mariadb', 'install.html')
 PLUGIN_PY = os.path.join(ROOT, 'web', 'utils', 'plugin.py')
 
-BASH = shutil.which('bash')
+def _find_bash():
+    git_bash = r'C:\Program Files\Git\bin\bash.exe'
+    if os.name == 'nt' and os.path.exists(git_bash):
+        return git_bash
+    return shutil.which('bash')
+
+
+BASH = _find_bash()
 NEWLINE = chr(10)
 
 

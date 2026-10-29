@@ -32,7 +32,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SCRIPT = os.path.join(ROOT, 'scripts', 'github_download.sh')
 
-BASH = shutil.which('bash')
+def _find_bash():
+    git_bash = r'C:\Program Files\Git\bin\bash.exe'
+    if os.name == 'nt' and os.path.exists(git_bash):
+        return git_bash
+    return shutil.which('bash')
+
+
+BASH = _find_bash()
 NEWLINE = chr(10)
 
 CURL_STUB = r'''#!/bin/bash
@@ -69,16 +76,7 @@ if [ -n "$range" ] && [ "${STUB_NO_LENGTH:-0}" != "1" ]; then
   if [ "${STUB_BREAK_PART:-}" != "" ] && [ "$a" = "${STUB_BREAK_PART}" ]; then
     exit 1
   fi
-  dd if="$SRC" bs=1000 skip=$(( a / 1000 )) count=1 of="$out" 2>/dev/null
-  # 用 dd 只取近似范围会短，这里用 python 精确切（bs=1 在 MSYS 上太慢）
-  python - "$SRC" "$a" "$b" "$out" <<'PYEOF' 2>/dev/null
-import sys
-src, a, b, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
-with open(src, 'rb') as f:
-    f.seek(a)
-    data = f.read(b - a + 1)
-open(out, 'wb').write(data)
-PYEOF
+  python -c 'import sys; src, a, b, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; f=open(src, "rb"); f.seek(a); open(out, "wb").write(f.read(b - a + 1))' "$SRC" "$a" "$b" "$out" 2>/dev/null
   exit 0
 fi
 cp "$SRC" "$out"
@@ -127,14 +125,17 @@ class TestMultiDownload(unittest.TestCase):
 
     def _run(self, tmp, env, out, conns, sha):
         script = os.path.join(tmp, 'run.sh')
+        stub_sh = os.path.join(tmp, 'bin', 'curl').replace(os.sep, '/')
         parts = [
+            'curl() { bash "%s" "$@"; }' % stub_sh,
+            'export -f curl',
             '. "%s" >/dev/null 2>&1' % SCRIPT.replace(os.sep, '/'),
             'yf_multi_download "http://fake/x.bin" "%s" %d "%s" 120' % (out.replace(os.sep, '/'), conns, sha),
             'echo "RC=$?"',
         ]
         with open(script, 'w', encoding='utf-8', newline=NEWLINE) as f:
             f.write(NEWLINE.join(parts) + NEWLINE)
-        proc = subprocess.run([BASH, script], env=env, stdout=subprocess.PIPE,
+        proc = subprocess.run([BASH, script.replace(os.sep, '/')], env=env, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=180)
         out_text = (proc.stdout or b'').decode('utf-8', 'replace')
         rc = [ln for ln in out_text.splitlines() if ln.startswith('RC=')]

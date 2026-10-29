@@ -116,7 +116,7 @@ Install_fast_mysql() {
         tar_file="mysql-${suffix_name}.tar.xz"
         download_path="MySQL-8.2"
     elif [[ "${version_main}" == "8.4" ]]; then
-        mysql_full_ver="8.4.3"
+        mysql_full_ver="8.4.13"
         suffix_name="${mysql_full_ver}-linux-glibc2.28-${os_arch}"
         tar_file="mysql-${suffix_name}.tar.xz"
         download_path="MySQL-8.4"
@@ -148,27 +148,30 @@ Install_fast_mysql() {
     fi
     local huawei_base="https://mirrors.huaweicloud.com/mysql/Downloads/${download_path}/"
 
-    # 下载源列表（国内镜像优先，官方源兜底）
+    # 下载源列表：官方 CDN / 分发入口优先（支持当前 GA），官方 Archives 兜底（针对历史归档版本），国内镜像辅助
     local mirrors=()
-    mirrors+=("${huawei_base}${tar_file}")
     mirrors+=(
+        "https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"
+        "https://dev.mysql.com/get/Downloads/${download_path}/${tar_file}"
+        "https://downloads.mysql.com/archives/get/p/23/file/${tar_file}"
+        "${huawei_base}${tar_file}"
         "https://mirrors.aliyun.com/mysql/${download_path}/${tar_file}"
         "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/${download_path}/${tar_file}"
-        "https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"
-        "https://downloads.mysql.com/archives/get/p/23/file/${tar_file}"
     )
 
     local download_success=false
+    local dl_timeout=1800
     for mirror_url in "${mirrors[@]}"; do
         echo "正在尝试从节点下载部署包: ${mirror_url}"
         
         local tmp_file="/tmp/${tar_file}"
         rm -f "${tmp_file}"
         
+        # 必须传递长超时（1800s），防止 850MB+ 的预编译包在默认 30s 超时下被中断截断
         if command -v yf_download &> /dev/null; then
-            yf_download "${tmp_file}" "${mirror_url}"
+            yf_download "${tmp_file}" "${mirror_url}" "${dl_timeout}"
         else
-            wget -nv -O "${tmp_file}" "${mirror_url}"
+            wget -c -nv -O "${tmp_file}" --timeout="${dl_timeout}" "${mirror_url}"
         fi
 
         if [ -f "${tmp_file}" ]; then

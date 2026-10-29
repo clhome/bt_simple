@@ -382,7 +382,6 @@ YF_BOOTSTRAP_PROXY_LIST=(
     "https://cors.zme.ink/"
     "https://gh.ddlc.top/"
     "https://ghproxy.net/"
-    "https://gh.con.sh/"
 )
 
 # 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。

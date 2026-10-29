@@ -159,9 +159,15 @@ function yf_verify_archive() {
     _size=$(wc -c < "$_f" 2>/dev/null | tr -d ' ')
     [ -n "$_size" ] && [ "$_size" -gt 0 ] 2>/dev/null || return 1
 
+    local _clean="$(basename "$_f")"
+    _clean="${_clean%.part}"
+    _clean="${_clean%.tmp}"
+    _clean="${_clean%.download}"
+
     local _magic
     _magic=$(head -c 6 "$_f" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
 
+    # 1. 已知魔数：必须通过对应压缩工具的真实完整性测试
     case "$_magic" in
         1f8b*)
             gzip -t "$_f" >/dev/null 2>&1 && return 0 || return 1
@@ -172,7 +178,7 @@ function yf_verify_archive() {
             fi
             return 0
             ;;
-        fd377a585a00*)
+        fd377a585a00*|fd377a58*)
             if command -v xz >/dev/null 2>&1; then
                 xz -t "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
@@ -192,13 +198,38 @@ function yf_verify_archive() {
             ;;
     esac
 
-    # 没有已知魔数：拒绝 HTML 错误页/认证页与明显的错误文本（代理常见形态）
-    if head -c 200 "$_f" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html)'; then
+    # 2. 若文件名明确带有已知压缩扩展名，但魔数完全不匹配，绝不放行（防御伪装文本包）
+    case "$_clean" in
+        *.tar.gz|*.tgz|*.gz|*.tar.xz|*.xz|*.zip|*.tar.bz2|*.bz2|*.tar.zst|*.zst)
+            return 1
+            ;;
+        *.tar)
+            if command -v tar >/dev/null 2>&1; then
+                tar -tf "$_f" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            ;;
+    esac
+
+    # 3. 没有已知魔数：绝对拒绝 HTML 错误页/认证页
+    if head -c 500 "$_f" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html|<head|<body|<xml)'; then
         return 1
     fi
-    if [ "$_size" -lt 512 ] && head -c 64 "$_f" 2>/dev/null             | grep -qiE 'error|invalid|denied|blocked|not found|forbidden'; then
+
+    # 4. 拒绝代理错误/停用提示/常见网关报错文本
+    if [ "$_size" -lt 2048 ] && head -c 256 "$_f" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
         return 1
     fi
+
+    # 5. 小于 512 字节且非脚本魔数的纯 ASCII 文本，一律当代理异常文本拦截
+    if [ "$_size" -lt 512 ]; then
+        local _f2=$(head -c 2 "$_f" 2>/dev/null)
+        if [ "$_f2" != "#!" ]; then
+            if LC_ALL=C grep -qE '^[[:print:][:space:]]+$' "$_f" 2>/dev/null; then
+                return 1
+            fi
+        fi
+    fi
+
     return 0
 }
 
@@ -271,34 +302,122 @@ _gh_verify_file() {
     local size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
     if [ "$size" -eq 0 ] 2>/dev/null; then return 1; fi
 
-    # **按内容（魔数）判，不按文件名后缀**：
-    # 调用方普遍先下到 `<name>.tar.gz.part` 再改名，旧实现按后缀判断会跳过
-    # gzip 校验，于是代理返回的 48 字节错误文本也被当成「下载成功」
-    # （真机日志：「✓ 下载成功」紧跟「该源不可用或包损坏」）。
     local magic=$(head -c 8 "$file" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
 
-    case "$magic" in
-        1f8b*)                      # gzip（.tar.gz / .tgz / .gz）
-            if gzip -t "$file" 2>/dev/null; then return 0; else return 1; fi
+    # 提取拟定文件名（去除 .part / .tmp / .download 等中间态后缀）
+    local clean_name="$(basename "$file")"
+    clean_name="${clean_name%.part}"
+    clean_name="${clean_name%.tmp}"
+    clean_name="${clean_name%.download}"
+
+    # 1. 若目标文件名属于已知压缩包格式，必须符合对应格式且通过完整性检验，绝不放行伪装文件
+    case "$clean_name" in
+        *.tar.gz|*.tgz|*.gz)
+            case "$magic" in
+                1f8b*) gzip -t "$file" >/dev/null 2>&1 && return 0 || return 1 ;;
+                *) return 1 ;;
+            esac
             ;;
-        504b0304*|504b0506*|504b0708*)   # zip
-            if unzip -t "$file" >/dev/null 2>&1; then return 0; else return 1; fi
+        *.tar.xz|*.xz)
+            case "$magic" in
+                fd377a58*)
+                    if command -v xz >/dev/null 2>&1; then
+                        xz -t "$file" >/dev/null 2>&1 && return 0 || return 1
+                    fi
+                    return 0
+                    ;;
+                *) return 1 ;;
+            esac
             ;;
-        fd377a58*)                  # xz
-            if command -v xz >/dev/null 2>&1; then
-                if xz -t "$file" 2>/dev/null; then return 0; else return 1; fi
+        *.zip)
+            case "$magic" in
+                504b0304*|504b0506*|504b0708*)
+                    if command -v unzip >/dev/null 2>&1; then
+                        unzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
+                    fi
+                    return 0
+                    ;;
+                *) return 1 ;;
+            esac
+            ;;
+        *.tar.bz2|*.bz2)
+            case "$magic" in
+                425a68*)
+                    if command -v bzip2 >/dev/null 2>&1; then
+                        bzip2 -t "$file" >/dev/null 2>&1 && return 0 || return 1
+                    fi
+                    return 0
+                    ;;
+                *) return 1 ;;
+            esac
+            ;;
+        *.tar.zst|*.zst)
+            case "$magic" in
+                28b52ffd*)
+                    if command -v zstd >/dev/null 2>&1; then
+                        zstd -t "$file" >/dev/null 2>&1 && return 0 || return 1
+                    fi
+                    return 0
+                    ;;
+                *) return 1 ;;
+            esac
+            ;;
+        *.tar)
+            if command -v tar >/dev/null 2>&1; then
+                tar -tf "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
             ;;
     esac
 
-    # 普通文件（.sh / 二进制）：必须不是 HTML 错误页/登录页
-    if head -c 200 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html)'; then
+    # 2. 对其他文件，若命中已知压缩包魔数，亦执行格式完整性检查
+    case "$magic" in
+        1f8b*)
+            gzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
+            ;;
+        504b0304*|504b0506*|504b0708*)
+            if command -v unzip >/dev/null 2>&1; then
+                unzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        fd377a58*)
+            if command -v xz >/dev/null 2>&1; then
+                xz -t "$file" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        425a68*)
+            if command -v bzip2 >/dev/null 2>&1; then
+                bzip2 -t "$file" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+        28b52ffd*)
+            if command -v zstd >/dev/null 2>&1; then
+                zstd -t "$file" >/dev/null 2>&1 && return 0 || return 1
+            fi
+            return 0
+            ;;
+    esac
+
+    # 3. 普通文件（.sh / 二进制）：严禁 HTML 错误页/登录页
+    if head -c 500 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html|<head|<body)'; then
         return 1
     fi
-    # 纯文本但不是脚本、又只有几十字节 → 基本是代理的错误提示（如 48 字节的
-    # "invalid url"），一律当失败，交给上层换源
-    if [ "$size" -lt 512 ] && head -c 32 "$file" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|请|错误'; then
+
+    # 4. 纯文本代理错误提示/停用页（如 48 字节 "Suspent due to abuse report" 或 "invalid url"）
+    if [ "$size" -lt 2048 ] && head -c 256 "$file" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
         return 1
+    fi
+
+    # 5. 小于 512 字节且首字符不是脚本魔数（#!）的 ASCII 文本文件，一律当做非预期错误输出拒收
+    if [ "$size" -lt 512 ]; then
+        local first_two=$(head -c 2 "$file" 2>/dev/null)
+        if [ "$first_two" != "#!" ]; then
+            if LC_ALL=C grep -qE '^[[:print:][:space:]]+$' "$file" 2>/dev/null; then
+                return 1
+            fi
+        fi
     fi
 
     return 0
@@ -438,7 +557,8 @@ github_download() {
     if ! _gh_is_github_url "$url"; then
         echo "[github_download] 非 GitHub 地址，直连下载 (${timeout}s)..."
         if _gh_try_download "$file" "$url" "$timeout"; then
-            echo "[github_download] ✓ 下载成功"
+            local _sz=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+            echo "[github_download] ✓ 直连下载成功 (大小: ${_sz} 字节，校验通过)"
             return 0
         fi
         echo "[github_download] ✗ 直连下载失败: $url"
@@ -458,7 +578,8 @@ github_download() {
         echo "[github_download] 命中最佳节点: ${show_best}"
         echo "[github_download] 正在尝试下载 (${timeout}s)..."
         if _gh_try_download "$file" "$proxy_url" "$timeout"; then
-            echo "[github_download] ✓ 下载成功"
+            local _sz=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+            echo "[github_download] ✓ 下载成功 (大小: ${_sz} 字节，校验通过)"
             return 0
         else
             echo "[github_download] ✗ 最佳节点下载失败，可能是资源不存在或网络抖动"
@@ -485,7 +606,8 @@ github_download() {
         fi
         echo "[github_download] 尝试备选节点: ${show_name} (${timeout}s)..."
         if _gh_try_download "$file" "$proxy_url" "$timeout"; then
-            echo "[github_download] ✓ 降级轮询下载成功"
+            local _sz=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+            echo "[github_download] ✓ 降级轮询下载成功 (大小: ${_sz} 字节，校验通过)"
             return 0
         fi
     done
