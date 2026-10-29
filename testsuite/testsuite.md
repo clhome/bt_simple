@@ -598,6 +598,14 @@ import utils.plugin as plugin_util      # 现在打开的是临时库
 它在**仓库之外**，不会污染提交，也**不要**去删它（可能是真实面板数据）；
 只是排查问题时知道它从哪来。
 
+### 5.10 代理清单修改契约：`scripts/proxies.list` 与 `deploy.sh` 必须同步
+
+`scripts/proxies.list` 是全项目所有 GitHub 加速节点的**单一真源**。
+但 `deploy.sh` 作为一键引导脚本，在系统尚未 clone 仓库或下载发布包之前运行，磁盘上尚无 `scripts/proxies.list`，因此它内嵌了引导期副本 `YF_BOOTSTRAP_PROXY_LIST`。
+
+- **硬性约束**：门禁 `test_deploy_bootstrap.py::test_04_proxy_list_single_source` 会提取两处的列表逐项比对（包括顺序与 URL）。
+- **维护规则**：**后续若在 `scripts/proxies.list` 中增删代理或调整测速优先级，需同时同步修改 `deploy.sh` 的 `YF_BOOTSTRAP_PROXY_LIST` 数组**，否则门禁必红且禁止提交。
+
 ---
 
 ## 六、运行环境
