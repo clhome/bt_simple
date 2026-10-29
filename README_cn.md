@@ -1,0 +1,588 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/yflogo.webp" width="360" />
+  <h3 align="center">御风面板（BtSimple）</h3>
+  <p align="center">一款基于 Python 的轻量级、安全增强型 Linux 服务器管理面板</p>
+  <p align="center">
+    <a href="README.md">English</a> | <b>简体中文</b>
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/License-Apache--2.0-green.svg" />
+    <img src="https://img.shields.io/badge/Python-3.7+-blue.svg" />
+    <img src="https://img.shields.io/badge/OS-Linux-orange.svg" />
+  </p>
+</p>
+
+---
+
+## 🚀 软件介绍
+
+> 💡 **新手必看**：如果您是初次接触 Linux 服务器与面板运维，强烈建议您先阅读我们的 [📖 御风面板零基础图文使用与运维说明书](文档/御风面板说明书/说明书.md)。
+
+**御风面板（BtSimple）** 是一款完全开源的轻量级 Linux 面板，源自 [mdserver-web](https://github.com/midoks/mdserver-web) 项目。它秉持 **KISS (Keep It Simple, Stupid)** 原则，去除了冗余功能，专注于核心的网站管理、数据库运维和系统安全加固。
+
+本项目在原版基础上进行了深度的安全性审计与性能优化，旨在为用户提供一个既强大又透明的服务器管理工具。
+
+![登录页](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260630174158629.png)
+
+### 核心特性
+
+- **轻量高效**：相比于传统面板，BtSimple 占用资源极低，非常适合小内存 VPS。
+
+![首页](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/index.webp)
+
+- **安全加固**：
+  - **源码级安全审计与去后门**：项目对源码做过系统性的后门与危险调用审计，已发现的投毒/后门代码均已移除，面板不再内置任何远程控制通道。但**并非零网络依赖**：更新、装环境、取数据等场景会按需访问外部服务，完整清单见下方「功能性外联清单」小节。
+  - **Python 关键依赖加固**：在 `requirements.txt` 中收紧关键依赖下界（如 `paramiko>=3.4.0`，防御 SSH Terrapin / CVE-2023-48795 等已知漏洞），并对全部依赖做 CVE 下界收紧与死依赖清理（历史遗留的 `chardet` 已移除）。
+  - **国内智能中转镜像加速**：所有插件及第三方库依赖编译脚本重构为“全球官方原厂源直连 + 国内智能中转镜像加速 (mirror.ghproxy.com)”，无感免除手动上传大文件的劳顿，提供全向网络环境下最极致的极速部署体验。
+  - 密码存储全面升级为 `bcrypt` 算法。
+  - 面板 HTTPS 开启后**显式约束最低 TLS 1.2**（`web/setting.py` 经 gunicorn `ssl_context` 下发 `minimum_version = TLSv1_2`），拒绝更低版本的协商。
+  - 具备智能 IP 封禁机制，防范暴力破解；Fail2ban 升级支持**全局站点保护**与**严格校验模式**。
+  - CSRF 防护（Token / Referer 双重校验）与文件路径遍历检测（黑名单式拦截，另对解压成员与关键接口补了校验）；御风OP防火墙引入**全域蜜罐诱饵阻断**机制，任意目录下触发关键字即行物理禁止。
+  - **卸载与删除双保险机制**：软件卸载与 MySQL 数据库删除均需输入名称二次校验；**插件卸载默认勾选「卸载前打包备份」**（可手动取消），MySQL 数据库删除本身不自动备份（需要时请先用面板的数据库备份功能），以降低手误删库风险。
+
+  ![首页](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260630174852542.png)
+
+- **计划任务深度重构**：
+  - **模态化管理**：任务添加移至模态框，界面更清爽。
+  - **导入/导出**：支持任务配置的 JSON 备份与跨平台迁移。
+  - **智能策略**：支持股票开盘日、工作日、节假日等云端日期限制执行。
+  - **日志优化**：支持日志框高度动态扩展、5秒自动刷新、执行任务后自动弹出日志及空日志友好展示。
+  - **高效运维**：支持模糊搜索与多字段动态排序，实时持久化任务执行时间。
+
+  ![登录页](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260605163440643.png)
+
+- **文件管理体验优化**：
+  - **多标签页**：支持浏览器风格的多目录同时操作与本地状态持久化。
+
+  ![多标签](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260605164326823.png)
+  - **全屏拖拽**：深度支持文件/文件夹递归拖入上传，自动解析并保留目录层级。
+  - **预上传清单**：上传前展示详细统计清单，当有同名项目时醒目提示 `(会覆盖)`，并直观横向对比服务器端与待上传文件的精确大小（如 `18.1KB <= 17.56KB`）。
+
+  ![文件管理](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260605164605516.png)
+
+- **首页极致加载与核心依赖组件重构**：
+  - **按需延迟加载**：彻底剥离全局 336KB 的 ECharts 资源加载，仅在首页和监控页渲染时动态加载，日常操作页面请求体积和请求数暴跌。
+  - **核心依赖升级换代**：全面升级到生产就绪的 minified jQuery 3.7.1，并彻底物理清洗老旧的 jQuery 1.12.4 与 Migrate 兼容插件；升级 CodeMirror 核心库至 5.65.16，彻底解决了 Markdown 编辑器无法加载及 `t.lookAhead is not a function` 等在线编辑 Bug。
+  - **支持高速 CDN 加速与字体声明重写**：核心通用第三方样式和脚本文件接入 Staticfile 高速 CDN 托管，针对网络性能较差主机有较好的访问体验；重写了 Glyphicons Halflings 字体声明，增加 `font-display: block` 属性，完美消除慢网络下的字体加载警告。
+  - **本地自动双回退**：设计了零延迟的 Fallback 安全兜底机制。利用 CSS `onerror` 与 JS 全局变量双重校验，在 CDN 网络被阻断时，几十毫秒内自动无感切换回载服务器本地静态文件，兼顾弱网秒开与离线 / 局域网环境下前端静态资源的可用性。
+
+- **高频监控零阻塞与接口能效重构**：
+  - **非阻塞零挂起**：彻底重构 `getCpuInfo` 并消除原先阻塞后台线程整整 1.0 秒的同步 psutil 性能缺陷，将首页 API 响应提速 10 倍以上（作者自测、环境相关，复现方法见 `scripts/bench/README.md`）。
+  - **数学均值折算**：科学利用“总 CPU 使用率恒等于各核心使用率的算术平均值”原理，减少了一次多余且产生数据冲突的 `psutil.cpu_percent` 系统调用。
+  - **网卡计数器 O(1) 优化**：将 `stats.py` 中重复在网卡循环内部的多次 `psutil.net_io_counters(pernic=True)` 系统 API 调用提取至循环外一次性执行，使得在多网卡/容器复杂主机下的资源开销由 O(N) 降为 O(1)。
+  - **高频接口性能突破**：通过引入增量缓存、多线程并发和动态属性分页懒加载，将软件商店列表接口 (`/plugins/list`) 的响应时间从 **800ms 压缩至 9ms**；批量插件运行接口 (`/plugins/run_batch`) 经并行化执行重构，响应时间从 **400ms 缩短至 160ms**；显著调优了 SSH 终端管理等接口的响应能效。（以上均为**作者本机自测数据，环境相关**，受机器规格、数据量与网络环境影响；基准脚本与复现方法见 `scripts/bench/README.md`。）
+  - **首页负载极速加载**：首页“负载状态”默认值优化为 0% 且完全移除“获取中...”的闪烁载入层，整体提升了系统的响应体感与流畅度。
+
+- **高水准高保真视觉与物理微交互升级**：
+  - **磨砂玻璃拟态**：为首页状态、概览、软件、流量/IO 四大核心卡片点缀高品质玻璃拟态（Glassmorphism）、`backdrop-filter` 滤镜与弥散光影。
+  - **物理级动效复用并集**：为每一个软件格子和系统概览方框注入了 Hover 物理向上悬浮变圆角、Active 按压物理陷落 `scale(0.96)` 等贝塞尔曲线弹性微交互；首页整体高度极致压缩，绝大分辨率下刚好一屏显示完，避免出现多余滚动条。
+  - **极速全局菜单配置**：全新开发左侧主菜单动态显隐与自由拖拽排序功能。底层摒弃了厚重的数据库读取，创新采用“进程级内存缓冲 + JSON持久化”的高性能架构，在实现高度个性化面板布局的同时，保持每次页面刷新毫无磁盘 I/O 的极致响应体验。
+  - **更新面板与交互细节调优**：修复“更新面板”弹窗关闭按钮无法点击的问题，优化更新说明 Markdown 列表对齐和 flex 布局，并在检测更新时引入全局 Loading 加载层，彻底打磨了交互体验；修补了防火墙配置页面中 Label ID 冲突导致的浏览器控制台报错。
+
+  ![系统详情](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260630174623767.png)
+
+- **软件管理与网站配置深度增强**：
+  - **首页软件展示扩容**：首页软件网格从 4 列压缩为 col-lg-2（一行展示 6 个），最大展现数从 12 个扩增到 18 个，大幅提升高频工具的直观展现。
+  - **官方生态精选与第三方插件隐身隔离**：深度重构软件管理展示逻辑，默认仅展示官方精选认证的插件。同时在界面右上角新增带弹性交互的隐藏齿轮弹窗，支持一键显示第三方/自定义上传插件，并打上醒目的 `(第三方)` 警示徽章，在保障面板生态纯净度与安全性的同时保留极客级拓展能力。
+  - **网站详情扩充与一键接管还原**：网站列表表格新增“日流量估算”、“PHP版本”和“SSL证书有效天数”；支持“网站列表迁移还原”功能，支持自动扫描备份的 `site.db` 路径或手动输入路径，并实现后台异步读取及 Web 进度日志实时无缓冲回显，实现站点一键平滑接管。
+  - **面板 90 天免费 SSL**：面板 SSL 全新适配 90 天免费证书申请，支持一键申请 Let's Encrypt / ACME 证书并智能自动创建桥接站点，无缝完成文件验证、证书配置与面板自动重启。
+  - **防误删双保险与缓存清理**：卸载插件时强制进行名称二次验证，并在卸载弹窗中**默认勾选「卸载前打包备份核心数据至 `/www/backup`」**（可手动取消）；新增一键清理安装包缓存功能，释放无用磁盘空间。
+  - **PHP 强杀自愈与环境安装防墙自适应**：PHP 插件管理页增设“强杀进程”按钮，在发生 PHP 脚本死锁或高负载卡死时一键强制释放系统资源；Docker 等插件的安装脚本适配国内阿里/清华等镜像源，自动容灾并规避网络受限问题。
+
+- **Docker 容器智能容灾管理**：
+  - 彻底修补多处命令注入漏洞；新增可视化加速器（Mirror）管理。独创了镜像拉取失败时的**自动节点容灾重试**机制，保障恶劣网络环境下的极速容器部署，并精准拦截假阳性报错。
+
+- **全能管理**：集成 OpenResty, MySQL, PHP, Redis, MongoDB 等常用环境。
+- **插件化架构**：功能高度解耦，按需安装，支持自定义插件开发。
+- **极致兼容**：完美支持一键从 **mdserver-web** 或 **宝塔面板 (BT.CN)** 平滑迁移。
+
+### 功能性外联清单（网络依赖说明）
+
+面板**不是零网络依赖**。下列外联都是功能性的（更新、装环境、取数据），面板代码里没有「远程控制 / 回传用户数据」的通道；但**内网、离线或对出网有严格管控的环境请在部署前逐项评估** —— 面板侧的 IP 归属地 / 国内判定等第三方外联已提供开关：面板设置页「关闭第三方外联」（对应 option `disable_ext_net`，**默认 `no`=保持外发**），关闭后相关查询直接返回降级结果、不再发出请求；安装计数的遥测可用环境变量 `YF_NO_TELEMETRY=1` 关闭（默认仍上报）；其余外联仍需按场景分别处理（例如改用离线包、手动上传插件，或在外层网络策略里放行 / 阻断对应域名）。
+
+| 场景 | 访问目标 | 说明 |
+| --- | --- | --- |
+| 安装 / 更新面板 | `panel.yftec.top`、`raw.githubusercontent.com`、`gh-proxy.org` / `mirror.ghproxy.com` 等加速代理 | `deploy.sh` 拉取发布包与代码；关键产物走 Ed25519 验签（见上文「安装前校验」） |
+| 安装运行环境 / 插件 | 各发行版官方软件源、阿里云 / 清华等国内镜像、Remi / sury / ondrej 第三方源 | 安装 PHP / MySQL / OpenResty 等时按需访问 |
+| 前端静态资源 | Staticfile CDN | 核心 JS/CSS 优先走 CDN，失败时自动回退到服务器本地静态文件，**离线 / 局域网环境仍可用** |
+| 计划任务「节假日 / 工作日」策略 | `timor.tech` 节假日 API | 仅在使用云端日期策略时需要联网取日期 |
+| 登录记录 / 探针的 IP 归属地 | `ip-api.com`、`whois.pconline.com.cn`、`ipinfo.io` | 把待解析的 IP 发给第三方接口，多通道自动降级；全部失败不影响登录本身 |
+| 安装完成提示 | `www.yftec.top` 安装计数接口 | 安装结束时请求一次「你是第 N 位用户」的计数，仅发送浏览器请求头、不携带面板或服务器数据（服务端可见请求来源 IP） |
+
+---
+
+## 🐧 系统兼容性
+
+> 完整的分组件验证矩阵（面板 / OpenResty / PHP 各版本 / MySQL 各版本）见 [`compatibility.md`](compatibility.md)。
+
+### ✅ 已验证支持
+
+| 发行版家族 | 已验证版本 | 面板 | OpenResty | PHP | MySQL |
+| --- | --- | --- | --- | --- | --- |
+| Debian | 10 / 11 / 12 | ✅ | ✅ | ✅ | ✅ |
+| Ubuntu | 18.04 / 20.04 / 22.04 / 24.04 | ✅ | ✅ | ✅ | ✅ |
+| CentOS | 7.9 / 8.4 / 8 Stream / 9 Stream | ✅ | ✅ | ✅ | ✅ |
+| AlmaLinux | 9 | ✅ | ✅ | ✅ | ✅ |
+| RockyLinux | 8.6 | ✅ | ✅ | ✅ | ✅ |
+| Fedora | 31 / 32 | ✅ | ✅ | ✅ | ✅ |
+| Arch Linux | rolling | ✅ | ✅ | ✅ | ✅ |
+| openSUSE | 15.4 | ✅ | ✅ | ✅ | ✅ |
+| openEuler | 22.03 | ✅ | ✅ | ✅ | ✅ |
+| Amazon Linux | 检测与安装已适配 | ✅ | ✅ | ✅ | ✅ |
+| Anolis OS | 已映射至 RHEL 分支 | ✅ | ✅ | ✅ | ✅ |
+
+> Deepin、Raspbian 等 Debian 衍生版会通过 `ID_LIKE=debian` 自动走 Debian 分支。
+
+### ⚠️ 待适配 / 未验证
+
+以下版本**面板本体可以装上并运行**，但存在明确缺口，尚未纳入验证矩阵。
+
+#### Debian 13 (trixie) —— 可安装，但存在 5 个系统包缺口
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| `libncurses5` / `libncurses5-dev` | ~~`scripts/install/debian.sh:69`~~ ✅ | 已适配：Debian 13 分档改用 `libncurses-dev` |
+| `libpcre3` / `libpcre3-dev` | ~~`scripts/install/debian.sh:73`~~ ✅ | 已适配：Debian 13 分档改用 `libpcre2-dev` |
+| `libaio1` | ~~`scripts/install/debian.sh:69`~~ ✅ | 已适配：Debian 13 分档改用 `libaio1t64`（软链兜底保留） |
+| `which` 命令依赖 | 全仓约 49 处调用 ✅ | 已适配：Debian 13 显式补装 `which` 包（幂等） |
+| 面板更新检测 | ~~`web/utils/system/update.py:34`~~ ✅ | 已适配：优先 `packaging.version`，回退 `distutils` |
+| Python 3.13 依赖分档 | `requirements.txt` / `version/` ✅ | 已适配：新增 `version/r3.13.txt`；14 个零引用历史依赖待独立清理 |
+| MySQL 非 LTS 版本安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）不再提供安装；列表只留 LTS（5.7 / 8.0 / 8.4 / 9.7），已装旧版可在商店一键升级到同系列 LTS |
+| MariaDB 非 LTS 版本安装 | `plugins/mariadb/info.json` | **已下架**（2026-10-27）：只留 LTS（10.6 / 10.11 / 11.4 / 11.8），Rolling 短期版（10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS）不再提供安装，已装旧版可一键升级到同系列最接近的 LTS |
+| Redis 版本选择 | `plugins/redis/info.json` | **已收敛为 3 个系列**（2026-10-28）：Redis 7.2（默认推荐）/ 8.2（LTS）/ 6.2（轻量），共 12 个补丁版号不再出现在界面上；选定系列后由面板自动解析成**该系列当前最新补丁版**（如 7.2→7.2.17），上游发新补丁版前端零改动 |
+| PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
+| Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
+
+> **MySQL 版本口径（2026-10-27）**：安装列表只保留 **LTS** —— `5.7` / `8.0` / `8.4` / `9.7`
+> （8.4 与 9.7 官方均为 LTS；8.2/8.3/9.0~9.4 是 Innovation 短期版本，只支持到下个 Innovation 发布，
+> 不适合生产，已下架；5.5/5.6 早已 EOL，且 CMake 只认 OpenSSL 1.0.x，在 OpenSSL 3.x 的系统上
+> 必须自建 OpenSSL 1.0.2 才能编译，代价与失败面都大）。
+>
+> **已装旧版的机器不受影响，且面板给一键升级入口**：软件商店里会对已下架版本显示
+> 「已下架」红标 + 「升级到 X」（X = **同主版本的 LTS**：5.5/5.6→5.7、8.2/8.3→8.4、9.0~9.4→9.7）。
+> 升不升由用户决定；点升级后 `install.sh` 会 **先完整备份 `server/mysql`（含 data）**，
+> 备份失败即中止，备份成功才动目录；新版本启动/自检失败会**自动回滚**（旧目录原样换回来），
+> 升级前的完整目录与备份包都保留，便于人工核对。跨主版本（5.x→8.x/9.x）不给建议也拒绝执行
+> —— MySQL 的数据字典在跨主版本时不兼容。
+>
+> 守卫：`testsuite/test_mysql_min_install_branch.py`（下架口径）、
+> `testsuite/test_mysql_lts_upgrade.py`（LTS 列表 + 升级目标 + 备份/回滚流程）。
+
+> **MariaDB 版本口径（2026-10-27）**：安装列表只保留 **LTS** —— `10.6` / `10.11` / `11.4` / `11.8`
+> （官方 REST API `downloads.mariadb.org/rest-api/mariadb/` 实查：四者 `release_support_type` 均为
+> `Long Term Support`；10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS、13.x 均为 `Rolling`）。
+> 已下架的短期版本同样**提供一键升级**：10.7~10.9 → 10.11、11.0~11.3 → 11.4、11.5~11.7 → 11.8
+> （取**同系列最接近**的 LTS，跳版越少风险越低）；12.x 没有对应的 LTS 脚本，不给跨主版本建议。
+> 另外 10.6 的官方维护期已于 **2026-07-06** 结束，面板会给「已过维护期」红标并建议升到 10.11
+> （仍可安装，是否升级由用户决定）。
+>
+> 守卫：`testsuite/test_mariadb_lts_upgrade.py`。
+
+> **Redis 版本口径（2026-10-28）**：软件商店里 Redis 只保留 **3 个系列** ——
+> `7.2`（经典稳定 / 纯开源协议 / 生产首选，**默认推荐**）、`8.2`（LTS / 长期演进）、
+> `6.2`（极简轻量 / 适合 512MB 内存机器）。界面上不再出现 12 个三段式补丁版号。
+>
+> **系列 → 最新补丁版由面板在安装时解析**（`web/core/redis_release_index.py`：抓
+> `download.redis.io/releases/` 目录列表 → 12h 缓存 → 内置兜底表；实测 2026-10-28：
+> 7.2→`7.2.17`、8.2→`8.2.11`、6.2→`6.2.24`）。因此**上游每发一个补丁版，前端一行都不用改**，
+> 面板也不必跟着发版。任务标题/命令行里出现的是解析后的具体版本（`安装[redis-7.2.17]`）。
+>
+> **老用户升级**：同大版本支持升级。已装 `7.2.13` → 商店给「升级到 7.2.17」；
+> 已装 `7.0.15`/`6.0.20`/`8.0.6` → 标「已下架」并给「升级到 7.2.17 / 6.2.24 / 8.2.11」。
+> 升级动作是**真的**（旧实现点更新只自愈、不换二进制）：停服 → 备份 data+配置（先查磁盘空间）
+> → 编译新版到临时前缀 → 换 `bin` → 启动并回读 `redis-server -v` 校验 → 任一步失败**自动回滚**。
+> **绝不降级**（7.4.8 / 8.4.2 / 8.6.3 这类比在售系列都新的只标「已下架」不给目标 ——
+> Redis 降级读不了新版本写出的 RDB/AOF），跨大版本（6.x→7.x）也拒绝并说明要走备份后重装。
+>
+> 守卫：`testsuite/test_redis_version_series.py`（47 项，含数值排序/RC 排除/状态矩阵/
+> 缓存兜底/回滚顺序/前端选项行为的 Node 行为测试）。
+
+> **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
+
+#### Debian 14 (forky) / Ubuntu 26.04 (resolute)
+
+包含 Debian 13 的全部缺口，另外：
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| 工具链适配缺失 | `plugins/mysql/versions/*/install.sh` | 目前仅有针对 Debian 13 的硬编码分支 `Install_dep_debain13()`，更新的版本无对应适配 |
+| t64 库名变更 | `scripts/install/ubuntu.sh:60` | 与 Debian 13 相同的 `libaio1` → `libaio1t64` 问题 |
+| 第三方源可用性未验证 | `plugins/php-apt/install.sh:101` | sury（Debian）/ ondrej（Ubuntu）对新版本 PHP 包的覆盖范围未实测 |
+
+#### CentOS / AlmaLinux / Rocky 10 (EL10)
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| Remi 源硬编码 el9 | `scripts/install/rhel.sh:52` | `VERSION_ID == "9"` 为精确匹配，EL10 不会自动安装 Remi 源 |
+| EPEL / Remi el10 可用性 | — | 需确认第三方源是否已发布 el10 版本 |
+| 包清单未区分 el10 | `scripts/install/rhel.sh:170+` | 仅按 `VERSION_ID >= 8` 分支，未处理 el10 的包名变更 |
+
+#### Fedora 33+ / openEuler 24.x 及更新版本
+
+| 缺失部分 | 说明 |
+| --- | --- |
+| 未纳入验证矩阵 | `compatibility.md` 仅覆盖 Fedora 31/32 与 openEuler 22.03 |
+| 第三方源未验证 | `plugins/php-yum/install.sh:73` 虽按版本号动态拼接 Remi 源地址，但新版 Fedora 的可用性未实测 |
+
+#### Alpine Linux
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| OS 识别缺失 | `scripts/getos.sh` | 无 `Alpine` 分支，会被识别为 `unknow` |
+| 插件生态未验证 | `scripts/install/alpine.sh` | 已存在安装脚本，但 PHP / MySQL / OpenResty 等插件未验证 |
+
+#### Aliyun / Alibaba Cloud Linux
+
+| 缺失部分 | 位置 | 说明 |
+| --- | --- | --- |
+| 安装脚本缺失 | `scripts/install/` | `getos.sh:25` 可输出 `OSNAME=aliyun`，但目录下**没有 `aliyun.sh`**，安装流程会因找不到脚本而中断 |
+| 主流程识别不一致 | `scripts/install.sh` | 主流程的 OS 判断中没有 `Aliyun` 分支，与 `getos.sh` 的识别结果不一致 |
+
+> 阿里云生态：若发行版基于 Anolis，会被映射到 RHEL 分支正常工作；
+> 若 `/etc/os-release` 为 `ID=alinux` / `ID=aliyun`，则需补一份 `scripts/install/aliyun.sh`（可直接软链至 `rhel.sh`）。
+
+### ❌ 已明确不支持（EOL）
+
+| 发行版 | 拦截位置 | 说明 |
+| --- | --- | --- |
+| CentOS 6 及更早 | `deploy.sh:314` | 显式拒绝安装 |
+| Debian 9 及更早 | `deploy.sh:330` | 显式拒绝（要求 ≥ Debian 10） |
+| Ubuntu 16.04 及更早 | `deploy.sh:322` | 显式拒绝（要求 ≥ Ubuntu 16） |
+| 32 位系统 | `deploy.sh:283` | 仅支持 64 位 |
+
+### ⏳ Python <3.9 支持终止时间表
+
+Python <3.9 分支（兼容 CentOS 7 / Debian 10 等仅自带旧版 Python 的系统）为**过渡兼容**保留，计划于 **2027-06-30 停止支持**：届时 `requirements.txt` 中全部 `python_version < '3.9'` 分档（flask / Werkzeug / pyOpenSSL / cryptography）将被移除。依据：CentOS 7 与 Debian 10 上游均已 EOL、依赖链对该分支已无修复版本，属已知残留风险；请仍在使用 **Python <3.9** 的用户在此日期前升级到 **Python ≥3.9**。
+
+### 🧭 关于适配方式
+
+上述缺口的共同根因是「按版本打补丁」的适配方式（如 `Install_dep_debain13()`、`VERSION_ID == "13"` 等硬编码分支），
+维护成本会随发行版数量线性增长。完整的改进方案见
+[`文档/Debian-Ubuntu全版本适配方案.md`](文档/Debian-Ubuntu全版本适配方案.md)：
+核心思路是从「枚举版本号」改为「探测能力」——依赖声明式清单 + 运行时解析，
+新增发行版只需改清单、不改代码。
+
+---
+
+## 🆕 最新更新
+
+> 本节的性能百分比 / 倍数均为**作者自测、环境相关**，受机器规格与数据量影响，不代表所有环境；基准脚本与复现方法见 `scripts/bench/README.md`。
+
+- **插件升级**：全面升级「御风OP防火墙 1.5（企业级 Web 安全防护引擎）」，进行深度性能调优与系统负载减负：
+  - **磁盘 I/O 减负 80%+**：重构 SQLite 异步批量落盘机制（3秒批处理+句柄自动回收），优化过期日志清理频率并修复表名引用，彻底消除磁盘 I/O 锁争用与负载排队。
+  - **防 CC 算力消耗暴降 90%+**：利用 OpenResty 原生底层 C 级 MD5 请求特征指纹替代纯 Lua 循环计算，在 100% 保持 IP、Subnet、URI、UA、Cookie 多维特征精准限流的同时，大幅释放 CPU 算力。
+  - **内核级稳定性加固**：规范修复 GeoIP / MaxMindDB 底层 FFI 二级指针内存分配与链表释放，彻底杜绝 OpenResty Worker 进程段错误（Segfault）与闪退重启。
+  - **蜜罐过滤极速前置**：优化蜜罐路径匹配与快速放行，提升高频常规访问下的整体吞吐吞吐性能。
+- **全新特性**：首页新增「最近登录记录」模块与安全审计体系：
+  ![login_log](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/login_log.webp)
+  - **全链路登录监控**：实时记录 Web 面板（常规登录、两步验证、安全入口）与 SSH 远程终端的登录行为（含成功与失败事件）。
+  - **智能 IP 归属地解析**：多通道高可用 IP 地理位置解析（支持国内/国际 IP 解析与自动降级），搭载客户端本地防污染缓存机制，直观展示来源地与专业登录方式徽章。
+  - **多维安全审计弹窗**：支持点击“更多日志”弹出 Layer 模态层，提供按方式（Web/SSH）、状态（成功/失败）的多条件组合筛选与分页浏览。
+  - **客户端时区自适应与 SWR 秒开**：登录时间根据浏览器本地时区自动格式化展示；采用 60 秒会话级 SWR 缓存机制，实现菜单切换 0ms 瞬间秒开且无闪烁。
+- **插件发布**：全新推出「御风Python多版本管理器 1.0」，基于先进的 `uv` 构建的极速、无侵入 Python 版本与虚拟环境管理工具。支持一键安装多版本 Python，环境全隔离零污染；首创“企业级虚拟环境”自动化构建机制，一键生成 `.venv` 并提取项目名作为终端标识 (Prompt)；搭载防误删保护机制，彻底告别环境错乱灾难。
+  ![python](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/python.webp)
+- **插件发布**：全新推出「PostgreSQL 容器化管理插件 1.0」，支持一键部署基于 Docker 的 PostgreSQL 隔离实例，支持动态修改内外网访问边界（0.0.0.0/127.0.0.1 瞬间重构切换）；内置全自动化灾备体系，每日/每周定时无锁热备，支持手动还原指定备份。
+  ![pg_docker](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/pg_docker.webp)
+- **插件更新**：完成「御风系统优化插件 1.0」，并优化其显示效果。
+
+![御风系统优化](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/linux_sys_opt.webp)
+
+- **功能优化**：
+  - 深度增强 Docker 插件的存储管控，新增根目录和镜像/容器容量的可视化明细与快捷跳转；支持 Docker 数据目录“一键热迁移”功能，内置前置磁盘容量智能探测及防唤醒的强容错回滚机制。
+    ![docker迁移](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/一键迁移docker目录.webp)
+  - PostgreSQL 容器化管理插件 (pg_docker) 新增「修改配置」功能，支持实时生成随机密码、一键修改容器数据库密码与宿主机端口并自动重启生效；新增修改端口时的防冲突前置占用检测机制；在前端实例列表追加显示 CPU 和内存占用实时统计。
+  - 计划任务执行日志中增加显示对应的任务名称；优化文件管理中长文件名及软链接的显示，并在文件菜单中新增复制完整路径的功能。
+- **问题修复**：修复 Docker 镜像获取时的解析出错问题。
+- **硬件监控与连接增强**：新增 GPU 状态在首页和系统监控的直观展示，实时监测显卡资源；新增 SSH 密钥管理功能，并全面兼容修复了新版 Ubuntu 的 SSH 控制终端；增强 SSH 和 Ping 网络探测机制的鲁棒性。
+- **安全策略与底层优化**：引入 Slat 一机一码绑定保护设备安全；重构文件列表排序逻辑，改用安全的 `os.lstat()` 规避软链接死循环引发的崩溃 500 报错；优化底层的部署安装脚本。
+- **核心缺陷修复**：完美修复了二次验证（2FA）校验功能 Bug、宝塔环境迁移过程中的依赖重复安装 Bug，以及 MySQL 初次安装读取错误老旧配置等历史缺陷。
+
+---
+
+## 🛠️ 使用方法
+
+### 1. 一键安装 / 迁移
+
+#### 自建服务器安装（推荐）
+
+一条命令直接安装/升级/迁移，自动判断所在地区，自动调用加速节点：
+
+```bash
+curl https://panel.yftec.top/deploy.sh | bash
+```
+
+#### Github直接安装
+
+如果自建服务器暂时无法访问也可通过如下方式安装：
+
+```bash
+curl https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
+```
+
+#### 🇨🇳 中国境内中转节点
+
+若您暂时无法访问Github，也可以使用中转节点安装：
+
+```bash
+curl https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
+```
+
+#### 🔐 安装前校验（强烈建议）
+
+`deploy.sh` 以 **root** 身份执行，请先核对它的 sha256 再运行，避免下载链路被替换：
+
+```bash
+# 1) 只下载、不执行
+curl -fsSLo deploy.sh https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh
+# 2) 计算本地 sha256
+sha256sum deploy.sh
+# 3) 与 Release 附件 deploy.sh.sha256 里的期望值逐字符比对，一致后再执行
+bash deploy.sh
+```
+
+期望值来源：本项目每个 Release 都附带 `deploy.sh.sha256`（由发布工作流在打 tag 时生成，
+并与 `SHA256SUMS` / 签名一同发布）。请到**与你要安装版本一致的 Release 页面**下载该文件核对，
+不要信任任何第三方镜像给出的哈希。
+
+> 安装流程本身也已 fail-closed：`deploy.sh` 会优先下载**已签名**的发布包并做 Ed25519 验签；
+> 验签失败或发布公钥缺失时会**中止安装**，不再回退未验签代码。
+> 仅在确知无签名包的环境下，才可用 `YF_REQUIRE_SIGNATURE=0 bash deploy.sh` 显式关闭校验
+> （该决定会记入 `/var/log/bt_simple_deploy.log`）。
+
+#### 宝塔面板 (BT.CN) 平滑迁移与数据无缝接管 🚀
+
+我们对宝塔面板的用户做了最大程度的兼容，确保迁移过程不仅安全、纯净，而且能够瞬间无缝拉起原宝塔环境中的所有核心数据库和应用数据：
+
+1. **环境智能分析**：在停止宝塔服务前，部署脚本会自动扫描并记录您已安装的 `MySQL`, `Redis`, `OpenResty`, `PHP`, `PostgreSQL` 的具体版本信息，并自动补全 `zstd`、`unzip` 等还原所需的环境依赖包。
+2. **安全隔离与冲突规避**：在停止宝塔服务时确保原有 MySQL 服务完全停止以防文件锁冲突；对冲突物理目录进行安全重命名备份隔离（如 `mysql_bt_bak`），自动删除阻碍操作的 `user.ini` 并在后续通过内置机制进行接管重建。
+3. **自动导入网站列表**：御风面板会自动分析宝塔用户当前数据库，在使用上述脚本进行迁移时系统将自动解析旧宝塔的站点记录（包括站点名、路径、备注与添加时间）并导入御风面板数据库。
+4. **Mysql数据库迁移**：
+   迁移脚本运行后会自动产生数据库备份文件，御风面板支持通过备份文件对数据库进行迁移，为了保证数据完整不出错，**要求原mysql和新mysql必须为相同版本**。可以通过【面板设置->数据库迁移】中操作，也可以通过如下命令行方式进行数据迁移。
+   注意：**迁移操作会覆盖当前数据库，请务必谨慎操作。**
+
+   ```bash
+   bs migrate_restore
+   # 或者运行 bs 进入图形化命令行工具，选择 (30) 恢复宝塔软件数据(迁移接管)
+   ```
+
+### 2. 备份与回滚
+
+安全性是 BtSimple 的核心。在执行重大更新或迁移前，建议您手动备份关键数据。
+
+#### 手动备份 (建议)
+
+```bash
+# 备份面板数据库与配置文件
+tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/yufeng_panel/data
+```
+
+#### 面板数据库自动备份与恢复
+
+面板自身数据库 `data/panel.db`（站点 / 用户 / 计划任务 / 面板设置都在里面）由任务守护进程
+**每天自动在线备份一次**，保留最近 14 份：
+
+- 备份目录：`/www/backup/panel_db/`（即面板「默认备份目录」设置（`backup_path`）下的 `panel_db` 子目录，
+  与 `site`、`database` 备份同级）；
+- 文件名：`panel_db_YYYYmmdd_HHMMSS.db`，超出的最旧备份自动清理（只删本目录内这一命名模式的文件）；
+- 采用 SQLite 在线备份 API 生成一致性快照，**不是**文件复制（面板库跑在 WAL 模式，
+  直接复制主文件会丢掉尚未落盘的事务）；
+- 手动备份一次：`python3 panel_task.py backup_panel_db`（失败时退出码非 0）。
+
+恢复步骤（**必须停面板后再替换**）：
+
+```bash
+bs stop                                                      # 1. 停面板与任务进程
+cd /www/server/yufeng_panel/data                             # 2. 清掉旧库的 WAL/SHM，
+rm -f panel.db-wal panel.db-shm panel.db-journal             #    否则会被回放进新库
+mv panel.db panel.db.broken                                  # 3. 坏库留档（可选但建议）
+cp /www/backup/panel_db/panel_db_20260101_030000.db panel.db # 4. 用备份覆盖
+chown www:www panel.db                                       #    属主保持面板用户
+bs start                                                     # 5. 起面板并核对数据
+```
+
+> 备份文件本身是一致快照，**不要**再搭配 `-wal` 使用；`-wal`/`-shm` 属于被替换掉的旧库，
+> 留着轻则数据回退、重则报 `database disk image is malformed`。
+
+#### 一键回滚 (通过部署脚本)
+
+如果您在迁移后遇到兼容性问题，可以使用部署脚本快速回滚到原有的面板状态：
+
+```bash
+# 回滚到迁移前的 mdserver-web 状态
+bash deploy.sh rollback_mw
+
+# 回滚到迁移前的宝塔面板状态
+bash deploy.sh rollback_bt
+```
+
+#### 一键卸载
+
+如果您不再需要面板，可以执行以下命令进行清理（保留网站数据）：
+
+```bash
+# 方式 1：通过部署脚本卸载
+bash deploy.sh uninstall
+
+# 方式 2：通过系统命令卸载
+bs uninstall
+```
+
+### 3. 命令行工具
+
+面板内置了强大的 `bs` (兼容 `mw`) 命令行工具，方便在 SSH 环境下快速运维：
+
+- `bs default`：查看面板默认登录信息。
+- `bs stop/start/restart`：面板服务控制。
+- `bs update`：检查并升级面板版本。
+
+```sh
+root@debian:/root# bs
+========================bs_simple cli tools==========================
+(1)    重启面板服务                     (2)    停止面板服务
+(3)    启动面板服务                     (4)    重载面板服务
+(5)    修改面板IP                       (6)    修改面板端口
+(7)    关闭安全入口                     (9)    强制终止所有任务(处理卡死)
+(10)   查看面板默认信息                 (11)   修改面板密码
+(12)   修改面板用户名                   (13)   显示面板错误日志
+(14)   关闭面板访问                     (15)   开启面板访问
+(20)   关闭BasicAuth认证                (21)   解除域名绑定
+(22)   解除面板SSL绑定                  (23)   开启IPV6支持
+(24)   关闭IPV6支持                     (25)   开启防火墙SSH端口
+(26)   关闭二次验证                     (27)   查看防火墙信息
+(28)   自动识别防火墙端口到面板         (29)   自动识别配置站点信息
+(100)  开启PHP52显示                    (101)  关闭PHP52显示
+(200)  切换Linux系统软件源              (201)  简单速度测试
+(202)  SSH终端管理                      (30)   恢复宝塔软件数据(迁移接管)
+(0)    取消
+========================================================================
+请输入命令编号：
+```
+
+### 4. 插件无损升级与版本自愈检测
+
+为了解决插件版本升级可能导致的“配置不兼容、表字段缺失、PID 假死误判、守护进程锁死、动态库缺失”等问题，御风面板为核心服务插件（MySQL、MariaDB、Redis、PHP、PHP-APT、PHP-YUM 等）引入了 **“大版本跃迁单次自愈迁移”** 机制：
+
+- **全自动触发（无需人工干预）**：当您从老分支（如 `master` 1.x）更新至新版（如 `i18n` 2.x）后，首次访问面板页面、刷新探针或启动服务时，底层会自动触发单次自愈程序，自动修复 SQLite 结构（补齐 `rw` 权限列）、校准 Systemd 守护进程与 PID 文件、注入全量高可用动态库路径（`LD_LIBRARY_PATH`）、健全运行目录（如 `/run/php`）、清理冲突服务与孤儿套接字死锁。自愈完成后自动写入持久化版本标记，后续日常访问 **0 性能损耗**。
+- **命令行主动触发与排查**：
+  若您希望在终端拉取代码后立即执行版本升级检测与环境自愈，可直接调用对应插件的 `check_plugin_upgrade` 函数：
+
+  ```bash
+  # MySQL 插件：检测版本跃迁并执行单次自愈迁移（已是最新版本则 0 开销放行）
+  python3 plugins/mysql/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/mysql/index.py upgrade_self_healing
+  
+  # MariaDB 插件：检测版本跃迁并执行单次自愈迁移
+  python3 plugins/mariadb/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/mariadb/index.py upgrade_self_healing
+  
+  # Redis 插件：检测版本跃迁并执行单次自愈迁移（校准 systemd、清理 apt 冲突、PID 自愈）
+  python3 plugins/redis/index.py check_plugin_upgrade
+  # 或直接手动触发全量环境自愈报告
+  python3 plugins/redis/index.py upgrade_self_healing
+  
+  # PHP 源码版插件：检测版本跃迁并执行单次自愈迁移（三级容灾拉起、动态库环境加固、孤儿 Socket 清理）
+  python3 plugins/php/index.py check_plugin_upgrade
+  # 或直接手动触发全量/指定版本环境自愈报告（支持如 74、80、81）
+  python3 plugins/php/index.py upgrade_self_healing
+  
+  # PHP-APT 插件 (Debian/Ubuntu)：运行环境健全、重置 systemd 失败状态、清理孤儿套接字
+  python3 plugins/php-apt/index.py check_plugin_upgrade
+  python3 plugins/php-apt/index.py upgrade_self_healing
+  
+  # PHP-YUM 插件 (RHEL/CentOS/Rocky)：Remi 运行目录健全、重置 systemd 失败状态、清理孤儿套接字
+  python3 plugins/php-yum/index.py check_plugin_upgrade
+  python3 plugins/php-yum/index.py upgrade_self_healing
+  ```
+
+- **生产数据与配置零触碰防护**：自愈引擎搭载严密的零触碰防御层：
+  - MySQL / MariaDB 检测到系统库或用户业务库时，**坚决禁止清空或重命名用户数据目录**（如 `/www/server/mysql/data`）；
+  - Redis 检测到已有配置文件时，**坚决禁止覆盖重写 `redis.conf`，100% 完整保留用户已有密码、端口与自定义参数**；
+  - PHP 家族插件自愈时，**绝不覆盖用户已有的 `php.ini`、`php-fpm.conf` 及站点池配置，并保持用户已编译/安装扩展的完整可用**。
+
+
+
+---
+
+## 👨‍💻 开发方法
+
+御风面板 欢迎开发者参与贡献。代码结构清晰，易于上手。
+
+### 目录结构
+
+- `web/`：面板前端与后端逻辑 (Flask 实现)。
+- `plugins/`：所有插件的存放目录，每个插件包含独立的 shell 脚本与 UI 配置。
+- `scripts/`：安装、卸载与维护脚本。
+
+### 插件开发步骤
+
+1. 参考 `plugins/simple-plugin` 创建新插件目录。
+2. 编写 `info.json` 定义插件元数据。
+3. 编写 `install.sh` 实现自动化安装逻辑。
+4. 编写 `index.py` 处理插件的后端业务逻辑。
+
+### 插件大版本升级迁移规范 (Migration Pipeline)
+
+在插件开发中，若涉及配置微调、SQLite 数据库表结构升级（如增删字段）或 Systemd 守护进程重载，推荐遵循与 MySQL/MariaDB 对齐的**版本跃迁单次自愈模式**，避免每次接口请求都进行重复低效检查：
+
+1. **定义插件大版本与标记文件**：
+   ```python
+   CURRENT_PLUGIN_VERSION = '2.0'
+   
+   def getPluginVersionFile():
+       return getPluginDir() + '/plugin_version.pl'
+   ```
+2. **注册迁移流水线 (支持后续平滑扩充)**：
+   ```python
+   def _migrate_1_to_2(version=''):
+       # 执行从 1.x 升级到 2.0 所需的数据库 ALTER TABLE、配置校准等自愈动作
+       return upgradeSelfHealing(version)
+   
+   # 迁移流水线：(目标大版本, 迁移执行函数)
+   # 后续升级（如 2.1、3.0）只需按版本递增顺序在此追加注册，扩展性极佳
+   PLUGIN_MIGRATION_STEPS = [
+       ('2.0', _migrate_1_to_2),
+       # ('3.0', _migrate_2_to_3),
+   ]
+   ```
+3. **实现升级检测函数 `checkPluginUpgrade`**：
+   - 读取已安装版本，若 `installed_version < target_version`，按版本流水线依次执行迁移；
+   - 迁移顺利完成后原子写回新版本号，确保**跨版本升级后只执行一次**；
+   - 在 `status()` 入口、初始化函数及 `install.sh` 升级分支中调用。
+
+### 编码原则
+
+- 保持简单：避免过度工程化。
+- 事实优先：在提交 PR 前请确保经过充分测试。
+- 安全第一：使用内置的 `yf.shlex_quote` 处理系统命令。
+
+---
+
+## 📝 优缺点总结
+
+### 优点
+
+- **透明度高**：开源且代码逻辑清晰，用户可完全掌握服务器运行细节。
+- **性能卓越**：采用原生 Python 开发，去除了不必要的后台轮询任务，响应极快。
+- **迁移友好**：目前市面上对旧版 mdserver-web 和宝塔面板支持最友好的迁移方案。
+- **安全性强**：经过系统性的漏洞审计与修复，具备企业级的安全防护基准。
+
+### 缺点
+
+- **生态规模**：插件数量相较于宝塔等商业面板较少，但已覆盖 90% 以上的常用需求。
+
+---
+
+## 🌟 未来方向
+
+1. **缓存策略优化**：引入更高效的持久化缓存机制，进一步提升高并发下的 UI 响应速度。
+2. **深度监控增强**：提供更细粒度的服务器资源监控报表与异常预警功能。
+3. **插件市场扩展**：增加对 Node.js、Go、Docker 管理等现代开发环境的深度支持。
+4. **自动化审计**：引入更严格的静态代码分析，确保持续的安全性。
+
+---
+
+**御风面板** 致力于成为 Linux 面板界的一股清流，感谢每一位用户的支持！
+
+[English Documentation](README.md) | [GitHub 仓库](https://github.com/clhome/bt_simple) | [📖 零基础图文说明书](文档/御风面板说明书/说明书.md) | [WIKI 文档](https://github.com/clhome/bt_simple/wiki)

@@ -65,14 +65,19 @@ else
 fi
 
 if [ "${type}" == "" ];then
-	# 必须非 0：面板按退出码判定安装结果，`exit 0` 会让「版本脚本都不存在」
-	# 也显示成「安装成功」（假成功家族，2026-10-28 统一收紧）
-	echo '缺少安装脚本...'
-	exit 1
+	if [ "${action}" == "uninstall" ] && [ -f "${serverPath}/mariadb/version.pl" ]; then
+		type=$(cat "${serverPath}/mariadb/version.pl" | tr -d '\r\n')
+	fi
+	if [ "${type}" == "" ] && [ "${action}" != "uninstall" ]; then
+		# 必须非 0：面板按退出码判定安装结果，`exit 0` 会让「版本脚本都不存在」
+		# 也显示成「安装成功」（假成功家族，2026-10-28 统一收紧）
+		echo '缺少安装脚本...'
+		exit 1
+	fi
 fi 
 
 # 极速安装不需要 `versions/<x>/` 目录也能装（二进制包由官方提供）
-if [ "${is_fast}" == "false" ] && [ ! -d "${curPath}/versions/${type}" ];then
+if [ "${action}" != "uninstall" ] && [ "${is_fast}" == "false" ] && [ ! -d "${curPath}/versions/${type}" ];then
 	echo '缺少安装脚本2...'
 	exit 1
 fi
@@ -442,7 +447,20 @@ Install_fast_mariadb() {
 if [ "${action}" == "uninstall" ]; then
 	# 卸载永远走版本脚本（它只做「停进程 + 删目录」，与安装方式无关，
 	# 极速/编译安装的目录布局一致）
-	yf_version_step "${action}" "${type}" "${curPath}/versions/${type}/install.sh" || exit $?
+	if [ -n "${type}" ] && [ -f "${curPath}/versions/${type}/install.sh" ]; then
+		yf_version_step "${action}" "${type}" "${curPath}/versions/${type}/install.sh" || exit $?
+	else
+		rm -rf "${serverPath}/mariadb"
+		echo '卸载完成'
+	fi
+
+	# 卸载后回读：进程还在就明确告警（否则下一次安装会踩这个坑）
+	if [ -f "${rootPath}/plugins/mariadb/index.py" ]; then
+		if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py stop_and_kill ${type}); then
+			echo "[WARN] 卸载后自检发现仍有 mariadbd 残留，请手动确认：ps -ef | grep mariadbd" >&2
+		fi
+	fi
+	exit 0
 elif [ "${is_fast}" == "true" ]; then
 	Install_fast_mariadb "${type}" || exit 1
 else

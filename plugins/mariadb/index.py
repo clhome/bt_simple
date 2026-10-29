@@ -5245,11 +5245,22 @@ def installPreInspection(version):
 
 
 def uninstallPreInspection(version):
-    stop(version)
-    if yf.isDebugMode():
-        return 'ok'
+    try:
+        stop(version)
+    except Exception as e:
+        _log.debug('[mariadb] uninstallPreInspection stop 异常已忽略: %s', e)
 
-    return "请手动删除MariaDB[{}]<br/> rm -rf {}".format(version, getServerDir())
+    initdUinstall()
+
+    # 清理残余套接字
+    cleanOrphanSockets()
+    yf.execShell('rm -f /tmp/mysql.sock* /tmp/mariadb.sock*')
+    yf.execShell('rm -f /var/tmp/mysql.sock* /var/tmp/mariadb.sock*')
+
+    from utils.plugin import plugin as YfPlugin
+    YfPlugin.instance().removeIndex(getPluginName(), version)
+
+    return 'ok'
 
 if __name__ == "__main__":
     func = sys.argv[1]
@@ -5258,6 +5269,8 @@ if __name__ == "__main__":
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
         version = yf.readFile(version_pl).strip()
+    if len(sys.argv) > 2 and sys.argv[2]:
+        version = sys.argv[2]
 
     if func == 'check_plugin_upgrade':
         print(checkPluginUpgrade(version))
