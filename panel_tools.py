@@ -19,6 +19,7 @@ import os
 import json
 import time
 import re
+import unicodedata
 
 web_dir = os.getcwd() + "/web"
 os.chdir(web_dir)
@@ -31,6 +32,99 @@ import thisdb
 import logging
 
 _log = logging.getLogger('yf.panel_tools')
+
+
+def _get_panel_lang():
+    """获取当前面板配置的语言（优先级：环境变量 YF_LANG > data/language.pl > zh-CN）"""
+    env_lang = os.environ.get('YF_LANG', '').strip().lower()
+    if env_lang in ('en', 'english'):
+        return 'en'
+    if env_lang in ('zh', 'zh-cn', 'chinese'):
+        return 'zh-CN'
+    try:
+        lang_file = os.path.join(yf.getPanelDir(), 'data', 'language.pl')
+        if os.path.exists(lang_file):
+            content = yf.readFile(lang_file).strip()
+            if content == 'en':
+                return 'en'
+            if content in ('zh-CN', 'zh'):
+                return 'zh-CN'
+    except Exception as e:
+        _log.debug('[panel_tools] 读取语言配置失败: %s', e)
+    return 'zh-CN'
+
+
+def _t(zh_text, en_text):
+    """根据当前面板语言返回对应文本"""
+    return en_text if _get_panel_lang() == 'en' else zh_text
+
+
+def _get_display_width(text):
+    """计算字符串在终端中的显示列宽（全角/宽字符=2，半角=1，忽略 ANSI 转义码）"""
+    clean_text = re.sub(r'\033\[[0-9;]*m', '', str(text))
+    width = 0
+    for ch in clean_text:
+        w = unicodedata.east_asian_width(ch)
+        if w in ('F', 'W'):
+            width += 2
+        else:
+            width += 1
+    return width
+
+
+def _pad_menu_item(item_text, target_width=38):
+    """根据显示宽度补全空格，保证两列排版绝对对齐"""
+    cur_width = _get_display_width(item_text)
+    pad_len = max(1, target_width - cur_width)
+    return item_text + ' ' * pad_len
+
+
+def switch_panel_language(target_lang=None):
+    """切换面板语言并持久化到 data/language.pl"""
+    panel_dir = yf.getPanelDir()
+    lang_file = os.path.join(panel_dir, 'data', 'language.pl')
+
+    if not target_lang:
+        current = _get_panel_lang()
+        print("======================== " + _t("切换面板语言", "Switch Panel Language") + " ==========================")
+        print(" 1) 简体中文 (Simplified Chinese)%s" % (" [当前/Current]" if current == 'zh-CN' else ""))
+        print(" 2) English%s" % (" [当前/Current]" if current == 'en' else ""))
+        print(" 0) " + _t("取消", "Cancel"))
+        print("========================================================================")
+        try:
+            choice = input(_t("请选择目标语言编号 [1-2]：", "Please select target language [1-2]: ")).strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\n" + _t("操作已取消。", "Operation cancelled."))
+            return
+        if choice in ('1', 'zh', 'zh-CN', 'zh_CN'):
+            target_lang = 'zh-CN'
+        elif choice in ('2', 'en', 'English'):
+            target_lang = 'en'
+        elif choice == '0':
+            print(_t("操作已取消。", "Operation cancelled."))
+            return
+        else:
+            print(_t("无效输入，操作已取消。", "Invalid input. Operation cancelled."))
+            return
+    else:
+        target_lang = str(target_lang).strip().lower()
+        if target_lang in ('1', 'zh', 'zh-cn', 'zh_cn', 'chinese'):
+            target_lang = 'zh-CN'
+        elif target_lang in ('2', 'en', 'english'):
+            target_lang = 'en'
+        else:
+            print(_t("不支持的语言代码: %s (仅支持 zh-CN 或 en)" % target_lang,
+                     "Unsupported language code: %s (only zh-CN or en supported)" % target_lang))
+            return
+
+    try:
+        yf.writeFile(lang_file, target_lang)
+        if target_lang == 'en':
+            print("\033[32mPanel language has been switched to English.\033[0m")
+        else:
+            print("\033[32m面板语言已切换为简体中文。\033[0m")
+    except Exception as e:
+        print(_t("写入语言配置失败: %s" % e, "Failed to write language configuration: %s" % e))
 
 INIT_DIR = "/etc/rc.d/init.d"
 if not os.path.exists(INIT_DIR):
@@ -272,47 +366,85 @@ def getRemainLen(cmd, max_length=100):
 #   进程替换 curl / 管道 bench.sh），bandit 对字面量参数判为 LOW，不触发 HIGH 阻断；
 #   凡需拼接路径或变量的一律走 yf.safeExecShell([...], cwd=...)（参数列表 + shell=False）。
 #   新增 os.system 前必须确认「无变量进入 shell」，并同步更新本说明。
-def yfcli(yf_input=0):
+def yfcli(yf_input=None):
     panel_dir = yf.getPanelDir()
+    lang = _get_panel_lang()
+    is_en = (lang == 'en')
 
     raw_tip = "========================================================================"
-    if not yf_input:
-        print("========================bs_simple cli tools==========================")
-        cmd_list = [
-            '(1)    重启面板服务',
-            '(2)    停止面板服务',
-            '(3)    启动面板服务',
-            '(4)    重载面板服务',
-            '(5)    修改面板IP',
-            '(6)    修改面板端口',
-            '(7)    关闭安全入口',
-            '(9)    强制终止所有任务(处理卡死)',
-            '(10)   查看面板默认信息',
-            '(11)   修改面板密码',
-            '(12)   修改面板用户名',
-            '(13)   显示面板错误日志',
-            '(14)   关闭面板访问',
-            '(15)   开启面板访问',
-            '(16)   修复面板',
-            '(20)   关闭BasicAuth认证',
-            '(21)   解除域名绑定',
-            '(22)   解除面板SSL绑定',
-            '(23)   开启IPV6支持',
-            '(24)   关闭IPV6支持',
-            '(25)   开启防火墙SSH端口',
-            '(26)   关闭二次验证',
-            '(27)   查看防火墙信息',
-            '(28)   自动识别防火墙端口到面板',
-            '(29)   自动识别配置站点信息',
-            '(100)  开启PHP52显示',
-            '(101)  关闭PHP52显示',
-            '(200)  切换Linux系统软件源',
-            '(201)  简单速度测试',
-            '(202)  SSH终端管理',
-            '(30)   恢复宝塔MySQL数据',
-            '(31)   恢复宝塔网站列表数据',
-            '(0)    取消'
-        ]
+    if yf_input is None or yf_input == '':
+        if is_en:
+            print("====================== Yufeng Panel CLI Tools ======================")
+            cmd_list = [
+                '(1)    Restart Panel Service',
+                '(2)    Stop Panel Service',
+                '(3)    Start Panel Service',
+                '(4)    Reload Panel Service',
+                '(5)    Change Panel IP',
+                '(6)    Change Panel Port',
+                '(7)    Disable Security Entrance',
+                '(9)    Force Kill All Tasks',
+                '(10)   View Panel Default Info',
+                '(11)   Change Panel Password',
+                '(12)   Change Panel Username',
+                '(13)   Show Panel Error Log',
+                '(14)   Disable Panel Access',
+                '(15)   Enable Panel Access',
+                '(16)   Repair Panel',
+                '(20)   Disable BasicAuth',
+                '(21)   Unbind Panel Domain',
+                '(22)   Unbind Panel SSL',
+                '(23)   Enable IPv6 Support',
+                '(24)   Disable IPv6 Support',
+                '(25)   Open Firewall SSH Port',
+                '(26)   Disable Two-Factor Auth',
+                '(27)   View Firewall Info',
+                '(28)   Auto Detect Firewall Ports',
+                '(29)   Auto Detect Site Configs',
+                '(30)   Restore BT MySQL Data',
+                '(31)   Restore BT Website List',
+                '(32)   Switch Panel Language',
+                '(200)  Switch Linux Software Mirrors',
+                '(201)  System Benchmark Test',
+                '(202)  SSH Terminal Management',
+                '(0)    Cancel'
+            ]
+        else:
+            print("====================== 御风面板 CLI 工具箱 =========================")
+            cmd_list = [
+                '(1)    重启面板服务',
+                '(2)    停止面板服务',
+                '(3)    启动面板服务',
+                '(4)    重载面板服务',
+                '(5)    修改面板IP',
+                '(6)    修改面板端口',
+                '(7)    关闭安全入口',
+                '(9)    强制终止所有任务(处理卡死)',
+                '(10)   查看面板默认信息',
+                '(11)   修改面板密码',
+                '(12)   修改面板用户名',
+                '(13)   显示面板错误日志',
+                '(14)   关闭面板访问',
+                '(15)   开启面板访问',
+                '(16)   修复面板',
+                '(20)   关闭BasicAuth认证',
+                '(21)   解除域名绑定',
+                '(22)   解除面板SSL绑定',
+                '(23)   开启IPV6支持',
+                '(24)   关闭IPV6支持',
+                '(25)   开启防火墙SSH端口',
+                '(26)   关闭二次验证',
+                '(27)   查看防火墙信息',
+                '(28)   自动识别防火墙端口到面板',
+                '(29)   自动识别配置站点信息',
+                '(30)   恢复宝塔MySQL数据',
+                '(31)   恢复宝塔网站列表数据',
+                '(32)   切换面板语言',
+                '(200)  切换Linux系统软件源',
+                '(201)  系统性能测试',
+                '(202)  SSH终端管理',
+                '(0)    取消'
+            ]
         cmd_list_num = len(cmd_list)
         for index in range(cmd_list_num):
             cmd = cmd_list[index]
@@ -320,14 +452,19 @@ def yfcli(yf_input=0):
                 if index == (cmd_list_num-1):
                     print(cmd)
                 else:
-                    print(cmd + " " * getRemainLen(cmd, 40), end="")
+                    print(_pad_menu_item(cmd, 38), end="")
             if index % 2 == 1:
                 print(cmd)
         print(raw_tip)
         try:
-            yf_input = input("请输入命令编号：")
+            input_val = input(_t("请输入命令编号：", "Please enter command number: "))
             if sys.version_info[0] == 3:
-                yf_input = int(yf_input)
+                yf_input = int(input_val.strip())
+            else:
+                yf_input = int(input_val)
+        except (KeyboardInterrupt, EOFError):
+            print("\n" + _t("已取消!", "Cancelled!"))
+            return
         except Exception as e:
             _log.debug('[panel_tools] 命令编号解析失败，按取消处理: %s', e)
             yf_input = 0
@@ -335,8 +472,7 @@ def yfcli(yf_input=0):
     nums = [
         1, 2, 3, 4, 5, 6, 7, 9,
         10, 11, 12, 13, 14, 15, 16,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-        100, 101, 
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
         200, 201, 202
     ]
     if yf_input == "uninstall":
@@ -355,10 +491,10 @@ def yfcli(yf_input=0):
     if not yf_input in nums:
         if yf_input == 0:
             print(raw_tip)
-            print("已取消!")
+            print(_t("已取消!", "Cancelled!"))
         else:
             print(raw_tip)
-            print("未知命令: " + str(yf_input))
+            print(_t("未知命令: ", "Unknown command: ") + str(yf_input))
             yf.safeExecShell([INIT_CMD, 'list'], echo=True)
         exit()
 
@@ -375,41 +511,57 @@ def yfcli(yf_input=0):
     elif yf_input == 4:
         yf.safeExecShell([INIT_CMD, 'reload'], timeout=SERVICE_TIMEOUT, echo=True)
     elif yf_input == 5:
-        in_ip = yf_input_cmd("请输入设置的面板IP：")
+        in_ip = yf_input_cmd(_t("请输入设置的面板IP (留空则允许所有IP)：", "Please enter panel IP (leave empty to allow all): "))
         in_ip = in_ip.strip()
         ip_text = panel_dir + '/data/iplist.txt'
+        if not in_ip:
+            if os.path.exists(ip_text):
+                os.remove(ip_text)
+            thisdb.setOption('server_ip', '')
+            yf.echoInfo(_t("已清除面板IP绑定限制", "Panel IP restriction cleared"))
+            return
         if not yf.isVaildIp(in_ip):
-            yf.echoInfo("【"+in_ip+"】: IP不合法")
+            yf.echoInfo(_t("【"+in_ip+"】: IP不合法", "["+in_ip+"]: Invalid IP address"))
             return
         yf.writeFile(ip_text, in_ip)
         thisdb.setOption('server_ip', in_ip)
-        yf.echoInfo("设置面板IP: " + in_ip)
+        yf.echoInfo(_t("设置面板IP: " + in_ip, "Panel IP set to: " + in_ip))
     elif yf_input == 6:
-        in_port = yf_input_cmd("请输入新的面板端口：")
-        in_port_int = int(in_port.strip())
-        if in_port_int < 65536 and in_port_int > 0:
-            YfFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
+        try:
+            in_port = yf_input_cmd(_t("请输入新的面板端口 [1-65535]：", "Please enter new panel port [1-65535]: "))
+            in_port_int = int(in_port.strip())
+        except (ValueError, AttributeError):
+            yf.echoInfo(_t("错误：端口必须是数字！", "Error: Port must be a number!"))
+            return
+        if 1 <= in_port_int <= 65535:
+            if in_port_int in (22, 80, 443):
+                confirm = yf_input_cmd(_t("警告：端口 %d 为常用系统端口，可能会与 SSH/Web 服务冲突，确认使用吗？[y/N]：" % in_port_int,
+                                          "Warning: Port %d is a common port and may conflict with SSH/Web service. Proceed? [y/N]: " % in_port_int))
+                if confirm.strip().lower() not in ('y', 'yes'):
+                    yf.echoInfo(_t("操作已取消。", "Operation cancelled."))
+                    return
+            YfFirewall.instance().addAcceptPort(str(in_port_int), 'WEB面板[TOOLS修改]', 'port')
             panel_port = panel_dir + '/data/port.pl'
-            yf.writeFile(panel_port, in_port)
+            yf.writeFile(panel_port, str(in_port_int))
             yf.safeExecShell([INIT_CMD, 'restart_panel'], timeout=SERVICE_TIMEOUT, echo=True)
             yf.safeExecShell([INIT_CMD, 'default'], timeout=SERVICE_TIMEOUT, echo=True)
         else:
-            yf.echoInfo("端口范围在0-65536之间")
+            yf.echoInfo(_t("错误：端口范围应在 1-65535 之间", "Error: Port must be between 1 and 65535"))
         return
     elif yf_input == 7:
         thisdb.setOption('admin_path', '')
-        yf.echoInfo("关闭安全入口成功!")
+        yf.echoInfo(_t("关闭安全入口成功!", "Security entrance disabled successfully!"))
     elif yf_input == 9:
         lock_file = panel_dir + '/logs/panel_task.lock'
         if os.path.exists(lock_file):
             os.remove(lock_file)
-            yf.echoInfo("已清除任务锁定文件!")
+            yf.echoInfo(_t("已清除任务锁定文件!", "Task lock file removed!"))
         
         # 杀死所有任务进程
         # 多级管道必须经 shell；命令全为字面量，无变量进入 shell
         os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")  # 保留 os.system：常量管道，无外部输入
         yf.safeExecShell([INIT_CMD, 'restart_task'], timeout=SERVICE_TIMEOUT, echo=True)
-        yf.echoInfo("后台任务已强制终止并重启!")
+        yf.echoInfo(_t("后台任务已强制终止并重启!", "Background tasks forcibly terminated and restarted!"))
     elif yf_input == 10:
         yf.safeExecShell([INIT_CMD, 'default'], echo=True)
     elif yf_input == 11:
@@ -418,16 +570,16 @@ def yfcli(yf_input=0):
             from core.crypt_salt import get_salt, init_salt
             salt = get_salt()
             if salt is None:
-                print("检测到加密 Salt 不存在，正在生成...")
+                print(_t("检测到加密 Salt 不存在，正在生成...", "Encryption salt not found, generating..."))
                 init_salt()
-                print("加密 Salt 已生成并保存到备份位置。")
+                print(_t("加密 Salt 已生成并保存到备份位置。", "Encryption salt generated and backed up."))
                 
                 try:
                     from core.crypt_migrate import migrate_encrypted_data
                     migrate_encrypted_data()
-                    print("存量加密数据已使用新 Salt 重新加密。")
+                    print(_t("存量加密数据已使用新 Salt 重新加密。", "Existing encrypted data re-encrypted with new salt."))
                 except Exception as e:
-                    print("数据迁移失败: " + str(e))
+                    print(_t("数据迁移失败: " + str(e), "Data migration failed: " + str(e)))
         except Exception as e:
             _log.debug('[panel_tools] 存量加密数据迁移外层异常: %s', e)
 
@@ -435,7 +587,8 @@ def yfcli(yf_input=0):
         rand_pwd = yf.getRandomString(pwd_len)
         set_panel_pwd(rand_pwd, True)
     elif yf_input == 12:
-        input_user = yf_input_cmd("请输入新的面板用户名(>=5位)：")
+        input_user = yf_input_cmd(_t("请输入新的面板用户名(5-20位英文字母/数字/下划线)：",
+                                     "Please enter new panel username (5-20 alphanumeric characters or underscore): "))
         set_panel_username(input_user.strip())
     elif yf_input == 13:
         yf.safeExecShell(['tail', '-100', panel_dir + '/logs/panel_error.log'], echo=True)
@@ -443,16 +596,16 @@ def yfcli(yf_input=0):
         admin_close = thisdb.getOption('admin_close')
         if admin_close == 'no':
             thisdb.setOption('admin_close', 'yes')
-            yf.echoInfo("关闭面板访问成功!")
+            yf.echoInfo(_t("关闭面板访问成功!", "Panel access disabled successfully!"))
         else:
-            yf.echoInfo("已关闭面板访问!")
+            yf.echoInfo(_t("已关闭面板访问!", "Panel access is already disabled!"))
     elif yf_input == 15:
         admin_close = thisdb.getOption('admin_close')
         if admin_close == 'yes':
             thisdb.setOption('admin_close', 'no')
-            yf.echoInfo("开启面板访问成功!")
+            yf.echoInfo(_t("开启面板访问成功!", "Panel access enabled successfully!"))
         else:
-            yf.echoInfo("已开启面板访问!")
+            yf.echoInfo(_t("已开启面板访问!", "Panel access is already enabled!"))
     elif yf_input == 16:
         _repairPanel()
     elif yf_input == 20:
@@ -461,49 +614,49 @@ def yfcli(yf_input=0):
             basic_auth['open'] = False
             thisdb.setOption('basic_auth', json.dumps(basic_auth))
             yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
-            yf.echoInfo("关闭basic_auth成功")
+            yf.echoInfo(_t("关闭basic_auth成功", "BasicAuth disabled successfully"))
     elif yf_input == 21:
         panel_domain = thisdb.getOption('panel_domain', default='')
         if panel_domain != '':
             thisdb.setOption('panel_domain', '')
             yf.safeExecShell([INIT_CMD, 'unbind_domain'], echo=True)
-            yf.echoInfo("解除域名绑定成功")
+            yf.echoInfo(_t("解除域名绑定成功", "Domain unbound successfully"))
         else:
-            yf.echoInfo("面板未绑定域名!")
+            yf.echoInfo(_t("面板未绑定域名!", "Panel is not bound to any domain!"))
     elif yf_input == 22:
         panel_ssl = thisdb.getOptionByJson('panel_ssl', default={'open':False})
         if panel_ssl['open']:
             panel_ssl['open'] = False
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl))
             yf.safeExecShell([INIT_CMD, 'unbind_ssl'], echo=True)
-            yf.echoInfo("解除面板SSL绑定成功")
+            yf.echoInfo(_t("解除面板SSL绑定成功", "Panel SSL unbound successfully"))
     elif yf_input == 23:
         listen_ipv6 = panel_dir + '/data/ipv6.pl'
         if not os.path.exists(listen_ipv6):
             yf.writeFile(listen_ipv6, 'True')
             yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
-            yf.echoInfo("开启IPv6支持了")
+            yf.echoInfo(_t("开启IPv6支持了", "IPv6 support enabled"))
         else:
-            yf.echoInfo("已开启IPv6支持!")
+            yf.echoInfo(_t("已开启IPv6支持!", "IPv6 support is already enabled!"))
     elif yf_input == 24:
         listen_ipv6 = panel_dir + '/data/ipv6.pl'
         if not os.path.exists(listen_ipv6):
-            yf.echoInfo("已关闭IPv6支持!")
+            yf.echoInfo(_t("已关闭IPv6支持!", "IPv6 support is already disabled!"))
         else:
             os.remove(listen_ipv6)
             yf.safeExecShell([INIT_CMD, 'restart'], timeout=SERVICE_TIMEOUT, echo=True)
-            yf.echoInfo("关闭IPv6支持了")
+            yf.echoInfo(_t("关闭IPv6支持了", "IPv6 support disabled"))
     elif yf_input == 25:
         open_ssh_port()
-        yf.echoInfo("已开启!")
+        yf.echoInfo(_t("已开启!", "Opened!"))
     elif yf_input == 26:
         two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
         if two_step_verification['open']:
             two_step_verification['open'] = False
             thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
-            yf.echoInfo("关闭二次验证成功!")
+            yf.echoInfo(_t("关闭二次验证成功!", "Two-factor authentication disabled successfully!"))
         else:
-            yf.echoInfo("二次验证已关闭!")
+            yf.echoInfo(_t("二次验证已关闭!", "Two-factor authentication is already disabled!"))
     elif yf_input == 27:
         cmd = 'which ufw'
         run_cmd = False
@@ -518,43 +671,38 @@ def yfcli(yf_input=0):
             run_cmd = True
             yf.safeExecShell(['firewall-cmd', '--list-all'], echo=True)
         if not run_cmd:
-            yf.echoInfo("未检测到防火墙!")
+            yf.echoInfo(_t("未检测到防火墙!", "Firewall not detected!"))
     elif yf_input == 28:
         YfFirewall.instance().aIF()
-        yf.echoInfo("执行自动识别防火墙端口到面板成功!")
+        yf.echoInfo(_t("执行自动识别防火墙端口到面板成功!", "Firewall ports auto-detected to panel successfully!"))
     elif yf_input == 29:
         from utils.site_reflect import parse as YfParse
         YfParse()
-        yf.echoInfo("自动识别配置站点信息成功!")
-    elif yf_input == 100:
-        php_conf = panel_dir + '/plugins/php/info.json'
-        if os.path.exists(php_conf):
-            cont = yf.readFile(php_conf)
-            cont = re.sub("\"53\"", "\"52\",\"53\"", cont)
-            cont = re.sub("\"5.3.29\"", "\"5.2.17\",\"5.3.29\"", cont)
-            yf.writeFile(php_conf, cont)
-            yf.echoInfo("执行PHP52显示成功!")
-    elif yf_input == 101:
-        php_conf = panel_dir + '/plugins/php/info.json'
-        if os.path.exists(php_conf):
-            cont = yf.readFile(php_conf)
-            cont = re.sub("\"52\",", "", cont)
-            cont = re.sub("\"5.2.17\",", "", cont)
-            yf.writeFile(php_conf, cont)
-            yf.echoInfo("执行PHP52隐藏成功!")
+        yf.echoInfo(_t("自动识别配置站点信息成功!", "Site configs auto-detected successfully!"))
+    elif yf_input == 32:
+        target = sys.argv[3] if len(sys.argv) > 3 else None
+        switch_panel_language(target)
     elif yf_input == 200:
         # 进程替换必须经 shell；URL 为常量，无变量进入 shell
         os.system("bash <(curl -sSL https://linuxmirrors.cn/main.sh)")  # 保留 os.system：进程替换需 shell，URL 常量
         # os.system(INIT_CMD + " mirror")
     elif yf_input == 201:
-        # 管道必须经 shell；命令全为字面量
-        os.system('curl -Lso- bench.sh | bash')  # 保留 os.system：管道需 shell，命令全字面量
+        speed_script = os.path.join(panel_dir, 'scripts', 'speed.sh')
+        if os.path.exists(speed_script):
+            yf.safeExecShell(['bash', speed_script], timeout=SERVICE_TIMEOUT, echo=True)
+        else:
+            bench_script = os.path.join(panel_dir, 'scripts', 'bench', 'bench.py')
+            if os.path.exists(bench_script):
+                yf.safeExecShell([_panel_python(panel_dir), bench_script], timeout=SERVICE_TIMEOUT, echo=True)
+            else:
+                # 管道必须经 shell；命令全为字面量
+                os.system('curl -Lso- bench.sh | bash')  # 保留 os.system：管道需 shell，命令全字面量
     elif yf_input == 202:
         package = yf.getPanelDir()+'/plugins'
 
         dst_plugin = yf.getServerDir() + "/webssh"
         if not os.path.exists(dst_plugin):
-            yf.echoInfo("未安装!")
+            yf.echoInfo(_t("未安装 webssh 插件!", "webssh plugin is not installed!"))
             exit(1)
 
         if not package in sys.path:
@@ -569,13 +717,13 @@ def yfcli(yf_input=0):
             wlist = data['data']
             wlist_len = len(wlist)
             if wlist_len == 0:
-                yf.echoInfo("SSH终端管理,数据为空!")
+                yf.echoInfo(_t("SSH终端管理,数据为空!", "SSH terminal management: no servers found!"))
                 exit(1)
 
             if len(sys.argv) == 4:
                 pos = int(sys.argv[3])
                 if pos >= wlist_len:
-                    yf.echoInfo("SSH终端管理,超过限制!")
+                    yf.echoInfo(_t("SSH终端管理,超过限制!", "SSH terminal management: index out of bounds!"))
                     exit(1)
                 dst_data = wlist[pos]
                 tmp_host = dst_data["host"]
@@ -584,7 +732,7 @@ def yfcli(yf_input=0):
                 print(pp_info)
                 exit(0)
 
-            yf.echoInfo("请选择:")
+            yf.echoInfo(_t("请选择:", "Please select:"))
             for x in range(wlist_len):
                 dst_data = wlist[x]
                 tag = dst_data['host']
@@ -635,7 +783,8 @@ def show_panel_pwd():
     if yf.md5(pwd) == info['password']:
         yf.echoInfo('password: ' + pwd)
         return
-    print("*密码已经加密存储，如需重置密码，请使用 bs 11命令")
+    print(_t("*密码已经加密存储，如需重置密码，请使用 yf 11 命令",
+             "* Password is encrypted. To reset, please run: yf 11"))
 
 def show_panel_adminpath():
     admin_path = thisdb.getOption('admin_path', default='')
@@ -648,11 +797,14 @@ def show_panel_adminpath():
 def set_panel_username(username=None):
     # 随机面板用户名
     if username:
-        if len(username) < 5:
-            yf.echoInfo("错误，用户名长度不能少于5位")
+        if len(username) < 5 or len(username) > 20:
+            yf.echoInfo(_t("错误：用户名长度必须在 5-20 位之间", "Error: Username length must be 5-20 characters"))
             return
-        if username in ['admin', 'root']:
-            yf.echoInfo("错误，不能使用过于简单的用户名")
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            yf.echoInfo(_t("错误：用户名仅支持英文字母、数字和下划线", "Error: Username can only contain letters, numbers, and underscores"))
+            return
+        if username.lower() in ['admin', 'root', 'user']:
+            yf.echoInfo(_t("错误：不能使用过于简单的用户名", "Error: Cannot use common username"))
             return
 
         thisdb.setUserByRoot(name=username)
@@ -739,11 +891,14 @@ def main():
             import_bt_sites(sys.argv[2])
         else:
             print("ERROR: Missing db_path parameter")
+    elif method == 'lang':
+        target = sys.argv[2] if len(sys.argv) > 2 else None
+        switch_panel_language(target)
     elif method == "cli":
-        clinum = 0
+        clinum = None
         try:
-            if len(sys.argv) > 2:
-                clinum = int(sys.argv[2]) if sys.argv[2][:6] else sys.argv[2]
+            if len(sys.argv) > 2 and sys.argv[2] != '':
+                clinum = int(sys.argv[2])
         except Exception as e:
             _log.debug('[panel_tools] 命令行参数解析失败: %s', e)
             clinum = sys.argv[2]

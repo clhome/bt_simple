@@ -8,8 +8,8 @@
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts bs
-# Description:       starts the bs
+# Short-Description: starts yf
+# Description:       starts yf
 ### END INIT INFO
 
 RED='\033[31m'
@@ -189,7 +189,7 @@ yf_reload()
 	isStart=$(ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}')
     
     if [ "$isStart" != '' ];then
-    	echo -e "reload bs... \c";
+    	echo -e "reload yf... \c";
 	    arr=`ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}'`
 		for p in $arr
         do
@@ -200,7 +200,7 @@ yf_reload()
         if [ "$isStart" == '' ];then
             echo -e "\033[31mfailed\033[0m"
             echo '------------------------------------------------------'
-            tail -n 20 $yf_path/logs/error.log
+            tail -n 20 ${PANEL_DIR}/logs/panel_error.log
             echo '------------------------------------------------------'
             echo -e "\033[31mError: yf service startup failed.\033[0m"
             return;
@@ -234,12 +234,12 @@ yf_unbind_ssl()
         rm -rf ${PANEL_DIR}/local
     fi
 
-    if [ -f $yf_path/nginx ];then
-        rm -rf $yf_path/nginx
+    if [ -f ${PANEL_DIR}/nginx ];then
+        rm -rf ${PANEL_DIR}/nginx
     fi
 
-    if [ -f $yf_path/ssl/choose.pl ];then
-        rm -rf $yf_path/ssl/choose.pl
+    if [ -f ${PANEL_DIR}/ssl/choose.pl ];then
+        rm -rf ${PANEL_DIR}/ssl/choose.pl
     fi
 }
 
@@ -414,7 +414,7 @@ yf_mirror()
 
 yf_install_app()
 {
-    bash $yf_path/scripts/quick/app.sh
+    bash ${PANEL_DIR}/scripts/quick/app.sh
 }
 
 yf_close_admin_path(){
@@ -635,22 +635,48 @@ yf_clean_lib(){
 }
 
 yf_list(){
-    echo -e "yf default         - 显示面板默认信息"
-    echo -e "yf db              - 连接MySQL"
-    echo -e "yf pgdb            - 连接PostgreSQL"
-    echo -e "yf mongdb          - 连接MongoDB"
-    echo -e "yf redis           - 连接Redis"
-    echo -e "yf valkey          - 连接WalKey"
-    echo -e "yf install         - 执行安装脚本"
-    echo -e "yf update          - 更新到正式环境最新代码"
-    echo -e "yf update_dev      - 更新到测试环境最新代码"
-    echo -e "yf rollback        - 回滚到上一次升级前的版本"
-    echo -e "yf db-check        - 诊断面板库结构（只读）"
-    echo -e "yf migrate         - 对齐面板库结构（自愈）"
-    echo -e "yf repair          - 修复面板（服务脚本/库/权限/日志轮转，重启）"
-    echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
-    echo -e "yf debug           - 调式开发面板"
-    echo -e "yf list            - 显示命令列表"
+    local lang="zh-CN"
+    if [ -f "${PANEL_DIR}/data/language.pl" ]; then
+        lang=$(cat "${PANEL_DIR}/data/language.pl" 2>/dev/null | tr -d '\r\n ')
+    fi
+
+    if [ "$lang" = "en" ]; then
+        echo -e "yf default         - Display default panel information"
+        echo -e "yf db              - Connect to MySQL"
+        echo -e "yf pgdb            - Connect to PostgreSQL"
+        echo -e "yf mongodb         - Connect to MongoDB"
+        echo -e "yf redis           - Connect to Redis"
+        echo -e "yf valkey          - Connect to Valkey"
+        echo -e "yf lang            - Switch panel language (zh-CN/en)"
+        echo -e "yf install         - Run install script"
+        echo -e "yf update          - Update to latest production version"
+        echo -e "yf update_dev      - Update to latest dev version"
+        echo -e "yf rollback        - Rollback to previous version"
+        echo -e "yf db-check        - Check database structure (read-only)"
+        echo -e "yf migrate         - Align panel database schema (self-heal)"
+        echo -e "yf repair          - Repair panel (service scripts/db/perms/logrotate, restart)"
+        echo -e "yf migrate_restore - Restore Pagoda (BT) software data"
+        echo -e "yf debug           - Start panel in debug mode"
+        echo -e "yf list            - Show CLI command list"
+    else
+        echo -e "yf default         - 显示面板默认信息"
+        echo -e "yf db              - 连接MySQL"
+        echo -e "yf pgdb            - 连接PostgreSQL"
+        echo -e "yf mongodb         - 连接MongoDB"
+        echo -e "yf redis           - 连接Redis"
+        echo -e "yf valkey          - 连接Valkey"
+        echo -e "yf lang            - 切换面板语言 (zh-CN/en)"
+        echo -e "yf install         - 执行安装脚本"
+        echo -e "yf update          - 更新到正式环境最新代码"
+        echo -e "yf update_dev      - 更新到测试环境最新代码"
+        echo -e "yf rollback        - 回滚到上一次升级前的版本"
+        echo -e "yf db-check        - 诊断面板库结构（只读）"
+        echo -e "yf migrate         - 对齐面板库结构（自愈）"
+        echo -e "yf repair          - 修复面板（服务脚本/库/权限/日志轮转，重启）"
+        echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
+        echo -e "yf debug           - 调式开发面板"
+        echo -e "yf list            - 显示命令列表"
+    fi
 }
 
 yf_default(){
@@ -662,47 +688,92 @@ yf_default(){
         port=$(cat ${PANEL_DIR}/data/port.pl)
     fi
 
+    local lang="zh-CN"
+    if [ -f "${PANEL_DIR}/data/language.pl" ]; then
+        lang=$(cat "${PANEL_DIR}/data/language.pl" 2>/dev/null | tr -d '\r\n ')
+    fi
+
     if [ ! -f ${PANEL_DIR}/data/default.pl ];then
-        echo -e "\033[33mInstall Failed\033[0m"
+        if [ "$lang" = "en" ]; then
+            echo -e "\033[33mInstall Failed: default password file not found.\033[0m"
+        else
+            echo -e "\033[33mInstall Failed: 默认密码文件未找到。\033[0m"
+        fi
         exit 1
     fi
 
     password=$(cat ${PANEL_DIR}/data/default.pl)
 
     admin_path=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py admin_path)
-    if [ "$address" == "" ];then
-        v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
-        local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
-        
-        address="内网 御风面板URL: ${scheme}://$local_ip:$port$admin_path"
-        if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
-            address="${address}\n外网 御风面板URL: ${scheme}://$v4:$port$admin_path"
+    if [ "$lang" = "en" ]; then
+        if [ "$address" == "" ];then
+            v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
+            local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
+            
+            address="Internal URL: ${scheme}://$local_ip:$port$admin_path"
+            if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
+                address="${address}\nExternal URL: ${scheme}://$v4:$port$admin_path"
+            fi
+        else
+            address="Panel URL: ${scheme}://$address:$port$admin_path"
         fi
+
+        # bind domain check
+        panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
+        if [ "$panel_bind_domain" != "" ];then
+            address="Domain Panel URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
+        fi
+
+        show_panel_ip="$port|"
+        version=""
+        if [ -f ${PANEL_DIR}/.version ]; then
+            version="[$(cat ${PANEL_DIR}/.version | sed 's/^v//')] "
+        fi
+        echo -e "=================================================================="
+        echo -e "\033[32m${version}Yufeng Panel Information\033[0m"
+        echo -e "=================================================================="
+        echo -e "$address"
+        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
+        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
+        echo -e "\033[33mNote:\033[0m"
+        echo -e "\033[33mIf unable to access the panel, please open ports in your security group (${show_panel_ip}80|443|22).\033[0m"
+        echo -e "\033[33mPlease keep your credentials safe! If forgotten, run 'yf 11' to reset password.\033[0m"
+        echo -e "=================================================================="
     else
-        address="御风面板URL: ${scheme}://$address:$port$admin_path"
-    fi
+        if [ "$address" == "" ];then
+            v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
+            local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
+            
+            address="内网 御风面板URL: ${scheme}://$local_ip:$port$admin_path"
+            if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
+                address="${address}\n外网 御风面板URL: ${scheme}://$v4:$port$admin_path"
+            fi
+        else
+            address="御风面板URL: ${scheme}://$address:$port$admin_path"
+        fi
 
-    # bind domain check
-    panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
-    if [ "$panel_bind_domain" != "" ];then
-        address="御风面板URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
-    fi
+        # bind domain check
+        panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
+        if [ "$panel_bind_domain" != "" ];then
+            address="御风面板URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
+        fi
 
-    show_panel_ip="$port|"
-    version=""
-    if [ -f ${PANEL_DIR}/.version ]; then
-        version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
+        show_panel_ip="$port|"
+        version=""
+        if [ -f ${PANEL_DIR}/.version ]; then
+            version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
+        fi
+        echo -e "=================================================================="
+        echo -e "\033[32m${version}御风面板信息\033[0m"
+        echo -e "=================================================================="
+        echo -e "$address"
+        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
+        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
+        echo -e "\033[33m提示:\033[0m"
+        echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
+        echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 yf 11 进行密码重置。\033[0m"
+        echo -e "=================================================================="
     fi
-    echo -e "=================================================================="
-    echo -e "\033[32m${version}御风面板信息\033[0m"
-    echo -e "=================================================================="
-    echo -e "$address"
-    echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
-    echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
-    echo -e "\033[33m提示:\033[0m"
-    echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
-    echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 yf 11 进行密码重置。\033[0m"
-    echo -e "=================================================================="
 }
 
 case "$1" in
@@ -739,7 +810,10 @@ case "$1" in
     'install_app') yf_install_app;;
     'close_admin_path') yf_close_admin_path;;
     'unbind_domain') yf_unbind_domain;;
-    'unbind_ssl') yf_unbind_domain;;
+    'unbind_ssl') yf_unbind_ssl;;
+    'lang')
+        cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py lang $2
+        ;;
     'debug') yf_debug;;
     'mirror') yf_mirror;;
     'db') yf_connect_mysql;;

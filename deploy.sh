@@ -378,14 +378,14 @@ YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-1}"
 # SHA256SUMS / acme.sh）下载后必须 Ed25519 验签或 sha256 校验，不得直接信任。
 YF_BOOTSTRAP_PROXY_LIST=(
     ""
-    "https://gh-proxy.com/"
     "https://gh-proxy.org/"
     "https://ghfast.top/"
-    "https://gh.llkk.cc/https://"
     "https://github.chenc.dev/"
-    "https://ghproxy.net/"
+    "https://gh-proxy.com/"
     "https://cors.zme.ink/"
     "https://gh.ddlc.top/"
+    "https://ghproxy.net/"
+    "https://gh.llkk.cc/https://"
 )
 
 # 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。
