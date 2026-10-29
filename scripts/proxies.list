@@ -21,14 +21,14 @@
 # 键名|URL|作用域
 direct||rt
 gh-proxy.com|https://gh-proxy.com/|both
+gh-proxy.org|https://gh-proxy.org/|both
+ghfast.top|https://ghfast.top/|both
+gh.llkk.cc|https://gh.llkk.cc/https://|both
+github.chenc.dev|https://github.chenc.dev/|rt
+ghproxy.net|https://ghproxy.net/|both
 cors.zme.ink|https://cors.zme.ink/|rt
 gh.ddlc.top|https://gh.ddlc.top/|rt
-ghproxy.net|https://ghproxy.net/|both
-gh-proxy.org|https://gh-proxy.org/|both
 github.do|https://github.do/|ui
-gh.llkk.cc|https://gh.llkk.cc/https://|both
 gh.felicity.ac.cn|https://gh.felicity.ac.cn/https://|ui
-ghfast.top|https://ghfast.top/|both
 gh.927223.xyz|https://gh.927223.xyz/https://|ui
 ghp.ci|https://ghp.ci/https://|ui
-github.chenc.dev|https://github.chenc.dev/|rt

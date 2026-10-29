@@ -14,6 +14,12 @@
 4. 面板 SSL 开启时 `after_request` 下发 HSTS；卸载弹窗的「卸载前备份」勾选框
    真实存在且默认勾选，并接到后端 `uninstall(..., backup=...)`。
 
+**双语文档（2026-10 起）**：`README.md` 是英文主文档、`README_cn.md` 是中文文档，
+两份都对外发布。第 1、2 条对**两份都校验**，且各用自己语言的词表 —— 只把中文
+词表套在英文文档上等于什么都没校验（英文里把「强制 TLS 1.2+」写回去不会红），
+反过来也一样；只钉一份则另一份整段约束静默失效。本用例就栽过这个跟头：
+README.md 改成英文后 test_02 / test_03 变红，但错的是断言不是文档。
+
 变异自证见 `test/p1_honesty_mutation_probe.py`（把上述修复逐条回退，守卫须全红）。
 """
 import ast
@@ -30,23 +36,72 @@ for _p in (WEB, ROOT):
         sys.path.insert(0, _p)
 
 README = os.path.join(ROOT, 'README.md')
+README_CN = os.path.join(ROOT, 'README_cn.md')
 SETTING_PY = os.path.join(WEB, 'setting.py')
 ADMIN_INIT = os.path.join(WEB, 'admin', '__init__.py')
 SOFT_JS = os.path.join(WEB, 'static', 'app', 'soft.js')
 PLUGIN_ROUTE = os.path.join(WEB, 'admin', 'plugins', '__init__.py')
 
-#: 被证伪、不得再出现的绝对化表述（逐条对应修复前的原文）
-DISPROVEN_CLAIMS = [
-    '100% 独立解耦',
-    '后门物理清洗',
-    '全局清除了已发现的所有后门及网络依赖',
-    'chardet>=4.0.0',
-    '强制支持 TLS 1.2+',
-    '严密的 CSRF 防护',
-    '默认自动打包备份核心数据',
-    '首创极其严密的',
-    '彻底杜绝手误删库',
-]
+#: 双语文档对：(文件名, 路径, 语言)。所有 README 断言都遍历这一对。
+README_PAIR = (
+    ('README.md', README, 'en'),
+    ('README_cn.md', README_CN, 'zh'),
+)
+
+#: 被证伪、不得再出现的绝对化表述（逐条对应修复前的原文），按语言分组。
+#: 英文条目是中文条目的英文等价写法 —— 换语言不能成为把夸大表述写回去的后门。
+DISPROVEN_CLAIMS = {
+    'zh': [
+        '100% 独立解耦',
+        '后门物理清洗',
+        '全局清除了已发现的所有后门及网络依赖',
+        'chardet>=4.0.0',
+        '强制支持 TLS 1.2+',
+        '严密的 CSRF 防护',
+        '默认自动打包备份核心数据',
+        '首创极其严密的',
+        '彻底杜绝手误删库',
+    ],
+    'en': [
+        '100% independent decoupling',
+        'physically cleansed',
+        'all discovered backdoors and network dependencies have been globally removed',
+        'chardet>=4.0.0',
+        'forced tls 1.2+',
+        'enforces tls 1.2+',
+        'strict csrf protection',
+        'rigorous csrf protection',
+        'defaults to automatically backing up core data',
+        'first-ever extremely rigorous',
+        'completely eliminates the risk of manual database deletion',
+    ],
+}
+
+#: 「功能性外联清单」小节标题（唯一与语言有关的部分；外联目标域名本身与语言无关）。
+EXTERNAL_SECTION = {
+    'zh': '### 功能性外联清单',
+    'en': '### Functional Outbound Network Request List',
+}
+
+#: 外联清单必须提示的风险场景用词（内网 / 离线），每组命中任意一个即可。
+ISOLATION_HINTS = {
+    'zh': [('内网',), ('离线',)],
+    'en': [('intranet',), ('air-gapped', 'offline')],
+}
+
+#: 性能数字免责声明：必须引用基准脚本说明，并写明「作者自测 / 环境相关」两个口径。
+BENCH_README_REF = 'scripts/bench/README.md'
+PERF_DISCLAIMER = {
+    'zh': [('作者自测',), ('环境相关',)],
+    'en': [('author benchmark', 'author local test'),
+           ('environment-dependent', 'varies by hardware')],
+}
+
+#: 「并非零网络依赖」必须写明的口径（P1-8 的核心修法，两份文档都要有）。
+NOT_ZERO_NET = {
+    'zh': '并非零网络依赖',
+    'en': 'not zero network dependency',
+}
 
 #: 功能性外联清单必须点名的外部目标（recon 已核实真实存在）
 EXTERNAL_TARGETS = [
@@ -163,27 +218,61 @@ class ReadmeClaimsHonestyTest(unittest.TestCase):
 
     # ----------------------------- README -----------------------------
 
+    @staticmethod
+    def _readme_texts():
+        """返回 [(文件名, 语言, 全文)]；缺文件直接失败（别让断言在空气里通过）。"""
+        out = []
+        for name, path, lang in README_PAIR:
+            if not os.path.isfile(path):
+                raise AssertionError('缺少文档 %s（中英双语文档必须成对存在）' % name)
+            out.append((name, lang, _read(path)))
+        return out
+
     def test_01_readme_drops_disproven_claims(self):
-        """README 不得再出现被证伪的绝对化表述。"""
-        text = _read(README)
-        hit = [c for c in DISPROVEN_CLAIMS if c in text]
-        self.assertEqual([], hit, 'README 仍含被证伪的绝对化表述：%s' % hit)
+        """两份 README 都不得再出现被证伪的绝对化表述（各按自己语言的词表）。"""
+        for name, lang, text in self._readme_texts():
+            low = text.lower()
+            hit = [c for c in DISPROVEN_CLAIMS[lang] if c.lower() in low]
+            self.assertEqual([], hit,
+                             '%s 仍含被证伪的绝对化表述：%s' % (name, hit))
 
     def test_02_readme_has_external_services_section(self):
-        """README 必须新增「功能性外联清单」小节并点名真实外联目标。"""
-        text = _read(README)
-        self.assertIn('### 功能性外联清单', text, 'README 缺少「功能性外联清单」小节标题')
-        missing = [t for t in EXTERNAL_TARGETS if t not in text]
-        self.assertEqual([], missing, '外联清单缺少目标：%s' % missing)
-        self.assertIn('内网', text, '外联清单应提示内网/敏感环境注意事项')
-        self.assertIn('离线', text, '外联清单应提示离线环境注意事项')
+        """两份 README 都必须有「功能性外联清单」小节并点名真实外联目标。"""
+        for name, lang, text in self._readme_texts():
+            low = text.lower()
+            self.assertIn(EXTERNAL_SECTION[lang], text,
+                          '%s 缺少「功能性外联清单」小节标题（期望：%s）'
+                          % (name, EXTERNAL_SECTION[lang]))
+            missing = [t for t in EXTERNAL_TARGETS if t.lower() not in low]
+            self.assertEqual([], missing,
+                             '%s 外联清单缺少目标：%s' % (name, missing))
+            for group in ISOLATION_HINTS[lang]:
+                self.assertTrue(any(p.lower() in low for p in group),
+                                '%s 外联清单应提示「%s」环境注意事项'
+                                % (name, ' / '.join(group)))
 
     def test_03_readme_perf_numbers_disclaimed(self):
-        """性能数字必须注明「作者自测、环境相关」并引用基准脚本说明。"""
-        text = _read(README)
-        self.assertIn('scripts/bench/README.md', text, '性能数字未引用 scripts/bench/README.md')
-        self.assertIn('作者自测', text, '性能数字缺少「作者自测」免责说明')
-        self.assertIn('环境相关', text, '性能数字缺少「环境相关」免责说明')
+        """性能数字必须注明「作者自测、环境相关」并引用基准脚本说明（两份都要）。"""
+        for name, lang, text in self._readme_texts():
+            low = text.lower()
+            self.assertIn(BENCH_README_REF, text,
+                          '%s 性能数字未引用 %s' % (name, BENCH_README_REF))
+            for group in PERF_DISCLAIMER[lang]:
+                self.assertTrue(any(p.lower() in low for p in group),
+                                '%s 性能数字缺少「%s」免责说明'
+                                % (name, ' / '.join(group)))
+
+    def test_03b_readmes_are_a_linked_pair(self):
+        """中英两份文档必须互相链接，且都写明「并非零网络依赖」。
+
+        互链是「双语文档成对维护」的最小证据：只留一份、或翻译漏掉另一份，
+        上面 01~03 的断言就会因为少扫一份文档而变松。
+        """
+        for name, lang, text in self._readme_texts():
+            other = 'README_cn.md' if lang == 'en' else 'README.md'
+            self.assertIn(other, text, '%s 未链接对侧文档 %s' % (name, other))
+            self.assertIn(NOT_ZERO_NET[lang].lower(), text.lower(),
+                          '%s 未写明「%s」' % (name, NOT_ZERO_NET[lang]))
 
     # ------------------------------- TLS ------------------------------
 

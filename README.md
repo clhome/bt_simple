@@ -3,7 +3,7 @@
   <h3 align="center">Yufeng Panel (BtSimple)</h3>
   <p align="center">A lightweight, security-hardened Linux server management panel built with Python</p>
   <p align="center">
-    <b>English</b> | <a href="README_cn.md">简体中文</a>
+    <b>English</b> | <a href="README_cn.md">Chinese (Simplified)</a>
   </p>
   <p align="center">
     <img src="https://img.shields.io/badge/License-Apache--2.0-green.svg" />
@@ -223,9 +223,9 @@ Contains all Debian 13 considerations, plus:
 | Ubuntu 16.04 and older | `deploy.sh:322` | Explicitly rejected (Requires ≥ Ubuntu 16) |
 | 32-bit Architectures | `deploy.sh:283` | 64-bit systems only |
 
-### ⏳ Python <3.9 Deprecation Schedule (支持终止时间表)
+### ⏳ Python <3.9 Deprecation Schedule
 
-Python <3.9 branches (preserved for compatibility with CentOS 7, Debian 10, etc.) are maintained as **transitional compatibility** and are scheduled for **End of Life on 2027-06-30 (停止支持)**: all `python_version < '3.9'` dependency branches in `requirements.txt` (flask, Werkzeug, pyOpenSSL, cryptography) will be removed. CentOS 7 and Debian 10 upstream are both EOL with no security patches. Users on Python <3.9 are urged to upgrade to **Python ≥3.9** prior to this date.
+Python <3.9 branches (preserved for compatibility with CentOS 7, Debian 10, etc.) are maintained as **transitional compatibility** and are scheduled for **End of Life on 2027-06-30**: all `python_version < '3.9'` dependency branches in `requirements.txt` (flask, Werkzeug, pyOpenSSL, cryptography) will be removed. CentOS 7 and Debian 10 upstream are both EOL with no security patches. Users on Python <3.9 are urged to upgrade to **Python ≥3.9** prior to this date.
 
 ### 🧭 Architectural Direction on Compatibility
 
@@ -543,5 +543,5 @@ When modifying configurations, altering SQLite schemas (adding/removing columns)
 
 **Yufeng Panel (BtSimple)** is dedicated to bringing transparency, security, and simplicity back to Linux server management. Thank you to all our users and contributors!
 
-[English Documentation](README.md) | [简体中文文档](README_cn.md) | [GitHub Repository](https://github.com/clhome/bt_simple) | [📖 Beginner's Manual (Chinese)](文档/御风面板说明书/说明书.md) | [Wiki Documentation](https://github.com/clhome/bt_simple/wiki)
+[English Documentation](README.md) | [Chinese Documentation](README_cn.md) | [GitHub Repository](https://github.com/clhome/bt_simple) | [📖 Beginner's Manual (Chinese)](文档/御风面板说明书/说明书.md) | [Wiki Documentation](https://github.com/clhome/bt_simple/wiki)
 

@@ -31,6 +31,13 @@ LOCK_SCRIPT = os.path.join(ROOT, 'scripts', 'gen_requirements_lock.sh')
 #: 附录 B P2-12e：Python <3.9 分支 EOL 时间表（用户裁定日期）。
 EOL_DATE = '2027-06-30'
 EOL_PHRASE = '停止支持'
+#: README 里 EOL 口径的等价写法（按文档语言）：README.md 是英文主文档（不写中文）、
+#: README_cn.md 是中文文档。两份都要声明同一日期 + 同一口径，只钉中文串会让英文
+#: 文档的这条约束静默失效（README.md 去中文后本类就是这么变红的）。
+README_EOL_DOCS = (
+    ('README.md', README, ('end of life', 'deprecation')),
+    ('README_cn.md', os.path.join(ROOT, 'README_cn.md'), (EOL_PHRASE,)),
+)
 #: 声明必须点名、且必须仍保留 `<3.9` 分档的包（小写比较）。
 EOL_BRANCH_PACKAGES = ('flask', 'werkzeug')
 
@@ -232,11 +239,15 @@ class Python39EolTimelineTest(unittest.TestCase):
         self.assertIn('3.9', self.req, 'requirements.txt EOL 声明未点名 Python 3.9')
 
     def test_09_readme_declares_eol_timeline(self):
-        self.assertIn(EOL_DATE, self.readme,
-                      'README.md 未声明同一 EOL 日期 %s' % EOL_DATE)
-        self.assertIn(EOL_PHRASE, self.readme,
-                      'README.md EOL 声明缺少「%s」表述' % EOL_PHRASE)
-        self.assertIn('3.9', self.readme, 'README.md EOL 声明未点名 Python 3.9')
+        """两份 README 都要声明同一 EOL 日期与口径（各自语言的字面量）。"""
+        for name, path, phrases in README_EOL_DOCS:
+            text = _read(path)
+            low = text.lower()
+            self.assertIn(EOL_DATE, text,
+                          '%s 未声明同一 EOL 日期 %s' % (name, EOL_DATE))
+            self.assertTrue(any(p.lower() in low for p in phrases),
+                            '%s EOL 声明缺少「%s」表述' % (name, ' / '.join(phrases)))
+            self.assertIn('3.9', text, '%s EOL 声明未点名 Python 3.9' % name)
 
     def test_10_eol_declaration_and_branch_coexist(self):
         # 声明存在（防「只删注释不删分档」）

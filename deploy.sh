@@ -379,9 +379,13 @@ YF_REQUIRE_SIGNATURE="${YF_REQUIRE_SIGNATURE:-1}"
 YF_BOOTSTRAP_PROXY_LIST=(
     ""
     "https://gh-proxy.com/"
+    "https://gh-proxy.org/"
+    "https://ghfast.top/"
+    "https://gh.llkk.cc/https://"
+    "https://github.chenc.dev/"
+    "https://ghproxy.net/"
     "https://cors.zme.ink/"
     "https://gh.ddlc.top/"
-    "https://ghproxy.net/"
 )
 
 # 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。
@@ -630,10 +634,132 @@ setup_china_git_config() {
     fi
 }
 
+# ---------- 国际化多语言支持 (i18n) ----------
+YF_LANG="${YF_LANG:-}"
+
+# 多语言文本输出 (stdout)
+msg_i18n() {
+    if [ "$YF_LANG" = "en" ]; then
+        echo -e "${2:-$1}"
+    else
+        echo -e "$1"
+    fi
+}
+
+# 多语言格式化输出 (printf，无换行)
+get_i18n() {
+    if [ "$YF_LANG" = "en" ]; then
+        printf '%s' "${2:-$1}"
+    else
+        printf '%s' "$1"
+    fi
+}
+
+# 持久化语言配置至面板
+save_panel_language() {
+    local target_lang="${YF_LANG:-zh-CN}"
+    if [ -d "${PANEL_DIR}/data" ]; then
+        echo -n "$target_lang" > "${PANEL_DIR}/data/language.pl" 2>/dev/null || true
+    fi
+}
+
+# 语言检测与选择
+select_language() {
+    # 1. 优先读取已明确传入的环境变量或参数 YF_LANG（显式指定时直接生效，不阻断）
+    if [ -n "$YF_LANG" ]; then
+        case "$YF_LANG" in
+            en|EN|english|English) YF_LANG="en" ;;
+            *) YF_LANG="zh-CN" ;;
+        esac
+        return 0
+    fi
+
+    # 2. 检查是否有可用终端进行交互（支持直接执行与 curl ... | bash）
+    local has_tty=false
+    if [ "$SILENT_MODE" != "true" ]; then
+        if [ -t 0 ] || [ -c /dev/tty 2>/dev/null ]; then
+            has_tty=true
+        fi
+    fi
+
+    # 3. 若为静默模式或完全无可用终端（如 CI、后台脚本）：自动推断并静默使用
+    if ! $has_tty; then
+        if [ -f "${PANEL_DIR}/data/language.pl" ]; then
+            local saved_lang
+            saved_lang=$(cat "${PANEL_DIR}/data/language.pl" 2>/dev/null | tr -d '\r\n ')
+            if [ "$saved_lang" = "en" ]; then
+                YF_LANG="en"
+                return 0
+            elif [ "$saved_lang" = "zh-CN" ]; then
+                YF_LANG="zh-CN"
+                return 0
+            fi
+        fi
+        if [[ "${LC_ALL:-${LANG:-}}" == en* ]]; then
+            YF_LANG="en"
+        else
+            YF_LANG="zh-CN"
+        fi
+        return 0
+    fi
+
+    # 4. 终端交互模式（直接运行 bash deploy.sh 或 curl ... | bash）：首先弹出交互式语言选择
+    local default_choice="1"
+    local default_hint="1) 简体中文 (Chinese - Default)"
+    local en_hint="2) English"
+    if [ -f "${PANEL_DIR}/data/language.pl" ]; then
+        local prev_lang
+        prev_lang=$(cat "${PANEL_DIR}/data/language.pl" 2>/dev/null | tr -d '\r\n ')
+        if [ "$prev_lang" = "en" ]; then
+            default_choice="2"
+            default_hint="1) 简体中文 (Chinese)"
+            en_hint="2) English (Default)"
+        fi
+    fi
+
+    echo -e "=================================================================="
+    echo -e "  Please select language / 请选择语言:"
+    echo -e "    $default_hint"
+    echo -e "    $en_hint"
+    echo -e "=================================================================="
+    local lang_choice=""
+    if [ -t 0 ]; then
+        read -t 15 -p "  Enter choice [1-2] (default ${default_choice}): " lang_choice || true
+    else
+        printf "  Enter choice [1-2] (default %s): " "$default_choice"
+        read -t 15 lang_choice < /dev/tty 2>/dev/null || lang_choice="$default_choice"
+    fi
+    if [ -z "$lang_choice" ]; then
+        lang_choice="$default_choice"
+    fi
+    case "$lang_choice" in
+        2|en|EN)
+            YF_LANG="en"
+            echo -e "${GREEN}Language set to English.${PLAIN}"
+            ;;
+        *)
+            YF_LANG="zh-CN"
+            echo -e "${GREEN}语言已设置为简体中文。${PLAIN}"
+            ;;
+    esac
+}
+
 # ---------- 工具函数 ----------
-log_info()  { echo -e "${GREEN}[INFO]${PLAIN} $1" | tee -a $LOG_FILE; }
-log_warn()  { echo -e "${YELLOW}[WARN]${PLAIN} $1" | tee -a $LOG_FILE; }
-log_error() { echo -e "${RED}[ERROR]${PLAIN} $1" | tee -a $LOG_FILE; }
+log_info()  {
+    local text
+    if [ "$YF_LANG" = "en" ] && [ -n "$2" ]; then text="$2"; else text="$1"; fi
+    echo -e "${GREEN}[INFO]${PLAIN} $text" | tee -a "$LOG_FILE"
+}
+log_warn()  {
+    local text
+    if [ "$YF_LANG" = "en" ] && [ -n "$2" ]; then text="$2"; else text="$1"; fi
+    echo -e "${YELLOW}[WARN]${PLAIN} $text" | tee -a "$LOG_FILE"
+}
+log_error() {
+    local text
+    if [ "$YF_LANG" = "en" ] && [ -n "$2" ]; then text="$2"; else text="$1"; fi
+    echo -e "${RED}[ERROR]${PLAIN} $text" | tee -a "$LOG_FILE"
+}
 
 # ---------------------------------------------------------------------------
 # P2-4：初始密码快照 data/default.pl 的唯一写入口
@@ -674,15 +800,22 @@ confirm() {
         return 0
     fi
     local msg="$1"
+    if [ "$YF_LANG" = "en" ] && [ -n "$2" ]; then
+        msg="$2"
+    fi
+    local prompt="请输入 [yes/no]: "
+    if [ "$YF_LANG" = "en" ]; then
+        prompt="Please enter [yes/no]: "
+    fi
     local response="no"
     echo -e "\n${BOLD}${YELLOW}$msg${PLAIN}"
     if [ -t 0 ]; then
-        read -p "请输入 [yes/no]: " response
+        read -p "$prompt" response
     else
-        printf "请输入 [yes/no]: "
+        printf "%s" "$prompt"
         read response < /dev/tty 2>/dev/null || response="no"
     fi
-    [ "$response" = "yes" ]
+    [ "$response" = "yes" ] || [ "$response" = "y" ]
 }
 
 # 获取最新的正式版 Release Tag
@@ -1077,14 +1210,23 @@ show_banner() {
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|          御风面板 bt_simple一键部署工具             |'
+    if [ "$YF_LANG" = "en" ]; then
+        echo -e '|         Yufeng Panel Deployment Tool              |'
+    else
+        echo -e '|          御风面板 bt_simple一键部署工具             |'
+    fi
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
     echo -e '+---------------------------------------------------+'
     echo ""
-    echo -e "  系统时间: ${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${PLAIN}"
-    echo -e "  操作系统: ${BLUE}${OSNAME}${PLAIN}"
+    if [ "$YF_LANG" = "en" ]; then
+        echo -e "  System Time: ${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${PLAIN}"
+        echo -e "  OS Detected: ${BLUE}${OSNAME}${PLAIN}"
+    else
+        echo -e "  系统时间: ${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${PLAIN}"
+        echo -e "  操作系统: ${BLUE}${OSNAME}${PLAIN}"
+    fi
     echo ""
 }
 
@@ -1716,7 +1858,7 @@ pick_legacy_backup() {
 # 场景1: 全新安装
 # =====================================================================
 fresh_install() {
-    log_info "===== 开始全新安装 bt_simple ====="
+    log_info "===== 开始全新安装 bt_simple =====" "===== Starting fresh installation of bt_simple ====="
 
     # 清除旧的垃圾 CLI 命令，避免干扰新安装
     rm -f /usr/bin/yf /usr/bin/mw /usr/bin/bs
@@ -1827,7 +1969,7 @@ fresh_install() {
 
     disable_upstream_update
     show_panel_info "$rand_pass"
-    log_info "===== 全新安装完成 ====="
+    log_info "===== 全新安装完成 =====" "===== Fresh installation completed ====="
 }
 
 # =====================================================================
@@ -1835,14 +1977,23 @@ fresh_install() {
 # =====================================================================
 migrate_from_mw() {
     if $HAS_YF; then
-        log_info "===== 升级 yufeng_panel 面板 ====="
-        echo -e "${YELLOW}准备升级 yufeng_panel 面板${PLAIN}"
-        echo -e "当前面板信息:"
+        log_info "===== 升级 yufeng_panel 面板 =====" "===== Upgrading yufeng_panel ====="
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Preparing to upgrade yufeng_panel${PLAIN}"
+            echo -e "Current panel info:"
+        else
+            echo -e "${YELLOW}准备升级 yufeng_panel 面板${PLAIN}"
+            echo -e "当前面板信息:"
+        fi
         yf 10 2>/dev/null || bs 10 2>/dev/null || mw 10 2>/dev/null
         echo ""
     else
-        log_info "===== 从 mdserver-web 迁移到 bt_simple ====="
-        echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
+        log_info "===== 从 mdserver-web 迁移到 bt_simple =====" "===== Migrating from mdserver-web to bt_simple ====="
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Existing mdserver-web panel detected.${PLAIN}"
+        else
+            echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
+        fi
         echo -e "当前面板信息:"
         mw 10 2>/dev/null
         echo ""
@@ -1853,8 +2004,8 @@ migrate_from_mw() {
         echo "  3. 如迁移失败可一键回滚到原版"
         echo ""
 
-        if ! confirm "是否确认【升级】或者从 mdserver-web 迁移到 bt_simple?"; then
-            log_info "用户取消迁移"
+        if ! confirm "是否确认【升级】或者从 mdserver-web 迁移到 bt_simple?" "Confirm upgrade or migrate from mdserver-web to bt_simple?"; then
+            log_info "用户取消迁移" "User cancelled migration."
             return
         fi
     fi
@@ -2113,8 +2264,8 @@ migrate_from_bt() {
     echo "  ⚠️  面板账号密码（新面板会生成新的）"
     echo ""
 
-    if ! confirm "是否确认从宝塔面板迁移到 bt_simple? (宝塔面板将被停止但保留)"; then
-        log_info "用户取消迁移"
+    if ! confirm "是否确认从宝塔面板迁移到 bt_simple? (宝塔面板将被停止但保留)" "Confirm migrate from Pagoda (BT) to bt_simple? (Pagoda will be stopped but preserved)"; then
+        log_info "用户取消迁移" "User cancelled migration."
         return
     fi
 
@@ -2398,18 +2549,25 @@ open_panel_port() {
 show_panel_info() {
     local force_pass="$1"
     local version=""
+    save_panel_language
     if [ -f ${PANEL_DIR}/.version ]; then
         version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
     fi
     echo ""
     echo -e "=================================================================="
-    echo -e "${GREEN}${BOLD}${version} 御风面板安装/迁移完成!${PLAIN}"
+    if [ "$YF_LANG" = "en" ]; then
+        echo -e "${GREEN}${BOLD}${version} Yufeng Panel installation/migration completed!${PLAIN}"
+    else
+        echo -e "${GREEN}${BOLD}${version} 御风面板安装/迁移完成!${PLAIN}"
+    fi
     echo -e "=================================================================="
     
-    if [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then
+    if [ -f /usr/bin/yf ] || [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then
         # 获取默认信息
         local info=""
-        if [ -f /usr/bin/bs ]; then
+        if [ -f /usr/bin/yf ]; then
+            info=$(yf 10 2>/dev/null)
+        elif [ -f /usr/bin/bs ]; then
             info=$(bs 10 2>/dev/null)
         else
             info=$(mw 10 2>/dev/null)
@@ -2423,18 +2581,34 @@ show_panel_info() {
         fi
     elif [ -f ${PANEL_DIR}/data/port.pl ]; then
         local port=$(cat ${PANEL_DIR}/data/port.pl 2>/dev/null)
-        echo -e "面板端口: ${port:-7200}"
-        if [ -f $(default_pl_path) ]; then
-            echo -e "默认密码: $(cat $(default_pl_path))"
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "Panel Port: ${port:-7200}"
+            if [ -f $(default_pl_path) ]; then
+                echo -e "Default Password: $(cat $(default_pl_path))"
+            fi
+        else
+            echo -e "面板端口: ${port:-7200}"
+            if [ -f $(default_pl_path) ]; then
+                echo -e "默认密码: $(cat $(default_pl_path))"
+            fi
         fi
     fi
     # P2-4：初始密码是明文快照（0600），只能短期保留 —— 必须把「用完就删」说给用户。
     if [ -f $(default_pl_path) ]; then
-        echo -e "${YELLOW}提示: 初始密码以明文保存在 $(default_pl_path)（权限 0600）。${PLAIN}"
-        echo -e "${YELLOW}     首次登录并修改密码后请删除它: rm -f $(default_pl_path)${PLAIN}"
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Notice: The initial password is saved in plaintext at $(default_pl_path) (mode 0600).${PLAIN}"
+            echo -e "${YELLOW}        Please delete it after first login: rm -f $(default_pl_path)${PLAIN}"
+        else
+            echo -e "${YELLOW}提示: 初始密码以明文保存在 $(default_pl_path)（权限 0600）。${PLAIN}"
+            echo -e "${YELLOW}     首次登录并修改密码后请删除它: rm -f $(default_pl_path)${PLAIN}"
+        fi
     fi
     echo -e "=================================================================="
-    echo -e "日志文件: ${LOG_FILE}"
+    if [ "$YF_LANG" = "en" ]; then
+        echo -e "Log file: ${LOG_FILE}"
+    else
+        echo -e "日志文件: ${LOG_FILE}"
+    fi
     echo -e "=================================================================="
 
     
@@ -2467,6 +2641,34 @@ show_panel_info() {
 # 主入口
 # =====================================================================
 main() {
+    # 处理 flag 与国际化参数（如 -cn、--lang=en、--lang=zh-CN、-en、-zh 等）
+    local action=""
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -cn)
+                FORCE_CN=true
+                shift
+                ;;
+            --lang=en|-en)
+                YF_LANG="en"
+                shift
+                ;;
+            --lang=zh*|-zh)
+                YF_LANG="zh-CN"
+                shift
+                ;;
+            *)
+                if [ -z "$action" ]; then
+                    action="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    # 优先执行语言选择，保证后续系统检查与安装提示均使用对应语言
+    select_language
+
     check_root
     check_architecture
     check_system_resources
@@ -2478,16 +2680,8 @@ main() {
     mkdir -p $BACKUP_DIR
     echo "===== bt_simple deploy $(date) =====" >> $LOG_FILE
 
-    # 处理 flag 参数（如 -cn），使其不与子命令互斥
-    while [[ "${1:-}" == -* ]]; do
-        case "$1" in
-            -cn) FORCE_CN=true; shift ;;
-            *) break ;;
-        esac
-    done
-
     # 命令行参数处理
-    case "${1:-}" in
+    case "$action" in
         update)
             SILENT_MODE=true
             check_version_and_update
@@ -2536,7 +2730,7 @@ main() {
             exit 0
             ;;
         uninstall)
-            log_warn "卸载功能暂未实现，请手动执行: bash $INIT_D_SCRIPT uninstall"
+            log_warn "卸载功能暂未实现，请手动执行: bash $INIT_D_SCRIPT uninstall" "Uninstall is not implemented yet. Please execute: bash $INIT_D_SCRIPT uninstall"
             exit 0
             ;;
     esac
@@ -2544,23 +2738,45 @@ main() {
     show_banner
 
     if $HAS_YF; then
-        echo -e "${YELLOW}检测到已安装 yufeng_panel 面板${PLAIN}"
-        echo ""
-        echo "=================================================================="
-        echo -e " ${YELLOW}运维提示：版本降级与环境修复指引${PLAIN}"
-        echo " ----------------------------------------------------------------"
-        echo " 若当前面板正运行 [开发预览版 (-dev)]，或核心代码出现损坏缺失，"
-        echo " 且需要强制切回并锁定至最新的官方稳定发行版 (Stable Release)，"
-        echo " 请务必选择下方【 2) 强制覆盖升级 】以重置整个代码仓库。"
-        echo "=================================================================="
-        echo ""
-        echo "  1) 检查并升级 (自动比对稳定版版本)"
-        echo "  2) 强制覆盖升级 (不比对版本，适用于环境修复或回退正式版)"
-        echo "  3) 强制升级至开发预览版 (拉取 master 最新提交，存在不稳定风险)"
-        echo "  4) 回滚到上一次升级前的版本"
-        echo "  5) 取消"
-        echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-5]: " choice; else read -p "请选择 [1-5]: " choice < /dev/tty 2>/dev/null || choice="5"; fi
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Existing yufeng_panel installation detected.${PLAIN}"
+            echo ""
+            echo "=================================================================="
+            echo -e " ${YELLOW}Maintenance Notice: Downgrade and Environment Recovery Guide${PLAIN}"
+            echo " ----------------------------------------------------------------"
+            echo " If the panel is running a development preview (-dev), or core files"
+            echo " are corrupted or missing, and you need to switch and lock to the latest"
+            echo " official Stable Release, please select [ 2) Force Overwrite Upgrade ]"
+            echo " below to reset the repository."
+            echo "=================================================================="
+            echo ""
+            echo "  1) Check and update (compare stable release version)"
+            echo "  2) Force overwrite upgrade (reset files, recovery / stable switch)"
+            echo "  3) Upgrade to development preview (master branch, experimental)"
+            echo "  4) Rollback to previous version before update"
+            echo "  5) Cancel"
+            echo ""
+            local prompt="Please select [1-5]: "
+        else
+            echo -e "${YELLOW}检测到已安装 yufeng_panel 面板${PLAIN}"
+            echo ""
+            echo "=================================================================="
+            echo -e " ${YELLOW}运维提示：版本降级与环境修复指引${PLAIN}"
+            echo " ----------------------------------------------------------------"
+            echo " 若当前面板正运行 [开发预览版 (-dev)]，或核心代码出现损坏缺失，"
+            echo " 且需要强制切回并锁定至最新的官方稳定发行版 (Stable Release)，"
+            echo " 请务必选择下方【 2) 强制覆盖升级 】以重置整个代码仓库。"
+            echo "=================================================================="
+            echo ""
+            echo "  1) 检查并升级 (自动比对稳定版版本)"
+            echo "  2) 强制覆盖升级 (不比对版本，适用于环境修复或回退正式版)"
+            echo "  3) 强制升级至开发预览版 (拉取 master 最新提交，存在不稳定风险)"
+            echo "  4) 回滚到上一次升级前的版本"
+            echo "  5) 取消"
+            echo ""
+            local prompt="请选择 [1-5]: "
+        fi
+        if [ -t 0 ]; then read -p "$prompt" choice; else read -p "$prompt" choice < /dev/tty 2>/dev/null || choice="5"; fi
         case "$choice" in
             1) check_version_and_update ;;
             2) migrate_from_mw ;;
@@ -2569,51 +2785,93 @@ main() {
                 migrate_from_mw
                 ;;
             4) SILENT_MODE=true; rollback_panel ;;
-            *) echo "已取消"; exit 0 ;;
+            *) msg_i18n "已取消" "Cancelled."; exit 0 ;;
         esac
     elif $HAS_BT && $HAS_MW; then
-        echo -e "${YELLOW}检测到同时存在宝塔面板和 mdserver-web${PLAIN}"
-        echo ""
-        echo "  1) 从 mdserver-web 迁移"
-        echo "  2) 从宝塔面板迁移"
-        echo "  3) 取消"
-        echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-3]: " choice; else read -p "请选择 [1-3]: " choice < /dev/tty 2>/dev/null || choice="3"; fi
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Both Pagoda (BT) and mdserver-web panels detected.${PLAIN}"
+            echo ""
+            echo "  1) Migrate from mdserver-web"
+            echo "  2) Migrate from Pagoda (BT) Panel"
+            echo "  3) Cancel"
+            echo ""
+            local prompt="Please select [1-3]: "
+        else
+            echo -e "${YELLOW}检测到同时存在宝塔面板和 mdserver-web${PLAIN}"
+            echo ""
+            echo "  1) 从 mdserver-web 迁移"
+            echo "  2) 从宝塔面板迁移"
+            echo "  3) 取消"
+            echo ""
+            local prompt="请选择 [1-3]: "
+        fi
+        if [ -t 0 ]; then read -p "$prompt" choice; else read -p "$prompt" choice < /dev/tty 2>/dev/null || choice="3"; fi
         case "$choice" in
             1) migrate_from_mw ;;
             2) migrate_from_bt ;;
-            *) echo "已取消"; exit 0 ;;
+            *) msg_i18n "已取消" "Cancelled."; exit 0 ;;
         esac
     elif $HAS_MW; then
-        echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
-        echo ""
-        echo "  1) 确认【升级】或者从 mdserver-web 迁移到 bt_simple"
-        echo "  2) 取消"
-        echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Existing mdserver-web panel detected.${PLAIN}"
+            echo ""
+            echo "  1) Confirm upgrade or migrate from mdserver-web to bt_simple"
+            echo "  2) Cancel"
+            echo ""
+            local prompt="Please select [1-2]: "
+        else
+            echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
+            echo ""
+            echo "  1) 确认【升级】或者从 mdserver-web 迁移到 bt_simple"
+            echo "  2) 取消"
+            echo ""
+            local prompt="请选择 [1-2]: "
+        fi
+        if [ -t 0 ]; then read -p "$prompt" choice; else read -p "$prompt" choice < /dev/tty 2>/dev/null || choice="2"; fi
         case "$choice" in
             1) migrate_from_mw ;;
-            *) echo "已取消"; exit 0 ;;
+            *) msg_i18n "已取消" "Cancelled."; exit 0 ;;
         esac
     elif $HAS_BT; then
-        echo -e "${YELLOW}检测到已安装宝塔面板${PLAIN}"
-        echo ""
-        echo "  1) 从宝塔面板迁移到 bt_simple"
-        echo "  2) 取消"
-        echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${YELLOW}Existing Pagoda (BT) panel detected.${PLAIN}"
+            echo ""
+            echo "  1) Migrate from Pagoda (BT) Panel to bt_simple"
+            echo "  2) Cancel"
+            echo ""
+            local prompt="Please select [1-2]: "
+        else
+            echo -e "${YELLOW}检测到已安装宝塔面板${PLAIN}"
+            echo ""
+            echo "  1) 从宝塔面板迁移到 bt_simple"
+            echo "  2) 取消"
+            echo ""
+            local prompt="请选择 [1-2]: "
+        fi
+        if [ -t 0 ]; then read -p "$prompt" choice; else read -p "$prompt" choice < /dev/tty 2>/dev/null || choice="2"; fi
         case "$choice" in
             1) migrate_from_bt ;;
-            *) echo "已取消"; exit 0 ;;
+            *) msg_i18n "已取消" "Cancelled."; exit 0 ;;
         esac
     else
-        echo -e "${GREEN}未检测到已安装面板，将执行全新安装${PLAIN}"
-        echo ""
-        if confirm "是否开始全新安装 bt_simple 面板?"; then
-            fresh_install
+        if [ "$YF_LANG" = "en" ]; then
+            echo -e "${GREEN}No existing panel detected. Proceeding with fresh installation.${PLAIN}"
+            echo ""
+            if confirm "Start fresh installation of bt_simple panel?" "Start fresh installation of bt_simple panel?"; then
+                fresh_install
+            else
+                echo "Cancelled."
+                exit 0
+            fi
         else
-            echo "已取消"
-            exit 0
+            echo -e "${GREEN}未检测到已安装面板，将执行全新安装${PLAIN}"
+            echo ""
+            if confirm "是否开始全新安装 bt_simple 面板?" "Start fresh installation of bt_simple panel?"; then
+                fresh_install
+            else
+                echo "已取消"
+                exit 0
+            fi
         fi
     fi
 }

@@ -7,7 +7,8 @@
 2. `requirements.txt` 注释里出现的本地路径引用必须真实存在 —— 原注释引用了仓库里
    并不存在的 `security/audit-ignore.txt`（已改为指向真实存在的
    `.github/workflows/security-scan.yml`）；
-3. `README.md` 与 `文档/` 下含 `/` 的本地文件引用必须真实存在（白名单见下）；
+3. `README.md` / `README_cn.md` 与 `文档/` 下含 `/` 的本地文件引用必须真实存在
+   （白名单见下）；
 4. 内部草稿集中在 `文档/内部草稿/`，其 `README.md` 必须存在且声明「非正式文档」。
 
 ## 判定口径
@@ -95,8 +96,13 @@ def _read(path):
 
 
 def _iter_doc_markdown():
-    """`README.md` + `文档/` 下所有 markdown 文件（相对仓库根的 posix 路径）。"""
+    """`README.md` / `README_cn.md` + `文档/` 下所有 markdown（相对仓库根的 posix 路径）。
+
+    两份 README 都要扫：README.md 是英文主文档、README_cn.md 是中文文档，
+    只扫其中一份，另一份的图片/脚本/文档链死链就成了盲区。
+    """
     yield 'README.md'
+    yield 'README_cn.md'
     for base, dirs, files in os.walk(DOC_DIR):
         for fn in sorted(files):
             if fn.endswith('.md'):
@@ -219,7 +225,7 @@ class TestRequirementsCommentRefs(unittest.TestCase):
 
 
 class TestDocLocalRefs(unittest.TestCase):
-    """`README.md` 与 `文档/` 下含 `/` 的本地文件引用必须存在。"""
+    """`README.md` / `README_cn.md` 与 `文档/` 下含 `/` 的本地文件引用必须存在。"""
 
     def test_20_no_dead_local_refs(self):
         dead = collect_doc_dead_refs()

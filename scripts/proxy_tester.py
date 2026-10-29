@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-proxy_tester.py —— 检测 proxies.list 里 GitHub 代理节点的可用性与速度。
+proxy_tester.py —— 检测 proxies.list 里 GitHub 代理节点的可用性与速度，并自动排序。
 
 用法：
     python3 proxy_tester.py [proxies.list] [选项]
 
     python3 proxy_tester.py proxies.list
+    python3 proxy_tester.py proxies.list --no-save
     python3 proxy_tester.py proxies.list --output result.txt
     python3 proxy_tester.py proxies.list --speed-timeout 5 --content-timeout 30
 
@@ -17,6 +18,9 @@ proxy_tester.py —— 检测 proxies.list 里 GitHub 代理节点的可用性�
     * 单次失败会重试一次内容测试，避免一次丢包就把好节点判死刑。
     * 测速探针只看 5~10 秒内的速度；内容测试另做一次全量下载并验内容，
       因为有的节点测速返回 200 其实是错误页（实测中见过），只看状态码会骗人。
+    * 运行完毕后自动按速度降序重排并写回 proxies.list：
+      ⚠️ direct||rt 永远固定在第一位，其余节点可用优先、按有效速度降序排列。
+      保留原有文件的头部注释结构与格式规范。使用 --no-save 可只测速不保存。
 
 测试方法（与御风面板 github_download.sh 的规则一致）：
     1. 测速：经节点下载 bt_simple 的 master.tar.gz，只读 --speed-timeout 秒，
@@ -58,21 +62,74 @@ def proxy_url(prefix, url):
     return prefix + url
 
 
-def parse_list(path):
-    """读 proxies.list，返回 [(键名, 前缀, 作用域)]，保持文件顺序。"""
+def parse_list_with_header(path):
+    """读 proxies.list，返回 (header_lines, [(键名, 前缀, 作用域)])。
+    
+    header_lines 为遇到第一个数据行之前的所有行（含注释和空行），保持原样。
+    """
+    header_lines = []
     entries = []
+    in_header = True
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         for raw in f:
-            line = raw.strip().strip("\r").strip()
-            if not line or line.startswith("#"):
+            line = raw.rstrip("\r\n")
+            stripped = line.strip()
+            if in_header:
+                if not stripped or stripped.startswith("#"):
+                    header_lines.append(line)
+                    continue
+                else:
+                    in_header = False
+            if not stripped or stripped.startswith("#"):
                 continue
-            parts = line.split("|")
+            parts = stripped.split("|")
             key = parts[0].strip()
             prefix = parts[1].strip() if len(parts) > 1 else ""
             scope = parts[2].strip() if len(parts) > 2 else ""
             if key:
                 entries.append((key, prefix, scope))
+    return header_lines, entries
+
+
+def parse_list(path):
+    """读 proxies.list，返回 [(键名, 前缀, 作用域)]，保持文件顺序。"""
+    _, entries = parse_list_with_header(path)
     return entries
+
+
+def sort_entries(entries, test_rows):
+    """根据测速结果重排代理节点：
+
+    规则：
+    1. direct||rt 永远固定在第一位。
+    2. 其余非 direct 节点按有效速度降序排列（可用优先于不可用）；
+       速度相同或同为不可用时，保持原有的相对顺序。
+    """
+    speed_map = {r["key"]: (0 if r["usable"] else 1, -r["speed"]) for r in test_rows}
+    direct_entry = None
+    other_entries = []
+    for entry in entries:
+        if entry[0] == "direct":
+            direct_entry = entry
+        else:
+            other_entries.append(entry)
+
+    if direct_entry is None:
+        direct_entry = ("direct", "", "rt")
+
+    # 稳定排序：保持同等优先级/速度的相对原顺序
+    other_entries.sort(key=lambda e: speed_map.get(e[0], (1, 0.0)))
+    return [direct_entry] + other_entries
+
+
+def save_proxy_list(path, header_lines, entries):
+    """将头部注释与重排后的代理列表写回文件，强制 UTF-8 (无 BOM) 与 LF 换行。"""
+    out_lines = list(header_lines)
+    for key, prefix, scope in entries:
+        out_lines.append("%s|%s|%s" % (key, prefix, scope))
+    content = "\n".join(out_lines) + "\n"
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(content)
 
 
 def _open(url, timeout):
@@ -158,7 +215,7 @@ def fmt_speed(bps):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="检测 proxies.list 里 GitHub 代理节点的可用性与速度，降序输出。")
+    ap = argparse.ArgumentParser(description="检测 proxies.list 里 GitHub 代理节点的可用性与速度，降序输出并更新列表。")
     ap.add_argument("listfile", nargs="?", default="proxies.list", help="proxies.list 路径（默认 ./proxies.list）")
     ap.add_argument("--speed-timeout", type=float, default=10, help="测速探针限时秒数（默认 10）")
     ap.add_argument("--content-timeout", type=float, default=60, help="内容测试超时秒数（默认 60）")
@@ -166,10 +223,12 @@ def main():
     ap.add_argument("--speed-url", default=SPEED_URL, help="测速用的目标 URL")
     ap.add_argument("--content-url", default=CONTENT_URL, help="内容测试用的目标 URL")
     ap.add_argument("--output", default="", help="把结果表同时写到这个文件（默认只打印）")
+    ap.add_argument("--no-save", action="store_true", help="只测速打印，不修改 proxies.list 文件")
+    ap.add_argument("--save-to", default="", help="将排序后的代理列表另存为该文件（默认原地更新输入的 listfile）")
     args = ap.parse_args()
 
     try:
-        entries = parse_list(args.listfile)
+        header_lines, entries = parse_list_with_header(args.listfile)
     except OSError as e:
         print("读不到 %s：%s" % (args.listfile, e), file=sys.stderr)
         return 1
@@ -229,6 +288,16 @@ def main():
         with open(args.output, "w", encoding="utf-8") as f:
             f.write(out + "\n")
         print("结果已写入 %s" % args.output)
+
+    if not args.no_save:
+        target_path = args.save_to if args.save_to else args.listfile
+        sorted_entries = sort_entries(entries, rows)
+        try:
+            save_proxy_list(target_path, header_lines, sorted_entries)
+            print("已按测速结果将排序后的代理写入 %s（direct 固定在首位，其余 %d 个节点按速度降序）。"
+                  % (target_path, len(sorted_entries) - 1))
+        except OSError as e:
+            print("写入 %s 失败：%s" % (target_path, e), file=sys.stderr)
     return 0
 
 

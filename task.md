@@ -29,3 +29,13 @@
 - [x] **任务 5：自动化测试覆盖与全量验证**
   - [x] 5.1 编写/更新针对代理节点、下载坏文件拦截、curl 依赖助手单包安装、php 核心依赖探测及 mysql 下载 URL 的测试用例
   - [x] 5.2 运行测试套件验证修复成果，清理测试临时文件，确保全绿
+- [x] **任务 6：代理测速排序与单一真源列表更新**
+  - [x] 6.1 改造 `scripts/proxy_tester.py`：新增保留头部注释的读写机制，测速完成后自动按速度降序重排代理（锁定 `direct||rt` 始终置顶），支持 `--no-save` 参数控制
+  - [x] 6.2 根据测试机实测结果更新 `scripts/proxies.list`：确保 `direct||rt` 为首位，其后依次为高可用高速代理（`github.chenc.dev`、`ghfast.top`、`gh-proxy.org`）及其他备选节点
+  - [x] 6.3 同步更新 `deploy.sh` 中的 `YF_BOOTSTRAP_PROXY_LIST` 引导副本，保证与 `proxies.list` 运行时子集完全一致
+  - [x] 6.4 运行 `testsuite/test_deploy_bootstrap.py` 等测试用例，全量验证排序逻辑与单一真源守卫
+- [x] **任务 7：`deploy.sh` 升级改造为中英文双语版**
+  - [x] 7.1 设计双语切换机制与多语言辅助函数：支持参数（`--lang=en/zh`）、环境变量（`YF_LANG`）与交互式首选，升级 `log_info`/`log_warn`/`log_error` 支持双语参数，新增 `msg_i18n` 辅助函数
+  - [x] 7.2 改造主交互流程与终端展示：对 `show_banner`、主菜单（全新安装/迁移/覆盖升级等）、`confirm` 确认交互全面进行中英双语国际化
+  - [x] 7.3 改造安装过程核心日志与安装完成信息：对 `show_panel_info`（面板登录地址、默认账号密码、运维提示等）进行双语输出，并将选定语言持久化写入 `${PANEL_DIR}/data/language.pl`
+  - [x] 7.4 严密守卫与测试验证：运行 `testsuite/test_deploy_bootstrap.py` 确保 Ed25519 校验器、发布公钥、代理列表等逐字节守卫全部 100% 通过

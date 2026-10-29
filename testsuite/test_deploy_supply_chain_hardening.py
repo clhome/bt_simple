@@ -8,7 +8,8 @@
   2. deploy.sh 中**不存在**「下载脚本后管道执行」形态（`curl ... | sh` / `| bash`）；
   3. acme.sh 安装必须先 sha256 校验通过再执行，校验和为空或校验失败一律拒绝；
   4. `-k` / `--no-check-certificate` 附近有理由注释（老系统 CA 缺失 + 后续验签兜底），
-     代理列表处注明「仅作传输加速、关键产物必须验签」，README 有「安装前校验」小节。
+     代理列表处注明「仅作传输加速、关键产物必须验签」，README 有「安装前校验」小节
+     （中英两份 README 都要有，各用自己的语言标题）。
 
 变异自证见 `test/p0_supply_mutation_probe.py`（把上述修复逐条改回坏写法，守卫须全红）。
 """
@@ -19,6 +20,14 @@ import unittest
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 DEPLOY = os.path.join(ROOT, 'deploy.sh')
 README = os.path.join(ROOT, 'README.md')
+README_CN = os.path.join(ROOT, 'README_cn.md')
+#: 「安装前校验」小节标题按文档语言给出：README.md 是英文主文档、README_cn.md 是
+#: 中文文档，两份都要有各自语言的标题（只钉中文标题会让英文主文档的这条约束
+#: 静默失效 —— README.md 译成英文后本用例就是这么变红的）。
+PREINSTALL_TITLE = (
+    ('README.md', README, 'Pre-Installation Verification'),
+    ('README_cn.md', README_CN, '安装前校验'),
+)
 RELEASE_WF = os.path.join(ROOT, '.github', 'workflows', 'release.yml')
 
 #: 「下载脚本后管道执行」的判定：管道右侧是 sh/bash（可带 sudo）。
@@ -127,13 +136,14 @@ class DeploySupplyChainHardeningTest(unittest.TestCase):
                       '代理列表处未注明「关键产物必须验签」')
 
     def test_05_readme_has_preinstall_verification(self):
-        """README 必须有「安装前校验」小节，给出 sha256 核对命令与期望值来源。"""
-        readme = _read(README)
-        self.assertIn('安装前校验', readme, 'README 缺少「安装前校验」小节')
-        self.assertIn('sha256sum deploy.sh', readme,
-                      'README 缺少 `sha256sum deploy.sh` 核对命令')
-        self.assertIn('deploy.sh.sha256', readme,
-                      'README 未说明期望值来自 Release 的 deploy.sh.sha256')
+        """两份 README 都必须有「安装前校验」小节，给出 sha256 核对命令与期望值来源。"""
+        for name, path, title in PREINSTALL_TITLE:
+            readme = _read(path)
+            self.assertIn(title, readme, '%s 缺少「%s」小节' % (name, title))
+            self.assertIn('sha256sum deploy.sh', readme,
+                          '%s 缺少 `sha256sum deploy.sh` 核对命令' % name)
+            self.assertIn('deploy.sh.sha256', readme,
+                          '%s 未说明期望值来自 Release 的 deploy.sh.sha256' % name)
 
     def test_06_release_workflow_publishes_deploy_sh_sha256(self):
         """发布工作流必须自动生成 deploy.sh.sha256 并作为 Release 附件上传。"""
