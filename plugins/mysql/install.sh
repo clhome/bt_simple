@@ -26,6 +26,11 @@ fi
 curPath=${PLUGIN_PATH}
 cd ${PLUGIN_PATH}
 
+# 宿主系统配置自愈：处理 Debian/Ubuntu 上 mysql-common 残留 /etc/mysql/my.cnf 缺失 conf.d 目录的问题
+if [ -d /etc/mysql ] || [ -f /etc/mysql/my.cnf ]; then
+	mkdir -p /etc/mysql/conf.d /etc/mysql/mysql.conf.d 2>/dev/null
+fi
+
 action="${1//$'\r'/}"
 type="${2//$'\r'/}"
 is_fast=false
@@ -545,6 +550,11 @@ if [ "${action}" == "install" ] || [ "${action}" == "update" ] || [ "${action}" 
     fi
 
     if [ -d $serverPath/mysql ]; then
+        # 再次确保宿主 /etc/mysql 缺失目录已被补齐（防止第三方 apt 触发器重建残损 my.cnf 导致自检 abort）
+        if [ -d /etc/mysql ] || [ -f /etc/mysql/my.cnf ]; then
+            mkdir -p /etc/mysql/conf.d /etc/mysql/mysql.conf.d 2>/dev/null
+        fi
+
         # 执行初始化与自启动服务写入
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}

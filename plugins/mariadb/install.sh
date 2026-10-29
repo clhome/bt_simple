@@ -39,6 +39,11 @@ unset _yf_gh
 # cd /www/server/yufeng_panel && source bin/activate && python3 plugins/mariadb/index.py install_pre_inspection
 
 
+# 宿主系统配置自愈：处理 Debian/Ubuntu 上 mysql-common 残留 /etc/mysql/my.cnf 缺失 conf.d 目录的问题
+if [ -d /etc/mysql ] || [ -f /etc/mysql/my.cnf ]; then
+	mkdir -p /etc/mysql/conf.d /etc/mysql/mysql.conf.d 2>/dev/null
+fi
+
 action=$1
 type="${2//$'\r'/}"
 

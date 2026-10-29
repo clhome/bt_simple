@@ -191,7 +191,7 @@ class _Runner(object):
     def _tcp_style(argv):
         """验证 TCP 的那一次 argv 会带 host=127.0.0.1（临时 option 文件里的行）。"""
         for a in argv:
-            if a.startswith('--defaults-extra-file='):
+            if a.startswith(('--defaults-file=', '--defaults-extra-file=')):
                 path = a.split('=', 1)[1]
                 try:
                     with open(path, encoding='utf-8') as fh:

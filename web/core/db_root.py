@@ -318,7 +318,7 @@ def run_sql(mysql_bin, sql, myconf=None, pwd=None, socket_file=None, port=None,
 
     * `pwd is None`：无凭证连接（root 空口令 / `--skip-grant-tables` 场景），
       走 `--defaults-file=<myconf>`（继承 my.cnf 的 socket，与面板一致）；
-    * `pwd` 非空：用 0600 临时 option 文件（`--defaults-extra-file`），口令不进 argv。
+    * `pwd` 非空：用 0600 临时 option 文件（`--defaults-file` 隔离宿主系统配置），口令不进 argv。
     """
     run = run or _default_run
     cnf = None
@@ -336,8 +336,11 @@ def run_sql(mysql_bin, sql, myconf=None, pwd=None, socket_file=None, port=None,
                 argv.append('--port=' + str(port))
             argv.extend(['-u', 'root'])
         else:
+            # 必须用 --defaults-file 而不是 --defaults-extra-file：
+            # --defaults-file 保证 mysql 客户端只读该临时配置，完全隔离宿主机可能存在的
+            # 残损配置（如 Debian/Ubuntu 上 mysql-common 导致缺失 /etc/mysql/conf.d 触发 abort）
             cnf = _write_defaults_file(pwd, socket_file=socket_file, port=port, host=host)
-            argv.append('--defaults-extra-file=' + cnf)
+            argv.append('--defaults-file=' + cnf)
         argv.extend(['-e', sql])
         rc, out, err = run(argv)
     except Exception as e:

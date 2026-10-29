@@ -54,7 +54,7 @@ jobs:
         if systemctl is-active --quiet mysql.service; then sudo systemctl stop mysql.service; fi
         if systemctl is-enabled --quiet mysql.service; then sudo systemctl disable mysql.service; fi
         _pkgs=""
-        for _p in mysql-server mysql-server-8.0 mysql-server-core-8.0; do
+        for _p in mysql-server mysql-server-8.0 mysql-server-core-8.0 mysql-client mysql-client-8.0 mysql-client-core-8.0 mysql-common; do
           if dpkg-query -W -f='${Status}' "$_p" 2>/dev/null | grep -q 'install ok installed'; then
             _pkgs="$_pkgs $_p"
           fi
@@ -63,7 +63,11 @@ jobs:
           echo "卸载镜像预装包：$_pkgs"
           sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y $_pkgs
         fi
-        sudo rm -rf /var/lib/mysql /etc/mysql
+        if command -v update-alternatives >/dev/null 2>&1 && update-alternatives --query my.cnf >/dev/null 2>&1; then
+          sudo update-alternatives --remove-all my.cnf
+        fi
+        sudo rm -rf /var/lib/mysql /etc/mysql /etc/my.cnf
+        sudo mkdir -p /etc/mysql/conf.d /etc/mysql/mysql.conf.d
         sudo systemctl daemon-reload
         if ss -ltn | grep -q ':3306 '; then
           echo "::error::清理后 3306 仍被占用，插件实例无法监听"

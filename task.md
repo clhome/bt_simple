@@ -964,3 +964,42 @@ CI 的 mysql57 / mysql80 job 不再编译 OpenSSL（省 5~15 分钟/次），
   PHP 侧才有基线哈希）。如需强校验，要另加官方哈希源。
 - **跨大版本不做一键升级**（6.x→7.x、7.x→8.x）：RDB/AOF 与配置项差异大，保留「备份后卸载重装」。
 - 7.4.8 / 8.4.2 / 8.6.3 这类「比在售系列新」的实例只标「已下架」，面板**不会**引导降级。
+
+---
+
+# 任务：修复 GitHub Actions MySQL 5.7 / 8.0 安装报错（/etc/mysql/conf.d 缺失导致 defaults 处理中止）
+
+## 背景与根因定位
+- **问题现象**：
+  GitHub Actions CI 跑 `python-app-mysql57.yml` 和 `python-app-mysql80.yml` 时，在执行安装后的 `fix_db_access` 与 `self_check` 时报错：
+  `连接自检失败: 写入口令失败: rc=1 mysql: Can't read dir of '/etc/mysql/conf.d/' (OS errno 2 - No such file or directory) mysql: [ERROR] Stopped processing the 'includedir' directive in file /etc/mysql/my.cnf at line 28. mysql: [ERROR] Fatal error in defaults handling. Program aborted!`
+- **根本原因**：
+  1. **配置隔离缺失**：`web/core/db_root.py` 中带口令执行 SQL（`run_sql(..., pwd=...)` 与 `verify_pwd`）时使用了 `--defaults-extra-file=<temp_cnf>`。MySQL 规范要求 `--defaults-extra-file` 先读取系统全局默认配置（`/etc/my.cnf`、`/etc/mysql/my.cnf` 等）再追加读取。一旦宿主机系统存在包含不存在目录（如 `/etc/mysql/conf.d/`）的残缺配置，客户端在初始化 options 阶段直接 Fatal error abort。
+  2. **宿主环境残缺**：CI 环境卸载预装 `mysql-server` 并 `rm -rf /etc/mysql` 后，未彻底 purge `mysql-common`；后续安装系统依赖触发 alternatives 重新生成了 `/etc/mysql/my.cnf` 软链，但缺失 `conf.d` 目录，导致外部配置损坏。
+  3. **插件宿主自愈不足**：插件安装脚本与自愈逻辑未对宿主环境缺失的 `conf.d` 目录进行兜底补齐。
+
+## 任务拆解 (Task List)
+- [x] **任务 1**：加固 `web/core/db_root.py` 与单元测试
+  - 将 `run_sql()` 中带口令的 option 文件由 `--defaults-extra-file=` 升级为 `--defaults-file=`，实现与宿主机外部配置的完全隔离；
+  - 更新 `testsuite/test_db_root_pwd_matrix.py`，兼容 `--defaults-file=` 解析。
+- [x] **任务 2**：加固插件宿主自愈（`plugins/mysql/install.sh` & `plugins/mysql/index.py`）
+  - 在 `install.sh` 执行安装、修复、自检前增加宿主系统 `/etc/mysql` 坏配置自愈检查，若存在 `/etc/mysql/my.cnf` 或 `/etc/mysql` 则自动补齐 `mkdir -p /etc/mysql/conf.d /etc/mysql/mysql.conf.d`；
+  - 在 `plugins/mysql/index.py` 的 `upgradeSelfHealing` 中增加宿主坏配置目录补齐自愈。
+- [x] **任务 3**：加固 CI 工作流（`.github/workflows/python-app-mysql57.yml` & `python-app-mysql80.yml`）
+  - 彻底 purge 镜像自带的 `mysql-common`、`mysql-client*`，清理 alternatives 残留；
+  - 增加 `/etc/mysql/conf.d` 兜底保护，严格遵循门禁规范（严禁裸 `|| true` 与 `continue-on-error`）。
+- [x] **任务 4**：本地全量门禁与关联测试验证
+  - 运行 `test_db_root_pwd_matrix.py`、`test_ci_workflows_hardening.py`、`test_mysql_instance_ownership.py`、`test_mysql_root_pwd_safety.py` 等测试用例，确保全部通过。
+
+## 验证结论
+- **单元与集成测试**：
+  - `testsuite/test_ci_workflows_hardening.py`：26 项测试全绿通过（验证没有掩盖失败的 `|| true` 或 `continue-on-error`，触发路径保持严格一致）。
+  - `testsuite/test_db_root_pwd_matrix.py`：18 项测试全绿通过（验证 `--defaults-file=` 能够正确传递并隔离 option 文件）。
+  - `testsuite/test_mysql_instance_ownership.py` + `testsuite/test_mysql_root_pwd_safety.py`：53 项测试全绿通过。
+  - `testsuite/test_db_plugin_hardening.py` + `testsuite/test_mysql_min_install_branch.py`：测试全绿通过。
+- **纵深防御闭环**：
+  1. 代码层：MySQL 客户端连接改用 `--defaults-file=`，不再加载系统的 `/etc/my.cnf` 或 `/etc/mysql/my.cnf`，即使系统存在坏配置也不会受影响；
+  2. 插件层：安装脚本和自愈函数中检测到宿主 `/etc/mysql` 存在时自动补齐缺失的 `conf.d` 和 `mysql.conf.d` 目录，彻底消除 `Fatal error in defaults handling`；
+  3. CI 环境层：在 runner 环境中彻底 purge `mysql-common` 与 `mysql-client*`，并清理 alternatives 残留软链，彻底杜绝半残文件出现。
+
+

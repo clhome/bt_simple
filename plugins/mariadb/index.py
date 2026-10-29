@@ -413,7 +413,19 @@ def makeInitRsaKey(version=''):
             yf.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pub')
 
 
+def healHostMysqlConf():
+    """宿主环境配置自愈：处理 Debian/Ubuntu 上 mysql-common 残留 /etc/mysql/my.cnf 缺失 conf.d 目录的问题。"""
+    try:
+        if os.path.exists('/etc/mysql/my.cnf') or os.path.isdir('/etc/mysql'):
+            for sub in ('/etc/mysql/conf.d', '/etc/mysql/mysql.conf.d'):
+                if not os.path.exists(sub):
+                    os.makedirs(sub, exist_ok=True)
+    except Exception as _e:
+        _log.debug('[mariadb] healHostMysqlConf 异常已忽略: %s', _e)
+
+
 def initDreplace(version=''):
+    healHostMysqlConf()
     initd_tpl = getInitdTpl(version)
 
     mysql_conf_dir = getServerDir() + '/etc'
@@ -833,6 +845,7 @@ def selfCheck(version=''):
     返回值必须是 **dict**（`{'status': bool, 'msg': str}`）：调用方（`fix_db_access`
     与 `self_check` 命令行）都按 dict 取值，想输出 JSON 由调用方自己 `json.dumps`。
     """
+    healHostMysqlConf()
     own = instanceOwnership()
     if own['status'] in ('foreign_only', 'mixed', 'stale_ours'):
         return _result(False, '实例异常: ' + own['reason'])
