@@ -69,7 +69,11 @@ yf_ext_ensure_pkgconfig() {
 				else
 					_cand_err=$(DEBIAN_FRONTEND=noninteractive apt-get install -y "${_cand}" 2>&1) || true
 				fi
-				_last_err="${_last_err:+$_last_err"$'\n'--- ${_cand} ---$'\n'}${_cand_err}"
+				if [ -n "${_last_err}" ]; then
+					_last_err="${_last_err}"$'\n'"--- ${_cand} ---"$'\n'"${_cand_err}"
+				else
+					_last_err="${_cand_err}"
+				fi
 				if yf_pkgconfig_has "${_mod}" "${_min}"; then
 					break
 				fi
@@ -85,7 +89,11 @@ yf_ext_ensure_pkgconfig() {
 				else
 					_cand_err=$("${_mgr}" install -y "${_cand}" 2>&1) || true
 				fi
-				_last_err="${_last_err:+$_last_err"$'\n'--- ${_cand} ---$'\n'}${_cand_err}"
+				if [ -n "${_last_err}" ]; then
+					_last_err="${_last_err}"$'\n'"--- ${_cand} ---"$'\n'"${_cand_err}"
+				else
+					_last_err="${_cand_err}"
+				fi
 				if yf_pkgconfig_has "${_mod}" "${_min}"; then
 					break
 				fi
@@ -146,17 +154,27 @@ yf_php_ensure_core_build_deps() {
 	local _apt_pkgs="pkg-config libxml2-dev libsqlite3-dev zlib1g-dev libssl-dev"
 	local _rpm_pkgs="pkgconfig libxml2-devel sqlite-devel zlib-devel openssl-devel"
 
+	local _install_log=""
 	case "${_mgr}" in
 		apt)
 			# 新机或缓存过期时预先更新索引，避免因缓存导致依赖安装失败（P1-2）
-			DEBIAN_FRONTEND=noninteractive apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1 || true
+			_cand_out=$(DEBIAN_FRONTEND=noninteractive apt-get update -y -o Acquire::Languages=none 2>&1) || true
+			if [ -n "${_cand_out}" ]; then
+				if [ -n "${_install_log}" ]; then _install_log="${_install_log}"$'\n'"${_cand_out}"; else _install_log="${_cand_out}"; fi
+			fi
 			for _p in ${_apt_pkgs}; do
-				DEBIAN_FRONTEND=noninteractive apt-get install -y "${_p}" >/dev/null 2>&1 || true
+				_cand_out=$(DEBIAN_FRONTEND=noninteractive apt-get install -y "${_p}" 2>&1) || true
+				if [ -n "${_cand_out}" ]; then
+					if [ -n "${_install_log}" ]; then _install_log="${_install_log}"$'\n'"${_cand_out}"; else _install_log="${_cand_out}"; fi
+				fi
 			done
 			;;
 		dnf|yum)
 			for _p in ${_rpm_pkgs}; do
-				"${_mgr}" install -y "${_p}" >/dev/null 2>&1 || true
+				_cand_out=$("${_mgr}" install -y "${_p}" 2>&1) || true
+				if [ -n "${_cand_out}" ]; then
+					if [ -n "${_install_log}" ]; then _install_log="${_install_log}"$'\n'"${_cand_out}"; else _install_log="${_cand_out}"; fi
+				fi
 			done
 			;;
 		*)
@@ -183,6 +201,11 @@ yf_php_ensure_core_build_deps() {
 	if [ "${#_still_missing[@]}" -eq 0 ]; then
 		echo "[deps] PHP 主构建核心依赖已就绪" >&2
 		return 0
+	fi
+
+	if [ -n "${_install_log}" ]; then
+		echo "[deps][WARN] 包管理器输出摘要：" >&2
+		printf '%s\n' "${_install_log}" | tail -n 10 | sed 's/^/    /' >&2
 	fi
 
 	echo "[deps][ERROR] PHP 主构建核心开发依赖缺失: ${_still_missing[*]}，构建前中止。" >&2

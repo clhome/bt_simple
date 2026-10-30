@@ -274,8 +274,8 @@ if [ "$OSNAME" == "debian" ];then
 		if [ -f /etc/os-release ]; then
 			codename=$(grep '^VERSION_CODENAME=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"'\'' ')
 		fi
-		if [ -z "${codename}" ]; then
-			codename=$(lsb_release -sc 2>/dev/null || true)
+		if [ -z "${codename}" ] && command -v lsb_release >/dev/null 2>&1; then
+			codename=$(lsb_release -sc 2>/dev/null)
 		fi
 		if [ -z "${codename}" ]; then
 			local _deb_ver
