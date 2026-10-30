@@ -3183,7 +3183,13 @@ var lan = {
 			"py_msg_2c1843": "Task name duplicated",
 			"py_msg_f47dfc": "The task list is already up to date; no missing tasks need to be synchronized",
 			"cron_sync_rejected": "Sync rejected",
-			"cron_sync_rejected_tip": "The task identifier contains illegal characters (only A-Za-z0-9_.- are allowed, up to 64). Syncing will be rejected; edit the task and save it again to generate a valid identifier."
+			"cron_sync_rejected_tip": "The task identifier contains illegal characters (only A-Za-z0-9_.- are allowed, up to 64). Syncing will be rejected; edit the task and save it again to generate a valid identifier.",
+			"emergency_stop": "Emergency Stop",
+			"confirm_emergency_stop": "Are you sure you want to terminate the running task [{1}]?",
+			"task_not_running": "Task is not running or has already finished",
+			"task_terminated_success": "Successfully terminated task (PID: {1})",
+			"task_terminated_failed": "Failed to terminate task: {1}",
+			"terminating_task": "Terminating task..."
 		},
 
 	"files": {

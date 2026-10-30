@@ -3183,7 +3183,13 @@ var lan = {
 			"py_msg_2c1843":"La mission « Nom » est en double",
 			"py_msg_f47dfc":"La liste des missions est à jour ; aucune mission manquante ne doit être synchronisée.",
 			"cron_sync_rejected": "Synchro refusée",
-			"cron_sync_rejected_tip": "L'identifiant de la tâche contient des caractères illégaux (seuls A-Za-z0-9_.- sont autorisés, 64 au maximum). La synchronisation sera refusée ; ouvrez la tâche, modifiez-la et enregistrez-la à nouveau pour générer un identifiant conforme."
+			"cron_sync_rejected_tip": "L'identifiant de la tâche contient des caractères illégaux (seuls A-Za-z0-9_.- sont autorisés, 64 au maximum). La synchronisation sera refusée ; ouvrez la tâche, modifiez-la et enregistrez-la à nouveau pour générer un identifiant conforme.",
+			"emergency_stop": "Arrêt d'urgence",
+			"confirm_emergency_stop": "Voulez-vous vraiment arrêter la tâche en cours [{1}] ?",
+			"task_not_running": "La tâche n'est pas en cours d'exécution ou est déjà terminée",
+			"task_terminated_success": "Tâche arrêtée avec succès (PID : {1})",
+			"task_terminated_failed": "Échec de l'arrêt de la tâche : {1}",
+			"terminating_task": "Arrêt de la tâche en cours..."
 		},
 
 	"files": {

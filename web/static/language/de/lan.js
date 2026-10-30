@@ -3183,7 +3183,13 @@ var lan = {
 			"py_msg_2c1843": "AufgabeNameWiederholen",
 			"py_msg_f47dfc": "Aktuelle AufgabeListeist bereits aktuell, keine fehlenden Aufgaben zu synchronisieren",
 			"cron_sync_rejected": "Sync abgelehnt",
-			"cron_sync_rejected_tip": "Die Aufgabenkennung enthält unerlaubte Zeichen (nur A-Za-z0-9_.- erlaubt, höchstens 64). Die Synchronisierung wird deshalb abgelehnt; bitte die Aufgabe bearbeiten und erneut speichern, um eine gültige Kennung zu erzeugen."
+			"cron_sync_rejected_tip": "Die Aufgabenkennung enthält unerlaubte Zeichen (nur A-Za-z0-9_.- erlaubt, höchstens 64). Die Synchronisierung wird deshalb abgelehnt; bitte die Aufgabe bearbeiten und erneut speichern, um eine gültige Kennung zu erzeugen.",
+			"emergency_stop": "Not-Aus",
+			"confirm_emergency_stop": "Möchten Sie die laufende Aufgabe [{1}] wirklich abbrechen?",
+			"task_not_running": "Die Aufgabe läuft nicht oder ist bereits beendet",
+			"task_terminated_success": "Aufgabe erfolgreich beendet (PID: {1})",
+			"task_terminated_failed": "Aufgabe konnte nicht beendet werden: {1}",
+			"terminating_task": "Aufgabe wird beendet..."
 		},
 
 	"files": {

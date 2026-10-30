@@ -3183,7 +3183,13 @@ var lan = {
 			"py_msg_2c1843": "Il nome dell'attività è duplicato",
 			"py_msg_f47dfc": "L'elenco delle attività attuali è già aggiornato; non ci sono attività mancanti da sincronizzare.",
 			"cron_sync_rejected": "Sync rifiutata",
-			"cron_sync_rejected_tip": "L'identificatore dell'attività contiene caratteri non validi (sono ammessi solo A-Za-z0-9_.-, massimo 64). La sincronizzazione verrà rifiutata; apri l'attività, modificala e salva di nuovo per generare un identificatore valido."
+			"cron_sync_rejected_tip": "L'identificatore dell'attività contiene caratteri non validi (sono ammessi solo A-Za-z0-9_.-, massimo 64). La sincronizzazione verrà rifiutata; apri l'attività, modificala e salva di nuovo per generare un identificatore valido.",
+			"emergency_stop": "Arresto di emergenza",
+			"confirm_emergency_stop": "Sei sicuro di voler interrompere l'attività in esecuzione [{1}]?",
+			"task_not_running": "L'attività non è in esecuzione o è già terminata",
+			"task_terminated_success": "Attività interrotta con successo (PID: {1})",
+			"task_terminated_failed": "Impossibile terminare l'attività: {1}",
+			"terminating_task": "Interruzione dell'attività in corso..."
 		},
 
 	"files": {

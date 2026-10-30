@@ -3,6 +3,7 @@
 ## 项目概况与目标
 
 在御风面板的计划任务模块中，为任务执行日志弹窗增加【紧急终止】红色按钮：
+
 1. 界面呈现：在任务执行日志弹窗顶部右上角新增红色【紧急终止】按钮，并增加确认防误触交互；
 2. 进程发现：根据任务 ID 精准查找当前正在运行的主进程 PID（结合 PID 文件与 `/proc` 进程特征扫描双轨兜底）；
 3. 进程剿灭：彻底终止目标主进程及其派生的所有子孙进程树（SIGTERM 优雅终止 + 超时 SIGKILL / psutil / taskkill 强制终结），清理 PID 文件并记录终止日志；
@@ -28,8 +29,10 @@
   - [x] 1.4 优化 `getShell`：在生成的脚本头部自动记录 `$$` 至 PID 文件并在退出时清理
 - [x] **任务 2：后端路由与控制器接口增加 (`web/admin/crontab/__init__.py`)**
   - [x] 2.1 增加 `/crontab/kill_task` POST 路由与登录权限校验，安全处理异常传参
-- [x] **任务 3：多语言词条补齐 (`web/static/language/*/template.crontab.json`)**
-  - [x] 3.1 在 zh-CN、zh-TW、en、de, fr, it 中补全紧急终止、确认提示、任务未运行、终止成功等多语言文案
+- [x] **任务 3：多语言词条补齐与真源收敛 (`web/static/language/*/lan.js`)**
+  - [x] 3.1 在 zh-CN、zh-TW、en、de, fr, it 中补全紧急终止、确认提示、任务未运行、终止成功等多语言文案 (`template.crontab.json`)
+  - [x] 3.2 补全单一真源 `lan.js`（zh-CN, zh-TW, en, de, fr, it），收敛双载体分歧
+  - [x] 3.3 运行 `export_lang_carriers.py` 与 `verify_i18n.py` 确保静态校验 100% 通过（12/12 PASS）
 - [x] **任务 4：前端界面与交互实现 (`web/static/app/crontab.js`)**
   - [x] 4.1 在 `getLogs` 日志弹窗顶部右侧增加红色【紧急终止】按钮 DOM
   - [x] 4.2 增加防误触 `layer.confirm` 确认弹窗与 `killTask` 前端调用逻辑
