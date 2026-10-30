@@ -79,6 +79,20 @@ VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -
 VERSION=8.0.46
 Install_mysql()
 {
+	# 磁盘容量智能预检（P1-8 根治：大源码构建前检测剩余空间，防止 85% 因磁盘不足崩溃）
+	local _req_kb=10485760 # 10GB
+	local _target_dir="${serverPath}"
+	[ -d "${_target_dir}" ] || _target_dir="/www"
+	[ -d "${_target_dir}" ] || _target_dir="/"
+	local _free_kb=$(df -Pk "${_target_dir}" 2>/dev/null | awk 'NR==2 {print $4}')
+	if [ -n "${_free_kb}" ] && [ "${_free_kb}" -lt "${_req_kb}" ] 2>/dev/null; then
+		local _lack_mb=$(( (_req_kb - _free_kb) / 1024 ))
+		local _cur_free_mb=$(( _free_kb / 1024 ))
+		echo "[ERROR] 编译安装 MySQL 需要至少 10GB 磁盘空闲空间，当前目标路径 (${_target_dir}) 仅剩 ${_cur_free_mb}MB，缺少 ${_lack_mb}MB！" >&2
+		echo "        为防止耗费数十小时后在构建中途崩溃，已提前安全中止构建。请清理磁盘或扩容后重试。" >&2
+		exit 1
+	fi
+
 	mkdir -p ${mysqlDir}
 	echo '正在安装脚本文件...'
 
@@ -192,11 +206,11 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		echo $WHERE_DIR_GPP
 	fi
 
-	if [ "$OSNAME" == "ubuntu" ];then
-		# 构建依赖安装与发行版无关（《问题报告》P2-3）：
-		# 旧实现把整段 apt 安装钉在 `VERSION_ID == 18.04` 分支里，Ubuntu 22.04/24.04
-		# 上一条都不装，cmake 走到 rpc.cmake:113 就报 `Could not find rpc/rpc.h` 必失败。
-		# 这三个包名在 22.04/24.04 上同样有效（libtirpc-dev 1.3.4 真机实测可装）。
+	if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "debian" ];then
+		# 构建依赖安装与发行版无关（Ubuntu / Debian 通用，P1-7 根因修复）：
+		# 旧实现把整段 apt 安装钉在 ubuntu 分支里，Debian 13 (trixie) 走不到，
+		# 导致一条都不装，cmake 走到 rpc.cmake:113 就报 `Could not find rpc/rpc.h` 必失败。
+		# 这三个包名在 Debian 11/12/13 与 Ubuntu 各版本上均有效且为必须。
 		# 保留“失败即中止”：缺构建依赖时后续 cmake 必死，早失败比晚失败看得清。
 		for _pkg in libudev-dev libtirpc-dev libssl-dev; do
 			if ! apt install -y "$_pkg" >/dev/null 2>&1; then

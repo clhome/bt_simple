@@ -457,13 +457,19 @@ if [ "${action}" == "uninstall" ]; then
 	if [ -n "${type}" ] && [ -f "${curPath}/versions/${type}/install.sh" ]; then
 		yf_version_step "${action}" "${type}" "${curPath}/versions/${type}/install.sh" || exit $?
 	else
-		# 兜底删除安全断言（P1-5）：防止根路径或异常 serverPath 导致误删系统目录
-		if [ -n "${serverPath}" ] && [ "${serverPath}" != "/" ] && [ -d "${serverPath}/mariadb" ]; then
+		# 兜底删除安全断言与幂等支持（P1-2, P1-3）
+		# 1. 严格断言 serverPath 必须是 /www/server 或以 /www/server/ 为前缀，防跨目录越界删除系统目录
+		if [ -z "${serverPath}" ] || [ "${serverPath}" = "/" ] || ( [ "${serverPath}" != "/www/server" ] && [[ ! "${serverPath}" =~ ^/www/server/ ]] ); then
+			echo "[ERROR] 安全拦截：serverPath 路径异常 (${serverPath})，拒绝执行删除操作！" >&2
+			exit 1
+		fi
+
+		# 2. 幂等性保证：目录不存在且无残留进程时视为已卸载完成，正常返回，不误报错误
+		if [ ! -d "${serverPath}/mariadb" ]; then
+			echo "MariaDB 安装目录不存在 (${serverPath}/mariadb)，已处于已卸载状态"
+		else
 			rm -rf "${serverPath}/mariadb"
 			echo '卸载完成'
-		else
-			echo "[ERROR] 路径异常或 serverPath 无效: ${serverPath}/mariadb，拒绝执行删除" >&2
-			exit 1
 		fi
 	fi
 

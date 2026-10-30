@@ -83,6 +83,86 @@ ghfast.top|https://ghfast.top/|both
         self.assertEqual(sorted_res[1].key, 'gh-fast', '高速节点排在第二')
         self.assertEqual(sorted_res[2].key, 'gh-slow', '慢速节点排在第三')
 
+    def test_03_default_cli_run_does_not_modify_file(self):
+        """P1-9 核心断言：默认不传 --save 时，不论测速结果如何，原文件必须字节不变。"""
+        import sys
+        from unittest.mock import patch
+        sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+        import proxy_tester
+
+        sample = """# Header
+direct||rt
+# Node A comment
+nodeA|https://nodeA/|both
+nodeB|https://nodeB/|both
+"""
+        test_file = os.path.join(self.tmp, 'proxies.list')
+        with io.open(test_file, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(sample)
+
+        def fake_speed(url, timeout):
+            if 'nodeB' in url:
+                return 200, 1000, 500000.0, ''
+            if 'nodeA' in url:
+                return 200, 1000, 200000.0, ''
+            return 200, 1000, 100000.0, ''
+
+        def fake_content(url, timeout):
+            return True, 1000, 100000.0, 'ok'
+
+        with patch.object(sys, 'argv', ['proxy_tester.py', test_file]), \
+             patch.object(proxy_tester, 'speed_probe', side_effect=fake_speed), \
+             patch.object(proxy_tester, 'content_test', side_effect=fake_content), \
+             patch('sys.stdout', io.StringIO()):
+            rc = proxy_tester.main()
+            self.assertEqual(rc, 0)
+
+        with io.open(test_file, 'r', encoding='utf-8') as f:
+            after_content = f.read()
+
+        self.assertEqual(sample, after_content, '不加 --save 时，源文件内容必须保持完全一致')
+
+    def test_04_save_cli_run_writes_file_and_keeps_comments(self):
+        """传入 --save 时，文件应按测速排序写回，且行间注释完整保留。"""
+        import sys
+        from unittest.mock import patch
+        sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+        import proxy_tester
+
+        sample = """# Header
+direct||rt
+# Node A comment
+nodeA|https://nodeA/|both
+nodeB|https://nodeB/|both
+"""
+        test_file = os.path.join(self.tmp, 'proxies.list')
+        with io.open(test_file, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(sample)
+
+        def fake_speed(url, timeout):
+            if 'nodeB' in url:
+                return 200, 1000, 500000.0, ''
+            if 'nodeA' in url:
+                return 200, 1000, 200000.0, ''
+            return 200, 1000, 100000.0, ''
+
+        def fake_content(url, timeout):
+            return True, 1000, 100000.0, 'ok'
+
+        with patch.object(sys, 'argv', ['proxy_tester.py', test_file, '--save']), \
+             patch.object(proxy_tester, 'speed_probe', side_effect=fake_speed), \
+             patch.object(proxy_tester, 'content_test', side_effect=fake_content), \
+             patch('sys.stdout', io.StringIO()):
+            rc = proxy_tester.main()
+            self.assertEqual(rc, 0)
+
+        with io.open(test_file, 'r', encoding='utf-8') as f:
+            after_content = f.read()
+
+        self.assertIn('nodeB|https://nodeB/|both', after_content)
+        self.assertIn('# Node A comment', after_content, '写回后行间注释必须完整保留')
+        self.assertTrue(after_content.index('nodeB|') < after_content.index('nodeA|'), '更快的 nodeB 必须排在前面')
+
 
 if __name__ == '__main__':
     unittest.main()

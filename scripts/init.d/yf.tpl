@@ -635,6 +635,7 @@ yf_clean_lib(){
 }
 
 yf_list(){
+    # 双语 CLI 命令清单（P2-2：语言集中读取，新增/变更命令时 en 与 zh 两侧必须严格同步保持一致）
     local lang="zh-CN"
     if [ -f "${PANEL_DIR}/data/language.pl" ]; then
         lang=$(cat "${PANEL_DIR}/data/language.pl" 2>/dev/null | tr -d '\r\n ')
@@ -706,19 +707,27 @@ yf_default(){
     admin_path=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py admin_path)
 
     # 抽取公共网络与版本数据计算，消除双语分支代码复制与漂移风险（P2-4）
+    # 优先使用面板虚拟环境 Python，确保 bcrypt 等依赖正常加载（P1-9）
+    local py_bin="python3"
+    if [ -f "${PANEL_DIR}/bin/python" ]; then
+        py_bin="${PANEL_DIR}/bin/python"
+    elif [ -f "${PANEL_DIR}/bin/python3" ]; then
+        py_bin="${PANEL_DIR}/bin/python3"
+    fi
+
     v4=""
     local_ip=""
     if [ "$address" == "" ];then
-        v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
-        local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
+        v4=$(cd ${PANEL_DIR} && ${py_bin} ${PANEL_DIR}/panel_tools.py getServerIp 4)
+        local_ip=$(cd ${PANEL_DIR} && ${py_bin} ${PANEL_DIR}/panel_tools.py getLocalIp)
     fi
-    panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
+    panel_bind_domain=$(cd ${PANEL_DIR} && ${py_bin} ${PANEL_DIR}/panel_tools.py panel_bind_domain)
     version_raw=""
     if [ -f ${PANEL_DIR}/.version ]; then
         version_raw=$(cat ${PANEL_DIR}/.version | sed 's/^v//')
     fi
-    u_name=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username)
-    u_pwd=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password)
+    u_name=$(cd ${PANEL_DIR} && ${py_bin} ${PANEL_DIR}/panel_tools.py username)
+    u_pwd=$(cd ${PANEL_DIR} && ${py_bin} ${PANEL_DIR}/panel_tools.py password)
     show_panel_ip="$port|"
 
     if [ "$lang" = "en" ]; then
@@ -745,7 +754,7 @@ yf_default(){
         echo -e "$u_pwd"
         echo -e "\033[33mNote:\033[0m"
         echo -e "\033[33mIf unable to access the panel, please open ports in your security group (${show_panel_ip}80|443|22).\033[0m"
-        echo -e "\033[33mPlease keep your credentials safe! If forgotten, run 'yf 11' to reset password.\033[0m"
+        echo -e "\033[33mPlease keep your credentials safe! If forgotten or encrypted, run 'yf 11' to reset password.\033[0m"
         echo -e "=================================================================="
     else
         if [ "$address" == "" ];then
@@ -771,7 +780,7 @@ yf_default(){
         echo -e "$u_pwd"
         echo -e "\033[33m提示:\033[0m"
         echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
-        echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 yf 11 进行密码重置。\033[0m"
+        echo -e "\033[33m请保存好你的密码，关闭后无法再次明文查看！如初始密码已修改或显示为已加密存储，请使用 yf 11 进行密码重置。\033[0m"
         echo -e "=================================================================="
     fi
 }

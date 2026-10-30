@@ -330,7 +330,8 @@ _gh_verify_file() {
                     if command -v xz >/dev/null 2>&1; then
                         xz -t "$file" >/dev/null 2>&1 && return 0 || return 1
                     fi
-                    return 0
+                    echo "[_gh_verify_file][ERROR] 缺少 xz 工具，拒绝放行未经验证的 xz 文件: $file" >&2
+                    return 1
                     ;;
                 *) return 1 ;;
             esac
@@ -341,7 +342,8 @@ _gh_verify_file() {
                     if command -v unzip >/dev/null 2>&1; then
                         unzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
                     fi
-                    return 0
+                    echo "[_gh_verify_file][ERROR] 缺少 unzip 工具，拒绝放行未经验证的 zip 文件: $file" >&2
+                    return 1
                     ;;
                 *) return 1 ;;
             esac
@@ -352,7 +354,8 @@ _gh_verify_file() {
                     if command -v bzip2 >/dev/null 2>&1; then
                         bzip2 -t "$file" >/dev/null 2>&1 && return 0 || return 1
                     fi
-                    return 0
+                    echo "[_gh_verify_file][ERROR] 缺少 bzip2 工具，拒绝放行未经验证的 bz2 文件: $file" >&2
+                    return 1
                     ;;
                 *) return 1 ;;
             esac
@@ -363,7 +366,8 @@ _gh_verify_file() {
                     if command -v zstd >/dev/null 2>&1; then
                         zstd -t "$file" >/dev/null 2>&1 && return 0 || return 1
                     fi
-                    return 0
+                    echo "[_gh_verify_file][ERROR] 缺少 zstd 工具，拒绝放行未经验证的 zstd 文件: $file" >&2
+                    return 1
                     ;;
                 *) return 1 ;;
             esac
@@ -372,10 +376,12 @@ _gh_verify_file() {
             if command -v tar >/dev/null 2>&1; then
                 tar -tf "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
+            echo "[_gh_verify_file][ERROR] 缺少 tar 工具，拒绝放行未经验证的 tar 归档: $file" >&2
+            return 1
             ;;
     esac
 
-    # 2. 对其他文件，若命中已知压缩包魔数，亦执行格式完整性检查
+    # 2. 对其他文件，若命中已知压缩包魔数，亦执行格式完整性检查（工具缺失拒绝放行）
     case "$magic" in
         1f8b*)
             gzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
@@ -384,35 +390,39 @@ _gh_verify_file() {
             if command -v unzip >/dev/null 2>&1; then
                 unzip -t "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[_gh_verify_file][ERROR] 缺少 unzip 工具，拒绝放行未经验证的 zip 文件: $file" >&2
+            return 1
             ;;
         fd377a58*)
             if command -v xz >/dev/null 2>&1; then
                 xz -t "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[_gh_verify_file][ERROR] 缺少 xz 工具，拒绝放行未经验证的 xz 文件: $file" >&2
+            return 1
             ;;
         425a68*)
             if command -v bzip2 >/dev/null 2>&1; then
                 bzip2 -t "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[_gh_verify_file][ERROR] 缺少 bzip2 工具，拒绝放行未经验证的 bz2 文件: $file" >&2
+            return 1
             ;;
         28b52ffd*)
             if command -v zstd >/dev/null 2>&1; then
                 zstd -t "$file" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[_gh_verify_file][ERROR] 缺少 zstd 工具，拒绝放行未经验证的 zstd 文件: $file" >&2
+            return 1
             ;;
     esac
 
-    # 3. 普通文件（.sh / 二进制）：严禁 HTML 错误页/登录页
-    if head -c 500 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html|<head|<body)'; then
+    # 3. 普通文件（.sh / 二进制）：严禁 HTML 错误页/登录页（扩大至 1024 字节扫描，与 yf_verify_archive 对齐，P2-1）
+    if head -c 1024 "$file" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html|<head|<body|<xml)'; then
         return 1
     fi
 
-    # 4. 纯文本代理错误提示/停用页（如 48 字节 "Suspent due to abuse report" 或 "invalid url"）
-    if [ "$size" -lt 2048 ] && head -c 256 "$file" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
+    # 4. 纯文本代理错误提示/停用页（扫描放宽至 65536 字节文件前 2048 字节，与 yf_verify_archive 对齐，P2-1）
+    if [ "$size" -lt 65536 ] && head -c 2048 "$file" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
         return 1
     fi
 

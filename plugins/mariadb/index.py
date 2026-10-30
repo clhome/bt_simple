@@ -5245,10 +5245,48 @@ def installPreInspection(version):
 
 
 def uninstallPreInspection(version):
+    # 卸载前环境检查与停服（P1-1 修复：停止失败或进程残留时拒绝返回 ok，绝不提前移除图标）
+    stop_err = None
     try:
-        stop(version)
+        stop_res = stop(version)
+        if isinstance(stop_res, str) and 'error' in stop_res.lower():
+            stop_err = stop_res
     except Exception as e:
-        _log.debug('[mariadb] uninstallPreInspection stop 异常已忽略: %s', e)
+        stop_err = str(e)
+        _log.debug('[mariadb] uninstallPreInspection stop 异常已记录: %s', e)
+
+    serverdir = os.path.realpath(getServerDir())
+    ours = []
+    if os.path.isdir('/proc'):
+        for name in os.listdir('/proc'):
+            if not name.isdigit():
+                continue
+            try:
+                exe = os.path.realpath(os.readlink('/proc/%s/exe' % name))
+            except Exception:
+                continue
+            if exe.startswith(serverdir + os.sep) and os.path.basename(exe) in ('mariadbd', 'mysqld'):
+                ours.append(int(name))
+
+    if ours:
+        try:
+            stopAndKill(version)
+        except Exception as _e:
+            _log.debug('[mariadb] stopAndKill 异常已记录: %s', _e)
+
+        still_alive = []
+        if os.path.isdir('/proc'):
+            for pid in ours:
+                try:
+                    os.kill(pid, 0)
+                    still_alive.append(pid)
+                except OSError:
+                    pass
+        if still_alive:
+            return "MariaDB 服务停止失败，仍有残留进程运行 (PID: %s)，无法安全卸载！请先手动结束进程或排查服务状态。" % still_alive
+
+    if status(version) == 'start':
+        return "MariaDB 服务未能成功停止 (仍处于运行状态)，无法安全卸载！" + ((" 错误信息: %s" % stop_err) if stop_err else "")
 
     initdUinstall()
 

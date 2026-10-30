@@ -771,6 +771,19 @@ log_error() {
 #   * 安装结束提示里明确告知「首次登录后请删除」。
 # 它只是安装后的短期保留物，不是长期凭据存储。
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 面板 Python 解释器获取（P1-9 根治：优先使用面板虚拟环境 Python，确保 bcrypt 可用）
+# ---------------------------------------------------------------------------
+panel_py_bin() {
+    if [ -f "${PANEL_DIR}/bin/python" ]; then
+        echo "${PANEL_DIR}/bin/python"
+    elif [ -f "${PANEL_DIR}/bin/python3" ]; then
+        echo "${PANEL_DIR}/bin/python3"
+    else
+        echo "python3"
+    fi
+}
+
 default_pl_path() {
     echo "${PANEL_DIR}/data/default.pl"
 }
@@ -1991,7 +2004,7 @@ fresh_install() {
     # 生成 12 位随机密码并设置
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
     if [ -f ${PANEL_DIR}/panel_tools.py ]; then
-        cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
+        cd ${PANEL_DIR} && $(panel_py_bin) panel_tools.py panel "$rand_pass" > /dev/null 2>&1
         write_default_pl "$rand_pass"
     fi
 
@@ -2171,7 +2184,7 @@ conn.close()
     if [ ! -f ${PANEL_DIR}/data/default.pl ]; then
         rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
         if [ -f ${PANEL_DIR}/panel_tools.py ]; then
-            cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
+            cd ${PANEL_DIR} && $(panel_py_bin) panel_tools.py panel "$rand_pass" > /dev/null 2>&1
             write_default_pl "$rand_pass"
         fi
         log_info "检测到缺少默认密码文件，已重新生成面板密码"
@@ -2448,7 +2461,7 @@ migrate_from_bt() {
     # 生成 12 位随机密码并设置
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
     if [ -f ${PANEL_DIR}/panel_tools.py ]; then
-        cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
+        cd ${PANEL_DIR} && $(panel_py_bin) panel_tools.py panel "$rand_pass" > /dev/null 2>&1
         write_default_pl "$rand_pass"
     fi
 
@@ -2603,8 +2616,8 @@ show_panel_info() {
         fi
 
         if [ -n "$force_pass" ]; then
-            # 如果传入了强制显示的密码，则替换掉 mask 后的密码输出
-            echo "$info" | sed "s/\*-password.*/|-password: $force_pass/"
+            # 如果传入了强制显示的密码，则替换掉 mask 或加密提示后的密码输出
+            echo "$info" | sed -E "s/(\*-password.*|\*密码已经加密存储.*|\* Password is encrypted.*)/password: $force_pass/"
         else
             echo "$info"
         fi

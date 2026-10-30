@@ -6075,6 +6075,32 @@ def installPreInspection(version):
 
 
 def uninstallPreInspection(version):
+    # 卸载前环境检查与停服（停止失败或进程残留时拒绝返回 ok，阻止假卸载与提前清图标）
+    stop_err = None
+    try:
+        stop_res = stop(version)
+        if isinstance(stop_res, str) and 'error' in stop_res.lower():
+            stop_err = stop_res
+    except Exception as e:
+        stop_err = str(e)
+        _log.debug('[mysql] uninstallPreInspection stop 异常已记录: %s', e)
+
+    own = instanceOwnership()
+    left_ours = [p['pid'] for p in own.get('ours') or []]
+    if left_ours:
+        try:
+            stopAndKill(version)
+        except Exception as _e:
+            _log.debug('[mysql] stopAndKill 异常已记录: %s', _e)
+
+        own = instanceOwnership()
+        left_ours = [p['pid'] for p in own.get('ours') or []]
+        if left_ours:
+            return "MySQL 服务停止失败，仍有残留进程运行 (PID: %s)，无法安全卸载！请先手动结束进程或排查服务状态。" % left_ours
+
+    if status(version) == 'start':
+        return "MySQL 服务未能成功停止 (仍处于运行状态)，无法安全卸载！" + ((" 错误信息: %s" % stop_err) if stop_err else "")
+
     initdUinstall()
     
     # 清理残余套接字

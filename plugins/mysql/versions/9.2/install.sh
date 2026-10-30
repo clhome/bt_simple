@@ -81,6 +81,20 @@ VERSION=9.2.0
 # https://cdn.mysql.com//Downloads/MySQL-9.2/mysql-boost-${VERSION}.tar.gz
 Install_mysql()
 {
+	# 磁盘容量智能预检（P1-8 根治：大源码构建前检测剩余空间，防止 85% 因磁盘不足崩溃）
+	local _req_kb=10485760 # 10GB
+	local _target_dir="${serverPath}"
+	[ -d "${_target_dir}" ] || _target_dir="/www"
+	[ -d "${_target_dir}" ] || _target_dir="/"
+	local _free_kb=$(df -Pk "${_target_dir}" 2>/dev/null | awk 'NR==2 {print $4}')
+	if [ -n "${_free_kb}" ] && [ "${_free_kb}" -lt "${_req_kb}" ] 2>/dev/null; then
+		local _lack_mb=$(( (_req_kb - _free_kb) / 1024 ))
+		local _cur_free_mb=$(( _free_kb / 1024 ))
+		echo "[ERROR] 编译安装 MySQL 需要至少 10GB 磁盘空闲空间，当前目标路径 (${_target_dir}) 仅剩 ${_cur_free_mb}MB，缺少 ${_lack_mb}MB！" >&2
+		echo "        为防止耗费数十小时后在构建中途崩溃，已提前安全中止构建。请清理磁盘或扩容后重试。" >&2
+		exit 1
+	fi
+
 	mkdir -p ${mysqlDir}
 	echo '正在安装脚本文件...'
 
@@ -182,13 +196,15 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 		echo $WHERE_DIR_GPP
 	fi
 
-	if [ "$OSNAME" == "ubuntu" ];then
+	if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "debian" ];then
 		apt install -y libudev-dev
 		apt install -y libtirpc-dev
 		apt install -y libssl-dev
 		apt install -y libgssglue-dev
-		apt install -y software-properties-common
-		add-apt-repository -y ppa:ubuntu-toolchain-r/test
+		if [ "$OSNAME" == "ubuntu" ]; then
+			apt install -y software-properties-common
+			add-apt-repository -y ppa:ubuntu-toolchain-r/test
+		fi
 
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
 		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then

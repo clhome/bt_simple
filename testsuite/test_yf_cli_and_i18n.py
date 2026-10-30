@@ -132,7 +132,10 @@ class YfCliMenuAndLanguageTest(unittest.TestCase):
         import core.yf as yf
 
         raw_pwd = 'test_password_123'
-        hashed = yf.hasPwd(raw_pwd)
+        try:
+            hashed = yf.hasPwd(raw_pwd)
+        except (ImportError, yf.PwdCryptoUnavailable) as e:
+            self.skipTest("环境缺少 bcrypt 模块，跳过 bcrypt 哈希比对断言: %s" % e)
 
         tmp_panel = tempfile.mkdtemp(prefix='yf_pwd_test_')
         self.addCleanup(shutil.rmtree, tmp_panel, True)

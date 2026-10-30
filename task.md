@@ -1,8 +1,14 @@
-# 御风面板 Debian 13 深度适配与审计缺陷全面整改
+# 御风面板 487d1f4 + 134ac78 遗留缺陷与衍生问题深度闭环
 
 ## 项目概况与目标
 
-针对 2026-10-30 审计发现的问题（P1-1 至 P1-10、P2-1 至 P2-9），进行事实核查与彻底根治，同时全面深化 Debian 13 (trixie) 环境适配，消除所有假成功、死循环、未校验放行、双语代码漂移及测试空心问题。
+针对 2026-10-30 审计报告中未闭合的问题（P1-1 至 P1-10、P2-1 至 P2-5）及关联同类衍生问题进行彻底根治：
+1. 彻底解决 MariaDB 与 MySQL 卸载过程中的假成功、未受控放行、serverPath 越界与幂等性缺失；
+2. 彻底根治 MySQL 在 Debian 13 及各版本下的 libtirpc-dev 依赖确实问题，纠正镜像下载与续传描述；
+3. 为所有大源码构建（MariaDB / MySQL 各版本）建立前置秒级磁盘容量硬预检；
+4. 根治纯净系统下全新安装无法显示初始明文密码问题（虚拟环境 Python 解释器调用链修复）；
+5. 按照方案 A 闭合死节点队尾降级，同步收紧 `_gh_verify_file` 主下载路径校验窄口；
+6. 完善双语帮助、发布说明，全面补齐并纠正测试套件滞后断言，保持全量测试全绿。
 
 ## 规范与原则
 
@@ -15,37 +21,27 @@
 
 ## 任务拆解与进度 (Task List)
 
-- [x] **任务 1：Debian 13 (trixie) 深度适配与系统兼容强化**
-  - [x] 1.1 `deploy.sh` APT 换源适配 deb822 格式（`/etc/apt/sources.list.d/debian.sources` 与 `ubuntu.sources`），支持阿里云镜像加速及更新失败自动回滚
-  - [x] 1.2 `scripts/install/debian.sh` 跨架构软链加固：适配 aarch64 与 x86_64 下 `libaio.so.1t64` 到 `libaio.so.1` 软链接
-  - [x] 1.3 `plugins/php-apt/install.sh` 系统代号探测升级：优先从 `/etc/os-release` 获取 `VERSION_CODENAME`，精准识别 Debian 13 为 `trixie`
-  - [x] 1.4 `web/utils/system/update.py` 版本比较兜底：在 Python 3.12+ / 3.13 缺少 packaging 且无 distutils 时提供轻量元组比对兜底
-- [x] **任务 2：PHP 主构建与扩展依赖检查缺陷修复（P1-1, P1-2, P1-3, P2-2）**
-  - [x] 2.1 修复 `plugins/php/versions/common/php_ext_deps.sh` 复查漏查问题：在 `yf_php_ensure_core_build_deps` 复查段补齐 `sqlite3`、`zlib`、`openssl` 校验，杜绝假就绪（P1-1）
-  - [x] 2.2 修复自动安装路径前置缺失 `apt-get update`：安装前执行非破坏性更新，避免新机或缓存过期导致失败（P1-2）
-  - [x] 2.3 修复 `plugins/php/install.sh` 守卫静默跳过：当依赖助手库不可用或函数未定义时显式报错退出，严禁静默跳过（P1-3）
-  - [x] 2.4 强化 `yf_ext_ensure_pkgconfig`：累积记录多候选包失败摘要，增加单包安装超时保护（P2-2）
-- [x] **任务 3：MariaDB 卸载调用链、安全防护与退出码加固（P1-4, P1-5, P1-6）**
-  - [x] 3.1 修复 `plugins/mariadb/index.py` 的 `uninstallPreInspection`：服务停止失败或进程残留时拒绝返回 ok，阻止假卸载（P1-4）
-  - [x] 3.2 修复 `plugins/mariadb/install.sh` 卸载退出码：`stop_and_kill` 自检发现残留时由 WARN 升级为非 0 失败退出（P1-4）
-  - [x] 3.3 加固 `version.pl` 回读与兜底删除：增加严格格式白名单校验，兜底 `rm -rf` 增加 `serverPath` 安全校验（P1-5）
-  - [x] 3.4 梳理并注释规范 MariaDB 卸载调用链契约（P1-6）
-- [x] **任务 4：MySQL 大包下载、镜像顺序与断点续传整改（P1-7, P2-3）**
-  - [x] 4.1 纠正 `plugins/mysql/install.sh` 官方 URL 顺序断言与下载逻辑：保留网络中断后的续传能力，仅损坏时清理（P1-7）
-  - [x] 4.2 抽取尺寸门校验常量 `MYSQL_TAR_MIN_BYTES` 并规范注释说明（P2-3）
-- [x] **任务 5：代理管理、测速脚本与真源保护（P1-8, P1-9, P2-8）**
-  - [x] 5.1 排查死节点 `cors.zme.ink`，保持 `scripts/proxies.list` 与 `deploy.sh` 引导序列严格同步（P1-8）
-  - [x] 5.2 改造 `scripts/proxy_tester.py`：默认不写回原文件（新增显式 `--save` 控制），写回时完整保留行间注释（P1-9）
-  - [x] 5.3 纠正 `README_cn.md` 表格中的代理说明，标注为示例并指向单一真源 `scripts/proxies.list`（P2-8）
-- [x] **任务 6：面板初始密码展示、CLI 双语与命令友好提示（P1-10, P2-4, P2-9）**
-  - [x] 6.1 根治初始密码无法展示顽疾：在 `panel_tools.py` 的 `show_panel_pwd()` 中改用 `yf.checkPwdCompat` 校验 bcrypt/MD5，恢复初始密码明文展示（P1-10）
-  - [x] 6.2 重构 `scripts/init.d/yf.tpl` 的 `yf_default`：抽取地址组装公共逻辑，消除双语分支代码复制与漂移风险（P2-4）
-  - [x] 6.3 优化 `yfcli` 命令分发：针对 `100/101` 提供已废弃专属提示，发布说明增加 `yf 0` 与 `100/101` 变动说明（P2-9）
-- [x] **任务 7：压缩包与脚本校验边界收紧（P2-1）**
-  - [x] 7.1 `scripts/github_download.sh`：解压校验工具缺失时明确失败（不放行），扩大错误页关键字扫描窗口至 2048 字节（P2-1）
-  - [x] 7.2 `plugins/phpmyadmin/install.sh`：校验函数库不可用时显式报错中止，严禁放行未校验文件（P2-1）
-- [x] **任务 8：自动化测试套件补齐、修正与全量验证（P2-5, P2-7）**
-  - [x] 8.1 修复 `testsuite/test_download_multi.py`：测试桩兼容 `python3` 与 `sys.executable`（P2-5）
-  - [x] 8.2 重构 `testsuite/test_yf_cli_and_i18n.py` 的 `test_05`：真实调用 `set_panel_username` 验证边界校验，补齐 `100/101` 与双语等用例（P2-5）
-  - [x] 8.3 增强 `testsuite/test_report_9d30461_fixes.py`：补齐 N10 sqlite3 复查断言与 N11 官方源 URL 顺序断言（P2-5）
-  - [x] 8.4 运行所有相关自动化测试套件验证修复成果，保持测试全绿（P2-7）
+- [x] **任务 1：MariaDB & MySQL 卸载调用链、安全断言与幂等性彻底闭环（P1-1, P1-2, P1-3, P1-4 及 MySQL 类似问题）**
+  - [x] 1.1 修复 `plugins/mariadb/index.py` 的 `uninstallPreInspection`：服务停止失败或进程残留时拒绝返回 ok、拒绝清理图标、带回残留信息，并同步修复 `plugins/mysql/index.py`（P1-1）
+  - [x] 1.2 修复 `plugins/mariadb/install.sh` 兜底删除：增加严格的 `/www/server` 前缀断言与防穿透保护（P1-2）
+  - [x] 1.3 修复 `plugins/mariadb/install.sh` 卸载幂等性：已卸载干净且无残留进程时正常退出，不误报错误（P1-3）
+  - [x] 1.4 规范并在代码/注释中固定 MariaDB / MySQL 卸载调用链与状态同步机制（P1-4）
+- [x] **任务 2：MySQL Debian 依赖与全版本类似缺陷修复及下载客观说明（P1-5, P1-6, P1-7）**
+  - [x] 2.1 修复 `plugins/mysql/versions/8.0/install.sh` 及 8.2~9.7 各版本构建脚本的 `libtirpc-dev` 等依赖安装 Debian/Ubuntu 通用适配（P1-7）
+  - [x] 2.2 纠正 `task.md` 中关于 MySQL 下载跨镜像续传的超前表述，客观记录实测镜像可达性结果（P1-5, P1-6）
+- [x] **任务 3：大源码构建磁盘容量前置智能预检（P1-8 及全量版本适配）**
+  - [x] 3.1 为 MariaDB (11.4, 10.6) 增加构建前 $\ge$ 8GB 磁盘空闲空间预检（P1-8）
+  - [x] 3.2 为 MySQL (8.0, 5.7, 8.2~9.7) 增加构建前 $\ge$ 10GB 磁盘空闲空间预检，空间不足秒级报错并显示缺额（P1-8）
+- [x] **任务 4：初始密码真实展示链与虚拟环境 Python 彻底根治（P1-9）**
+  - [x] 4.1 修复 `deploy.sh` 与 `scripts/init.d/yf.tpl` 的 Python 执行器：优先使用面板虚拟环境 Python，确保 `bcrypt` 模块正常加载（P1-9）
+  - [x] 4.2 优化 `yf.tpl` 中安装完成文案，确保初始密码直观展示，兜底指引清晰（P1-9）
+- [x] **任务 5：代理节点队尾降级结项与校验窄口同步收紧（P1-10, P2-1, P2-2, P2-3）**
+  - [x] 5.1 结项 P1-10：确认死节点（`cors.zme.ink`、`gh.ddlc.top`）按方案 A 保持队尾降级并更新说明（P1-10）
+  - [x] 5.2 修复 `scripts/github_download.sh`：将 `_gh_verify_file` 校验口径同步收紧（工具缺失报错、HTML 1024 字节、长文本报错 2048 字节）（P2-1）
+  - [x] 5.3 优化 `scripts/init.d/yf.tpl` 中的 `yf_list`：规范双语结构并增加同步修改说明（P2-2）
+  - [x] 5.4 补全 `RELEASE_TEMPLATE.md` 中关于 `yf 0` 与 `100/101` 变动说明（P2-3）
+- [x] **任务 6：测试套件补齐、旧断言纠正与全量门禁验证（P2-5）**
+  - [x] 6.1 `testsuite/test_proxy_tester.py`：补充未指定 `--save` 保护与显式 `--save` 写回用例（P2-5）
+  - [x] 6.2 `testsuite/test_yf_cli_and_i18n.py::test_09`：无 bcrypt 环境时优雅跳过而非红脸（P2-5）
+  - [x] 6.3 `testsuite/test_mariadb_uninstall.py`：更新过时的恒为 ok 断言，补齐 stop 失败拦截、自检 exit 1 与 serverPath 安全断言测试（P2-5）
+  - [x] 6.4 运行所有测试套件保持全绿通过
