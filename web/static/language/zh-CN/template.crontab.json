@@ -417,7 +417,13 @@
     "py_msg_2c1843": "任务名称重复",
     "py_msg_f47dfc": "当前任务列表已是最新，无缺失任务需要同步",
     "cron_sync_rejected": "同步被拒",
-    "cron_sync_rejected_tip": "任务标识含非法字符（仅允许 A-Za-z0-9_.-，最长 64），同步时会被拒绝；请编辑任务重新保存以生成合规标识"
+    "cron_sync_rejected_tip": "任务标识含非法字符（仅允许 A-Za-z0-9_.-，最长 64），同步时会被拒绝；请编辑任务重新保存以生成合规标识",
+    "emergency_stop": "紧急终止",
+    "confirm_emergency_stop": "确定要紧急终止正在运行的任务【{1}】吗？",
+    "task_not_running": "任务未在运行或已结束",
+    "task_terminated_success": "已成功终止任务 (PID: {1})",
+    "task_terminated_failed": "终止任务失败: {1}",
+    "terminating_task": "正在终止任务..."
   },
   "day_limit": "日期限制",
   "day_none": "无",

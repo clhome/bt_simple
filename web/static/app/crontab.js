@@ -78,12 +78,17 @@ function getLogs(id, task_name) {
     // 名字里带一个双引号（例如同步来的 [系统任务] "/root/.acme.sh" --cron）就会被
     // HTML 解析截断成 startTask(437, '[系统任——点「执行任务」直接 SyntaxError。
     // 现在改成 success 里用闭包变量绑事件，名字只作为文本（转义后）显示。
-    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.public.auto_refresh || '自动刷新') + '</label>' + '<button type="button" id="cron_log_run" class="btn btn-default btn-sm">' + t('crontab.execute_task', '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + t('crontab.task_name', '任务名称') + ':' + '</span><span style="margin-left: 10px; font-weight: bold;">' + cronEsc(task_name) + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
+    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.public.auto_refresh || '自动刷新') + '</label>' + '<button type="button" id="cron_log_run" class="btn btn-default btn-sm">' + t('crontab.execute_task', '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + t('crontab.task_name', '任务名称') + ':' + '</span><span style="margin-left: 10px; font-weight: bold;">' + cronEsc(task_name) + '</span>' : '') + '</div>' + '<div class="pull-right">' + '<button type="button" id="cron_log_kill" class="btn btn-danger btn-sm" style="margin-top: 1px;">' + t('crontab.emergency_stop', '紧急终止') + '</button>' + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
     success: function (layero, index) {
       requestLogs(index);
       // 用闭包里的 id/task_name，不经过任何字符串拼接
       layero.find('#cron_log_run').on('click', function () {
         startTask(id, task_name, true);
+      });
+      layero.find('#cron_log_kill').on('click', function () {
+        killTask(id, task_name, function () {
+          requestLogs(index);
+        });
       });
       reqTimer = setInterval(function () {
         if (document.visibilityState !== 'visible') return; // 后台标签页暂停日志轮询
@@ -107,6 +112,52 @@ function getLogs(id, task_name) {
     }
   });
 }
+
+// 紧急终止任务
+function killTask(id, task_name, callback) {
+  if (id === undefined || id === null || String(id) === '') return;
+  task_name = task_name ? String(task_name) : '';
+  var displayTaskName = cronEsc(task_name);
+  var confirmMsg = t('crontab.confirm_emergency_stop', [displayTaskName], '确定要紧急终止正在运行的任务' + (displayTaskName ? '【' + displayTaskName + '】' : '') + '吗？');
+  layer.confirm(confirmMsg, {
+    icon: 3,
+    title: t('crontab.emergency_stop', '紧急终止')
+  }, function (confirmIndex) {
+    layer.close(confirmIndex);
+    var load = layer.msg(t('crontab.terminating_task', '正在终止任务...'), {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+    $.post('/crontab/kill_task', { id: id }, function (rdata) {
+      layer.close(load);
+      var msg = rdata.msg || '';
+      if (rdata.status) {
+        msg = t('crontab.task_terminated_success', [rdata.data || ''], '已成功终止任务 (PID: ' + (rdata.data || '') + ')');
+      } else {
+        if (msg === 'crontab.task_not_running') {
+          msg = t('crontab.task_not_running', '任务未在运行或已结束');
+        } else if (msg === 'common.param_error') {
+          msg = (typeof t === 'function') ? t('common.param_error', '参数错误') : '参数错误';
+        }
+      }
+      layer.msg(msg, {
+        icon: rdata.status ? 1 : 2,
+        time: 2500
+      });
+      if (typeof callback === 'function') {
+        callback(rdata);
+      }
+    }, 'json').fail(function () {
+      layer.close(load);
+      layer.msg(t('crontab.task_terminated_failed', ['Network error'], '终止任务失败: 网络异常'), {
+        icon: 2,
+        time: 2500
+      });
+    });
+  });
+}
+
 // 列表/弹窗里的值全部来自用户输入（任务名、备份对象名），必须转义后再拼 HTML。
 // 不用 public.js 的 escapeHTML：它会把 = ( ` 也换成全角/实体，会篡改任务名与脚本内容。
 function cronEsc(v) {

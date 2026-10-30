@@ -296,17 +296,7 @@ class crontab(object):
                 try:
                     mtime = os.path.getmtime(pf)
                     if time.time() - mtime > timeout_sec:
-                        import signal as _sig
-                        try:
-                            os.kill(pid, _sig.SIGTERM)
-                        except Exception as _e:
-                            _log.debug('[crontab] SIGTERM 失败（进程可能已退出）: %s', _e)
-                        time.sleep(1)
-                        if yf.checkPid(pid):
-                            try:
-                                os.kill(pid, _sig.SIGKILL)
-                            except Exception as _e:
-                                _log.debug('[crontab] SIGKILL 失败: %s', _e)
+                        self.killProcessTree(pid)
                         yf.writeFileLog(f"[crontab] killed stale cron {cron_id} pid={pid} after {timeout_sec}s\n")
                         return True
                 except Exception as _e:
@@ -319,6 +309,271 @@ class crontab(object):
             return False
         except Exception:
             return False
+
+    def _is_task_process(self, pid, echo):
+        """校验指定 PID 进程是否属于目标任务（防止 PID 复用误杀）。"""
+        try:
+            if not pid or pid <= 0 or not echo:
+                return False
+            cmdline_path = f"/proc/{pid}/cmdline"
+            if os.path.exists(cmdline_path):
+                try:
+                    with open(cmdline_path, 'rb') as f:
+                        raw = f.read().decode('utf-8', errors='ignore')
+                        return echo in raw
+                except Exception:
+                    return False
+            try:
+                import psutil
+                if psutil.pid_exists(pid):
+                    p = psutil.Process(pid)
+                    cmd = ' '.join(p.cmdline())
+                    return echo in cmd
+            except Exception:
+                pass
+            return False
+        except Exception:
+            return False
+
+    def _scan_task_pid_by_echo(self, echo):
+        """扫描系统进程列表，通过脚本特征名 echo 反查当前运行中的主进程 PID。"""
+        try:
+            if not echo:
+                return None
+            if os.path.exists('/proc'):
+                for entry in os.listdir('/proc'):
+                    if entry.isdigit():
+                        try:
+                            cmd_path = f"/proc/{entry}/cmdline"
+                            if os.path.exists(cmd_path):
+                                with open(cmd_path, 'rb') as f:
+                                    raw = f.read().decode('utf-8', errors='ignore')
+                                    if echo in raw:
+                                        p_int = int(entry)
+                                        if yf.checkPid(p_int):
+                                            return p_int
+                        except Exception:
+                            continue
+            try:
+                import psutil
+                for proc in psutil.process_iter(['pid', 'cmdline']):
+                    try:
+                        cmdline = ' '.join(proc.info.get('cmdline') or [])
+                        if echo in cmdline:
+                            p_int = proc.info.get('pid')
+                            if p_int and yf.checkPid(p_int):
+                                return p_int
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+            return None
+        except Exception as _e:
+            _log.debug('[crontab] 扫描任务 PID 异常: %s', _e)
+            return None
+
+    def findTaskPid(self, cron_id):
+        """查找指定任务当前正在运行的主进程 PID。
+
+        返回 (pid, task_info)：
+          * 若找到存活主进程：返回 (pid, task_info)
+          * 若未在运行或任务不存在：返回 (None, task_info)
+        """
+        try:
+            data = thisdb.getCrond(cron_id)
+            if not data:
+                return None, None
+            echo = str(data.get('echo') or '').strip()
+            if not echo:
+                return None, data
+
+            pf = self._cron_pid_file(cron_id)
+            if os.path.exists(pf):
+                try:
+                    raw_pid = (yf.readFile(pf) or '').strip()
+                    if raw_pid.isdigit():
+                        candidate_pid = int(raw_pid)
+                        if candidate_pid > 0 and yf.checkPid(candidate_pid):
+                            if self._is_task_process(candidate_pid, echo):
+                                return candidate_pid, data
+                        try:
+                            os.remove(pf)
+                        except Exception:
+                            pass
+                except Exception as _e:
+                    _log.debug('[crontab] 读取 PID 文件异常: %s', _e)
+
+            matched_pid = self._scan_task_pid_by_echo(echo)
+            if matched_pid:
+                try:
+                    yf.writeFile(pf, str(matched_pid))
+                except Exception:
+                    pass
+                return matched_pid, data
+
+            return None, data
+        except Exception as _e:
+            _log.debug('[crontab] findTaskPid 异常: %s', _e)
+            return None, None
+
+    def killProcessTree(self, main_pid):
+        """彻底终止目标主进程及其派生出的所有子孙进程树。"""
+        if not main_pid or main_pid <= 0:
+            return False
+
+        target_pids = set()
+        target_pids.add(main_pid)
+
+        try:
+            import psutil
+            if psutil.pid_exists(main_pid):
+                p = psutil.Process(main_pid)
+                for child in p.children(recursive=True):
+                    target_pids.add(child.pid)
+        except Exception:
+            pass
+
+        if os.path.exists('/proc'):
+            try:
+                parent_map = {}
+                for entry in os.listdir('/proc'):
+                    if entry.isdigit():
+                        try:
+                            stat_path = f"/proc/{entry}/stat"
+                            if os.path.exists(stat_path):
+                                with open(stat_path, 'r', encoding='utf-8', errors='ignore') as sf:
+                                    content = sf.read()
+                                    rparen = content.rfind(')')
+                                    if rparen != -1:
+                                        fields = content[rparen + 1:].split()
+                                        if len(fields) >= 2:
+                                            ppid = int(fields[1])
+                                            parent_map.setdefault(ppid, []).append(int(entry))
+                        except Exception:
+                            continue
+
+                queue = list(target_pids)
+                while queue:
+                    curr = queue.pop(0)
+                    for ch in parent_map.get(curr, []):
+                        if ch not in target_pids:
+                            target_pids.add(ch)
+                            queue.append(ch)
+            except Exception as _e:
+                _log.debug('[crontab] /proc 构建进程树异常: %s', _e)
+
+        import signal as _sig
+        term_sig = getattr(_sig, 'SIGTERM', 15)
+
+        if hasattr(os, 'killpg') and not yf.isAppleSystem() and os.name != 'nt':
+            try:
+                pgid = os.getpgid(main_pid)
+                if pgid and pgid != 1 and pgid != os.getpid():
+                    os.killpg(pgid, term_sig)
+            except Exception as _e:
+                _log.debug('[crontab] 向进程组发送 SIGTERM 失败: %s', _e)
+
+        for p in list(target_pids):
+            try:
+                if yf.checkPid(p):
+                    try:
+                        import psutil
+                        if psutil.pid_exists(p):
+                            psutil.Process(p).terminate()
+                    except Exception:
+                        pass
+                    if yf.checkPid(p) and hasattr(os, 'kill'):
+                        os.kill(p, term_sig)
+            except Exception as _e:
+                _log.debug('[crontab] 发送 SIGTERM 到 PID %s 失败: %s', p, _e)
+
+        deadline = time.time() + 1.5
+        all_dead = False
+        while time.time() < deadline:
+            alive = [p for p in target_pids if yf.checkPid(p)]
+            if not alive:
+                all_dead = True
+                break
+            time.sleep(0.15)
+
+        if not all_dead:
+            if hasattr(os, 'killpg') and not yf.isAppleSystem() and os.name != 'nt':
+                try:
+                    kill_sig = getattr(_sig, 'SIGKILL', term_sig)
+                    pgid = os.getpgid(main_pid)
+                    if pgid and pgid != 1 and pgid != os.getpid():
+                        os.killpg(pgid, kill_sig)
+                except Exception as _e:
+                    _log.debug('[crontab] 向进程组发送 SIGKILL 失败: %s', _e)
+
+            for p in target_pids:
+                try:
+                    if yf.checkPid(p):
+                        try:
+                            import psutil
+                            if psutil.pid_exists(p):
+                                psutil.Process(p).kill()
+                        except Exception:
+                            pass
+                        if yf.checkPid(p) and hasattr(os, 'kill'):
+                            kill_sig = getattr(_sig, 'SIGKILL', term_sig)
+                            os.kill(p, kill_sig)
+                except Exception as _e:
+                    _log.debug('[crontab] 强制终止 PID %s 失败: %s', p, _e)
+
+            if sys.platform == 'win32':
+                try:
+                    import subprocess as _sp
+                    for p in target_pids:
+                        if yf.checkPid(p):
+                            _sp.run(['taskkill', '/F', '/T', '/PID', str(p)], capture_output=True)
+                except Exception:
+                    pass
+
+        return True
+
+    def killTask(self, cron_id):
+        """紧急终止指定计划任务。"""
+        try:
+            main_pid, data = self.findTaskPid(cron_id)
+            if not data:
+                return yf.returnData(False, 'common.param_error')
+
+            if not main_pid:
+                pf = self._cron_pid_file(cron_id)
+                if os.path.exists(pf):
+                    try:
+                        os.remove(pf)
+                    except Exception:
+                        pass
+                return yf.returnData(False, 'crontab.task_not_running')
+
+            self.killProcessTree(main_pid)
+
+            pf = self._cron_pid_file(cron_id)
+            try:
+                if os.path.exists(pf):
+                    os.remove(pf)
+            except Exception as _e:
+                _log.debug('[crontab] 清理 PID 文件失败: %s', _e)
+
+            try:
+                echo = str(data.get('echo') or '').strip()
+                if echo:
+                    log_file = os.path.join(yf.getServerDir(), 'cron', echo + '.log')
+                    end_date = yf.formatDate()
+                    append_log = f"\n----------------------------------------------------------------------------\n★[{end_date}] 任务已被手动紧急终止 (PID: {main_pid})\n----------------------------------------------------------------------------\n"
+                    with open(log_file, 'a', encoding='utf-8') as lf:
+                        lf.write(append_log)
+            except Exception as _e:
+                _log.debug('[crontab] 写入终止日志异常: %s', _e)
+
+            yf.writeLog('计划任务', f"紧急终止任务[{data.get('name', cron_id)}], PID: {main_pid}")
+
+            return yf.returnData(True, 'crontab.task_terminated_success', str(main_pid), str(main_pid))
+        except Exception as e:
+            _log.error('[crontab] killTask 异常: %s', e)
+            return yf.returnData(False, 'crontab.task_terminated_failed', None, str(e))
 
     def _prepare_manual_run_script(self, cron_id, data, cmd_file):
         """手动执行前把脚本准备好（**只碰 /www/server/cron 下的脚本文件，不碰系统 crontab**）。
@@ -850,6 +1105,15 @@ export LANG=en_US.UTF-8
 fi''' % (yf.getPanelDir(),)
 
             head = head + start_head + source_bin_activate + "\n"
+
+            if param.get('id'):
+                cron_pid_file = self._cron_pid_file(param.get('id'))
+                head += '''
+# 记录当前执行 PID 并支持退出自动清理
+YF_CRON_PID_FILE="%s"
+echo $$ > "$YF_CRON_PID_FILE"
+trap 'rm -f "$YF_CRON_PID_FILE"' EXIT
+''' % (cron_pid_file,)
             
             # 执行时段/日期限制（cron 触发时才生效；面板点「执行」会带 CRON_FORCE_ENV=1 立刻跑）
             gate_checks = ''

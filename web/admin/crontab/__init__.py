@@ -128,6 +128,13 @@ def start_task():
     cron_id = request.form.get('id', '')
     return YfCrontab.instance().startTask(cron_id)
 
+# 紧急终止计划任务
+@blueprint.route('/kill_task', endpoint='kill_task', methods=['POST'])
+@panel_login_required
+def kill_task():
+    cron_id = request.form.get('id', '')
+    return YfCrontab.instance().killTask(cron_id)
+
 # 添加计划任务
 @blueprint.route('/add', endpoint='add', methods=['POST'])
 @panel_login_required
