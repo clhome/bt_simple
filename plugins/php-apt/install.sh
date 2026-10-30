@@ -270,7 +270,23 @@ if [ "$OSNAME" == "debian" ];then
 	yf_optional_step --quiet "下载 sury GPG 公钥（国内镜像/官方源双回退）" _yf_apt_fetch_gpg_key "$is_cn" "$gpg_key"
 
 	if [ ! -f /etc/apt/sources.list.d/php.list ]; then
-		codename=$(lsb_release -sc 2>/dev/null || echo "bookworm")
+		codename=""
+		if [ -f /etc/os-release ]; then
+			codename=$(grep '^VERSION_CODENAME=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"'\'' ')
+		fi
+		if [ -z "${codename}" ]; then
+			codename=$(lsb_release -sc 2>/dev/null || true)
+		fi
+		if [ -z "${codename}" ]; then
+			local _deb_ver
+			_deb_ver=$(cat /etc/debian_version 2>/dev/null | cut -d. -f1 | tr -d ' ')
+			case "${_deb_ver}" in
+				13*|trixie*) codename="trixie" ;;
+				12*|bookworm*) codename="bookworm" ;;
+				11*|bullseye*) codename="bullseye" ;;
+				*) codename="bookworm" ;;
+			esac
+		fi
 		_yf_apt_write_sury_list "$is_cn" "$gpg_key" "$codename"
 		wait_dpkg_lock
 		if ! apt-get update -y; then

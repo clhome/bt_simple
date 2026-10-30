@@ -243,13 +243,17 @@ _yf_php_composer_install()
 # 确保 PHP 主构建核心依赖（libxml2 等），避免 configure 阶段才失败
 if [ "${action}" == "install" ]; then
 	_yf_php_deps_lib="${curPath}/versions/common/php_ext_deps.sh"
-	if [ -f "$_yf_php_deps_lib" ]; then
-		# shellcheck source=versions/common/php_ext_deps.sh
-		. "$_yf_php_deps_lib"
-		if declare -F yf_php_ensure_core_build_deps >/dev/null 2>&1; then
-			yf_require_step "检查并补齐 PHP 主构建核心依赖" yf_php_ensure_core_build_deps
-		fi
+	if [ ! -f "$_yf_php_deps_lib" ]; then
+		echo "[ERROR] 核心依赖检查脚本缺失: ${_yf_php_deps_lib}，无法继续构建" >&2
+		exit 1
 	fi
+	# shellcheck source=versions/common/php_ext_deps.sh
+	. "$_yf_php_deps_lib"
+	if ! declare -F yf_php_ensure_core_build_deps >/dev/null 2>&1; then
+		echo "[ERROR] 核心依赖检查函数不可用: yf_php_ensure_core_build_deps 未定义" >&2
+		exit 1
+	fi
+	yf_require_step "检查并补齐 PHP 主构建核心依赖" yf_php_ensure_core_build_deps
 fi
 
 # PHP 本体安装：versions/<NN>/install.sh 是真正编译的地方，失败必须中止

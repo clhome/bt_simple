@@ -102,7 +102,7 @@
 
 | 场景 | 访问目标 | 说明 |
 | --- | --- | --- |
-| 安装 / 更新面板 | `panel.yftec.top`、`raw.githubusercontent.com`、`gh-proxy.org` / `mirror.ghproxy.com` 等加速代理 | `deploy.sh` 拉取发布包与代码；关键产物走 Ed25519 验签（见上文「安装前校验」） |
+| 安装 / 更新面板 | `panel.yftec.top`、`raw.githubusercontent.com`、`gh-proxy.org` / `ghfast.top` 等加速代理（示例节点，单一真源以 `scripts/proxies.list` 为准） | `deploy.sh` 拉取发布包与代码；关键产物走 Ed25519 验签（见上文「安装前校验」） |
 | 安装运行环境 / 插件 | 各发行版官方软件源、阿里云 / 清华等国内镜像、Remi / sury / ondrej 第三方源 | 安装 PHP / MySQL / OpenResty 等时按需访问 |
 | 前端静态资源 | Staticfile CDN | 核心 JS/CSS 优先走 CDN，失败时自动回退到服务器本地静态文件，**离线 / 局域网环境仍可用** |
 | 计划任务「节假日 / 工作日」策略 | `timor.tech` 节假日 API | 仅在使用云端日期策略时需要联网取日期 |

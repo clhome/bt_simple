@@ -129,6 +129,13 @@ class TestN10PhpCoreBuildDepsEnsure(unittest.TestCase):
         self.assertIn('libxml-2.0', src, '必须检查 libxml-2.0')
         self.assertIn('libxml2-dev', src, '必须覆盖 libxml2-dev')
         self.assertIn('pkg-config', src, '必须覆盖 pkg-config')
+        # P1-1 增强：复查段必须对 sqlite3 等全部核心依赖完整复查
+        self.assertIn('yf_pkgconfig_has "sqlite3"', src, '复查段必须检查 sqlite3 依赖')
+        self.assertIn('libsqlite3-dev(sqlite3)', src, '缺失提示必须包含 sqlite3 开发包')
+        self.assertIn('yf_pkgconfig_has "zlib"', src, '复查段必须检查 zlib 依赖')
+        self.assertIn('yf_pkgconfig_has "openssl"', src, '复查段必须检查 openssl 依赖')
+        # P1-2 增强：自动安装前必须有 apt-get update 刷新缓存
+        self.assertIn('apt-get update -y', src, '自动安装前必须执行 apt-get update 刷新索引')
 
     def test_02_php_install_invokes_core_deps(self):
         src = _read(PHP_INSTALL_SH)
@@ -136,6 +143,11 @@ class TestN10PhpCoreBuildDepsEnsure(unittest.TestCase):
                       'plugins/php/install.sh 编译前必须调用 yf_php_ensure_core_build_deps')
         self.assertIn('yf_require_step "检查并补齐 PHP 主构建核心依赖"', src,
                       '核心依赖检查必须纳入安装报告体系（yf_require_step）')
+        # P1-3 增强：守卫失败不得静默跳过
+        self.assertNotIn('if declare -F yf_php_ensure_core_build_deps >/dev/null 2>&1; then', src,
+                         '守卫不得静默跳过核心依赖检查')
+        self.assertIn('echo "[ERROR] 核心依赖检查函数不可用: yf_php_ensure_core_build_deps 未定义"', src,
+                      '函数未定义时必须显式报错退出')
 
 
 class TestN11MysqlFastDownloadTimeoutAndMirrors(unittest.TestCase):
@@ -150,9 +162,27 @@ class TestN11MysqlFastDownloadTimeoutAndMirrors(unittest.TestCase):
     def test_02_official_mirrors_included_first(self):
         src = _read(MYSQL_INSTALL_SH)
         # 官方当前发布 CDN 与重定向必须在列表中且在归档前
-        self.assertIn('"https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"', src)
-        self.assertIn('"https://dev.mysql.com/get/Downloads/${download_path}/${tar_file}"', src)
-        self.assertIn('"https://downloads.mysql.com/archives/get/p/23/file/${tar_file}"', src)
+        u_cdn = '"https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"'
+        u_dev = '"https://dev.mysql.com/get/Downloads/${download_path}/${tar_file}"'
+        u_arc = '"https://downloads.mysql.com/archives/get/p/23/file/${tar_file}"'
+        u_hw = '"${huawei_base}${tar_file}"'
+
+        self.assertIn(u_cdn, src)
+        self.assertIn(u_dev, src)
+        self.assertIn(u_arc, src)
+        self.assertIn(u_hw, src)
+
+        # P1-7 增强：严格断言官方源与镜像在 mirrors 数组中的先后顺序
+        idx_cdn = src.index(u_cdn)
+        idx_dev = src.index(u_dev)
+        idx_arc = src.index(u_arc)
+        idx_hw = src.index(u_hw)
+        self.assertTrue(idx_cdn < idx_dev < idx_arc < idx_hw,
+                        '官方 CDN 必须排在首位，其次是 dev.mysql.com 分发重定向，再是 Archives 归档，最后是国内镜像')
+
+        # P2-3 增强：尺寸门抽取为可配置常量断言
+        self.assertIn('MYSQL_TAR_MIN_BYTES=52428800', src, '尺寸门必须抽取为带有命名和注释的常量')
+        self.assertIn('${MYSQL_TAR_MIN_BYTES}', src, '校验逻辑必须使用 MYSQL_TAR_MIN_BYTES 常量')
 
     def test_03_mysql_84_version_is_valid_lts(self):
         src = _read(MYSQL_INSTALL_SH)

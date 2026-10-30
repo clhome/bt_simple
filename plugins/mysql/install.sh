@@ -148,6 +148,10 @@ Install_fast_mysql() {
     fi
     local huawei_base="https://mirrors.huaweicloud.com/mysql/Downloads/${download_path}/"
 
+    # 预编译包基础尺寸门槛（P2-3）：官方 glibc 预编译包普遍 300MB~900MB+，
+    # 若小于 50MB 则极大概率为 404/503 HTML 错误页或严重截断残片
+    local MYSQL_TAR_MIN_BYTES=52428800
+
     # 下载源列表：官方 CDN / 分发入口优先（支持当前 GA），官方 Archives 兜底（针对历史归档版本），国内镜像辅助
     local mirrors=()
     mirrors+=(
@@ -161,13 +165,23 @@ Install_fast_mysql() {
 
     local download_success=false
     local dl_timeout=1800
+    local tmp_file="/tmp/${tar_file}"
+
+    # 若临时文件是已通过完整性校验的文件，直接复用；若损坏或是 HTML 错误文本则清理（P1-7）
+    if [ -f "${tmp_file}" ]; then
+        if command -v file >/dev/null 2>&1; then
+            local _ft=$(file -b "${tmp_file}")
+            if [[ "${_ft}" != *"XZ compressed"* && "${_ft}" != *"gzip compressed"* && "${_ft}" != *"tar archive"* ]]; then
+                rm -f "${tmp_file}"
+            fi
+        fi
+    fi
+
     for mirror_url in "${mirrors[@]}"; do
         echo "正在尝试从节点下载部署包: ${mirror_url}"
         
-        local tmp_file="/tmp/${tar_file}"
-        rm -f "${tmp_file}"
-        
         # 必须传递长超时（1800s），防止 850MB+ 的预编译包在默认 30s 超时下被中断截断
+        # 注：仅在网络中断且文件具备压缩格式特征时保留续传；格式错乱时下方会显式清理
         if command -v yf_download &> /dev/null; then
             yf_download "${tmp_file}" "${mirror_url}" "${dl_timeout}"
         else
@@ -177,7 +191,7 @@ Install_fast_mysql() {
         if [ -f "${tmp_file}" ]; then
             # 校验一：文件大小检测 (官方包普遍远大于50MB)
             local file_size=$(stat -c%s "${tmp_file}" 2>/dev/null || stat -f%z "${tmp_file}" 2>/dev/null)
-            if [ -n "${file_size}" ] && [ "${file_size}" -gt 52428800 ]; then
+            if [ -n "${file_size}" ] && [ "${file_size}" -gt ${MYSQL_TAR_MIN_BYTES} ]; then
                 # 校验二：文件类型检测 (防止下载到 HTML 错误页)
                 if command -v file >/dev/null 2>&1; then
                     local file_type=$(file -b "${tmp_file}")

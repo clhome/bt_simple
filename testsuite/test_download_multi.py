@@ -76,7 +76,16 @@ if [ -n "$range" ] && [ "${STUB_NO_LENGTH:-0}" != "1" ]; then
   if [ "${STUB_BREAK_PART:-}" != "" ] && [ "$a" = "${STUB_BREAK_PART}" ]; then
     exit 1
   fi
-  python -c 'import sys; src, a, b, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; f=open(src, "rb"); f.seek(a); open(out, "wb").write(f.read(b - a + 1))' "$SRC" "$a" "$b" "$out" 2>/dev/null
+  if [ -x "{py_bin}" ]; then
+    _py_bin="{py_bin}"
+  elif command -v python3 >/dev/null 2>&1 && python3 -c 'import sys' >/dev/null 2>&1; then
+    _py_bin="python3"
+  elif command -v python >/dev/null 2>&1 && python -c 'import sys' >/dev/null 2>&1; then
+    _py_bin="python"
+  else
+    _py_bin="python3"
+  fi
+  "$_py_bin" -c 'import sys; src, a, b, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]; f=open(src, "rb"); f.seek(a); open(out, "wb").write(f.read(b - a + 1))' "$SRC" "$a" "$b" "$out" 2>/dev/null
   exit 0
 fi
 cp "$SRC" "$out"
@@ -99,8 +108,9 @@ class TestMultiDownload(unittest.TestCase):
         bindir = os.path.join(tmp, 'bin')
         os.makedirs(bindir)
         stub = os.path.join(bindir, 'curl')
+        py_bin_posix = sys.executable.replace('\\', '/')
         with open(stub, 'w', encoding='utf-8', newline=NEWLINE) as f:
-            f.write(CURL_STUB)
+            f.write(CURL_STUB.replace('{py_bin}', py_bin_posix))
         os.chmod(stub, 0o755)
         sha = self._sha256(src)
         env = dict(os.environ)

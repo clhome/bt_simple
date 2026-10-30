@@ -82,15 +82,93 @@ class YfCliMenuAndLanguageTest(unittest.TestCase):
         self.assertIn('Switch panel language', self.tpl_src)
 
     def test_05_username_validation_hardening(self):
-        """用户名修改输入具备正则安全防御。"""
+        """真实调用 set_panel_username 测试用户名长度、字符集与屏蔽词校验安全防御。"""
         import panel_tools
-        # 测试正则逻辑
-        valid_usernames = ['admin_1', 'user123', 'yf_user_2026']
-        invalid_usernames = ['adm', 'a'*25, 'user name', 'user;rm -rf', 'user<script>']
-        for u in valid_usernames:
-            self.assertTrue(bool(re.match(r'^[a-zA-Z0-9_]{5,20}$', u)))
-        for u in invalid_usernames:
-            self.assertFalse(bool(re.match(r'^[a-zA-Z0-9_]{5,20}$', u)))
+        from unittest.mock import patch, MagicMock
+
+        invalid_cases = [
+            'adm',                  # 长度小于 5
+            'a' * 25,               # 长度大于 20
+            'user name',            # 空格
+            'user;rm -rf',          # 危险命令字符
+            'user<script>',         # XSS 字符
+            'admin',                # 屏蔽词
+            'root',                 # 屏蔽词
+            'user',                 # 屏蔽词
+        ]
+
+        with patch.object(panel_tools.thisdb, 'setUserByRoot') as mock_set_user:
+            # 所有非法用户名均被拦截，不得调用写库
+            for bad_name in invalid_cases:
+                panel_tools.set_panel_username(bad_name)
+                mock_set_user.assert_not_called()
+
+            # 合法用户名顺利通过并调用写库
+            valid_name = 'valid_user_2026'
+            panel_tools.set_panel_username(valid_name)
+            mock_set_user.assert_called_once_with(name=valid_name)
+
+    def test_08_deprecated_php52_menu_notice(self):
+        """验证已移除的 PHP 5.2 菜单 (100/101) 触发专属友好提示。"""
+        import io
+        from unittest.mock import patch
+        import panel_tools
+
+        for cmd in (100, 101):
+            buf = io.StringIO()
+            with patch('sys.stdout', buf), self.assertRaises(SystemExit):
+                panel_tools.yfcli(cmd)
+            out = buf.getvalue()
+            self.assertIn('PHP 5.2', out, 'yf %s 未输出 PHP 5.2 移除提示' % cmd)
+            self.assertNotIn('未知命令', out, 'yf %s 不应仅报未知命令' % cmd)
+
+    def test_09_show_panel_pwd_bcrypt_compat(self):
+        """验证 show_panel_pwd 适配 bcrypt 哈希，对匹配的 default.pl 正确明文显示。"""
+        import io
+        import tempfile
+        import shutil
+        from unittest.mock import patch
+        import panel_tools
+        import core.yf as yf
+
+        raw_pwd = 'test_password_123'
+        hashed = yf.hasPwd(raw_pwd)
+
+        tmp_panel = tempfile.mkdtemp(prefix='yf_pwd_test_')
+        self.addCleanup(shutil.rmtree, tmp_panel, True)
+        data_dir = os.path.join(tmp_panel, 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        default_pl = os.path.join(data_dir, 'default.pl')
+        with open(default_pl, 'w', encoding='utf-8') as f:
+            f.write(raw_pwd + '\n')
+
+        fake_user = {'name': 'testadmin', 'password': hashed}
+        with patch.object(panel_tools.thisdb, 'getUserByRoot', return_value=fake_user), \
+             patch.object(yf, 'getPanelDir', return_value=tmp_panel):
+            # 1. 密码匹配：正确显示明文
+            buf = io.StringIO()
+            with patch('sys.stdout', buf):
+                panel_tools.show_panel_pwd()
+            self.assertIn('password: test_password_123', buf.getvalue())
+
+            # 2. 密码不匹配（例如库内密码被修改）：输出已加密提示
+            with open(default_pl, 'w', encoding='utf-8') as f:
+                f.write('mismatched_pwd\n')
+            buf2 = io.StringIO()
+            with patch('sys.stdout', buf2):
+                panel_tools.show_panel_pwd()
+            self.assertIn('*密码已经加密存储', buf2.getvalue())
+
+    def test_10_cancel_semantic_0(self):
+        """验证 yf 0 输出取消退出语义。"""
+        import io
+        from unittest.mock import patch
+        import panel_tools
+
+        buf = io.StringIO()
+        with patch('sys.stdout', buf), self.assertRaises(SystemExit):
+            panel_tools.yfcli(0)
+        self.assertIn('已取消!', buf.getvalue())
 
     def test_06_display_width_alignment(self):
         """验证全角半角字符显示宽度计算，确保终端菜单排版工整。"""

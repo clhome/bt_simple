@@ -492,6 +492,10 @@ def yfcli(yf_input=None):
         if yf_input == 0:
             print(raw_tip)
             print(_t("已取消!", "Cancelled!"))
+        elif yf_input in (100, 101):
+            print(raw_tip)
+            print(_t("提示：PHP 5.2 菜单（100/101）已被移除，PHP 插件已不再支持 5.2 版本",
+                     "Note: PHP 5.2 menus (100/101) have been removed; PHP plugin no longer supports version 5.2"))
         else:
             print(raw_tip)
             print(_t("未知命令: ", "Unknown command: ") + str(yf_input))
@@ -769,18 +773,18 @@ def set_panel_pwd(password, ncli=False):
 
 
 def show_panel_pwd():
-    # 面板密码展示
+    # 面板密码展示（P1-10 修复：采用 checkPwdCompat 适配 bcrypt 与历史 MD5，确保初始密码正常显示）
     info = thisdb.getUserByRoot()
     if not info:
         yf.echoInfo("Error: Admin user not found in database.")
         return
 
-    defailt_pwd_file = yf.getPanelDir()+'/data/default.pl'
+    default_pwd_file = yf.getPanelDir() + '/data/default.pl'
     pwd = ''
-    if os.path.exists(defailt_pwd_file):
-        pwd = yf.readFile(defailt_pwd_file).strip()
+    if os.path.exists(default_pwd_file):
+        pwd = yf.readFile(default_pwd_file).strip()
 
-    if yf.md5(pwd) == info['password']:
+    if pwd and yf.checkPwdCompat(pwd, info['password']):
         yf.echoInfo('password: ' + pwd)
         return
     print(_t("*密码已经加密存储，如需重置密码，请使用 yf 11 命令",

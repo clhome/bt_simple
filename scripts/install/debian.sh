@@ -197,10 +197,15 @@ if [ ! -d /usr/include/curl ];then
 	fi 
 fi
 
-# find /usr/lib -name "*libaio*" 2>/dev/null
+# 适配 Debian 13 (trixie) 等 t64 架构重命名后的 libaio.so.1 兼容软链
 if [ ! -f /usr/lib/libaio.so.1 ];then
-	if [ -f /usr/lib/x86_64-linux-gnu/libaio.so.1t64 ];then
-		ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/libaio.so.1
+	_t64_lib=$(find /usr/lib -name "libaio.so.1t64" 2>/dev/null | head -n 1)
+	if [ -n "$_t64_lib" ] && [ -f "$_t64_lib" ]; then
+		ln -sf "$_t64_lib" /usr/lib/libaio.so.1
+		_t64_dir=$(dirname "$_t64_lib")
+		if [ ! -f "${_t64_dir}/libaio.so.1" ]; then
+			ln -sf "$_t64_lib" "${_t64_dir}/libaio.so.1"
+		fi
 	fi
 fi
 

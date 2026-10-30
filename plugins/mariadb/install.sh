@@ -67,6 +67,11 @@ fi
 if [ "${type}" == "" ];then
 	if [ "${action}" == "uninstall" ] && [ -f "${serverPath}/mariadb/version.pl" ]; then
 		type=$(cat "${serverPath}/mariadb/version.pl" | tr -d '\r\n')
+		# 安全防御：严格白名单校验版本号格式，防御路径穿越与非法字符（P1-5）
+		if [[ ! "${type}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+			echo "[ERROR] version.pl 中的 MariaDB 版本号格式异常: ${type}，拒绝执行" >&2
+			exit 1
+		fi
 	fi
 	if [ "${type}" == "" ] && [ "${action}" != "uninstall" ]; then
 		# 必须非 0：面板按退出码判定安装结果，`exit 0` 会让「版本脚本都不存在」
@@ -447,17 +452,26 @@ Install_fast_mariadb() {
 if [ "${action}" == "uninstall" ]; then
 	# 卸载永远走版本脚本（它只做「停进程 + 删目录」，与安装方式无关，
 	# 极速/编译安装的目录布局一致）
+	# 调用链契约（P1-6）：前置 index.py uninstallPreInspection 负责停服务、注销自启、清理套接字与图标；
+	# 本脚本负责执行真实卸载、清理目录并强制自检残留进程。
 	if [ -n "${type}" ] && [ -f "${curPath}/versions/${type}/install.sh" ]; then
 		yf_version_step "${action}" "${type}" "${curPath}/versions/${type}/install.sh" || exit $?
 	else
-		rm -rf "${serverPath}/mariadb"
-		echo '卸载完成'
+		# 兜底删除安全断言（P1-5）：防止根路径或异常 serverPath 导致误删系统目录
+		if [ -n "${serverPath}" ] && [ "${serverPath}" != "/" ] && [ -d "${serverPath}/mariadb" ]; then
+			rm -rf "${serverPath}/mariadb"
+			echo '卸载完成'
+		else
+			echo "[ERROR] 路径异常或 serverPath 无效: ${serverPath}/mariadb，拒绝执行删除" >&2
+			exit 1
+		fi
 	fi
 
-	# 卸载后回读：进程还在就明确告警（否则下一次安装会踩这个坑）
+	# 卸载后回读（P1-4）：进程还在则必须失败退出（exit 1），绝不向面板汇报假成功
 	if [ -f "${rootPath}/plugins/mariadb/index.py" ]; then
 		if ! (cd ${rootPath} && python3 ${rootPath}/plugins/mariadb/index.py stop_and_kill ${type}); then
-			echo "[WARN] 卸载后自检发现仍有 mariadbd 残留，请手动确认：ps -ef | grep mariadbd" >&2
+			echo "[ERROR] 卸载后自检发现仍有 mariadbd 残留，卸载失败，请手动确认：ps -ef | grep mariadbd" >&2
+			exit 1
 		fi
 	fi
 	exit 0

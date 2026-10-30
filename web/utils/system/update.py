@@ -56,12 +56,27 @@ def versionDiff(now, new):
             return 'test'
 
         # distutils 已在 Python 3.12 中移除，优先使用 packaging.version；
-        # packaging 缺失时退回 distutils（Python < 3.12），保证旧环境兼容
+        # packaging 缺失时退回 distutils（Python < 3.12）；若均缺失则采用纯 Python 元组兜底
+        is_greater = False
         try:
             from packaging.version import Version
-        except ImportError:
-            from distutils.version import LooseVersion as Version
-        if Version(new) > Version(now):
+            is_greater = Version(new) > Version(now)
+        except Exception:
+            try:
+                from distutils.version import LooseVersion as Version
+                is_greater = Version(new) > Version(now)
+            except Exception:
+                def _parse_v(v):
+                    parts = []
+                    for seg in re.split(r'(\d+)', str(v)):
+                        if seg.isdigit():
+                            parts.append((0, int(seg)))
+                        elif seg:
+                            parts.append((1, seg))
+                    return tuple(parts)
+                is_greater = _parse_v(new) > _parse_v(now)
+
+        if is_greater:
             return 'new'
     except Exception as _e:
         _log.debug('[update] 版本号比较失败: %s', _e)

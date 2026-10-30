@@ -167,7 +167,7 @@ function yf_verify_archive() {
     local _magic
     _magic=$(head -c 6 "$_f" 2>/dev/null | od -An -tx1 2>/dev/null | tr -d ' \n')
 
-    # 1. 已知魔数：必须通过对应压缩工具的真实完整性测试
+    # 1. 已知魔数：必须通过对应压缩工具的真实完整性测试（工具缺失坚决不放行，P2-1）
     case "$_magic" in
         1f8b*)
             gzip -t "$_f" >/dev/null 2>&1 && return 0 || return 1
@@ -176,25 +176,29 @@ function yf_verify_archive() {
             if command -v unzip >/dev/null 2>&1; then
                 unzip -t "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[verify][ERROR] 缺少 unzip 工具，拒绝放行未经验证的 zip 文件: $_f" >&2
+            return 1
             ;;
         fd377a585a00*|fd377a58*)
             if command -v xz >/dev/null 2>&1; then
                 xz -t "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[verify][ERROR] 缺少 xz 工具，拒绝放行未经验证的 xz 文件: $_f" >&2
+            return 1
             ;;
         425a68*)        # bz2
             if command -v bzip2 >/dev/null 2>&1; then
                 bzip2 -t "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[verify][ERROR] 缺少 bzip2 工具，拒绝放行未经验证的 bz2 文件: $_f" >&2
+            return 1
             ;;
         28b52ffd*)      # zstd
             if command -v zstd >/dev/null 2>&1; then
                 zstd -t "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
-            return 0
+            echo "[verify][ERROR] 缺少 zstd 工具，拒绝放行未经验证的 zstd 文件: $_f" >&2
+            return 1
             ;;
     esac
 
@@ -207,16 +211,18 @@ function yf_verify_archive() {
             if command -v tar >/dev/null 2>&1; then
                 tar -tf "$_f" >/dev/null 2>&1 && return 0 || return 1
             fi
+            echo "[verify][ERROR] 缺少 tar 工具，拒绝放行未经验证的 tar 归档: $_f" >&2
+            return 1
             ;;
     esac
 
     # 3. 没有已知魔数：绝对拒绝 HTML 错误页/认证页
-    if head -c 500 "$_f" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html|<head|<body|<xml)'; then
+    if head -c 1024 "$_f" 2>/dev/null | grep -qiE '^[[:space:]]*(<html|<!DOCTYPE html|<head|<body|<xml)'; then
         return 1
     fi
 
-    # 4. 拒绝代理错误/停用提示/常见网关报错文本
-    if [ "$_size" -lt 2048 ] && head -c 256 "$_f" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
+    # 4. 拒绝代理错误/停用提示/常见网关报错文本（放宽至 2048 字节全文扫描，防御长报错页，P2-1）
+    if [ "$_size" -lt 65536 ] && head -c 2048 "$_f" 2>/dev/null | grep -qiE 'error|invalid|denied|blocked|forbidden|not found|abuse|suspend|suspent|report|rate limit|captcha|security|gateway|unavailable|bad request|timeout|请|错误|拦截|未找到|停止'; then
         return 1
     fi
 

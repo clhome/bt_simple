@@ -703,13 +703,26 @@ yf_default(){
     fi
 
     password=$(cat ${PANEL_DIR}/data/default.pl)
-
     admin_path=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py admin_path)
+
+    # 抽取公共网络与版本数据计算，消除双语分支代码复制与漂移风险（P2-4）
+    v4=""
+    local_ip=""
+    if [ "$address" == "" ];then
+        v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
+        local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
+    fi
+    panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
+    version_raw=""
+    if [ -f ${PANEL_DIR}/.version ]; then
+        version_raw=$(cat ${PANEL_DIR}/.version | sed 's/^v//')
+    fi
+    u_name=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username)
+    u_pwd=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password)
+    show_panel_ip="$port|"
+
     if [ "$lang" = "en" ]; then
         if [ "$address" == "" ];then
-            v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
-            local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
-            
             address="Internal URL: ${scheme}://$local_ip:$port$admin_path"
             if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
                 address="${address}\nExternal URL: ${scheme}://$v4:$port$admin_path"
@@ -719,31 +732,23 @@ yf_default(){
         fi
 
         # bind domain check
-        panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
         if [ "$panel_bind_domain" != "" ];then
             address="Domain Panel URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
         fi
 
-        show_panel_ip="$port|"
-        version=""
-        if [ -f ${PANEL_DIR}/.version ]; then
-            version="[$(cat ${PANEL_DIR}/.version | sed 's/^v//')] "
-        fi
+        version="${version_raw:+[${version_raw}] }"
         echo -e "=================================================================="
         echo -e "\033[32m${version}Yufeng Panel Information\033[0m"
         echo -e "=================================================================="
         echo -e "$address"
-        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
-        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
+        echo -e "$u_name"
+        echo -e "$u_pwd"
         echo -e "\033[33mNote:\033[0m"
         echo -e "\033[33mIf unable to access the panel, please open ports in your security group (${show_panel_ip}80|443|22).\033[0m"
         echo -e "\033[33mPlease keep your credentials safe! If forgotten, run 'yf 11' to reset password.\033[0m"
         echo -e "=================================================================="
     else
         if [ "$address" == "" ];then
-            v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
-            local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
-            
             address="内网 御风面板URL: ${scheme}://$local_ip:$port$admin_path"
             if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
                 address="${address}\n外网 御风面板URL: ${scheme}://$v4:$port$admin_path"
@@ -753,22 +758,17 @@ yf_default(){
         fi
 
         # bind domain check
-        panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
         if [ "$panel_bind_domain" != "" ];then
             address="御风面板URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
         fi
 
-        show_panel_ip="$port|"
-        version=""
-        if [ -f ${PANEL_DIR}/.version ]; then
-            version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
-        fi
+        version="${version_raw:+【${version_raw}】}"
         echo -e "=================================================================="
         echo -e "\033[32m${version}御风面板信息\033[0m"
         echo -e "=================================================================="
         echo -e "$address"
-        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
-        echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
+        echo -e "$u_name"
+        echo -e "$u_pwd"
         echo -e "\033[33m提示:\033[0m"
         echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
         echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 yf 11 进行密码重置。\033[0m"

@@ -63,25 +63,27 @@ Install_phpmyadmin()
 	FDIR=phpMyAdmin-${VER}-all-languages
 	FILEPATH=''
 
+	# 确保已加载完整校验库（P2-1：未加载则拒绝安装，严禁凭非空放行未校验文件）
+	if ! command -v yf_verify_archive >/dev/null 2>&1; then
+		if [ -f "${rootPath}/scripts/github_download.sh" ]; then
+			source "${rootPath}/scripts/github_download.sh"
+		fi
+	fi
+	if ! command -v yf_verify_archive >/dev/null 2>&1; then
+		echo "[ERROR] 核心校验库 yf_verify_archive 不可用，拒绝接受未校验文件" >&2
+		exit 1
+	fi
+
 	for _ext in tar.xz tar.gz; do
 		FILE=phpMyAdmin-${VER}-all-languages.${_ext}
 		_try_path=$serverPath/source/phpmyadmin/$FILE
 
-		# 确保已加载完整校验库
-		if ! command -v yf_verify_archive >/dev/null 2>&1; then
-			if [ -f "${rootPath}/scripts/github_download.sh" ]; then
-				source "${rootPath}/scripts/github_download.sh"
-			fi
-		fi
-
 		# 优先从项目 GitHub Release 下载（自带国内代理加速）
 		GH_URL="https://github.com/clhome/bt_simple/releases/download/init/$FILE"
 		if github_download "$_try_path" "$GH_URL" >/dev/null 2>&1; then
-			if command -v yf_verify_archive >/dev/null 2>&1; then
-				if ! yf_verify_archive "$_try_path"; then
-					echo "[WARN] GitHub 节点下载的 ${FILE} 完整性校验失败（可能遭遇网络截断或代理错误），清理后回退" >&2
-					rm -f "$_try_path" 2>/dev/null
-				fi
+			if ! yf_verify_archive "$_try_path"; then
+				echo "[WARN] GitHub 节点下载的 ${FILE} 完整性校验失败（可能遭遇网络截断或代理错误），清理后回退" >&2
+				rm -f "$_try_path" 2>/dev/null
 			fi
 		else
 			rm -f "$_try_path" 2>/dev/null
@@ -98,7 +100,7 @@ Install_phpmyadmin()
 				wget -q -O "$_try_path" --timeout=300 "$OFFICIAL_URL" || rm -f "$_try_path" 2>/dev/null
 			fi
 
-			if [ -f "$_try_path" ] && command -v yf_verify_archive >/dev/null 2>&1; then
+			if [ -f "$_try_path" ]; then
 				if ! yf_verify_archive "$_try_path"; then
 					echo "[WARN] 官方源下载的 ${FILE} 校验失败，继续尝试下一格式..." >&2
 					rm -f "$_try_path" 2>/dev/null

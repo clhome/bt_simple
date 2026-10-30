@@ -57,13 +57,19 @@ yf_ext_ensure_pkgconfig() {
 
 	echo "[deps] 未检测到 ${_mod}${_min:+>=${_min}}，尝试自动补齐开发包..." >&2
 	_mgr="$(yf_ext_pkg_mgr)"
+	local _cand_err=""
 	case "${_mgr}" in
 		apt)
 			[ -n "${_apt_pkg}" ] || return 1
 			local _cand=""
 			for _cand in ${_apt_pkg}; do
 				echo "[deps] 正在尝试通过 apt 安装 ${_cand}..." >&2
-				_last_err=$(DEBIAN_FRONTEND=noninteractive apt-get install -y "${_cand}" 2>&1) || true
+				if command -v timeout >/dev/null 2>&1; then
+					_cand_err=$(DEBIAN_FRONTEND=noninteractive timeout 300 apt-get install -y "${_cand}" 2>&1) || true
+				else
+					_cand_err=$(DEBIAN_FRONTEND=noninteractive apt-get install -y "${_cand}" 2>&1) || true
+				fi
+				_last_err="${_last_err:+$_last_err"$'\n'--- ${_cand} ---$'\n'}${_cand_err}"
 				if yf_pkgconfig_has "${_mod}" "${_min}"; then
 					break
 				fi
@@ -74,7 +80,12 @@ yf_ext_ensure_pkgconfig() {
 			local _cand=""
 			for _cand in ${_rpm_pkg}; do
 				echo "[deps] 正在尝试通过 ${_mgr} 安装 ${_cand}..." >&2
-				_last_err=$("${_mgr}" install -y "${_cand}" 2>&1) || true
+				if command -v timeout >/dev/null 2>&1; then
+					_cand_err=$(timeout 300 "${_mgr}" install -y "${_cand}" 2>&1) || true
+				else
+					_cand_err=$("${_mgr}" install -y "${_cand}" 2>&1) || true
+				fi
+				_last_err="${_last_err:+$_last_err"$'\n'--- ${_cand} ---$'\n'}${_cand_err}"
 				if yf_pkgconfig_has "${_mod}" "${_min}"; then
 					break
 				fi
@@ -137,6 +148,8 @@ yf_php_ensure_core_build_deps() {
 
 	case "${_mgr}" in
 		apt)
+			# 新机或缓存过期时预先更新索引，避免因缓存导致依赖安装失败（P1-2）
+			DEBIAN_FRONTEND=noninteractive apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1 || true
 			for _p in ${_apt_pkgs}; do
 				DEBIAN_FRONTEND=noninteractive apt-get install -y "${_p}" >/dev/null 2>&1 || true
 			done
@@ -156,6 +169,15 @@ yf_php_ensure_core_build_deps() {
 	fi
 	if ! yf_pkgconfig_has "libxml-2.0" "2.9.4"; then
 		_still_missing+=("libxml2-dev(libxml-2.0>=2.9.4)")
+	fi
+	if ! yf_pkgconfig_has "sqlite3"; then
+		_still_missing+=("libsqlite3-dev(sqlite3)")
+	fi
+	if ! yf_pkgconfig_has "zlib"; then
+		_still_missing+=("zlib1g-dev(zlib)")
+	fi
+	if ! yf_pkgconfig_has "openssl"; then
+		_still_missing+=("libssl-dev(openssl)")
 	fi
 
 	if [ "${#_still_missing[@]}" -eq 0 ]; then

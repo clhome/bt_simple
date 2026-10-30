@@ -1,50 +1,51 @@
-# 御风面板回归问题深度修复与共性整改
+# 御风面板 Debian 13 深度适配与审计缺陷全面整改
 
-## 项目背景与目标
+## 项目概况与目标
 
-根据真机回归测试报告（`御风面板_bt_simple_聚焦真机回归结论_9d30461_2026-10-29.md`），重点攻坚并彻底修复报告中暴露出的 4 项关键缺陷（N8、N9、N10、N11），并对全仓存在的同类共性问题（坏代理污染、弱文件校验、扩展依赖冲突、大包下载超时与死链）进行同口径整改与测试固化，确保所有插件在真机与 CI 环境下均具备极高的稳定性和自愈能力。
+针对 2026-10-30 审计发现的问题（P1-1 至 P1-10、P2-1 至 P2-9），进行事实核查与彻底根治，同时全面深化 Debian 13 (trixie) 环境适配，消除所有假成功、死循环、未校验放行、双语代码漂移及测试空心问题。
 
 ## 规范与原则
 
-- **编码标准**：统一采用 UTF-8 (无 BOM) 编码，换行符强制使用 LF (`\n`)。
-- **环境兼容**：保证在 Windows 11 本地开发与 Linux 服务器部署的双向跨平台兼容性，严禁硬编码反斜杠路径。
-- **事实与防假**：严格依据实际校验结果（魔数、完整性检查、解压探活、真实退出码），严禁任何口头或表面假成功。
-- **目录洁净**：测试脚本与排查验证工具统一置于 `test/` 目录或既有 `testsuite/`，保持生产目录洁净。
+- **简洁至上**：恪守 KISS 原则，注重代码可维护性，严禁过度工程化与冗余抽象。
+- **第一性原理**：从核心问题出发拆解实现路径，杜绝盲目臆测。
+- **事实优先**：严谨客观，严格依据真实退出码与完整性校验，杜绝任何假成功。
+- **编码与格式**：所有文件统一采用 UTF-8 (无 BOM) 编码，换行符强制使用 LF (`\n`)。
+- **跨平台兼容**：保证在 Windows 11 本地开发与 Linux 服务器部署的双向跨平台兼容性，严禁硬编码反斜杠路径。
+- **目录洁净**：测试脚本与排查验证工具统一归入根目录 `test/` 或既有 `testsuite/`，严禁污染生产代码目录。
 
 ## 任务拆解与进度 (Task List)
 
-- [x] **任务 1：N8 修复与代理/校验共性强化（P1）**
-  - [x] 1.1 从 `scripts/proxies.list` 与 `deploy.sh` 中移除已停用失效节点 `gh.con.sh`，保证单一真源与引导副本同步
-  - [x] 1.2 重构强化 `scripts/github_download.sh` 中的 `_gh_verify_file` 与 `yf_verify_archive`：对压缩包后缀严格校验魔数与解压完整性，严禁放行错误文本；拦截代理停用与报错文本；下载成功日志附带真实字节数与校验状态
-  - [x] 1.3 修复 `plugins/phpmyadmin/install.sh`：GitHub 源下载后严密校验包有效性，损坏时自动清除并无缝回落至官方源；官方源同样完成有效性闭环校验；解压前严密防御
-- [x] **任务 2：N9 修复与 php 扩展依赖助手互斥包隔离（P1）**
-  - [x] 2.1 修复 `plugins/php/versions/common/curl.sh`：将 apt 包名参数由互斥双包改为首选 `libcurl4-openssl-dev`
-  - [x] 2.2 增强 `plugins/php/versions/common/php_ext_deps.sh` 中的 `yf_ext_ensure_pkgconfig`：支持候选包逐个依次尝试安装，彻底杜绝把互斥包同时传给 apt 导致崩溃；输出真实安装错误信息避免全吞；照抄命令输出单包
-- [x] **任务 3：N10 修复与 php 主构建核心依赖前置确保（P2）**
-  - [x] 3.1 在 `plugins/php/versions/common/php_ext_deps.sh` 中新增 `yf_php_ensure_core_build_deps` 函数，前置探测并自动补齐 `pkg-config`、`libxml2-dev`、`libsqlite3-dev` 等主构建核心依赖
-  - [x] 3.2 在 `plugins/php/install.sh` 中接入核心依赖前置确保，缺失且无法安装时提供明确友好的提示与照抄命令并诚实退出
-- [x] **任务 4：N11 修复与 mysql-fast 下载 URL/大包超时整改（P1）**
-  - [x] 4.1 修复 `plugins/mysql/install.sh` 下载超时：显式设置长超时（1800s），防止 850MB+ 大包在默认 30s 下被截断
-  - [x] 4.2 完善 MySQL 预编译包官方分发体系与镜像列表：纳入官方 CDN（`cdn.mysql.com`）、重定向分发（`dev.mysql.com/get/...`）与 Archives 归档库，剔除已失效的空镜像；修正 8.4 等版本的可用发布配置
-- [x] **任务 5：自动化测试覆盖与全量验证**
-  - [x] 5.1 编写/更新针对代理节点、下载坏文件拦截、curl 依赖助手单包安装、php 核心依赖探测及 mysql 下载 URL 的测试用例
-  - [x] 5.2 运行测试套件验证修复成果，清理测试临时文件，确保全绿
-- [x] **任务 6：代理测速排序与单一真源列表更新**
-  - [x] 6.1 改造 `scripts/proxy_tester.py`：新增保留头部注释的读写机制，测速完成后自动按速度降序重排代理（锁定 `direct||rt` 始终置顶），支持 `--no-save` 参数控制
-  - [x] 6.2 根据测试机实测结果更新 `scripts/proxies.list`：确保 `direct||rt` 为首位，其后依次为高可用高速代理（`github.chenc.dev`、`ghfast.top`、`gh-proxy.org`）及其他备选节点
-  - [x] 6.3 同步更新 `deploy.sh` 中的 `YF_BOOTSTRAP_PROXY_LIST` 引导副本，保证与 `proxies.list` 运行时子集完全一致
-  - [x] 6.4 运行 `testsuite/test_deploy_bootstrap.py` 等测试用例，全量验证排序逻辑与单一真源守卫
-- [x] **任务 7：`deploy.sh` 升级改造为中英文双语版**
-  - [x] 7.1 设计双语切换机制与多语言辅助函数：支持参数（`--lang=en/zh`）、环境变量（`YF_LANG`）与交互式首选，升级 `log_info`/`log_warn`/`log_error` 支持双语参数，新增 `msg_i18n` 辅助函数
-  - [x] 7.2 改造主交互流程与终端展示：对 `show_banner`、主菜单（全新安装/迁移/覆盖升级等）、`confirm` 确认交互全面进行中英双语国际化
-  - [x] 7.3 改造安装过程核心日志与安装完成信息：对 `show_panel_info`（面板登录地址、默认账号密码、运维提示等）进行双语输出，并将选定语言持久化写入 `${PANEL_DIR}/data/language.pl`
-  - [x] 7.4 严密守卫与测试验证：运行 `testsuite/test_deploy_bootstrap.py` 确保 Ed25519 校验器、发布公钥、代理列表等逐字节守卫全部 100% 通过
-- [x] **任务 8：`yf` 命令双语切换、过期菜单清理与安全性/可靠性/性能综合优化**
-  - [x] 8.1 【语言切换与双语化】在 `panel_tools.py` 中新增 `(32) 切换面板语言` 菜单项与 `lang` 命令行支持，实现中英双语菜单呈现与即时持久化到 `data/language.pl`；在 `scripts/init.d/yf.tpl` 中支持 `yf lang` 与 `yf default`（yf 10）双语展示
-  - [x] 8.2 【清理过期菜单】彻底移除 `(100) 开启PHP52显示` 与 `(101) 关闭PHP52显示` 及其处理逻辑；重排规范菜单编号与结构
-  - [x] 8.3 【安全性与可靠性加固】修改端口、用户名等输入严格参数校验防崩溃防注入；本地性能测试替换外部不可信 `curl | bash` 供应链高危脚本；修复 `yf.tpl` 中 `$yf_path` 未定义变量、`unbind_ssl` 路由错误及残留错别字；完善终端中断信号容错
-  - [x] 8.4 【性能与排版优化】推行模块延迟按需导入（Lazy Import），加速高频命令启动；实现精准东亚字符对齐算法，杜绝终端排版错位
-  - [x] 8.5 【测试覆盖与验证】编写专门针对 `yf` 命令行新能力、双语、过期菜单剔除及加固项的自动化测试，运行既有测试套件保证全部绿灯
-- [x] **任务 9：代理列表维护与部署脚本同步机制手册补齐**
-  - [x] 9.1 在《御风面板使用与运维说明书》（`文档/御风面板说明书/说明书.md`）第 2.2 节中补充代理单一真源与 `deploy.sh` 内嵌副本同步维护规范
-  - [x] 9.2 在门禁与开发者规范手册（`testsuite/testsuite.md`）第 5.10 节中明确代理修改契约与硬性约束说明
+- [x] **任务 1：Debian 13 (trixie) 深度适配与系统兼容强化**
+  - [x] 1.1 `deploy.sh` APT 换源适配 deb822 格式（`/etc/apt/sources.list.d/debian.sources` 与 `ubuntu.sources`），支持阿里云镜像加速及更新失败自动回滚
+  - [x] 1.2 `scripts/install/debian.sh` 跨架构软链加固：适配 aarch64 与 x86_64 下 `libaio.so.1t64` 到 `libaio.so.1` 软链接
+  - [x] 1.3 `plugins/php-apt/install.sh` 系统代号探测升级：优先从 `/etc/os-release` 获取 `VERSION_CODENAME`，精准识别 Debian 13 为 `trixie`
+  - [x] 1.4 `web/utils/system/update.py` 版本比较兜底：在 Python 3.12+ / 3.13 缺少 packaging 且无 distutils 时提供轻量元组比对兜底
+- [x] **任务 2：PHP 主构建与扩展依赖检查缺陷修复（P1-1, P1-2, P1-3, P2-2）**
+  - [x] 2.1 修复 `plugins/php/versions/common/php_ext_deps.sh` 复查漏查问题：在 `yf_php_ensure_core_build_deps` 复查段补齐 `sqlite3`、`zlib`、`openssl` 校验，杜绝假就绪（P1-1）
+  - [x] 2.2 修复自动安装路径前置缺失 `apt-get update`：安装前执行非破坏性更新，避免新机或缓存过期导致失败（P1-2）
+  - [x] 2.3 修复 `plugins/php/install.sh` 守卫静默跳过：当依赖助手库不可用或函数未定义时显式报错退出，严禁静默跳过（P1-3）
+  - [x] 2.4 强化 `yf_ext_ensure_pkgconfig`：累积记录多候选包失败摘要，增加单包安装超时保护（P2-2）
+- [x] **任务 3：MariaDB 卸载调用链、安全防护与退出码加固（P1-4, P1-5, P1-6）**
+  - [x] 3.1 修复 `plugins/mariadb/index.py` 的 `uninstallPreInspection`：服务停止失败或进程残留时拒绝返回 ok，阻止假卸载（P1-4）
+  - [x] 3.2 修复 `plugins/mariadb/install.sh` 卸载退出码：`stop_and_kill` 自检发现残留时由 WARN 升级为非 0 失败退出（P1-4）
+  - [x] 3.3 加固 `version.pl` 回读与兜底删除：增加严格格式白名单校验，兜底 `rm -rf` 增加 `serverPath` 安全校验（P1-5）
+  - [x] 3.4 梳理并注释规范 MariaDB 卸载调用链契约（P1-6）
+- [x] **任务 4：MySQL 大包下载、镜像顺序与断点续传整改（P1-7, P2-3）**
+  - [x] 4.1 纠正 `plugins/mysql/install.sh` 官方 URL 顺序断言与下载逻辑：保留网络中断后的续传能力，仅损坏时清理（P1-7）
+  - [x] 4.2 抽取尺寸门校验常量 `MYSQL_TAR_MIN_BYTES` 并规范注释说明（P2-3）
+- [x] **任务 5：代理管理、测速脚本与真源保护（P1-8, P1-9, P2-8）**
+  - [x] 5.1 排查死节点 `cors.zme.ink`，保持 `scripts/proxies.list` 与 `deploy.sh` 引导序列严格同步（P1-8）
+  - [x] 5.2 改造 `scripts/proxy_tester.py`：默认不写回原文件（新增显式 `--save` 控制），写回时完整保留行间注释（P1-9）
+  - [x] 5.3 纠正 `README_cn.md` 表格中的代理说明，标注为示例并指向单一真源 `scripts/proxies.list`（P2-8）
+- [x] **任务 6：面板初始密码展示、CLI 双语与命令友好提示（P1-10, P2-4, P2-9）**
+  - [x] 6.1 根治初始密码无法展示顽疾：在 `panel_tools.py` 的 `show_panel_pwd()` 中改用 `yf.checkPwdCompat` 校验 bcrypt/MD5，恢复初始密码明文展示（P1-10）
+  - [x] 6.2 重构 `scripts/init.d/yf.tpl` 的 `yf_default`：抽取地址组装公共逻辑，消除双语分支代码复制与漂移风险（P2-4）
+  - [x] 6.3 优化 `yfcli` 命令分发：针对 `100/101` 提供已废弃专属提示，发布说明增加 `yf 0` 与 `100/101` 变动说明（P2-9）
+- [x] **任务 7：压缩包与脚本校验边界收紧（P2-1）**
+  - [x] 7.1 `scripts/github_download.sh`：解压校验工具缺失时明确失败（不放行），扩大错误页关键字扫描窗口至 2048 字节（P2-1）
+  - [x] 7.2 `plugins/phpmyadmin/install.sh`：校验函数库不可用时显式报错中止，严禁放行未校验文件（P2-1）
+- [x] **任务 8：自动化测试套件补齐、修正与全量验证（P2-5, P2-7）**
+  - [x] 8.1 修复 `testsuite/test_download_multi.py`：测试桩兼容 `python3` 与 `sys.executable`（P2-5）
+  - [x] 8.2 重构 `testsuite/test_yf_cli_and_i18n.py` 的 `test_05`：真实调用 `set_panel_username` 验证边界校验，补齐 `100/101` 与双语等用例（P2-5）
+  - [x] 8.3 增强 `testsuite/test_report_9d30461_fixes.py`：补齐 N10 sqlite3 复查断言与 N11 官方源 URL 顺序断言（P2-5）
+  - [x] 8.4 运行所有相关自动化测试套件验证修复成果，保持测试全绿（P2-7）

@@ -62,13 +62,27 @@ def proxy_url(prefix, url):
     return prefix + url
 
 
+class ProxyEntry(tuple):
+    """支持解包为 (key, prefix, scope) 的代理条目，同时附带行间注释以保持格式。"""
+    def __new__(cls, key, prefix, scope, comments=None):
+        instance = super(ProxyEntry, cls).__new__(cls, (key, prefix, scope))
+        instance.key = key
+        instance.prefix = prefix
+        instance.scope = scope
+        instance.comments = list(comments or [])
+        return instance
+
+
 def parse_list_with_header(path):
-    """读 proxies.list，返回 (header_lines, [(键名, 前缀, 作用域)])。
+    """读 proxies.list，返回 (header_lines, [ProxyEntry], trailing_lines)。
     
     header_lines 为遇到第一个数据行之前的所有行（含注释和空行），保持原样。
+    行间注释和空行保留在紧随其后的 ProxyEntry.comments 中，末尾注释保留在 trailing_lines。
     """
     header_lines = []
     entries = []
+    trailing_lines = []
+    current_comments = []
     in_header = True
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         for raw in f:
@@ -81,19 +95,22 @@ def parse_list_with_header(path):
                 else:
                     in_header = False
             if not stripped or stripped.startswith("#"):
+                current_comments.append(line)
                 continue
             parts = stripped.split("|")
             key = parts[0].strip()
             prefix = parts[1].strip() if len(parts) > 1 else ""
             scope = parts[2].strip() if len(parts) > 2 else ""
             if key:
-                entries.append((key, prefix, scope))
-    return header_lines, entries
+                entries.append(ProxyEntry(key, prefix, scope, current_comments))
+                current_comments = []
+    trailing_lines = current_comments
+    return header_lines, entries, trailing_lines
 
 
 def parse_list(path):
     """读 proxies.list，返回 [(键名, 前缀, 作用域)]，保持文件顺序。"""
-    _, entries = parse_list_with_header(path)
+    _, entries, _ = parse_list_with_header(path)
     return entries
 
 
@@ -115,18 +132,24 @@ def sort_entries(entries, test_rows):
             other_entries.append(entry)
 
     if direct_entry is None:
-        direct_entry = ("direct", "", "rt")
+        direct_entry = ProxyEntry("direct", "", "rt")
 
     # 稳定排序：保持同等优先级/速度的相对原顺序
     other_entries.sort(key=lambda e: speed_map.get(e[0], (1, 0.0)))
     return [direct_entry] + other_entries
 
 
-def save_proxy_list(path, header_lines, entries):
-    """将头部注释与重排后的代理列表写回文件，强制 UTF-8 (无 BOM) 与 LF 换行。"""
+def save_proxy_list(path, header_lines, entries, trailing_lines=None):
+    """将头部注释与重排后的代理列表写回文件，强制 UTF-8 (无 BOM) 与 LF 换行，保留行间注释。"""
     out_lines = list(header_lines)
-    for key, prefix, scope in entries:
-        out_lines.append("%s|%s|%s" % (key, prefix, scope))
+    for entry in entries:
+        comments = getattr(entry, "comments", [])
+        for c in comments:
+            out_lines.append(c)
+        out_lines.append("%s|%s|%s" % (entry[0], entry[1], entry[2]))
+    if trailing_lines:
+        for t in trailing_lines:
+            out_lines.append(t)
     content = "\n".join(out_lines) + "\n"
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
@@ -223,12 +246,13 @@ def main():
     ap.add_argument("--speed-url", default=SPEED_URL, help="测速用的目标 URL")
     ap.add_argument("--content-url", default=CONTENT_URL, help="内容测试用的目标 URL")
     ap.add_argument("--output", default="", help="把结果表同时写到这个文件（默认只打印）")
-    ap.add_argument("--no-save", action="store_true", help="只测速打印，不修改 proxies.list 文件")
-    ap.add_argument("--save-to", default="", help="将排序后的代理列表另存为该文件（默认原地更新输入的 listfile）")
+    ap.add_argument("--save", action="store_true", help="允许按测速结果重排并写回 listfile（默认不写回）")
+    ap.add_argument("--no-save", action="store_true", help="只测速打印，不修改文件（与默认行为一致，保留兼容）")
+    ap.add_argument("--save-to", default="", help="将排序后的代理列表另存为该文件（不修改原输入文件）")
     args = ap.parse_args()
 
     try:
-        header_lines, entries = parse_list_with_header(args.listfile)
+        header_lines, entries, trailing_lines = parse_list_with_header(args.listfile)
     except OSError as e:
         print("读不到 %s：%s" % (args.listfile, e), file=sys.stderr)
         return 1
@@ -289,15 +313,25 @@ def main():
             f.write(out + "\n")
         print("结果已写入 %s" % args.output)
 
-    if not args.no_save:
+    should_save = False
+    if args.save:
+        should_save = True
+    if args.save_to:
+        should_save = True
+    if args.no_save:
+        should_save = False
+
+    if should_save:
         target_path = args.save_to if args.save_to else args.listfile
         sorted_entries = sort_entries(entries, rows)
         try:
-            save_proxy_list(target_path, header_lines, sorted_entries)
+            save_proxy_list(target_path, header_lines, sorted_entries, trailing_lines)
             print("已按测速结果将排序后的代理写入 %s（direct 固定在首位，其余 %d 个节点按速度降序）。"
                   % (target_path, len(sorted_entries) - 1))
         except OSError as e:
             print("写入 %s 失败：%s" % (target_path, e), file=sys.stderr)
+    else:
+        print("未指定 --save 或 --save-to，跳过写回文件（保持原 proxies.list 不变）。")
     return 0
 
 

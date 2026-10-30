@@ -382,10 +382,10 @@ YF_BOOTSTRAP_PROXY_LIST=(
     "https://ghfast.top/"
     "https://github.chenc.dev/"
     "https://gh-proxy.com/"
-    "https://cors.zme.ink/"
-    "https://gh.ddlc.top/"
     "https://ghproxy.net/"
     "https://gh.llkk.cc/https://"
+    "https://cors.zme.ink/"
+    "https://gh.ddlc.top/"
 )
 
 # 引导期最小下载器：同样是「直连 -> 逐个代理」，保住大陆可访问性。
@@ -1071,26 +1071,55 @@ EOF
         log_info "已配置 pip 阿里云加速源"
     fi
 
-    # 配置系统 APT 源加速 (Ubuntu/Debian)
-    if command -v apt-get >/dev/null 2>&1 && [ -f "/etc/apt/sources.list" ]; then
-        local current_source=$(grep ^deb /etc/apt/sources.list | head -n 1 | sed -E 's|^[^ ]+ https?://([^/]+).*|\1|')
-        
-        # 如果当前源属于慢速官方源，尝试替换为阿里云源
-        if [[ "$current_source" == *"archive.ubuntu.com"* || "$current_source" == *"security.ubuntu.com"* || "$current_source" == *"deb.debian.org"* || "$current_source" == *"security.debian.org"* ]]; then
-            log_info "当前 APT 源 ($current_source) 在国内较慢，正在切换至阿里云镜像..."
-            \cp -rpa /etc/apt/sources.list /etc/apt/sources.list.btbackup
-            sed -i "s/$current_source/mirrors.aliyun.com/g" /etc/apt/sources.list
-            sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list
-            sed -i "s/security.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list
-            sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
-            sed -i "s/security.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
-            
+    # 配置系统 APT 源加速 (Ubuntu/Debian: 传统 sources.list 及 deb822 格式)
+    if command -v apt-get >/dev/null 2>&1; then
+        local apt_modified=false
+        local sources_list="/etc/apt/sources.list"
+        local deb822_files=(/etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/ubuntu.sources)
+
+        # 1. 传统 sources.list 处理
+        if [ -f "$sources_list" ]; then
+            local current_source=$(grep ^deb "$sources_list" 2>/dev/null | head -n 1 | sed -E 's|^[^ ]+ https?://([^/]+).*|\1|')
+            if [[ "$current_source" == *"archive.ubuntu.com"* || "$current_source" == *"security.ubuntu.com"* || "$current_source" == *"deb.debian.org"* || "$current_source" == *"security.debian.org"* ]] || grep -qE "(deb\.debian\.org|security\.debian\.org|archive\.ubuntu\.com|security\.ubuntu\.com)" "$sources_list" 2>/dev/null; then
+                log_info "当前传统 APT 源包含慢速官方源，正在切换至阿里云镜像..."
+                \cp -rpa "$sources_list" "${sources_list}.btbackup"
+                sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" "$sources_list"
+                sed -i "s/security.ubuntu.com/mirrors.aliyun.com/g" "$sources_list"
+                sed -i "s/deb.debian.org/mirrors.aliyun.com/g" "$sources_list"
+                sed -i "s/security.debian.org/mirrors.aliyun.com/g" "$sources_list"
+                apt_modified=true
+            fi
+        fi
+
+        # 2. deb822 格式处理 (Debian 13 trixie / Ubuntu 24.04+)
+        for d822 in "${deb822_files[@]}"; do
+            if [ -f "$d822" ]; then
+                if grep -qE "(deb\.debian\.org|security\.debian\.org|archive\.ubuntu\.com|security\.ubuntu\.com)" "$d822" 2>/dev/null; then
+                    log_info "当前 deb822 APT 源 ($d822) 包含慢速官方源，正在切换至阿里云镜像..."
+                    \cp -rpa "$d822" "${d822}.btbackup"
+                    sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" "$d822"
+                    sed -i "s/security.ubuntu.com/mirrors.aliyun.com/g" "$d822"
+                    sed -i "s/deb.debian.org/mirrors.aliyun.com/g" "$d822"
+                    sed -i "s/security.debian.org/mirrors.aliyun.com/g" "$d822"
+                    apt_modified=true
+                fi
+            fi
+        done
+
+        if [ "$apt_modified" = "true" ]; then
             apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 log_info "APT 加速源配置完成"
             else
                 log_warn "APT 源更新遇到问题，已回滚源配置..."
-                \cp -rpa /etc/apt/sources.list.btbackup /etc/apt/sources.list
+                if [ -f "${sources_list}.btbackup" ]; then
+                    \cp -rpa "${sources_list}.btbackup" "$sources_list"
+                fi
+                for d822 in "${deb822_files[@]}"; do
+                    if [ -f "${d822}.btbackup" ]; then
+                        \cp -rpa "${d822}.btbackup" "$d822"
+                    fi
+                done
                 apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1
             fi
         fi
