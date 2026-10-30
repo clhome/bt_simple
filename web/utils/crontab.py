@@ -329,8 +329,8 @@ class crontab(object):
                     p = psutil.Process(pid)
                     cmd = ' '.join(p.cmdline())
                     return echo in cmd
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[crontab] psutil 检查任务进程异常: %s', _e)
             return False
         except Exception:
             return False
@@ -365,8 +365,8 @@ class crontab(object):
                                 return p_int
                     except Exception:
                         continue
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[crontab] psutil 扫描任务 PID 异常: %s', _e)
             return None
         except Exception as _e:
             _log.debug('[crontab] 扫描任务 PID 异常: %s', _e)
@@ -398,8 +398,8 @@ class crontab(object):
                                 return candidate_pid, data
                         try:
                             os.remove(pf)
-                        except Exception:
-                            pass
+                        except Exception as _e:
+                            _log.debug('[crontab] 移除死进程 PID 文件异常: %s', _e)
                 except Exception as _e:
                     _log.debug('[crontab] 读取 PID 文件异常: %s', _e)
 
@@ -407,8 +407,8 @@ class crontab(object):
             if matched_pid:
                 try:
                     yf.writeFile(pf, str(matched_pid))
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[crontab] 写入 PID 文件异常: %s', _e)
                 return matched_pid, data
 
             return None, data
@@ -430,8 +430,8 @@ class crontab(object):
                 p = psutil.Process(main_pid)
                 for child in p.children(recursive=True):
                     target_pids.add(child.pid)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[crontab] psutil 获取子进程树异常: %s', _e)
 
         if os.path.exists('/proc'):
             try:
@@ -480,8 +480,8 @@ class crontab(object):
                         import psutil
                         if psutil.pid_exists(p):
                             psutil.Process(p).terminate()
-                    except Exception:
-                        pass
+                    except Exception as _ep:
+                        _log.debug('[crontab] psutil terminate 异常: %s', _ep)
                     if yf.checkPid(p) and hasattr(os, 'kill'):
                         os.kill(p, term_sig)
             except Exception as _e:
@@ -513,8 +513,8 @@ class crontab(object):
                             import psutil
                             if psutil.pid_exists(p):
                                 psutil.Process(p).kill()
-                        except Exception:
-                            pass
+                        except Exception as _ep:
+                            _log.debug('[crontab] psutil kill 异常: %s', _ep)
                         if yf.checkPid(p) and hasattr(os, 'kill'):
                             kill_sig = getattr(_sig, 'SIGKILL', term_sig)
                             os.kill(p, kill_sig)
@@ -527,8 +527,8 @@ class crontab(object):
                     for p in target_pids:
                         if yf.checkPid(p):
                             _sp.run(['taskkill', '/F', '/T', '/PID', str(p)], capture_output=True)
-                except Exception:
-                    pass
+                except Exception as _e:
+                    _log.debug('[crontab] win32 taskkill 异常: %s', _e)
 
         return True
 
@@ -544,8 +544,8 @@ class crontab(object):
                 if os.path.exists(pf):
                     try:
                         os.remove(pf)
-                    except Exception:
-                        pass
+                    except Exception as _e:
+                        _log.debug('[crontab] 移除 PID 文件异常: %s', _e)
                 return yf.returnData(False, 'crontab.task_not_running')
 
             self.killProcessTree(main_pid)

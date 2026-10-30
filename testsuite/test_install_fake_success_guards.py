@@ -360,8 +360,10 @@ class IndividualFixTest(unittest.TestCase):
 
     def test_02_mysql_build_deps_not_pinned_to_1804(self):
         src = _read(os.path.join(PLUGINS, 'mysql', 'versions', '8.0', 'install.sh'))
-        # libtirpc-dev 必须在「所有 ubuntu」分支里装
-        ubuntu_all = 'if [ "$OSNAME" == "ubuntu" ];then'
+        # libtirpc-dev 必须在「所有 ubuntu / debian」分支里装
+        ubuntu_all = 'if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "debian" ];then'
+        if ubuntu_all not in src:
+            ubuntu_all = 'if [ "$OSNAME" == "ubuntu" ];then'
         self.assertIn(ubuntu_all, src, '缺少发行版无关的 apt 依赖分支')
         seg = src[src.index(ubuntu_all):src.index('if [ "$OSNAME" == "ubuntu" ] && [ "$VERSION_ID" == "18.04" ]')]
         self.assertIn('libtirpc-dev', seg,

@@ -83,13 +83,13 @@ def _find_real_bash():
     未装 WSL 时它只会输出一堆乱码/报错，所以必须真跑一句验证。
     找不到就把「真跑脚本」那几条用例跳过（结构断言照跑）。
     """
-    cands = [shutil.which('bash'), shutil.which('bash.exe')]
-    for prog in ('Git', 'Git\\usr'):
-        pass
-    for base in (os.environ.get('ProgramFiles', r'C:\Program Files'),
-                 os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')):
-        cands.append(os.path.join(base, 'Git', 'bin', 'bash.exe'))
-        cands.append(os.path.join(base, 'Git', 'usr', 'bin', 'bash.exe'))
+    cands = []
+    if os.name == 'nt':
+        for base in (os.environ.get('ProgramFiles', r'C:\Program Files'),
+                     os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')):
+            cands.append(os.path.join(base, 'Git', 'bin', 'bash.exe'))
+            cands.append(os.path.join(base, 'Git', 'usr', 'bin', 'bash.exe'))
+    cands.extend([shutil.which('bash'), shutil.which('bash.exe')])
     for cand in cands:
         if not cand or not os.path.exists(cand):
             continue
@@ -241,7 +241,8 @@ class TestManualRunIgnoresScheduleGate(unittest.TestCase):
         env.pop(FORCE_ENV, None)
         if with_force:
             env[FORCE_ENV] = '1'
-        proc = subprocess.run([BASH, path], env=env, stdout=subprocess.PIPE,
+        run_path = path.replace('\\', '/') if os.name == 'nt' else path
+        proc = subprocess.run([BASH, run_path], env=env, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=120)
         return proc.stdout.decode('utf-8', 'replace')
 
