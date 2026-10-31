@@ -188,9 +188,9 @@ function giteaUpgrade(targetVersion){
                     giteaVersionManage(1);
                 });
             } else if(res.data && res.data.need_backup_confirm){
-                layer.confirm(res.msg + '<br><br><b>' + pt('是否确认已完成外部数据库备份，继续执行升级？') + '</b>', {title: pt('外部数据库安全确认'), icon: 0}, function(cIdx){
+                layer.confirm(res.msg, {title: pt('确认平滑升级 Gitea'), icon: 0}, function(cIdx){
                     layer.close(cIdx);
-                    var loadIdx2 = layer.msg(pt('正在安全升级 Gitea，请稍候...'), {icon: 16, time: 0, shade: 0.3});
+                    var loadIdx2 = layer.msg(pt('正在下载并安全升级 Gitea，请稍候（请勿刷新页面）...'), {icon: 16, time: 0, shade: 0.3});
                     api.post('upgrade_app', {version: targetVersion, backup_confirmed: 1}, function(data2){
                         layer.close(loadIdx2);
                         var res2 = JSON.parse(data2.data);

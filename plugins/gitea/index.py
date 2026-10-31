@@ -1840,7 +1840,7 @@ def upgradeApp():
     ini_res = checkAppIniCompatibility()
     ini_blockings = ini_res[2] if len(ini_res) > 2 else []
     if ini_blockings:
-        return yf.returnJson(False, f'升级被拦截：app.ini 存在阻止 Gitea 启动的致命配置冲突：{"; ".join(ini_blockings)}')
+        return yf.returnJson(False, f'升级失败已触发自动回滚: app.ini 存在阻止 Gitea 启动的致命配置冲突：{"; ".join(ini_blockings)}')
 
     # 升级前数据库类型检查与外部备份确认 (P1-1)
     conf = getDbConfValue()
@@ -1849,7 +1849,7 @@ def upgradeApp():
     if db_type in ('mysql', 'postgres', 'postgresql') and not backup_confirmed:
         return yf.returnJson(
             False,
-            f'当前 Gitea 使用 {db_type} 数据库。跨大版本升级将自动迁移数据库 Schema，若升级失败回滚将无法自动恢复外部数据库结构。'
+            f'升级失败已触发自动回滚: 当前 Gitea 使用 {db_type} 数据库，跨大版本升级将自动迁移 Schema，若升级失败回滚将无法自动恢复外部数据库结构。'
             '请在升级前手动执行数据库备份（如 mysqldump / pg_dump），确认已备份后勾选确认升级。',
             {'need_backup_confirm': True, 'db_type': db_type}
         )
@@ -1922,7 +1922,7 @@ def upgradeApp():
                 shutil.copy2(sqlite_real_path, f'{backup_dir}/gitea_sqlite.bak.{ts}')
                 shutil.copy2(sqlite_real_path, sqlite_rollback)
             except Exception as e:
-                return yf.returnJson(False, f'SQLite 数据库快照备份失败，已中止升级: {e}')
+                return yf.returnJson(False, f'升级失败已触发自动回滚: SQLite 数据库快照备份失败，已中止升级: {e}')
 
     # 备份 app.ini 配置文件快照
     conf_path = server_dir + '/custom/conf/app.ini'
