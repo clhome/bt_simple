@@ -28,7 +28,7 @@ fi
 # 于是在面板里选 1.17.2/1.18.5/1.22.1/1.24.3 实际都会装成 1.26.1（版本参数被静默忽略）。
 VERSION=$2
 if [ -z "${VERSION}" ];then
-	VERSION=1.26.1
+	VERSION=28.2.0
 fi
 # 版本号会拼进下载 URL 与文件名：只允许数字与点，阻断路径/命令注入
 case "${VERSION}" in
@@ -73,7 +73,12 @@ Install_App()
 	echo '正在安装脚本文件...'
 	
 	if [ "$sysName" == "Darwin" ];then
-		file=gitea-${VERSION}-darwin-10.12-amd64
+		v_maj=$(echo "$VERSION" | cut -d. -f1)
+		if [ "$v_maj" -ge 28 ] 2>/dev/null; then
+			file=gitea-${VERSION}-darwin-amd64
+		else
+			file=gitea-${VERSION}-darwin-10.12-amd64
+		fi
 	else
 		if [ "$sysArch" == "aarch64" ] || [ "$sysArch" == "arm64" ];then
 			file=gitea-${VERSION}-linux-arm64

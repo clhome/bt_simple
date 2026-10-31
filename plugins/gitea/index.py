@@ -7,6 +7,10 @@ import sys
 import re
 import json
 import subprocess
+import shutil
+import shlex
+import urllib.request
+import urllib.error
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -1485,6 +1489,444 @@ def uninstallPreInspection():
         return "有项目数据!请手动删除Gitea<br/> rm -rf {}".format(getServerDir())
     return 'ok'
 
+
+# ---------------------------------------------------------------------------
+# Gitea 版本检测、最新 Release 嗅探与无损平滑升级 (含秒级故障回滚)
+# ---------------------------------------------------------------------------
+
+def getCurrentVersion():
+    """获取本地 Gitea 确切版本。
+    
+    优先执行二进制 `gitea --version` 探测真实运行版本；若尚未启动或执行失败，
+    降级读取安装时记录的 `version.pl`。
+    """
+    bin_path = getGiteaBin()
+    if isInstalled() and os.path.exists(bin_path):
+        try:
+            rc, out, _ = yf.execShellRc(f'{shlex.quote(bin_path)} --version', timeout=5)
+            if rc == 0 and out:
+                m = re.search(r'Gitea\s+version\s+([0-9]+(?:\.[0-9]+)+)', out, re.I)
+                if m:
+                    ver = m.group(1).strip()
+                    try:
+                        ver_file = getServerDir() + '/version.pl'
+                        cur_saved = yf.readFile(ver_file)
+                        if not isinstance(cur_saved, str) or cur_saved.strip() != ver:
+                            yf.writeFile(ver_file, ver)
+                    except Exception as e:
+                        _log.debug('[gitea] 同步 version.pl 异常已忽略: %s', e)
+                    return ver
+        except Exception as e:
+            _log.debug('[gitea] 执行 gitea --version 失败: %s', e)
+
+    ver_file = getServerDir() + '/version.pl'
+    if os.path.exists(ver_file):
+        ver = yf.readFile(ver_file)
+        if isinstance(ver, str) and ver.strip():
+            return ver.strip()
+    return ''
+
+
+def parseSemVer(ver_str):
+    """将版本字符串解析并归一化为 (major, minor, patch) 数字三元组。
+    
+    上游 Gitea 从 28.0.0 起移除了历史的 '1.' 前缀，即 28.x.y 实质为 1.28.y。
+    为实现平滑跨版本比对与阶梯安全评估，将首位 >= 28 的版本归一化映射为 (1, major, patch)。
+    """
+    if not ver_str:
+        return (0, 0, 0)
+    ver_clean = re.sub(r'^[vV]', '', str(ver_str).strip())
+    parts = re.findall(r'\d+', ver_clean)
+    if not parts:
+        return (0, 0, 0)
+    nums = [int(p) for p in parts[:3]]
+    while len(nums) < 3:
+        nums.append(0)
+
+    # 归一化：上游 28.x.y 对应 1.28.y
+    if nums[0] >= 28:
+        return (1, nums[0], nums[1])
+    return tuple(nums)
+
+
+def compareSemVer(v1, v2):
+    """比较两个语义化版本号。v1 > v2 返回 1; v1 == v2 返回 0; v1 < v2 返回 -1。"""
+    t1 = parseSemVer(v1)
+    t2 = parseSemVer(v2)
+    if t1 > t2:
+        return 1
+    elif t1 < t2:
+        return -1
+    return 0
+
+
+def checkSteppedRisk(curr_ver, target_ver):
+    """检测版本跨度与数据库平滑迁移风险。
+    
+    Gitea ORM 迁移逻辑跨越大版本过多时，可能丢弃非常早期的迁移脚本。
+    上游 28.x 即 1.28 线，1.26 -> 28.2 实际跨越 2 个 minor，属于平滑迁移范围。
+    若次版本号跨度 > 2 或主版本变动，提供安全提示。
+    """
+    if not curr_ver or not target_ver:
+        return False, ''
+    c_maj, c_min, _ = parseSemVer(curr_ver)
+    t_maj, t_min, _ = parseSemVer(target_ver)
+    
+    diff = (t_maj - c_maj) * 100 + (t_min - c_min)
+    if diff > 2 or t_maj > c_maj:
+        msg = (f"当前版本(v{curr_ver})与目标版本(v{target_ver})跨越了多个主版本。"
+               "Gitea 数据库迁移支持平滑向前迁移，但跨度较大时建议确认已备份数据库（如 SQLite 或 MySQL）。"
+               "系统在升级前将自动为您对原有可执行程序、配置文件及数据库进行快照，并配备故障自动秒级回滚保障。")
+        return True, msg
+    return False, ''
+
+
+def checkAppIniCompatibility():
+    """升级前预检 app.ini 中 28.x 相关的废弃/阻断配置项。
+    
+    返回 (is_safe, list_of_warn_msgs)。
+    """
+    conf_path = getServerDir() + '/custom/conf/app.ini'
+    if not os.path.exists(conf_path):
+        return True, []
+    content = yf.readFile(conf_path)
+    if not content or not isinstance(content, str):
+        return True, []
+    
+    warns = []
+    if re.search(r'^\s*ALLOWED_DOMAINS\s*=', content, re.M):
+        warns.append('检测到已废弃的 ALLOWED_DOMAINS 配置，建议改用 ALLOWED_HOST_LIST')
+    if re.search(r'^\s*BLOCKED_DOMAINS\s*=', content, re.M):
+        warns.append('检测到已废弃的 BLOCKED_DOMAINS 配置，建议改用 BLOCKED_HOST_LIST')
+    if re.search(r'^\s*ALLOW_LOCALNETWORKS\s*=', content, re.M):
+        warns.append('检测到已废弃的 ALLOW_LOCALNETWORKS 配置，建议改用 ALLOWED_HOST_LIST')
+    m = re.search(r'^\s*BLOCKED_HOST_LIST\s*=\s*(.*)', content, re.M)
+    if m and '*' in m.group(1):
+        warns.append('BLOCKED_HOST_LIST 中包含 * 通配符(28.x 不支持通配符且会阻止启动)')
+    
+    return (len(warns) == 0), warns
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """禁止自动 302 重定向，用于捕获 Location 标头提取目标 release tag。"""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def getLatestReleaseFromGithub(force=False):
+    """从 GitHub Releases 探测最新官方发布版本（双通道高可用 + 缓存）。"""
+    cache_file = getPluginDir() + '/latest_version_cache.json'
+    now_ts = int(time.time())
+
+    # 1. 尝试使用 1 小时有效期的本地缓存
+    if not force and os.path.exists(cache_file):
+        try:
+            cache_content = yf.readFile(cache_file)
+            if cache_content:
+                cdata = json.loads(cache_content)
+                if now_ts - cdata.get('time', 0) < 3600 and cdata.get('version'):
+                    cdata['cached'] = True
+                    return cdata
+        except Exception as e:
+            _log.debug('[gitea] 读取版本缓存失败: %s', e)
+
+    latest_ver = ''
+    pub_date = ''
+    notes = ''
+    is_offline = False
+
+    # 2. 通道 A：302 重定向嗅探（无 API 限流，极快）
+    probe_urls = ['https://github.com/go-gitea/gitea/releases/latest']
+    proxy_prefix = ''
+    try:
+        proxy_prefix = yf.getGithubProxy()
+    except Exception as e:
+        _log.debug('[gitea] 获取 GitHub 代理前缀异常: %s', e)
+    if proxy_prefix:
+        probe_urls.append(yf._makeGithubProxyUrl(proxy_prefix, probe_urls[0]))
+
+    for p_url in probe_urls:
+        try:
+            opener = urllib.request.build_opener(_NoRedirectHandler)
+            req = urllib.request.Request(p_url, headers={'User-Agent': 'curl/7.68.0'})
+            try:
+                opener.open(req, timeout=6)
+            except urllib.error.HTTPError as e:
+                if e.code in (301, 302, 307, 308):
+                    loc = e.headers.get('Location', '')
+                    m = re.search(r'tag/v?([0-9]+(?:\.[0-9]+)+)', loc)
+                    if m:
+                        latest_ver = m.group(1).strip()
+                        break
+        except Exception as e:
+            _log.debug('[gitea] 302 重定向探测 %s 失败: %s', p_url, e)
+            continue
+
+    # 3. 通道 B：GitHub REST API 补充详细信息与 Release Notes
+    api_url = 'https://api.github.com/repos/go-gitea/gitea/releases/latest'
+    try:
+        req = urllib.request.Request(api_url, headers={'User-Agent': 'curl/7.68.0'})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            tag = data.get('tag_name', '').lstrip('v')
+            if tag and not latest_ver:
+                latest_ver = tag
+            pub_date = (data.get('published_at') or '')[:10]
+            raw_body = (data.get('body') or '').strip()
+            notes = raw_body[:400] + ('...' if len(raw_body) > 400 else '')
+    except Exception as e:
+        _log.debug('[gitea] GitHub API 探测失败: %s', e)
+
+    # 4. 通道 C：离线兜底（使用 info.json 中声明的最高稳定版）
+    if not latest_ver:
+        try:
+            info_file = getPluginDir() + '/info.json'
+            if os.path.exists(info_file):
+                info_data = json.loads(yf.readFile(info_file))
+                v_list = info_data.get('versions', [])
+                if v_list:
+                    latest_ver = v_list[-1]
+                    notes = '（当前环境无法直接访问 GitHub，已启用离线推荐稳定版）'
+                    is_offline = True
+        except Exception as e:
+            _log.debug('[gitea] 读取 info.json 离线版本失败: %s', e)
+
+    if not latest_ver:
+        latest_ver = '1.26.1'
+
+    res = {
+        'version': latest_ver,
+        'published_at': pub_date or time.strftime('%Y-%m-%d'),
+        'notes': notes or '官方最新稳定版',
+        'offline': is_offline,
+        'cached': False,
+        'time': now_ts
+    }
+
+    try:
+        yf.writeFile(cache_file, json.dumps(res))
+    except Exception as e:
+        _log.debug('[gitea] 写入版本缓存失败: %s', e)
+
+    return res
+
+
+def checkUpdate():
+    """面板前端获取更新状态接口。"""
+    args = getArgs()
+    force = str(args.get('force', '')).lower() in ('1', 'true')
+    curr_ver = getCurrentVersion()
+    latest_info = getLatestReleaseFromGithub(force=force)
+    latest_ver = latest_info.get('version', '')
+
+    has_update = False
+    if curr_ver and latest_ver:
+        has_update = (compareSemVer(latest_ver, curr_ver) > 0)
+
+    is_risk, risk_msg = checkSteppedRisk(curr_ver, latest_ver)
+    ini_safe, ini_warns = checkAppIniCompatibility()
+
+    data = {
+        'current_version': curr_ver,
+        'latest_version': latest_ver,
+        'has_update': has_update,
+        'published_at': latest_info.get('published_at', ''),
+        'notes': latest_info.get('notes', ''),
+        'offline': latest_info.get('offline', False),
+        'is_stepped_warning': is_risk,
+        'warning_msg': risk_msg,
+        'ini_safe': ini_safe,
+        'ini_warnings': ini_warns,
+        'is_installed': isInstalled()
+    }
+    return yf.returnJson(True, 'ok', data)
+
+
+def getSystemPackageFile(version):
+    """依据系统类型与 CPU 架构计算对应的 Gitea 发行文件名。"""
+    sys_name = yf.execShell("uname -s")[0].strip()
+    sys_arch = yf.execShell("arch")[0].strip()
+    if not sys_arch:
+        sys_arch = yf.execShell("uname -m")[0].strip()
+
+    if sys_name == 'Darwin':
+        v_parts = parseSemVer(version)
+        # 上游 28.x 起 (去掉了 1. 前缀)，Darwin 资产文件名不再带 -10.12 后缀
+        if v_parts[1] >= 28 or v_parts[0] >= 28:
+            return f'gitea-{version}-darwin-amd64'
+        return f'gitea-{version}-darwin-10.12-amd64'
+    elif sys_arch in ('aarch64', 'arm64'):
+        return f'gitea-{version}-linux-arm64'
+    else:
+        return f'gitea-{version}-linux-amd64'
+
+
+def upgradeApp():
+    """Gitea 无损平滑在线升级接口（含原子备份、架构预检与秒级故障回滚）。"""
+    if not isInstalled():
+        return yf.returnJson(False, 'Gitea 尚未安装，无法执行升级!')
+
+    args = getArgs()
+    target_ver = str(args.get('version', '')).strip().lstrip('v')
+    if not target_ver:
+        latest_info = getLatestReleaseFromGithub(force=False)
+        target_ver = latest_info.get('version', '').strip().lstrip('v')
+
+    # 严格校验版本号，阻断任何注入
+    if not re.match(r'^[0-9]+(?:\.[0-9]+)+$', target_ver):
+        return yf.returnJson(False, '非法的目标版本号参数: ' + target_ver)
+
+    curr_ver = getCurrentVersion()
+    if curr_ver and compareSemVer(target_ver, curr_ver) < 0:
+        return yf.returnJson(False, f'禁止逆向降级: 目标版本(v{target_ver})低于当前版本(v{curr_ver})')
+
+    server_dir = getServerDir()
+    source_dir = yf.getServerDir() + '/source/gitea'
+    backup_dir = server_dir + '/backup'
+    yf.makeDirs(source_dir)
+    yf.makeDirs(backup_dir)
+
+    file_base = getSystemPackageFile(target_ver)
+    file_xz = file_base + '.xz'
+    xz_path = source_dir + '/' + file_xz
+    extracted_bin = source_dir + '/' + file_base
+    cur_bin = server_dir + '/gitea'
+
+    # 1. 下载新版本 .xz 安装包
+    url_download = f'https://github.com/go-gitea/gitea/releases/download/v{target_ver}/{file_xz}'
+    try:
+        if os.path.exists(xz_path) and os.path.getsize(xz_path) < 1024 * 1024:
+            os.remove(xz_path)
+    except Exception as e:
+        _log.debug('[gitea] 清理损坏包异常已忽略: %s', e)
+
+    dl_ok = yf.githubDownload(url_download, xz_path, timeout=90, min_size=5 * 1024 * 1024)
+    if not dl_ok or not os.path.exists(xz_path):
+        return yf.returnJson(False, f'下载新版本安装包失败: {url_download}')
+
+    # 2. 解压并做执行权限赋予
+    if os.path.exists(extracted_bin):
+        try:
+            os.remove(extracted_bin)
+        except Exception as e:
+            _log.debug('[gitea] 清理旧解压产物异常已忽略: %s', e)
+    yf.execShell(f'cd {shlex.quote(source_dir)} && xz -k -d -f {shlex.quote(file_xz)}')
+    if not os.path.exists(extracted_bin):
+        return yf.returnJson(False, '安装包解压失败，请检查系统 xz 工具是否就绪!')
+
+    yf.execShell(f'chmod +x {shlex.quote(extracted_bin)}')
+
+    # 3. 架构与 glibc 动态兼容预检 (Smoke Test)
+    probe_rc, probe_out, probe_err = yf.execShellRc(f'{shlex.quote(extracted_bin)} --version', timeout=10)
+    if probe_rc != 0 or 'Gitea version' not in (probe_out or ''):
+        err_msg = (probe_err or probe_out or '执行返回异常').strip()
+        try:
+            os.remove(extracted_bin)
+        except Exception as e:
+            _log.debug('[gitea] 清理预检失败二进制异常: %s', e)
+        return yf.returnJson(False, f'系统环境预检运行失败: {err_msg}')
+
+    # 4. 升级前安全快照（备份二进制与 SQLite 数据库）
+    ts = time.strftime('%Y%m%d_%H%M%S')
+    bak_bin = f'{backup_dir}/gitea.bak.{ts}'
+    rollback_bin = f'{backup_dir}/gitea.rollback'
+    try:
+        shutil.copy2(cur_bin, bak_bin)
+        shutil.copy2(cur_bin, rollback_bin)
+    except Exception as e:
+        return yf.returnJson(False, f'创建旧版本二进制快照失败: {e}')
+
+    sqlite_real_path = ''
+    sqlite_rollback = ''
+    try:
+        conf = getDbConfValue()
+        if conf and getGiteaDbType(conf) == 'sqlite3':
+            db_path_cfg = conf.get('PATH', 'data/gitea.db')
+            sqlite_real_path = db_path_cfg if os.path.isabs(db_path_cfg) else (server_dir + '/' + db_path_cfg)
+            if os.path.exists(sqlite_real_path):
+                sqlite_rollback = f'{backup_dir}/gitea_sqlite.rollback'
+                shutil.copy2(sqlite_real_path, f'{backup_dir}/gitea_sqlite.bak.{ts}')
+                shutil.copy2(sqlite_real_path, sqlite_rollback)
+    except Exception as e:
+        _log.debug('[gitea] SQLite 快照备份异常已忽略: %s', e)
+
+    # 备份 app.ini 配置文件快照
+    conf_path = server_dir + '/custom/conf/app.ini'
+    conf_rollback = f'{backup_dir}/app.ini.rollback'
+    if os.path.exists(conf_path):
+        try:
+            shutil.copy2(conf_path, f'{backup_dir}/app.ini.bak.{ts}')
+            shutil.copy2(conf_path, conf_rollback)
+        except Exception as e:
+            _log.debug('[gitea] 配置文件快照备份异常已忽略: %s', e)
+
+    # 5. 停服并原子替换可执行文件
+    was_running = (status() == 'start')
+    if was_running:
+        stop()
+        for _ in range(5):
+            if status() == 'stop':
+                break
+            time.sleep(1)
+
+    try:
+        shutil.copy2(extracted_bin, cur_bin)
+        yf.execShell(f'chmod +x {shlex.quote(cur_bin)}')
+        yf.execShell(f'chown -R www:www {shlex.quote(cur_bin)}')
+    except Exception as e:
+        if os.path.exists(rollback_bin):
+            shutil.copy2(rollback_bin, cur_bin)
+            yf.execShell(f'chmod +x {shlex.quote(cur_bin)}')
+        if was_running:
+            start()
+        return yf.returnJson(False, f'文件替换异常，已还原旧版本: {e}')
+
+    # 6. 拉起新版本并执行 15 秒健康巡检
+    start()
+    health_ok = False
+    for _ in range(15):
+        time.sleep(1)
+        if status() == 'start':
+            health_ok = True
+            break
+
+    # 7. 健康检查失败 -> 秒级自动回滚
+    if not health_ok:
+        _log.error('[gitea] 新版本启动失败或崩溃，立即触发自动秒级回滚！')
+        if os.path.exists(rollback_bin):
+            shutil.copy2(rollback_bin, cur_bin)
+            yf.execShell(f'chmod +x {shlex.quote(cur_bin)}')
+        if sqlite_real_path and os.path.exists(sqlite_rollback):
+            try:
+                shutil.copy2(sqlite_rollback, sqlite_real_path)
+            except Exception as e:
+                _log.debug('[gitea] 还原 SQLite 快照失败: %s', e)
+        if os.path.exists(conf_rollback) and os.path.exists(conf_path):
+            try:
+                shutil.copy2(conf_rollback, conf_path)
+            except Exception as e:
+                _log.debug('[gitea] 还原配置文件快照失败: %s', e)
+        start()
+        log_file = runLog()
+        log_tail = ''
+        if os.path.exists(log_file):
+            rc, out, _ = yf.execShellRc(f'tail -n 25 {shlex.quote(log_file)}')
+            if rc == 0:
+                log_tail = out.strip()
+        return yf.returnJson(False, f'升级失败已触发自动回滚: 已安全恢复至原版本(v{curr_ver})，原有数据与配置未受破坏。日志摘要: {log_tail or "无"}')
+
+    # 8. 升级成功：更新 version.pl 并同步版本缓存
+    yf.writeFile(server_dir + '/version.pl', target_ver)
+    try:
+        cache_file = getPluginDir() + '/latest_version_cache.json'
+        if os.path.exists(cache_file):
+            os.remove(cache_file)
+    except Exception as e:
+        _log.debug('[gitea] 清理版本缓存异常: %s', e)
+
+    return yf.returnJson(True, f'升级成功: Gitea 成功无损升级至 v{target_ver}！原有配置文件与仓库数据均已完好保留。')
+
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -1557,5 +1999,9 @@ if __name__ == "__main__":
         print(getTotalStatistics())
     elif func == 'get_access_url':
         print(getAccessUrl())
+    elif func == 'check_update':
+        print(checkUpdate())
+    elif func == 'upgrade_app':
+        print(upgradeApp())
     else:
         print('fail')

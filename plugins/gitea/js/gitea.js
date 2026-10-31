@@ -44,12 +44,154 @@ function giteaService(){
                         <p style="margin-bottom:0px;">' + pt('外网访问地址：') + '<a href="'+wan+'" target="_blank" class="btlink">'+wan+'</a></p>\
                     </div>';
                     $(".soft-man-con").append(html);
+
+                    // 联动获取版本状态并展示状态卡片
+                    api.post('check_update', {}, function(vData){
+                        var vr = JSON.parse(vData.data);
+                        if(vr.status){
+                            var curVer = gtEsc(vr.data.current_version || pt('未安装'));
+                            var latestVer = gtEsc(vr.data.latest_version || '');
+                            if(vr.data.has_update){
+                                var banner = '<div class="alert alert-warning" style="margin-bottom:15px; border-left:4px solid #f59e0b; padding:12px 16px; background:#fffbeb; border-radius:4px;">\
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">\
+                                        <div>\
+                                            <strong style="font-size:13px; color:#b45309;"><i class="glyphicon glyphicon-bullhorn"></i> ' + pt('发现 Gitea 官方新版本 v') + latestVer + '</strong>\
+                                            <p style="margin:4px 0 0; color:#78350f; font-size:12px;">' + pt('当前运行版本为 v') + curVer + '。' + pt('28.x 为上游规范版本命名（即 1.28 稳定线），数据平滑兼容，建议升级以获取安全性与性能提升。') + '</p>\
+                                        </div>\
+                                        <button class="btn btn-warning btn-sm" onclick="$(\x27.bt-w-menu p:eq(1)\x27).click(); giteaUpgrade(\x27' + gtJsArg(vr.data.latest_version) + '\x27);"><i class="glyphicon glyphicon-arrow-up"></i> ' + pt('立即平滑升级') + '</button>\
+                                    </div>\
+                                </div>';
+                                $(".soft-man-con").prepend(banner);
+                            }
+
+                            var verHtml = '<div style="margin-top:15px; padding:12px 15px; border:1px solid #e2e8f0; background:#f8fafc; border-radius:4px; width:450px;">\
+                                <div style="display:flex; justify-content:space-between; align-items:center;">\
+                                    <span>' + pt('当前版本：') + '<strong style="color:#0f172a;">v' + curVer + '</strong></span>';
+                            if(vr.data.has_update){
+                                verHtml += '<a href="javascript:;" onclick="$(\x27.bt-w-menu p:eq(1)\x27).click();" class="label label-warning" style="cursor:pointer; font-size:11px; text-decoration:none;">' + pt('发现新版 v') + latestVer + ' ' + pt('前往升级') + ' &raquo;</a>';
+                            } else {
+                                verHtml += '<span class="label label-success" style="font-size:11px;">' + pt('已是最新版本') + '</span>';
+                            }
+                            verHtml += '</div></div>';
+                            $(".soft-man-con").append(verHtml);
+                        }
+                    });
                 }
             }, pt("正在获取访问地址..."));
         }
         retryCount++;
         if(retryCount > 50) clearInterval(timer);
     }, 100);
+}
+
+function giteaVersionManage(force){
+    var params = force ? {force: 1} : {};
+    var loadMsg = force ? pt("正在检查最新版本...") : pt("正在获取版本信息...");
+    api.post('check_update', params, function(data){
+        var res = JSON.parse(data.data);
+        if(!res.status){
+            layer.msg(res.msg, {icon: 2, time: 2500});
+            return;
+        }
+        var info = res.data;
+        var curVer = gtEsc(info.current_version || pt('未检测到/未安装'));
+        var latestVer = gtEsc(info.latest_version || '--');
+        var pubDate = gtEsc(info.published_at || '--');
+        var notes = gtEsc(info.notes || pt('无更新说明'));
+        
+        var statusBadge = '';
+        var upgradeBtn = '';
+        if(info.has_update){
+            statusBadge = '<span class="label label-warning" style="font-size:12px; padding:3px 8px;">' + pt('发现新版本') + '</span>';
+            upgradeBtn = '<button class="btn btn-success btn-sm" onclick="giteaUpgrade(\'' + gtJsArg(info.latest_version) + '\')"><i class="glyphicon glyphicon-arrow-up"></i> ' + pt('一键安全平滑升级到 v') + latestVer + '</button>';
+        } else {
+            statusBadge = '<span class="label label-success" style="font-size:12px; padding:3px 8px;">' + pt('当前已是最新版本') + '</span>';
+            upgradeBtn = '<button class="btn btn-default btn-sm" disabled>' + pt('暂无可用升级') + '</button>';
+        }
+
+        var warningAlert = '';
+        if(info.is_stepped_warning && info.warning_msg){
+            warningAlert = '<div class="alert alert-warning" style="margin-top:15px; margin-bottom:15px; padding:10px 15px; font-size:12px; line-height:1.6;">\
+                <strong><i class="glyphicon glyphicon-warning-sign"></i> ' + pt('跨版本平滑升级提示：') + '</strong>' + gtEsc(info.warning_msg) + '\
+            </div>';
+        }
+        if(info.ini_warnings && info.ini_warnings.length > 0){
+            var warnLis = '';
+            for(var wi=0; wi<info.ini_warnings.length; wi++){
+                warnLis += '<li>' + gtEsc(info.ini_warnings[wi]) + '</li>';
+            }
+            warningAlert += '<div class="alert alert-info" style="margin-top:10px; margin-bottom:10px; padding:10px 15px; font-size:12px; line-height:1.6; background:#f0f9ff; border:1px solid #bae6fd; color:#0369a1;">\
+                <strong><i class="glyphicon glyphicon-info-sign"></i> ' + pt('配置文件 (app.ini) 兼容性预检提示：') + '</strong>\
+                <ul style="margin:4px 0 0 18px; padding:0;">' + warnLis + '</ul>\
+            </div>';
+        }
+
+        var offlineTip = '';
+        if(info.offline){
+            offlineTip = '<span style="color:#e67e22; margin-left:10px; font-size:12px;">(' + pt('当前处于离线模式，显示推荐稳定版') + ')</span>';
+        }
+
+        var html = '<div class="gitea-version-box" style="padding:10px 5px;">\
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:18px 20px; margin-bottom:20px;">\
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #edf2f7; padding-bottom:12px; margin-bottom:15px;">\
+                    <h4 style="margin:0; font-size:16px; font-weight:600; color:#1e293b;">\
+                        <i class="glyphicon glyphicon-bookmark" style="color:#20a53a; margin-right:6px;"></i>' + pt('Gitea 版本信息与在线升级') + '\
+                    </h4>\
+                    <div>\
+                        <button class="btn btn-default btn-sm mr5" onclick="giteaVersionManage(1)"><i class="glyphicon glyphicon-refresh"></i> ' + pt('检查更新') + '</button>\
+                        ' + upgradeBtn + '\
+                    </div>\
+                </div>\
+                <div class="row" style="font-size:13px; line-height:2.2;">\
+                    <div class="col-sm-6">' + pt('当前运行版本：') + '<strong style="color:#0f172a;">v' + curVer + '</strong> ' + statusBadge + '</div>\
+                    <div class="col-sm-6">' + pt('官方最新版本：') + '<strong style="color:#20a53a;">v' + latestVer + '</strong>' + offlineTip + '</div>\
+                    <div class="col-sm-6">' + pt('发布日期：') + '<span style="color:#64748b;">' + pubDate + '</span></div>\
+                    <div class="col-sm-6">' + pt('升级安全保障：') + '<span style="color:#20a53a;"><i class="glyphicon glyphicon-ok-sign"></i> ' + pt('配置数据独立 / 自动快照 / 故障秒级回滚') + '</span></div>\
+                </div>\
+                ' + warningAlert + '\
+            </div>\
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:15px 20px; margin-bottom:20px;">\
+                <h5 style="margin-top:0; font-weight:600; color:#334155;"><i class="glyphicon glyphicon-list-alt" style="margin-right:6px;"></i>' + pt('最新版本更新说明 (Release Notes)') + '</h5>\
+                <pre style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; max-height:180px; overflow-y:auto; padding:10px 12px; font-size:12px; color:#475569; white-space:pre-wrap; word-break:break-all;">' + notes + '</pre>\
+            </div>\
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:12px 18px; font-size:12px; color:#166534; line-height:1.6;">\
+                <strong><i class="glyphicon glyphicon-shield" style="margin-right:4px;"></i>' + pt('无损安全升级说明：') + '</strong><br>\
+                1. ' + pt('Gitea 核心程序采用单二进制架构，自动升级仅安全替换程序文件，原有配置文件 (app.ini) 与所有代码仓库、数据库资产保持 100% 独立且完好保留；') + '<br>\
+                2. ' + pt('升级前系统将自动对原有程序二进制及数据库进行安全快照；新版本启动时将自动无缝执行数据库迁移；') + '<br>\
+                3. ' + pt('若新版本启动失败或遇到系统兼容性异常，系统将在 15 秒内自动触发秒级回滚恢复至原运行版本，确保业务不受任何损坏。') + '\
+            </div>\
+        </div>';
+
+        $(".soft-man-con").html(html);
+    }, loadMsg);
+}
+
+function giteaUpgrade(targetVersion){
+    if(!targetVersion){
+        layer.msg(pt('目标版本号无效'), {icon: 2});
+        return;
+    }
+    var confirmMsg = pt('确定要将 Gitea 安全升级至 v') + targetVersion + '？<br><br>' +
+        '<span style="font-size:12px; color:#666;">• ' + pt('升级期间将短暂重启 Gitea 服务（约数秒钟）') + '<br>' +
+        '• ' + pt('原有配置文件 (app.ini) 与所有代码仓库数据均完好保留') + '<br>' +
+        '• ' + pt('系统已配备故障秒级自动回滚保护') + '</span>';
+
+    layer.confirm(confirmMsg, {title: pt('确认平滑升级 Gitea'), icon: 3}, function(index){
+        layer.close(index);
+        var loadIdx = layer.msg(pt('正在下载并安全升级 Gitea，请稍候（请勿刷新页面）...'), {icon: 16, time: 0, shade: 0.3});
+        api.post('upgrade_app', {version: targetVersion}, function(data){
+            layer.close(loadIdx);
+            var res = JSON.parse(data.data);
+            if(res.status){
+                layer.alert(res.msg, {icon: 1, title: pt('升级成功')}, function(aIdx){
+                    layer.close(aIdx);
+                    giteaVersionManage(1);
+                });
+            } else {
+                layer.alert(res.msg, {icon: 2, title: pt('升级未成功（已安全防护）')});
+            }
+        });
+    });
 }
 
 function gogsSetConfig(){
