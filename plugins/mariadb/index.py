@@ -5275,13 +5275,9 @@ def uninstallPreInspection(version):
             _log.debug('[mariadb] stopAndKill 异常已记录: %s', _e)
 
         still_alive = []
-        if os.path.isdir('/proc'):
-            for pid in ours:
-                try:
-                    os.kill(pid, 0)
-                    still_alive.append(pid)
-                except OSError as _e:
-                    _log.debug('[mariadb] pid %s 存活探测失败（视为已退出）: %s', pid, _e)
+        for pid in ours:
+            if yf.checkPid(pid):
+                still_alive.append(pid)
         if still_alive:
             return "MariaDB 服务停止失败，仍有残留进程运行 (PID: %s)，无法安全卸载！请先手动结束进程或排查服务状态。" % still_alive
 

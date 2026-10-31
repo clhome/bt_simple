@@ -108,28 +108,59 @@ class TestMariadbUninstall(unittest.TestCase):
         fake_plugin_module = MagicMock()
         fake_plugin_module.plugin = mock_plugin
 
-        with patch.dict(sys.modules, {'utils.plugin': fake_plugin_module}), \
-             patch('os.path.isdir', return_value=False):
+        with patch.dict(sys.modules, {'utils.plugin': fake_plugin_module}):
             exec(compiled, env)
             fn = env['uninstallPreInspection']
 
             # 场景 1：服务成功停止且无残留 -> 正常返回 'ok' 并清理自启和图标
-            result = fn('11.4')
-            self.assertEqual(result, 'ok', '服务停止成功时必须返回 ok')
-            mock_stop.assert_called_with('11.4')
-            mock_initd_uninstall.assert_called_once()
-            mock_clean_sockets.assert_called_once()
-            mock_remove_index.assert_called_with('mariadb', '11.4')
+            with patch('os.path.isdir', return_value=False):
+                result = fn('11.4')
+                self.assertEqual(result, 'ok', '服务停止成功时必须返回 ok')
+                mock_stop.assert_called_with('11.4')
+                mock_initd_uninstall.assert_called_once()
+                mock_clean_sockets.assert_called_once()
+                mock_remove_index.assert_called_with('mariadb', '11.4')
 
             # 场景 2：服务停止失败（status 仍为 start）-> 拒绝返回 ok，绝不调用 removeIndex
             mock_initd_uninstall.reset_mock()
             mock_remove_index.reset_mock()
             mock_status.return_value = 'start'
-            err_result = fn('11.4')
-            self.assertNotEqual(err_result, 'ok', '服务未能停止时严禁返回 ok')
-            self.assertIn('无法安全卸载', err_result)
-            mock_remove_index.assert_not_called()
-            mock_initd_uninstall.assert_not_called()
+            with patch('os.path.isdir', return_value=False):
+                err_result = fn('11.4')
+                self.assertNotEqual(err_result, 'ok', '服务未能停止时严禁返回 ok')
+                self.assertIn('无法安全卸载', err_result)
+                mock_remove_index.assert_not_called()
+                mock_initd_uninstall.assert_not_called()
+
+            # 场景 3：复验分支——探测到残留进程且真实存活 (yf.checkPid=True) -> 拒绝返回 ok
+            mock_status.return_value = 'stop'
+            mock_initd_uninstall.reset_mock()
+            mock_remove_index.reset_mock()
+            mock_yf.checkPid.return_value = True
+
+            def fake_isdir(path):
+                return path == '/proc'
+
+            with patch('os.path.isdir', side_effect=fake_isdir), \
+                 patch('os.listdir', return_value=['1234']), \
+                 patch('os.readlink', return_value='/www/server/mariadb/bin/mariadbd'):
+                res_alive = fn('11.4')
+                self.assertNotEqual(res_alive, 'ok', '仍有存活进程时严禁返回 ok')
+                self.assertIn('仍有残留进程运行', res_alive)
+                mock_remove_index.assert_not_called()
+                mock_initd_uninstall.assert_not_called()
+
+            # 场景 4：复验分支——探测到残留进程但为僵尸/已退出 (yf.checkPid=False) -> 成功放行返回 ok
+            mock_initd_uninstall.reset_mock()
+            mock_remove_index.reset_mock()
+            mock_yf.checkPid.return_value = False
+            with patch('os.path.isdir', side_effect=fake_isdir), \
+                 patch('os.listdir', return_value=['1234']), \
+                 patch('os.readlink', return_value='/www/server/mariadb/bin/mariadbd'):
+                res_zombie = fn('11.4')
+                self.assertEqual(res_zombie, 'ok', '残留进程为僵尸态时应正常放行')
+                mock_initd_uninstall.assert_called_once()
+                mock_remove_index.assert_called_with('mariadb', '11.4')
 
     def test_03_main_version_arg_preference(self):
         """__main__ 入口在提供 sys.argv[2] 时应优先选用传入的版本号。"""
@@ -155,7 +186,7 @@ class TestMariadbUninstall(unittest.TestCase):
         self.assertIn('exit 1', sh_content)
 
         # 4. version.pl 版本号格式正则白名单校验（防御路径穿越）
-        self.assertIn('^[0-9]+(\.[0-9]+)*$', sh_content,
+        self.assertIn(r'^[0-9]+(\.[0-9]+)*$', sh_content,
                       '缺少针对 version.pl 的版本号正则严格白名单校验')
 
     def test_05_alignment_with_mysql_uninstall(self):

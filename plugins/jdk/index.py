@@ -124,20 +124,135 @@ def _find_keytool_bin(path):
     return 'keytool'
 
 
+def _scan_cacerts_vuln_aliases(cacerts_path, keytool_bin='keytool'):
+    """解析 cacerts，精确查找命中 CVE-2026-91403/114820 的证书，返回匹配到的实际别名列表。
+    
+    采用 keytool -list -v 结合 Owner DN、指纹与别名综合识别，支持标准 JDK 与 Temurin 等派生别名。
+    """
+    if not cacerts_path or not os.path.isfile(cacerts_path):
+        return []
+    
+    found_aliases = set()
+
+    # 1. 执行 keytool -list -v 详细模式
+    try:
+        rc, out, err = yf.execShellRc(
+            [keytool_bin, '-list', '-v', '-keystore', cacerts_path, '-storepass', 'changeit'],
+            shell=False, timeout=25
+        )
+        full_text = (out or '') + '\n' + (err or '')
+
+        def evaluate_entry(alias, owner_text, lines_text):
+            if not alias:
+                return False
+            low_alias = alias.lower()
+            low_owner = owner_text.lower()
+            low_all = (owner_text + ' ' + lines_text).lower()
+
+            # 严格排除正常的 COMODO / Sectigo 根证书，严禁误删
+            is_safe_comodo_or_sectigo = any(x in low_owner for x in (
+                'comodo rsa certification authority',
+                'comodo ecc certification authority',
+                'sectigo public root e46',
+                'sectigo public root r46',
+                'sectigo public root e47',
+                'sectigo public root r47',
+            ))
+            if is_safe_comodo_or_sectigo and 'aaa certificate services' not in low_owner and 'comodoaaaca' not in low_alias:
+                return False
+
+            # 目标 1: emSign Root CA - G1
+            if 'emsign root ca - g1' in low_owner or 'emsign root ca g1' in low_owner:
+                return True
+            if 'emsignrootcag1' in low_alias or 'emsign_root_ca__g1' in low_alias or 'emsign_root_ca_g1' in low_alias:
+                return True
+
+            # 目标 2: emSign Root CA - G2
+            if 'emsign root ca - g2' in low_owner or 'emsign root ca g2' in low_owner:
+                return True
+            if 'emsignrootcag2' in low_alias or 'emsign_root_ca__g2' in low_alias or 'emsign_root_ca_g2' in low_alias:
+                return True
+
+            # 目标 3: emSign ECC Root CA - G3
+            if 'emsign ecc root ca - g3' in low_owner or 'emsign ecc root ca g3' in low_owner:
+                return True
+            if 'emsigneccrootcag3' in low_alias or 'emsign_ecc_root_ca__g3' in low_alias or 'emsign_ecc_root_ca_g3' in low_alias:
+                return True
+
+            # 目标 4: AAA Certificate Services (comodoaaaca)
+            if 'cn=aaa certificate services' in low_owner or ('aaa certificate services' in low_owner and ('comodo' in low_all or 'sectigo' in low_all)):
+                return True
+            if 'comodoaaaca' in low_alias or 'aaa_certificate_services' in low_alias:
+                return True
+
+            return False
+
+        current_alias = None
+        current_owner = ''
+        current_entry_lines = []
+
+        for raw_line in full_text.splitlines():
+            line = raw_line.strip()
+            # 兼容中英文 keytool 别名起始行: "Alias name: ..." 或 "别名: ..." 等
+            m_alias = re.match(r'^(?:Alias\s*name|别名|Alias-Name|别名名称)\s*:\s*(.+)$', line, re.I)
+            if m_alias:
+                if current_alias:
+                    if evaluate_entry(current_alias, current_owner, '\n'.join(current_entry_lines)):
+                        found_aliases.add(current_alias)
+                current_alias = m_alias.group(1).strip()
+                current_owner = ''
+                current_entry_lines = []
+                continue
+
+            if current_alias:
+                current_entry_lines.append(line)
+                m_owner = re.match(r'^(?:Owner|所有者|Inhaber)\s*:\s*(.+)$', line, re.I)
+                if m_owner:
+                    current_owner = m_owner.group(1).strip()
+
+        if current_alias:
+            if evaluate_entry(current_alias, current_owner, '\n'.join(current_entry_lines)):
+                found_aliases.add(current_alias)
+
+    except Exception as e:
+        _log.debug('[jdk] 解析 cacerts -v 异常: %s', e)
+
+    # 2. 辅以 keytool -list 简单模式兜底（仅在 -v 详细解析未检出时兜底）
+    if not found_aliases:
+        try:
+            rc, out, _ = yf.execShellRc(
+                [keytool_bin, '-list', '-keystore', cacerts_path, '-storepass', 'changeit'],
+                shell=False, timeout=15
+            )
+            if rc == 0 and out:
+                for raw_line in out.splitlines():
+                    line = raw_line.strip()
+                    m_entry = re.search(r'^(.*?),\s*[^,]+,\s*(?:trustedCertEntry|PrivateKeyEntry)', line, re.I)
+                    if m_entry:
+                        alias_cand = m_entry.group(1).strip()
+                    elif ',' in line:
+                        alias_cand = line.rsplit(',', 2)[0].strip()
+                    else:
+                        alias_cand = line
+                    low_fp = alias_cand.lower()
+                    if any(target in low_fp for target in (
+                        'emsignrootcag1', 'emsignrootcag2', 'emsigneccrootcag3', 'comodoaaaca',
+                        'cn_emsign_root_ca__g1', 'cn_emsign_root_ca__g2', 'cn_emsign_ecc_root_ca__g3',
+                        'aaa_certificate_services'
+                    )):
+                        found_aliases.add(alias_cand)
+        except Exception as e:
+            _log.debug('[jdk] 解析 cacerts -list 异常: %s', e)
+
+    return sorted(list(found_aliases))
+
+
 def _check_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
     """检测 cacerts 中是否存在 CVE-2026-91403 / 114820 漏洞证书。"""
     if not cacerts_path or not os.path.isfile(cacerts_path):
         return False, []
     try:
-        rc, out, err = yf.execShellRc(
-            [keytool_bin, '-list', '-keystore', cacerts_path, '-storepass', 'changeit'],
-            shell=False, timeout=15
-        )
-        content = (out + err).lower()
-        found = []
-        for a in ('emsignrootcag1', 'emsignrootcag2', 'emsigneccrootcag3', 'comodoaaaca'):
-            if a in content and a not in found:
-                found.append(a)
+        found = _scan_cacerts_vuln_aliases(cacerts_path, keytool_bin)
         return len(found) > 0, found
     except Exception as e:
         _log.debug('[jdk] 检测 cacerts 证书异常: %s', e)
@@ -145,11 +260,20 @@ def _check_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
 
 
 def _fix_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
-    """删除受影响的弱私钥 CA 根证书。"""
+    """删除受影响的弱私钥 CA 根证书（与 _check 共享同一识别逻辑）。"""
     if not cacerts_path or not os.path.isfile(cacerts_path):
         return False, 0
+
+    # 动态扫描匹配到的真实别名
+    aliases = _scan_cacerts_vuln_aliases(cacerts_path, keytool_bin)
+    candidates = list(aliases)
+    for fa in _VULN_CA_ALIASES:
+        if fa not in candidates:
+            candidates.append(fa)
+
     fixed_count = 0
-    for a in _VULN_CA_ALIASES:
+    failed_count = 0
+    for a in candidates:
         try:
             rc, out, err = yf.execShellRc(
                 [keytool_bin, '-delete', '-alias', a, '-keystore', cacerts_path, '-storepass', 'changeit', '-noprompt'],
@@ -157,8 +281,18 @@ def _fix_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
             )
             if rc == 0:
                 fixed_count += 1
+            else:
+                if a in aliases:
+                    failed_count += 1
+                    _log.warning('[jdk] 目标证书别名 %s 删除失败: %s', a, (err or out).strip())
         except Exception as e:
+            if a in aliases:
+                failed_count += 1
             _log.debug('[jdk] 删除证书别名 %s 失败: %s', a, e)
+
+    has_vuln, remaining = _check_cacerts_vuln(cacerts_path, keytool_bin)
+    if has_vuln or failed_count > 0:
+        return False, fixed_count
     return True, fixed_count
 
 
@@ -564,11 +698,18 @@ rm -f {q(tarball)}
 chmod +x {q(dest_dir + '/bin')}/*
 _cacerts={q(dest_dir + '/lib/security/cacerts')}
 [ -f "$_cacerts" ] || _cacerts={q(dest_dir + '/jre/lib/security/cacerts')}
-if [ -f "$_cacerts" ] && [ -x {q(dest_dir + '/bin/keytool')} ]; then
+_kt={q(dest_dir + '/bin/keytool')}
+if [ -f "$_cacerts" ] && [ -x "$_kt" ]; then
     echo '正在执行 cacerts 安全加固 (清理 CVE-2026-91403/114820 风险根证书)...'
     for _alias in "emsignrootcag1 [jdk]" "emsignrootcag2 [jdk]" "emsigneccrootcag3 [jdk]" "comodoaaaca [jdk]" "emsignrootcag1" "emsignrootcag2" "emsigneccrootcag3" "comodoaaaca"; do
-        {q(dest_dir + '/bin/keytool')} -delete -alias "$_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || true
+        "$_kt" -delete -alias "$_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || :
     done
+    _dyn_aliases=$("$_kt" -list -keystore "$_cacerts" -storepass changeit 2>/dev/null | grep -iE 'emsign|aaa_certificate_services' | awk -F',' '{{print $1}}' | sed 's/^[ \t]*//;s/[ \t]*$//' || :)
+    if [ -n "$_dyn_aliases" ]; then
+        while IFS= read -r _d_alias; do
+            [ -n "$_d_alias" ] && "$_kt" -delete -alias "$_d_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || :
+        done <<< "$_dyn_aliases"
+    fi
     echo 'cacerts 信任库安全加固完成'
 fi
 echo 'JDK {version} 安装完成'

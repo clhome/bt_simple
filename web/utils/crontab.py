@@ -315,12 +315,21 @@ class crontab(object):
         try:
             if not pid or pid <= 0 or not echo:
                 return False
+
+            def match_cmdline(cmd_str):
+                if not cmd_str or echo not in cmd_str:
+                    return False
+                if f'/cron/{echo}' in cmd_str or f'\\cron\\{echo}' in cmd_str:
+                    return True
+                pattern = r'(?:[\s/\"\'\\]|\bcron[/\\])' + re.escape(echo) + r'(?:\.sh|\.bat|[\s\"\'\x00]|$)'
+                return bool(re.search(pattern, cmd_str))
+
             cmdline_path = f"/proc/{pid}/cmdline"
             if os.path.exists(cmdline_path):
                 try:
                     with open(cmdline_path, 'rb') as f:
                         raw = f.read().decode('utf-8', errors='ignore')
-                        return echo in raw
+                        return match_cmdline(raw)
                 except Exception:
                     return False
             try:
@@ -328,7 +337,7 @@ class crontab(object):
                 if psutil.pid_exists(pid):
                     p = psutil.Process(pid)
                     cmd = ' '.join(p.cmdline())
-                    return echo in cmd
+                    return match_cmdline(cmd)
             except Exception as _e:
                 _log.debug('[crontab] psutil 检查任务进程异常: %s', _e)
 
@@ -342,10 +351,25 @@ class crontab(object):
             return False
 
     def _scan_task_pid_by_echo(self, echo):
-        """扫描系统进程列表，通过脚本特征名 echo 反查当前运行中的主进程 PID。"""
+        """扫描系统进程列表，通过脚本特征名 echo 反查当前运行中的主进程 PID。
+        
+        具备强关联路径二次校验与多进程冲突防护（发现多候选时拒绝执行并告警）。
+        """
         try:
             if not echo:
                 return None
+
+            candidates = set()
+
+            def match_cmdline(cmd_str):
+                if not cmd_str or echo not in cmd_str:
+                    return False
+                # 强关联校验：必须包含 cron/{echo} 路径或强脚本边界，杜绝随意包含 echo 子串的无关进程
+                if f'/cron/{echo}' in cmd_str or f'\\cron\\{echo}' in cmd_str:
+                    return True
+                pattern = r'(?:[\s/\"\'\\]|\bcron[/\\])' + re.escape(echo) + r'(?:\.sh|\.bat|[\s\"\'\x00]|$)'
+                return bool(re.search(pattern, cmd_str))
+
             if os.path.exists('/proc'):
                 for entry in os.listdir('/proc'):
                     if entry.isdigit():
@@ -354,10 +378,10 @@ class crontab(object):
                             if os.path.exists(cmd_path):
                                 with open(cmd_path, 'rb') as f:
                                     raw = f.read().decode('utf-8', errors='ignore')
-                                    if echo in raw:
+                                    if match_cmdline(raw):
                                         p_int = int(entry)
                                         if yf.checkPid(p_int):
-                                            return p_int
+                                            candidates.add(p_int)
                         except Exception:
                             continue
             try:
@@ -365,14 +389,22 @@ class crontab(object):
                 for proc in psutil.process_iter(['pid', 'cmdline']):
                     try:
                         cmdline = ' '.join(proc.info.get('cmdline') or [])
-                        if echo in cmdline:
+                        if match_cmdline(cmdline):
                             p_int = proc.info.get('pid')
                             if p_int and yf.checkPid(p_int):
-                                return p_int
+                                candidates.add(p_int)
                     except Exception:
                         continue
             except Exception as _e:
                 _log.debug('[crontab] psutil 扫描任务 PID 异常: %s', _e)
+
+            if not candidates:
+                return None
+            if len(candidates) == 1:
+                return list(candidates)[0]
+
+            # 命中多个匹配 PID：存在混淆与误杀风险，拒绝盲目执行并记录告警 (P1-5)
+            _log.warning('[crontab] 扫描任务(echo=%s)命中多个候选进程 %s，为防误杀拒绝执行', echo, sorted(list(candidates)))
             return None
         except Exception as _e:
             _log.debug('[crontab] 扫描任务 PID 异常: %s', _e)
@@ -546,6 +578,19 @@ class crontab(object):
                 except Exception as _e:
                     _log.debug('[crontab] win32 taskkill 异常: %s', _e)
 
+        # 终极复验：轮询等待并确认目标进程是否全部死亡 (P1-5)
+        deadline = time.time() + 1.5
+        while time.time() < deadline:
+            still_alive = [p for p in target_pids if yf.checkPid(p)]
+            if not still_alive:
+                return True
+            time.sleep(0.1)
+
+        still_alive = [p for p in target_pids if yf.checkPid(p)]
+        if still_alive:
+            _log.error('[crontab] 强制终止信号发送后仍有残留存活进程: %s', still_alive)
+            return False
+
         return True
 
     def killTask(self, cron_id):
@@ -564,7 +609,9 @@ class crontab(object):
                         _log.debug('[crontab] 移除 PID 文件异常: %s', _e)
                 return yf.returnData(False, 'crontab.task_not_running')
 
-            self.killProcessTree(main_pid)
+            killed_ok = self.killProcessTree(main_pid)
+            if not killed_ok or yf.checkPid(main_pid):
+                return yf.returnData(False, 'crontab.task_terminated_failed', None, f'进程 PID {main_pid} 无法终止（仍在运行或处于不可中断状态）')
 
             pf = self._cron_pid_file(cron_id)
             try:

@@ -22,11 +22,21 @@ _clean_vuln_cacerts() {
 	local _target_dir=$1
 	local _cacerts="${_target_dir}/lib/security/cacerts"
 	[ -f "${_cacerts}" ] || _cacerts="${_target_dir}/jre/lib/security/cacerts"
-	if [ -f "${_cacerts}" ] && [ -x "${_target_dir}/bin/keytool" ]; then
+	local _kt="${_target_dir}/bin/keytool"
+	if [ -f "${_cacerts}" ] && [ -x "${_kt}" ]; then
 		echo "正在对 ${_target_dir} 进行 cacerts 信任库安全加固 (CVE-2026-91403/114820)..."
 		for _alias in "emsignrootcag1 [jdk]" "emsignrootcag2 [jdk]" "emsigneccrootcag3 [jdk]" "comodoaaaca [jdk]" "emsignrootcag1" "emsignrootcag2" "emsigneccrootcag3" "comodoaaaca"; do
-			"${_target_dir}/bin/keytool" -delete -alias "${_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || :
+			"${_kt}" -delete -alias "${_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || :
 		done
+		local _dyn_aliases
+		_dyn_aliases=$("${_kt}" -list -keystore "${_cacerts}" -storepass changeit 2>/dev/null | grep -iE 'emsign|aaa_certificate_services' | awk -F',' '{print $1}' | sed 's/^[ \t]*//;s/[ \t]*$//' || :)
+		if [ -n "${_dyn_aliases}" ]; then
+			while IFS= read -r _d_alias; do
+				if [ -n "${_d_alias}" ]; then
+					"${_kt}" -delete -alias "${_d_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || :
+				fi
+			done <<< "${_dyn_aliases}"
+		fi
 		echo "cacerts 安全加固完成: ${_target_dir}"
 	fi
 }

@@ -68,7 +68,8 @@ sha256: __SHA256__
 - [ ] tag 与 `web/version.py` 的版本号一致（CI 会断言，不一致直接失败）
 - [ ] **内置 GitHub 代理全部可用**（`gh-proxy.com` / `cors.zme.ink` / `gh.ddlc.top` /
       `ghproxy.net` / `gh.con.sh`）—— 大陆网络的生命线，由
-      `testsuite/test_deploy_bootstrap.py::test_04` 守卫三处列表一致
+      `testsuite/test_deploy_bootstrap.py::test_04` 守卫三处列表一致。
+      注：`cors.zme.ink` 与 `gh.ddlc.top` 保持在队尾降级位置作为容灾回退（方案 A 现状即结论）。
 - [ ] **SQLite 结构变更可自愈**：老库升级后能自动补表 / 补列
       （由 `testsuite/test_db_migration_selfheal.py` 守卫）
 - [ ] 发布包已签名且出包后自验通过（CI 会做，见 `release.yml`）
@@ -109,3 +110,18 @@ sha256: __SHA256__
 - **问题修复**：
   - 修复 Docker 镜像获取时的解析出错问题。
   - 修复网站开启反向代理时，因验证路径被拦截导致 SSL (ACME) 证书申请失败的问题。
+  - **Gitea 平滑升级加固**：修复升级预检大小写判断错误，增强 MySQL/PostgreSQL 升级前置备份确认与回滚区分保护，增加 Web 端口 HTTP 深层健康巡检，实现历史升级备份自动保留 N=2 清理机制，补齐 28.x app.ini 阻断项拦截与告警。
+  - **JDK 证书加固升级**：修复 Temurin 等 OpenJDK 发行版中 CVE-2026-91403/114820 弱私钥根证书别名动态匹配与删除逻辑，确保自检与删除口径对齐，杜绝误报。
+  - **计划任务终止收口**：增强通过 echo 反查进程时的 cmdline 强路径边界校验与多匹配歧义告警拦截，增加强制终止后的存活复验机制。
+  - **MariaDB 卸载自检优化**：修复卸载前环境检查对僵尸进程的误判，避免因僵尸进程未收尸而阻断卸载。
+
+### 📋 架构决策与已知限制说明
+
+- **GitHub 代理节点定夺（方案 A）**：`cors.zme.ink` 与 `gh.ddlc.top` 保持在 `scripts/proxies.list` 队尾降级位置作为多通道容灾回退，现状即最终结论，未作物理剔除。
+- **b3 遗留未动项提示**：跨镜像续传、MySQL URL 可达性预断言、调用链代码强制、磁盘预检 fail-open 窄口、yf_list 结构重构均在本轮保持既有状态未动，下轮按计划推进。
+- **未验证测试清单（下轮测试计划）**：
+  - MariaDB / MySQL 完整构建与 MySQL Debian configure 关口（需 ≥8G/≥10G 空闲盘机器）；
+  - Gitea 健康失败回滚、MySQL/PostgreSQL 升级回滚、Darwin/arm64 28.x 实机验证；
+  - 计划任务终止 HTTP 端到端自动化调用；
+  - Temurin .0.2 构建出现后 JDK 根证书加固再验一次；
+  - 下轮冷编译测试需先清空插件目录。

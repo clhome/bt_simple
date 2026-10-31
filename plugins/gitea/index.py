@@ -9,6 +9,7 @@ import json
 import subprocess
 import shutil
 import shlex
+import functools
 import urllib.request
 import urllib.error
 
@@ -1581,30 +1582,57 @@ def checkSteppedRisk(curr_ver, target_ver):
     return False, ''
 
 
+class IniCheckResult(tuple):
+    """兼顾两元组解包兼容性 (is_safe, warns) 与 .blockings 阻断项属性。"""
+    def __new__(cls, is_safe, warns, blockings=None):
+        obj = super().__new__(cls, (is_safe, warns))
+        obj.is_safe = is_safe
+        obj.warns = warns
+        obj.blockings = blockings or []
+        return obj
+
+
 def checkAppIniCompatibility():
     """升级前预检 app.ini 中 28.x 相关的废弃/阻断配置项。
     
-    返回 (is_safe, list_of_warn_msgs)。
+    返回 IniCheckResult 对象，解包兼容 (is_safe, warns)，同时提供 .blockings 属性。
     """
     conf_path = getServerDir() + '/custom/conf/app.ini'
     if not os.path.exists(conf_path):
-        return True, []
+        return IniCheckResult(True, [], [])
     content = yf.readFile(conf_path)
     if not content or not isinstance(content, str):
-        return True, []
+        return IniCheckResult(True, [], [])
     
     warns = []
+    blockings = []
+
+    # 1. 废弃配置项 (Warnings)
     if re.search(r'^\s*ALLOWED_DOMAINS\s*=', content, re.M):
         warns.append('检测到已废弃的 ALLOWED_DOMAINS 配置，建议改用 ALLOWED_HOST_LIST')
     if re.search(r'^\s*BLOCKED_DOMAINS\s*=', content, re.M):
         warns.append('检测到已废弃的 BLOCKED_DOMAINS 配置，建议改用 BLOCKED_HOST_LIST')
     if re.search(r'^\s*ALLOW_LOCALNETWORKS\s*=', content, re.M):
         warns.append('检测到已废弃的 ALLOW_LOCALNETWORKS 配置，建议改用 ALLOWED_HOST_LIST')
+
+    # 2. 已移除的 external 预设 (Warning)
+    if re.search(r'^\s*EGRESS_MODE\s*=\s*external\b', content, re.M | re.I):
+        warns.append('检测到已移除的 external 预设(EGRESS_MODE = external)，28.x 中该预设已被删除，建议调整为 lax 或自定义出站规则')
+
+    # 3. lax 模式下 ALLOWED_HOST_LIST 语义变化组合告警 (Warning)
+    m_egress_lax = re.search(r'^\s*EGRESS_MODE\s*=\s*lax\b', content, re.M | re.I)
+    if m_egress_lax and re.search(r'^\s*ALLOWED_HOST_LIST\s*=', content, re.M):
+        warns.append('检测到 EGRESS_MODE=lax 与 ALLOWED_HOST_LIST 组合：在 lax 模式下，ALLOWED_HOST_LIST 仅作私有地址白名单豁免，不再作为全局出站白名单')
+
+    # 4. 阻止启动的严重配置冲突 (Blockings)
     m = re.search(r'^\s*BLOCKED_HOST_LIST\s*=\s*(.*)', content, re.M)
     if m and '*' in m.group(1):
-        warns.append('BLOCKED_HOST_LIST 中包含 * 通配符(28.x 不支持通配符且会阻止启动)')
-    
-    return (len(warns) == 0), warns
+        blk_msg = 'BLOCKED_HOST_LIST 中包含 * 通配符(28.x 不支持通配符且会阻止服务启动崩溃，请移除 * 改用具体 CIDR 或具体域名)'
+        blockings.append(blk_msg)
+        warns.append(blk_msg)
+
+    is_safe = (len(blockings) == 0)
+    return IniCheckResult(is_safe, warns, blockings)
 
 
 class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -1685,14 +1713,12 @@ def getLatestReleaseFromGithub(force=False):
                 info_data = json.loads(yf.readFile(info_file))
                 v_list = info_data.get('versions', [])
                 if v_list:
-                    latest_ver = v_list[-1]
-                    notes = '（当前环境无法直接访问 GitHub，已启用离线推荐稳定版）'
+                    sorted_v = sorted(v_list, key=functools.cmp_to_key(compareSemVer))
+                    latest_ver = sorted_v[-1]
+                    notes = '（当前环境无法直接访问 GitHub，已启用离线推荐最高稳定版）'
                     is_offline = True
         except Exception as e:
             _log.debug('[gitea] 读取 info.json 离线版本失败: %s', e)
-
-    if not latest_ver:
-        latest_ver = '1.26.1'
 
     res = {
         'version': latest_ver,
@@ -1724,7 +1750,10 @@ def checkUpdate():
         has_update = (compareSemVer(latest_ver, curr_ver) > 0)
 
     is_risk, risk_msg = checkSteppedRisk(curr_ver, latest_ver)
-    ini_safe, ini_warns = checkAppIniCompatibility()
+    ini_res = checkAppIniCompatibility()
+    ini_safe = ini_res[0]
+    ini_warns = ini_res[1]
+    ini_blockings = ini_res[2] if len(ini_res) > 2 else []
 
     data = {
         'current_version': curr_ver,
@@ -1737,6 +1766,7 @@ def checkUpdate():
         'warning_msg': risk_msg,
         'ini_safe': ini_safe,
         'ini_warnings': ini_warns,
+        'ini_blockings': ini_blockings,
         'is_installed': isInstalled()
     }
     return yf.returnJson(True, 'ok', data)
@@ -1761,8 +1791,34 @@ def getSystemPackageFile(version):
         return f'gitea-{version}-linux-amd64'
 
 
+def cleanOldBackups(backup_dir, keep=2):
+    """清理历史升级备份，仅保留最近 keep 批备份，避免占用过多磁盘空间。"""
+    try:
+        if not os.path.exists(backup_dir):
+            return
+        pattern = re.compile(r'^(gitea|gitea_sqlite|app\.ini)\.bak\.(\d{8}_\d{6})$')
+        groups = {}
+        for fname in os.listdir(backup_dir):
+            m = pattern.match(fname)
+            if m:
+                prefix, ts = m.groups()
+                groups.setdefault(prefix, []).append((ts, fname))
+        for prefix, items in groups.items():
+            items.sort(key=lambda x: x[0], reverse=True)
+            if len(items) > keep:
+                for _, old_fname in items[keep:]:
+                    old_path = os.path.join(backup_dir, old_fname)
+                    try:
+                        os.remove(old_path)
+                        _log.debug('[gitea] 自动清理历史过期备份: %s', old_fname)
+                    except Exception as e:
+                        _log.debug('[gitea] 清理过期备份失败: %s', e)
+    except Exception as e:
+        _log.debug('[gitea] cleanOldBackups 异常: %s', e)
+
+
 def upgradeApp():
-    """Gitea 无损平滑在线升级接口（含原子备份、架构预检与秒级故障回滚）。"""
+    """Gitea 无损平滑在线升级接口（含原子备份、架构预检、深层健康巡检与秒级故障回滚）。"""
     if not isInstalled():
         return yf.returnJson(False, 'Gitea 尚未安装，无法执行升级!')
 
@@ -1779,6 +1835,24 @@ def upgradeApp():
     curr_ver = getCurrentVersion()
     if curr_ver and compareSemVer(target_ver, curr_ver) < 0:
         return yf.returnJson(False, f'禁止逆向降级: 目标版本(v{target_ver})低于当前版本(v{curr_ver})')
+
+    # 升级前配置阻断项拦截预检 (P1-4)
+    ini_res = checkAppIniCompatibility()
+    ini_blockings = ini_res[2] if len(ini_res) > 2 else []
+    if ini_blockings:
+        return yf.returnJson(False, f'升级被拦截：app.ini 存在阻止 Gitea 启动的致命配置冲突：{"; ".join(ini_blockings)}')
+
+    # 升级前数据库类型检查与外部备份确认 (P1-1)
+    conf = getDbConfValue()
+    db_type = getGiteaDbType(conf) if conf else 'NONE'
+    backup_confirmed = str(args.get('backup_confirmed', args.get('confirmed', ''))).lower() in ('1', 'true', 'yes')
+    if db_type in ('mysql', 'postgres', 'postgresql') and not backup_confirmed:
+        return yf.returnJson(
+            False,
+            f'当前 Gitea 使用 {db_type} 数据库。跨大版本升级将自动迁移数据库 Schema，若升级失败回滚将无法自动恢复外部数据库结构。'
+            '请在升级前手动执行数据库备份（如 mysqldump / pg_dump），确认已备份后勾选确认升级。',
+            {'need_backup_confirm': True, 'db_type': db_type}
+        )
 
     server_dir = getServerDir()
     source_dir = yf.getServerDir() + '/source/gitea'
@@ -1816,9 +1890,10 @@ def upgradeApp():
 
     yf.execShell(f'chmod +x {shlex.quote(extracted_bin)}')
 
-    # 3. 架构与 glibc 动态兼容预检 (Smoke Test)
+    # 3. 架构与 glibc 动态兼容预检 (Smoke Test，不区分大小写比对 P0-1)
     probe_rc, probe_out, probe_err = yf.execShellRc(f'{shlex.quote(extracted_bin)} --version', timeout=10)
-    if probe_rc != 0 or 'Gitea version' not in (probe_out or ''):
+    probe_full = ((probe_out or '') + ' ' + (probe_err or '')).lower()
+    if probe_rc != 0 or 'gitea version' not in probe_full:
         err_msg = (probe_err or probe_out or '执行返回异常').strip()
         try:
             os.remove(extracted_bin)
@@ -1838,17 +1913,16 @@ def upgradeApp():
 
     sqlite_real_path = ''
     sqlite_rollback = ''
-    try:
-        conf = getDbConfValue()
-        if conf and getGiteaDbType(conf) == 'sqlite3':
-            db_path_cfg = conf.get('PATH', 'data/gitea.db')
-            sqlite_real_path = db_path_cfg if os.path.isabs(db_path_cfg) else (server_dir + '/' + db_path_cfg)
-            if os.path.exists(sqlite_real_path):
-                sqlite_rollback = f'{backup_dir}/gitea_sqlite.rollback'
+    if db_type == 'sqlite3':
+        db_path_cfg = conf.get('PATH', 'data/gitea.db')
+        sqlite_real_path = db_path_cfg if os.path.isabs(db_path_cfg) else (server_dir + '/' + db_path_cfg)
+        if os.path.exists(sqlite_real_path):
+            sqlite_rollback = f'{backup_dir}/gitea_sqlite.rollback'
+            try:
                 shutil.copy2(sqlite_real_path, f'{backup_dir}/gitea_sqlite.bak.{ts}')
                 shutil.copy2(sqlite_real_path, sqlite_rollback)
-    except Exception as e:
-        _log.debug('[gitea] SQLite 快照备份异常已忽略: %s', e)
+            except Exception as e:
+                return yf.returnJson(False, f'SQLite 数据库快照备份失败，已中止升级: {e}')
 
     # 备份 app.ini 配置文件快照
     conf_path = server_dir + '/custom/conf/app.ini'
@@ -1860,14 +1934,18 @@ def upgradeApp():
         except Exception as e:
             _log.debug('[gitea] 配置文件快照备份异常已忽略: %s', e)
 
-    # 5. 停服并原子替换可执行文件
+    # 5. 停服并确认旧进程安全退出 (P1-2)
     was_running = (status() == 'start')
     if was_running:
         stop()
-        for _ in range(5):
+        stopped = False
+        for _ in range(10):
             if status() == 'stop':
+                stopped = True
                 break
             time.sleep(1)
+        if not stopped:
+            return yf.returnJson(False, '旧版本 Gitea 服务停止超时（进程仍在运行），升级已安全中止以避免损坏服务，请排查进程状态。')
 
     try:
         shutil.copy2(extracted_bin, cur_bin)
@@ -1881,18 +1959,44 @@ def upgradeApp():
             start()
         return yf.returnJson(False, f'文件替换异常，已还原旧版本: {e}')
 
-    # 6. 拉起新版本并执行 15 秒健康巡检
+    # 6. 拉起新版本并执行深层健康巡检（Web 响应与 Schema 迁移完成判定 P1-2）
     start()
     health_ok = False
-    for _ in range(15):
+    port = getHttpPort() or '3000'
+    check_url = f'http://127.0.0.1:{port}/'
+    max_wait = 30  # 为大库迁移预留最多 30 秒
+    for sec in range(max_wait):
         time.sleep(1)
-        if status() == 'start':
-            health_ok = True
+        if status() != 'start':
+            _log.error('[gitea] 新版本在启动或数据库迁移期间异常退出')
+            health_ok = False
             break
+        # 探测 Web 端口连通性
+        try:
+            req = urllib.request.Request(check_url, headers={'User-Agent': 'yf-gitea-probe'})
+            with urllib.request.urlopen(req, timeout=2) as resp:
+                if resp.status in (200, 301, 302, 401, 403):
+                    health_ok = True
+                    break
+        except urllib.error.HTTPError as he:
+            if he.code in (200, 301, 302, 401, 403):
+                health_ok = True
+                break
+        except Exception:
+            pass
+
+    # 兜底：若 HTTP 探针受特定配置拦截但进程持续存活且运行超 15 秒无崩溃，二次检查端口监听
+    if not health_ok and status() == 'start':
+        try:
+            rc, out, _ = yf.execShellRc(f"lsof -i:{shlex.quote(str(port))} -sTCP:LISTEN -t || ss -tlpn 'sport = :{shlex.quote(str(port))}'", timeout=5)
+            if rc == 0 and out.strip():
+                health_ok = True
+        except Exception:
+            pass
 
     # 7. 健康检查失败 -> 秒级自动回滚
     if not health_ok:
-        _log.error('[gitea] 新版本启动失败或崩溃，立即触发自动秒级回滚！')
+        _log.error('[gitea] 新版本启动失败或健康巡检未通过，立即触发自动秒级回滚！')
         if os.path.exists(rollback_bin):
             shutil.copy2(rollback_bin, cur_bin)
             yf.execShell(f'chmod +x {shlex.quote(cur_bin)}')
@@ -1913,10 +2017,20 @@ def upgradeApp():
             rc, out, _ = yf.execShellRc(f'tail -n 25 {shlex.quote(log_file)}')
             if rc == 0:
                 log_tail = out.strip()
-        return yf.returnJson(False, f'升级失败已触发自动回滚: 已安全恢复至原版本(v{curr_ver})，原有数据与配置未受破坏。日志摘要: {log_tail or "无"}')
 
-    # 8. 升级成功：更新 version.pl 并同步版本缓存
-    yf.writeFile(server_dir + '/version.pl', target_ver)
+        db_notice = ''
+        if db_type == 'sqlite3':
+            db_notice = 'SQLite 数据库与配置文件已还原至升级前快照，原有数据与配置未受破坏。'
+        elif db_type in ('mysql', 'postgres', 'postgresql'):
+            db_notice = f'注意：当前数据库类型为 {db_type}，二进制与配置文件已安全回滚至升级前，但若升级期间 Schema 已被变更，请根据需要还原升级前的外部数据库备份。'
+        else:
+            db_notice = '配置文件与二进制已还原至升级前快照，原有数据与配置未受破坏。'
+
+        return yf.returnJson(False, f'升级失败已触发自动回滚: 已安全恢复至原版本(v{curr_ver})。{db_notice} 日志摘要: {log_tail or "无"}')
+
+    # 8. 升级成功：清理历史多余备份、更新 version.pl 并同步版本缓存 (P1-3, P2-3)
+    cleanOldBackups(backup_dir, keep=2)
+    yf.writeFile(server_dir + '/version.pl', target_ver + '\n')
     try:
         cache_file = getPluginDir() + '/latest_version_cache.json'
         if os.path.exists(cache_file):
