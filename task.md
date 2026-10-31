@@ -45,3 +45,7 @@
   - [x] 6.2 增强 `web/core/yf/__init__.py` 的 `checkPid`：增加 Windows 原生 `ctypes` 兜底，确保无 `psutil` 也能准确检测
   - [x] 6.3 优化 `testsuite/test_crontab_kill_task.py`：加强子进程清理与异常隔离，杜绝挂起与进程泄漏
   - [x] 6.4 运行 `testsuite/run_all.py` 与静态门禁，确保本地与 CI 兼容全绿
+- [x] **任务 7：修复语言包派生载体漂移与 Linux 僵尸进程误判**
+  - [x] 7.1 运行 `export_lang_carriers.py --apply` 更新 6 国语言垫片，补齐 36 项派生词条，修复 `test_lang_carrier_derivation.py`
+  - [x] 7.2 在 `web/core/yf/__init__.py` 的 `checkPid` 中增加 Linux `/proc/{pid}/status` 探测，排除 `State: Z (zombie)` 僵尸进程
+  - [x] 7.3 在 `testsuite/test_crontab_kill_task.py` 的 `test_04` 中增加 `proc.poll()` 及时收割测试直接子进程内核退出码，双重保障存活判定准确性

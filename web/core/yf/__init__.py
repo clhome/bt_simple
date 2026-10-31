@@ -1334,9 +1334,21 @@ def checkPid(pid):
                 return False
 
         # Linux / POSIX 标准环境
-        # 1. /proc 伪文件系统直接探测（零阻塞，准确直接）
+        # 1. /proc 伪文件系统探测（零阻塞，准确直接，排除已死亡的僵尸进程）
         proc_path = f"/proc/{pid}"
         if os.path.exists(proc_path):
+            status_file = f"{proc_path}/status"
+            try:
+                if os.path.exists(status_file):
+                    with open(status_file, 'r', encoding='utf-8', errors='ignore') as sf:
+                        for line in sf:
+                            if line.startswith('State:'):
+                                # 若进程为僵尸态（State: Z (zombie)），说明主程序已退出死亡
+                                if 'Z' in line or 'zombie' in line.lower():
+                                    return False
+                                break
+            except Exception as _e:
+                _log.debug('[yf] 读取 /proc/status 异常: %s', _e)
             return True
 
         # 2. os.kill(pid, 0) 发送空信号探测

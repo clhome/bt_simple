@@ -167,11 +167,11 @@ class TestCrontabKillTask(unittest.TestCase):
             self.assertEqual(str(res.get('data')), str(proc.pid))
             self.assertIn(str(proc.pid), res.get('msg', ''))
 
-            # 验证进程已被彻底杀死
+            # 验证进程已被彻底杀死（proc.poll() 负责内核状态收割，checkPid 负责存活校验）
             deadline = time.time() + 2.0
             dead = False
             while time.time() < deadline:
-                if not self.yf.checkPid(proc.pid):
+                if proc.poll() is not None or not self.yf.checkPid(proc.pid):
                     dead = True
                     break
                 time.sleep(0.1)
