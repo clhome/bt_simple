@@ -14,7 +14,7 @@
    - **大版本跳跃防呆与 SQLite 自动快照**：识别版本跨度，规避 Gitea 数据库迁移跳跃断代风险；升级前自动快照 SQLite 数据库文件；
    - **升级前环境兼容性预检**：下载新版二进制包并解压后，先在临时目录预执行 `--version` 测试，确保系统架构与 glibc 动态链接库完全兼容；
    - **原子替换与 15 秒健康巡检**：备份旧可执行文件为 `gitea.bak.{timestamp}`，优雅停止旧服务，替换二进制并启动新版本，自动触发 Gitea 内部 Schema 迁移，持续巡检进程与端口；
-   - **异常自动秒级回滚**：若新版本启动失败或 15 秒内崩溃，立即自动恢复 `gitea.bak` 旧版本二进制并拉起旧服务，保证原有使用环境不受破坏，业务零停机。
+   - **异常自动秒级回滚**：若新版本启动失败或 15 秒内崩溃，立即自动恢复 `gitea.bak` 旧版本二进制并拉起旧服务，保证原有使用环境不受破坏，服务短暂重启。
 3. **前端管理界面与多语言支持**：
    - 在 `plugins/gitea/index.html` 菜单中新增「版本管理」功能项（并在「服务」首页增加当前/最新版本徽标联动）；
    - 展示当前版本、最新版本、更新状态、发布时间与更新日志；
@@ -53,7 +53,7 @@
 - [x] **任务 4：多语言包更新与同步 ([plugins/gitea/lang/](file:///d:/git/gitea/bt_simple/plugins/gitea/lang/))**
   - [x] 4.1 在 `zh-CN.json`, `zh-TW.json`, `en.json`, `de.json`, `fr.json`, `it.json` 补全新增多语言词条
 - [x] **任务 5：编写自动化测试与全量回归验证**
-  - [x] 5.1 在 `test/test_gitea_upgrade.py` 中编写针对版本检测、版本比对、升级及回滚流程的测试
+  - [x] 5.1 在 `test/test_gitea_upgrade.py` 中补齐针对版本检测、版本比对、升级及回滚流程的测试
   - [x] 5.2 执行全量测试验证，确认所有测试通过且无语法、编码错误
   - [x] 5.3 验证完成后主动清理测试临时文件，更新任务打勾状态
 - [x] **任务 6：基于 2026-10-31 建议报告与最新发布规范的二次深度优化**
@@ -63,10 +63,17 @@
   - [x] 6.4 扩充备份与回滚范围：将 `custom/conf/app.ini` 纳入完整快照备份与回滚链
   - [x] 6.5 增加 `app.ini` 28.x 兼容性预检：检测废弃键与阻止启动的非法 `BLOCKED_HOST_LIST`
   - [x] 6.6 适配 Darwin 资产名称：版本 ≥28 时去除 `-10.12`，彻底解决 macOS 下 404 缺陷
-  - [x] 6.7 更新回归测试集与 i18n 多语言校验，确保 100% 通过
+  - [x] 6.7 更新回归测试集与 i18n 多语言校验，完整门禁 3 项失败（2 项前置、1 项全量 flaky 待复跑）
 - [x] **任务 7：修复插件严格模式棘轮报警 (`test_plugin_install_strict_mode.py`)**
   - [x] 7.1 将 `plugins/jdk/install.sh` 中的裸 `|| true` 优化替换为安全命令 `|| :`，消除基线超额突破
   - [x] 7.2 运行回归测试套件 `test_plugin_install_strict_mode.py` 验证 26 项用例与门禁全绿通过
 - [x] **任务 8：修复弹窗多语言溢出与换行护栏 (`test_dialog_i18n_overflow.py`)**
   - [x] 8.1 优化 `plugins/gitea/lang/` 各语言包中「版本管理」侧边菜单翻译为「Versions/Versionen/Versioni」，解决 97px 定宽菜单槽溢出
   - [x] 8.2 在 `plugins/gitea/js/gitea.js` 两处 `display:flex; justify-content:space-between;` 容器中追加 `flex-wrap:wrap;`，满足类级换行护栏要求
+- [x] **任务 9：2026-10-31 新发现问题专项修复（P0、P1-1~P1-4、P2）**
+  - [x] 9.1 (P0) 修复 JDK `install.sh` 动态别名删除：按 `keytool -list -v` 提取完整别名，删除失败计入日志，杜绝 Temurin DN 别名静默失效
+  - [x] 9.2 (P1-1) 修复 Gitea 进程探测与升级停服验证：`getGiteaPids` 剥离 ` (deleted)` 后缀并辅以 `cmdline` 判据，`upgradeApp` 增加端口释放检测与残留 PID 明示
+  - [x] 9.3 (P1-2) 修复 Gitea start 在 systemd `active(exited)` 僵住状态下的启动处理：识别僵住状态并降级转 `restart`
+  - [x] 9.4 (P1-4) JDK 管理器版本升级为 1.2 并同步 `test_jdk_plugin.py` 测试断言
+  - [x] 9.5 (P2-2/P2-3) 微调 `RELEASE_TEMPLATE.md` 措辞为“尾部回退区”并增补测试复跑与升级说明清单
+  - [x] 9.6 编写并运行回归测试，验证全部修复成果

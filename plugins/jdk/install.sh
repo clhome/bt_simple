@@ -29,15 +29,32 @@ _clean_vuln_cacerts() {
 			"${_kt}" -delete -alias "${_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || :
 		done
 		local _dyn_aliases
-		_dyn_aliases=$("${_kt}" -list -keystore "${_cacerts}" -storepass changeit 2>/dev/null | grep -iE 'emsign|aaa_certificate_services' | awk -F',' '{print $1}' | sed 's/^[ \t]*//;s/[ \t]*$//' || :)
+		_dyn_aliases=$(LC_ALL=C "${_kt}" -list -v -keystore "${_cacerts}" -storepass changeit 2>/dev/null | \
+			sed -n -e 's/^[Aa][Ll][Ii][Aa][Ss] [Nn][Aa][Mm][Ee]:[[:blank:]]*//p' -e 's/^别名:[[:blank:]]*//p' | \
+			grep -iE 'emsign|aaa_certificate_services|comodoaaaca' | \
+			sort -u || :)
+		local _del_fail=0
 		if [ -n "${_dyn_aliases}" ]; then
 			while IFS= read -r _d_alias; do
 				if [ -n "${_d_alias}" ]; then
-					"${_kt}" -delete -alias "${_d_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || :
+					echo "正在从 cacerts 信任库删除高危别名: ${_d_alias}"
+					local _err_out
+					if ! _err_out=$("${_kt}" -delete -alias "${_d_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt 2>&1); then
+						echo "[WARN] 删除证书别名 [${_d_alias}] 失败: ${_err_out}" >&2
+						_del_fail=$((_del_fail + 1))
+					fi
 				fi
 			done <<< "${_dyn_aliases}"
 		fi
-		echo "cacerts 安全加固完成: ${_target_dir}"
+		local _remains
+		_remains=$(LC_ALL=C "${_kt}" -list -v -keystore "${_cacerts}" -storepass changeit 2>/dev/null | \
+			sed -n -e 's/^[Aa][Ll][Ii][Aa][Ss] [Nn][Aa][Mm][Ee]:[[:blank:]]*//p' -e 's/^别名:[[:blank:]]*//p' | \
+			grep -iE 'emsign|aaa_certificate_services|comodoaaaca' || :)
+		if [ -n "${_remains}" ] || [ "${_del_fail}" -gt 0 ]; then
+			echo "[WARN] cacerts 信任库仍残留高危证书或存在删除失败项，请在面板 JDK 管理中执行证书加固并以复检为准: ${_target_dir}" >&2
+		else
+			echo "cacerts 安全加固完成: ${_target_dir}"
+		fi
 	fi
 }
 
@@ -242,7 +259,7 @@ Uninstall_jdk()
 action=$1
 PLUGIN_VER=$2
 if [ -z "${PLUGIN_VER}" ]; then
-	PLUGIN_VER="1.1"
+	PLUGIN_VER="1.2"
 fi
 if [ "${action}" == 'install' ];then
 	Install_jdk

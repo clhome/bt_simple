@@ -202,8 +202,23 @@ def getGiteaPids():
             exe = os.path.realpath(os.path.join(_PROC_ROOT, name, 'exe'))
         except Exception:
             exe = ''
+        if exe.endswith(' (deleted)'):
+            exe = exe[:-10].strip()
         if exe == bin_path:
             pids.append(name)
+            continue
+        # 第二判据：读取 cmdline 首字段
+        try:
+            with open(os.path.join(_PROC_ROOT, name, 'cmdline'), 'rb') as fp:
+                raw_cmd = fp.read()
+            if raw_cmd:
+                cmd0 = raw_cmd.split(b'\x00')[0].decode('utf-8', errors='ignore').strip()
+                if cmd0.endswith(' (deleted)'):
+                    cmd0 = cmd0[:-10].strip()
+                if cmd0 and (os.path.realpath(cmd0) == bin_path or cmd0 == bin_path):
+                    pids.append(name)
+        except Exception:
+            pass
     return pids
 
 
@@ -371,6 +386,66 @@ def getHttpPort():
     if not tmp:
         return ''
     return tmp.groups()[0]
+
+
+def getPortListeningPids(port):
+    """检测指定 TCP 端口是否被监听，并返回占用该端口的 PID 列表（字符串列表）。"""
+    if not port:
+        return []
+    pids = []
+    # 1. 优先尝试 lsof 查监听进程
+    try:
+        rc, out, _ = yf.execShellRc(f'lsof -t -iTCP:{shlex.quote(str(port))} -sTCP:LISTEN', timeout=5)
+        if rc == 0 and out:
+            for p in out.strip().split():
+                if p.isdigit():
+                    pids.append(p)
+    except Exception as _e:
+        _log.debug('[gitea] lsof 探测端口异常: %s', _e)
+
+    # 2. 尝试 fuser 探测
+    if not pids:
+        try:
+            rc, out, err = yf.execShellRc(f'fuser {shlex.quote(str(port))}/tcp', timeout=5)
+            out_all = (out or '') + ' ' + (err or '')
+            for part in out_all.split():
+                part = part.strip()
+                if part.isdigit():
+                    pids.append(part)
+        except Exception as _e:
+            _log.debug('[gitea] fuser 探测端口异常: %s', _e)
+
+    # 3. 尝试 ss -tlpn 探测
+    if not pids:
+        try:
+            rc, out, _ = yf.execShellRc(f"ss -tlpn 'sport = :{shlex.quote(str(port))}'", timeout=5)
+            if rc == 0 and out:
+                for m in re.finditer(r'pid=(\d+)', out):
+                    pids.append(m.group(1))
+        except Exception as _e:
+            _log.debug('[gitea] ss 探测端口异常: %s', _e)
+
+    # 4. 如果命令未能取到 PID，但通过 socket 探测端口已被占用，则通过 status() 或进程回读 PID 作为兜底
+    if not pids:
+        occupied = False
+        import socket
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.5)
+            res = s.connect_ex(('127.0.0.1', int(port)))
+            s.close()
+            if res == 0:
+                occupied = True
+        except Exception:
+            pass
+        if occupied:
+            g_pids = getGiteaPids()
+            if g_pids:
+                pids.extend(g_pids)
+            else:
+                pids.append('占用中(未知PID)')
+
+    return sorted(list(set(pids)))
 
 
 def getRootPath():
@@ -561,10 +636,24 @@ def appOp(method):
     file = initDreplace()
 
     if not yf.isAppleSystem():
-        rc, out, err = yf.execShellRc('systemctl ' + method + ' ' + getPluginName(), timeout=120)
+        unit_name = getPluginName()
+        actual_method = method
+        # P1-2: 处理 systemd active(exited) 僵住状态：单元因 RemainAfterExit 被标记为 active 但进程已退出，start 为空操作，需转 restart
+        if method == 'start' and status() == 'stop':
+            try:
+                rc_act, out_act, _ = yf.execShellRc(['systemctl', 'is-active', unit_name], shell=False, timeout=10)
+                if (out_act or '').strip() == 'active':
+                    rc_sub, out_sub, _ = yf.execShellRc(['systemctl', 'show', '-p', 'SubState', '--value', unit_name], shell=False, timeout=10)
+                    if (out_sub or '').strip() == 'exited':
+                        _log.info('[gitea] 检测到单元处于 active(exited) 僵死状态，直接转用 restart 拉起')
+                        actual_method = 'restart'
+            except Exception as _e:
+                _log.debug('[gitea] 检查 active(exited) 状态异常: %s', _e)
+
+        rc, out, err = yf.execShellRc('systemctl ' + actual_method + ' ' + unit_name, timeout=120)
         if rc != 0:
             # 旧实现只看 stderr 是否为空：systemctl 失败但输出在 stdout 时会被吞成成功
-            _log.debug('[gitea] systemctl %s 失败: %s', method, (err or out).strip())
+            _log.debug('[gitea] systemctl %s 失败: %s', actual_method, (err or out).strip())
             return 'fail'
         # 启/停/重启后回读真实进程，杜绝「命令返回 0 但服务没起来」的假成功
         if method in ('start', 'restart', 'reload'):
@@ -575,6 +664,17 @@ def appOp(method):
             if status() == want:
                 return 'ok'
             time.sleep(0.5)
+
+        # 二次兜底：如果执行 start 之后状态依然是 stop，尝试使用 restart 再次拉起
+        if method == 'start' and status() == 'stop':
+            _log.info('[gitea] start 后服务仍为 stop，尝试以 restart 再次拉起')
+            rc_r, _, _ = yf.execShellRc('systemctl restart ' + unit_name, timeout=120)
+            if rc_r == 0:
+                for _ in range(10):
+                    if status() == 'start':
+                        return 'ok'
+                    time.sleep(0.5)
+
         _log.debug('[gitea] %s 后状态未就绪', method)
         return 'fail'
 
@@ -1934,7 +2034,7 @@ def upgradeApp():
         except Exception as e:
             _log.debug('[gitea] 配置文件快照备份异常已忽略: %s', e)
 
-    # 5. 停服并确认旧进程安全退出 (P1-2)
+    # 5. 停服并确认旧进程安全退出与端口完全释放 (P1-1, P1-2)
     was_running = (status() == 'start')
     if was_running:
         stop()
@@ -1946,6 +2046,26 @@ def upgradeApp():
             time.sleep(1)
         if not stopped:
             return yf.returnJson(False, '升级失败已触发自动回滚: 旧版本 Gitea 服务停止超时（进程仍在运行），升级已安全中止以避免损坏服务。')
+
+    # 严格校验服务端口释放（无进程监听 :3000 或配置端口）
+    listen_port = getHttpPort() or '3000'
+    port_released = False
+    occupied_pids = []
+    for _ in range(5):
+        occupied_pids = getPortListeningPids(listen_port)
+        if not occupied_pids:
+            port_released = True
+            break
+        time.sleep(0.5)
+
+    if not port_released and occupied_pids:
+        if was_running:
+            start()
+        pid_desc = ', '.join(occupied_pids)
+        return yf.returnJson(
+            False,
+            f'升级失败已安全中止: 服务端口 {listen_port} 仍被占用（残留 PID: {pid_desc}），旧进程未完全释放，已拒绝执行文件替换以防服务冲突。'
+        )
 
     try:
         shutil.copy2(extracted_bin, cur_bin)
