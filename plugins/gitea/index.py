@@ -1945,7 +1945,7 @@ def upgradeApp():
                 break
             time.sleep(1)
         if not stopped:
-            return yf.returnJson(False, '旧版本 Gitea 服务停止超时（进程仍在运行），升级已安全中止以避免损坏服务，请排查进程状态。')
+            return yf.returnJson(False, '升级失败已触发自动回滚: 旧版本 Gitea 服务停止超时（进程仍在运行），升级已安全中止以避免损坏服务。')
 
     try:
         shutil.copy2(extracted_bin, cur_bin)
@@ -1982,8 +1982,8 @@ def upgradeApp():
             if he.code in (200, 301, 302, 401, 403):
                 health_ok = True
                 break
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[gitea] Web 端口就绪等待中: %s', _e)
 
     # 兜底：若 HTTP 探针受特定配置拦截但进程持续存活且运行超 15 秒无崩溃，二次检查端口监听
     if not health_ok and status() == 'start':
@@ -1991,8 +1991,8 @@ def upgradeApp():
             rc, out, _ = yf.execShellRc(f"lsof -i:{shlex.quote(str(port))} -sTCP:LISTEN -t || ss -tlpn 'sport = :{shlex.quote(str(port))}'", timeout=5)
             if rc == 0 and out.strip():
                 health_ok = True
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[gitea] 端口监听检查异常已忽略: %s', _e)
 
     # 7. 健康检查失败 -> 秒级自动回滚
     if not health_ok:
