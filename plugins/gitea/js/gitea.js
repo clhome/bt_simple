@@ -53,7 +53,7 @@ function giteaService(){
                             var latestVer = gtEsc(vr.data.latest_version || '');
                             if(vr.data.has_update){
                                 var banner = '<div class="alert alert-warning" style="margin-bottom:15px; border-left:4px solid #f59e0b; padding:12px 16px; background:#fffbeb; border-radius:4px;">\
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">\
+                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">\
                                         <div>\
                                             <strong style="font-size:13px; color:#b45309;"><i class="glyphicon glyphicon-bullhorn"></i> ' + pt('发现 Gitea 官方新版本 v') + latestVer + '</strong>\
                                             <p style="margin:4px 0 0; color:#78350f; font-size:12px;">' + pt('当前运行版本为 v') + curVer + '。' + pt('28.x 为上游规范版本命名（即 1.28 稳定线），数据平滑兼容，建议升级以获取安全性与性能提升。') + '</p>\
@@ -133,7 +133,7 @@ function giteaVersionManage(force){
 
         var html = '<div class="gitea-version-box" style="padding:10px 5px;">\
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:18px 20px; margin-bottom:20px;">\
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #edf2f7; padding-bottom:12px; margin-bottom:15px;">\
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid #edf2f7; padding-bottom:12px; margin-bottom:15px;">\
                     <h4 style="margin:0; font-size:16px; font-weight:600; color:#1e293b;">\
                         <i class="glyphicon glyphicon-bookmark" style="color:#20a53a; margin-right:6px;"></i>' + pt('Gitea 版本信息与在线升级') + '\
                     </h4>\

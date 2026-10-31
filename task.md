@@ -67,3 +67,6 @@
 - [x] **任务 7：修复插件严格模式棘轮报警 (`test_plugin_install_strict_mode.py`)**
   - [x] 7.1 将 `plugins/jdk/install.sh` 中的裸 `|| true` 优化替换为安全命令 `|| :`，消除基线超额突破
   - [x] 7.2 运行回归测试套件 `test_plugin_install_strict_mode.py` 验证 26 项用例与门禁全绿通过
+- [x] **任务 8：修复弹窗多语言溢出与换行护栏 (`test_dialog_i18n_overflow.py`)**
+  - [x] 8.1 优化 `plugins/gitea/lang/` 各语言包中「版本管理」侧边菜单翻译为「Versions/Versionen/Versioni」，解决 97px 定宽菜单槽溢出
+  - [x] 8.2 在 `plugins/gitea/js/gitea.js` 两处 `display:flex; justify-content:space-between;` 容器中追加 `flex-wrap:wrap;`，满足类级换行护栏要求
