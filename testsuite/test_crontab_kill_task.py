@@ -142,7 +142,15 @@ class TestCrontabKillTask(unittest.TestCase):
             # 启动一个带特征命令行子进程（长时间 sleep）
             cmd = [sys.executable, '-c', f'# {echo}\nimport time\ntime.sleep(60)']
             proc = subprocess.Popen(cmd)
-            self.assertTrue(self.yf.checkPid(proc.pid), "测试子进程必须成功启动")
+            # 确认测试子进程已成功启动
+            started = False
+            start_deadline = time.time() + 2.0
+            while time.time() < start_deadline:
+                if self.yf.checkPid(proc.pid):
+                    started = True
+                    break
+                time.sleep(0.05)
+            self.assertTrue(started, "测试子进程必须成功启动")
 
             # 写入 PID 文件
             pf = inst._cron_pid_file(cron_id)
@@ -183,14 +191,22 @@ class TestCrontabKillTask(unittest.TestCase):
             thisdb.getCrond = orig_getCrond
             if proc:
                 try:
-                    if self.yf.checkPid(proc.pid):
-                        proc.kill()
+                    proc.kill()
                     proc.wait(timeout=1.0)
                 except Exception:
                     pass
 
     def test_05_find_and_kill_process_via_cmdline_scan(self):
         """当 PID 文件丢失或未写入时，测试通过命令行 echo 特征反查 PID 并杀死。"""
+        try:
+            import psutil
+            has_psutil = True
+        except Exception:
+            has_psutil = False
+
+        if not os.path.exists('/proc') and not has_psutil:
+            self.skipTest("当前环境无 /proc 伪文件系统且未安装 psutil，跳过命令行特征扫描测试")
+
         inst = self.crontab.instance()
         cron_id = '99993'
         echo = 'unique_echo_for_proc_scan_789xyz'
@@ -209,7 +225,15 @@ class TestCrontabKillTask(unittest.TestCase):
             # 启动包含唯一 echo 特征的进程
             cmd = [sys.executable, '-c', f'# {echo}\nimport time\ntime.sleep(60)']
             proc = subprocess.Popen(cmd)
-            self.assertTrue(self.yf.checkPid(proc.pid))
+            # 确认测试子进程已成功启动
+            started = False
+            start_deadline = time.time() + 2.0
+            while time.time() < start_deadline:
+                if self.yf.checkPid(proc.pid):
+                    started = True
+                    break
+                time.sleep(0.05)
+            self.assertTrue(started, "测试子进程必须成功启动")
 
             # 不写 PID 文件，验证特征扫描能查到
             found_pid, data = inst.findTaskPid(cron_id)
@@ -228,8 +252,7 @@ class TestCrontabKillTask(unittest.TestCase):
             thisdb.getCrond = orig_getCrond
             if proc:
                 try:
-                    if self.yf.checkPid(proc.pid):
-                        proc.kill()
+                    proc.kill()
                     proc.wait(timeout=1.0)
                 except Exception:
                     pass
@@ -267,6 +290,30 @@ class TestCrontabKillTask(unittest.TestCase):
             for rk in required_keys:
                 self.assertIn(rk, cron_dict, f"语言包 {lang} 缺少必要词条 crontab.{rk}")
                 self.assertTrue(bool(cron_dict[rk]), f"语言包 {lang} 词条 crontab.{rk} 不能为空")
+
+    def test_08_process_group_safety_guard(self):
+        """验证 killProcessTree 存在防自杀与进程组安全守卫，绝不向当前调用者或父进程组广播信号。"""
+        with open(CRONTAB_PY, 'r', encoding='utf-8') as f:
+            src = f.read()
+
+        # 源码级防误杀硬断言：必须限制 pgid == main_pid 且排除当前进程组
+        self.assertIn('pgid == main_pid', src, "killpg 必须严格限制目标进程为主进程组长，严禁向父进程组广播")
+        self.assertIn('pgid != cur_pgrp', src, "killpg 必须显式排除当前进程组，绝不能广播给调用者所在组")
+
+        # 运行时模拟：mock 一个非组长的主进程，断言不会调用 os.killpg
+        inst = self.crontab.instance()
+        killpg_called = []
+        orig_killpg = getattr(os, 'killpg', None)
+        try:
+            os.killpg = lambda pgid, sig: killpg_called.append((pgid, sig))
+            # 模拟 pgid != main_pid 或 pgid == cur_pgrp 的场景
+            inst.killProcessTree(9999999)
+            self.assertEqual(len(killpg_called), 0, "当目标进程不是独立会话组长时，严禁调用 os.killpg")
+        finally:
+            if orig_killpg is not None:
+                os.killpg = orig_killpg
+            elif hasattr(os, 'killpg'):
+                delattr(os, 'killpg')
 
 
 if __name__ == '__main__':

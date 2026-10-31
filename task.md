@@ -40,3 +40,8 @@
 - [x] **任务 5：编写自动化回归测试并全量验证**
   - [x] 5.1 编写 `testsuite/test_crontab_kill_task.py` 覆盖后端 PID 定位、进程树终止、路由校验、前端结构与多语言
   - [x] 5.2 运行全量测试套件确保全部通过
+- [x] **任务 6：修复 CI 门禁 Exit code 143 报错与进程组误杀**
+  - [x] 6.1 修复 `web/utils/crontab.py` 中 `killProcessTree` 的 `killpg` 误杀当前 runner 进程组问题（严格限制 `pgid == main_pid and pgid != os.getpgrp()`）
+  - [x] 6.2 增强 `web/core/yf/__init__.py` 的 `checkPid`：增加 Windows 原生 `ctypes` 兜底，确保无 `psutil` 也能准确检测
+  - [x] 6.3 优化 `testsuite/test_crontab_kill_task.py`：加强子进程清理与异常隔离，杜绝挂起与进程泄漏
+  - [x] 6.4 运行 `testsuite/run_all.py` 与静态门禁，确保本地与 CI 兼容全绿

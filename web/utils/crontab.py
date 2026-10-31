@@ -331,6 +331,12 @@ class crontab(object):
                     return echo in cmd
             except Exception as _e:
                 _log.debug('[crontab] psutil 检查任务进程异常: %s', _e)
+
+            # 当系统既无 /proc 伪文件系统也无 psutil 时（如 Windows 最小化开发环境），
+            # 降级信任存活的 PID 记录
+            if not os.path.exists('/proc'):
+                return True
+
             return False
         except Exception:
             return False
@@ -465,11 +471,23 @@ class crontab(object):
         import signal as _sig
         term_sig = getattr(_sig, 'SIGTERM', 15)
 
-        if hasattr(os, 'killpg') and not yf.isAppleSystem() and os.name != 'nt':
+        # 仅当目标进程本身就是独立的进程组组长（例如以 start_new_session=True / setsid 启动），
+        # 且该组非当前运行进程的进程组（杜绝误杀调用者自身、父进程、Web 面板服务或 CI runner 门禁）时，才允许向该进程组广播信号。
+        can_killpg = False
+        target_pgid = None
+        if hasattr(os, 'killpg') and hasattr(os, 'getpgid') and not yf.isAppleSystem() and os.name != 'nt':
             try:
                 pgid = os.getpgid(main_pid)
-                if pgid and pgid != 1 and pgid != os.getpid():
-                    os.killpg(pgid, term_sig)
+                cur_pgrp = os.getpgrp() if hasattr(os, 'getpgrp') else os.getpgid(0)
+                if pgid and pgid == main_pid and pgid > 1 and pgid != cur_pgrp:
+                    can_killpg = True
+                    target_pgid = pgid
+            except Exception as _e:
+                _log.debug('[crontab] 获取进程组 ID 异常: %s', _e)
+
+        if can_killpg and target_pgid:
+            try:
+                os.killpg(target_pgid, term_sig)
             except Exception as _e:
                 _log.debug('[crontab] 向进程组发送 SIGTERM 失败: %s', _e)
 
@@ -497,12 +515,10 @@ class crontab(object):
             time.sleep(0.15)
 
         if not all_dead:
-            if hasattr(os, 'killpg') and not yf.isAppleSystem() and os.name != 'nt':
+            if can_killpg and target_pgid:
                 try:
                     kill_sig = getattr(_sig, 'SIGKILL', term_sig)
-                    pgid = os.getpgid(main_pid)
-                    if pgid and pgid != 1 and pgid != os.getpid():
-                        os.killpg(pgid, kill_sig)
+                    os.killpg(target_pgid, kill_sig)
                 except Exception as _e:
                     _log.debug('[crontab] 向进程组发送 SIGKILL 失败: %s', _e)
 

@@ -1313,7 +1313,24 @@ def checkPid(pid):
             try:
                 import psutil
                 return psutil.pid_exists(pid)
-            except Exception:
+            except Exception as _e:
+                _log.debug('[yf] psutil pid_exists 异常: %s', _e)
+            try:
+                import ctypes
+                # PROCESS_QUERY_LIMITED_INFORMATION (0x1000) | SYNCHRONIZE (0x00100000)
+                # WAIT_TIMEOUT (0x102 = 258) 表示进程处于活跃运行状态
+                kernel32 = ctypes.windll.kernel32
+                handle = kernel32.OpenProcess(0x1000 | 0x00100000, False, pid)
+                if handle:
+                    try:
+                        wait_res = kernel32.WaitForSingleObject(handle, 0)
+                        return wait_res == 258
+                    finally:
+                        kernel32.CloseHandle(handle)
+                # Access denied (ERROR_ACCESS_DENIED = 5) 亦说明目标进程存在
+                return kernel32.GetLastError() == 5
+            except Exception as _e:
+                _log.debug('[yf] ctypes 检测进程存活异常: %s', _e)
                 return False
 
         # Linux / POSIX 标准环境
