@@ -4,14 +4,14 @@
     "type": "server",
     "ps": "安装和管理Java JDK环境，支持全局环境变量一键设置与自定义JDK配置。",
     "versions": [
-        "1.0"
+        "1.1"
     ],
     "shell": "install.sh",
     "checks": "server/jdk",
     "path": "server/jdk",
     "author": "御风科技",
     "home": "https://github.com/clhome/bt_simple",
-    "date": "2026-06-12",
+    "date": "2026-10-31",
     "sort": 60,
     "display": 2,
     "display_status": false

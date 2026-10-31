@@ -287,8 +287,10 @@ function getSList(isdisplay) {
       "left": "0"
     });
     $(".task").text(rdata.data[rdata.length - 1]);
+    var updatableCount = 0;
     for (var i = 0; i < rdata.data.length; i++) {
       var plugin = rdata.data[i];
+      var needUpdate = false;
       var len = plugin.versions.length;
       var version_info = '';
       var version = '';
@@ -381,7 +383,7 @@ function getSList(isdisplay) {
           var latest_major = latest_version.toString().split('.')[0];
           if (current_major === latest_major) {
             // 语义化版本对比：如果当前安装版本(current_ver)低于官方最新版本(latest_ver)，才提示更新
-            var needUpdate = false;
+            needUpdate = false;
             var c_parts = plugin.setup_version.toString().split('.');
             var l_parts = latest_version.toString().split('.');
             var maxLen = Math.max(c_parts.length, l_parts.length);
@@ -501,6 +503,13 @@ function getSList(isdisplay) {
         plugin_title += '<span class="php-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('soft.php_upgradable', '可更新')) + '</span>';
+      } else if (needUpdate) {
+        plugin_title += '<span class="soft-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
+          'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
+          yfSoftText(t('public.update', '更新')) + '</span>';
+      }
+      if (needUpdate || (plugin.php_update_available && plugin.php_update) || (plugin.series_update && plugin.series_update.latest) || plugin.eol_upgrade_to) {
+        updatableCount++;
       }
       // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里
       // （未安装的直接不返回），这里红字提醒升级，别让人继续拿它跑业务。
@@ -557,6 +566,13 @@ function getSList(isdisplay) {
 
     // 渲染完软件列表后同步左上角任务角标
     getTaskCount();
+
+    // 联动左侧菜单提示可升级软件数量
+    if (updatableCount > 0) {
+      $('#memuAsoft .softnum').text(updatableCount).show();
+    } else {
+      $('#memuAsoft .softnum').hide();
+    }
 
     // 智能自适应轮询
     var has_active_task = false;

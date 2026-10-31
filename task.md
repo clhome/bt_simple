@@ -1,51 +1,52 @@
-# 计划任务紧急终止按钮与进程管理实现
+# 御风 JDK 管理器插件显示修复、版本升级与安全加固 (CVE-2026-91403/114820)
 
 ## 项目概况与目标
 
-在御风面板的计划任务模块中，为任务执行日志弹窗增加【紧急终止】红色按钮：
+针对 `plugins/jdk` 插件进行全方位缺陷修复、版本升级与针对 2026年10月重大安全漏洞的加固治理：
 
-1. 界面呈现：在任务执行日志弹窗顶部右上角新增红色【紧急终止】按钮，并增加确认防误触交互；
-2. 进程发现：根据任务 ID 精准查找当前正在运行的主进程 PID（结合 PID 文件与 `/proc` 进程特征扫描双轨兜底）；
-3. 进程剿灭：彻底终止目标主进程及其派生的所有子孙进程树（SIGTERM 优雅终止 + 超时 SIGKILL / psutil / taskkill 强制终结），清理 PID 文件并记录终止日志；
-4. 脚本联动：优化任务脚本生成模板，在系统 crond 执行时自动落盘当前 PID 并在 EXIT 时自清理；
-5. 多语言与跨平台：补齐全语种 i18n 词条，确保 Windows 11 开发机与 Linux 生产机环境的跨平台兼容性；
-6. 测试覆盖：编写完整的自动化回归测试套件并保证全绿通过。
+1. **界面显示修复**：修复 `plugins/jdk/index.html` 中第 115 行 `.textpt` 致命语法错误，恢复管理界面右侧内容区正常渲染；
+2. **插件版本升级**：将插件元数据版本号由 `1.0` 升级为 `1.1`（更新日期为 `2026-10-31`），同步安装脚本与初始化 `version.pl`；
+3. **软件菜单提示升级与老版本一键更新**：
+   - 在软件管理列表标题旁增加可更新徽章提示，操作列提供【更新】入口；
+   - 动态更新左侧菜单 `.softnum` 角标提示有软件待升级；
+   - 完善 `plugins/jdk/install.sh` 的更新升级处理分支，老版本点击“更新”时平滑升级 `version.pl` 至 1.1，并自动对已有 JDK 进行安全加固；
+4. **在线 JDK 版本矩阵升级与数字排序优化**：
+   - 解决清华镜像站老版本 404 导致离线 fallback 失败的问题，将默认硬编码源更新为当前镜像真实存在的文件（8u504, 11.0.32.1, 17.0.21, 21.0.13），并增加 `jdk-25`；
+   - 自适应 CPU 架构（x86_64 与 aarch64）；
+   - 将动态版本解析从 ASCII 字典序改进为版本号数值元组排序，杜绝大小版本比较倒挂；
+5. **CVE-2026-91403 / CVE-2026-114820 (CVSS 9.1) 信任库加固治理**：
+   - 在新安装/更新 JDK 时，使用 `keytool` 自动从 `cacerts` 中剔除 4 张弱密钥 CA 根证书（`emsignrootcag1 [jdk]`, `emsignrootcag2 [jdk]`, `emsigneccrootcag3 [jdk]`, `comodoaaaca [jdk]`）；
+   - 在后端 `plugins/jdk/index.py` 中提供 `check_ca_security` 与 `fix_ca_security` 接口；
+   - 在插件前端界面为已安装 JDK 呈现安全状态与一键加固入口；
+6. **多语言与规范**：补齐多语言词条（zh-CN, zh-TW, en, de, fr, it），编写回归测试并保证跨平台兼容。
 
 ## 规范与原则
 
 - **简洁至上**：恪守 KISS 原则，注重代码可维护性，严禁过度工程化与冗余抽象。
 - **第一性原理**：从核心问题出发拆解实现路径，杜绝盲目臆测。
-- **事实优先**：严谨客观，精准识别目标任务进程与子孙树，绝不误杀系统其它进程。
+- **事实优先**：严谨客观，发现既有代码问题、需求冲突或盲点请直接指出。
 - **编码与格式**：所有文件统一采用 UTF-8 (无 BOM) 编码，换行符强制使用 LF (`\n`)。
 - **跨平台兼容**：保证在 Windows 11 本地开发与 Linux 服务器部署的双向跨平台兼容性，严禁硬编码反斜杠路径。
-- **目录洁净**：测试脚本统一归入根目录 `test/` 或 `testsuite/`，严禁污染生产代码目录。
+- **目录洁净**：测试脚本统一归入根目录 `test/`，严禁污染生产代码目录，执行完成后主动清理临时排查文件。
 
 ## 任务拆解与进度 (Task List)
 
-- [x] **任务 1：后端服务层实现精准 PID 发现与进程树彻底终止逻辑 (`web/utils/crontab.py`)**
-  - [x] 1.1 实现 `findTaskPid`：支持 PID 文件快速命中与 `/proc` 进程命令行特征反查双轨机制
-  - [x] 1.2 实现 `killProcessTree`：递归查找主进程及所有派生子进程，先发 SIGTERM 优雅终止，超时发 SIGKILL 彻底清除
-  - [x] 1.3 实现 `killTask`：串联查找、剿灭、PID 文件清理、任务日志追加与审计日志记录
-  - [x] 1.4 优化 `getShell`：在生成的脚本头部自动记录 `$$` 至 PID 文件并在退出时清理
-- [x] **任务 2：后端路由与控制器接口增加 (`web/admin/crontab/__init__.py`)**
-  - [x] 2.1 增加 `/crontab/kill_task` POST 路由与登录权限校验，安全处理异常传参
-- [x] **任务 3：多语言词条补齐与真源收敛 (`web/static/language/*/lan.js`)**
-  - [x] 3.1 在 zh-CN、zh-TW、en、de, fr, it 中补全紧急终止、确认提示、任务未运行、终止成功等多语言文案 (`template.crontab.json`)
-  - [x] 3.2 补全单一真源 `lan.js`（zh-CN, zh-TW, en, de, fr, it），收敛双载体分歧
-  - [x] 3.3 运行 `export_lang_carriers.py` 与 `verify_i18n.py` 确保静态校验 100% 通过（12/12 PASS）
-- [x] **任务 4：前端界面与交互实现 (`web/static/app/crontab.js`)**
-  - [x] 4.1 在 `getLogs` 日志弹窗顶部右侧增加红色【紧急终止】按钮 DOM
-  - [x] 4.2 增加防误触 `layer.confirm` 确认弹窗与 `killTask` 前端调用逻辑
-  - [x] 4.3 终止成功后即时刷新弹窗内的任务执行日志
-- [x] **任务 5：编写自动化回归测试并全量验证**
-  - [x] 5.1 编写 `testsuite/test_crontab_kill_task.py` 覆盖后端 PID 定位、进程树终止、路由校验、前端结构与多语言
-  - [x] 5.2 运行全量测试套件确保全部通过
-- [x] **任务 6：修复 CI 门禁 Exit code 143 报错与进程组误杀**
-  - [x] 6.1 修复 `web/utils/crontab.py` 中 `killProcessTree` 的 `killpg` 误杀当前 runner 进程组问题（严格限制 `pgid == main_pid and pgid != os.getpgrp()`）
-  - [x] 6.2 增强 `web/core/yf/__init__.py` 的 `checkPid`：增加 Windows 原生 `ctypes` 兜底，确保无 `psutil` 也能准确检测
-  - [x] 6.3 优化 `testsuite/test_crontab_kill_task.py`：加强子进程清理与异常隔离，杜绝挂起与进程泄漏
-  - [x] 6.4 运行 `testsuite/run_all.py` 与静态门禁，确保本地与 CI 兼容全绿
-- [x] **任务 7：修复语言包派生载体漂移与 Linux 僵尸进程误判**
-  - [x] 7.1 运行 `export_lang_carriers.py --apply` 更新 6 国语言垫片，补齐 36 项派生词条，修复 `test_lang_carrier_derivation.py`
-  - [x] 7.2 在 `web/core/yf/__init__.py` 的 `checkPid` 中增加 Linux `/proc/{pid}/status` 探测，排除 `State: Z (zombie)` 僵尸进程
-  - [x] 7.3 在 `testsuite/test_crontab_kill_task.py` 的 `test_04` 中增加 `proc.poll()` 及时收割测试直接子进程内核退出码，双重保障存活判定准确性
+- [x] **任务 1：修复前端白屏缺陷 ([plugins/jdk/index.html](file:///d:/git/gitea/bt_simple/plugins/jdk/index.html))**
+  - [x] 1.1 修复 `$("#jdk_menu_manage").textpt(...)` 为 `$("#jdk_menu_manage").text(pt(...))`
+  - [x] 1.2 检查并确保弹窗初始化、事件绑定与表格初次加载流程正常
+- [x] **任务 2：JDK 在线版本源、排序算法与架构适配 ([plugins/jdk/index.py](file:///d:/git/gitea/bt_simple/plugins/jdk/index.py))**
+  - [x] 2.1 更新兜底 `default_jdks` 矩阵，替换失效的 404 URL，加入 `jdk-25`
+  - [x] 2.2 增加 CPU 架构（x86_64 / aarch64）自适应探测
+  - [x] 2.3 优化 `get_online_jdks` 版本号多段数字解析排序算法
+- [x] **任务 3：实现 CVE-2026-91403 / CVE-2026-114820 信任库加固与治理**
+  - [x] 3.1 在 `plugins/jdk/install.sh` 及 `index.py` 安装脚本中增加安装后自动 `keytool -delete` 4 个高危 CA 证书
+  - [x] 3.2 在 `index.py` 中增加 `check_ca_security` 与 `fix_ca_security` 接口，支持扫描与一键加固
+  - [x] 3.3 在 `plugins/jdk/index.html` 前端表格中展示证书安全状态与一键加固按钮
+- [x] **任务 4：插件版本升级、软件管理更新支持与菜单升级提示**
+  - [x] 4.1 升级 `plugins/jdk/info.json` 版本至 `1.1`，更新日期 `2026-10-31`
+  - [x] 4.2 优化 `plugins/jdk/install.sh`：支持传递版本参数，老版本更新时平滑升级 `version.pl` 至 1.1 并触发 CA 加固
+  - [x] 4.3 在 `web/static/app/soft.js` 中优化通用插件更新提示徽章，并在左侧菜单 `.softnum` 联动展示可更新数量
+- [x] **任务 5：多语言词条补全与全量回归测试**
+  - [x] 5.1 在 `plugins/jdk/lang/` 各语言包补充新增词条
+  - [x] 5.2 编写 `test/test_jdk_plugin.py` 自动化测试脚本，全面验证接口、版本解析、安装升级脚本、加固逻辑与语法规范
+  - [x] 5.3 运行验证全绿后，清理临时测试脚本，完成收尾

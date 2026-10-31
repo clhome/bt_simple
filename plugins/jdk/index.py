@@ -53,6 +53,114 @@ _FORBIDDEN_DIRS = (
 _JAVA_PROFILE = '/etc/profile.d/java.sh'
 _JAVA_LINKS = ('/usr/bin/java', '/usr/bin/javac')
 
+#: 涉及 CVE-2026-91403 与 CVE-2026-114820 的弱私钥根证书别名
+_VULN_CA_ALIASES = (
+    'emsignrootcag1 [jdk]',
+    'emsignrootcag2 [jdk]',
+    'emsigneccrootcag3 [jdk]',
+    'comodoaaaca [jdk]',
+    'emsignrootcag1',
+    'emsignrootcag2',
+    'emsigneccrootcag3',
+    'comodoaaaca',
+)
+
+
+def _system_arch():
+    """返回适配 Adoptium 镜像目录的架构名：'x64' 或 'aarch64'。"""
+    import platform
+    m = platform.machine().lower()
+    if m in ('aarch64', 'arm64'):
+        return 'aarch64'
+    return 'x64'
+
+
+def _jdk_filename_ver_key(filename):
+    """提取文件名中的版本元组与 build 元组作为版本比对 key。
+    严格区分 (version, build)，避免 build 号与子补丁版本混淆导致的字典序/段位倒挂。
+    例：
+      'OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.0.2_1.tar.gz' -> ((21, 0, 13, 0, 2), (1,))
+      'OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz'     -> ((21, 0, 13), (9,))
+      'OpenJDK8U-jdk_x64_linux_hotspot_8u504b01.tar.gz'      -> ((8, 504), (1,))
+    """
+    m = re.search(r'hotspot_([0-9a-zA-Z._\-]+)\.tar\.gz$', filename)
+    if not m:
+        return ((), ())
+    body = m.group(1)
+    parts = re.split(r'[_b]', body, maxsplit=1)
+    ver_str = parts[0]
+    build_str = parts[1] if len(parts) > 1 else ''
+    ver_tuple = tuple(int(x) for x in re.findall(r'\d+', ver_str))
+    build_tuple = tuple(int(x) for x in re.findall(r'\d+', build_str))
+    return (ver_tuple, build_tuple)
+
+
+def _find_cacerts_path(path):
+    """根据 java 可执行文件路径推导 cacerts 信任库路径。"""
+    if not path or not isinstance(path, str):
+        return None
+    home = path
+    if os.path.basename(path) == 'java':
+        home = os.path.dirname(os.path.dirname(path))
+    c1 = os.path.join(home, 'lib', 'security', 'cacerts')
+    if os.path.isfile(c1):
+        return c1
+    c2 = os.path.join(home, 'jre', 'lib', 'security', 'cacerts')
+    if os.path.isfile(c2):
+        return c2
+    return None
+
+
+def _find_keytool_bin(path):
+    """查找对应 JDK 的 keytool 可执行文件。"""
+    if not path or not isinstance(path, str):
+        return 'keytool'
+    home = path
+    if os.path.basename(path) == 'java':
+        home = os.path.dirname(os.path.dirname(path))
+    kt = os.path.join(home, 'bin', 'keytool')
+    if os.path.isfile(kt) and os.access(kt, os.X_OK):
+        return kt
+    return 'keytool'
+
+
+def _check_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
+    """检测 cacerts 中是否存在 CVE-2026-91403 / 114820 漏洞证书。"""
+    if not cacerts_path or not os.path.isfile(cacerts_path):
+        return False, []
+    try:
+        rc, out, err = yf.execShellRc(
+            [keytool_bin, '-list', '-keystore', cacerts_path, '-storepass', 'changeit'],
+            shell=False, timeout=15
+        )
+        content = (out + err).lower()
+        found = []
+        for a in ('emsignrootcag1', 'emsignrootcag2', 'emsigneccrootcag3', 'comodoaaaca'):
+            if a in content and a not in found:
+                found.append(a)
+        return len(found) > 0, found
+    except Exception as e:
+        _log.debug('[jdk] 检测 cacerts 证书异常: %s', e)
+        return False, []
+
+
+def _fix_cacerts_vuln(cacerts_path, keytool_bin='keytool'):
+    """删除受影响的弱私钥 CA 根证书。"""
+    if not cacerts_path or not os.path.isfile(cacerts_path):
+        return False, 0
+    fixed_count = 0
+    for a in _VULN_CA_ALIASES:
+        try:
+            rc, out, err = yf.execShellRc(
+                [keytool_bin, '-delete', '-alias', a, '-keystore', cacerts_path, '-storepass', 'changeit', '-noprompt'],
+                shell=False, timeout=10
+            )
+            if rc == 0:
+                fixed_count += 1
+        except Exception as e:
+            _log.debug('[jdk] 删除证书别名 %s 失败: %s', a, e)
+    return True, fixed_count
+
 
 def _as_text(value):
     """把入参归一为去空白字符串；非字符串（None/int/list…）一律返回空串。
@@ -149,7 +257,7 @@ class jdk_main:
         # 自动生成 version.pl 以便面板首页识别版本
         version_pl = self._java_dir + '/version.pl'
         if not os.path.exists(version_pl):
-            yf.writeFile(version_pl, '1.0')
+            yf.writeFile(version_pl, '1.1')
 
     def get_config(self):
         """读取 data.json 并归一化；缺失/畸形/结构非法时回退空配置。
@@ -183,11 +291,13 @@ class jdk_main:
 
     def get_online_jdks(self, force_update=False):
         cache_file = self._plugin_path + '/versions.json'
+        arch = _system_arch()
         default_jdks = [
-            {"version": "jdk-8", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u492b09.tar.gz"},
-            {"version": "jdk-11", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/x64/linux/OpenJDK11U-jdk_x64_linux_hotspot_11.0.31_11.tar.gz"},
-            {"version": "jdk-17", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.19_10.tar.gz"},
-            {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.11_10.tar.gz"}
+            {"version": "jdk-8", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/{arch}/linux/OpenJDK8U-jdk_{arch}_linux_hotspot_8u504b01.tar.gz"},
+            {"version": "jdk-11", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/{arch}/linux/OpenJDK11U-jdk_{arch}_linux_hotspot_11.0.32.1_1.tar.gz"},
+            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21_9.tar.gz"},
+            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13_9.tar.gz"},
+            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5_8.tar.gz"}
         ]
 
         if not force_update and os.path.exists(cache_file):
@@ -195,7 +305,10 @@ class jdk_main:
             if content and isinstance(content, str):
                 try:
                     cached = _normalize_jdk_items(json.loads(content))
-                    if cached:
+                    # 检查旧缓存是否过时（如缺少 jdk-25 或仍包含已 404 的老旧版本）
+                    cached_vers = [c.get('version') for c in cached]
+                    has_stale_url = any('8u492b09' in c.get('url', '') or '21.0.11' in c.get('url', '') for c in cached)
+                    if cached and 'jdk-25' in cached_vers and not has_stale_url:
                         return cached
                 except Exception as e:
                     _log.debug('[jdk] 在线版本缓存解析失败，改为重新获取: %s', e)
@@ -204,15 +317,15 @@ class jdk_main:
         updated_jdks = []
         for jdk in default_jdks:
             v_num = jdk['version'].split('-')[1]
-            base_url = f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{v_num}/jdk/x64/linux/"
+            base_url = f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{v_num}/jdk/{arch}/linux/"
             try:
                 req = urllib.request.Request(base_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=5) as response:
                     html = response.read().decode('utf-8')
-                    pattern = r'href="(OpenJDK' + v_num + r'U-jdk_x64_linux_hotspot_[^"]+\.tar\.gz)"'
+                    pattern = r'href="(OpenJDK' + v_num + r'U-jdk_' + arch + r'_linux_hotspot_[^"]+\.tar\.gz)"'
                     matches = re.findall(pattern, html)
                     if matches:
-                        latest_file = sorted(matches)[-1]
+                        latest_file = max(matches, key=_jdk_filename_ver_key)
                         candidate = base_url + latest_file
                         # 镜像返回的文件名不可信：仍按同一套 url 白名单校验后才采用
                         if _valid_jdk_url(candidate):
@@ -252,6 +365,21 @@ class jdk_main:
         config = self.get_config()
         default_jdk = config.get("default", "")
 
+        def _attach_ca_status(item):
+            p = item.get('path')
+            if p and os.path.exists(p):
+                cacerts = _find_cacerts_path(p)
+                if cacerts:
+                    kt = _find_keytool_bin(p)
+                    has_vuln, aliases = _check_cacerts_vuln(cacerts, kt)
+                    item['has_ca_vuln'] = has_vuln
+                    item['ca_checked'] = True
+                    item['vuln_aliases'] = aliases
+                    return
+            item['has_ca_vuln'] = False
+            item['ca_checked'] = False
+            item['vuln_aliases'] = []
+
         # 1. 获取在线版本 (带本地缓存)
         online_jdks = self.get_online_jdks()
         custom_jdks = config.get("custom", [])
@@ -260,28 +388,34 @@ class jdk_main:
         for jdk in online_jdks:
             jdk_path = self._java_dir + '/' + jdk['version'] + '/bin/java'
             if os.path.exists(jdk_path):
-                ret.append({
+                row = {
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
                     "operation": 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url']
-                })
+                }
+                _attach_ca_status(row)
+                ret.append(row)
             elif self._is_installing(jdk['version']):
                 ret.append({
                     "name": jdk['version'], "type": "面板安装", "path": "",
-                    "operation": 3, "is_default": False, "download_url": jdk['url']
+                    "operation": 3, "is_default": False, "download_url": jdk['url'],
+                    "has_ca_vuln": False, "ca_checked": False
                 })
             else:
                 ret.append({
                     "name": jdk['version'], "type": "面板安装", "path": "",
-                    "operation": 0, "is_default": False, "download_url": jdk['url']
+                    "operation": 0, "is_default": False, "download_url": jdk['url'],
+                    "has_ca_vuln": False, "ca_checked": False
                 })
 
         # 2. 本地自定义 JDK
         for custom_path in custom_jdks:
             if os.path.exists(custom_path):
-                ret.append({
+                row = {
                     "name": "自定义JDK", "type": "用户自定义", "path": custom_path,
                     "operation": 2, "is_default": (custom_path == default_jdk)
-                })
+                }
+                _attach_ca_status(row)
+                ret.append(row)
 
         # 3. 检查系统预装 JDK
         sys_java = '/usr/bin/java'
@@ -289,10 +423,12 @@ class jdk_main:
             real_sys_java = os.path.realpath(sys_java)
             # 防止重复添加（如果它是指向面板已安装JDK的软连接，则不显示）
             if not any(x['path'] == sys_java or x['path'] == real_sys_java for x in ret):
-                ret.append({
+                row = {
                     "name": "系统自带JDK", "type": "系统预装", "path": sys_java,
                     "operation": 4, "is_default": (sys_java == default_jdk)
-                })
+                }
+                _attach_ca_status(row)
+                ret.append(row)
 
         # 纯粹按照版本号降序排列
         def get_ver(name):
@@ -301,6 +437,37 @@ class jdk_main:
 
         ret = sorted(ret, key=lambda x: -get_ver(x['name']))
         return yf.returnJson(True, ret)
+
+    def check_ca_security(self, args):
+        """检测指定 JDK 的 cacerts 证书安全性"""
+        path = _as_text(args.get('path'))
+        if not path or not os.path.isabs(path):
+            return yf.returnJson(False, '路径无效')
+        cacerts = _find_cacerts_path(path)
+        if not cacerts:
+            return yf.returnJson(False, '未找到有效的 cacerts 信任库文件')
+        kt = _find_keytool_bin(path)
+        has_vuln, aliases = _check_cacerts_vuln(cacerts, kt)
+        return yf.returnJson(True, {
+            'has_vuln': has_vuln,
+            'cacerts_path': cacerts,
+            'aliases': aliases
+        })
+
+    def fix_ca_security(self, args):
+        """对指定 JDK 执行 CVE-2026-91403 / 114820 证书加固（剔除受损根证书）"""
+        path = _as_text(args.get('path'))
+        if not path or not os.path.isabs(path):
+            return yf.returnJson(False, '路径无效')
+        cacerts = _find_cacerts_path(path)
+        if not cacerts:
+            return yf.returnJson(False, '未找到有效的 cacerts 信任库文件')
+        kt = _find_keytool_bin(path)
+        ok, count = _fix_cacerts_vuln(cacerts, kt)
+        has_vuln, remaining = _check_cacerts_vuln(cacerts, kt)
+        if has_vuln:
+            return yf.returnJson(False, '加固失败，部分风险根证书未能成功清除')
+        return yf.returnJson(True, '证书加固成功，已移除风险根证书')
 
     def add_custom_jdk(self, args):
         """添加自定义JDK"""
@@ -395,6 +562,15 @@ if [ ! -f {q(java_bin)} ]; then
 fi
 rm -f {q(tarball)}
 chmod +x {q(dest_dir + '/bin')}/*
+_cacerts={q(dest_dir + '/lib/security/cacerts')}
+[ -f "$_cacerts" ] || _cacerts={q(dest_dir + '/jre/lib/security/cacerts')}
+if [ -f "$_cacerts" ] && [ -x {q(dest_dir + '/bin/keytool')} ]; then
+    echo '正在执行 cacerts 安全加固 (清理 CVE-2026-91403/114820 风险根证书)...'
+    for _alias in "emsignrootcag1 [jdk]" "emsignrootcag2 [jdk]" "emsigneccrootcag3 [jdk]" "comodoaaaca [jdk]" "emsignrootcag1" "emsignrootcag2" "emsigneccrootcag3" "comodoaaaca"; do
+        {q(dest_dir + '/bin/keytool')} -delete -alias "$_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || true
+    done
+    echo 'cacerts 信任库安全加固完成'
+fi
 echo 'JDK {version} 安装完成'
 """.replace('\r\n', '\n')
         # 上面所有插值都经 shlexQuote；echo 里的 {version} 已由 _JDK_VERSION_RE 白名单保证无 shell 元字符

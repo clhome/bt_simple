@@ -112,7 +112,7 @@ resetPluginWinHeight(520);
         plugin_name: 'jdk',
         init: function () {
             var _that = this;
-            $("#jdk_menu_manage").textpt('JDK管理');
+            $("#jdk_menu_manage").text(pt('JDK管理'));
             $(".bt-w-menu p").on('click', function () {
                 var i = $(this).index();
                 $(this).addClass("bgw").siblings().removeClass("bgw");
@@ -120,7 +120,7 @@ resetPluginWinHeight(520);
                     _that.render_table();
                 }
             });
-            $(".bt-w-menu p").eq(0).click()
+            $(".bt-w-menu p").eq(0).click();
         },
         send: function (method, args, callback) {
             var loadT = layer.msg((window.lan && lan.public && lan.public.getting) || t('public.getting', '正在获取...'), { icon: 16, time: 0, shade: 0.3 });
@@ -170,10 +170,19 @@ resetPluginWinHeight(520);
                     if (row.is_default) {
                         nameHtml += '<span class="jdk-default-badge">' + pt('系统默认') + '</span>';
                     }
+                    if (row.has_ca_vuln) {
+                        nameHtml += '<span class="label label-warning" style="margin-left:6px;font-size:11px;background-color:#faad14;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('发现CVE-2026-91403弱私钥根证书，建议立即加固')) + '">' + pt('待加固') + '</span>';
+                    } else if (row.ca_checked) {
+                        nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('已免疫CVE-2026-91403/114820弱私钥证书劫持风险')) + '">' + pt('已加固') + '</span>';
+                    }
                     var rowDir = row.path ? row.path.substring(0, row.path.lastIndexOf('/')) : '';
                     var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + jdkEsc(pt('点击打开目录')) + '" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
                     
                     var opsHtml = '';
+                    // CA 证书加固按钮
+                    if (row.has_ca_vuln && row.path) {
+                        opsHtml += '<a class="bt_warning" style="color:#e6a23c; cursor: pointer; margin-right:10px;" onclick="jdk_manager.fix_ca(\'' + jdkJsArg(row.path) + '\')">' + pt('加固CA') + '</a>';
+                    }
                     // 设为默认
                     if (row.operation == 1 || row.operation == 2 || row.operation == 4) {
                         if (row.is_default) {
@@ -226,6 +235,17 @@ resetPluginWinHeight(520);
                                 '</table>' +
                             '</div>';
                 $('#webEdit-con').html(html);
+            });
+        },
+        fix_ca: function(path) {
+            var _that = this;
+            var confirmTitle = pt('确认对该 JDK 进行证书库安全加固？') + '<br>' + pt('将从 cacerts 中清除 CVE-2026-91403/114820 涉及的弱私钥 CA 根证书。');
+            layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.warning) || t('public.warning', '警告') }, function (index) {
+                layer.close(index);
+                _that.send('fix_ca_security', { path: path }, function (res) {
+                    layer.msg(res.msg, { icon: res.status ? 1 : 2 });
+                    _that.render_table();
+                });
             });
         },
         set_default: function(path, name) {

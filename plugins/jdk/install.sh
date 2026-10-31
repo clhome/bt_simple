@@ -14,8 +14,22 @@ if [ -z "${serverPath}" ] || [ "${serverPath}" = "/" ];then
 fi
 
 JDK_DIR="${serverPath}/jdk"
-#: 默认安装的 LTS 特性版本，按顺序尝试（21 为当前主流 LTS，17 兼容面最广，11 兜底）
-JDK_FEATURE_CANDIDATES="21 17 11"
+#: 默认安装的 LTS 特性版本，按顺序尝试（21 为当前主流 LTS，17 兼容面最广，25 纳新，11 兜底）
+JDK_FEATURE_CANDIDATES="21 17 25 11"
+
+# 针对 CVE-2026-91403 与 CVE-2026-114820 清洗弱私钥 eMudhra 与 Comodo 根证书
+_clean_vuln_cacerts() {
+	local _target_dir=$1
+	local _cacerts="${_target_dir}/lib/security/cacerts"
+	[ -f "${_cacerts}" ] || _cacerts="${_target_dir}/jre/lib/security/cacerts"
+	if [ -f "${_cacerts}" ] && [ -x "${_target_dir}/bin/keytool" ]; then
+		echo "正在对 ${_target_dir} 进行 cacerts 信任库安全加固 (CVE-2026-91403/114820)..."
+		for _alias in "emsignrootcag1 [jdk]" "emsignrootcag2 [jdk]" "emsigneccrootcag3 [jdk]" "comodoaaaca [jdk]" "emsignrootcag1" "emsignrootcag2" "emsigneccrootcag3" "comodoaaaca"; do
+			"${_target_dir}/bin/keytool" -delete -alias "${_alias}" -keystore "${_cacerts}" -storepass changeit -noprompt >/dev/null 2>&1 || true
+		done
+		echo "cacerts 安全加固完成: ${_target_dir}"
+	fi
+}
 
 # 与 plugins/jdk/index.py 的安装布局保持一致：<server>/jdk/jdk-17/bin/java
 # 这样面板 JDK 管理器能把它识别成「面板安装」的已装版本，而不是看不见的野目录。
@@ -96,10 +110,13 @@ Install_jdk()
 	done
 
 	if [ -n "${_existing}" ]; then
-		echo "已存在可用的 JDK: ${JDK_DIR}/${_existing}（跳过下载）"
+		echo "已存在可用的 JDK: ${JDK_DIR}/${_existing}（老版本更新升级与安全加固）"
+		for _d in "${JDK_DIR}"/jdk-*; do
+			[ -d "${_d}" ] && _clean_vuln_cacerts "${_d}"
+		done
 		"${JDK_DIR}/${_existing}/bin/java" -version 2>&1 | head -n 1
-		echo '1.0' > "${JDK_DIR}/version.pl"
-		echo '安装完成'
+		echo "${PLUGIN_VER}" > "${JDK_DIR}/version.pl"
+		echo '更新完成'
 		echo Successify
 		return 0
 	fi
@@ -193,7 +210,10 @@ Install_jdk()
 	fi
 	echo "JDK 运行回读: ${_ver_out}"
 
-	echo '1.0' > "${JDK_DIR}/version.pl"
+	# cacerts 信任库安全加固 (CVE-2026-91403 / CVE-2026-114820)
+	_clean_vuln_cacerts "${_dest}"
+
+	echo "${PLUGIN_VER}" > "${JDK_DIR}/version.pl"
 	echo "安装完成: ${_dest}"
 	echo Successify
 }
@@ -210,12 +230,16 @@ Uninstall_jdk()
 }
 
 action=$1
+PLUGIN_VER=$2
+if [ -z "${PLUGIN_VER}" ]; then
+	PLUGIN_VER="1.1"
+fi
 if [ "${action}" == 'install' ];then
 	Install_jdk
 elif [ "${action}" == 'uninstall' ];then
 	Uninstall_jdk
 else
 	# 旧实现 else 兜底：无参/拼错参数也会走卸载并 rm -rf 插件目录
-	echo "usage: $0 {install|uninstall}"
+	echo "usage: $0 {install|uninstall} [version]"
 	exit 1
 fi
