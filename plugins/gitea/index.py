@@ -650,7 +650,7 @@ def appOp(method):
             except Exception as _e:
                 _log.debug('[gitea] 检查 active(exited) 状态异常: %s', _e)
 
-        rc, out, err = yf.execShellRc('systemctl ' + actual_method + ' ' + unit_name, timeout=120)
+        rc, out, err = yf.execShellRc(['systemctl', actual_method, unit_name], shell=False, timeout=120)
         if rc != 0:
             # 旧实现只看 stderr 是否为空：systemctl 失败但输出在 stdout 时会被吞成成功
             _log.debug('[gitea] systemctl %s 失败: %s', actual_method, (err or out).strip())
@@ -668,7 +668,7 @@ def appOp(method):
         # 二次兜底：如果执行 start 之后状态依然是 stop，尝试使用 restart 再次拉起
         if method == 'start' and status() == 'stop':
             _log.info('[gitea] start 后服务仍为 stop，尝试以 restart 再次拉起')
-            rc_r, _, _ = yf.execShellRc('systemctl restart ' + unit_name, timeout=120)
+            rc_r, _, _ = yf.execShellRc(['systemctl', 'restart', unit_name], shell=False, timeout=120)
             if rc_r == 0:
                 for _ in range(10):
                     if status() == 'start':

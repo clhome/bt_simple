@@ -80,5 +80,6 @@
 - [x] **任务 10：CI 门禁与本地环境差异排查及根治防范**
   - [x] 10.1 消除 `plugins/gitea/index.py` 中 2 处 `silent_except`（第 220 行、439 行）
   - [x] 10.2 在 `plugins/gitea/lang/` 6 种语言包中补全 `升级失败已安全中止:` 对应键与多语言翻译
-  - [x] 10.3 运行 `verify_code_quality.py`、`verify_i18n.py` 及相关测试用例验证静态门禁全绿
-  - [x] 10.4 配置本地 Git Hook (`pre-commit`) 与极速本地预检工具，杜绝未来本地绿提交红的事故
+  - [x] 10.3 消除 `plugins/gitea/index.py` 中 2 处 shell 裸拼（`appOp` 中 systemctl 字符串加号拼接），改用列表参数 `['systemctl', ...], shell=False` 规避 `inline_bare_concat`
+  - [x] 10.4 验证全套安全棘轮（`test_shell_concat_ratchet`、`test_writefile_must_and_ratchet`、`test_download_*`）与静态门禁 100% 全绿
+  - [x] 10.5 封装本地快速门禁工具 [`scripts/quick_gate.py`](file:///d:/git/gitea/bt_simple/scripts/quick_gate.py) 并挂载至 Git `pre-commit` 钩子，彻底杜绝本地与 CI 门禁脱节问题

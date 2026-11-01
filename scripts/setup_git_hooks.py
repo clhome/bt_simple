@@ -13,9 +13,9 @@ import sys
 
 HOOK_CONTENT = """#!/bin/sh
 # 提交前本地门禁校验钩子（防止本地绿提交红）
-# 只跑静态门禁（耗时约 3 秒），检查 i18n 多语言一致性/缺键与代码质量棘轮（silent_except、bare_except 等）
+# 自动运行本地快速门禁（静态门禁 + 核心代码安全棘轮：shell裸拼、文件写入、TLS下载）
 
-echo "[pre-commit] 正在运行本地静态门禁校验 (python testsuite/run_all.py --static)..."
+echo "[pre-commit] 正在运行提交前快速门禁校验 (python scripts/quick_gate.py)..."
 
 if command -v python >/dev/null 2>&1; then
     PY_CMD="python"
@@ -26,17 +26,17 @@ else
     exit 1
 fi
 
-$PY_CMD testsuite/run_all.py --static
+$PY_CMD scripts/quick_gate.py
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
     echo ""
-    echo "❌ [pre-commit] 本地静态门禁未通过，禁止提交！"
-    echo "请根据上方报错修复后重试，或执行: $PY_CMD testsuite/run_all.py --static"
+    echo "[pre-commit] 本地快速门禁未通过，禁止提交！"
+    echo "请根据上方报错修复后重试，或单独执行: $PY_CMD scripts/quick_gate.py"
     exit $EXIT_CODE
 fi
 
-echo "✅ [pre-commit] 本地静态门禁校验通过。"
+echo "[pre-commit] 本地快速门禁校验通过。"
 exit 0
 """
 
