@@ -68,22 +68,64 @@ _jdk_arch_dir() {
 	esac
 }
 
-# 从镜像目录清单里取该特性版本最新的 linux tar.gz 文件名（镜像内容会随上游滚动，
-# 写死 `OpenJDK17U-jdk_x64_linux_hotspot_17.0.19_10.tar.gz` 这种全量文件名必然 404 ——
-# 真机实测 index.py 里那三条默认 URL 现在全是 404）。
+# 轻量测速探针：测试节点首包响应耗时（秒）
+_jdk_probe_speed() {
+	local _url=$1
+	local _t='999'
+	if command -v curl >/dev/null 2>&1; then
+		_t=$(curl -s -4 -o /dev/null -w '%{time_total}' --connect-timeout 2 -m 3 -I "${_url}" 2>/dev/null) || _t='999'
+	fi
+	printf '%s' "${_t}"
+}
+
+# 动态决策各镜像源的下载优先级顺序（国内外网络自适应）
+_jdk_select_best_mirrors() {
+	local _t_tsinghua
+	local _t_official
+	_t_tsinghua=$(_jdk_probe_speed "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/")
+	_t_official=$(_jdk_probe_speed "https://api.adoptium.net/v3/info/available_releases")
+
+	local _official_first=0
+	if command -v awk >/dev/null 2>&1; then
+		_official_first=$(awk "BEGIN {print (${_t_official} < ${_t_tsinghua} ? 1 : 0)}")
+	fi
+
+	if [ "${_official_first}" = "1" ]; then
+		echo "测速探针选优：Adoptium 官方全球 CDN (${_t_official}s) 优于 清华镜像 (${_t_tsinghua}s)，优先使用官方全球链路" >&2
+		echo "official tsinghua ustc"
+	else
+		echo "测速探针选优：清华镜像 (${_t_tsinghua}s) 连通良好，优先使用国内骨干网镜像链路" >&2
+		echo "tsinghua official ustc"
+	fi
+}
+
+# 从镜像目录或官方重定向提取该特性版本最新的 linux tar.gz 文件名
 _jdk_pick_remote() {
 	local _v=$1
 	local _arch=$2
 	local _base="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/${_v}/jdk/${_arch}/linux/"
-	local _html=''
+	local _html='' _file=''
+
+	# 1. 优先尝试清华镜像目录清单
 	if command -v curl >/dev/null 2>&1; then
-		_html=$(curl -fsSL --connect-timeout 15 --max-time 60 "${_base}" 2>/dev/null) || _html=''
+		_html=$(curl -4 -fsSL --connect-timeout 10 --max-time 30 "${_base}" 2>/dev/null) || _html=''
 	elif command -v wget >/dev/null 2>&1; then
-		_html=$(wget -q -T 60 -t 1 -O - "${_base}" 2>/dev/null) || _html=''
+		_html=$(wget -4 -q -T 30 -t 1 -O - "${_base}" 2>/dev/null) || _html=''
 	fi
-	[ -n "${_html}" ] || return 1
-	local _file
-	_file=$(printf '%s' "${_html}" | grep -o "OpenJDK${_v}U-jdk_${_arch}_linux_hotspot_[^\"]*\.tar\.gz" | sort -u | tail -1)
+	if [ -n "${_html}" ]; then
+		_file=$(printf '%s' "${_html}" | grep -o "OpenJDK${_v}U-jdk_${_arch}_linux_hotspot_[^\"]*\.tar\.gz" | sort -u | tail -1)
+	fi
+
+	# 2. 清华源不可达时（如海外机器），尝试从官方 API 307 重定向中解析最新文件名
+	if [ -z "${_file}" ] && command -v curl >/dev/null 2>&1; then
+		local _api="https://api.adoptium.net/v3/binary/latest/${_v}/ga/linux/${_arch}/jdk/hotspot/normal/eclipse"
+		local _head
+		_head=$(curl -4 -sI --connect-timeout 5 -m 10 "${_api}" 2>/dev/null) || _head=''
+		if [ -n "${_head}" ]; then
+			_file=$(printf '%s' "${_head}" | grep -io "OpenJDK${_v}U-jdk_${_arch}_linux_hotspot_[^\s\"']*\.tar\.gz" | head -1)
+		fi
+	fi
+
 	[ -n "${_file}" ] || return 1
 	printf '%s%s' "${_base}" "${_file}"
 }
@@ -105,7 +147,7 @@ _jdk_expected_sha256() {
 	while [ "${_try}" -lt 2 ] && [ -z "${_line}" ]; do
 		_try=$((_try + 1))
 		if command -v curl >/dev/null 2>&1; then
-			_line=$(curl -fsSL --connect-timeout 10 --max-time 30 "${_url}" 2>/dev/null) || _line=''
+			_line=$(curl -4 -fsSL --connect-timeout 10 --max-time 30 "${_url}" 2>/dev/null) || _line=''
 		fi
 		[ -n "${_line}" ] || sleep 2
 	done
@@ -123,7 +165,7 @@ Install_jdk()
 	# 面板显示「安装成功」而系统里根本没有 JDK —— 静默假成功。
 	# 现在：真装一个 LTS 到 <server>/jdk/jdk-<feature>，并逐级回读校验。
 	#   ① 版本目录已存在且 bin/java 可执行 ⇒ 幂等跳过（只补 version.pl）
-	#   ② 从镜像清单现取最新包（不写死文件名），下载 → 校验 → 解压
+	#   ② 多链路探针选优 + 多源降级容灾，下载 → 校验 → 解压
 	#   ③ 校验：sha256（能取到时强校验）+ tar 完整性 + `bin/java -version` 真跑
 	#   ④ 任一环节失败 ⇒ exit 1，**不**打印成功、不写 version.pl
 	# -------------------------------------------------------------------------
@@ -174,19 +216,61 @@ Install_jdk()
 	local _file="${_url##*/}"
 	local _tarball="${JDK_DIR}/${_file}"
 	local _dest="${JDK_DIR}/jdk-${_feature}"
-	echo "开始安装 JDK${_feature}（${_arch}）: ${_url}"
+	echo "准备安装 JDK${_feature}（${_arch}）: ${_file}"
 
-	# 0 字节 / 错误页毒化：先删再下，下完立刻验
-	rm -f "${_tarball}"
-	if command -v curl >/dev/null 2>&1; then
-		curl -fSL --connect-timeout 20 --max-time 1800 -o "${_tarball}" "${_url}" || rm -f "${_tarball}"
-	fi
-	if [ ! -s "${_tarball}" ] && command -v wget >/dev/null 2>&1; then
-		wget -nv -T 300 -t 2 -O "${_tarball}" "${_url}" || rm -f "${_tarball}"
-	fi
-	if [ ! -s "${_tarball}" ] || ! tar -tzf "${_tarball}" >/dev/null 2>&1; then
+	# -------------------------------------------------------------------------
+	# 多链路选优与下载（清华源 / 官方全球 CDN / 中科大源）
+	# 具备 --speed-limit 50KB/s 自动熔断与下一顺位自动重试机制，
+	# 彻底规避测试机出口限速导致的 30 分钟挂死与 SIGTERM 强杀 (exit=143)
+	# -------------------------------------------------------------------------
+	local _nodes
+	_nodes=$(_jdk_select_best_mirrors)
+	_nodes=$(printf '%s' "${_nodes}" | tail -1)
+
+	local _download_ok=0
+	for _node in $_nodes; do
+		local _candidate_url=''
+		local _node_name=''
+		case "$_node" in
+			tsinghua)
+				_node_name="清华大学开源镜像站"
+				_candidate_url="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/${_feature}/jdk/${_arch}/linux/${_file}"
+				;;
+			official)
+				_node_name="Adoptium 官方全球 CDN"
+				_candidate_url="https://api.adoptium.net/v3/binary/latest/${_feature}/ga/linux/${_arch}/jdk/hotspot/normal/eclipse"
+				;;
+			ustc)
+				_node_name="中科大开源镜像站"
+				_candidate_url="https://mirrors.ustc.edu.cn/adoptium/releases/temurin${_feature}-binaries/LatestRelease/${_file}"
+				;;
+			*)
+				continue
+				;;
+		esac
+
+		echo "尝试从 [${_node_name}] 下载 JDK${_feature}: ${_candidate_url}"
 		rm -f "${_tarball}"
-		echo "JDK 安装包下载失败或已损坏: ${_url}" >&2
+		if command -v curl >/dev/null 2>&1; then
+			curl -4 -fSL --connect-timeout 20 --speed-limit 51200 --speed-time 15 --max-time 1800 -o "${_tarball}" "${_candidate_url}" || rm -f "${_tarball}"
+		fi
+		if [ ! -s "${_tarball}" ] && command -v wget >/dev/null 2>&1; then
+			wget -4 -nv -T 30 -t 2 -O "${_tarball}" "${_candidate_url}" || rm -f "${_tarball}"
+		fi
+
+		if [ -s "${_tarball}" ] && tar -tzf "${_tarball}" >/dev/null 2>&1; then
+			echo "JDK 安装包下载并归档完整性校验通过 [${_node_name}]"
+			_download_ok=1
+			break
+		fi
+
+		rm -f "${_tarball}"
+		echo "[WARN] 节点 [${_node_name}] 下载未成功或速度过低（<50KB/s 自动熔断），尝试切换下一备选链路..." >&2
+	done
+
+	if [ "${_download_ok}" -ne 1 ]; then
+		echo "所有候选下载链路均尝试失败，JDK 安装包未能成功下载" >&2
+		echo "排查：确认可访问 https://mirrors.tuna.tsinghua.edu.cn/Adoptium/ ，或在面板 JDK 管理器中改用自定义路径" >&2
 		exit 1
 	fi
 

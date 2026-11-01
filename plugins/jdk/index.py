@@ -35,11 +35,13 @@ _JDK_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._\-]{0,31}$')
 #  故只放行面板自身的镜像来源。
 _JDK_URL_HOSTS = (
     'mirrors.tuna.tsinghua.edu.cn',
+    'mirrors.ustc.edu.cn',
     'mirrors.aliyun.com',
     'mirrors.cloud.tencent.com',
     'mirrors.huaweicloud.com',
     'github.com',
     'objects.githubusercontent.com',
+    'release-assets.githubusercontent.com',
     'api.adoptium.net',
 )
 
@@ -680,7 +682,7 @@ class jdk_main:
         script_content = f"""#!/bin/bash
 mkdir -p {q(dest_dir)}
 cd {q(self._java_dir)}
-wget --timeout=60 --tries=3 -O {q(tarball)} {q(url)}
+wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)}
 if [ $? -ne 0 ]; then
     echo 'JDK {version} 下载失败，请检查网络连接'
     rm -f {q(tarball)}

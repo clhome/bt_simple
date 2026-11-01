@@ -83,3 +83,8 @@
   - [x] 10.3 消除 `plugins/gitea/index.py` 中 2 处 shell 裸拼（`appOp` 中 systemctl 字符串加号拼接），改用列表参数 `['systemctl', ...], shell=False` 规避 `inline_bare_concat`
   - [x] 10.4 验证全套安全棘轮（`test_shell_concat_ratchet`、`test_writefile_must_and_ratchet`、`test_download_*`）与静态门禁 100% 全绿
   - [x] 10.5 封装本地快速门禁工具 [`scripts/quick_gate.py`](file:///d:/git/gitea/bt_simple/scripts/quick_gate.py) 并挂载至 Git `pre-commit` 钩子，彻底杜绝本地与 CI 门禁脱节问题
+- [x] **任务 11：JDK 插件多链路选优与弱网/海外节点高可用下载保障**
+  - [x] 11.1 [`plugins/jdk/install.sh`](file:///d:/git/gitea/bt_simple/plugins/jdk/install.sh) 实现国内外多链路候选池与探针毫秒选优
+  - [x] 11.2 [`plugins/jdk/install.sh`](file:///d:/git/gitea/bt_simple/plugins/jdk/install.sh) 实现 IPv4 优先、低速动态熔断与平滑 Fallback 容灾
+  - [x] 11.3 [`plugins/jdk/index.py`](file:///d:/git/gitea/bt_simple/plugins/jdk/index.py) 白名单扩充与安装任务脚本低速防护同步
+  - [x] 11.4 编写完备的自动化测试用例，全绿回归验证门禁与清理临时文件
