@@ -68,6 +68,19 @@ _jdk_arch_dir() {
 	esac
 }
 
+# 校验本地文件是否具备合法的 Gzip 归档头部（魔数 1f 8b，防止 HTML 错误页被当作有效断点）
+_jdk_is_valid_gzip_header() {
+	local _f=$1
+	[ -f "${_f}" ] || return 1
+	local _magic=''
+	if command -v od >/dev/null 2>&1; then
+		_magic=$(od -An -N2 -tx1 "${_f}" 2>/dev/null | tr -d ' \t\r\n')
+	elif command -v hexdump >/dev/null 2>&1; then
+		_magic=$(hexdump -n 2 -e '2/1 "%02x"' "${_f}" 2>/dev/null)
+	fi
+	[ "${_magic}" = "1f8b" ]
+}
+
 # 轻量测速探针：测试节点首包响应耗时（秒）
 _jdk_probe_speed() {
 	local _url=$1
@@ -250,12 +263,38 @@ Install_jdk()
 		esac
 
 		echo "尝试从 [${_node_name}] 下载 JDK${_feature}: ${_candidate_url}"
-		rm -f "${_tarball}"
-		if command -v curl >/dev/null 2>&1; then
-			curl -4 -fSL --connect-timeout 20 --speed-limit 51200 --speed-time 15 --max-time 1800 -o "${_tarball}" "${_candidate_url}" || rm -f "${_tarball}"
+		# P2-1: 断点续传前置健康度校验：
+		# ① 若文件大于 350MB（远超正常 JDK 体积约 190MB），判定为异常膨胀（如服务端不支持 Range 导致重复追加），清空重下
+		# ② 若文件已有数据 (>1KB) 但头部不是合法 Gzip 魔数 (1f 8b)（如被写入了 HTML 错误页），清空重下
+		if [ -f "${_tarball}" ]; then
+			local _cur_size
+			_cur_size=$(wc -c <"${_tarball}" 2>/dev/null || echo 0)
+			if [ "${_cur_size}" -gt 367001600 ]; then
+				echo "[WARN] 本地残余文件异常超大 (${_cur_size} 字节 > 350MB)，清空以防止错位追加..." >&2
+				rm -f "${_tarball}"
+			elif [ "${_cur_size}" -gt 1024 ] && ! _jdk_is_valid_gzip_header "${_tarball}"; then
+				echo "[WARN] 本地残余文件头部非合法 Gzip 格式（疑似被污染为 HTML 错误页），清空重新全量下载..." >&2
+				rm -f "${_tarball}"
+			elif [ "${_cur_size}" -gt 0 ]; then
+				echo "检测到本地已存在有效分块 (${_cur_size} 字节，Gzip 头部校验正常)，启用断点续传..."
+			fi
 		fi
-		if [ ! -s "${_tarball}" ] && command -v wget >/dev/null 2>&1; then
-			wget -4 -nv -T 30 -t 2 -O "${_tarball}" "${_candidate_url}" || rm -f "${_tarball}"
+
+		# 尝试 curl 断点续传 (-C -)
+		local _curl_rc=0
+		if command -v curl >/dev/null 2>&1; then
+			curl -4 -fSL -C - --connect-timeout 20 --speed-limit 51200 --speed-time 15 --max-time 1800 -o "${_tarball}" "${_candidate_url}" || _curl_rc=$?
+			# 退出码 33: CURLE_RANGE_ERROR (服务端返回 416 / 不支持所求断点)，清空坏文件以备后续重试
+			if [ "${_curl_rc}" -eq 33 ]; then
+				echo "[WARN] 服务端拒绝该断点范围 (HTTP 416 / CURLE_RANGE_ERROR)，清除不可续传的本地文件..." >&2
+				rm -f "${_tarball}"
+			fi
+		fi
+		# 若未完成或损坏，尝试 wget 断点续传 (-c)
+		if [ ! -s "${_tarball}" ] || ! tar -tzf "${_tarball}" >/dev/null 2>&1; then
+			if command -v wget >/dev/null 2>&1; then
+				wget -4 -c -nv -T 30 -t 2 -O "${_tarball}" "${_candidate_url}" || :
+			fi
 		fi
 
 		if [ -s "${_tarball}" ] && tar -tzf "${_tarball}" >/dev/null 2>&1; then
@@ -264,11 +303,11 @@ Install_jdk()
 			break
 		fi
 
-		rm -f "${_tarball}"
-		echo "[WARN] 节点 [${_node_name}] 下载未成功或速度过低（<50KB/s 自动熔断），尝试切换下一备选链路..." >&2
+		echo "[WARN] 节点 [${_node_name}] 下载未成功或速度过低（<50KB/s 自动熔断），保留有效分块尝试切换下一备选链路续传..." >&2
 	done
 
 	if [ "${_download_ok}" -ne 1 ]; then
+		rm -f "${_tarball}"
 		echo "所有候选下载链路均尝试失败，JDK 安装包未能成功下载" >&2
 		echo "排查：确认可访问 https://mirrors.tuna.tsinghua.edu.cn/Adoptium/ ，或在面板 JDK 管理器中改用自定义路径" >&2
 		exit 1

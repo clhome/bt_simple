@@ -95,4 +95,13 @@
   - [x] 12.4 (P2-2) 在根目录 `test/` 下编写支持真实 Linux 环境的 live 验证脚本 `test/test_gitea_wedged_systemd_live.py`，完整复现并闭环验证 wedged 单元自愈
   - [x] 12.5 (P2-3) 编写/补充离线版本推荐测试，确认无静态缓存文件时通道 C 能够 100% 正确依据 `info.json` 排序
   - [x] 12.6 运行全量安全与静态门禁（`quick_gate.py`），确保代码质量与无脏工作区
+- [x] **任务 13：升级报告优化与遗留问题修复（P2-1、P2-2、P2-4 与发布说明）**
+  - [x] 13.1 (P2-2) 修复 `testsuite/test_varnish_c05_hardening.py` 测试脚手架的宿主机环境穿透问题，隔离 `VARNISH_BIN_CANDIDATES`，实现完全自包含
+  - [x] 13.2 (P2-4) 修正 `plugins/jdk/install.sh` 镜像源候选池：淘汰年久失修且缺失 Linux 二进制的中科大无效 URL，确立清华源与 Adoptium 官方全球 CDN 的双通道高可用架构
+  - [x] 13.3 (P2-1) 在 `plugins/jdk/install.sh` 中为 curl (`-C -`) 和 wget (`-c`) 增加断点续传支持，中断后优先续传，杜绝重复从头拉取大包
+  - [x] 13.4 运行 `test_varnish_c05_hardening.py` 及全量门禁校验 `quick_gate.py`
+  - [x] 13.5 整理发布说明文案（说明-1 systemd 模板范围，说明-2 长期未验证清单）
+  - [x] 13.6 (P2-1 防护强化) 增加断点续传防膨胀（>350MB 清理）、防 HTML 错误页污染（Gzip 1f8b 魔数预检）与 HTTP 416 Range 错误自愈清理机制
+
+
 

@@ -310,6 +310,8 @@ class _Fixture(unittest.TestCase):
         cls._cwd = os.getcwd()
         cls.root = tempfile.mkdtemp(prefix='c05_varnish_')
         cls.server = os.path.join(cls.root, 'server')
+        cls.bindir = os.path.join(cls.root, 'bin')
+        os.makedirs(cls.bindir, exist_ok=True)
         cls.plugroot = os.path.join(cls.root, 'plugins')
         cls.tpldir = os.path.join(cls.plugroot, 'varnish', 'tpl')
         os.makedirs(cls.tpldir, exist_ok=True)
@@ -339,12 +341,18 @@ class _Fixture(unittest.TestCase):
         spec.loader.exec_module(cls.mod)
         os.chdir(cls._cwd)
 
+        # 隔离宿主机 varnishd 二进制路径，避免真机测试机上宿主机已装 varnish 穿透导致未安装断言失败 (P2-2)
+        cls._orig_varnish_bin = getattr(cls.mod, 'VARNISH_BIN_CANDIDATES', None)
+        cls.mod.VARNISH_BIN_CANDIDATES = (os.path.join(cls.bindir, 'varnishd'),)
+
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls._cwd)
         for k, v in cls._orig.items():
             if v is not None:
                 setattr(cls.yf, k, v)
+        if getattr(cls, '_orig_varnish_bin', None) is not None:
+            cls.mod.VARNISH_BIN_CANDIDATES = cls._orig_varnish_bin
         shutil.rmtree(cls.root, ignore_errors=True)
 
     def setUp(self):
@@ -358,6 +366,9 @@ class _Fixture(unittest.TestCase):
                                      '"description": "hit"}}}', '')
         _ProcTable.calls[:] = []
         shutil.rmtree(os.path.join(self.server, 'varnish'), ignore_errors=True)
+        fake_bin = os.path.join(self.bindir, 'varnishd')
+        if os.path.exists(fake_bin):
+            os.remove(fake_bin)
         self.mod.VARNISH_LOG_CANDIDATES = ('/var/log/varnish/varnish.log',
                                            '/var/log/varnish/varnishncsa.log')
         self._symlink = None
@@ -369,11 +380,15 @@ class _Fixture(unittest.TestCase):
     # ---- 夹具控制 ----
     def install(self, on=True):
         marker = os.path.join(self.server, 'varnish')
+        fake_bin = os.path.join(self.bindir, 'varnishd')
         if on:
             os.makedirs(marker, exist_ok=True)
             _write(os.path.join(marker, 'version.pl'), '1.1\n')
+            _write(fake_bin, '#!/bin/sh\nexit 0\n')
         else:
             shutil.rmtree(marker, ignore_errors=True)
+            if os.path.exists(fake_bin):
+                os.remove(fake_bin)
 
     def set_unit(self, state):
         _ProcTable.unit_state = state
