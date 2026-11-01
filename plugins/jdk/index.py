@@ -35,7 +35,6 @@ _JDK_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._\-]{0,31}$')
 #  故只放行面板自身的镜像来源。
 _JDK_URL_HOSTS = (
     'mirrors.tuna.tsinghua.edu.cn',
-    'mirrors.ustc.edu.cn',
     'mirrors.aliyun.com',
     'mirrors.cloud.tencent.com',
     'mirrors.huaweicloud.com',

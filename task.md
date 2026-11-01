@@ -105,12 +105,17 @@
 - [x] **任务 14：JDK 下载链路双通道确立与完整包前置零流量复用（P2-1、P2-3）**
   - [x] 14.1 (P2-1) `plugins/jdk/install.sh` 彻底移除 `ustc` 节点分支，确立清华大学镜像源与 Adoptium 官方全球 CDN 的双通道架构，代码与 task 13.2 保持一致
   - [x] 14.2 (P2-3) `plugins/jdk/install.sh` 下载循环前置 `tar -tzf` 完整性校验，已完整下载的文件直接跳过网络下载进入解压，杜绝 416 误杀
-  - [x] 14.3 (P2-2) 明确系统验证环境边界（Win11 本地 safe skip，Linux 宿主机运行 `test/test_gitea_wedged_systemd_live.py` 专享验收）
+  - [x] 14.3 (P2-2) 明确系统验证环境边界：wedged 分支有 Mock 覆盖，live 复现待做（验证用例已入库 testsuite 待真机环境验收）
   - [x] 14.4 同步更新 `test/test_jdk_plugin.py` 测试断言与回归验证，门禁全绿通过
 - [x] **任务 15：修复 openresty 插件 getPidFile 边界正则缺陷（CI 门禁阻断修复）**
   - [x] 15.1 修复 `plugins/openresty/index.py` 中 `getPidFile` 正则，增加行首与单词边界，彻底解决临时路径中偶发包含 `pid`（如 `...pid300...`）导致误匹配 `error_log` 的问题
   - [x] 15.2 同步加固 `getNgxStatusPort` 正则为行首匹配 `(?:^|\n)\s*listen\s+([^;\r\n]+);`
   - [x] 15.3 运行 `testsuite/test_openresty_c02_hardening.py` 及全量测试，验证门禁全绿通过
+- [x] **任务 16：测试员报告优化（P2-1 验证用例入库与 P2-2 JDK 白名单清理）**
+  - [x] 16.1 (P2-1) 将 wedged live 验证用例正式入库迁移至 `testsuite/test_gitea_wedged_live.py`，保持审计与 CI 可追溯复现，非 Linux/非 root 自动 safe skip
+  - [x] 16.2 (P2-2) 从 `plugins/jdk/index.py` 的 `_JDK_URL_HOSTS` 白名单中清理已淘汰的中科大节点 `mirrors.ustc.edu.cn`，同步更新 `test/test_jdk_plugin.py` 断言
+  - [x] 16.3 运行全量测试与静态门禁，确保 100% 绿灯且代码格式符合 UTF-8 LF 规范
+
 
 
 
