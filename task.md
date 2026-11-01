@@ -88,3 +88,11 @@
   - [x] 11.2 [`plugins/jdk/install.sh`](file:///d:/git/gitea/bt_simple/plugins/jdk/install.sh) 实现 IPv4 优先、低速动态熔断与平滑 Fallback 容灾
   - [x] 11.3 [`plugins/jdk/index.py`](file:///d:/git/gitea/bt_simple/plugins/jdk/index.py) 白名单扩充与安装任务脚本低速防护同步
   - [x] 11.4 编写完备的自动化测试用例，全绿回归验证门禁与清理临时文件
+- [x] **任务 12：测试反馈问题专项修复与验证（P2-2 与 P2-3）**
+  - [x] 12.1 (P2-3) 将运行时版本缓存规则加入 `.gitignore`，从仓库索引中移除 `plugins/gitea/latest_version_cache.json` 并删除文件
+  - [x] 12.2 (P2-2) 加固 `plugins/gitea/index.py` 中 `appOp` 对 `active(exited)` 状态的检测（兼容老版本 systemd 无 `--value` 支持的输出），治理 `gitea.service.tpl` 中的误配 `RemainAfterExit=yes`
+  - [x] 12.3 (P2-2) 在自动化测试中增加针对 `active(exited)` 状态 Mock 仿真用例，验证 `start` 自动转 `restart` 并返回 `ok`
+  - [x] 12.4 (P2-2) 在根目录 `test/` 下编写支持真实 Linux 环境的 live 验证脚本 `test/test_gitea_wedged_systemd_live.py`，完整复现并闭环验证 wedged 单元自愈
+  - [x] 12.5 (P2-3) 编写/补充离线版本推荐测试，确认无静态缓存文件时通道 C 能够 100% 正确依据 `info.json` 排序
+  - [x] 12.6 运行全量安全与静态门禁（`quick_gate.py`），确保代码质量与无脏工作区
+

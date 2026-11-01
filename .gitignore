@@ -213,3 +213,8 @@ plugins/goedge-happy
 # 命令崩溃转储（Windows/MSYS 下偶发，属本地产物）
 *.stackdump
 /.pi
+
+# 插件运行时版本缓存：动态生成与升级时删除，绝不入库
+latest_version_cache.json
+plugins/*/latest_version_cache.json
+

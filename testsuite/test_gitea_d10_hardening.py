@@ -52,7 +52,31 @@ IDX = os.path.join(PLUGIN_SRC, 'index.py')
 JS = os.path.join(PLUGIN_SRC, 'js', 'gitea.js')
 INSTALL_SH = os.path.join(PLUGIN_SRC, 'install.sh')
 LANGS = ['zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it']
-BASH = shutil.which('bash')
+
+
+def _find_bash():
+    candidates = [
+        r'C:\Program Files\Git\bin\bash.exe',
+        r'C:\Program Files (x86)\Git\bin\bash.exe',
+        r'C:\Program Files\Git\usr\bin\bash.exe',
+    ]
+    which_bash = shutil.which('bash')
+    if which_bash:
+        candidates.append(which_bash)
+    for cand in candidates:
+        if 'system32' in cand.lower() or 'windowsapps' in cand.lower():
+            continue
+        try:
+            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True,
+                                  text=True, timeout=5)
+            if proc.returncode == 0 and 'ok' in (proc.stdout or ''):
+                return cand
+        except Exception:
+            continue
+    return None
+
+
+BASH = _find_bash()
 CJK_RE = re.compile(r'[\u4e00-\u9fff]')
 HTML_TAG_RE = re.compile(r'<\s*(?:br|p|div|span|b|strong|i|a|ul|ol|li|code|small|em|table|tr|td|th)\b',
                          re.I)
@@ -473,6 +497,37 @@ class GiteaD10Test(unittest.TestCase):
         self.assertEqual('ok', self.mod.start())
         self.rc_result['systemctl stop'] = (1, 'boom', '')
         self.assertEqual('fail', self.mod.stop())
+
+    def test_18b_app_op_start_wedged_active_exited_converts_to_restart(self):
+        """P1-2/P2-2: systemd active(exited) 僵死状态下调 start 必须自动转 restart 拉起"""
+        # 1. 模拟标准 systemd：is-active 为 active，show 为 exited
+        self.rc_result['systemctl is-active'] = (0, 'active\n', '')
+        self.rc_result['systemctl show -p SubState --value'] = (0, 'exited\n', '')
+        self.rc_result['systemctl restart'] = (0, '', '')
+
+        # 初始 stop，重启后模拟进程拉起
+        call_count = {'val': 0}
+        def fake_pids():
+            call_count['val'] += 1
+            return ['1234'] if call_count['val'] > 1 else []
+        self._patch('getGiteaPids', fake_pids)
+        self.rc_calls[:] = []
+
+        res = self.mod.start()
+        self.assertEqual('ok', res)
+        # 验证发出的命令包含 restart，且没有发出单纯的 start
+        self.assertTrue(any('systemctl restart gitea' in c for c in self.rc_calls), self.rc_calls)
+        self.assertFalse(any(c == 'systemctl start gitea' for c in self.rc_calls), self.rc_calls)
+
+        # 2. 模拟旧版 systemd：不支持 --value，返回 SubState=exited
+        self.rc_result['systemctl show -p SubState --value'] = (1, '', 'Unknown parameter --value')
+        self.rc_result['systemctl show -p SubState gitea'] = (0, 'SubState=exited\n', '')
+        call_count['val'] = 0
+        self.rc_calls[:] = []
+
+        res = self.mod.start()
+        self.assertEqual('ok', res)
+        self.assertTrue(any('systemctl restart gitea' in c for c in self.rc_calls), self.rc_calls)
 
     # ---------------- 6. 结构断言 ----------------
     def test_19_no_ps_grep_or_777_in_sources(self):

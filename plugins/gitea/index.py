@@ -644,7 +644,12 @@ def appOp(method):
                 rc_act, out_act, _ = yf.execShellRc(['systemctl', 'is-active', unit_name], shell=False, timeout=10)
                 if (out_act or '').strip() == 'active':
                     rc_sub, out_sub, _ = yf.execShellRc(['systemctl', 'show', '-p', 'SubState', '--value', unit_name], shell=False, timeout=10)
-                    if (out_sub or '').strip() == 'exited':
+                    sub_state = (out_sub or '').strip().split('=')[-1].strip()
+                    if rc_sub != 0 or not sub_state:
+                        # 兼容不支持 --value 的老版本 systemd（如 CentOS 7 等）
+                        _, out_sub_legacy, _ = yf.execShellRc(['systemctl', 'show', '-p', 'SubState', unit_name], shell=False, timeout=10)
+                        sub_state = (out_sub_legacy or '').strip().split('=')[-1].strip()
+                    if sub_state == 'exited':
                         _log.info('[gitea] 检测到单元处于 active(exited) 僵死状态，直接转用 restart 拉起')
                         actual_method = 'restart'
             except Exception as _e:
