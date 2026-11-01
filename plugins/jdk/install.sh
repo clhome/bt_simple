@@ -105,10 +105,10 @@ _jdk_select_best_mirrors() {
 
 	if [ "${_official_first}" = "1" ]; then
 		echo "测速探针选优：Adoptium 官方全球 CDN (${_t_official}s) 优于 清华镜像 (${_t_tsinghua}s)，优先使用官方全球链路" >&2
-		echo "official tsinghua ustc"
+		echo "official tsinghua"
 	else
 		echo "测速探针选优：清华镜像 (${_t_tsinghua}s) 连通良好，优先使用国内骨干网镜像链路" >&2
-		echo "tsinghua official ustc"
+		echo "tsinghua official"
 	fi
 }
 
@@ -232,7 +232,7 @@ Install_jdk()
 	echo "准备安装 JDK${_feature}（${_arch}）: ${_file}"
 
 	# -------------------------------------------------------------------------
-	# 多链路选优与下载（清华源 / 官方全球 CDN / 中科大源）
+	# 多链路选优与下载（清华源 / Adoptium 官方全球 CDN 双通道高可用架构）
 	# 具备 --speed-limit 50KB/s 自动熔断与下一顺位自动重试机制，
 	# 彻底规避测试机出口限速导致的 30 分钟挂死与 SIGTERM 强杀 (exit=143)
 	# -------------------------------------------------------------------------
@@ -241,70 +241,75 @@ Install_jdk()
 	_nodes=$(printf '%s' "${_nodes}" | tail -1)
 
 	local _download_ok=0
-	for _node in $_nodes; do
-		local _candidate_url=''
-		local _node_name=''
-		case "$_node" in
-			tsinghua)
-				_node_name="清华大学开源镜像站"
-				_candidate_url="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/${_feature}/jdk/${_arch}/linux/${_file}"
-				;;
-			official)
-				_node_name="Adoptium 官方全球 CDN"
-				_candidate_url="https://api.adoptium.net/v3/binary/latest/${_feature}/ga/linux/${_arch}/jdk/hotspot/normal/eclipse"
-				;;
-			ustc)
-				_node_name="中科大开源镜像站"
-				_candidate_url="https://mirrors.ustc.edu.cn/adoptium/releases/temurin${_feature}-binaries/LatestRelease/${_file}"
-				;;
-			*)
-				continue
-				;;
-		esac
 
-		echo "尝试从 [${_node_name}] 下载 JDK${_feature}: ${_candidate_url}"
-		# P2-1: 断点续传前置健康度校验：
-		# ① 若文件大于 350MB（远超正常 JDK 体积约 190MB），判定为异常膨胀（如服务端不支持 Range 导致重复追加），清空重下
-		# ② 若文件已有数据 (>1KB) 但头部不是合法 Gzip 魔数 (1f 8b)（如被写入了 HTML 错误页），清空重下
-		if [ -f "${_tarball}" ]; then
-			local _cur_size
-			_cur_size=$(wc -c <"${_tarball}" 2>/dev/null || echo 0)
-			if [ "${_cur_size}" -gt 367001600 ]; then
-				echo "[WARN] 本地残余文件异常超大 (${_cur_size} 字节 > 350MB)，清空以防止错位追加..." >&2
-				rm -f "${_tarball}"
-			elif [ "${_cur_size}" -gt 1024 ] && ! _jdk_is_valid_gzip_header "${_tarball}"; then
-				echo "[WARN] 本地残余文件头部非合法 Gzip 格式（疑似被污染为 HTML 错误页），清空重新全量下载..." >&2
-				rm -f "${_tarball}"
-			elif [ "${_cur_size}" -gt 0 ]; then
-				echo "检测到本地已存在有效分块 (${_cur_size} 字节，Gzip 头部校验正常)，启用断点续传..."
+	# P2-3: 前置归档完整性校验：若本地残留文件已完整且校验通过（如上次安装在解压前被中断），
+	# 直接跳过网络下载复用本地包，彻底杜绝 curl -C - 因文件完整返回 HTTP 416 (CURLE_RANGE_ERROR=33)
+	# 进而误删好文件并重新全量下载的问题。
+	if [ -s "${_tarball}" ] && tar -tzf "${_tarball}" >/dev/null 2>&1; then
+		echo "检测到本地已存在完整且归档校验通过的 JDK 安装包，跳过网络下载直接复用: ${_file}"
+		_download_ok=1
+	else
+		for _node in $_nodes; do
+			local _candidate_url=''
+			local _node_name=''
+			case "$_node" in
+				tsinghua)
+					_node_name="清华大学开源镜像站"
+					_candidate_url="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/${_feature}/jdk/${_arch}/linux/${_file}"
+					;;
+				official)
+					_node_name="Adoptium 官方全球 CDN"
+					_candidate_url="https://api.adoptium.net/v3/binary/latest/${_feature}/ga/linux/${_arch}/jdk/hotspot/normal/eclipse"
+					;;
+				*)
+					continue
+					;;
+			esac
+
+			echo "尝试从 [${_node_name}] 下载 JDK${_feature}: ${_candidate_url}"
+			# P2-1: 断点续传前置健康度校验：
+			# ① 若文件大于 350MB（远超正常 JDK 体积约 190MB），判定为异常膨胀（如服务端不支持 Range 导致重复追加），清空重下
+			# ② 若文件已有数据 (>1KB) 但头部不是合法 Gzip 魔数 (1f 8b)（如被写入了 HTML 错误页），清空重下
+			if [ -f "${_tarball}" ]; then
+				local _cur_size
+				_cur_size=$(wc -c <"${_tarball}" 2>/dev/null || echo 0)
+				if [ "${_cur_size}" -gt 367001600 ]; then
+					echo "[WARN] 本地残余文件异常超大 (${_cur_size} 字节 > 350MB)，清空以防止错位追加..." >&2
+					rm -f "${_tarball}"
+				elif [ "${_cur_size}" -gt 1024 ] && ! _jdk_is_valid_gzip_header "${_tarball}"; then
+					echo "[WARN] 本地残余文件头部非合法 Gzip 格式（疑似被污染为 HTML 错误页），清空重新全量下载..." >&2
+					rm -f "${_tarball}"
+				elif [ "${_cur_size}" -gt 0 ]; then
+					echo "检测到本地已存在有效分块 (${_cur_size} 字节，Gzip 头部校验正常)，启用断点续传..."
+				fi
 			fi
-		fi
 
-		# 尝试 curl 断点续传 (-C -)
-		local _curl_rc=0
-		if command -v curl >/dev/null 2>&1; then
-			curl -4 -fSL -C - --connect-timeout 20 --speed-limit 51200 --speed-time 15 --max-time 1800 -o "${_tarball}" "${_candidate_url}" || _curl_rc=$?
-			# 退出码 33: CURLE_RANGE_ERROR (服务端返回 416 / 不支持所求断点)，清空坏文件以备后续重试
-			if [ "${_curl_rc}" -eq 33 ]; then
-				echo "[WARN] 服务端拒绝该断点范围 (HTTP 416 / CURLE_RANGE_ERROR)，清除不可续传的本地文件..." >&2
-				rm -f "${_tarball}"
+			# 尝试 curl 断点续传 (-C -)
+			local _curl_rc=0
+			if command -v curl >/dev/null 2>&1; then
+				curl -4 -fSL -C - --connect-timeout 20 --speed-limit 51200 --speed-time 15 --max-time 1800 -o "${_tarball}" "${_candidate_url}" || _curl_rc=$?
+				# 退出码 33: CURLE_RANGE_ERROR (服务端返回 416 / 不支持所求断点)，清空坏文件以备后续重试
+				if [ "${_curl_rc}" -eq 33 ]; then
+					echo "[WARN] 服务端拒绝该断点范围 (HTTP 416 / CURLE_RANGE_ERROR)，清除不可续传的本地文件..." >&2
+					rm -f "${_tarball}"
+				fi
 			fi
-		fi
-		# 若未完成或损坏，尝试 wget 断点续传 (-c)
-		if [ ! -s "${_tarball}" ] || ! tar -tzf "${_tarball}" >/dev/null 2>&1; then
-			if command -v wget >/dev/null 2>&1; then
-				wget -4 -c -nv -T 30 -t 2 -O "${_tarball}" "${_candidate_url}" || :
+			# 若未完成或损坏，尝试 wget 断点续传 (-c)
+			if [ ! -s "${_tarball}" ] || ! tar -tzf "${_tarball}" >/dev/null 2>&1; then
+				if command -v wget >/dev/null 2>&1; then
+					wget -4 -c -nv -T 30 -t 2 -O "${_tarball}" "${_candidate_url}" || :
+				fi
 			fi
-		fi
 
-		if [ -s "${_tarball}" ] && tar -tzf "${_tarball}" >/dev/null 2>&1; then
-			echo "JDK 安装包下载并归档完整性校验通过 [${_node_name}]"
-			_download_ok=1
-			break
-		fi
+			if [ -s "${_tarball}" ] && tar -tzf "${_tarball}" >/dev/null 2>&1; then
+				echo "JDK 安装包下载并归档完整性校验通过 [${_node_name}]"
+				_download_ok=1
+				break
+			fi
 
-		echo "[WARN] 节点 [${_node_name}] 下载未成功或速度过低（<50KB/s 自动熔断），保留有效分块尝试切换下一备选链路续传..." >&2
-	done
+			echo "[WARN] 节点 [${_node_name}] 下载未成功或速度过低（<50KB/s 自动熔断），保留有效分块尝试切换下一备选链路续传..." >&2
+		done
+	fi
 
 	if [ "${_download_ok}" -ne 1 ]; then
 		rm -f "${_tarball}"

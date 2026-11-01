@@ -102,6 +102,12 @@
   - [x] 13.4 运行 `test_varnish_c05_hardening.py` 及全量门禁校验 `quick_gate.py`
   - [x] 13.5 整理发布说明文案（说明-1 systemd 模板范围，说明-2 长期未验证清单）
   - [x] 13.6 (P2-1 防护强化) 增加断点续传防膨胀（>350MB 清理）、防 HTML 错误页污染（Gzip 1f8b 魔数预检）与 HTTP 416 Range 错误自愈清理机制
+- [x] **任务 14：JDK 下载链路双通道确立与完整包前置零流量复用（P2-1、P2-3）**
+  - [x] 14.1 (P2-1) `plugins/jdk/install.sh` 彻底移除 `ustc` 节点分支，确立清华大学镜像源与 Adoptium 官方全球 CDN 的双通道架构，代码与 task 13.2 保持一致
+  - [x] 14.2 (P2-3) `plugins/jdk/install.sh` 下载循环前置 `tar -tzf` 完整性校验，已完整下载的文件直接跳过网络下载进入解压，杜绝 416 误杀
+  - [x] 14.3 (P2-2) 明确系统验证环境边界（Win11 本地 safe skip，Linux 宿主机运行 `test/test_gitea_wedged_systemd_live.py` 专享验收）
+  - [x] 14.4 同步更新 `test/test_jdk_plugin.py` 测试断言与回归验证，门禁全绿通过
+
 
 
 
