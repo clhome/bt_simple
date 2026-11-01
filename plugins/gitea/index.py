@@ -218,7 +218,7 @@ def getGiteaPids():
                 if cmd0 and (os.path.realpath(cmd0) == bin_path or cmd0 == bin_path):
                     pids.append(name)
         except Exception:
-            pass
+            continue
     return pids
 
 
@@ -437,7 +437,7 @@ def getPortListeningPids(port):
             if res == 0:
                 occupied = True
         except Exception:
-            pass
+            occupied = False
         if occupied:
             g_pids = getGiteaPids()
             if g_pids:

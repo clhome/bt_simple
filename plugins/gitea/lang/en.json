@@ -165,6 +165,7 @@
     "创建旧版本二进制快照失败:": "Failed to create binary snapshot:",
     "文件替换异常，已还原旧版本:": "File replacement error, old version restored:",
     "升级失败已触发自动回滚:": "Upgrade failed, auto rollback triggered:",
+    "升级失败已安全中止:": "Upgrade failed and safely aborted:",
     "升级成功:": "Upgrade successful:",
     "发现 Gitea 官方新版本 v": "New official Gitea release found v",
     "当前运行版本为 v": "Current running version is v",

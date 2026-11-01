@@ -77,3 +77,8 @@
   - [x] 9.4 (P1-4) JDK 管理器版本升级为 1.2 并同步 `test_jdk_plugin.py` 测试断言
   - [x] 9.5 (P2-2/P2-3) 微调 `RELEASE_TEMPLATE.md` 措辞为“尾部回退区”并增补测试复跑与升级说明清单
   - [x] 9.6 编写并运行回归测试，验证全部修复成果
+- [x] **任务 10：CI 门禁与本地环境差异排查及根治防范**
+  - [x] 10.1 消除 `plugins/gitea/index.py` 中 2 处 `silent_except`（第 220 行、439 行）
+  - [x] 10.2 在 `plugins/gitea/lang/` 6 种语言包中补全 `升级失败已安全中止:` 对应键与多语言翻译
+  - [x] 10.3 运行 `verify_code_quality.py`、`verify_i18n.py` 及相关测试用例验证静态门禁全绿
+  - [x] 10.4 配置本地 Git Hook (`pre-commit`) 与极速本地预检工具，杜绝未来本地绿提交红的事故

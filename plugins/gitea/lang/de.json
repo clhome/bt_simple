@@ -165,6 +165,7 @@
     "创建旧版本二进制快照失败:": "Snapshot der Binärdatei konnte nicht erstellt werden:",
     "文件替换异常，已还原旧版本:": "Fehler beim Ersetzen der Datei, alte Version wiederhergestellt:",
     "升级失败已触发自动回滚:": "Upgrade fehlgeschlagen, automatischer Rollback ausgelöst:",
+    "升级失败已安全中止:": "Upgrade fehlgeschlagen und sicher abgebrochen:",
     "升级成功:": "Upgrade erfolgreich:",
     "发现 Gitea 官方新版本 v": "Neues offizielles Gitea-Release gefunden v",
     "当前运行版本为 v": "Aktuelle Version ist v",
