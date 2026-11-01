@@ -329,7 +329,7 @@ def getPidFile():
     # 旧实现两处都会抛异常（TypeError / AttributeError）回给前端。
     if not content:
         return None
-    rep = r'pid\s*(.*);'
+    rep = r'(?:^|\n)\s*pid\s+([^;\r\n]+);'
     tmp = re.search(rep, content)
     if not tmp:
         return None
@@ -733,11 +733,11 @@ def getNgxStatusPort():
     content = yf.readFile(ngx_status_file)
     if not content:
         return None
-    rep = r'listen\s*(.*);'
+    rep = r'(?:^|\n)\s*listen\s+([^;\r\n]+);'
     tmp = re.search(rep, content)
     if not tmp:
         return None
-    port =  tmp.groups()[0].strip()
+    port = tmp.groups()[0].strip()
     return port
 
 

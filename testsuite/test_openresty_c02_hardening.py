@@ -451,6 +451,13 @@ class TestFixtureParsing(_FixtureCase):
             fh.write('worker_processes auto;\n')
         self.assertIsNone(self.mod.getPidFile())
 
+    def test_get_pid_file_ignores_path_containing_pid_substring(self):
+        """当前序路径中包含 pid 子串（如 c02_openresty_pid300/server/openresty/nginx/logs/error.log）时，不能误将其当成 pid 指令。"""
+        with io.open(self.conf, 'w', encoding='utf-8', newline='\n') as fh:
+            fh.write('error_log  /tmp/c02_openresty_pid300/server/openresty/nginx/logs/error.log  error;\n'
+                     'pid        /tmp/c02_openresty_pid300/server/openresty/nginx/logs/nginx.pid;\n')
+        self.assertEqual(self.mod.getPidFile(), '/tmp/c02_openresty_pid300/server/openresty/nginx/logs/nginx.pid')
+
     def test_get_ngx_status_port_returns_none_without_crash(self):
         hidden = self.ngx_status + '.hide'
         os.rename(self.ngx_status, hidden)
