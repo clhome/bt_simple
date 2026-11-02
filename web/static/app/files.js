@@ -1691,6 +1691,113 @@ function pasteTo(path,copyName,cutName,fileName){
 }
 
 
+// 获取压缩包时间戳格式 (yyMMddHHmmss，共12位纯数字)
+function getCompressTimeString() {
+    var d = new Date();
+    var yy = String(d.getFullYear()).slice(-2);
+    var MM = ('0' + (d.getMonth() + 1)).slice(-2);
+    var dd = ('0' + d.getDate()).slice(-2);
+    var HH = ('0' + d.getHours()).slice(-2);
+    var mm = ('0' + d.getMinutes()).slice(-2);
+    var ss = ('0' + d.getSeconds()).slice(-2);
+    return yy + MM + dd + HH + mm + ss;
+}
+
+// 获取指定压缩类型对应的标准扩展名
+function getCompressExt(z_type) {
+    var extMap = {
+        'tar_gz': '.tar.gz',
+        'zip': '.zip',
+        'rar': '.rar',
+        'gz': '.gz',
+        '7z': '.7z',
+        'xz': '.xz',
+        'bz2': '.tar.bz2'
+    };
+    return extMap[z_type] || ('.' + (z_type || 'tar.gz').replace('_', '.'));
+}
+
+// 根据序号格式化压缩文件名（序号0无后缀，序号>=1追加 -01, -02 等两位及以上数字）
+function getCompressFileNameWithIndex(baseName, index, ext) {
+    if (index <= 0) {
+        return baseName + ext;
+    }
+    var numStr = index < 10 ? '0' + index : String(index);
+    return baseName + '-' + numStr + ext;
+}
+
+// 在已知已存在的文件集合中找出第一个未使用的递增序号
+function findAvailableCompressIndex(baseName, ext, existsSet) {
+    var idx = 0;
+    while (existsSet && existsSet.has(getCompressFileNameWithIndex(baseName, idx, ext))) {
+        idx++;
+    }
+    return idx;
+}
+
+// 双层防重名解析：本地快速估算 + 后端 check_exists_files 精确校准
+function resolveCompressFileName(targetDir, baseName, z_type, callback) {
+    var ext = getCompressExt(z_type);
+    var existsSet = new Set();
+
+    // 本地优先：若目标目录与当前浏览目录一致且存在当前文件列表，先用本地文件计算
+    var curDirPath = $("#DirPathPlace input").val();
+    if (window.currentFiles && Array.isArray(window.currentFiles) && (!curDirPath || curDirPath === targetDir)) {
+        for (var i = 0; i < window.currentFiles.length; i++) {
+            if (window.currentFiles[i]) {
+                existsSet.add(window.currentFiles[i]);
+            }
+        }
+    }
+    var initialIdx = findAvailableCompressIndex(baseName, ext, existsSet);
+    var initialFileName = getCompressFileNameWithIndex(baseName, initialIdx, ext);
+
+    // 服务端精确探测：向 /files/check_exists_files 查询候选集合，确保分页及异地目录零冲突
+    var candidates = [];
+    for (var c = 0; c < 30; c++) {
+        candidates.push(getCompressFileNameWithIndex(baseName, c, ext));
+    }
+
+    if (window.$ && typeof $.post === 'function') {
+        $.post('/files/check_exists_files', {
+            dfile: targetDir,
+            filename: JSON.stringify(candidates)
+        }, function(rdata) {
+            if (rdata && rdata.status && Array.isArray(rdata.data)) {
+                for (var j = 0; j < rdata.data.length; j++) {
+                    if (rdata.data[j] && rdata.data[j].filename) {
+                        existsSet.add(rdata.data[j].filename);
+                    }
+                }
+            }
+            var finalIdx = findAvailableCompressIndex(baseName, ext, existsSet);
+            var finalFileName = getCompressFileNameWithIndex(baseName, finalIdx, ext);
+            if (typeof callback === 'function') {
+                callback(finalFileName, finalIdx);
+            }
+        }, 'json').fail(function() {
+            if (typeof callback === 'function') {
+                callback(initialFileName, initialIdx);
+            }
+        });
+    } else {
+        if (typeof callback === 'function') {
+            callback(initialFileName, initialIdx);
+        }
+    }
+
+    return initialFileName;
+}
+
+// 导出至 window 方便全局调用及自动化测试
+if (typeof window !== 'undefined') {
+    window.getCompressTimeString = getCompressTimeString;
+    window.getCompressExt = getCompressExt;
+    window.getCompressFileNameWithIndex = getCompressFileNameWithIndex;
+    window.findAvailableCompressIndex = findAvailableCompressIndex;
+    window.resolveCompressFileName = resolveCompressFileName;
+}
+
 //压缩目录
 function zip(dirName,submits) {
     if(submits != undefined){
@@ -1715,25 +1822,40 @@ function zip(dirName,submits) {
                 }
             },{icon: rdata.status ? 1 : 2});
         },'json');
-        return
+        return;
     }
-
-    var randStr = getRandomString(6);
 
     if(dirName.indexOf(',') != -1){
         dirNameArrs = dirName.split(',');
-        dirNameArr = dirNameArrs[0].split('/');
+        dirNameArr = dirNameArrs[0].replace(/\/+$/, '').split('/');
         fileName = dirNameArr[dirNameArr.length-1];
         sfile = dirName;
-        pathName = dirNameArrs[0].replace('/'+fileName,'');
+        pathName = dirNameArrs[0].replace(new RegExp('/' + fileName + '/?$'), '');
     } else {
-        dirNameArr = dirName.split('/');
+        var cleanDirName = dirName.replace(/\/+$/, '');
+        dirNameArr = cleanDirName.split('/');
         fileName = dirNameArr[dirNameArr.length-1];
         sfile = fileName;
-        pathName = dirName.replace('/'+fileName,'');
+        pathName = cleanDirName.replace(new RegExp('/' + fileName + '$'), '');
     }
 
-    var defaultDfile = pathName + '/' + fileName+'_'+randStr+'.tar.gz';
+    var timeStr = getCompressTimeString();
+    var baseName = fileName + '_' + timeStr;
+    var defaultZType = 'tar_gz';
+    var defaultExt = getCompressExt(defaultZType);
+
+    // 本地优先计算默认文件名
+    var localExistsSet = new Set();
+    if (window.currentFiles && Array.isArray(window.currentFiles)) {
+        for (var i = 0; i < window.currentFiles.length; i++) {
+            if (window.currentFiles[i]) localExistsSet.add(window.currentFiles[i]);
+        }
+    }
+    var localIdx = findAvailableCompressIndex(baseName, defaultExt, localExistsSet);
+    var defaultFileName = getCompressFileNameWithIndex(baseName, localIdx, defaultExt);
+    var defaultDfile = pathName + '/' + defaultFileName;
+    var lastAutoDfile = defaultDfile;
+    var isUserEdited = false;
 
     layer.open({
         type: 1,
@@ -1766,33 +1888,45 @@ function zip(dirName,submits) {
                     + '</div>'
                 +'</div>',
         success:function(){
+            // 记录用户是否有手动修改，若有则不再自动覆盖
+            $('#dfile').on('input propertychange', function(){
+                isUserEdited = true;
+            });
+
+            // 异步向后端精准校准重名状态（覆盖分页其他页或异地文件）
+            resolveCompressFileName(pathName, baseName, defaultZType, function(finalFileName) {
+                var checkedDfile = pathName + '/' + finalFileName;
+                if (!isUserEdited || $('#dfile').val() === lastAutoDfile) {
+                    $('#dfile').val(checkedDfile);
+                    lastAutoDfile = checkedDfile;
+                }
+            });
+
             $('#change_dir').on('click', function(){
                 changePathCallback('dfile', function(val){
                     var z_type = $('select[name="z_type"]').val();
-                    $('#dfile').val(val+'/'+fileName+'_'+randStr+'.'+z_type.replace('_','.'));
                     $('#path').val(val);
+                    isUserEdited = false;
+                    resolveCompressFileName(val, baseName, z_type, function(finalFileName) {
+                        var checkedDfile = val + '/' + finalFileName;
+                        if (!isUserEdited || $('#dfile').val() === lastAutoDfile) {
+                            $('#dfile').val(checkedDfile);
+                            lastAutoDfile = checkedDfile;
+                        }
+                    });
                 });
             });
 
             $('select[name="z_type"]').on('change', function(){
                 var z_type = $(this).val();
-                var path = $('#path').val();
-                var newPathName = path+'/'+fileName+'_'+randStr;
-                if (z_type == 'tar_gz') {
-                    $("#dfile").val(newPathName + '.tar.gz');
-                } else if (z_type == 'zip') {
-                    $("#dfile").val(newPathName + '.zip');
-                } else if (z_type == 'rar') {
-                    $("#dfile").val(newPathName + '.rar');
-                } else if (z_type == 'gz') {
-                    $("#dfile").val(newPathName + '.gz');
-                } else if (z_type == '7z') {
-                    $("#dfile").val(newPathName + '.7z');
-                } else if (z_type == 'xz') {
-                    $("#dfile").val(newPathName + '.xz');
-                } else if (z_type == 'bz2') {
-                    $("#dfile").val(newPathName + '.tar.bz2');
-                }
+                var curPath = $('#path').val();
+                resolveCompressFileName(curPath, baseName, z_type, function(finalFileName) {
+                    var checkedDfile = curPath + '/' + finalFileName;
+                    if (!isUserEdited || $('#dfile').val() === lastAutoDfile) {
+                        $('#dfile').val(checkedDfile);
+                        lastAutoDfile = checkedDfile;
+                    }
+                });
             });
 
             $("#dfile").on('change', function(){
