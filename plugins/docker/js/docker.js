@@ -90,7 +90,7 @@ function logsCon(id) {
 
     layer.open({
         type: 1,
-        title: pt('Docker容器日志') + ' - [' + dockerEsc(id) + ']',
+        title: pt('Docker日志') + ' - [' + dockerEsc(id) + ']',
         area: ['760px', '520px'],
         closeBtn: 1,
         shadeClose: false,
