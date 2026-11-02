@@ -3309,9 +3309,14 @@ def addDb():
     if isError != None:
         return isError
 
-    pdb.execute("drop user '" + dbuser + "'@'localhost'")
-    for a in address.split(','):
-        pdb.execute("drop user '" + dbuser + "'@'" + a + "'")
+    # 清理该用户在 mysql.user 中的旧授权（若存在残留），避免历史权限或 host 冲突
+    # 必须先查后删：新库用户通常在系统中不存在，盲目 DROP USER 会在 MySQL 5.7 触发 1396 报错
+    user_hosts = pdb.query("SELECT Host FROM mysql.user WHERE User=%s", (dbuser,))
+    if isinstance(user_hosts, (list, tuple)) and user_hosts:
+        hosts = [r["Host"] if isinstance(r, dict) else r[0] for r in user_hosts]
+        targets = _dropUserTargets(dbuser, hosts)
+        if targets:
+            pdb.execute("DROP USER " + ','.join(targets))
 
     __createUser(dbname, dbuser, password, address)
 
@@ -4594,17 +4599,13 @@ def delMasterRepSlaveUser(version=''):
 
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
-    pdb.execute("drop user '" + name + "'@'%'")
-    pdb.execute("drop user '" + name + "'@'localhost'")
 
-    users = pdb.query("select Host from mysql.user where User=%s AND Host!='localhost'", (name,))
-    if not isinstance(users, (list, tuple)):
-        users = []
-    for us in users:
-        host = str(us["Host"] if isinstance(us, dict) else us[0])
-        if not _DB_USER_IDENT_RE.match(host):
-            continue
-        pdb.execute("drop user '" + name + "'@'" + host + "'")
+    users = pdb.query("SELECT Host FROM mysql.user WHERE User=%s", (name,))
+    if isinstance(users, (list, tuple)) and users:
+        hosts = [us["Host"] if isinstance(us, dict) else us[0] for us in users]
+        targets = _dropUserTargets(name, hosts)
+        if targets:
+            pdb.execute("DROP USER " + ','.join(targets))
 
     psdb.where("username=?", (args['username'],)).delete()
 

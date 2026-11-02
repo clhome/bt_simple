@@ -449,5 +449,123 @@ class TestOrmAddColumnListGuard(unittest.TestCase):
                                  % (os.path.basename(path), lineno, len(cols), nvalues, keys))
 
 
+class TestAddDbUserHardening(unittest.TestCase):
+    """验证 addDb 与 delMasterRepSlaveUser 不再盲目 DROP USER，避免 MySQL 1396 报错。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mysql = _import_plugin('plugins.mysql.index')
+        cls.mariadb = _import_plugin('plugins.mariadb.index')
+
+    def test_23_add_db_uses_guarded_drop_user(self):
+        """addDb 必须通过 SELECT 先查已有 host，不得再盲目 drop user"""
+        for path in (MYSQL_SRC, MARIADB_SRC):
+            src = _func_source(path, 'addDb')
+            self.assertIn('SELECT Host FROM mysql.user WHERE User=%s', src, path)
+            self.assertIn('_dropUserTargets', src, path)
+            self.assertNotIn("pdb.execute(\"drop user '\" + dbuser", src, path)
+
+    def test_24_del_master_rep_slave_user_guarded_drop(self):
+        """delMasterRepSlaveUser 必须通过 SELECT 查 host 批量删除，不得盲目 drop"""
+        for path in (MYSQL_SRC, MARIADB_SRC):
+            src = _func_source(path, 'delMasterRepSlaveUser')
+            self.assertIn('SELECT Host FROM mysql.user WHERE User=%s', src, path)
+            self.assertIn('_dropUserTargets', src, path)
+            self.assertNotIn("pdb.execute(\"drop user '\" + name + \"'@'%'\"", src, path)
+
+    def test_25_add_db_behavior_when_user_not_exists(self):
+        """当用户在 mysql.user 中不存在时，addDb 绝对不执行任何 DROP USER"""
+        import json
+        for mod in (self.mysql, self.mariadb):
+            args = {
+                'name': 'test26',
+                'db_user': 'test26',
+                'password': 'test_password',
+                'codeing': 'utf8mb4',
+                'dataAccess': '127.0.0.1',
+                'address': '127.0.0.1',
+                'ps': 'test_ps'
+            }
+            executed_sqls = []
+
+            class FakePdb:
+                def execute(self, sql, params=None):
+                    executed_sqls.append(sql)
+                    return 1
+
+                def query(self, sql, params=None):
+                    executed_sqls.append(sql)
+                    if 'SELECT Host FROM mysql.user' in sql:
+                        return []  # 用户在 mysql.user 中不存在
+                    return []
+
+            class FakePsdb:
+                def where(self, *args, **kwargs):
+                    return self
+                def count(self):
+                    return 0
+                def add(self, *args, **kwargs):
+                    return 1
+
+            with patch.object(mod, 'getArgs', return_value=args), \
+                 patch.object(mod, 'pMysqlDb', return_value=FakePdb()), \
+                 patch.object(mod, 'pSqliteDb', return_value=FakePsdb()), \
+                 patch.object(mod, '__createUser', return_value=None):
+                res_raw = mod.addDb()
+                res = json.loads(res_raw)
+                self.assertTrue(res['status'])
+                self.assertEqual(res['msg'], '添加成功!')
+                # 核心断言：绝对没有执行过任何 DROP USER 语句！
+                drop_sqls = [s for s in executed_sqls if 'DROP USER' in s.upper()]
+                self.assertEqual([], drop_sqls, f"{mod.__name__} 在用户不存在时仍执行了 DROP USER: {drop_sqls}")
+
+    def test_26_add_db_behavior_when_user_exists_residual(self):
+        """当用户在 mysql.user 中有历史残留时，addDb 精准批量执行 DROP USER"""
+        import json
+        for mod in (self.mysql, self.mariadb):
+            args = {
+                'name': 'test26',
+                'db_user': 'test26',
+                'password': 'test_password',
+                'codeing': 'utf8mb4',
+                'dataAccess': '127.0.0.1',
+                'address': '127.0.0.1',
+                'ps': 'test_ps'
+            }
+            executed_sqls = []
+
+            class FakePdb:
+                def execute(self, sql, params=None):
+                    executed_sqls.append(sql)
+                    return 1
+
+                def query(self, sql, params=None):
+                    executed_sqls.append(sql)
+                    if 'SELECT Host FROM mysql.user' in sql:
+                        return [{'Host': 'localhost'}, {'Host': '127.0.0.1'}]
+                    return []
+
+            class FakePsdb:
+                def where(self, *args, **kwargs):
+                    return self
+                def count(self):
+                    return 0
+                def add(self, *args, **kwargs):
+                    return 1
+
+            with patch.object(mod, 'getArgs', return_value=args), \
+                 patch.object(mod, 'pMysqlDb', return_value=FakePdb()), \
+                 patch.object(mod, 'pSqliteDb', return_value=FakePsdb()), \
+                 patch.object(mod, '__createUser', return_value=None):
+                res_raw = mod.addDb()
+                res = json.loads(res_raw)
+                self.assertTrue(res['status'])
+                self.assertEqual(res['msg'], '添加成功!')
+                # 核心断言：精准批量删除了两个 host 的用户
+                drop_sqls = [s for s in executed_sqls if 'DROP USER' in s.upper()]
+                self.assertEqual(len(drop_sqls), 1)
+                self.assertEqual(drop_sqls[0], "DROP USER 'test26'@'localhost','test26'@'127.0.0.1'")
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
