@@ -74,8 +74,8 @@ class nosqlRedis():
                         elif n == 'port' and v:
                             try:
                                 res['port'] = int(v)
-                            except Exception:
-                                pass
+                            except Exception as _pe:
+                                _log.debug('[data_query] redis_mgr port 转换异常: %s', _pe)
                         elif n == 'bind' and v:
                             res['bind'] = str(v).strip()
                     if hasattr(redis_mgr, 'getConf'):
@@ -112,8 +112,8 @@ class nosqlRedis():
                     if m_port:
                         try:
                             res['port'] = int(m_port.group(1).strip())
-                        except Exception:
-                            pass
+                        except Exception as _pe:
+                            _log.debug('[data_query] redis conf port 解析异常: %s', _pe)
                     break
         return res
 

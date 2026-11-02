@@ -688,7 +688,7 @@ function updateDbConnectionUI(dbType, status, errorMsg) {
             } else if (isRedisAuthErr) {
                 descHtml += '<div style="margin-top:14px; display:flex; justify-content:center; gap:10px;">' +
                     '<button class="btn btn-default btn-sm btn_empty_manage_redis" style="padding:5px 14px;"><span class="glyphicon glyphicon-cog"></span> ' + pt('管理连接') + '</button>' +
-                    '<button class="btn btn-success btn-sm btn_empty_sync_redis" style="padding:5px 14px;"><span class="glyphicon glyphicon-refresh"></span> ' + pt('服务侧同步') + '</button>' +
+                    '<button class="btn btn-success btn-sm btn_empty_sync_redis" style="padding:5px 14px;"><span class="glyphicon glyphicon-refresh"></span> ' + pt('服务器同步') + '</button>' +
                     '</div>';
             }
             $empty.find('.empty-desc').html(descHtml);

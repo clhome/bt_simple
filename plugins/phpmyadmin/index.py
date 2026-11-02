@@ -253,10 +253,6 @@ def isPhpServiceRunning(php_ver):
     if rc == 0 and out.strip() == 'active':
         return True, service_name
 
-    rc, out, _ = yf.execShellRc(f"ps aux | grep -E 'php/{v_str}/|php-fpm.*{v_str}' | grep -v grep")
-    if rc == 0 and out.strip():
-        return True, service_name
-
     # 绝对禁止仅凭 os.path.exists(socket_path) 判定存活；必须通过真实连接探测
     if _probeUnixSocket(socket_path):
         return True, service_name
@@ -299,10 +295,10 @@ def ensurePhpServiceRunning(php_ver=None):
     # 2. 命令行容灾拉起与僵尸 socket 清理
     if v_str.startswith('apt'):
         real_v = v_str.replace('apt', '')
-        yf.execShellRc(f'systemctl start php{real_v}-fpm')
+        yf.execShellRc('systemctl start ' + yf.shlexQuote(f'php{real_v}-fpm'))
     elif v_str.startswith('yum'):
         real_v = v_str.replace('yum', '')
-        yf.execShellRc(f'systemctl start php{real_v}-php-fpm')
+        yf.execShellRc('systemctl start ' + yf.shlexQuote(f'php{real_v}-php-fpm'))
     else:
         # 清理无法连接的残留死锁 socket，防止 php-fpm 启动报 address already in use
         sock_file = f'/tmp/php-cgi-{v_str}.sock'
@@ -310,13 +306,13 @@ def ensurePhpServiceRunning(php_ver=None):
             try:
                 os.remove(sock_file)
             except Exception:
-                yf.execShellRc(f'rm -f {yf.shlexQuote(sock_file)}')
+                yf.execShellRc('rm -f ' + yf.shlexQuote(sock_file))
 
         initd_script = f'/etc/init.d/php{v_str}'
         if os.path.exists(initd_script):
-            yf.execShellRc(f'{yf.shlexQuote(initd_script)} start')
+            yf.execShellRc(yf.shlexQuote(initd_script) + ' start')
         else:
-            yf.execShellRc(f'systemctl start php{v_str}')
+            yf.execShellRc('systemctl start ' + yf.shlexQuote(f'php{v_str}'))
 
     running3, _ = isPhpServiceRunning(php_ver)
     if running3:

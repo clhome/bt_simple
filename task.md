@@ -52,6 +52,11 @@
   - [ ] 8.1 运行 `testsuite/test_plugins_i18n_upgrade.py` 确保 100% 通过
   - [ ] 8.2 运行 `python testsuite/run_all.py` 执行全量门禁回归测试
   - [ ] 8.3 清理临时测试文件，更新任务完成状态
+- [x] **任务 12：修复 CI 门禁失败（i18n 字面量、代码质量棘轮 silent_except 与 shell 拼接棘轮）**
+  - [x] 12.1 将 `plugins/data_query/static/js/app.js` 中的 `pt('服务侧同步')` 修正为统一规范键 `pt('服务器同步')`
+  - [x] 12.2 修复 `plugins/data_query/common_db.py` 及 `nosql_redis.py` 中 3 处 `silent_except`（添加调试日志），满足代码质量棘轮要求
+  - [x] 12.3 修复 `plugins/phpmyadmin/index.py` 中 4 处 shell 裸拼违规（使用 `yf.shlexQuote` 并移除脆弱的 grep 探活），满足 shell 拼接棘轮要求
+  - [x] 12.4 运行 `test_shell_concat_ratchet.py`、`test_plugins_i18n_upgrade.py`、`scripts/verify_code_quality.py` 等门禁确保全部通过
 - [x] **任务 10：修复 MySQL 5.7 / MariaDB 创建数据库 1396 报错与假失败缺陷 (`plugins/mysql`, `plugins/mariadb`)**
   - [x] 10.1 根因定位与排查：彻底分析 `addDb` 盲目 `drop user` 导致 MySQL 1396 报错及引发子进程 stderr 误判机制
   - [x] 10.2 重构 `plugins/mysql/index.py` 的 `addDb`，改造为「先查后删（`SELECT Host` + `_dropUserTargets`）」防御机制，消除盲目 DROP

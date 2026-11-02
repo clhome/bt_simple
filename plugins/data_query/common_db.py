@@ -999,8 +999,8 @@ def scanCurrentLocalConfigs(target_db_type=None):
                             elif item.get('name') == 'port' and item.get('value'):
                                 try:
                                     r_port = int(item['value'])
-                                except Exception:
-                                    pass
+                                except Exception as _pe:
+                                    _log.debug('[data_query] redis_mgr port 解析异常: %s', _pe)
             except Exception as _e:
                 _log.debug('[data_query] redis_mgr getRedisConfInfo 探测异常: %s', _e)
 
