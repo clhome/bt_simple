@@ -6,6 +6,7 @@
     "CPU配额": "Quota CPU",
     "CPU配额:": "Quota CPU:",
     "CPU配额设置值范围应为 [1-100]!": "L'intervallo di valori per l'impostazione della quota della CPU deve essere compreso tra [1-100]!",
+    "Docker日志": "Log di Docker",
     "获取日志失败": "Recupero dei log non riuscito",
     "Docker根目录": "Directory principale di Docker",
     "IP 地址": "Indirizzo IP",

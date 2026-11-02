@@ -6,6 +6,7 @@
     "CPU配额": "CPU Quota",
     "CPU配额:": "CPU quota:",
     "CPU配额设置值范围应为 [1-100]!": "The CPU quota setting value range should be [1-100]!",
+    "Docker日志": "Docker log",
     "获取日志失败": "Failed to get logs",
     "Docker根目录": "Docker Root Directory",
     "IP 地址": "IP address",
