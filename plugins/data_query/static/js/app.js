@@ -681,14 +681,27 @@ function updateDbConnectionUI(dbType, status, errorMsg) {
         $empty.show();
         if (errorMsg) {
             var isPgDriverErr = (dbType === 'postgresql' && (errorMsg.indexOf('psycopg2') !== -1 || errorMsg.indexOf('驱动') !== -1));
+            var isRedisAuthErr = (dbType === 'redis' && (errorMsg.indexOf('密码错误') !== -1 || errorMsg.indexOf('WRONGPASS') !== -1 || errorMsg.indexOf('invalid username-password') !== -1));
             var descHtml = '<span style="color:#ef4444;"><i class="glyphicon glyphicon-exclamation-sign"></i> ' + pt('连接失败: ') + pt(errorMsg) + '</span>';
             if (isPgDriverErr) {
                 descHtml += '<div style="margin-top:14px;"><button class="btn btn-success btn-sm btn_empty_install_pg_driver" style="padding:6px 16px;"><span class="glyphicon glyphicon-download-alt"></span> ' + pt('立即安装驱动并查看日志') + '</button></div>';
+            } else if (isRedisAuthErr) {
+                descHtml += '<div style="margin-top:14px; display:flex; justify-content:center; gap:10px;">' +
+                    '<button class="btn btn-default btn-sm btn_empty_manage_redis" style="padding:5px 14px;"><span class="glyphicon glyphicon-cog"></span> ' + pt('管理连接') + '</button>' +
+                    '<button class="btn btn-success btn-sm btn_empty_sync_redis" style="padding:5px 14px;"><span class="glyphicon glyphicon-refresh"></span> ' + pt('服务侧同步') + '</button>' +
+                    '</div>';
             }
             $empty.find('.empty-desc').html(descHtml);
             if (isPgDriverErr) {
                 $empty.find('.btn_empty_install_pg_driver').off('click').on('click', function(){
                     showInstallPgDriverDialog();
+                });
+            } else if (isRedisAuthErr) {
+                $empty.find('.btn_empty_manage_redis').off('click').on('click', function(){
+                    openManageConnectionsModal('redis');
+                });
+                $empty.find('.btn_empty_sync_redis').off('click').on('click', function(){
+                    openSyncServersModal();
                 });
             }
         } else {

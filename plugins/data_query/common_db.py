@@ -800,7 +800,7 @@ def _clean_compose_env_val(val):
         val = val[1:-1]
     return val.strip()
 
-def _upsert_auto_connection(name, db_type, host, port, username='', password='', auth_db='', notes='__auto_local__'):
+def _upsert_auto_connection(name, db_type, host, port, username='', password='', auth_db='', notes='__auto_local__', force_password_sync=False):
     """插入或更新自动同步的本地或容器数据库连接"""
     try:
         conn = getSqliteConn()
@@ -814,8 +814,11 @@ def _upsert_auto_connection(name, db_type, host, port, username='', password='',
         row = cur.fetchone()
         if row:
             cid = row['id']
-            # 如果已有密码且传入为空，则保留已有密码；若传入非空新密码则更新
-            pwd_to_save = password if password else row['password']
+            # 如果已有密码且传入为空，则保留已有密码；若显式强制同步或传入非空新密码则更新
+            if force_password_sync:
+                pwd_to_save = password
+            else:
+                pwd_to_save = password if password else row['password']
             cur.execute("""
                 UPDATE db_connections
                 SET host = ?, port = ?, username = ?, password = ?, auth_db = ?, notes = ?, updated_at = ?
@@ -977,20 +980,56 @@ def scanCurrentLocalConfigs(target_db_type=None):
 
         # 3. Redis 自动探测
         elif dt == 'redis':
-            redis_installed = os.path.exists(f"{yf.getServerDir()}/redis") or \
-                              os.path.exists('/etc/redis/redis.conf') or \
-                              os.path.exists('/etc/redis.conf')
-            if redis_installed:
-                r_port = detectInstalledPort('redis')
-                r_pass = ''
-                for r_cnf in [f"{yf.getServerDir()}/redis/redis.conf", '/etc/redis/redis.conf', '/etc/redis.conf']:
-                    if os.path.exists(r_cnf):
-                        c = yf.readFile(r_cnf)
-                        if c:
-                            m = re.search(r'(?:^|\n)\s*requirepass\s+([^\s\r\n]+)', c)
-                            if m:
-                                r_pass = m.group(1).strip().strip('"').strip("'")
+            redis_installed = False
+            r_port = 6379
+            r_pass = ''
+            conf_found = False
+
+            # 3.1 优先复用官方 plugins.redis.index 模块的权威配置获取体系
+            try:
+                import plugins.redis.index as redis_mgr
+                if hasattr(redis_mgr, 'getRedisConfInfo'):
+                    conf_list = redis_mgr.getRedisConfInfo()
+                    if conf_list:
+                        redis_installed = True
+                        conf_found = True
+                        for item in conf_list:
+                            if item.get('name') == 'requirepass':
+                                r_pass = str(item.get('value') or '').strip()
+                            elif item.get('name') == 'port' and item.get('value'):
+                                try:
+                                    r_port = int(item['value'])
+                                except Exception:
+                                    pass
+            except Exception as _e:
+                _log.debug('[data_query] redis_mgr getRedisConfInfo 探测异常: %s', _e)
+
+            # 3.2 若未通过官方插件获取，则扫描系统标准配置文件路径，采用严谨正则
+            if not conf_found:
+                redis_installed = os.path.exists(f"{yf.getServerDir()}/redis") or \
+                                  os.path.exists('/etc/redis/redis.conf') or \
+                                  os.path.exists('/etc/redis.conf')
+                if redis_installed:
+                    r_port = detectInstalledPort('redis')
+                    for r_cnf in [f"{yf.getServerDir()}/redis/redis.conf", '/etc/redis/redis.conf', '/etc/redis.conf', f"{yf.getServerDir()}/redis/etc/redis.conf"]:
+                        if os.path.exists(r_cnf):
+                            c = yf.readFile(r_cnf)
+                            if c:
+                                conf_found = True
+                                m_double = re.search(r'^\s*requirepass\s+"([^"]*)"', c, re.M)
+                                if m_double:
+                                    r_pass = m_double.group(1).strip()
+                                else:
+                                    m_single = re.search(r"^\s*requirepass\s+'([^']*)'", c, re.M)
+                                    if m_single:
+                                        r_pass = m_single.group(1).strip()
+                                    else:
+                                        m_plain = re.search(r'^\s*requirepass\s+([^\r\n#]+)', c, re.M)
+                                        if m_plain:
+                                            r_pass = m_plain.group(1).strip()
                                 break
+
+            if redis_installed:
                 scanned.append({
                     'db_type': 'redis',
                     'name': '本机配置',
@@ -1000,7 +1039,8 @@ def scanCurrentLocalConfigs(target_db_type=None):
                     'password': r_pass,
                     'auth_db': '',
                     'notes': '__auto_local__',
-                    'instance_type': 'local'
+                    'instance_type': 'local',
+                    'force_password_sync': conf_found  # 成功探测到真实配置文件时允许覆盖/置空密码
                 })
 
         # 4. MongoDB 自动探测
@@ -1055,7 +1095,8 @@ def autoDetectAndSyncLocalConfigs(target_db_type=None):
             username=it['username'],
             password=encodePassword(it['password']) if it['password'] else '',
             auth_db=it['auth_db'],
-            notes=it['notes']
+            notes=it['notes'],
+            force_password_sync=it.get('force_password_sync', False)
         )
 
 
@@ -1123,8 +1164,9 @@ def previewLocalSyncDiff(args=None):
             if matched['username'] != scanned['username']:
                 diffs.append(f"用户: {matched['username']} ➔ {scanned['username']}")
             final_scanned_pwd = scanned['password']
-            if exist_pwd and not final_scanned_pwd:
-                # 保护机制：若系统探测未发现新密码，但旧连接已有密码，绝不盲目清空
+            force_p_sync = scanned.get('force_password_sync', False)
+            if exist_pwd and not final_scanned_pwd and not force_p_sync:
+                # 保护机制：若系统探测未发现新密码且非强制同步，但旧连接已有密码，绝不盲目清空
                 final_scanned_pwd = exist_pwd
 
             if exist_pwd != final_scanned_pwd:
@@ -1132,6 +1174,8 @@ def previewLocalSyncDiff(args=None):
                     diffs.append("密码: 已变动")
                 elif not exist_pwd and final_scanned_pwd:
                     diffs.append("密码: 探测到新密码")
+                elif exist_pwd and not final_scanned_pwd:
+                    diffs.append("密码: 已清空(未设密码)")
             if (matched.get('auth_db') or '') != (scanned.get('auth_db') or ''):
                 diffs.append(f"认证库: {matched.get('auth_db')} ➔ {scanned.get('auth_db')}")
 
@@ -1158,7 +1202,8 @@ def previewLocalSyncDiff(args=None):
                     'username': scanned['username'],
                     'auth_db': scanned['auth_db'],
                     'has_password': bool(final_scanned_pwd),
-                    'password': encodePassword(final_scanned_pwd) if final_scanned_pwd else ''
+                    'password': encodePassword(final_scanned_pwd) if final_scanned_pwd else '',
+                    'force_password_sync': force_p_sync
                 },
                 'diff_details': diffs
             })
@@ -1238,9 +1283,10 @@ def applyLocalSync(args=None):
             else:
                 notes = '__auto_local__'
 
+        force_p_sync = item.get('force_password_sync') or new_conf.get('force_password_sync', False)
         if c_id and int(c_id) > 0:
-            if not password:
-                # 保护机制：若新配置中密码为空，但原数据库中已保存有有效密码，则保持原有密码不被清空
+            if not password and not force_p_sync:
+                # 保护机制：若新配置中密码为空且非强制同步，但原数据库中已保存有有效密码，则保持原有密码不被清空
                 c.execute("SELECT password FROM db_connections WHERE id = ?", (int(c_id),))
                 old_p_row = c.fetchone()
                 if old_p_row and old_p_row[0]:
@@ -1262,7 +1308,10 @@ def applyLocalSync(args=None):
             now = int(time.time())
             if ex_row:
                 cid = ex_row[0]
-                pwd_to_save = password if password else ex_row[1]
+                if force_p_sync:
+                    pwd_to_save = password
+                else:
+                    pwd_to_save = password if password else ex_row[1]
                 c.execute("""
                     UPDATE db_connections
                     SET host = ?, port = ?, username = ?, password = ?, auth_db = ?, name = ?, notes = ?, updated_at = ?

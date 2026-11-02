@@ -43,6 +43,8 @@ class nosqlRedis():
 
     __DB_LOCAL = None
     __sid = 0
+    __conn_id = None
+    __conn_notes = ''
 
     def __init__(self):
         self.__config = self.get_options(None)
@@ -50,12 +52,106 @@ class nosqlRedis():
     def getLastError(self):
         return getattr(self, '_nosqlRedis__DB_ERR', '')
 
+    def _detect_local_redis_conf(self):
+        """权威获取本地 Redis 真实配置（优先官方插件，降级扫描配置文件）"""
+        res = {
+            'port': 6379,
+            'requirepass': '',
+            'bind': '127.0.0.1',
+            'conf_path': None
+        }
+        # 1. 优先调用 plugins.redis.index 模块的权威接口
+        try:
+            import plugins.redis.index as redis_mgr
+            if hasattr(redis_mgr, 'getRedisConfInfo'):
+                conf_list = redis_mgr.getRedisConfInfo()
+                if conf_list:
+                    for item in conf_list:
+                        n = item.get('name')
+                        v = item.get('value')
+                        if n == 'requirepass':
+                            res['requirepass'] = str(v or '').strip()
+                        elif n == 'port' and v:
+                            try:
+                                res['port'] = int(v)
+                            except Exception:
+                                pass
+                        elif n == 'bind' and v:
+                            res['bind'] = str(v).strip()
+                    if hasattr(redis_mgr, 'getConf'):
+                        res['conf_path'] = redis_mgr.getConf()
+                    return res
+        except Exception as _e:
+            _log.debug('[data_query] redis_mgr getRedisConfInfo 读取异常: %s', _e)
+
+        # 2. 降级自愈检索候选配置文件
+        candidates = [
+            "{}/redis/redis.conf".format(yf.getServerDir()),
+            '/etc/redis/redis.conf',
+            '/etc/redis.conf',
+            "{}/redis/etc/redis.conf".format(yf.getServerDir())
+        ]
+        for c_path in candidates:
+            if os.path.exists(c_path):
+                content = yf.readFile(c_path)
+                if content:
+                    res['conf_path'] = c_path
+                    m_double = re.search(r'^\s*requirepass\s+"([^"]*)"', content, re.M)
+                    if m_double:
+                        res['requirepass'] = m_double.group(1).strip()
+                    else:
+                        m_single = re.search(r"^\s*requirepass\s+'([^']*)'", content, re.M)
+                        if m_single:
+                            res['requirepass'] = m_single.group(1).strip()
+                        else:
+                            m_plain = re.search(r'^\s*requirepass\s+([^\r\n#]+)', content, re.M)
+                            if m_plain:
+                                res['requirepass'] = m_plain.group(1).strip()
+
+                    m_port = re.search(r'^\s*port\s+(\d+)', content, re.M)
+                    if m_port:
+                        try:
+                            res['port'] = int(m_port.group(1).strip())
+                        except Exception:
+                            pass
+                    break
+        return res
+
+    def _sync_healed_password_to_db(self, new_pass):
+        """将自愈成功的正确密码自动回写持久化至 SQLite db_connections，彻底消除脏旧数据"""
+        try:
+            conn = common_db.getSqliteConn()
+            cur = conn.cursor()
+            enc_pwd = common_db.encodePassword(new_pass) if new_pass else ''
+            now = int(time.time())
+            conn_id = getattr(self, '_nosqlRedis__conn_id', None)
+            if conn_id:
+                cur.execute("""
+                    UPDATE db_connections
+                    SET password = ?, updated_at = ?
+                    WHERE id = ?
+                """, (enc_pwd, now, int(conn_id)))
+            else:
+                cur.execute("""
+                    UPDATE db_connections
+                    SET password = ?, updated_at = ?
+                    WHERE db_type = 'redis' AND (notes = '__auto_local__' OR host = '127.0.0.1')
+                """, (enc_pwd, now))
+            conn.commit()
+            conn.close()
+            _log.info('[data_query] 自愈密码已成功同步回 SQLite db_connections')
+        except Exception as _e:
+            _log.debug('[data_query] _sync_healed_password_to_db 异常: %s', _e)
+
     def setSid(self, sid):
+        if self.__sid != sid:
+            self.close()
         self.__sid = sid
+        self.__DB_LOCAL = None
         self.__config = self.get_options(sid=sid)
         raw_host = self.__config.get('bind', self.__config.get('host', '127.0.0.1'))
         # 智能提取单个有效 Host，过滤 IPv6 -::1 及 0.0.0.0
-        if not sid or sid == 0 or raw_host in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_host):
+        if not sid or sid == 0 or raw_host in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_host) or str(raw_host).lower() == 'localhost':
             self.__DB_HOST = '127.0.0.1'
         else:
             self.__DB_HOST = str(raw_host).split()[0].strip()
@@ -65,6 +161,8 @@ class nosqlRedis():
         if isinstance(raw_pass, str):
             raw_pass = raw_pass.strip().strip('"').strip("'")
         self.__DB_PASS = raw_pass
+        self.__conn_id = self.__config.get('_conn_id')
+        self.__conn_notes = self.__config.get('_notes', '')
 
     def close(self):
         if self.__DB_CONN:
@@ -98,7 +196,7 @@ class nosqlRedis():
                     _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
             if isinstance(self.__config, dict) and 'bind' in self.__config:
                 raw_bind = self.__config['bind']
-                if not self.__sid or self.__sid == 0 or raw_bind in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_bind):
+                if not self.__sid or self.__sid == 0 or raw_bind in ['0.0.0.0', ''] or '127.0.0.1' in str(raw_bind) or str(raw_bind).lower() == 'localhost':
                     self.__DB_HOST = '127.0.0.1'
                 else:
                     self.__DB_HOST = str(raw_bind).split()[0].strip()
@@ -119,43 +217,93 @@ class nosqlRedis():
             return self.__DB_CONN
         except Exception as e:
             err_str = str(e)
-            is_local = (not self.__sid or self.__sid == 0 or self.__DB_HOST in ['127.0.0.1', 'localhost'])
-            # 针对本地连接出现认证不匹配（WRONGPASS / invalid username-password / NOAUTH）触发全自动自愈
+            is_local = (not self.__sid or self.__sid == 0 or self.__DB_HOST in ['127.0.0.1', 'localhost'] or getattr(self, '_nosqlRedis__conn_notes', '') == '__auto_local__')
+            # 针对本地连接出现认证不匹配（WRONGPASS / invalid username-password / NOAUTH）触发全自动多级自愈
             if is_local and any(k in err_str.lower() for k in ['invalid username-password', 'wrongpass', 'noauth', 'without any password configured']):
-                # 尝试自愈策略 1：若当前 Redis 处于无密码状态，在线热同步为 redis.conf 中的密码
-                if conn_pass:
-                    try:
-                        temp_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=None, socket_timeout=3)
-                        temp_conn = redis.Redis(connection_pool=temp_pool)
-                        temp_conn.ping()
-                        temp_conn.config_set('requirepass', conn_pass)
-                        try:
-                            temp_conn.config_rewrite()
-                        except Exception as _e:
-                            _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
-                        temp_conn.close()
-                        # 热同步成功后立即以新密码重连
-                        redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=conn_pass, db=db_idx, socket_timeout=5)
-                        self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
-                        self.__DB_CONN.ping()
-                        self.__DB_ERR = None
-                        return self.__DB_CONN
-                    except Exception as _e:
-                        _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
+                _log.info('[data_query] 本地 Redis 连接发生认证异常: %s，启动多级智能自愈机制...', err_str)
 
-                # 尝试自愈策略 2：平滑重启本地 Redis 重新挂载权威 redis.conf
+                # 收集候选密码列表：
+                # 候选 1: 本地权威配置文件解析出的密码
+                local_conf = self._detect_local_redis_conf()
+                conf_pass = local_conf.get('requirepass')
+                if isinstance(conf_pass, str):
+                    conf_pass = conf_pass.strip().strip('"').strip("'")
+
+                # 候选 2: 尝试通过官方 index.execRedisCommand 在线获取真实运行时密码
+                runtime_pass = None
                 try:
                     import plugins.redis.index as redis_mgr
-                    if hasattr(redis_mgr, 'restart'):
-                        redis_mgr.restart()
-                        time.sleep(1)
-                        redis_pool = redis.ConnectionPool(host=self.__DB_HOST, port=self.__DB_PORT, password=conn_pass, db=db_idx, socket_timeout=5)
-                        self.__DB_CONN = redis.Redis(connection_pool=redis_pool)
-                        self.__DB_CONN.ping()
-                        self.__DB_ERR = None
-                        return self.__DB_CONN
+                    if hasattr(redis_mgr, 'execRedisCommand'):
+                        out, _err = redis_mgr.execRedisCommand('config get requirepass')
+                        if out and 'requirepass' in out:
+                            lines = [ln.strip() for ln in str(out).split('\n') if ln.strip()]
+                            for i, ln in enumerate(lines):
+                                if ln.lower() == 'requirepass' and i + 1 < len(lines):
+                                    runtime_pass = lines[i + 1].strip().strip('"').strip("'")
+                                    break
+                                elif 'requirepass:' in ln.lower():
+                                    runtime_pass = ln.split(':', 1)[1].strip().strip('"').strip("'")
+                                    break
                 except Exception as _e:
-                    _log.debug('[data_query] redis_conn 异常已忽略: %s', _e)
+                    _log.debug('[data_query] execRedisCommand 探测运行时密码异常: %s', _e)
+
+                candidates = []
+                # 优先级顺序：真实运行时密码 -> 权威配置文件密码 -> 空密码
+                for cand in [runtime_pass, conf_pass, None]:
+                    c_clean = cand if (cand and cand not in ["''", '""']) else None
+                    if c_clean not in candidates and c_clean != conn_pass:
+                        candidates.append(c_clean)
+
+                healed_conn = None
+                healed_pass = None
+
+                for try_p in candidates:
+                    try:
+                        t_pool = redis.ConnectionPool(
+                            host=self.__DB_HOST,
+                            port=self.__DB_PORT,
+                            password=try_p,
+                            db=db_idx,
+                            socket_timeout=3
+                        )
+                        t_conn = redis.Redis(connection_pool=t_pool)
+                        t_conn.ping()
+                        healed_conn = t_conn
+                        healed_pass = try_p
+                        _log.info('[data_query] 候选密码连接测试成功，自愈生效 (密码: %s)', '***' if try_p else '[无密码]')
+                        break
+                    except Exception as _try_err:
+                        _log.debug('[data_query] 候选密码测试未通过: %s', _try_err)
+
+                # 若候选直连均未通，但权威配置文件中有非空密码，尝试平滑重启 Redis 重新加载 redis.conf
+                if healed_conn is None and conf_pass:
+                    try:
+                        import plugins.redis.index as redis_mgr
+                        if hasattr(redis_mgr, 'restart'):
+                            _log.info('[data_query] 尝试平滑重启本地 Redis 挂载权威配置文件...')
+                            redis_mgr.restart()
+                            time.sleep(1)
+                            t_pool = redis.ConnectionPool(
+                                host=self.__DB_HOST,
+                                port=self.__DB_PORT,
+                                password=conf_pass,
+                                db=db_idx,
+                                socket_timeout=4
+                            )
+                            t_conn = redis.Redis(connection_pool=t_pool)
+                            t_conn.ping()
+                            healed_conn = t_conn
+                            healed_pass = conf_pass
+                    except Exception as _e:
+                        _log.debug('[data_query] 重启自愈策略异常: %s', _e)
+
+                # 一旦任一策略自愈成功：回写当前状态与 SQLite 持久化
+                if healed_conn is not None:
+                    self.__DB_PASS = healed_pass or ''
+                    self.__DB_CONN = healed_conn
+                    self.__DB_ERR = None
+                    self._sync_healed_password_to_db(healed_pass or '')
+                    return self.__DB_CONN
 
             self.__DB_ERR = err_str
             yf.writeLog('数据管理', f"连接 Redis 失败 [{self.__DB_HOST}:{self.__DB_PORT}]: {str(e)}")
@@ -184,7 +332,9 @@ class nosqlRedis():
                         'timeout': 0,
                         'maxclients': 10000,
                         'databases': 16,
-                        'maxmemory': 0
+                        'maxmemory': 0,
+                        '_conn_id': c_id,
+                        '_notes': c_data.get('notes', '')
                     }
             except Exception as _e:
                 _log.debug('[data_query] get_options 异常已忽略: %s', _e)
@@ -302,7 +452,10 @@ class nosqlRedisCtr():
             err_msg = ins.getLastError()
             if err_msg:
                 if 'WRONGPASS' in err_msg or 'invalid password' in err_msg.lower() or 'invalid username-password' in err_msg.lower():
-                    return yf.returnData(False, f'Redis 密码错误，请在连接设置中校准密码 ({err_msg})')
+                    local_info = ins._detect_local_redis_conf() if hasattr(ins, '_detect_local_redis_conf') else {}
+                    conf_p = local_info.get('requirepass')
+                    hint = f" (本地配置: {'已设密码' if conf_p else '未设密码'})" if local_info.get('conf_path') else ""
+                    return yf.returnData(False, f'Redis 密码错误，请在连接设置中校准密码{hint} ({err_msg})')
                 elif 'Connection refused' in err_msg or '连接被拒绝' in err_msg:
                     return yf.returnData(False, f'连接被拒绝，请确认 Redis 服务已启动且端口正确 ({err_msg})')
                 elif "No module named 'redis'" in err_msg or '缺少 redis 扩展' in err_msg:

@@ -57,3 +57,8 @@
   - [x] 10.2 重构 `plugins/mysql/index.py` 的 `addDb`，改造为「先查后删（`SELECT Host` + `_dropUserTargets`）」防御机制，消除盲目 DROP
   - [x] 10.3 同步重构孪生插件 `plugins/mariadb/index.py` 的 `addDb` 及关联的 `delMasterRepSlaveUser` / `updateMasterRepSlaveUser`
   - [x] 10.4 编写针对性单元测试与安全门禁验证，确保全量测试套件通过
+- [x] **任务 11：数据管理插件本地 Redis 连接失败缺陷修复与自愈增强 (`plugins/data_query`)**
+  - [x] 11.1 **根因治理与密码探测强化 (`common_db.py`)**：在 `scanCurrentLocalConfigs` 中优先复用 `plugins.redis.index` 的成熟配置解析体系，完善单双引号及注释截断；修复空密码保护机制逻辑，允许清空/重置密码正常同步，杜绝脏旧密码死锁
+  - [x] 11.2 **多级智能自愈与连接容灾 (`nosql_redis.py`)**：重构本地连接异常自愈链路，当遇到 `invalid username-password` / `NOAUTH` 时，依序执行「权威配置文件密码 ➔ 空密码 ➔ 在线真实运行时密码」多级自愈；自愈成功后自动回写持久化至 SQLite `db_connections`
+  - [x] 11.3 **前端体验与错误引导优化 (`app.js`, `index.html`)**：优化本地连接密码错误时的诊断提示，提供更明确的引导信息，支持无缝重试
+  - [x] 11.4 **测试套件扩充与全量回归**：编写 `testsuite/test_data_query_redis_auth_fix.py` 覆盖各种密码格式、旧密码脱节自愈与空密码同步场景，确保门禁全部通过
