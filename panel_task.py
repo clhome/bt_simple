@@ -883,6 +883,18 @@ def phpPoolHeal_step():
                             % (branch, pool, '; '.join(changes)))
                 _restart('php%s' % branch)
 
+            backup_pool = os.path.join(php_root, branch, 'etc', 'php-fpm.d', 'backup.conf')
+            if os.path.isfile(backup_pool):
+                changed, changes, err = php_pool_heal.heal_pool_file(
+                    backup_pool, owner='www', group='www',
+                    listen='/tmp/php-cgi-%s.backup.sock' % branch)
+                if changed:
+                    healed_any = True
+                    _log.warning('[php_pool_heal] PHP%s backup pool 已自愈: %s', branch, '; '.join(changes))
+                    yf.writeLog('PHP-FPM 自愈', 'PHP%s(%s) backup pool 配置已修正: %s'
+                                % (branch, backup_pool, '; '.join(changes)))
+                    _restart('php%s' % branch)
+
         if healed_any:
             _log.info('[php_pool_heal] 本轮有配置被修正并已重启对应 FPM')
     except Exception:

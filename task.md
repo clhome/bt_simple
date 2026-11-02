@@ -67,3 +67,7 @@
   - [x] 11.2 **多级智能自愈与连接容灾 (`nosql_redis.py`)**：重构本地连接异常自愈链路，当遇到 `invalid username-password` / `NOAUTH` 时，依序执行「权威配置文件密码 ➔ 空密码 ➔ 在线真实运行时密码」多级自愈；自愈成功后自动回写持久化至 SQLite `db_connections`
   - [x] 11.3 **前端体验与错误引导优化 (`app.js`, `index.html`)**：优化本地连接密码错误时的诊断提示，提供更明确的引导信息，支持无缝重试
   - [x] 11.4 **测试套件扩充与全量回归**：编写 `testsuite/test_data_query_redis_auth_fix.py` 覆盖各种密码格式、旧密码脱节自愈与空密码同步场景，确保门禁全部通过
+- [x] **任务 13：修复 PHP-FPM 多版本 backup pool 监听 Socket 冲突与自愈缺陷 (`plugins/php`, `panel_task.py`)**
+  - [x] 13.1 **核心修复 (`plugins/php/index.py`)**：在 `phpFpmPoolReplace` 中根据 `pool` 参数动态计算 `listen_path`（`www` 为 `/tmp/php-cgi-{version}.sock`，其它非 `www` 池如 `backup` 为 `/tmp/php-cgi-{version}.{pool}.sock`），修正极限兜底模板中的 socket 路径
+  - [x] 13.2 **后台巡检自愈覆盖 (`panel_task.py`)**：在 `phpPoolHeal_step` 中增加对编译版各版本 `backup.conf` 的巡检与自愈，确保所有存量版本的被改坏的备用池配置能被自动校准为 `.backup.sock`
+  - [x] 13.3 **自动化回归测试与门禁验证**：在 `testsuite/test_php_fpm_pool_socket.py` 与 `testsuite/test_php_pool_healing_and_ui_quotes.py` 中扩充测试用例，覆盖多版本 `backup.conf` 自愈、防冲突断言，运行全量回归测试确保 100% 通过

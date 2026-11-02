@@ -134,6 +134,52 @@ class TestPhpPoolHealingAndUiQuotes(unittest.TestCase):
         finally:
             php_mod.getServerDir = orig_getServerDir
 
+    def test_02b_php_fpm_pool_replace_backup_socket_no_conflict(self):
+        """测试 2b: 验证 backup pool 与 www pool 的 socket 互不冲突，且存量损坏配置能被自愈修复"""
+        import plugins.php.index as php_mod
+        orig_getServerDir = php_mod.getServerDir
+        php_mod.getServerDir = lambda: self.test_dir
+
+        try:
+            for test_ver in ('74', '80', '84'):
+                v_pool_dir = os.path.join(self.test_dir, test_ver, 'etc', 'php-fpm.d')
+                os.makedirs(v_pool_dir, exist_ok=True)
+                www_file = os.path.join(v_pool_dir, 'www.conf')
+                backup_file = os.path.join(v_pool_dir, 'backup.conf')
+
+                # 1. 正常生成两个 pool
+                php_mod.phpFpmPoolReplace(test_ver, 'www')
+                php_mod.phpFpmPoolReplace(test_ver, 'backup')
+
+                with open(www_file, 'r', encoding='utf-8') as f:
+                    www_txt = f.read()
+                with open(backup_file, 'r', encoding='utf-8') as f:
+                    backup_txt = f.read()
+
+                self.assertIn(f"/tmp/php-cgi-{test_ver}.sock", www_txt)
+                self.assertIn(f"/tmp/php-cgi-{test_ver}.backup.sock", backup_txt)
+                self.assertNotIn(f"/tmp/php-cgi-{test_ver}.backup.sock", www_txt)
+                self.assertNotIn(f"listen = /tmp/php-cgi-{test_ver}.sock", backup_txt,
+                                 f"PHP{test_ver} backup pool 绝对不能监听与主池相同的 socket 地址")
+
+                # 2. 模拟存量机器被错误篡改场景：backup.conf 被改为主池 socket
+                bad_backup = backup_txt.replace(f"/tmp/php-cgi-{test_ver}.backup.sock",
+                                                f"/tmp/php-cgi-{test_ver}.sock")
+                with open(backup_file, 'w', encoding='utf-8') as f:
+                    f.write(bad_backup)
+
+                # 调用自愈
+                php_mod.phpFpmPoolReplace(test_ver, 'backup')
+
+                with open(backup_file, 'r', encoding='utf-8') as f:
+                    repaired_backup = f.read()
+                self.assertIn(f"/tmp/php-cgi-{test_ver}.backup.sock", repaired_backup,
+                              f"PHP{test_ver} 错误的 backup socket 必须能被自动自愈纠正")
+                self.assertNotIn(f"listen = /tmp/php-cgi-{test_ver}.sock", repaired_backup)
+
+        finally:
+            php_mod.getServerDir = orig_getServerDir
+
     def test_03_js_template_quotes_integrity(self):
         """测试 3: 词法级精准扫描三款插件 js/php.js 中双引号/单引号模板内部 pt(...) 代码裸露"""
         js_files = [

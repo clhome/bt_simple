@@ -204,6 +204,15 @@ class PluginWiringTest(unittest.TestCase):
             self.assertIn('except Exception', tail,
                           '%s 的自愈异常必须被吞掉（不能因此让安装失败）' % path)
 
+    def test_04_compiled_backup_pool_distinct_listen(self):
+        """编译版多 pool 自愈时必须为非 www pool（如 backup）分配独立 socket，防止覆盖产生冲突。"""
+        src = _read(PHP_PY)
+        idx_heal = src.index('def phpFpmPoolReplace(')
+        body = src[idx_heal:idx_heal + 5000]
+        self.assertIn("pool", body, "phpFpmPoolReplace 必须区分 pool 分配 listen 地址")
+        self.assertRegex(body, r'listen_path\s*=.*\{pool\}\.sock',
+                         "phpFpmPoolReplace 自愈中必须为非 www 池（如 backup）提供专属 socket 路径")
+
 
 class PanelTaskHealStepTest(unittest.TestCase):
     """后台每日自愈：存量机器不重装也能修好（只在真改配置时才重启 FPM）。"""
@@ -250,6 +259,13 @@ class PanelTaskHealStepTest(unittest.TestCase):
         body = self.src[start:start + 4000]
         self.assertIn('except Exception', body)
         self.assertIn("yf.getTracebackInfo()", body, '失败要留痕，不能静默')
+
+    def test_05_heals_compiled_backup_pool(self):
+        """每日巡检必须覆盖编译版 backup.conf，防止存量机器残留错误的 socket 配置。"""
+        start = self.src.index('def phpPoolHeal_step():')
+        body = self.src[start:start + 4000]
+        self.assertIn("backup.conf", body, '巡检自愈必须覆盖 backup.conf')
+        self.assertIn("backup.sock", body, 'backup.conf 自愈目标路径必须包含 backup.sock')
 
 
 if __name__ == '__main__':

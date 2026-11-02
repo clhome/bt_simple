@@ -651,7 +651,8 @@ def phpFpmPoolReplace(version, pool = 'www'):
         content = yf.readFile(tpl_php_fpmwww)
         if not content:
             # 极限兜底：如果模板被破坏，生成最小可用安全池配置
-            content = f"[{pool}]\nuser = www\ngroup = www\nlisten = /tmp/php-cgi-{version}.sock\nlisten.owner = www\nlisten.group = www\npm = dynamic\npm.max_children = 30\npm.start_servers = 5\npm.min_spare_servers = 5\npm.max_spare_servers = 20\n"
+            fallback_sock = f"/tmp/php-cgi-{version}.sock" if pool == 'www' else f"/tmp/php-cgi-{version}.{pool}.sock"
+            content = f"[{pool}]\nuser = www\ngroup = www\nlisten = {fallback_sock}\nlisten.owner = www\nlisten.group = www\npm = dynamic\npm.max_children = 30\npm.start_servers = 5\npm.min_spare_servers = 5\npm.max_spare_servers = 20\n"
         content = contentReplace(content, version)
         
         # 动态根据内存计算 FPM 进程数
@@ -683,12 +684,15 @@ def phpFpmPoolReplace(version, pool = 'www'):
     # ---- pool 关键项自愈（同一族缺陷，见 web/core/php_pool_heal.py 文档）----
     # 编译版 socket 在 /tmp，nginx worker=www；只要 pool 的 listen.owner 与 worker
     # 用户不一致，0660 就会让 nginx 拿到 EACCES。存量 pool 不会被模板更新，故此处幂等补齐。
+    # 特别注意：针对不同 pool 必须赋予互不冲突的 listen socket 路径（www 为 .sock，backup 为 .backup.sock 等），
+    # 严禁将所有 pool 硬编码覆盖为主 pool socket 导致 FPM 启动报错「listen address already used」。
     healed = False
     try:
         from core import php_pool_heal as _heal
+        listen_path = f'/tmp/php-cgi-{version}.sock' if pool == 'www' else f'/tmp/php-cgi-{version}.{pool}.sock'
         healed, _changes, _err = _heal.heal_pool_file(
             service_php_fpmwww, owner='www', group='www',
-            listen='/tmp/php-cgi-%s.sock' % version)
+            listen=listen_path)
         if healed:
             yf.writeLog('[php]', 'pool 配置自愈 (PHP%s): %s' % (version, '; '.join(_changes)))
     except Exception as _e:

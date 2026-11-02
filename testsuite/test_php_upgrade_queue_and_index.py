@@ -283,7 +283,7 @@ class SourceFetchScriptTest(unittest.TestCase):
                 % (work, work, work, FETCH_SH.replace('\\', '/'))
             )
             proc = subprocess.run([BASH, '-c', script, 'x', _p(dest)],
-                                  capture_output=True, text=True, timeout=60)
+                                  capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60)
             out = (proc.stdout or '') + (proc.stderr or '')
             self.assertIn('rc=1', out, '空哈希必须 fail-closed（拒绝下载）')
             self.assertIn('拒绝下载', out)
@@ -303,7 +303,7 @@ class SourceFetchScriptTest(unittest.TestCase):
                 % (work, work, work, FETCH_SH.replace('\\', '/'), sha)
             )
             proc = subprocess.run([BASH, '-c', script, 'x', _p(dest)],
-                                  capture_output=True, text=True, timeout=60)
+                                  capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60)
             out = (proc.stdout or '') + (proc.stderr or '')
             self.assertIn('rc=0', out, '合法本地包必须直接复用（离线可用）: %s' % out)
             self.assertTrue(os.path.exists(dest))
@@ -323,7 +323,8 @@ class SourceFetchScriptTest(unittest.TestCase):
                 'echo "unset:ok"'
                 % (_p(work), _p(work), _p(work), _p(FETCH_SH))
             )
-            proc = subprocess.run([BASH, '-c', script], capture_output=True, text=True, timeout=60)
+            proc = subprocess.run([BASH, '-c', script], capture_output=True, text=True,
+                                  encoding='utf-8', errors='replace', timeout=60)
             out = (proc.stdout or '') + (proc.stderr or '')
             self.assertIn('no-slash:\nhttps://mirror.lan/php/php-8.3.36.tar.xz', out,
                           '未以 / 结尾的镜像前缀必须自动补 /（否则拼成 phpphp-…）: %s' % out)
@@ -363,7 +364,7 @@ class SourceFetchScriptTest(unittest.TestCase):
                    FETCH_SH.replace('\\', '/'), 'a' * 64)
             )
             proc = subprocess.run([BASH, '-c', script, 'x', _p(dest)],
-                                  capture_output=True, text=True, timeout=120)
+                                  capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
             out = (proc.stdout or '') + (proc.stderr or '')
             self.assertIn('rc=1', out, '劫持内容必须判失败')
             self.assertIn('不是 xz 包', out, '必须明确指出「返回的不是压缩包」: %s' % out)
@@ -390,7 +391,7 @@ class SourceFetchScriptTest(unittest.TestCase):
                 % (work, work, work, FETCH_SH.replace('\\', '/'), 'b' * 64)
             )
             proc = subprocess.run([BASH, '-c', script, 'x', _p(dest)],
-                                  capture_output=True, text=True, timeout=120)
+                                  capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
             out = (proc.stdout or '') + (proc.stderr or '')
             self.assertIn('rc=1', out)
             self.assertIn('离线源码包', out, '命中离线目录时必须说明是离线包校验失败: %s' % out)
