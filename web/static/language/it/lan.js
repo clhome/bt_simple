@@ -5256,7 +5256,10 @@ var lan = {
 			},
 			"gitea": {
 				"title": "Gitea",
-				"ps": "Un servizio Git self-hosted leggero e intuitivo"
+				"ps": "Un servizio Git self-hosted leggero e intuitivo",
+				"new_version_badge": "Nuova versione",
+				"new_version_tip": "Nuova versione disponibile, fare clic per passare a Gestione versioni",
+				"update_tip": "Nuova versione Gitea disponibile, fare clic per accedere a Gestione versioni"
 			},
 			"jdk": {
 				"title": "Gestore JDK YuFeng",

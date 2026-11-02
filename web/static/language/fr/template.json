@@ -3547,7 +3547,10 @@
     },
     "gitea": {
       "title": "Gitea",
-      "ps": "Un service Git auto-hébergé léger et sans douleur"
+      "ps": "Un service Git auto-hébergé léger et sans douleur",
+      "new_version_badge": "Nouvelle version",
+      "new_version_tip": "Nouvelle version disponible, cliquez pour accéder à la gestion des versions",
+      "update_tip": "Nouvelle version de Gitea disponible, cliquez pour accéder à la gestion des versions"
     },
     "jdk": {
       "title": "Gestionnaire JDK YuFeng",

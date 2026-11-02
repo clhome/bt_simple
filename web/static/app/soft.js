@@ -79,9 +79,10 @@ function installPluginLayerTranslation() {
 }
 
 //软件管理窗口
-function softMain(name, title, version) {
+function softMain(name, title, version, targetTab) {
   installPluginLayerTranslation();
   window._yfActivePlugin = name;
+  window._yfPluginTargetTab = targetTab || null;
   var _title = title;
   if (version && String(version).trim() !== '' && String(version).trim() !== 'undefined') {
     var vStr = String(version).trim();
@@ -115,9 +116,21 @@ function softMain(name, title, version) {
         if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
           window.YfI18n.translatePluginDOM(layero, name);
         }
+        if (targetTab === 'version_manage' || targetTab === 'version') {
+          setTimeout(function () {
+            var $menuP = $(layero).find(".bt-w-menu p");
+            $menuP.each(function () {
+              var txt = $(this).text().trim();
+              if (txt.indexOf('版本') > -1 || txt.indexOf('Version') > -1) {
+                $(this).trigger('click');
+              }
+            });
+          }, 60);
+        }
       },
       end: function () {
         window._yfActivePlugin = null;
+        window._yfPluginTargetTab = null;
         if (typeof window.refreshExternalPluginStatus === 'function') {
           window.refreshExternalPluginStatus(name);
         }
@@ -453,8 +466,19 @@ function getSList(isdisplay) {
             '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.series_update.latest) + '</a> | ';
         }
-        handle = eolBadge + eolUpgradeLink + seriesUpdateLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
-        titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
+        var giteaUpdateLink = '';
+        if (plugin.name === 'gitea' && plugin.gitea_update_available) {
+          giteaUpdateLink = '<a class="btlink" style="color:#ff2020;" title="' +
+            yfSoftText(t('plugins.gitea.update_tip', '发现 Gitea 新版本，点击进入版本管理')) + '"' +
+            ' onclick="softMain(\'gitea\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\');">' +
+            yfSoftText(t('public.update', '更新')) + '</a> | ';
+        }
+        handle = eolBadge + eolUpgradeLink + seriesUpdateLink + giteaUpdateLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
+        if (plugin.name === 'gitea' && plugin.gitea_update_available) {
+          titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\')" style="cursor:pointer"';
+        } else {
+          titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')" style="cursor:pointer"';
+        }
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + yfSoftText(plugin.path) + '" onclick="openPath(\'' + yfSoftJsStr(plugin.path) + '\')"></span>';
         if (plugin.coexist) {
           indexshow = '<div class="index-item">\
@@ -503,12 +527,18 @@ function getSList(isdisplay) {
         plugin_title += '<span class="php-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('soft.php_upgradable', '可更新')) + '</span>';
+      } else if (plugin.name === 'gitea' && plugin.gitea_update_available) {
+        plugin_title += '<span class="gitea-update-badge" style="margin-left:6px;padding:2px 8px;border-radius:10px;' +
+          'background:#f39c12;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;cursor:pointer;font-weight:normal;"' +
+          ' title="' + yfSoftText(t('plugins.gitea.new_version_tip', '发现新版本，点击跳转到版本管理')) + '"' +
+          ' onclick="event.stopPropagation();softMain(\'gitea\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\');">' +
+          yfSoftText(t('plugins.gitea.new_version_badge', '发现新版本')) + '</span>';
       } else if (needUpdate) {
         plugin_title += '<span class="soft-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('public.update', '更新')) + '</span>';
       }
-      if (needUpdate || (plugin.php_update_available && plugin.php_update) || (plugin.series_update && plugin.series_update.latest) || plugin.eol_upgrade_to) {
+      if (needUpdate || (plugin.php_update_available && plugin.php_update) || (plugin.series_update && plugin.series_update.latest) || (plugin.name === 'gitea' && plugin.gitea_update_available) || plugin.eol_upgrade_to) {
         updatableCount++;
       }
       // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里

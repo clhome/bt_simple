@@ -101,6 +101,22 @@ resetPluginWinWidth(850);
 resetPluginWinHeight(580);
 
 $.getScript( "/plugins/file?name=gitea&f=js/gitea.js",function(){
-	giteaService();
+	if (window._yfPluginTargetTab === 'version_manage' || window._yfPluginTargetTab === 'version') {
+		window._yfPluginTargetTab = null;
+		var $menus = $(".bt-w-menu p");
+		$menus.removeClass("bgw");
+		var $vTab = $menus.filter(function() {
+			var txt = $(this).text().trim();
+			return txt.indexOf('版本') > -1 || txt.indexOf('Version') > -1;
+		});
+		if ($vTab.length > 0) {
+			$vTab.addClass("bgw");
+		} else {
+			$menus.eq(1).addClass("bgw");
+		}
+		giteaVersionManage();
+	} else {
+		giteaService();
+	}
 });
 </script>

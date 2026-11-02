@@ -219,7 +219,10 @@
     },
     "gitea": {
       "title": "Gitea",
-      "ps": "一個輕量級、無痛自建的 Git 服務"
+      "ps": "一個輕量級、無痛自建的 Git 服務",
+      "new_version_badge": "發現新版本",
+      "new_version_tip": "發現新版本，點擊跳轉至版本管理",
+      "update_tip": "發現 Gitea 新版本，點擊進入版本管理"
     },
     "jdk": {
       "title": "御風JDK管理器",

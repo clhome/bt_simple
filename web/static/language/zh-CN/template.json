@@ -3547,7 +3547,10 @@
     },
     "gitea": {
       "title": "Gitea",
-      "ps": "一个轻量级、无痛自建的 Git 服务"
+      "ps": "一个轻量级、无痛自建的 Git 服务",
+      "new_version_badge": "发现新版本",
+      "new_version_tip": "发现新版本，点击跳转到版本管理",
+      "update_tip": "发现 Gitea 新版本，点击进入版本管理"
     },
     "jdk": {
       "title": "御风JDK管理器",

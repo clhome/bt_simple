@@ -5256,7 +5256,10 @@ var lan = {
 			},
 			"gitea": {
 				"title": "Gitea",
-				"ps": "A lightweight and painless self-hosted Git service"
+				"ps": "A lightweight and painless self-hosted Git service",
+				"new_version_badge": "New Version",
+				"new_version_tip": "New version available, click to jump to Version Management",
+				"update_tip": "Gitea new version available, click to enter Version Management"
 			},
 			"jdk": {
 				"title": "YuFeng JDK Manager",

@@ -171,5 +171,12 @@
     "当前运行版本为 v": "La versione attuale è v",
     "28.x 为上游规范版本命名（即 1.28 稳定线），数据平滑兼容，建议升级以获取安全性与性能提升。": "28.x è la denominazione ufficiale upstream (linea stabile 1.28) con compatibilità uniforme dei dati. Si consiglia l'aggiornamento.",
     "立即平滑升级": "Aggiorna ora senza interruzioni",
-    "配置文件 (app.ini) 兼容性预检提示：": "Controllo preliminare compatibilità (app.ini): "
+    "配置文件 (app.ini) 兼容性预检提示：": "Controllo preliminare compatibilità (app.ini): ",
+    "端口开放安全提醒": "Avviso di sicurezza apertura porte",
+    "Gitea 默认服务端口为 3000。": "La porta di servizio predefinita di Gitea è 3000.",
+    "安装完成后，请前往面板【安全】菜单的“端口防火墙”中开启 3000 端口（云服务器请同步在安全组放行），以确保能够正常访问 Gitea Web 页面。": "Dopo l'installazione, abilitare la porta 3000 nel Firewall porte del menu Sicurezza (anche nei gruppi di sicurezza cloud) per accedere all'interfaccia Gitea.",
+    "Gitea 默认服务端口为 3000，请确保已在面板【安全】菜单的端口防火墙中开启 3000 端口（云服务器同步放行安全组）": "La porta predefinita di Gitea è 3000. Assicurarsi che la porta 3000 sia aperta nel Firewall porte del menu Sicurezza.",
+    "发现新版本": "Nuova versione",
+    "发现新版本，点击跳转到版本管理": "Nuova versione disponibile, fare clic per passare a Gestione versioni",
+    "发现 Gitea 新版本，点击进入版本管理": "Nuova versione Gitea disponibile, fare clic per accedere a Gestione versioni"
 }

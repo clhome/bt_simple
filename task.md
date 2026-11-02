@@ -115,6 +115,18 @@
   - [x] 16.1 (P2-1) 将 wedged live 验证用例正式入库迁移至 `testsuite/test_gitea_wedged_live.py`，保持审计与 CI 可追溯复现，非 Linux/非 root 自动 safe skip
   - [x] 16.2 (P2-2) 从 `plugins/jdk/index.py` 的 `_JDK_URL_HOSTS` 白名单中清理已淘汰的中科大节点 `mirrors.ustc.edu.cn`，同步更新 `test/test_jdk_plugin.py` 断言
   - [x] 16.3 运行全量测试与静态门禁，确保 100% 绿灯且代码格式符合 UTF-8 LF 规范
+- [x] **任务 17：Gitea 更新检测在软件列表展示并直达版本管理内部**
+  - [x] 17.1 后端扩展：在 `web/utils/plugin.py` 中实现 Gitea 版本更新检测注记 `_giteaApplyVersionHint`，识别 28.x SemVer 与本地缓存，注入 `gitea_update_available` 与 `gitea_update`
+  - [x] 17.2 前端展现：在 `web/static/app/soft.js` 中增加 Gitea 专属橙色「发现新版本」徽章与操作列「更新」入口，纳入顶部更新计数
+  - [x] 17.3 内部直达：在 `web/static/app/soft.js` 的 `softMain` 支持 `targetTab`，并在 `plugins/gitea/index.html` 初始化时自动识别并高亮「版本管理」Tab、直接调用 `giteaVersionManage()`
+- [x] **任务 18：Gitea 安装时 3000 端口防火墙安全提醒**
+  - [x] 18.1 安装弹窗提醒：创建 `plugins/gitea/install.html`，展示友好且醒目的端口提醒卡片（提醒前往【安全】菜单开启 3000 端口及云安全组放行）
+  - [x] 18.2 安装脚本日志：在 `plugins/gitea/install.sh` 安装前后输出醒目的 3000 端口防火墙开放提示日志
+  - [x] 18.3 多语言与使用说明：在 `plugins/gitea/lang/` 6 种语言包补充对应词条，并在插件「使用说明」中强化端口说明
+- [x] **任务 19：自动化测试与门禁验证**
+  - [x] 19.1 编写单元测试验证 Gitea 列表更新检测、版本管理直达契约与安装提示规范
+  - [x] 19.2 运行 `quick_gate.py` 验证全量静态与安全门禁，确保无语法与编码异常
+
 
 
 

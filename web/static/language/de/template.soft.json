@@ -219,7 +219,10 @@
     },
     "gitea": {
       "title": "Gitea",
-      "ps": "Ein leichtgewichtiger und schmerzloser selbst gehosteter Git-Dienst"
+      "ps": "Ein leichtgewichtiger und schmerzloser selbst gehosteter Git-Dienst",
+      "new_version_badge": "Neue Version",
+      "new_version_tip": "Neue Version verfügbar, klicken Sie hier, um zur Versionsverwaltung zu gelangen",
+      "update_tip": "Neue Gitea-Version verfügbar, klicken Sie hier für die Versionsverwaltung"
     },
     "jdk": {
       "title": "YuFeng JDK-Manager",

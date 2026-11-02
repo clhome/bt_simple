@@ -971,6 +971,7 @@ function giteaRead(){
 
     var readme = '<ul class="help-info-text c7">';
     readme += '<li>' + pt('默认使用MySQL,第一个启动加载各种配置,并修改成正确的数据库配置') + '</li>';
+    readme += '<li>' + pt('Gitea 默认服务端口为 3000，请确保已在面板【安全】菜单的端口防火墙中开启 3000 端口（云服务器同步放行安全组）') + '</li>';
     readme += '<li>' + pt('邮件端口使用456,gitea仅支持使用STARTTLS的SMTP协议') + '</li>';
     readme += '<li>' + pt('项目【加载脚本】后,会自动同步到wwwroot目录下') + '</li>';
     readme += '<li><a href="#" onclick="getRsaPublic();">' + pt('点击查看本机公钥') + '</></li>';

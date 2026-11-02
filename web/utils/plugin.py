@@ -1235,6 +1235,74 @@ class plugin(object):
         pInfo['eol_upgrade_to'] = target
         return pInfo
 
+    @staticmethod
+    def _giteaApplyVersionHint(pInfo):
+        """给 Gitea 列表条目挂上更新状态信息（识别 28.x SemVer 与本地缓存）。
+
+        当 Gitea 处于已安装状态时：
+        1. 获取当前版本 installed（如 1.26.1）；
+        2. 获取最新候选版本 target：优先读取本地缓存 latest_version_cache.json，
+           若无则取 versions 列表中的最高版本（如 28.2.0）；
+        3. 进行 SemVer 语义化比对（将 28.x.y 归一化映射为 1.28.y）；
+        4. 若 target > installed，挂上 gitea_update_available=True 与 gitea_update={current, latest}。
+        """
+        if not isinstance(pInfo, dict):
+            return pInfo
+        if str(pInfo.get('name') or '').strip().lower() != 'gitea' or pInfo.get('setup') is not True:
+            return pInfo
+        try:
+            installed = str(pInfo.get('setup_version') or '').strip()
+            if not installed:
+                ver_file = yf.getServerDir() + '/gitea/version.pl'
+                if os.path.exists(ver_file):
+                    installed = yf.readFile(ver_file).strip()
+            if not installed:
+                return pInfo
+
+            target = ''
+            cache_file = yf.getPluginDir() + '/gitea/latest_version_cache.json'
+            if os.path.exists(cache_file):
+                try:
+                    c_data = json.loads(yf.readFile(cache_file))
+                    if isinstance(c_data, dict) and c_data.get('version'):
+                        target = str(c_data['version']).strip()
+                except Exception as _ce:
+                    _log.debug('[plugin] 读取 gitea 版本缓存失败: %s', _ce)
+
+            def _parse_gitea_semver(ver_str):
+                if not ver_str:
+                    return (0, 0, 0)
+                clean = re.sub(r'^[vV]', '', str(ver_str).strip())
+                parts = re.findall(r'\d+', clean)
+                if not parts:
+                    return (0, 0, 0)
+                nums = [int(p) for p in parts[:3]]
+                while len(nums) < 3:
+                    nums.append(0)
+                if nums[0] >= 28:
+                    return (1, nums[0], nums[1])
+                return tuple(nums)
+
+            versions = pInfo.get('versions') or []
+            if isinstance(versions, str):
+                versions = [versions]
+            for v in versions:
+                v_str = str(v).strip()
+                if not v_str:
+                    continue
+                if not target or _parse_gitea_semver(v_str) > _parse_gitea_semver(target):
+                    target = v_str
+
+            if target and _parse_gitea_semver(target) > _parse_gitea_semver(installed):
+                pInfo['gitea_update_available'] = True
+                pInfo['gitea_update'] = {
+                    'current': installed,
+                    'latest': target,
+                }
+        except Exception as _e:
+            _log.debug('[plugin] 计算 Gitea 升级状态失败: %s', _e)
+        return pInfo
+
     def install(self, name, version,
         upgrade = None,
         confirm_token = ''
@@ -1827,6 +1895,7 @@ class plugin(object):
 
             self._dbApplyEolHint(pInfo)
             self._seriesApplyVersionHint(pInfo)
+            self._giteaApplyVersionHint(pInfo)
 
             display = False
             if coexist:
