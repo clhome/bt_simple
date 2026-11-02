@@ -52,3 +52,8 @@
   - [ ] 8.1 运行 `testsuite/test_plugins_i18n_upgrade.py` 确保 100% 通过
   - [ ] 8.2 运行 `python testsuite/run_all.py` 执行全量门禁回归测试
   - [ ] 8.3 清理临时测试文件，更新任务完成状态
+- [ ] **任务 9：任务管理器插件样式优化 (`plugins/task_manager`)**
+  - [ ] 9.1 表头背景不透明与分界线优化：设置 `#TaskManagement thead th` 等表头背景色与层级，彻底消除滚动重叠
+  - [ ] 9.2 底部 CPU/内存等信息单行贴底重构与常用精美矢量图标引入 (`index.html`, `task_manager.js`)
+  - [ ] 9.3 释放高度空间给中间列表：重构 `setTableContHeight` 计算并优化自适应布局，消除外层滚动条
+  - [ ] 9.4 全量多语言兼容性、静态语法、CSS 健康度与自动化测试回归验证

@@ -61,12 +61,12 @@ function setTableContHeight(hasBottom) {
         var h = Math.max(160, Math.min(220, totalH - 330));
         $(".table-cont").css("height", h + "px");
     } else if (hasBottom === true || hasBottom === 'bottom') {
-        // 带下方信息栏/运行级别统计栏（如启动项、服务、网络状态、进程列表）
-        var h = Math.max(260, totalH - 195);
+        // 底部状态栏高度收敛为 38px 贴底单行，多余高度空间全部分配给中间表格列表
+        var h = Math.max(300, totalH - 118);
         $(".table-cont").css("height", h + "px");
     } else {
         // 纯单表格页（如计划任务、用户、会话），无底部信息栏
-        var h = Math.max(360, totalH - 85);
+        var h = Math.max(360, totalH - 78);
         $(".table-cont").css("height", h + "px");
     }
 }
@@ -366,10 +366,36 @@ function get_process_list(sortx, reverse, rx) {
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
         $("#TaskManagement").html(tbody);
-        var topMsg = '<div class="mini-info-box">\
-				<div class="mini-info-con"><p><span class="tname">' + pt('CPU：') + '</span>' + data.info.cpu + '%</p><p><span class="tname">' + pt('内存：') + '</span>' + toSize(data.info.mem) + '</p></div>\
-				<div class="mini-info-con"><p style="text-align:center">' + pt('负载(load average)') + '</p><p style="text-align:center">' + data.info.load_average[1] + ', ' + data.info.load_average[5] + ', ' + data.info.load_average[15] + '</p></div>\
-				<div class="mini-info-con"><p><span class="tname">' + pt('进程数：') + '</span>' + data.process_list.length + '</p><p><span class="tname">' + pt('磁盘：') + '</span>' + toSize(data.info.disk) + '</p></div>\
+        var topMsg = '<div class="mini-status-bar">\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-cpu" title="' + pt('CPU：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></span>\
+					<span class="mini-label">' + pt('CPU：') + '</span>\
+					<span class="mini-val">' + tmEsc(data.info.cpu) + '%</span>\
+				</div>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-mem" title="' + pt('内存：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h20v12H2z"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/><path d="M6 18v2M10 18v2M14 18v2M18 18v2"/></svg></span>\
+					<span class="mini-label">' + pt('内存：') + '</span>\
+					<span class="mini-val">' + tmEsc(toSize(data.info.mem)) + '</span>\
+				</div>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-load" title="' + pt('负载(load average)') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>\
+					<span class="mini-label">' + pt('负载(load average)') + '：</span>\
+					<span class="mini-val">' + tmEsc(data.info.load_average[1]) + ', ' + tmEsc(data.info.load_average[5]) + ', ' + tmEsc(data.info.load_average[15]) + '</span>\
+				</div>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-proc" title="' + pt('进程数：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>\
+					<span class="mini-label">' + pt('进程数：') + '</span>\
+					<span class="mini-val">' + tmEsc(data.process_list.length) + '</span>\
+				</div>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-disk" title="' + pt('磁盘：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h4"/></svg></span>\
+					<span class="mini-label">' + pt('磁盘：') + '</span>\
+					<span class="mini-val">' + tmEsc(toSize(data.info.disk)) + '</span>\
+				</div>\
 			</div>';
         $("#load_average").html(topMsg).show();
         $(".pro_" + sortx).append('<span class="glyphicon glyphicon-triangle-' + (reverse == 'True' ? 'bottom' : 'top') + '" style="margin-left:5px;color:#bbb"></span>');
@@ -686,22 +712,31 @@ function get_network_list(rflush) {
     		<tbody>" + tbody_tr + "</tbody>";
 
         $("#TaskManagement").html(tbody);
-        var topMsg = '<div class="mini-info-box" style="width:666px">\
-				<div class="mini-info-con" style="width:25%">\
-					<p><span class="tname">' + pt('总发送：') + '</span>' + toSize(rdata.state.upTotal) + '</p>\
-					<p><span class="tname">' + pt('总接收：') + '</span>' + toSize(rdata.state.downTotal) + '</p>\
+        var topMsg = '<div class="mini-status-bar">\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-net-up" title="' + pt('上行：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>\
+					<span class="mini-label">' + pt('上行：') + '</span>\
+					<span class="mini-val">' + tmEsc(toSize(rdata.state.up)) + '</span>\
+					<span class="mini-label" style="margin-left:5px">(' + pt('总发送：') + '</span><span class="mini-val">' + tmEsc(toSize(rdata.state.upTotal)) + ')</span>\
 				</div>\
-				<div class="mini-info-con" style="width:25%">\
-					<p><span class="tname">' + pt('上行：') + '</span>' + toSize(rdata.state.up) + '</p>\
-					<p><span class="tname">' + pt('下行：') + '</span>' + toSize(rdata.state.down) + '</p>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-icon mini-icon-net-down" title="' + pt('下行：') + '"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></span>\
+					<span class="mini-label">' + pt('下行：') + '</span>\
+					<span class="mini-val">' + tmEsc(toSize(rdata.state.down)) + '</span>\
+					<span class="mini-label" style="margin-left:5px">(' + pt('总接收：') + '</span><span class="mini-val">' + tmEsc(toSize(rdata.state.downTotal)) + ')</span>\
 				</div>\
-				<div class="mini-info-con" style="width:25%;border-right:#DBDBEA 1px solid">\
-					<p><span class="tname">' + pt('总发包：') + '</span>' + to_max(rdata.state.upPackets) + '</p>\
-					<p><span class="tname">' + pt('总收包：') + '</span>' + to_max(rdata.state.downPackets) + '</p>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-label">' + pt('包发送/秒：') + '</span>\
+					<span class="mini-val">' + tmEsc(to_max(rdata.state.upPackets_s)) + '</span>\
+					<span class="mini-label" style="margin-left:5px">(' + pt('总发包：') + '</span><span class="mini-val">' + tmEsc(to_max(rdata.state.upPackets)) + ')</span>\
 				</div>\
-				<div class="mini-info-con" style="width:25%;">\
-					<p><span class="tname">' + pt('包发送/秒：') + '</span>' + to_max(rdata.state.upPackets_s) + '</p>\
-					<p><span class="tname">' + pt('包接收/秒：') + '</span>' + to_max(rdata.state.downPackets_s) + '</p>\
+				<div class="mini-status-sep"></div>\
+				<div class="mini-status-item">\
+					<span class="mini-label">' + pt('包接收/秒：') + '</span>\
+					<span class="mini-val">' + tmEsc(to_max(rdata.state.downPackets_s)) + '</span>\
+					<span class="mini-label" style="margin-left:5px">(' + pt('总收包：') + '</span><span class="mini-val">' + tmEsc(to_max(rdata.state.downPackets)) + ')</span>\
 				</div>\
 			</div>';
         $("#load_average").html(topMsg).show();
