@@ -6,7 +6,7 @@
     "CPU配额": "CPU-Limit",
     "CPU配额:": "CPU-Kontingent:",
     "CPU配额设置值范围应为 [1-100]!": "Der Einstellungsbereich für die CPU-Kontingente sollte [1–100] betragen!",
-    "Docker日志": "Docker-Protokolle",
+    "获取日志失败": "Logs abrufen fehlgeschlagen",
     "Docker根目录": "Docker-Stammverzeichnis",
     "IP 地址": "IP-Adresse",
     "IP地址": "IP-Adresse",

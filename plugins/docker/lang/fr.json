@@ -6,7 +6,7 @@
     "CPU配额": "Quota CPU",
     "CPU配额:": "Quota de processeur :",
     "CPU配额设置值范围应为 [1-100]!": "La plage de valeurs du paramètre de quota CPU doit être [1-100] !",
-    "Docker日志": "Journal Docker",
+    "获取日志失败": "Échec de récupération des journaux",
     "Docker根目录": "Répertoire racine de Docker",
     "IP 地址": "Adresse IP",
     "IP地址": "Adresse IP",

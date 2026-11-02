@@ -63,5 +63,7 @@
     "未运行 - 会导致502错误": "Not running - causes 502 error",
     "一键拉起PHP服务": "Start PHP Service",
     "正在尝试拉起 PHP 服务...": "Starting PHP service...",
-    "当前PHP：": "Current PHP: "
+    "当前PHP：": "Current PHP: ",
+    "启动成功": "Started successfully",
+    "启动失败": "Failed to start"
 }

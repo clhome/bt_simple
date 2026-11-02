@@ -5378,8 +5378,8 @@ var lan = {
 				"ps": "Statistiche in tempo reale su visite del sito, IP, PV, profili dei visitatori e fonti"
 			},
 			"yufeng_systemd": {
-				"title": "Gestore Systemd YuFeng",
-				"ps": "Gestore Systemd YuFeng per la gestione visiva e il monitoraggio dei services di sistema"
+				"title": "Gestore processi YuFeng",
+				"ps": "Plugin leggero per la gestione e il monitoraggio dei processi con registri in tempo reale"
 			}
 		},
 

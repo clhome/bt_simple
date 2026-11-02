@@ -186,20 +186,20 @@ def isPhpServiceRunning(php_ver):
     if str(php_ver).startswith('apt'):
         real_v = str(php_ver).replace('apt', '')
         service_name = f'php{real_v}-fpm'
-        rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+        rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
         return (rc == 0 and out.strip() == 'active'), service_name
 
     # 2. yum 渠道（如 yum82, yum83）
     if str(php_ver).startswith('yum'):
         real_v = str(php_ver).replace('yum', '')
         service_name = f'php{real_v}-php-fpm'
-        rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+        rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
         return (rc == 0 and out.strip() == 'active'), service_name
 
     # 3. 编译版（如 82, 81, 74）
     service_name = f'php-fpm-{php_ver}'
     socket_path = f'/tmp/php-cgi-{php_ver}.sock'
-    rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+    rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
     if rc == 0 and out.strip() == 'active':
         return True, service_name
     if os.path.exists(socket_path):
@@ -222,18 +222,18 @@ def ensurePhpServiceRunning(php_ver=None):
     if str(php_ver).startswith('apt'):
         real_v = str(php_ver).replace('apt', '')
         service_name = f'php{real_v}-fpm'
-        yf.execShellRc(f'systemctl start {service_name}')
+        yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
     elif str(php_ver).startswith('yum'):
         real_v = str(php_ver).replace('yum', '')
         service_name = f'php{real_v}-php-fpm'
-        yf.execShellRc(f'systemctl start {service_name}')
+        yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
     else:
         service_name = f'php-fpm-{php_ver}'
         initd_script = f'/etc/init.d/{service_name}'
         if os.path.exists(initd_script):
-            yf.execShellRc(f'{initd_script} start')
+            yf.execShellRc(yf.shlexQuote(initd_script) + ' start')
         else:
-            yf.execShellRc(f'systemctl start {service_name}')
+            yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
 
     running2, _ = isPhpServiceRunning(php_ver)
     if running2:

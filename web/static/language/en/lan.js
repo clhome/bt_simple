@@ -5378,8 +5378,8 @@ var lan = {
 				"ps": "Real-time statistics of website visits, IPs, PVs, visitor profiles, and source analysis"
 			},
 			"yufeng_systemd": {
-				"title": "YuFeng Systemd Manager",
-				"ps": "YuFeng Systemd Manager for visual management and monitoring of system services"
+				"title": "YuFeng Process Manager",
+				"ps": "Lightweight process daemon and management plugin with monitoring, autostart and real-time logs"
 			}
 		},
 

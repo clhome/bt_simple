@@ -74,7 +74,7 @@ function logsCon(id) {
     };
 
     var content = '<div class="bt-form pd15" style="padding: 12px 15px;">' +
-        '<div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">' +
+        '<div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">' +
             '<div style="display: flex; align-items: center; gap: 12px;">' +
                 '<label style="font-weight: normal; cursor: pointer; color: #475569; user-select: none; margin-bottom: 0; display: inline-flex; align-items: center; font-size: 13px;">' +
                     '<input type="checkbox" id="docker_log_auto_refresh" style="vertical-align: middle; margin-right: 6px; margin-top: 0; cursor: pointer;"> ' + pt('5秒自动刷新') +

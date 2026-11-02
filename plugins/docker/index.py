@@ -7,6 +7,7 @@ import time
 import re
 import ast
 import json
+import glob
 import shlex
 import subprocess
 import posixpath
@@ -577,7 +578,13 @@ def dockerClearConLog():
         else:
             # 兼容非 json-file 日志或未在 attrs 暴露 LogPath 的情况
             safe_host = re.sub(r'[^a-zA-Z0-9_-]', '', Hostname)
-            yf.execShell(f"truncate -s 0 /var/lib/docker/containers/{safe_host}*/{safe_host}*-json.log 2>/dev/null || true")
+            if safe_host:
+                for lf in glob.glob(f'/var/lib/docker/containers/{safe_host}*/{safe_host}*-json.log'):
+                    try:
+                        with open(lf, 'r+', encoding='utf-8', errors='ignore') as f:
+                            f.truncate(0)
+                    except Exception as _e:
+                        _log.debug('[docker] 清空容器日志失败 %s: %s', lf, _e)
             return yf.returnJson(True, '清空日志成功')
     except Exception as ex:
         return yf.returnJson(False, f'清空日志失败: {str(ex)}')
