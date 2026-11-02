@@ -97,6 +97,30 @@ class TestPhpMyAdminPluginFixes(unittest.TestCase):
         self.assertIn("':' + port + '/' + rand_path + '/index.php'", content)
         self.assertIn("getConfInc()", content)
 
+    def test_pma_php_service_mapping_and_no_stale_socket_false_positive(self):
+        """测试 PHP 服务映射与零假阳性探活：编译版服务名为 php{ver}，且杜绝仅凭 socket 存在判活"""
+        index_py_path = os.path.join(ROOT_DIR, "plugins", "phpmyadmin", "index.py")
+        with open(index_py_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("def _probeUnixSocket(", content, "必须具备真实 socket 探针")
+        self.assertIn("service_name = f'php{v_str}'", content, "编译版服务名必须映射为 php{ver}")
+        self.assertNotIn("service_name = f'php-fpm-{php_ver}'", content, "禁止映射为不存在的 php-fpm-{ver}")
+
+    def test_enable_php_upstream_has_backup_keyword(self):
+        """测试 enable-php-upstream.conf 中的备用 socket 正确声明 backup 关键字"""
+        upstream_conf_path = os.path.join(ROOT_DIR, "plugins", "php", "conf", "enable-php-upstream.conf")
+        with open(upstream_conf_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("backup.sock backup;", content, "backup.sock 必须带有 backup 关键字以防被 Nginx 轮询")
+
+    def test_sync_php_conf_heals_version_mismatch(self):
+        """测试 syncPhpConf 存在并能够纠正脱节的 enable-php 版本"""
+        index_py_path = os.path.join(ROOT_DIR, "plugins", "phpmyadmin", "index.py")
+        with open(index_py_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("def syncPhpConf():", content)
+        self.assertIn("enable-php-", content)
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -173,8 +173,25 @@ def getCachePhpVer():
     return v
 
 
+def _probeUnixSocket(socket_path):
+    """通过建立 Unix Domain Socket 短连接真实探测后端 FPM 监听状态，杜绝残留僵死 socket 假阳性。"""
+    if not socket_path or not os.path.exists(socket_path):
+        return False
+    import socket
+    if not hasattr(socket, 'AF_UNIX'):
+        return False
+    try:
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(0.3)
+        sock.connect(socket_path)
+        sock.close()
+        return True
+    except Exception:
+        return False
+
+
 def isPhpServiceRunning(php_ver):
-    """检测指定 PHP 版本对应的 FPM 服务是否正在运行。"""
+    """检测指定 PHP 版本对应的 FPM 服务是否正在真实运行（零假阳性探活）。"""
     if not php_ver or php_ver == '00':
         return False, '无可用 PHP 版本'
 
@@ -182,27 +199,66 @@ def isPhpServiceRunning(php_ver):
     if current_os == 'darwin':
         return True, 'macOS'
 
+    v_str = str(php_ver)
+    import importlib
+
     # 1. apt 渠道（如 apt8.2, apt8.3）
-    if str(php_ver).startswith('apt'):
-        real_v = str(php_ver).replace('apt', '')
+    if v_str.startswith('apt'):
+        real_v = v_str.replace('apt', '')
         service_name = f'php{real_v}-fpm'
+        socket_path = f'/run/php/php{real_v}-fpm.sock'
+        try:
+            mod = importlib.import_module('plugins.php-apt.index')
+            if mod.status(real_v) == 'start':
+                return True, service_name
+        except Exception as _e:
+            _log.debug('[phpmyadmin] php-apt 模块探活降级: %s', _e)
         rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
-        return (rc == 0 and out.strip() == 'active'), service_name
+        if rc == 0 and out.strip() == 'active':
+            return True, service_name
+        if _probeUnixSocket(socket_path):
+            return True, service_name
+        return False, service_name
 
     # 2. yum 渠道（如 yum82, yum83）
-    if str(php_ver).startswith('yum'):
-        real_v = str(php_ver).replace('yum', '')
+    if v_str.startswith('yum'):
+        real_v = v_str.replace('yum', '')
         service_name = f'php{real_v}-php-fpm'
+        socket_path = f'/var/opt/remi/php{real_v}/run/php-fpm/www.sock'
+        try:
+            mod = importlib.import_module('plugins.php-yum.index')
+            if mod.status(real_v) == 'start':
+                return True, service_name
+        except Exception as _e:
+            _log.debug('[phpmyadmin] php-yum 模块探活降级: %s', _e)
         rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
-        return (rc == 0 and out.strip() == 'active'), service_name
+        if rc == 0 and out.strip() == 'active':
+            return True, service_name
+        if _probeUnixSocket(socket_path):
+            return True, service_name
+        return False, service_name
 
     # 3. 编译版（如 82, 81, 74）
-    service_name = f'php-fpm-{php_ver}'
-    socket_path = f'/tmp/php-cgi-{php_ver}.sock'
+    # 系统服务名在 systemd 中为 php{v_str}，在 init.d 中为 /etc/init.d/php{v_str}
+    service_name = f'php{v_str}'
+    socket_path = f'/tmp/php-cgi-{v_str}.sock'
+    try:
+        mod = importlib.import_module('plugins.php.index')
+        if mod.status(v_str) == 'start':
+            return True, service_name
+    except Exception as _e:
+        _log.debug('[phpmyadmin] php 编译版模块探活降级: %s', _e)
+
     rc, out, _ = yf.execShellRc('systemctl is-active ' + yf.shlexQuote(service_name))
     if rc == 0 and out.strip() == 'active':
         return True, service_name
-    if os.path.exists(socket_path):
+
+    rc, out, _ = yf.execShellRc(f"ps aux | grep -E 'php/{v_str}/|php-fpm.*{v_str}' | grep -v grep")
+    if rc == 0 and out.strip():
+        return True, service_name
+
+    # 绝对禁止仅凭 os.path.exists(socket_path) 判定存活；必须通过真实连接探测
+    if _probeUnixSocket(socket_path):
         return True, service_name
     return False, service_name
 
@@ -219,26 +275,53 @@ def ensurePhpServiceRunning(php_ver=None):
         return True, f'{svc_name} 正常运行'
 
     _log.info('[phpmyadmin] 检测到 %s 未处于运行态，正在自动拉起...', svc_name)
-    if str(php_ver).startswith('apt'):
-        real_v = str(php_ver).replace('apt', '')
-        service_name = f'php{real_v}-fpm'
-        yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
-    elif str(php_ver).startswith('yum'):
-        real_v = str(php_ver).replace('yum', '')
-        service_name = f'php{real_v}-php-fpm'
-        yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
-    else:
-        service_name = f'php-fpm-{php_ver}'
-        initd_script = f'/etc/init.d/{service_name}'
-        if os.path.exists(initd_script):
-            yf.execShellRc(yf.shlexQuote(initd_script) + ' start')
+    v_str = str(php_ver)
+    import importlib
+
+    # 1. 优先调用各 PHP 插件模块的官方启动逻辑（内建自愈配置、清理孤儿 socket 及三级容灾拉起）
+    try:
+        if v_str.startswith('apt'):
+            mod = importlib.import_module('plugins.php-apt.index')
+            mod.start(v_str.replace('apt', ''))
+        elif v_str.startswith('yum'):
+            mod = importlib.import_module('plugins.php-yum.index')
+            mod.start(v_str.replace('yum', ''))
         else:
-            yf.execShellRc('systemctl start ' + yf.shlexQuote(service_name))
+            mod = importlib.import_module('plugins.php.index')
+            mod.start(v_str)
+    except Exception as e:
+        _log.warning('[phpmyadmin] 插件模块拉起异常，转入命令行降级拉起: %s', e)
 
     running2, _ = isPhpServiceRunning(php_ver)
     if running2:
         return True, f'成功拉起 {svc_name}'
-    return False, f'拉起 {svc_name} 失败，请前往对应 PHP 版本管理排查'
+
+    # 2. 命令行容灾拉起与僵尸 socket 清理
+    if v_str.startswith('apt'):
+        real_v = v_str.replace('apt', '')
+        yf.execShellRc(f'systemctl start php{real_v}-fpm')
+    elif v_str.startswith('yum'):
+        real_v = v_str.replace('yum', '')
+        yf.execShellRc(f'systemctl start php{real_v}-php-fpm')
+    else:
+        # 清理无法连接的残留死锁 socket，防止 php-fpm 启动报 address already in use
+        sock_file = f'/tmp/php-cgi-{v_str}.sock'
+        if os.path.exists(sock_file) and not _probeUnixSocket(sock_file):
+            try:
+                os.remove(sock_file)
+            except Exception:
+                yf.execShellRc(f'rm -f {yf.shlexQuote(sock_file)}')
+
+        initd_script = f'/etc/init.d/php{v_str}'
+        if os.path.exists(initd_script):
+            yf.execShellRc(f'{yf.shlexQuote(initd_script)} start')
+        else:
+            yf.execShellRc(f'systemctl start php{v_str}')
+
+    running3, _ = isPhpServiceRunning(php_ver)
+    if running3:
+        return True, f'成功拉起 {svc_name}'
+    return False, f'拉起 {svc_name} 失败，请前往【PHP-{php_ver}】设置或在终端查看日志排查'
 
 
 def startPmaPhp():
@@ -511,16 +594,53 @@ def delPort():
     return True
 
 
+def syncPhpConf():
+    """检查并自动自愈纠正 phpmyadmin.conf 中实际引用的 PHP 版本，杜绝与当前运行态脱节导致 502。"""
+    file_run = getConf()
+    cur_php = getCachePhpVer()
+    if not cur_php or cur_php == '00':
+        return False
+
+    php_conf_dir = yf.getServerDir() + '/web_conf/php/conf'
+    target_include = f'include {php_conf_dir}/enable-php-{cur_php}.conf;'
+
+    if not os.path.exists(file_run):
+        file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
+        if os.path.exists(file_tpl):
+            content = yf.readFile(file_tpl)
+            content = contentReplace(content)
+            yf.writeFile(file_run, content)
+            return True
+        return False
+
+    content = yf.readFile(file_run)
+    m = re.search(r'include\s+.*?/enable-php-(.*?)\.conf;', content)
+    need_save = False
+    if m:
+        configured_php = m.group(1).strip()
+        if configured_php != cur_php:
+            _log.info('[phpmyadmin] 检测到 vhost 配置中的 PHP 版本 (%s) 与当前有效版本 (%s) 不一致，正在自动自愈纠正...',
+                      configured_php, cur_php)
+            content = re.sub(r'include\s+.*?/enable-php-.*?\.conf;', target_include, content)
+            need_save = True
+    else:
+        file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
+        if os.path.exists(file_tpl):
+            content = contentReplace(yf.readFile(file_tpl))
+            need_save = True
+
+    if need_save:
+        yf.writeFile(file_run, content)
+        yf.restartWeb()
+        return True
+    return False
+
+
 def start():
     initCfg()
     openPort()
 
-    file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
-    file_run = getConf()
-    if not os.path.exists(file_run):
-        centent = yf.readFile(file_tpl)
-        centent = contentReplace(centent)
-        yf.writeFile(file_run, centent)
+    syncPhpConf()
 
     pma_path = getServerDir() + '/pma.pass'
     cfg = getCfg()
@@ -861,7 +981,8 @@ def getPmaAccessInfo():
         data['password'] = cfg.get('password', 'admin')
         data['path'] = rand_path
 
-        # 注入 PHP 运行状态，方便前端直观呈现与异常自愈
+        # 注入 PHP 运行状态，检测并同步当前配置，方便前端直观呈现与异常自愈
+        syncPhpConf()
         php_ver = getCachePhpVer()
         data['php_ver'] = php_ver
         php_running, svc_name = isPhpServiceRunning(php_ver)
