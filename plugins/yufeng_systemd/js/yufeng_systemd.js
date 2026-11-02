@@ -312,39 +312,95 @@ var yufeng_systemd = {
     },
     
     get_logs: function(service_name) {
-        this.request('get_service_logs', {service_name: service_name}, function(res) {
-            if (res.status) {
-                var log_content = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(res.data) : ysEsc(res.data);
-                
-                var log_html = '<div id="yufeng_log_box" style="padding: 10px; background-color: #333; color: #fff; height: 380px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;">' + (log_content || pt('暂无运行日志')) + '</div>';
-                layer.open({
-                    type: 1,
-                    title: pt('运行日志 (最近100行防OOM) - [') + ysEsc(service_name) + ']',
-                    area: ['800px', '500px'],
-                    shadeClose: true,
-                    btn: [pt('清空日志'), pt('关闭')],
-                    content: log_html,
-                    yes: function(index, layero) {
-                        layer.confirm(pt('确定要清空该服务的运行日志吗？'), {icon: 3, title:  pt('提示')}, function(c_index) {
-                            layer.close(c_index);
-                            yufeng_systemd.request('clear_service_logs', {service_name: service_name}, function(c_res) {
-                                layer.msg(ysEsc(c_res.msg), {icon: c_res.status ? 1 : 2});
-                                if (c_res.status) {
-                                    yufeng_systemd.request('get_service_logs', {service_name: service_name}, function(new_res) {
-                                        if (new_res.status) {
-                                            var new_log = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(new_res.data) : ysEsc(new_res.data);
-                                            $('#yufeng_log_box').html(new_log || pt('暂无运行日志'));
-                                        }
-                                    });
-                                }
-                            }, pt('正在清空...'));
-                        });
+        var autoTimer = null;
+        var scrollLogToBottom = function() {
+            var box = document.getElementById('yufeng_log_box');
+            if (box) {
+                box.scrollTop = box.scrollHeight;
+            }
+        };
+
+        var fetchLogs = function(silent, callback) {
+            yufeng_systemd.request('get_service_logs', {service_name: service_name}, function(res) {
+                if (res.status) {
+                    var new_log = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(res.data) : ysEsc(res.data);
+                    $('#yufeng_log_box').html(new_log || pt('暂无运行日志'));
+                    scrollLogToBottom();
+                } else if (!silent) {
+                    layer.msg(ysEsc(res.msg), {icon: 2});
+                }
+                if (typeof callback === 'function') callback(res);
+            }, silent ? null : pt('正在获取日志...'));
+        };
+
+        var log_html = '<div id="yufeng_log_box" style="padding: 12px; background-color: #272822; color: #f8f8f2; height: 380px; overflow: auto; font-family: Consolas, Monaco, monospace; font-size: 12px; white-space: pre-wrap; line-height: 22px; box-sizing: border-box;">' + pt('正在获取日志...') + '</div>';
+
+        layer.open({
+            type: 1,
+            title: pt('运行日志 (最近100行防OOM) - [') + ysEsc(service_name) + ']',
+            area: ['800px', '500px'],
+            shadeClose: false,
+            btn: [pt('清空日志'), pt('关闭')],
+            content: log_html,
+            success: function(layero, index) {
+                // 在底部按钮栏左侧注入「5秒自动刷新」复选框（默认勾选）
+                var $btnBar = layero.find('.layui-layer-btn');
+                var autoRefreshHtml = '<div class="pull-left" style="line-height: 28px; margin-left: 5px;">' +
+                    '<label style="font-weight: normal; cursor: pointer; color: #475569; user-select: none; margin-bottom: 0; display: inline-flex; align-items: center; font-size: 13px;">' +
+                        '<input type="checkbox" id="yufeng_log_auto_refresh" checked style="vertical-align: middle; margin-right: 6px; margin-top: 0; cursor: pointer;"> ' + pt('5秒自动刷新') +
+                    '</label>' +
+                '</div>';
+                $btnBar.prepend(autoRefreshHtml);
+
+                // 首次拉取并滚到底部
+                fetchLogs(false);
+
+                // 5 秒自动刷新计时器
+                var startAutoTimer = function() {
+                    if (!autoTimer) {
+                        autoTimer = setInterval(function() {
+                            if ($('#yufeng_log_auto_refresh').is(':checked')) {
+                                fetchLogs(true);
+                            } else {
+                                clearInterval(autoTimer);
+                                autoTimer = null;
+                            }
+                        }, 5000);
+                    }
+                };
+
+                startAutoTimer();
+
+                $('#yufeng_log_auto_refresh').on('change', function() {
+                    if ($(this).is(':checked')) {
+                        fetchLogs(true);
+                        startAutoTimer();
+                    } else {
+                        if (autoTimer) {
+                            clearInterval(autoTimer);
+                            autoTimer = null;
+                        }
                     }
                 });
-            } else {
-                layer.msg(ysEsc(res.msg), {icon: 2});
+            },
+            yes: function(index, layero) {
+                layer.confirm(pt('确定要清空该服务的运行日志吗？'), {icon: 3, title: pt('提示')}, function(c_index) {
+                    layer.close(c_index);
+                    yufeng_systemd.request('clear_service_logs', {service_name: service_name}, function(c_res) {
+                        layer.msg(ysEsc(c_res.msg), {icon: c_res.status ? 1 : 2});
+                        if (c_res.status) {
+                            fetchLogs(true);
+                        }
+                    }, pt('正在清空...'));
+                });
+            },
+            end: function() {
+                if (autoTimer) {
+                    clearInterval(autoTimer);
+                    autoTimer = null;
+                }
             }
-        }, pt('正在获取日志...'));
+        });
     },
     
     // 基础请求封装：loading 由本函数自己开关 —— 业务失败（status:false，例如插件抛异常）

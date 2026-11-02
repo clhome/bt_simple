@@ -50,28 +50,102 @@ function dockerTableEmptyHtml(colspan, text) {
 
 
 function logsCon(id) {
-    api.post('docker_con_log', '', { Hostname: id }, function(rdata) {
-        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
-        if (!rdata.status) {
-            layer.msg(rdata.msg, { icon: 2 });
-            return;
-        };
-        layer.open({
-            type: 1,
-            title: pt('Docker日志'),
-            area: '600px',
-            closeBtn: 1,
-            content: '<div class="bt-form">' +
-                '<pre class="crontab-log" style="overflow: auto; \
-                    border: 0px none; line-height:23px;padding: 15px; \
-                    margin: 0px; white-space: pre-wrap; height: 405px; \
-                    background-color: rgb(51,51,51);color:#f1f1f1;\
-                    border-radius:0px;">' + (rdata.msg == '' ? 'No logs' : rdata.msg) + '</pre>' +
-                '</div>',
-            success: function(index, layers) {
-                $(".crontab-log").scrollTop(1000000);
+    var autoTimer = null;
+    var loadLogs = function(silent, callback) {
+        var loadT = silent ? null : layer.msg(pt('正在获取日志...'), { icon: 16, time: 0, shade: 0.2 });
+        api.post('docker_con_log', '', { Hostname: id }, function(res) {
+            if (loadT) layer.close(loadT);
+            var rdata = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+            if (!rdata.status) {
+                if (!silent) layer.msg(rdata.msg || pt('获取日志失败'), { icon: 2 });
+                return;
             }
+            var text = (rdata.msg == '' || rdata.msg == null) ? pt('暂无日志') : rdata.msg;
+            var safeText = (window.bt && typeof bt.htmlEncode === 'function') ? bt.htmlEncode(text) : dockerEsc(text);
+            $('#docker_log_box').html(safeText);
+
+            // 保持最新日志显示在当前页底部，旧日志不断上移
+            var box = document.getElementById('docker_log_box');
+            if (box) {
+                box.scrollTop = box.scrollHeight;
+            }
+            if (typeof callback === 'function') callback();
         });
+    };
+
+    var content = '<div class="bt-form pd15" style="padding: 12px 15px;">' +
+        '<div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">' +
+            '<div style="display: flex; align-items: center; gap: 12px;">' +
+                '<label style="font-weight: normal; cursor: pointer; color: #475569; user-select: none; margin-bottom: 0; display: inline-flex; align-items: center; font-size: 13px;">' +
+                    '<input type="checkbox" id="docker_log_auto_refresh" style="vertical-align: middle; margin-right: 6px; margin-top: 0; cursor: pointer;"> ' + pt('5秒自动刷新') +
+                '</label>' +
+                '<button type="button" id="docker_log_btn_refresh" class="btn btn-default btn-sm" style="display: inline-flex; align-items: center;"><span class="glyphicon glyphicon-refresh" style="margin-right: 4px;"></span>' + pt('刷新') + '</button>' +
+            '</div>' +
+            '<div>' +
+                '<button type="button" id="docker_log_btn_clear" class="btn btn-danger btn-sm" style="display: inline-flex; align-items: center;"><span class="glyphicon glyphicon-trash" style="margin-right: 4px;"></span>' + pt('清除') + '</button>' +
+            '</div>' +
+        '</div>' +
+        '<pre id="docker_log_box" class="crontab-log" style="overflow: auto; border: 0px none; line-height:22px; padding: 12px; margin: 0px; white-space: pre-wrap; height: 395px; background-color: #272822; color: #f8f8f2; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 12px; box-sizing: border-box;"></pre>' +
+    '</div>';
+
+    layer.open({
+        type: 1,
+        title: pt('Docker容器日志') + ' - [' + dockerEsc(id) + ']',
+        area: ['760px', '520px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: content,
+        success: function(layero, index) {
+            loadLogs(false);
+
+            $('#docker_log_btn_refresh').on('click', function() {
+                loadLogs(false);
+            });
+
+            $('#docker_log_btn_clear').on('click', function() {
+                safeMessage(pt('清空日志'), pt('确定要清空该容器的运行日志吗？'), function() {
+                    var clearLoad = layer.msg(pt('正在清空日志...'), { icon: 16, time: 0, shade: 0.2 });
+                    api.post('docker_clear_con_log', '', { Hostname: id }, function(res) {
+                        layer.close(clearLoad);
+                        var cdata = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+                        if (cdata.status) {
+                            layer.msg(pt('清空日志成功'), { icon: 1 });
+                            loadLogs(true);
+                        } else {
+                            layer.msg(cdata.msg || pt('清空日志失败'), { icon: 2 });
+                        }
+                    });
+                });
+            });
+
+            var handleAutoSwitch = function() {
+                if ($('#docker_log_auto_refresh').is(':checked')) {
+                    if (!autoTimer) {
+                        autoTimer = setInterval(function() {
+                            if ($('#docker_log_auto_refresh').is(':checked')) {
+                                loadLogs(true);
+                            } else {
+                                clearInterval(autoTimer);
+                                autoTimer = null;
+                            }
+                        }, 5000);
+                    }
+                } else {
+                    if (autoTimer) {
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+            };
+
+            $('#docker_log_auto_refresh').on('change', handleAutoSwitch);
+        },
+        end: function() {
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+        }
     });
 }
 

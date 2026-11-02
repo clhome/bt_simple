@@ -294,6 +294,47 @@ def reload():
     return 'ok'
 
 
+def initdStatus():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+    if current_os.startswith('freebsd'):
+        return 'ok' if status() == 'start' else 'fail'
+    if status() != 'start':
+        return 'fail'
+    rc, out, _err = yf.execShellRc('systemctl is-enabled openresty')
+    if rc == 0 and out.strip().startswith('enabled'):
+        return 'ok'
+    if os.path.exists('/etc/init.d/openresty'):
+        return 'ok'
+    return 'fail'
+
+
+def initdInstall():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+    if not isInstalled():
+        return 'ERROR: 请先安装OpenResty'
+    if status() != 'start':
+        start()
+    rc, out, err = yf.execShellRc('systemctl enable openresty')
+    if rc != 0 and not os.path.exists('/etc/init.d/openresty'):
+        _log.warning('[op_load_balance] systemctl enable openresty 警告: %s', err)
+    return 'ok'
+
+
+def initdUninstall():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+    try:
+        stop()
+    except Exception as _e:
+        _log.debug('[op_load_balance] initdUninstall stop 异常已忽略: %s', _e)
+    return 'ok'
+
+
 def installPreInspection():
     check_op = yf.getServerDir() + "/openresty"
     if not os.path.exists(check_op):
@@ -797,6 +838,12 @@ if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
         print(status())
+    elif func in ['initd_status', 'initdStatus']:
+        print(initdStatus())
+    elif func in ['initd_install', 'initdInstall']:
+        print(initdInstall())
+    elif func in ['initd_uninstall', 'initdUninstall']:
+        print(initdUninstall())
     elif func == 'start':
         print(start())
     elif func == 'stop':

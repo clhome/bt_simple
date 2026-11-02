@@ -1,135 +1,47 @@
-# Gitea 插件自动获取最新版本与无损平滑升级任务
+# 20261102 手测缺陷修复与体验优化任务
 
-## 项目概况与目标
+## 项目概况与规范
 
-针对 `plugins/gitea` 插件实现全自动最新版本检测与老版本一键无损升级能力，确保生产环境下升级过程绝对平滑、不破坏既有环境与用户数据：
+根据 `参考/20261102手测.md` 反馈的 6 大缺陷问题进行针对性核对与彻底修复，同时对排查发现的同族/共性问题一并根治治理：
+1. **御风 Python 多版本**：修复安装包含预发布标识（如 `cpython-3.15.0b4-linux-x86_64-gnu`、`3.15.0b4`）时因正则限制报错「版本标识不合法，已拒绝」的缺陷；
+2. **御风 Docker 管理器**：优化容器日志模块，增加刷新、清空日志功能及 5 秒自动刷新勾选框（日志自动置底滚动）；
+3. **御风网站防火墙**：修复服务面板「开机启动」点击报错问题，补齐 `initdStatus` / `initdInstall` / `initdUninstall` 接口，并排查治理 `op_load_balance` 与 `webstats` 插件的共性缺失；
+4. **phpMyAdmin 无法访问 (502 Bad Gateway)**：排查修复 phpMyAdmin 关联 PHP-FPM 服务未运行或 socket 不匹配导致的 502 错误，增加 PHP 服务运行检测与自愈拉起机制；
+5. **任务管理器样式美化**：消除硬编码 `597px` 超高导致的底部文字被裁切截断问题，重构自适应弹性布局与底部优雅留白；
+6. **御风服务管理器**：
+   - 6.1 统一更名为「御风进程管理器」；
+   - 6.2 日志模块优化：增加 5 秒自动刷新勾选框（默认勾选），更新时保持最新日志显示在当前页底部，旧日志不断上移。
 
-1. **自动获取最新版本与版本对比**：
-   - 实现高可用版本嗅探：支持 GitHub Releases 页面 302 重定向嗅探（免 API 限流）+ GitHub REST API 兜底，并集成面板内置 GitHub 镜像加速通道；
-   - 精确读取本地当前版本（执行 `gitea --version` 结合 `version.pl`）；
-   - 提供版本缓存与手动刷新机制，提取最新版本号、发布日期与 Release Notes 摘要；
-   - 引入语义化版本（SemVer）比对算法，精确判断更新状态。
-2. **老版本一键无损安全升级与秒级自动回滚（核心安全保障）**：
-   - **环境与数据绝对隔离**：严格保持 `/www/server/gitea/custom/conf/app.ini` 独立不变，保持仓库、数据库、LFS、附件与 SSH 密钥等数据 100% 独立，不破坏原有环境；
-   - **大版本跳跃防呆与 SQLite 自动快照**：识别版本跨度，规避 Gitea 数据库迁移跳跃断代风险；升级前自动快照 SQLite 数据库文件；
-   - **升级前环境兼容性预检**：下载新版二进制包并解压后，先在临时目录预执行 `--version` 测试，确保系统架构与 glibc 动态链接库完全兼容；
-   - **原子替换与 15 秒健康巡检**：备份旧可执行文件为 `gitea.bak.{timestamp}`，优雅停止旧服务，替换二进制并启动新版本，自动触发 Gitea 内部 Schema 迁移，持续巡检进程与端口；
-   - **异常自动秒级回滚**：若新版本启动失败或 15 秒内崩溃，立即自动恢复 `gitea.bak` 旧版本二进制并拉起旧服务，保证原有使用环境不受破坏，服务短暂重启。
-3. **前端管理界面与多语言支持**：
-   - 在 `plugins/gitea/index.html` 菜单中新增「版本管理」功能项（并在「服务」首页增加当前/最新版本徽标联动）；
-   - 展示当前版本、最新版本、更新状态、发布时间与更新日志；
-   - 提供【检查更新】与【一键安全升级】按钮，包含安全提示弹窗与升级进度提示；
-   - 补齐 `plugins/gitea/lang/` 6 种语言包（zh-CN, zh-TW, en, de, fr, it）。
-4. **自动化测试与跨平台验证**：
-   - 在根目录 `test/` 编写完备的自动化测试脚本，验证版本探测、SemVer 比对、升级流程、自动回滚以及前端接口；
-   - 确保遵循 UTF-8 LF 规范与 Windows/Linux 跨平台兼容性要求。
-
-## 规范与原则
-
-- **简洁至上**：恪守 KISS 原则，注重代码可维护性，严禁过度工程化与冗余抽象。
-- **第一性原理**：从核心问题出发拆解实现路径，杜绝盲目臆测。
-- **事实优先**：严谨客观，发现既有代码问题、需求冲突或盲点请直接指出。
+### 开发规范
 - **编码与格式**：所有文件统一采用 UTF-8 (无 BOM) 编码，换行符强制使用 LF (`\n`)。
-- **跨平台兼容**：保证在 Windows 11 本地开发与 Linux 服务器部署的双向跨平台兼容性，严禁硬编码反斜杠路径。
-- **目录洁净**：测试脚本统一归入根目录 `test/`，严禁污染生产代码目录，执行完成后主动清理临时排查文件。
+- **跨平台兼容**：严禁硬编码反斜杠路径，保证 Windows 本地开发与 Linux 生产环境兼容。
+- **目录洁净**：测试脚本统一归入根目录 `test/`，执行完成后主动清理临时排查文件。
+
+---
 
 ## 任务拆解与进度 (Task List)
 
-- [x] **任务 1：后端版本探测与最新 Release 解析开发 ([plugins/gitea/index.py](file:///d:/git/gitea/bt_simple/plugins/gitea/index.py))**
-  - [x] 1.1 实现 `getCurrentVersion`：优先通过二进制 `gitea --version` 与 `version.pl` 获取精确当前版本
-  - [x] 1.2 实现 `getLatestReleaseFromGithub`：实现 302 重定向嗅探与 GitHub API 降级通道，支持国内 GitHub 镜像代理与本地缓存
-  - [x] 1.3 实现 SemVer 版本大小解析比对与大版本跨度风险评估逻辑
-- [x] **任务 2：实现原子升级、健康检查与秒级回滚核心逻辑 ([plugins/gitea/index.py](file:///d:/git/gitea/bt_simple/plugins/gitea/index.py))**
-  - [x] 2.1 实现升级前置安全备份（旧二进制备份与 SQLite 数据快照）
-  - [x] 2.2 实现新版本下载、解压、预检（`--version` 架构与 glibc 探针）
-  - [x] 2.3 实现停服、原子替换二进制与拉起新版本
-  - [x] 2.4 实现 15 秒健康巡检与异常自动回滚（Fail-Safe Rollback）
-  - [x] 2.5 暴露后端 API：`check_update` 与 `upgrade_app`
-- [x] **任务 3：前端界面交互与体验集成 ([plugins/gitea/index.html](file:///d:/git/gitea/bt_simple/plugins/gitea/index.html), [plugins/gitea/js/gitea.js](file:///d:/git/gitea/bt_simple/plugins/gitea/js/gitea.js))**
-  - [x] 3.1 在 `index.html` 菜单中增加「版本管理」项
-  - [x] 3.2 在 `js/gitea.js` 中实现版本信息展示、更新检测触发与更新日志渲染
-  - [x] 3.3 实现安全升级弹窗确认、进度加载遮罩与升级完成回调
-  - [x] 3.4 在「服务」页面顶部增加版本状态与快捷更新入口
-- [x] **任务 4：多语言包更新与同步 ([plugins/gitea/lang/](file:///d:/git/gitea/bt_simple/plugins/gitea/lang/))**
-  - [x] 4.1 在 `zh-CN.json`, `zh-TW.json`, `en.json`, `de.json`, `fr.json`, `it.json` 补全新增多语言词条
-- [x] **任务 5：编写自动化测试与全量回归验证**
-  - [x] 5.1 在 `test/test_gitea_upgrade.py` 中补齐针对版本检测、版本比对、升级及回滚流程的测试
-  - [x] 5.2 执行全量测试验证，确认所有测试通过且无语法、编码错误
-  - [x] 5.3 验证完成后主动清理测试临时文件，更新任务打勾状态
-- [x] **任务 6：基于 2026-10-31 建议报告与最新发布规范的二次深度优化**
-  - [x] 6.1 精简 `info.json`：剔除淘汰的 1.17~1.24 等无用老版本，只显示当前主流稳定版 `["28.2.0", "1.27.3"]`
-  - [x] 6.2 修正 SemVer 归一化算法：将 `28.x` 映射为 `(1, 28, x)`，正确判定 1.26 到 28.2 为两级平滑升级
-  - [x] 6.3 强化老用户升级提示：在【服务】页面顶部增加醒目的「升级横幅」，说明 28.x 即 1.28 稳定线并提供一键升级
-  - [x] 6.4 扩充备份与回滚范围：将 `custom/conf/app.ini` 纳入完整快照备份与回滚链
-  - [x] 6.5 增加 `app.ini` 28.x 兼容性预检：检测废弃键与阻止启动的非法 `BLOCKED_HOST_LIST`
-  - [x] 6.6 适配 Darwin 资产名称：版本 ≥28 时去除 `-10.12`，彻底解决 macOS 下 404 缺陷
-  - [x] 6.7 更新回归测试集与 i18n 多语言校验，完整门禁 3 项失败（2 项前置、1 项全量 flaky 待复跑）
-- [x] **任务 7：修复插件严格模式棘轮报警 (`test_plugin_install_strict_mode.py`)**
-  - [x] 7.1 将 `plugins/jdk/install.sh` 中的裸 `|| true` 优化替换为安全命令 `|| :`，消除基线超额突破
-  - [x] 7.2 运行回归测试套件 `test_plugin_install_strict_mode.py` 验证 26 项用例与门禁全绿通过
-- [x] **任务 8：修复弹窗多语言溢出与换行护栏 (`test_dialog_i18n_overflow.py`)**
-  - [x] 8.1 优化 `plugins/gitea/lang/` 各语言包中「版本管理」侧边菜单翻译为「Versions/Versionen/Versioni」，解决 97px 定宽菜单槽溢出
-  - [x] 8.2 在 `plugins/gitea/js/gitea.js` 两处 `display:flex; justify-content:space-between;` 容器中追加 `flex-wrap:wrap;`，满足类级换行护栏要求
-- [x] **任务 9：2026-10-31 新发现问题专项修复（P0、P1-1~P1-4、P2）**
-  - [x] 9.1 (P0) 修复 JDK `install.sh` 动态别名删除：按 `keytool -list -v` 提取完整别名，删除失败计入日志，杜绝 Temurin DN 别名静默失效
-  - [x] 9.2 (P1-1) 修复 Gitea 进程探测与升级停服验证：`getGiteaPids` 剥离 ` (deleted)` 后缀并辅以 `cmdline` 判据，`upgradeApp` 增加端口释放检测与残留 PID 明示
-  - [x] 9.3 (P1-2) 修复 Gitea start 在 systemd `active(exited)` 僵住状态下的启动处理：识别僵住状态并降级转 `restart`
-  - [x] 9.4 (P1-4) JDK 管理器版本升级为 1.2 并同步 `test_jdk_plugin.py` 测试断言
-  - [x] 9.5 (P2-2/P2-3) 微调 `RELEASE_TEMPLATE.md` 措辞为“尾部回退区”并增补测试复跑与升级说明清单
-  - [x] 9.6 编写并运行回归测试，验证全部修复成果
-- [x] **任务 10：CI 门禁与本地环境差异排查及根治防范**
-  - [x] 10.1 消除 `plugins/gitea/index.py` 中 2 处 `silent_except`（第 220 行、439 行）
-  - [x] 10.2 在 `plugins/gitea/lang/` 6 种语言包中补全 `升级失败已安全中止:` 对应键与多语言翻译
-  - [x] 10.3 消除 `plugins/gitea/index.py` 中 2 处 shell 裸拼（`appOp` 中 systemctl 字符串加号拼接），改用列表参数 `['systemctl', ...], shell=False` 规避 `inline_bare_concat`
-  - [x] 10.4 验证全套安全棘轮（`test_shell_concat_ratchet`、`test_writefile_must_and_ratchet`、`test_download_*`）与静态门禁 100% 全绿
-  - [x] 10.5 封装本地快速门禁工具 [`scripts/quick_gate.py`](file:///d:/git/gitea/bt_simple/scripts/quick_gate.py) 并挂载至 Git `pre-commit` 钩子，彻底杜绝本地与 CI 门禁脱节问题
-- [x] **任务 11：JDK 插件多链路选优与弱网/海外节点高可用下载保障**
-  - [x] 11.1 [`plugins/jdk/install.sh`](file:///d:/git/gitea/bt_simple/plugins/jdk/install.sh) 实现国内外多链路候选池与探针毫秒选优
-  - [x] 11.2 [`plugins/jdk/install.sh`](file:///d:/git/gitea/bt_simple/plugins/jdk/install.sh) 实现 IPv4 优先、低速动态熔断与平滑 Fallback 容灾
-  - [x] 11.3 [`plugins/jdk/index.py`](file:///d:/git/gitea/bt_simple/plugins/jdk/index.py) 白名单扩充与安装任务脚本低速防护同步
-  - [x] 11.4 编写完备的自动化测试用例，全绿回归验证门禁与清理临时文件
-- [x] **任务 12：测试反馈问题专项修复与验证（P2-2 与 P2-3）**
-  - [x] 12.1 (P2-3) 将运行时版本缓存规则加入 `.gitignore`，从仓库索引中移除 `plugins/gitea/latest_version_cache.json` 并删除文件
-  - [x] 12.2 (P2-2) 加固 `plugins/gitea/index.py` 中 `appOp` 对 `active(exited)` 状态的检测（兼容老版本 systemd 无 `--value` 支持的输出），治理 `gitea.service.tpl` 中的误配 `RemainAfterExit=yes`
-  - [x] 12.3 (P2-2) 在自动化测试中增加针对 `active(exited)` 状态 Mock 仿真用例，验证 `start` 自动转 `restart` 并返回 `ok`
-  - [x] 12.4 (P2-2) 在根目录 `test/` 下编写支持真实 Linux 环境的 live 验证脚本 `test/test_gitea_wedged_systemd_live.py`，完整复现并闭环验证 wedged 单元自愈
-  - [x] 12.5 (P2-3) 编写/补充离线版本推荐测试，确认无静态缓存文件时通道 C 能够 100% 正确依据 `info.json` 排序
-  - [x] 12.6 运行全量安全与静态门禁（`quick_gate.py`），确保代码质量与无脏工作区
-- [x] **任务 13：升级报告优化与遗留问题修复（P2-1、P2-2、P2-4 与发布说明）**
-  - [x] 13.1 (P2-2) 修复 `testsuite/test_varnish_c05_hardening.py` 测试脚手架的宿主机环境穿透问题，隔离 `VARNISH_BIN_CANDIDATES`，实现完全自包含
-  - [x] 13.2 (P2-4) 修正 `plugins/jdk/install.sh` 镜像源候选池：淘汰年久失修且缺失 Linux 二进制的中科大无效 URL，确立清华源与 Adoptium 官方全球 CDN 的双通道高可用架构
-  - [x] 13.3 (P2-1) 在 `plugins/jdk/install.sh` 中为 curl (`-C -`) 和 wget (`-c`) 增加断点续传支持，中断后优先续传，杜绝重复从头拉取大包
-  - [x] 13.4 运行 `test_varnish_c05_hardening.py` 及全量门禁校验 `quick_gate.py`
-  - [x] 13.5 整理发布说明文案（说明-1 systemd 模板范围，说明-2 长期未验证清单）
-  - [x] 13.6 (P2-1 防护强化) 增加断点续传防膨胀（>350MB 清理）、防 HTML 错误页污染（Gzip 1f8b 魔数预检）与 HTTP 416 Range 错误自愈清理机制
-- [x] **任务 14：JDK 下载链路双通道确立与完整包前置零流量复用（P2-1、P2-3）**
-  - [x] 14.1 (P2-1) `plugins/jdk/install.sh` 彻底移除 `ustc` 节点分支，确立清华大学镜像源与 Adoptium 官方全球 CDN 的双通道架构，代码与 task 13.2 保持一致
-  - [x] 14.2 (P2-3) `plugins/jdk/install.sh` 下载循环前置 `tar -tzf` 完整性校验，已完整下载的文件直接跳过网络下载进入解压，杜绝 416 误杀
-  - [x] 14.3 (P2-2) 明确系统验证环境边界：wedged 分支有 Mock 覆盖，live 复现待做（验证用例已入库 testsuite 待真机环境验收）
-  - [x] 14.4 同步更新 `test/test_jdk_plugin.py` 测试断言与回归验证，门禁全绿通过
-- [x] **任务 15：修复 openresty 插件 getPidFile 边界正则缺陷（CI 门禁阻断修复）**
-  - [x] 15.1 修复 `plugins/openresty/index.py` 中 `getPidFile` 正则，增加行首与单词边界，彻底解决临时路径中偶发包含 `pid`（如 `...pid300...`）导致误匹配 `error_log` 的问题
-  - [x] 15.2 同步加固 `getNgxStatusPort` 正则为行首匹配 `(?:^|\n)\s*listen\s+([^;\r\n]+);`
-  - [x] 15.3 运行 `testsuite/test_openresty_c02_hardening.py` 及全量测试，验证门禁全绿通过
-- [x] **任务 16：测试员报告优化（P2-1 验证用例入库与 P2-2 JDK 白名单清理）**
-  - [x] 16.1 (P2-1) 将 wedged live 验证用例正式入库迁移至 `testsuite/test_gitea_wedged_live.py`，保持审计与 CI 可追溯复现，非 Linux/非 root 自动 safe skip
-  - [x] 16.2 (P2-2) 从 `plugins/jdk/index.py` 的 `_JDK_URL_HOSTS` 白名单中清理已淘汰的中科大节点 `mirrors.ustc.edu.cn`，同步更新 `test/test_jdk_plugin.py` 断言
-  - [x] 16.3 运行全量测试与静态门禁，确保 100% 绿灯且代码格式符合 UTF-8 LF 规范
-- [x] **任务 17：Gitea 更新检测在软件列表展示并直达版本管理内部**
-  - [x] 17.1 后端扩展：在 `web/utils/plugin.py` 中实现 Gitea 版本更新检测注记 `_giteaApplyVersionHint`，识别 28.x SemVer 与本地缓存，注入 `gitea_update_available` 与 `gitea_update`
-  - [x] 17.2 前端展现：在 `web/static/app/soft.js` 中增加 Gitea 专属橙色「发现新版本」徽章与操作列「更新」入口，纳入顶部更新计数
-  - [x] 17.3 内部直达：在 `web/static/app/soft.js` 的 `softMain` 支持 `targetTab`，并在 `plugins/gitea/index.html` 初始化时自动识别并高亮「版本管理」Tab、直接调用 `giteaVersionManage()`
-- [x] **任务 18：Gitea 安装时 3000 端口防火墙安全提醒**
-  - [x] 18.1 安装弹窗提醒：创建 `plugins/gitea/install.html`，展示友好且醒目的端口提醒卡片（提醒前往【安全】菜单开启 3000 端口及云安全组放行）
-  - [x] 18.2 安装脚本日志：在 `plugins/gitea/install.sh` 安装前后输出醒目的 3000 端口防火墙开放提示日志
-  - [x] 18.3 多语言与使用说明：在 `plugins/gitea/lang/` 6 种语言包补充对应词条，并在插件「使用说明」中强化端口说明
-- [x] **任务 19：自动化测试与门禁验证**
-  - [x] 19.1 编写单元测试验证 Gitea 列表更新检测、版本管理直达契约与安装提示规范
-  - [x] 19.2 运行 `quick_gate.py` 验证全量静态与安全门禁，确保无语法与编码异常
-
-
-
-
-
-
-
+- [ ] **任务 1：御风 Python 多版本预发布标识放行与安全加固 (`plugins/python_yf`)**
+  - [ ] 1.1 扩展 `plugins/python_yf/index.py` 中 `TARGET_RE` 正则表达式，支持 PEP 440 预发布版本（如 `3.15.0b4`、`cpython-3.15.0b4-linux-x86_64-gnu`、`rc`、`t` 变体），同时严格防止注入
+  - [ ] 1.2 在 `testsuite/test_python_yf_d08_hardening.py` 中扩充测试用例与验证
+- [ ] **任务 2：御风 Docker 管理器日志模块优化 (`plugins/docker`)**
+  - [ ] 2.1 后端 `plugins/docker/index.py` 实现 `docker_clear_con_log` 容器日志清空接口
+  - [ ] 2.2 前端 `plugins/docker/js/docker.js` 优化 `logsCon` 弹窗，新增刷新按钮、清除日志按钮与 5 秒自动刷新勾选框
+  - [ ] 2.3 实现日志自动滚至底部（保持最新日志在底部）、弹窗关闭时自动注销定时器
+- [ ] **任务 3：御风网站防火墙开机启动与共性插件治理 (`plugins/op_waf`, `op_load_balance`, `webstats`)**
+  - [ ] 3.1 在 `plugins/op_waf/index.py` 中实现并路由 `initdStatus`、`initdInstall`、`initdUninstall`
+  - [ ] 3.2 治理共性问题：为同样使用 `pluginService` 但缺少 initd 接口的 `op_load_balance` 和 `webstats` 补齐对应接口与路由
+- [ ] **任务 4：phpMyAdmin 无法访问 (502 Bad Gateway) 深度排查与修复 (`plugins/phpmyadmin`)**
+  - [ ] 4.1 健全 `plugins/phpmyadmin/index.py` 中 PHP 版本探测与自愈逻辑，避免失效版本残留
+  - [ ] 4.2 在 phpMyAdmin 启动或访问时检测所绑定 PHP 服务的运行状态，未运行时自动尝试拉起，根治 502 错误
+  - [ ] 4.3 优化服务页展示当前 PHP 绑定版本与运行状态（带状态指示灯），提升容错与可视化
+- [ ] **任务 5：任务管理器底部显示样式美化 (`plugins/task_manager`)**
+  - [ ] 5.1 消除 `plugins/task_manager/js/task_manager.js` 中多处超高的硬编码 `597px`，改为容器自适应高度
+  - [ ] 5.2 优化 `plugins/task_manager/index.html` 布局与底部内边距，确保最后一行和表格底边完整显示不被裁剪
+- [ ] **任务 6：御风进程管理器更名与日志 5 秒自动刷新 (`plugins/yufeng_systemd`)**
+  - [ ] 6.1 将插件名称从「御风服务管理器」/「御风进程守护」统一更名为「御风进程管理器」，同步更新 `info.json`、多语言包和页面文案
+  - [ ] 6.2 优化 `plugins/yufeng_systemd/js/yufeng_systemd.js` 的 `get_logs` 弹窗，底部左侧增加「5秒自动刷新」复选框（默认勾选），更新时自动置底滚动，弹窗关闭清理定时器
+- [ ] **任务 7：自动化测试验证与全量回归**
+  - [ ] 7.1 编写针对上述各项修复的自动化回归测试
+  - [ ] 7.2 运行回归测试并确认全绿通过
+  - [ ] 7.3 清理临时测试文件，更新任务完成状态

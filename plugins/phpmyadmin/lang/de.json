@@ -57,5 +57,11 @@
     "密码不能为空、不能含换行且不超过128位!": "Passwort darf nicht leer sein oder Zeilenumbrüche enthalten, max. 128 Zeichen!",
     "路径只能使用 5-32 位字母/数字/下划线/中划线!": "Der Pfad darf nur 5-32 Buchstaben/Zahlen/Unterstrich/Bindestrich enthalten!",
     "路径非法!": "Ungültiger Pfad!",
-    "移动目录失败!": "Verschieben des Verzeichnisses fehlgeschlagen!"
+    "移动目录失败!": "Verschieben des Verzeichnisses fehlgeschlagen!",
+    "未检测到PHP": "Kein PHP erkannt",
+    "运行中": "Wird ausgeführt",
+    "未运行 - 会导致502错误": "Nicht aktiv - verursacht 502-Fehler",
+    "一键拉起PHP服务": "PHP-Dienst starten",
+    "正在尝试拉起 PHP 服务...": "PHP-Dienst wird gestartet...",
+    "当前PHP：": "Aktuelles PHP: "
 }

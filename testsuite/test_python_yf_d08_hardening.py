@@ -69,8 +69,12 @@ LANGS = ['zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it']
 
 PANEL_DIR = '/www/server/yufeng_panel'
 
-#: 白名单必须放行的真实取值
-GOOD_TARGETS = ['3.13', '3.13.14', 'cpython-3.13.14-linux-x86_64-gnu']
+#: 白名单必须放行的真实取值（包含常规版本与 PEP 440 预发布/测试版）
+GOOD_TARGETS = [
+    '3.13', '3.13.14', 'cpython-3.13.14-linux-x86_64-gnu',
+    '3.15.0b4', 'cpython-3.15.0b4-linux-x86_64-gnu',
+    '3.14.0a2', '3.13.0rc1', 'cpython-3.13.0t-linux-x86_64-gnu'
+]
 #: 必须拒绝的注入 / 选项注入 / 穿越取值
 BAD_TARGETS = ['3.9.25; touch /tmp/PWN', '--all', '--help', '-i', '../../etc',
                'cpython-3.13.14;id', '$(id)', '`id`', 'a b', '', ' ', '3.13\nid',

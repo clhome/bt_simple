@@ -134,5 +134,7 @@
     "操作失败：自启状态未生效（当前: {file_state}）": "Échec : état de démarrage automatique inactif (actuel : {file_state})",
     "删除服务文件失败: {str(e)}": "Échec de suppression du fichier de service : {str(e)}",
     "越权拦截：非专属服务禁止读取日志！": "Accès refusé : lecture des journaux d'un service non exclusif interdite !",
-    "越权拦截：非专属服务禁止清空日志！": "Accès refusé : effacement des journaux d'un service non exclusif interdit !"
+    "越权拦截：非专属服务禁止清空日志！": "Accès refusé : effacement des journaux d'un service non exclusif interdit !",
+    "5秒自动刷新": "Actualisation auto (5s)",
+    "御风进程管理器": "Gestionnaire de processus YuFeng"
 }

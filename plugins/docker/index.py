@@ -557,6 +557,32 @@ def dockerLogCon():
         return yf.returnJson(False, 'Get Logs failed')
 
 
+def dockerClearConLog():
+    args = getArgs()
+    data = checkArgs(args, ['Hostname'])
+    if not data[0]:
+        return data[1]
+
+    Hostname = str(args['Hostname']).strip()
+    c = getDClient()
+    try:
+        conFind = c.containers.get(Hostname)
+        if not conFind:
+            return yf.returnJson(False, 'The specified container does not exist!')
+        log_path = conFind.attrs.get('LogPath') if hasattr(conFind, 'attrs') else None
+        if log_path and os.path.exists(log_path):
+            with open(log_path, 'r+', encoding='utf-8', errors='ignore') as f:
+                f.truncate(0)
+            return yf.returnJson(True, '清空日志成功')
+        else:
+            # 兼容非 json-file 日志或未在 attrs 暴露 LogPath 的情况
+            safe_host = re.sub(r'[^a-zA-Z0-9_-]', '', Hostname)
+            yf.execShell(f"truncate -s 0 /var/lib/docker/containers/{safe_host}*/{safe_host}*-json.log 2>/dev/null || true")
+            return yf.returnJson(True, '清空日志成功')
+    except Exception as ex:
+        return yf.returnJson(False, f'清空日志失败: {str(ex)}')
+
+
 def dockerRunCon():
     # 启动容器
     args = getArgs()
@@ -1744,6 +1770,8 @@ if __name__ == "__main__":
         print(conListData())
     elif func == 'docker_con_log':
         print(dockerLogCon())
+    elif func == 'docker_clear_con_log':
+        print(dockerClearConLog())
     elif func == 'docker_remove_con':
         print(dockerRemoveCon())
     elif func == 'docker_run_con':

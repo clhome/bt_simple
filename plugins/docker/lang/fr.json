@@ -260,5 +260,16 @@
     "IP地址不合法": "Adresse IP invalide",
     "配置已保存，但 systemctl daemon-reload 失败: ": "Configuration enregistrée, mais systemctl daemon-reload a échoué: ",
     "配置已保存，但重启 Docker 服务失败: ": "Configuration enregistrée, mais le redémarrage du service Docker a échoué: ",
-    "端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]": "Format de port non valide : seuls port ou adresse:port sont acceptés, et la partie adresse doit être *, une IPv4 ou [IPv6]"
+    "端口格式无效，仅支持「端口」或「地址:端口」，地址段仅允许 *、IPv4 或 [IPv6]": "Format de port non valide : seuls port ou adresse:port sont acceptés, et la partie adresse doit être *, une IPv4 ou [IPv6]",
+    "5秒自动刷新": "Actualisation auto (5s)",
+    "清除": "Effacer",
+    "清空日志": "Vider les journaux",
+    "确定要清空该容器的运行日志吗？": "Voulez-vous vraiment effacer les journaux de ce conteneur ?",
+    "正在清空日志...": "Suppression des journaux...",
+    "清空日志成功": "Journaux vidés avec succès",
+    "清空日志失败": "Échec de la suppression des journaux",
+    "清空日志失败: ": "Échec de la suppression des journaux: ",
+    "Docker容器日志": "Journaux du conteneur Docker",
+    "暂无日志": "Aucun journal disponible",
+    "正在获取日志...": "Récupération des journaux..."
 }

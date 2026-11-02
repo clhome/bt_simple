@@ -51,6 +51,25 @@ function tmReqFail(xhr) {
         layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status ? xhr.status : ''), { icon: 0 });
     }
 }
+
+// 表格高度动态自适应：严密计算各 Tab 是否带有底部统计栏，避免超出弹窗导致底部截断
+function setTableContHeight(hasBottom) {
+    var $box = $('.TaskManView').closest('.layui-layer-content');
+    var totalH = ($box.length && $box.height() > 0) ? $box.height() : 578;
+    if (hasBottom === 'resource') {
+        // 进程页展开资源图表面板时
+        var h = Math.max(160, Math.min(220, totalH - 330));
+        $(".table-cont").css("height", h + "px");
+    } else if (hasBottom === true || hasBottom === 'bottom') {
+        // 带下方信息栏/运行级别统计栏（如启动项、服务、网络状态、进程列表）
+        var h = Math.max(260, totalH - 195);
+        $(".table-cont").css("height", h + "px");
+    } else {
+        // 纯单表格页（如计划任务、用户、会话），无底部信息栏
+        var h = Math.max(360, totalH - 85);
+        $(".table-cont").css("height", h + "px");
+    }
+}
   
 function tmPostCallback(method, args, callback, version='1.0'){
     var req_data = {};
@@ -354,7 +373,7 @@ function get_process_list(sortx, reverse, rx) {
 			</div>';
         $("#load_average").html(topMsg).show();
         $(".pro_" + sortx).append('<span class="glyphicon glyphicon-triangle-' + (reverse == 'True' ? 'bottom' : 'top') + '" style="margin-left:5px;color:#bbb"></span>');
-        $(".table-cont").css("height", "500px");
+        setTableContHeight(true);
         scropll2selectPossess(selectline);
         show_task();
         setTableHead(data);
@@ -577,7 +596,7 @@ function get_resource_list() {
         </thead>\
         <tbody>' + tbody_tr + '</tbody>';
         $('#taskResourceTable').html(tbody);
-        $(".table-cont").css("height", "220px");
+        setTableContHeight('resource');
     }).fail(tmReqFail)
 
     $("#load_average").html('')
@@ -611,7 +630,7 @@ function get_cron_list() {
         $("#TaskManagement").html(tbody);
         var topMsg = '';
         $("#load_average").html(topMsg).hide();
-        $(".table-cont").css("height", "597px");
+        setTableContHeight(false);
         show_task();
     });
 }
@@ -686,7 +705,7 @@ function get_network_list(rflush) {
 				</div>\
 			</div>';
         $("#load_average").html(topMsg).show();
-        $(".table-cont").css("height", "500px");
+        setTableContHeight(true);
         show_task();
     });
 }
@@ -732,7 +751,7 @@ function get_who_list() {
         $("#TaskManagement").html(tbody);
         var topMsg = '';
         $("#load_average").html(topMsg).hide();
-        $(".table-cont").css("height", "597px");
+        setTableContHeight(false);
         show_task();
     });
 }
@@ -785,7 +804,7 @@ function get_run_list() {
         $("#TaskManagement").html(tbody);
         var topMsg = '<div class="mini-level">' + pt('当前运行级别：') + ' level-' + rdata.run_level + '</div>';
         $("#load_average").html(topMsg).show();
-        $(".table-cont").css("height", "500px");
+        setTableContHeight(true);
         show_task();
     });
 }
@@ -851,7 +870,7 @@ function get_service_list() {
         $("#TaskManagement").html(tbody);
         var topMsg = '<div class="mini-level">' + pt('当前运行级别：') + ' level-' + rdata.runlevel + '</div>';
         $("#load_average").html(topMsg).show();
-        $(".table-cont").css("height", "500px");
+        setTableContHeight(true);
         show_task();
     });
 }
@@ -891,7 +910,7 @@ function get_user_list() {
         $("#TaskManagement").html(tbody);
         var topMsg = '';
         $("#load_average").html(topMsg).hide();
-        $(".table-cont").css("height", "597px");
+        setTableContHeight(false);
         show_task();
     });
 }

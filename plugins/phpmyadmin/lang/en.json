@@ -57,5 +57,11 @@
     "密码不能为空、不能含换行且不超过128位!": "Password cannot be empty or contain newlines, max 128 chars!",
     "路径只能使用 5-32 位字母/数字/下划线/中划线!": "Path may only use 5-32 letters/numbers/underscore/hyphen!",
     "路径非法!": "Invalid path!",
-    "移动目录失败!": "Failed to move directory!"
+    "移动目录失败!": "Failed to move directory!",
+    "未检测到PHP": "No PHP detected",
+    "运行中": "Running",
+    "未运行 - 会导致502错误": "Not running - causes 502 error",
+    "一键拉起PHP服务": "Start PHP Service",
+    "正在尝试拉起 PHP 服务...": "Starting PHP service...",
+    "当前PHP：": "Current PHP: "
 }

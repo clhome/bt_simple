@@ -2,7 +2,7 @@
     "sort": 80,
     "ps": "专为特定业务场景设计的轻量级进程守护插件，底层强制绑定 YuFeng 标签隔离，支持智能双模配置，安全可靠的进程守护管理器。",
     "name": "yufeng_systemd",
-    "title": "御风进程守护",
+    "title": "御风进程管理器",
     "shell": "install.sh",
     "versions": "1.0",
     "tip": "lib",

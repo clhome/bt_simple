@@ -131,36 +131,123 @@ def getHomePage():
         return yf.returnJson(False, '插件未启动!')
 
 
-def getPhpVer(expect=55):
+def getPhpVer(expect=None):
     php_vers = YfSites.instance().getPhpVersion()
-    v = php_vers['data']
-    is_find = False
-    for i in range(len(v)):
-        t = str(v[i]['version'])
-        if (t == expect):
-            is_find = True
-            return str(t)
+    v = [it for it in php_vers.get('data', []) if str(it.get('version')) != '00']
+    if not v:
+        return '00'
+
+    # 如果显式指定了期望版本且可用，优先命中
+    if expect:
         expect_str = str(expect)
-        new_ex = expect_str[0:1]+"."+expect_str[1:2]
-        if t.find(new_ex) > -1:
-            is_find = True
-            return str(t)
-    if not is_find:
-        if len(v) > 1:
-            return v[1]['version']
-        return v[0]['version']
-    return str(expect)
+        for it in v:
+            t = str(it['version'])
+            if t == expect_str or expect_str in t:
+                return t
+
+    # 优先推荐主流 PHP 稳定版本（8.2 > 8.1 > 8.0 > 8.3 > 8.4 > 7.4）
+    preferred = ['82', '81', '80', '83', '84', '74']
+    for pref in preferred:
+        for it in v:
+            t = str(it['version'])
+            if pref in t:
+                return t
+
+    # 兜底返回第一个非 00 的有效版本
+    return str(v[0]['version'])
 
 
 def getCachePhpVer():
     cacheFile = getServerDir() + '/php.pl'
     v = ''
     if os.path.exists(cacheFile):
-        v = yf.readFile(cacheFile)
-    else:
+        v = yf.readFile(cacheFile).strip()
+
+    php_vers = YfSites.instance().getPhpVersion()
+    available_versions = [str(item['version']) for item in php_vers.get('data', []) if str(item['version']) != '00']
+    # 只要缓存为空、或者记录的版本已不可用（如被卸载或为纯静态00），立即自愈重新选优！
+    if not v or v not in available_versions:
         v = getPhpVer()
-        yf.writeFile(cacheFile, v)
+        if v != '00':
+            yf.writeFile(cacheFile, v)
     return v
+
+
+def isPhpServiceRunning(php_ver):
+    """检测指定 PHP 版本对应的 FPM 服务是否正在运行。"""
+    if not php_ver or php_ver == '00':
+        return False, '无可用 PHP 版本'
+
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return True, 'macOS'
+
+    # 1. apt 渠道（如 apt8.2, apt8.3）
+    if str(php_ver).startswith('apt'):
+        real_v = str(php_ver).replace('apt', '')
+        service_name = f'php{real_v}-fpm'
+        rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+        return (rc == 0 and out.strip() == 'active'), service_name
+
+    # 2. yum 渠道（如 yum82, yum83）
+    if str(php_ver).startswith('yum'):
+        real_v = str(php_ver).replace('yum', '')
+        service_name = f'php{real_v}-php-fpm'
+        rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+        return (rc == 0 and out.strip() == 'active'), service_name
+
+    # 3. 编译版（如 82, 81, 74）
+    service_name = f'php-fpm-{php_ver}'
+    socket_path = f'/tmp/php-cgi-{php_ver}.sock'
+    rc, out, _ = yf.execShellRc(f'systemctl is-active {service_name}')
+    if rc == 0 and out.strip() == 'active':
+        return True, service_name
+    if os.path.exists(socket_path):
+        return True, service_name
+    return False, service_name
+
+
+def ensurePhpServiceRunning(php_ver=None):
+    """确保所绑定的 PHP-FPM 服务正在运行，防止 Nginx 502 Bad Gateway。"""
+    if not php_ver:
+        php_ver = getCachePhpVer()
+    if not php_ver or php_ver == '00':
+        return False, '未检测到已安装的有效 PHP 版本'
+
+    running, svc_name = isPhpServiceRunning(php_ver)
+    if running:
+        return True, f'{svc_name} 正常运行'
+
+    _log.info('[phpmyadmin] 检测到 %s 未处于运行态，正在自动拉起...', svc_name)
+    if str(php_ver).startswith('apt'):
+        real_v = str(php_ver).replace('apt', '')
+        service_name = f'php{real_v}-fpm'
+        yf.execShellRc(f'systemctl start {service_name}')
+    elif str(php_ver).startswith('yum'):
+        real_v = str(php_ver).replace('yum', '')
+        service_name = f'php{real_v}-php-fpm'
+        yf.execShellRc(f'systemctl start {service_name}')
+    else:
+        service_name = f'php-fpm-{php_ver}'
+        initd_script = f'/etc/init.d/{service_name}'
+        if os.path.exists(initd_script):
+            yf.execShellRc(f'{initd_script} start')
+        else:
+            yf.execShellRc(f'systemctl start {service_name}')
+
+    running2, _ = isPhpServiceRunning(php_ver)
+    if running2:
+        return True, f'成功拉起 {svc_name}'
+    return False, f'拉起 {svc_name} 失败，请前往对应 PHP 版本管理排查'
+
+
+def startPmaPhp():
+    php_ver = getCachePhpVer()
+    ok, msg = ensurePhpServiceRunning(php_ver)
+    if ok:
+        yf.restartWeb()
+        return yf.returnJson(True, msg)
+    return yf.returnJson(False, msg)
 
 
 def contentReplace(content):
@@ -475,6 +562,10 @@ def start():
             cmd = "echo '' > " + i
             yf.execShell(cmd)
 
+    # 启动时确保当前绑定的 PHP-FPM 服务已处于运行状态，杜绝 502 Bad Gateway
+    cur_php = getCachePhpVer()
+    ensurePhpServiceRunning(cur_php)
+
     yf.restartWeb()
     return 'ok'
 
@@ -517,6 +608,9 @@ def setPhpVer():
     content = yf.readFile(file_tpl)
     content = contentReplace(content)
     yf.writeFile(file_run, content)
+
+    # 切换后自动确保新 PHP 版本的 FPM 守护进程已拉起
+    ensurePhpServiceRunning(args['phpver'])
 
     yf.restartWeb()
     return 'ok'
@@ -766,6 +860,14 @@ def getPmaAccessInfo():
         data['username'] = cfg.get('username', 'admin')
         data['password'] = cfg.get('password', 'admin')
         data['path'] = rand_path
+
+        # 注入 PHP 运行状态，方便前端直观呈现与异常自愈
+        php_ver = getCachePhpVer()
+        data['php_ver'] = php_ver
+        php_running, svc_name = isPhpServiceRunning(php_ver)
+        data['php_running'] = php_running
+        data['php_service'] = svc_name
+
         return yf.returnJson(True, 'ok', data)
     except Exception as e:
         return yf.returnJson(False, '插件未启动!')
@@ -796,6 +898,8 @@ if __name__ == "__main__":
         print(getHomePage())
     elif func == 'set_php_ver':
         print(setPhpVer())
+    elif func == 'start_pma_php':
+        print(startPmaPhp())
     elif func == 'get_set_php_ver':
         print(getSetPhpVer())
     elif func == 'get_pma_port':

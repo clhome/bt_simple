@@ -57,5 +57,11 @@
     "密码不能为空、不能含换行且不超过128位!": "La password non può essere vuota o contenere a capo, max 128 caratteri!",
     "路径只能使用 5-32 位字母/数字/下划线/中划线!": "Il percorso può usare solo 5-32 lettere/numeri/underscore/trattino!",
     "路径非法!": "Percorso non valido!",
-    "移动目录失败!": "Spostamento della directory non riuscito!"
+    "移动目录失败!": "Spostamento della directory non riuscito!",
+    "未检测到PHP": "Nessun PHP rilevato",
+    "运行中": "In esecuzione",
+    "未运行 - 会导致502错误": "Non in esecuzione - causa errore 502",
+    "一键拉起PHP服务": "Avvia servizio PHP",
+    "正在尝试拉起 PHP 服务...": "Avvio del servizio PHP...",
+    "当前PHP：": "PHP attuale: "
 }

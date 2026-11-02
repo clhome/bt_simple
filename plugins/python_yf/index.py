@@ -21,10 +21,10 @@ UV_BIN = os.path.expanduser("~/.local/bin/uv")
 #: 只有落在这里的解释器才允许卸载 —— 系统自带解释器（/usr/bin/python3.11）不在其中。
 UV_PYTHON_DIR = os.path.expanduser("~/.local/share/uv/python")
 
-#: 允许传入的版本标识：`3.13` / `3.13.14` / `cpython-3.13.14-linux-x86_64-gnu`。
+#: 允许传入的版本标识：`3.13` / `3.13.14` / `3.15.0b4` / `cpython-3.15.0b4-linux-x86_64-gnu` 等。
 #: 该值会被交给 uv 作为 --python / install / uninstall 的实参，必须白名单化
-#: （旧实现直接字符串拼接，`3.9.25; touch /x` 与 `--all` 都能注入，已真机实测）。
-TARGET_RE = re.compile(r'^(?:cpython-\d+\.\d+(?:\.\d+)?(?:-[a-z0-9_]+)*|\d+\.\d+(?:\.\d+)?)$')
+#: 既支持 PEP 440 预发布（a/b/rc/dev/post/t/+freethreaded）及架构后缀，又坚决拦截 shell 注入与选项注入。
+TARGET_RE = re.compile(r'^(?:cpython-\d+\.\d+(?:\.[0-9a-zA-Z]+)*(?:\+[a-zA-Z0-9]+)?(?:-[a-z0-9_]+)*|\d+\.\d+(?:\.[0-9a-zA-Z]+)*(?:\+[a-zA-Z0-9]+)?)$')
 
 #: uv 常规命令 / 安装（可能要下载数十 MB）的超时（秒）。
 #: 旧实现不传 timeout，uv 挂住时面板 gthread 线程会被无限期占用。

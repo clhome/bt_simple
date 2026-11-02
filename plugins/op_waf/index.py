@@ -768,6 +768,66 @@ def reload():
     yf.opWeb('start')
     return 'ok'
 
+
+def initdStatus():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+    if current_os.startswith('freebsd'):
+        return 'ok' if status() == 'start' else 'fail'
+
+    # WAF 基于 OpenResty 运行，当 WAF 处于开启状态且 OpenResty 开机自启时即为自启就绪
+    if status() != 'start':
+        return 'fail'
+
+    rc, out, _err = yf.execShellRc('systemctl is-enabled openresty')
+    if rc == 0 and out.strip().startswith('enabled'):
+        return 'ok'
+    if os.path.exists('/etc/init.d/openresty'):
+        return 'ok'
+    return 'fail'
+
+
+def initdInstall():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+    if not isOpenrestyInstalled():
+        return 'ERROR: 请先安装OpenResty'
+
+    # 1. 确保 WAF 规则与运行环境处于开启状态
+    st = status()
+    if st != 'start':
+        start()
+
+    # 2. 确保后台计划任务存在
+    try:
+        import tool_task
+        tool_task.createBgTask()
+    except Exception as _e:
+        _log.debug('[op_waf] createBgTask 异常已忽略: %s', _e)
+
+    # 3. 启用底层 Web 引擎开机自启
+    rc, out, err = yf.execShellRc('systemctl enable openresty')
+    if rc != 0 and not os.path.exists('/etc/init.d/openresty'):
+        _log.warning('[op_waf] systemctl enable openresty 警告: %s', err)
+
+    return 'ok'
+
+
+def initdUninstall():
+    current_os = yf.getOs()
+    if current_os == 'darwin':
+        return "Apple Computer does not support"
+
+    # 关闭 WAF 自身的防护运行状态与后台任务
+    try:
+        stop()
+    except Exception as _e:
+        _log.debug('[op_waf] initdUninstall stop 异常已忽略: %s', _e)
+
+    return 'ok'
+
 def reload_hook():
     s = status()
     if s == 'start':
@@ -2848,6 +2908,12 @@ if __name__ == "__main__":
             
     if func == 'status':
         print(status())
+    elif func in ['initd_status', 'initdStatus']:
+        print(initdStatus())
+    elif func in ['initd_install', 'initdInstall']:
+        print(initdInstall())
+    elif func in ['initd_uninstall', 'initdUninstall']:
+        print(initdUninstall())
     elif func == 'start':
         print(start())
     elif func == 'stop':

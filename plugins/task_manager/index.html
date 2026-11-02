@@ -124,10 +124,26 @@
 }
 
 .table-cont {
-    height: 500px;
-    overflow: auto;
-    border: #ddd 1px solid;
+    height: 480px;
+    overflow-y: auto !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
     position: relative;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+.taskdivtable {
+    padding: 12px 15px 15px 15px !important;
+    box-sizing: border-box !important;
+}
+
+.table-cont table {
+    margin-bottom: 0 !important;
+}
+
+.table-cont tr:last-child td {
+    padding-bottom: 12px !important;
 }
 
 .ts-line {
@@ -563,7 +579,7 @@
 
 <script type="text/javascript">
 resetPluginWinWidth(850);
-resetPluginWinHeight(580);
+resetPluginWinHeight(620);
 
 // 弹窗宽度：中文沿用 1000px；法/德/意等译文较长时适当加宽，
 // 同时受视口宽度约束，避免小屏溢出（超出部分由上方 Tab 栏横向滚动抽底）。

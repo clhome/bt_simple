@@ -243,6 +243,14 @@ function pmaService() {
             var infoExternal = yfPmaText(info.external_url);
             var infoUser = yfPmaText(info.username);
             var infoPass = yfPmaText(info.password);
+            var phpVerText = info.php_ver ? ('PHP-' + yfPmaText(info.php_ver)) : pt('未检测到PHP');
+            var phpStatusBadge = info.php_running
+                ? '<span style="color:#20a53a; font-weight: bold; margin-left: 8px;">(' + pt('运行中') + ')</span>'
+                : '<span style="color:#d9534f; font-weight: bold; margin-left: 8px;">(' + pt('未运行 - 会导致502错误') + ')</span>';
+            var phpStartBtn = !info.php_running
+                ? '<button type="button" class="btn btn-warning btn-xs" style="margin-left: 10px;" onclick="pmaStartPhp()"><span class="glyphicon glyphicon-play" style="margin-right: 3px;"></span>' + pt('一键拉起PHP服务') + '</button>'
+                : '';
+
             var html = '<div class="service-notice" style="margin-top: 15px; padding: 12px 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' +
                 '<div style="margin-bottom: 4px;"><b style="color:#333;">' + t('public.reload_configuration_reload', pt('重载配置 (Reload)')) + '</b>' + t('public.smoothly_loads_the_latest', pt('：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现')) + '<b style="color:#20a53a;">' + t('public.zero_business_disruption', pt('业务零中断')) + '</b>' + t('public.recommended_for_use_after', pt('，推荐日常修改配置后使用。')) + '</div>' +
                 '<div><b style="color:#333;">' + t('public.restart_the_service_restart', pt('重启服务 (Restart)')) + '</b>' + t('public.forcibly_terminates_and_restarts', pt('：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。')) + '</div>' +
@@ -250,6 +258,13 @@ function pmaService() {
             '<div class="pma-access-info" style="margin-top: 15px;">' +
                 '<div class="pma-info-header">' + pt('访问与认证信息') + '</div>' +
                 '<div class="pma-info-body">' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('当前PHP：') + '</span>' +
+                        '<div class="pma-info-value" style="display: flex; align-items: center; justify-content: space-between;">' +
+                            '<span>' + phpVerText + phpStatusBadge + '</span>' +
+                            phpStartBtn +
+                        '</div>' +
+                    '</div>' +
                     '<div class="pma-info-item">' +
                         '<span class="pma-info-label">' + pt('内网地址：') + '</span>' +
                         '<a href="' + infoInternal + '" target="_blank" class="pma-info-value pma-link">' + infoInternal + '</a>' +
@@ -349,5 +364,19 @@ function pmaService() {
         });
     }, 'json').fail(function(xhr) {
         layer.msg(t('public.operation_failed', pt('操作失败!')) + ' (' + xhr.status + ')', { icon: 2 });
+    });
+}
+
+function pmaStartPhp() {
+    var loadT = layer.msg(pt('正在尝试拉起 PHP 服务...'), { icon: 16, time: 0, shade: 0.3 });
+    api.post('start_pma_php', '', function(res) {
+        layer.close(loadT);
+        var rdata = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
+        if (rdata.status) {
+            layer.msg(rdata.msg || pt('启动成功'), { icon: 1, time: 2000 });
+            pmaService();
+        } else {
+            layer.msg(rdata.msg || pt('启动失败'), { icon: 2, time: 3000 });
+        }
     });
 }
