@@ -389,62 +389,66 @@ function wsOverview(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:300px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
-                        </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
                     </div>\
-                    <span style="margin-left:10px">' + pt('时段:') + ' </span>\
-                    <div class="input-group" style="width:100px;margin-left:10px;display: inline-table;vertical-align: top;">\
-                        <div id="time_order" class="input-group-btn btn-group-sm">\
-                            <button data-name="hour" type="button" class="btn btn-default">' + pt('按时') + '</button>\
-                            <button data-name="day" type="button" class="btn btn-default">' + pt('按天') + '</button>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 175px;">\
                         </div>\
                     </div>\
-                    <div class="input-group" style="width:30px;margin-left:10px;display: inline-table;vertical-align: top;">\
-                        <div class="input-group-btn btn-group-sm">\
-                            <button id="ov_refresh" data-name="refresh" type="button" class="btn btn-default">' + pt('刷新') + '</button>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时段:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="time_order" class="btn-group btn-group-sm">\
+                                <button data-name="hour" type="button" class="btn btn-default">' + pt('按时') + '</button>\
+                                <button data-name="day" type="button" class="btn btn-default">' + pt('按天') + '</button>\
+                            </div>\
                         </div>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <button id="ov_refresh" data-name="refresh" type="button" class="btn btn-default">' + pt('刷新') + '</button>\
                     </div>\
                 </div>\
                 <!-- stat --->\
-                <div class="overview_list" style="padding-top:10px;">\
+                <div class="overview_list">\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('浏览量(PV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('浏览量(PV)') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('访客量(UV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('访客量(UV)') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('IP数') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的独立访问ip数。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('IP数') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的独立访问ip数。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总响应流量大小。包括已排除的请求。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('流量') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总响应流量大小。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('请求') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总请求数量。包括已排除的请求。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('请求') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总请求数量。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('实时流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前X秒内您网站的实时流量大小。包括已排除的请求。') + '">?</i></p>\
+                        <p class="ov_title"><span>' + pt('实时流量') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前X秒内您网站的实时流量大小。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title"><span id="ov_title_req_second">' + pt('每秒请求') + '<span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前1-10秒内您网站的实时请求数量。包括已排除的请求。') + '">?</i></p>\
+                        <p class="ov_title"><span id="ov_title_req_second">' + pt('每秒请求') + '</span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前1-10秒内您网站的实时请求数量。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                 </div>\
@@ -480,7 +484,7 @@ var html = '<div>\
                             <span class="check_realtime_request" style="font-weight:normal">' + pt('每X秒请求') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType">\
-                            <input class="bt-input-text mr5" type="number" id="check_realtime_second" name="check_realtime_second" value="1" style="width:40px;outline:none;height:23px;border-radius:3px;">\
+                            <input class="bt-input-text mr5" type="number" id="check_realtime_second" name="check_realtime_second" value="1" style="width:44px;outline:none;height:24px;border-radius:4px;text-align:center;">\
                             <span style="font-weight:normal">' + pt('秒') + '</span>\
                         </div>\
                     </div>\
@@ -902,38 +906,41 @@ function wsSitesList(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 var randstr = getRandomString(10);
 
-var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <div class="input-group" style="width:300px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+var html = '<div class="ws_sites_list_view">\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 175px;">\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
                 </div>\
                 <!-- stat --->\
-                <div class="overview_list" style="padding-top:10px;">\
+                <div class="overview_list">\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">' + pt('总浏览量(PV)') + '</p>\
+                        <p class="ov_title"><span>' + pt('总浏览量(PV)') + '</span></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">' + pt('总访客量(UV)') + '</p>\
+                        <p class="ov_title"><span>' + pt('总访客量(UV)') + '</span></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">' + pt('总IP数') + '</p>\
+                        <p class="ov_title"><span>' + pt('总IP数') + '</span></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">' + pt('总流量') + '</p>\
+                        <p class="ov_title"><span>' + pt('总流量') + '</span></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">' + pt('总请求') + '</p>\
+                        <p class="ov_title"><span>' + pt('总请求') + '</span></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                 </div>\
@@ -1135,20 +1142,22 @@ function wsSpiderStatLogRequest(page){
                 }
             },
             legend: {
-                top:'0%',
+                type: 'scroll',
+                top:'6px',
+                left:'center',
                 data: lenend,
                 selected:lenend2_obj,
                 textStyle:{
                     fontSize:12,
-                    color:'#808080'
+                    color:'#64748b'
                 },
                 icon:'rect'
             },
             grid: {
-                top:60,
-                left:60,
-                right:0,
-                bottom:50
+                top:50,
+                left:50,
+                right:25,
+                bottom:40
             },
             xAxis: [{
                 type: 'category',
@@ -1185,6 +1194,13 @@ function wsSpiderStatLogRequest(page){
 
         rightEc.setOption(rightOption);
         
+        setTimeout(function(){
+            rightEc.resize();
+        }, 50);
+        $(window).off('resize.wsSpiderStat').on('resize.wsSpiderStat', function(){
+            rightEc.resize();
+        });
+        
         var oop = lenend.slice(0, (is_compare?3:5));
         rightEc.on('legendselectchanged', function (params) {
             var legend_option = this.getOption(),newAxisName = [];
@@ -1220,28 +1236,32 @@ function wsSpiderStat(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 175px;">\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="echart_container">\
-                    <div id="spider_left_total" style="height: 280px; width: 100px;display: inline-block;position: relative;">\
+                    <div id="spider_left_total" style="height: 280px; width: 140px; position: relative;">\
                         <div class="total_num_box"><p class="tn_title">' + pt('总蜘蛛') + '</p><p class="tn_num request_spider">0</p></div>\
                         <div class="total_num_box"><p class="tn_title">' + pt('总请求') + '</p><p class="tn_num request_total">0</p></div>\
                     </div>\
-                    <div id="echart_right_total" style="height: 280px; width: 650px;display: inline-block;position: relative;"></div>\
+                    <div id="echart_right_total" style="height: 280px; position: relative;"></div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
             </div>';
@@ -1531,20 +1551,22 @@ function wsClientStatLogRequest(page){
                 }
             },
             legend: {
-                top:'0%',
+                type: 'scroll',
+                top:'6px',
+                left:'center',
                 data: lenend,
                 selected:lenend2_obj,
                 textStyle:{
                     fontSize:12,
-                    color:'#808080'
+                    color:'#64748b'
                 },
                 icon:'rect'
             },
             grid: {
-                top:60,
-                left:60,
-                right:0,
-                bottom:50
+                top:50,
+                left:50,
+                right:25,
+                bottom:40
             },
             xAxis: [{
                 type: 'category',
@@ -1581,6 +1603,15 @@ function wsClientStatLogRequest(page){
 
         rightEc.setOption(rightOption);
         
+        setTimeout(function(){
+            leftEc.resize();
+            rightEc.resize();
+        }, 50);
+        $(window).off('resize.wsClientStat').on('resize.wsClientStat', function(){
+            leftEc.resize();
+            rightEc.resize();
+        });
+        
         var oop = lenend.slice(0, (is_compare?3:5));
         rightEc.on('legendselectchanged', function (params) {
             var legend_option = this.getOption(),newAxisName = [];
@@ -1616,25 +1647,29 @@ function wsClientStat(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 175px;">\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="echart_container">\
-                    <div id="echart_left_total" style="height: 280px; width: 300px;display: inline-block;position: relative;"></div>\
-                    <div id="echart_right_total" style="height: 280px; width: 450px;display: inline-block;position: relative;"></div>\
+                    <div id="echart_left_total" style="height: 280px; width: 260px; position: relative;"></div>\
+                    <div id="echart_right_total" style="height: 280px; position: relative;"></div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
             </div>';
@@ -1769,18 +1804,22 @@ function wsIpStat(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
                         </div>\
                     </div>\
                 </div>\
@@ -1884,18 +1923,22 @@ function wsUriStat(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
                         </div>\
                     </div>\
                 </div>\
@@ -2046,33 +2089,39 @@ function wsSitesErrorLog(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('状态码:') + ' </span>\
-                    <select class="bt-input-text" name="status_code" style="margin-left:4px">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="50x">50x</option>\
-                        <option value="40x">40x</option>\
-                        <option value="500">500</option>\
-                        <option value="501">501</option>\
-                        <option value="502">502</option>\
-                        <option value="503">503</option>\
-                        <option value="403">403</option>\
-                        <option value="404">404</option>\
-                        <option value="499">499</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('状态码:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="status_code" style="width:100px;">\
+                            <option value="all">' + pt('所有') + '</option>\
+                            <option value="50x">50x</option>\
+                            <option value="40x">40x</option>\
+                            <option value="500">500</option>\
+                            <option value="501">501</option>\
+                            <option value="502">502</option>\
+                            <option value="503">503</option>\
+                            <option value="403">403</option>\
+                            <option value="404">404</option>\
+                            <option value="499">499</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 175px;">\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
@@ -2338,100 +2387,118 @@ function wsSitesLog(){
 var randstr = getRandomString(10);
 
 var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('网站:') + ' </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">' + pt('未设置') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px">' + pt('时间:') + ' </span>\
-                    <div class="input-group" style="margin-left:10px;width:550px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                <div class="ws-toolbar">\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('网站:') + ' </span>\
+                        <select class="bt-input-text ws-select" name="site" style="width:140px;">\
+                            <option value="unset">' + pt('未设置') + '</option>\
+                        </select>\
+                    </div>\
+                    <div class="ws-form-item">\
+                        <span class="ws-form-label">' + pt('时间:') + ' </span>\
+                        <div class="ws-date-group">\
+                            <div id="search_time" class="btn-group btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
+                            </div>\
+                            <input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control ws-input" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="width: 200px;">\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 300px;"></span>\
                     </div>\
                 </div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('请求类型:') + ' </span>\
-                    <select class="bt-input-text" name="method" style="margin-left:4px">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="GET">GET</option>\
-                        <option value="POST">POST</option>\
-                        <option value="HEAD">HEAD</option>\
-                        <option value="PUT">PUT</option>\
-                        <option value="DELETE">DELETE</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('状态码:') + ' </span>\
-                    <select class="bt-input-text" name="status_code" style="margin-left:4px">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="500">500</option>\
-                        <option value="502">502</option>\
-                        <option value="503">503</option>\
-                        <option value="400">400</option>\
-                        <option value="404">404</option>\
-                        <option value="405">405</option>\
-                        <option value="499">499</option>\
-                        <option value="301">301</option>\
-                        <option value="302">302</option>\
-                        <option value="206">206</option>\
-                        <option value="200">200</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('来源:') + ' </span>\
-                    <select class="bt-input-text" name="referer" style="margin-left:4px">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="-1">' + pt('无') + '</option>\
-                        <option value="1">' + pt('有') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('蜘蛛过滤:') + ' </span>\
-                    <select class="bt-input-text" name="spider_type" style="margin-left:4px">\
-                        <option value="normal">' + pt('不过滤') + '</option>\
-                        <option value="only_spider">' + pt('仅显示蜘蛛') + '</option>\
-                        <option value="no_spider">' + pt('不显示蜘蛛') + '</option>\
-                        <option value="1">' + pt('百度') + '</option>\
-                        <option value="2">' + pt('必应') + '</option>\
-                        <option value="3">' + pt('奇虎360') + '</option>\
-                        <option value="4">Google</option>\
-                        <option value="5">' + pt('头条') + '</option>\
-                        <option value="6">' + pt('搜狗') + '</option>\
-                        <option value="7">' + pt('有道') + '</option>\
-                        <option value="8">' + pt('搜搜') + '</option>\
-                        <option value="9">Dnspod</option>\
-                        <option value="10">Yandex</option>\
-                        <option value="11">' + pt('一搜') + '</option>\
-                        <option value="12">' + pt('其他') + '</option>\
-                    </select>\
-                    <span>IP: </span>\
-                    <div class="input-group" style="width:163px;display:inline-table;">\
-                        <input type="text" name="ip" class="form-control btn-group-sm" autocomplete="off" placeholder="IP地址" style="font-size: 12px;padding: 0 10px;height:30px;">\
+                <div class="ws-filter-panel">\
+                    <div class="ws-filter-row">\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('请求类型:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="method" style="width:90px;">\
+                                <option value="all">' + pt('所有') + '</option>\
+                                <option value="GET">GET</option>\
+                                <option value="POST">POST</option>\
+                                <option value="HEAD">HEAD</option>\
+                                <option value="PUT">PUT</option>\
+                                <option value="DELETE">DELETE</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('状态码:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="status_code" style="width:90px;">\
+                                <option value="all">' + pt('所有') + '</option>\
+                                <option value="500">500</option>\
+                                <option value="502">502</option>\
+                                <option value="503">503</option>\
+                                <option value="400">400</option>\
+                                <option value="404">404</option>\
+                                <option value="405">405</option>\
+                                <option value="499">499</option>\
+                                <option value="301">301</option>\
+                                <option value="302">302</option>\
+                                <option value="206">206</option>\
+                                <option value="200">200</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('来源:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="referer" style="width:85px;">\
+                                <option value="all">' + pt('所有') + '</option>\
+                                <option value="-1">' + pt('无') + '</option>\
+                                <option value="1">' + pt('有') + '</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('蜘蛛过滤:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="spider_type" style="width:110px;">\
+                                <option value="normal">' + pt('不过滤') + '</option>\
+                                <option value="only_spider">' + pt('仅显示蜘蛛') + '</option>\
+                                <option value="no_spider">' + pt('不显示蜘蛛') + '</option>\
+                                <option value="1">' + pt('百度') + '</option>\
+                                <option value="2">' + pt('必应') + '</option>\
+                                <option value="3">' + pt('奇虎360') + '</option>\
+                                <option value="4">Google</option>\
+                                <option value="5">' + pt('头条') + '</option>\
+                                <option value="6">' + pt('搜狗') + '</option>\
+                                <option value="7">' + pt('有道') + '</option>\
+                                <option value="8">' + pt('搜搜') + '</option>\
+                                <option value="9">Dnspod</option>\
+                                <option value="10">Yandex</option>\
+                                <option value="11">' + pt('一搜') + '</option>\
+                                <option value="12">' + pt('其他') + '</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">IP: </span>\
+                            <input type="text" name="ip" class="form-control ws-input" autocomplete="off" placeholder="' + pt('IP地址') + '" style="width:130px;">\
+                        </div>\
                     </div>\
-                </div>\
-                <div style="padding-bottom:10px;">\
-                    <span>' + pt('耗时:') + ' </span>\
-                    <select class="bt-input-text" name="request_time" style="margin-left:5px;">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="0-50">0-50(ms)</option>\
-                        <option value="50-200">50-200(ms)</option>\
-                        <option value="200-500">200-500(ms)</option>\
-                        <option value="500-1000">500ms-1s</option>\
-                        <option value="1000">' + pt('大于1s') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('大小:') + ' </span>\
-                    <select class="bt-input-text" name="request_size" style="margin-left:5px;">\
-                        <option value="all">' + pt('所有') + '</option>\
-                        <option value="0-1">0-1(kb)</option>\
-                        <option value="1-20">1-20(kb)</option>\
-                        <option value="20-50">20-50(kb)</option>\
-                        <option value="50-100">50-100(kb)</option>\
-                        <option value="100">' + pt('大于100kb') + '</option>\
-                    </select>\
-                    <span style="margin-left:10px;">' + pt('URL过滤:') + ' </span>\
-                    <div class="input-group" style="width:210px;display:inline-table;">\
-                        <input type="text" name="search_uri" class="form-control btn-group-sm" autocomplete="off" placeholder="URI搜索" style="font-size: 12px;padding: 0 10px;height:30px;">\
-                        <div class="input-group-btn btn-group-sm">\
-                            <button id="logs_search" type="button" class="btn btn-default">' + pt('搜索') + '</button>\
+                    <div class="ws-filter-row">\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('耗时:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="request_time" style="width:115px;">\
+                                <option value="all">' + pt('所有') + '</option>\
+                                <option value="0-50">0-50(ms)</option>\
+                                <option value="50-200">50-200(ms)</option>\
+                                <option value="200-500">200-500(ms)</option>\
+                                <option value="500-1000">500ms-1s</option>\
+                                <option value="1000">' + pt('大于1s') + '</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('大小:') + ' </span>\
+                            <select class="bt-input-text ws-select" name="request_size" style="width:115px;">\
+                                <option value="all">' + pt('所有') + '</option>\
+                                <option value="0-1">0-1(kb)</option>\
+                                <option value="1-20">1-20(kb)</option>\
+                                <option value="20-50">20-50(kb)</option>\
+                                <option value="50-100">50-100(kb)</option>\
+                                <option value="100">' + pt('大于100kb') + '</option>\
+                            </select>\
+                        </div>\
+                        <div class="ws-form-item">\
+                            <span class="ws-form-label">' + pt('URL过滤:') + ' </span>\
+                            <div class="ws-search-group">\
+                                <input type="text" name="search_uri" class="form-control ws-input" autocomplete="off" placeholder="' + pt('URI搜索') + '" style="width:200px;">\
+                                <button id="logs_search" type="button" class="btn btn-success">' + pt('搜索') + '</button>\
+                            </div>\
                         </div>\
                     </div>\
                 </div>\

@@ -81,8 +81,9 @@
 }
 
 .cur {
-    background-color: #20a53a;
-    color: #fff;
+    background-color: #20a53a !important;
+    color: #fff !important;
+    border-color: #20a53a !important;
 }
 
 .divpre {
@@ -108,91 +109,444 @@
     vertical-align: bottom;
 }
 
-.form-control{
-    border-radius: 0px;
+/* ================= 统一现代表单与控件规范 ================= */
+.bt-w-con .bt-input-text,
+.bt-w-con select.bt-input-text,
+.bt-w-con input.form-control,
+.bt-w-con .ws-select,
+.bt-w-con .ws-input {
+    height: 32px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    background-color: #ffffff !important;
+    box-sizing: border-box !important;
+    padding: 0 10px !important;
+    outline: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.overview_list{
-    background-color: #FAFAFA;
-    border: #ddd 1px solid;
-    width: 100%;
-    font-size: 0;
-    color: #78797D;
+.bt-w-con select.bt-input-text,
+.bt-w-con .ws-select {
+    padding-right: 28px !important;
+    cursor: pointer !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2364748b'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 6px center !important;
+    background-size: 16px 16px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
 }
 
-.overview_list .overview_box{
-    width: 14.2%;
-    display: inline-block;
-    font-size: 12px;
-    padding: 15px 0 15px 15px;
-    vertical-align: top;
+.bt-w-con .bt-input-text:focus,
+.bt-w-con select.bt-input-text:focus,
+.bt-w-con input.form-control:focus,
+.bt-w-con .ws-select:focus,
+.bt-w-con .ws-input:focus {
+    border-color: #20a53a !important;
+    box-shadow: 0 0 0 2px rgba(32, 165, 58, 0.15) !important;
 }
 
-.overview_list .w_p20{
-    width: 20%;
+/* 现代按钮体系 */
+.bt-w-con .btn-default {
+    height: 32px !important;
+    line-height: 30px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    color: #475569 !important;
+    transition: all 0.2s ease !important;
 }
 
-.overview_list .ov_num{
-    font-size: 14px;
-    margin-top: 7px;
-    color: #333;
+.bt-w-con .btn-default:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
 }
 
+.bt-w-con .btn-group .btn-default {
+    border-radius: 0 !important;
+    margin-left: -1px !important;
+}
+.bt-w-con .btn-group .btn-default:first-child {
+    border-top-left-radius: 6px !important;
+    border-bottom-left-radius: 6px !important;
+    margin-left: 0 !important;
+}
+.bt-w-con .btn-group .btn-default:last-child {
+    border-top-right-radius: 6px !important;
+    border-bottom-right-radius: 6px !important;
+}
+
+.bt-w-con .btn-success {
+    height: 32px !important;
+    line-height: 30px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    background-color: #20a53a !important;
+    border-color: #20a53a !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+.bt-w-con .btn-success:hover {
+    background-color: #1a8f31 !important;
+    border-color: #1a8f31 !important;
+}
+
+/* 顶部通用工具栏布局 */
+.ws-toolbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px 14px !important;
+    margin-bottom: 12px !important;
+}
+
+.ws-form-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.ws-form-label {
+    font-size: 13px !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+}
+
+/* 时间选择与复合组件 */
+.ws-date-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.ws-search-group {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+.ws-search-group input.ws-input {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-right: none !important;
+}
+.ws-search-group button {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    height: 32px !important;
+    padding: 0 14px !important;
+}
+
+/* 日志筛选专属面板卡片 */
+.ws-filter-panel {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.ws-filter-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px 14px !important;
+}
+
+/* ================= 概览卡片 (Overview Cards) ================= */
+.overview_list {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 10px !important;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 12px !important;
+    padding: 0 0 12px 0 !important;
+}
+
+.overview_list.five-cols,
+.overview_list .w_p20 {
+    width: 100% !important;
+}
+
+.overview_list .overview_box {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    min-width: 0 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+.overview_list .overview_box:hover {
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px) !important;
+}
+
+.overview_list .ov_title {
+    font-size: 12px !important;
+    color: #64748b !important;
+    margin: 0 0 6px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    white-space: nowrap !important;
+    font-weight: 500 !important;
+}
+
+.overview_list .ov_num {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* 网站列表页 5 个指标适配 */
+.ws_sites_list_view .overview_list {
+    grid-template-columns: repeat(5, 1fr) !important;
+}
+
+/* ================= 趋势指标选择器 (根治换行悬空 Bug) ================= */
 .indicators {
-    margin-top: 15px;
-    position: relative;
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    position: relative !important;
 }
 
 .indicators-container {
-    padding: 5px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px 12px !important;
+    padding: 0 !important;
 }
 
-.indicators-container>span {
-    color: #787a7d;
-    margin-right: 10px;
+.indicators-container > span {
+    color: #334155 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    margin-right: 2px !important;
 }
 
 .indicators-label {
-    display: inline-block;
-    width: 88px;
-    height: 26px;
-    line-height: 26px;
-    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important; /* 彻底移除固定 88px 宽度！ */
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 8px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+}
+
+.indicators-label:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
 }
 
 .indicators-label input[type=radio] {
-    height: 13px;
-    margin: 0 5px 0 0;
-    vertical-align: -2px;
+    margin: 0 6px 0 0 !important;
+    cursor: pointer !important;
+    accent-color: #20a53a !important;
+    vertical-align: middle !important;
 }
 
-.ws_tips {
-    color: #777;
-    margin-left: -10px;
-    vertical-align: middle;
+#check_realtime_second {
+    height: 24px !important;
+    line-height: 22px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    text-align: center !important;
+    font-size: 12px !important;
+    padding: 0 4px !important;
 }
 
+/* 提示图标 */
 .tips {
-    border: 1px solid #cbcbcb;
-    border-radius: 8px;
-    color: #cbcbcb;
-    cursor: pointer;
-    display: inline-block;
-    font-family: arial;
-    font-size: 12px;
-    font-style: normal;
-    height: 14px;
-    line-height: 14px;
-    margin-left: 5px;
-    text-align: center;
-    width: 14px;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 50% !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: inherit !important;
+    font-size: 11px !important;
+    font-style: normal !important;
+    height: 14px !important;
+    line-height: 14px !important;
+    margin-left: 4px !important;
+    text-align: center !important;
+    width: 14px !important;
+    transition: all 0.15s ease !important;
 }
 
+.tips:hover {
+    border-color: #20a53a !important;
+    color: #20a53a !important;
+}
+
+/* ================= 蜘蛛统计优化 ================= */
+.echart_container {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+}
+
+#spider_left_total {
+    width: 140px !important;
+    flex-shrink: 0 !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    color: #475569 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-around !important;
+    padding: 16px 12px !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    height: auto !important;
+}
+
+#spider_left_total .total_num_box {
+    padding: 10px 0 !important;
+}
+
+#spider_left_total .tn_title {
+    font-size: 12px !important;
+    color: #64748b !important;
+    margin: 0 0 6px 0 !important;
+}
+
+#spider_left_total .tn_num {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* 客户端统计：左侧圆环图锁定靠左紧凑宽度，消除左侧空白 */
+#echart_left_total {
+    width: 260px !important;
+    flex: 0 0 260px !important;
+    height: 280px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    position: relative !important;
+}
+
+/* 右侧图表容器：弹性自适应填满剩余全部空间 */
+#echart_right_total {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    height: 280px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    position: relative !important;
+}
+
+/* ================= 数据表格美化 ================= */
+.bt-w-con .divtable {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+
+.bt-w-con .divtable table {
+    margin-bottom: 0 !important;
+    border-collapse: collapse !important;
+}
+
+.bt-w-con .divtable thead th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 9px 12px !important;
+    white-space: nowrap !important;
+}
+
+.bt-w-con .divtable tbody td {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+}
+
+.bt-w-con .divtable tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+.bt-w-con .divtable tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+.bt-w-con a.btlink,
+.bt-w-con a.details {
+    color: #20a53a !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+}
+
+.bt-w-con a.btlink:hover,
+.bt-w-con a.details:hover {
+    color: #1a8f31 !important;
+    text-decoration: underline !important;
+}
+
+/* ================= 全局设置美化 ================= */
 .ws_setting .ws_title {
     display: inline-block;
     width: 100px;
     vertical-align: top;
     margin: 6px 15px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
 }
 
 .ws_setting .ws_content{
@@ -205,48 +559,67 @@
 
 .ws_setting .ws_content .choose_title {
     width: 110px;
-}
-
-.ws_setting .ws_content .bt-input-text {
-    height: 26px;
+    font-size: 13px;
+    color: #475569;
 }
 
 .ws_setting .tab-nav {
-	margin-bottom: 10px;
+	margin-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+.ws_setting .tab-nav span {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-right: 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ws_setting .tab-nav span:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+}
+
+.ws_setting .tab-nav span.on {
+    color: #20a53a;
+    font-weight: 600;
+    background-color: rgba(32, 165, 58, 0.1);
 }
 
 .ws_setting .ws_content textarea {
-    border-color: #ddd;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    color: #334155 !important;
+    outline: none !important;
     display: block;
     margin-top: 10px;
     margin-left: -10px;
-    font-size: 13px;
     resize: none;
+    box-sizing: border-box;
+}
+
+.ws_setting .ws_content textarea:focus {
+    border-color: #20a53a !important;
+    box-shadow: 0 0 0 2px rgba(32, 165, 58, 0.15) !important;
 }
 
 .ws_setting .ws_content .item-line {
     display: block;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
 }
 
 .dash_line{
 	margin-top: 15px;
 	padding-top: 15px;
-	border-top:#ccc 1px dashed;
-}
-
-#spider_left_total {
-    width: 150px;
-    display: inline-block;
-    text-align: center;
-    background-color: #FAFAFA;
-    border: #ddd 1px solid;
-    color: #78797D;
-    vertical-align: top;
-}
-
-#spider_left_total .total_num_box {
-    padding: 50px 0;
+	border-top: #e2e8f0 1px dashed;
 }
 
 </style>
@@ -265,7 +638,7 @@
 			<p onclick="wsSitesLog();">网站日志</p>
 			<p onclick="wsGlobalSetting();">全局设置</p>
 		</div>
-		<div class="bt-w-con pd15" style="height: 550px; overflow: auto;">
+		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
 		</div>
 	</div>

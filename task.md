@@ -71,3 +71,10 @@
   - [x] 13.1 **核心修复 (`plugins/php/index.py`)**：在 `phpFpmPoolReplace` 中根据 `pool` 参数动态计算 `listen_path`（`www` 为 `/tmp/php-cgi-{version}.sock`，其它非 `www` 池如 `backup` 为 `/tmp/php-cgi-{version}.{pool}.sock`），修正极限兜底模板中的 socket 路径
   - [x] 13.2 **后台巡检自愈覆盖 (`panel_task.py`)**：在 `phpPoolHeal_step` 中增加对编译版各版本 `backup.conf` 的巡检与自愈，确保所有存量版本的被改坏的备用池配置能被自动校准为 `.backup.sock`
   - [x] 13.3 **自动化回归测试与门禁验证**：在 `testsuite/test_php_fpm_pool_socket.py` 与 `testsuite/test_php_pool_healing_and_ui_quotes.py` 中扩充测试用例，覆盖多版本 `backup.conf` 自愈、防冲突断言，运行全量回归测试确保 100% 通过
+- [x] **任务 14：御风网站统计插件样式全面美化与排版重构 (`plugins/webstats`)**
+  - [x] 14.1 **重构概览页（Overview）指标与卡片布局**：根治趋势指标中 `访客量(UV)` 换行导致的单选框悬空错位 Bug；将指标单选器改造为现代 Flex 药丸/单选组并优化秒数输入；重构概览 7 大统计卡片为现代 Dashboard 卡片网格（微浅底色/柔和边框/数字层级分明）
+  - [x] 14.2 **重构日志页（SitesLog & SitesErrorLog）筛选工具栏**：消除请求类型、状态码、来源、蜘蛛过滤、IP、耗时、大小、URL过滤等杂乱硬编码行；打造统一高度（32px）、对齐规范、圆角微光晕的现代筛选组件（Flex 流式排布与一体化搜索框）
+  - [x] 14.3 **优化通用控制栏与其它模块页面（SitesList, SpiderStat, ClientStat, IpStat, UriStat, GlobalSetting）**：统一顶部网站/时间快速切换组、时段与刷新按钮的现代视觉风格；优化蜘蛛统计侧边卡片与图表容器排版；规范表格与全局设置表单样式
+  - [x] 14.4 **样式与交互兼容性验证**：确保所有原业务选择器、事件绑定及 i18n 多语言翻译完整兼容；验证各分辨率及语言下布局无溢出、无换行错位
+  - [x] 14.5 **优化客户端统计（ClientStat）图表空间排版**：圆环图容器锁定紧凑宽度并靠左对齐，彻底消除左侧空白；右侧柱状图弹性占满所有剩余空间，优化柱状图图例与网格边距，避免图例重叠与柱状挤压
+
