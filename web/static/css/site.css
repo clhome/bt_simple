@@ -743,10 +743,14 @@ html {
 
 .softnum {
     position: absolute;
-    left: 154px;
+    right: 12px;
+    left: auto;
     top: 12px;
     height: 20px;
-    width: 20px;
+    min-width: 20px;
+    width: auto;
+    padding: 0 4px;
+    box-sizing: border-box;
     line-height: 20px;
     background-color: #fc6d26;
     z-index: 99;
@@ -5817,7 +5821,7 @@ body.sidebar-mini .mypcip span { display: none; }
 body.sidebar-mini .mypcip { padding: 0; text-align: center; height: 46px; }
 body.sidebar-mini .menu li a { padding-left: 0; text-indent: -9999px; background-position: center 14px; width: 60px; overflow: hidden; }
 body.sidebar-mini .btpc-plus { padding-left: 0; text-align: center; }
-body.sidebar-mini .softnum { left: 40px; }
+body.sidebar-mini .softnum { left: auto; right: 0; }
 body.sidebar-mini .sidebar-collapse { width: 60px; }
 body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 

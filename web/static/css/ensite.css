@@ -601,10 +601,14 @@ html {
 
 .softnum {
     position: absolute;
-    left: 154px;
+    right: 12px;
+    left: auto;
     top: 12px;
     height: 20px;
-    width: 20px;
+    min-width: 20px;
+    width: auto;
+    padding: 0 4px;
+    box-sizing: border-box;
     line-height: 20px;
     background-color: #fc6d26;
     z-index: 99;
