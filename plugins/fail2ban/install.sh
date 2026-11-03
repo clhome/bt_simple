@@ -24,7 +24,7 @@ YF_SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 VERSION=${2:-}
 if [ -z "$VERSION" ]; then
-	VERSION="1.2.0"
+	VERSION="1.3.0"
 fi
 
 MANUAL_LOG=/var/log/fail2ban-manual.log
@@ -294,16 +294,16 @@ Uninstall_App()
 	yf_install_report_finish
 }
 
-action=${1:-}
+action=${1:-install}
 case "$action" in
-	install)
+	install|update|upgrade)
 		Install_App
 		;;
 	uninstall)
 		Uninstall_App
 		;;
 	*)
-		echo "Usage: bash install.sh {install|uninstall} [version]"
+		echo "Usage: bash install.sh {install|update|upgrade|uninstall} [version]"
 		exit 1
 		;;
 esac

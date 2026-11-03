@@ -1,3 +1,4 @@
 [
-    [1,"(?i)(spring4shell|log4shell|fastjson|shiro|struts2|thinkphp|weblogic|jenkins|gitlab|zabbix)","漏洞探测扫描防御","scan"]
+    [1,"(?i)(spring4shell|log4shell|fastjson|shiro|struts2|thinkphp|weblogic|jenkins|gitlab|zabbix)","漏洞探测扫描防御","scan"],
+    [1,"(?i)(spring-boot.*restart|actuator/(?:env|heapdump|gateway|jolokia)|php2shell)","Spring Boot与高危漏洞端点嗅探防御","scan"]
 ]

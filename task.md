@@ -83,4 +83,9 @@
   - [x] 15.3 完善服务端 `/files/check_exists_files` 异步校验与自动递增校准机制，联动压缩格式与目录切换
   - [x] 15.4 编写专门的单元测试用例，覆盖时间格式、防重名序号递增（无后缀 -> -01 -> -02）、扩展名联动及边缘场景
   - [x] 15.5 运行自动化测试验证，确保全部通过，更新任务完成状态
-
+- [x] **任务 16：御风OP防火墙与御风F2B防火墙版本升级及新漏洞蜜罐规则安全增量同步 (`op_waf`, `fail2ban`)**
+  - [x] 16.1 规则模板增强：在 `op_waf/waf/config.json`、`waf/rule/vuln.json`、`waf/rule/url.json` 中补充针对 Java/Spring Boot (CVE-2026-40972/41843) 及相关高危漏洞的蜜罐诱饵与防御特征
+  - [x] 16.2 平滑升级机制实现：在 `op_waf/index.py` 中实现 `upgradeRules()`，在服务启动、重启、配置重载时智能执行安全增量合并；更新 `op_waf/install.sh` 支持 `install/update/upgrade` 动作
+  - [x] 16.3 前端与版本元数据同步：更新 `op_waf/js/op_waf.js` 蜜罐还原默认路径，升级 `op_waf/info.json` 版本至 1.6
+  - [x] 16.4 `fail2ban` 协同与版本升级：升级 `fail2ban/info.json` 与 `install.sh` 版本至 1.3.0，规范安装脚本动作分发，优化 `op-waf` 蜜罐联动拦截原因展示
+  - [x] 16.5 测试套件与全量回归：编写单元测试验证老用户升级增量合并、自定义规则绝不覆盖、蜜罐诱饵与拦截特征有效性，确保全量测试通过

@@ -158,9 +158,16 @@ Uninstall_App(){
 }
 
 
-action=$1
-if [ "${1}" == 'install' ];then
-	Install_App
-else
-	Uninstall_App
-fi
+action=${1:-install}
+case "$action" in
+	install|update|upgrade)
+		Install_App
+		;;
+	uninstall)
+		Uninstall_App
+		;;
+	*)
+		echo "Usage: bash install.sh {install|update|upgrade|uninstall} [version]"
+		exit 1
+		;;
+esac

@@ -530,7 +530,108 @@ def cleanUserAgentJsonRule():
     return False
 
 
+def upgradeRules():
+    """
+    老版本平滑升级与规则安全增量合并机制：
+    1. 蜜罐路径（config.json 中的 honeypot.paths）：
+       - 智能合并官方最新诱饵路径（针对 CVE-2026-40972 DevTools / CVE-2026-41843 Java 敏感端点）
+       - 用户自行添加的路径 100% 完整保留，绝不覆盖/删除任何自定义条目
+    2. 规则列表（waf/rule/*.json）：
+       - 检查 vuln, url, args, post 等规则文件
+       - 以规则正则（rule[1]）为去重键，只增量追加用户本地缺失的官方新规则
+       - 用户自建的任何规则 100% 保留，绝不覆盖
+       - 用户修改了原有规则的状态（如启用/禁用），100% 保留用户当前状态，绝不篡改
+    3. 返回值：若产生增量更新返回 True，无变化返回 False
+    """
+    modified = False
+    try:
+        # 1. 合并 config.json 中的 honeypot.paths
+        dst_conf = getServerDir() + "/waf/config.json"
+        src_conf = getPluginDir() + "/waf/config.json"
+        if os.path.exists(dst_conf) and os.path.exists(src_conf):
+            dst_raw = yf.readFile(dst_conf)
+            src_raw = yf.readFile(src_conf)
+            if dst_raw and src_raw:
+                try:
+                    dst_obj = json.loads(dst_raw)
+                    src_obj = json.loads(src_raw)
+                except Exception:
+                    dst_obj = None
+                    src_obj = None
+                if isinstance(dst_obj, dict) and isinstance(src_obj, dict):
+                    if 'honeypot' not in dst_obj and 'honeypot' in src_obj:
+                        dst_obj['honeypot'] = src_obj['honeypot']
+                        if yf.writeFile(dst_conf, json.dumps(dst_obj, ensure_ascii=False, indent=4)):
+                            modified = True
+                    elif 'honeypot' in dst_obj and 'honeypot' in src_obj:
+                        cur_paths = dst_obj['honeypot'].get('paths', [])
+                        src_paths = src_obj['honeypot'].get('paths', [])
+                        if isinstance(cur_paths, list) and isinstance(src_paths, list):
+                            cur_set = set(cur_paths)
+                            path_added = False
+                            for p in src_paths:
+                                if p not in cur_set:
+                                    cur_paths.append(p)
+                                    cur_set.add(p)
+                                    path_added = True
+                            if path_added:
+                                dst_obj['honeypot']['paths'] = cur_paths
+                                if yf.writeFile(dst_conf, json.dumps(dst_obj, ensure_ascii=False, indent=4)):
+                                    modified = True
+
+        # 2. 合并 waf/rule/*.json 规则文件
+        rule_files = ['vuln', 'url', 'args', 'post', 'scan_black', 'cookie', 'user_agent', 'ssrf']
+        for rname in rule_files:
+            dst_file = getServerDir() + "/waf/rule/" + rname + ".json"
+            src_file = getPluginDir() + "/waf/rule/" + rname + ".json"
+            if not os.path.exists(dst_file) or not os.path.exists(src_file):
+                continue
+            dst_raw = yf.readFile(dst_file)
+            src_raw = yf.readFile(src_file)
+            if not dst_raw or not src_raw:
+                continue
+            try:
+                dst_rules = json.loads(dst_raw)
+                src_rules = json.loads(src_raw)
+            except Exception:
+                continue
+            if not isinstance(dst_rules, list) or not isinstance(src_rules, list):
+                continue
+
+            existing_patterns = set()
+            for r in dst_rules:
+                if isinstance(r, (list, tuple)) and len(r) > 1 and isinstance(r[1], str):
+                    existing_patterns.add(r[1].strip())
+
+            rule_added = False
+            for sr in src_rules:
+                if isinstance(sr, (list, tuple)) and len(sr) > 1 and isinstance(sr[1], str):
+                    pat = sr[1].strip()
+                    if pat not in existing_patterns:
+                        # 发现新官方规则：增量追加到末尾，绝不影响老用户自建规则与现有规则状态
+                        dst_rules.append(sr)
+                        existing_patterns.add(pat)
+                        rule_added = True
+
+            if rule_added:
+                if yf.writeFile(dst_file, json.dumps(dst_rules, ensure_ascii=False, indent=4)):
+                    modified = True
+                    autoMakeLuaConfSingle(rname, conf_reload=True)
+    except Exception as e:
+        _log.warning('[op_waf] upgradeRules 异常已忽略: %s', e)
+    return modified
+
+
+def upgradeRulesCli():
+    res = upgradeRules()
+    if res:
+        autoMakeConfig(conf_reload=True)
+    return yf.returnJson(True, '设置成功!')
+
+
 def autoMakeConfig(conf_reload=False, cp_reload=False):
+    if upgradeRules():
+        conf_reload = True
     if cleanUserAgentJsonRule():
         conf_reload = True
     initDomainInfo(conf_reload)
@@ -3043,5 +3144,7 @@ if __name__ == "__main__":
         print(getBanSync())
     elif func == 'set_ban_sync' or func == 'setBanSync':
         print(setBanSync())
+    elif func == 'upgrade_rules' or func == 'upgradeRules':
+        print(upgradeRulesCli())
     else:
         print('error')

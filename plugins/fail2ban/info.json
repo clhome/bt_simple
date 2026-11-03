@@ -5,14 +5,14 @@
     "title": "御风F2B防火墙",
     "shell": "install.sh",
     "versions": [
-        "1.2.0"
+        "1.3.0"
     ],
     "tip": "soft",
     "checks": "server/fail2ban",
     "path": "server/fail2ban",
     "display": 2,
     "author": "fail2ban，yufengtec",
-    "date": "2026-05-28",
+    "date": "2026-11-03",
     "home": "https://www.fail2ban.org",
     "type": "security",
     "pid": "4"

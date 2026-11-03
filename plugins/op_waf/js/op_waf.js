@@ -2629,7 +2629,24 @@ function saveHoneypotPaths() {
     });
 }
 function restoreHoneypotDefault() {
-    var defaultPaths = ['/.env', '/admin_test.php', '/backup.zip', '/config.php.bak', '/.git/'];
+    var defaultPaths = [
+        '/.env',
+        '/admin_test.php',
+        '/backup.zip',
+        '/config.php.bak',
+        '/.git/',
+        '/.~~spring-boot!~/',
+        '/.~~spring-boot!~/restart',
+        '/WEB-INF/web.xml',
+        '/WEB-INF/classes/',
+        '/META-INF/',
+        '/application.yml',
+        '/application.properties',
+        '/actuator/env',
+        '/actuator/heapdump',
+        '/actuator/gateway',
+        '/actuator/jolokia'
+    ];
     $('#honeypot_paths_input').val(defaultPaths.join('\n'));
 }
 

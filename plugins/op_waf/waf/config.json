@@ -71,7 +71,24 @@
         "status": 444,
         "ps": "自动蜜罐防护，拦截自动扫描器和嗅探脚本",
         "open": true,
-        "paths": ["/.env", "/admin_test.php", "/backup.zip", "/config.php.bak", "/.git/"]
+        "paths": [
+            "/.env",
+            "/admin_test.php",
+            "/backup.zip",
+            "/config.php.bak",
+            "/.git/",
+            "/.~~spring-boot!~/",
+            "/.~~spring-boot!~/restart",
+            "/WEB-INF/web.xml",
+            "/WEB-INF/classes/",
+            "/META-INF/",
+            "/application.yml",
+            "/application.properties",
+            "/actuator/env",
+            "/actuator/heapdump",
+            "/actuator/gateway",
+            "/actuator/jolokia"
+        ]
     },
     "spider": {
         "open": true,

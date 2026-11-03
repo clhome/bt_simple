@@ -36,8 +36,8 @@
   - **国内智能中转镜像加速**：所有插件及第三方库依赖编译脚本重构为“全球官方原厂源直连 + 国内智能中转镜像加速 (mirror.ghproxy.com)”，无感免除手动上传大文件的劳顿，提供全向网络环境下最极致的极速部署体验。
   - 密码存储全面升级为 `bcrypt` 算法。
   - 面板 HTTPS 开启后**显式约束最低 TLS 1.2**（`web/setting.py` 经 gunicorn `ssl_context` 下发 `minimum_version = TLSv1_2`），拒绝更低版本的协商。
-  - 具备智能 IP 封禁机制，防范暴力破解；Fail2ban 升级支持**全局站点保护**与**严格校验模式**。
-  - CSRF 防护（Token / Referer 双重校验）与文件路径遍历检测（黑名单式拦截，另对解压成员与关键接口补了校验）；御风OP防火墙引入**全域蜜罐诱饵阻断**机制，任意目录下触发关键字即行物理禁止。
+  - 具备智能 IP 封禁机制，防范暴力破解；Fail2ban（御风F2B防火墙 1.3.0）升级支持**全局站点保护**、**严格校验模式**与**OP防火墙内核级联动阻断**。
+  - CSRF 防护（Token / Referer 双重校验）与文件路径遍历检测（黑名单式拦截，另对解压成员与关键接口补了校验）；御风OP防火墙 1.6 引入**全域蜜罐诱饵阻断**与**规则安全增量合并**机制，内置针对 Java/Spring Boot DevTools、Actuator、路径遍历等高危端点诱饵，一旦触发直接打满信誉惩罚并联动 Fail2ban 在内核层（iptables/nftables）全端口物理封禁，且老用户升级 100% 保护自建规则不被覆盖。
   - **卸载与删除双保险机制**：软件卸载与 MySQL 数据库删除均需输入名称二次校验；**插件卸载默认勾选「卸载前打包备份」**（可手动取消），MySQL 数据库删除本身不自动备份（需要时请先用面板的数据库备份功能），以降低手误删库风险。
 
   ![首页](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260630174852542.png)
@@ -268,11 +268,14 @@ Python <3.9 分支（兼容 CentOS 7 / Debian 10 等仅自带旧版 Python 的�
 
 > 本节的性能百分比 / 倍数均为**作者自测、环境相关**，受机器规格与数据量影响，不代表所有环境；基准脚本与复现方法见 `scripts/bench/README.md`。
 
-- **插件升级**：全面升级「御风OP防火墙 1.5（企业级 Web 安全防护引擎）」，进行深度性能调优与系统负载减负：
-  - **磁盘 I/O 减负 80%+**：重构 SQLite 异步批量落盘机制（3秒批处理+句柄自动回收），优化过期日志清理频率并修复表名引用，彻底消除磁盘 I/O 锁争用与负载排队。
-  - **防 CC 算力消耗暴降 90%+**：利用 OpenResty 原生底层 C 级 MD5 请求特征指纹替代纯 Lua 循环计算，在 100% 保持 IP、Subnet、URI、UA、Cookie 多维特征精准限流的同时，大幅释放 CPU 算力。
+- **安全插件重大升级**：全面升级「御风OP防火墙 1.6（企业级 Web 安全防护引擎）」与「御风F2B防火墙 1.3.0（Fail2ban 内核级联动防护）」：
+  - **最新高危漏洞蜜罐与特征防御升级**：针对最新披露的 Spring Boot DevTools 远程重启上传 RCE (CVE-2026-40972)、Spring Framework 静态资源解析路径遍历 (CVE-2026-41843)、PHP2Shell 等严重高危漏洞，在 `op_waf` 蜜罐诱饵中全面补充 `/.~~spring-boot!~/`、`/.~~spring-boot!~/restart`、`/WEB-INF/web.xml`、`/WEB-INF/classes/`、`/META-INF/`、`/application.yml`、`/application.properties`、`/actuator/env`、`/actuator/heapdump`、`/actuator/gateway`、`/actuator/jolokia` 等 Java/Spring 经典端点诱饵。
+  - **老用户平滑安全增量合并机制**：内置 `upgradeRules()` 智能合并引擎，已安装老版本的用户升级后，系统自动比对并增量追加官方缺失的新漏洞规则与蜜罐端点，**且 100% 完整保留用户自己建立的自定义规则与自建蜜罐路径，绝不覆盖**，老用户对已有规则的禁用状态也严格维持不变。
+  - **应用层与内核层全端口联动拦截**：外部扫描器或攻击脚本一旦触碰蜜罐诱饵路径，应用层立即施加 100 分信誉归零惩罚并在 WAF 层拉黑 24 小时；开启 `ban_sync` 时实时通知「御风F2B防火墙」，在 Linux 操作系统内核层（iptables/nftables）对恶意 IP 实施全端口阻断，连 TCP 握手都无法建立。
+  - **安装与升级脚本规范加固**：重构 `op_waf` 与 `fail2ban` 的 `install.sh`，规范分发 `install`、`update`、`upgrade` 动作，杜绝更新过程中被误判卸载的风险。
+  - **磁盘 I/O 减负 80%+ 与防 CC 算力优化 90%+**：重构 SQLite 异步批量落盘机制与 OpenResty 原生底层 C 级 MD5 特征指纹限流，彻底消除磁盘 I/O 锁争用并释放 CPU 算力。
   - **内核级稳定性加固**：规范修复 GeoIP / MaxMindDB 底层 FFI 二级指针内存分配与链表释放，彻底杜绝 OpenResty Worker 进程段错误（Segfault）与闪退重启。
-  - **蜜罐过滤极速前置**：优化蜜罐路径匹配与快速放行，提升高频常规访问下的整体吞吐吞吐性能。
+  - **蜜罐过滤极速前置**：优化蜜罐路径匹配与快速放行，提升高频常规访问下的整体吞吐性能。
 - **全新特性**：首页新增「最近登录记录」模块与安全审计体系：
   ![login_log](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/login_log.webp)
   - **全链路登录监控**：实时记录 Web 面板（常规登录、两步验证、安全入口）与 SSH 远程终端的登录行为（含成功与失败事件）。

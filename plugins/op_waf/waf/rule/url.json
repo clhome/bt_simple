@@ -88,5 +88,17 @@
         "/(phpmyadmin|\\.env|vendor/phpunit|admin\\.php|\\.git|config\\.php\\.bak)",
         "蜜罐目录探测",
         0
+    ],
+    [
+        1,
+        "(?i)/(?:\\.~~spring-boot!~|actuator/(?:env|heapdump|gateway)|WEB-INF/(?:web\\.xml|classes))",
+        "Spring Boot与Java敏感端点探测防御",
+        0
+    ],
+    [
+        1,
+        "(?i)(?:\\.\\.[\\/\\\\]|%2e%2e[\\/\\\\]|\\.\\.;[\\/\\\\])",
+        "路径遍历与目录穿透防御",
+        0
     ]
 ]

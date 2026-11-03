@@ -19,6 +19,12 @@
     ],
     [
         1,
+        "(?i)(?:%2e%2e[\\/\\\\]|\\.\\.;[\\/\\\\])",
+        "目录遍历编码保护",
+        0
+    ],
+    [
+        1,
         "(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\\:\\/",
         "PHP流协议过滤1",
         0
