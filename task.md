@@ -104,5 +104,13 @@
   - [x] 18.2 **JS 拦截层全局保底增强 (`web/static/app/public.js`)**：在 `layer.msg`、`layer.alert`、`layer.confirm` 劫持逻辑中将 `maxWidth` 默认值提升（msg 提升为 650，alert/confirm 提升为 600），覆盖 layer.js 默认 360px 内联限制；
   - [x] 18.3 **业务层双重防御 (`web/static/app/files.js`)**：在 `openFilename` 调用的 `layer.msg` 明确附带 `maxWidth: 650`；
   - [x] 18.4 **全量弹窗排查与回归验证**：排查 tips、prompt、页面层弹窗，运行回归测试确保样式与逻辑稳定。
+- [x] **任务 19：缺陷修复（P1-1、P2-1、P2-2、P2-3、P2-4）**
+  - [x] 19.1 **P1-1 修复**：`testsuite/test_gitea_wedged_live.py` 单元文件 `$$` 转义 bug（改为 `$$$$` 并增加 systemd MainPID 校验）
+  - [x] 19.2 **P2-1 修复**：`testsuite/test_recent_logins.py` flaky 治理（剥离外网网络请求、用例完全自包含与数据清理）
+  - [x] 19.3 **P2-2 补充**：`plugins/op_waf` 老用户增量合并 live 验证用例补齐（含自定义规则、禁用规则与自建蜜罐路径升级验证）
+  - [x] 19.4 **P2-3 修复**：`plugins/docker/index.py` 容器清日志 glob 贪婪前缀匹配漏洞（改用 `conFind.id` 64 位精准定位）
+  - [x] 19.5 **P2-4 修复**：`plugins/op_waf/index.py` 中 `upgradeRules` 与 `upgradeRulesCli` 成功契约规范化（失败显式回退，拒绝假成功）
+  - [x] 19.6 **全量回归与测试验证**：运行相关单元测试及门禁确保全部通过
+
 
 

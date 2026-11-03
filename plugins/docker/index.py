@@ -576,15 +576,30 @@ def dockerClearConLog():
                 f.truncate(0)
             return yf.returnJson(True, '清空日志成功')
         else:
-            # 兼容非 json-file 日志或未在 attrs 暴露 LogPath 的情况
-            safe_host = re.sub(r'[^a-zA-Z0-9_-]', '', Hostname)
-            if safe_host:
-                for lf in glob.glob(f'/var/lib/docker/containers/{safe_host}*/{safe_host}*-json.log'):
+            # 兼容非 json-file 日志或未在 attrs 暴露 LogPath 的情况：
+            # 优先使用容器完整 64 位 ID 精准定位，杜绝使用前缀通配符导致同名前缀（如 web / web2）误伤
+            con_id = getattr(conFind, 'id', None) or (conFind.attrs.get('Id') if hasattr(conFind, 'attrs') else None)
+            safe_cid = re.sub(r'[^a-zA-Z0-9]', '', str(con_id or ''))
+            if safe_cid:
+                exact_log = f'/var/lib/docker/containers/{safe_cid}/{safe_cid}-json.log'
+                if os.path.exists(exact_log):
                     try:
-                        with open(lf, 'r+', encoding='utf-8', errors='ignore') as f:
+                        with open(exact_log, 'r+', encoding='utf-8', errors='ignore') as f:
                             f.truncate(0)
                     except Exception as _e:
-                        _log.debug('[docker] 清空容器日志失败 %s: %s', lf, _e)
+                        _log.debug('[docker] 清空容器日志失败 %s: %s', exact_log, _e)
+                else:
+                    # 仅在非 64 位短 ID 时严格比对目录名前缀对应关系，且只清理与目录同名的 {dir_name}-json.log
+                    for c_dir in glob.glob(f'/var/lib/docker/containers/{safe_cid}*'):
+                        dir_name = os.path.basename(c_dir)
+                        if dir_name == safe_cid or (len(safe_cid) >= 12 and dir_name.startswith(safe_cid)):
+                            candidate_log = os.path.join(c_dir, f'{dir_name}-json.log')
+                            if os.path.exists(candidate_log):
+                                try:
+                                    with open(candidate_log, 'r+', encoding='utf-8', errors='ignore') as f:
+                                        f.truncate(0)
+                                except Exception as _e:
+                                    _log.debug('[docker] 清空容器日志失败 %s: %s', candidate_log, _e)
             return yf.returnJson(True, '清空日志成功')
     except Exception as ex:
         return yf.returnJson(False, f'清空日志失败: {str(ex)}')

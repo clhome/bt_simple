@@ -807,6 +807,85 @@ console.log(bad.length ? 'BAD=' + JSON.stringify(bad) : 'OK');
                 self.assertIn(key, data, '%s 缺少键 %r' % (lang, key))
             self.assertTrue(data.get('请求失败'))
 
+    def test_76_clear_con_log_exact_match_no_overmatch(self):
+        """P2-3: 验证清空容器日志使用完整容器ID精准定位，杜绝通配符前缀过匹配连带误删邻居容器日志"""
+        mod = _load_plugin('docker_clear_log_test')
+        tmp_dir = tempfile.mkdtemp(prefix='yf_test_docker_log_')
+        try:
+            cid_target = 'a' * 64
+            cid_sibling = 'a' * 32 + 'b' * 32  # 前 32 位相同的前缀相似容器
+
+            dir_target = os.path.join(tmp_dir, cid_target)
+            dir_sibling = os.path.join(tmp_dir, cid_sibling)
+            os.makedirs(dir_target, exist_ok=True)
+            os.makedirs(dir_sibling, exist_ok=True)
+
+            log_target = os.path.join(dir_target, f'{cid_target}-json.log')
+            log_sibling = os.path.join(dir_sibling, f'{cid_sibling}-json.log')
+
+            with open(log_target, 'w', encoding='utf-8') as f:
+                f.write('target log 123456\n')
+            with open(log_sibling, 'w', encoding='utf-8') as f:
+                f.write('sibling log keep intact\n')
+
+            # 模拟容器对象（无 LogPath 属性走 fallback 查找）
+            class _FakeTargetCon:
+                id = cid_target
+                attrs = {'Id': cid_target}
+
+            class _FakeClient:
+                class containers:
+                    @staticmethod
+                    def get(name):
+                        if name in ('web', cid_target, cid_target[:12]):
+                            return _FakeTargetCon()
+                        return None
+
+            orig_getDClient = mod.getDClient
+            orig_getArgs = mod.getArgs
+            mod.getDClient = lambda: _FakeClient()
+            mod.getArgs = lambda: {'Hostname': 'web'}
+
+            # mock glob 指向测试目录
+            real_glob = mod.glob.glob
+            def mock_glob(pattern):
+                mapped_pattern = pattern.replace('/var/lib/docker/containers', tmp_dir)
+                return real_glob(mapped_pattern)
+
+            mod.glob.glob = mock_glob
+            try:
+                import unittest.mock as mock
+                real_exists = os.path.exists
+                real_builtins_open = open
+
+                def fake_exists(p):
+                    mapped = p.replace('/var/lib/docker/containers', tmp_dir) if isinstance(p, str) else p
+                    return real_exists(mapped)
+
+                def fake_open(p, *a, **kw):
+                    mapped = p.replace('/var/lib/docker/containers', tmp_dir) if isinstance(p, str) and '/var/lib/docker/containers' in p else p
+                    return real_builtins_open(mapped, *a, **kw)
+
+                with mock.patch('os.path.exists', side_effect=fake_exists):
+                    with mock.patch('builtins.open', side_effect=fake_open):
+                        res = mod.dockerClearConLog()
+                        res_obj = json.loads(res)
+                        self.assertTrue(res_obj.get('status'), f'清空日志应返回成功: {res}')
+
+                # 验证：目标容器日志被精准截断为 0 字节
+                with open(log_target, 'r', encoding='utf-8') as f:
+                    self.assertEqual(f.read(), '', '目标容器日志未被清空')
+
+                # 核心安全断言：前缀相似的邻居容器日志必须完整保留，绝无误杀
+                with open(log_sibling, 'r', encoding='utf-8') as f:
+                    self.assertEqual(f.read(), 'sibling log keep intact\n', '邻居容器日志被 glob 前缀通配符误清空！')
+            finally:
+                mod.getDClient = orig_getDClient
+                mod.getArgs = orig_getArgs
+                mod.glob.glob = real_glob
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

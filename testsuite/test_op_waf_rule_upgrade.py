@@ -5,11 +5,18 @@ import json
 import shutil
 import tempfile
 import unittest
+import importlib.util
 
 workspace = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, workspace)
 sys.path.insert(0, os.path.join(workspace, 'web'))
 sys.path.insert(0, os.path.join(workspace, 'plugins', 'op_waf'))
+
+def _load_op_waf():
+    spec = importlib.util.spec_from_file_location('op_waf_rule_upgrade_index', os.path.join(workspace, 'plugins', 'op_waf', 'index.py'))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 if sys.platform.startswith('win'):
     try:
@@ -82,7 +89,7 @@ class TestOpWafRuleUpgrade(unittest.TestCase):
 
     def test_honeypot_and_rules_safe_merge(self):
         """测试老用户升级时的安全增量合并机制：绝对不覆盖用户自建规则与自建蜜罐路径"""
-        import index as op_waf_index
+        op_waf_index = _load_op_waf()
 
         test_dir = tempfile.mkdtemp(prefix='waf_test_upgrade_')
         waf_dir = os.path.join(test_dir, 'waf')
@@ -153,6 +160,50 @@ class TestOpWafRuleUpgrade(unittest.TestCase):
             # 6. 验证幂等性：再次调用返回 False 且内容无变化
             changed_second = op_waf_index.upgradeRules()
             self.assertFalse(changed_second, "升级合并必须幂等，二次调用不应产生变更")
+
+        finally:
+            op_waf_index.getServerDir = original_server_dir
+            shutil.rmtree(test_dir, ignore_errors=True)
+
+    def test_upgrade_rules_cli_contract_and_error_handling(self):
+        """P2-4: 验证 upgradeRulesCli 成功与失败口径契约，杜绝异常被吞返回假成功"""
+        op_waf_index = _load_op_waf()
+
+        test_dir = tempfile.mkdtemp(prefix='waf_test_cli_')
+        waf_dir = os.path.join(test_dir, 'waf')
+        rule_dir = os.path.join(waf_dir, 'rule')
+        os.makedirs(rule_dir, exist_ok=True)
+
+        original_server_dir = op_waf_index.getServerDir
+        op_waf_index.getServerDir = lambda: test_dir
+
+        try:
+            # 1. 正常场景：基于真实模板构造含老用户自定义项的配置与规则文件，CLI 应正常重编并返回 status: True
+            src_conf_file = os.path.join(workspace, 'plugins', 'op_waf', 'waf', 'config.json')
+            with open(src_conf_file, 'r', encoding='utf-8') as f:
+                base_cfg = json.load(f)
+            base_cfg['honeypot']['paths'] = ["/my_old_honeypot"]
+            conf_file = os.path.join(waf_dir, 'config.json')
+            with open(conf_file, 'w', encoding='utf-8') as f:
+                json.dump(base_cfg, f, ensure_ascii=False, indent=4)
+
+            vuln_file = os.path.join(rule_dir, 'vuln.json')
+            with open(vuln_file, 'w', encoding='utf-8') as f:
+                json.dump([[1, "test_rule", "test", "scan"]], f)
+
+            res_normal = op_waf_index.upgradeRulesCli()
+            normal_data = json.loads(res_normal)
+            self.assertTrue(normal_data.get('status'), f"正常升级 CLI 应返回 status: True, 实际返回: {res_normal}")
+
+            # 2. 异常场景：规则文件损坏导致 JSON 解码失败，CLI 必须返回 status: False 并给出明确错误原因
+            with open(vuln_file, 'w', encoding='utf-8') as f:
+                f.write("{ invalid json syntax !!!")
+
+            res_error = op_waf_index.upgradeRulesCli()
+            error_data = json.loads(res_error)
+            self.assertFalse(error_data.get('status'), f"发生合并错误时 CLI 绝不能返回假成功, 实际返回: {res_error}")
+            self.assertIn('规则保存失败', error_data.get('msg', ''), "错误信息未明确提示规则保存失败")
+            self.assertIn('vuln.json', error_data.get('msg', ''), "错误信息中应指明失败的文件名")
 
         finally:
             op_waf_index.getServerDir = original_server_dir

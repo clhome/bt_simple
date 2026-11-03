@@ -41,7 +41,10 @@ class TestGiteaWedgedSystemdLive(unittest.TestCase):
             self.skipTest('systemd 状态构造需 root 权限，当前为非 root 用户')
 
         import core.yf as yf
-        import index as gitea_plugin
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('gitea_plugin_wedged_live', os.path.join(GITEA_PLUGIN_DIR, 'index.py'))
+        gitea_plugin = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gitea_plugin)
         self.yf = yf
         self.gitea = gitea_plugin
 
@@ -58,7 +61,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/sh -c 'echo $$ > {run_file}; exec sleep 3600'
+# 注意：systemd unit ExecStart 中 $$ 会被展开为单个 $。必须写 $$$$ 才能使 sh 收到 echo $$ 并正确输出数字 PID
+ExecStart=/bin/sh -c 'echo $$$$ > {run_file}; exec sleep 3600'
 RemainAfterExit=yes
 Restart=no
 
@@ -78,6 +82,11 @@ WantedBy=multi-user.target
             self.assertTrue(os.path.exists(run_file), '测试单元未正常启动')
             with open(run_file, 'r', encoding='utf-8') as f:
                 pid = f.read().strip()
+            if not pid.isdigit() or pid == '0':
+                rc_mp, out_mp, _ = self.yf.execShellRc(['systemctl', 'show', '-p', 'MainPID', '--value', unit_name], shell=False)
+                if rc_mp == 0 and (out_mp or '').strip().isdigit():
+                    pid = out_mp.strip()
+            self.assertTrue(pid.isdigit() and int(pid) > 0, f'未能获取有效的测试单元 PID: {pid}')
 
             # 3. 强杀进程构造 wedged 状态（不调用 systemctl stop）
             subprocess.run(['kill', '-9', pid], check=True)

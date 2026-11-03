@@ -108,8 +108,31 @@ class TestRecentLogins(unittest.TestCase):
                         yf.M('users').execute(s, ())
                     except Exception as e:
                         pass
+        # 显式保证当前隔离库中存在 id=1 的基准用户，杜绝执行顺序与环境依赖
         try:
-            thisdb.initAdminUser()
+            user = yf.M('users').where('id=?', (1,)).find()
+            if not user:
+                now_time = yf.formatDate()
+                yf.M('users').add('id,name,password,login_ip,login_time,phone,email,add_time,update_time',
+                                  (1, 'admin', 'test_password_hash', '127.0.0.1', now_time, '', '', now_time, now_time))
+        except Exception:
+            try:
+                thisdb.initAdminUser()
+            except Exception:
+                pass
+
+    def setUp(self):
+        # 确保每个用例执行时均有基础用户可用
+        user = yf.M('users').where('id=?', (1,)).find()
+        if not user:
+            now_time = yf.formatDate()
+            yf.M('users').add('id,name,password,login_ip,login_time,phone,email,add_time,update_time',
+                              (1, 'admin', 'test_password_hash', '127.0.0.1', now_time, '', '', now_time, now_time))
+
+    def tearDown(self):
+        # 清理测试添加的临时日志，保持用例自包含
+        try:
+            yf.M('logs').where("log like '%test1%' or log like '%192.168.1.102%' or log like '%192.168.1.103%'", ()).delete()
         except Exception:
             pass
 
@@ -160,10 +183,12 @@ class TestRecentLogins(unittest.TestCase):
         self.assertTrue(len(user.get('login_time', '')) > 0)
 
     def test_pconline_ip_location(self):
+        from unittest.mock import patch, MagicMock
+        import json
+
         def get_location_from_pconline(ip):
             try:
                 import urllib.request
-                import json
                 url = 'https://whois.pconline.com.cn/ipJson.jsp?ip=' + ip + '&json=true'
                 req = urllib.request.Request(url)
                 req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
@@ -192,28 +217,57 @@ class TestRecentLogins(unittest.TestCase):
                 pass
             return "未知归属地"
 
-        loc = get_location_from_pconline('202.107.245.93')
-        self.assertIsInstance(loc, str)
-        self.assertTrue(len(loc) > 0)
-        self.assertIn('浙江', loc)
+        # 1. 模拟正常国内 IP 归属地解析（完全自包含，零外网依赖）
+        fake_resp = MagicMock()
+        fake_resp.read.return_value = json.dumps({
+            'pro': '浙江省', 'city': '杭州市', 'addr': '浙江省杭州市 电信', 'proCode': '330100'
+        }).encode('gbk')
+        fake_resp.__enter__.return_value = fake_resp
+
+        with patch('urllib.request.urlopen', return_value=fake_resp):
+            loc = get_location_from_pconline('202.107.245.93')
+            self.assertEqual(loc, '浙江 杭州')
+            self.assertIn('浙江', loc)
+
+        # 2. 模拟海外未知 IP
+        fake_resp_overseas = MagicMock()
+        fake_resp_overseas.read.return_value = json.dumps({
+            'pro': '', 'city': '', 'addr': '美国 加州', 'proCode': '999999'
+        }).encode('gbk')
+        fake_resp_overseas.__enter__.return_value = fake_resp_overseas
+
+        with patch('urllib.request.urlopen', return_value=fake_resp_overseas):
+            loc2 = get_location_from_pconline('8.8.8.8')
+            self.assertEqual(loc2, '美国 加州')
+
+        # 3. 模拟网络异常容灾兜底
+        with patch('urllib.request.urlopen', side_effect=OSError('Network unreachable')):
+            loc3 = get_location_from_pconline('1.1.1.1')
+            self.assertEqual(loc3, '未知归属地')
 
     def test_query_filter_and_pagination(self):
+        # 先清理旧测试数据，保证环境洁净
+        yf.M('logs').where("log like '%test1%' or log like '%192.168.1.102%' or log like '%192.168.1.103%'", ()).delete()
+
         # 写入测试数据
         yf.M('logs').add('type,log,uid,add_time', ('用户登录', '用户[test1]登录成功, 登录IP:192.168.1.101', 1, '2026-08-27 17:10:00'))
         yf.M('logs').add('type,log,uid,add_time', ('SSH管理', '成功登录到SSH服务器 [192.168.1.102:22]', 1, '2026-08-27 17:11:00'))
         yf.M('logs').add('type,log,uid,add_time', ('用户登录', '密码验证失败, 登录IP:192.168.1.103', 1, '2026-08-27 17:12:00'))
 
-        # 测试筛选状态: success
-        succ_logs = yf.M('logs').where("type in ('用户登录', 'SSH管理') and log like '%成功%'", ()).select()
-        self.assertTrue(len(succ_logs) >= 2)
+        try:
+            # 测试筛选状态: success
+            succ_logs = yf.M('logs').where("type in ('用户登录', 'SSH管理') and log like '%成功%'", ()).select()
+            self.assertTrue(len(succ_logs) >= 2)
 
-        # 测试筛选方式: ssh
-        ssh_logs = yf.M('logs').where("type in ('用户登录', 'SSH管理') and (type = 'SSH管理' or log like '%SSH%')", ()).select()
-        self.assertTrue(len(ssh_logs) >= 1)
+            # 测试筛选方式: ssh
+            ssh_logs = yf.M('logs').where("type in ('用户登录', 'SSH管理') and (type = 'SSH管理' or log like '%SSH%')", ()).select()
+            self.assertTrue(len(ssh_logs) >= 1)
 
-        # 测试分页
-        page_html = yf.getPage({'count': 25, 'tojs': 'getAllLoginLogs', 'p': 1, 'row': 10})
-        self.assertIn('getAllLoginLogs', page_html)
+            # 测试分页
+            page_html = yf.getPage({'count': 25, 'tojs': 'getAllLoginLogs', 'p': 1, 'row': 10})
+            self.assertIn('getAllLoginLogs', page_html)
+        finally:
+            yf.M('logs').where("log like '%test1%' or log like '%192.168.1.102%' or log like '%192.168.1.103%'", ()).delete()
 
     def test_timestamp_and_timezone_support(self):
         import time

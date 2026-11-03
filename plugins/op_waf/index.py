@@ -177,10 +177,20 @@ def initSiteInfo(conf_reload=False):
     path_config = getJsonPath('config')
 
     config_contents = yf.readFile(path_config)
-    config_contents = json.loads(config_contents)
+    if not config_contents:
+        config_contents = "{}"
+    try:
+        config_contents = json.loads(config_contents)
+    except Exception:
+        config_contents = {}
 
     domain_contents = yf.readFile(path_domains)
-    domain_contents = json.loads(domain_contents)
+    if not domain_contents:
+        domain_contents = "[]"
+    try:
+        domain_contents = json.loads(domain_contents)
+    except Exception:
+        domain_contents = []
 
     try:
         site_contents = yf.readFile(path_site)
@@ -530,7 +540,7 @@ def cleanUserAgentJsonRule():
     return False
 
 
-def upgradeRules():
+def upgradeRules(raise_err=False):
     """
     老版本平滑升级与规则安全增量合并机制：
     1. 蜜罐路径（config.json 中的 honeypot.paths）：
@@ -544,6 +554,7 @@ def upgradeRules():
     3. 返回值：若产生增量更新返回 True，无变化返回 False
     """
     modified = False
+    errors = []
     try:
         # 1. 合并 config.json 中的 honeypot.paths
         dst_conf = getServerDir() + "/waf/config.json"
@@ -555,7 +566,8 @@ def upgradeRules():
                 try:
                     dst_obj = json.loads(dst_raw)
                     src_obj = json.loads(src_raw)
-                except Exception:
+                except Exception as ce:
+                    errors.append(f'config.json 解析异常: {ce}')
                     dst_obj = None
                     src_obj = None
                 if isinstance(dst_obj, dict) and isinstance(src_obj, dict):
@@ -563,6 +575,8 @@ def upgradeRules():
                         dst_obj['honeypot'] = src_obj['honeypot']
                         if yf.writeFile(dst_conf, json.dumps(dst_obj, ensure_ascii=False, indent=4)):
                             modified = True
+                        else:
+                            errors.append('写入 config.json 失败')
                     elif 'honeypot' in dst_obj and 'honeypot' in src_obj:
                         cur_paths = dst_obj['honeypot'].get('paths', [])
                         src_paths = src_obj['honeypot'].get('paths', [])
@@ -578,10 +592,12 @@ def upgradeRules():
                                 dst_obj['honeypot']['paths'] = cur_paths
                                 if yf.writeFile(dst_conf, json.dumps(dst_obj, ensure_ascii=False, indent=4)):
                                     modified = True
+                                else:
+                                    errors.append('写入 config.json 蜜罐路径失败')
 
-        # 2. 合并 waf/rule/*.json 规则文件
-        rule_files = ['vuln', 'url', 'args', 'post', 'scan_black', 'cookie', 'user_agent', 'ssrf']
-        for rname in rule_files:
+        # 2. 合并 waf/rule/*.json 规则文件（列表型规则）
+        list_rule_files = ['vuln', 'url', 'args', 'post', 'cookie', 'user_agent', 'ssrf']
+        for rname in list_rule_files:
             dst_file = getServerDir() + "/waf/rule/" + rname + ".json"
             src_file = getPluginDir() + "/waf/rule/" + rname + ".json"
             if not os.path.exists(dst_file) or not os.path.exists(src_file):
@@ -593,9 +609,11 @@ def upgradeRules():
             try:
                 dst_rules = json.loads(dst_raw)
                 src_rules = json.loads(src_raw)
-            except Exception:
+            except Exception as re:
+                errors.append(f'{rname}.json 解析异常: {re}')
                 continue
             if not isinstance(dst_rules, list) or not isinstance(src_rules, list):
+                errors.append(f'{rname}.json 规则格式非列表')
                 continue
 
             existing_patterns = set()
@@ -617,16 +635,51 @@ def upgradeRules():
                 if yf.writeFile(dst_file, json.dumps(dst_rules, ensure_ascii=False, indent=4)):
                     modified = True
                     autoMakeLuaConfSingle(rname, conf_reload=True)
+                else:
+                    errors.append(f'写入 {rname}.json 失败')
+
+        # 3. 合并 scan_black.json 字典型规则文件
+        dst_scan = getServerDir() + "/waf/rule/scan_black.json"
+        src_scan = getPluginDir() + "/waf/rule/scan_black.json"
+        if os.path.exists(dst_scan) and os.path.exists(src_scan):
+            try:
+                dst_raw = yf.readFile(dst_scan)
+                src_raw = yf.readFile(src_scan)
+                if dst_raw and src_raw:
+                    dst_sb = json.loads(dst_raw)
+                    src_sb = json.loads(src_raw)
+                    if isinstance(dst_sb, dict) and isinstance(src_sb, dict):
+                        sb_added = False
+                        for k, v in src_sb.items():
+                            if k not in dst_sb:
+                                dst_sb[k] = v
+                                sb_added = True
+                        if sb_added:
+                            if yf.writeFile(dst_scan, json.dumps(dst_sb, ensure_ascii=False, indent=4)):
+                                modified = True
+                                autoMakeLuaConfSingle('scan_black', conf_reload=True)
+                            else:
+                                errors.append('写入 scan_black.json 失败')
+            except Exception as se:
+                errors.append(f'scan_black.json 合并异常: {se}')
     except Exception as e:
-        _log.warning('[op_waf] upgradeRules 异常已忽略: %s', e)
+        _log.warning('[op_waf] upgradeRules 异常: %s', e)
+        errors.append(str(e))
+
+    if errors and raise_err:
+        raise RuntimeError('; '.join(errors))
     return modified
 
 
 def upgradeRulesCli():
-    res = upgradeRules()
-    if res:
-        autoMakeConfig(conf_reload=True)
-    return yf.returnJson(True, '设置成功!')
+    try:
+        res = upgradeRules(raise_err=True)
+        if res:
+            autoMakeConfig(conf_reload=True)
+        return yf.returnJson(True, '设置成功!')
+    except Exception as e:
+        _log.error('[op_waf] upgradeRulesCli 失败: %s', e)
+        return yf.returnJson(False, f'规则保存失败: {str(e)}')
 
 
 def autoMakeConfig(conf_reload=False, cp_reload=False):

@@ -743,5 +743,6 @@
  "蜜罐路径保存失败": "Les chemins du honeypot n'ont pas pu être enregistrés",
  "蜘蛛识别模式保存失败": "Le mode de détection des robots n'a pas pu être enregistré",
  "蜘蛛 IP 规则保存失败": "Les règles IP des robots n'ont pas pu être enregistrées",
- "蜘蛛 IP 规则同步保存失败": "La synchronisation des règles IP des robots a échoué"
+ "蜘蛛 IP 规则同步保存失败": "La synchronisation des règles IP des robots a échoué",
+ "规则保存失败: ": "La règle n'a pas pu être enregistrée: "
 }

@@ -743,5 +743,6 @@
  "蜜罐路径保存失败": "Failed to save the honeypot paths",
  "蜘蛛识别模式保存失败": "Failed to save the spider detection mode",
  "蜘蛛 IP 规则保存失败": "Failed to save the spider IP rules",
- "蜘蛛 IP 规则同步保存失败": "Failed to sync the spider IP rules"
+ "蜘蛛 IP 规则同步保存失败": "Failed to sync the spider IP rules",
+ "规则保存失败: ": "Failed to save the rule: "
 }
