@@ -50,8 +50,8 @@ var yufeng_systemd = {
     plugin_name: 'yufeng_systemd',
     
     init: function() {
-        this.show_tab('config');
-        this.get_list();
+        yufeng_systemd.show_tab('config');
+        yufeng_systemd.get_list();
     },
     
     show_tab: function(tab_name) {
@@ -61,7 +61,7 @@ var yufeng_systemd = {
     
     // 获取列表
     get_list: function() {
-        this.request('get_services', {}, function(res) {
+        yufeng_systemd.request('get_services', {}, function(res) {
             var tbody = $('#yufeng_service_list');
             if (!res.status) {
                 tbody.html('<tr><td colspan="4" style="text-align:center;color:red;">' + ysEsc(res.msg) + '</td></tr>');
@@ -270,7 +270,7 @@ var yufeng_systemd = {
             }
         }
         
-        this.request('create_or_modify_service', data, function(res) {
+        yufeng_systemd.request('create_or_modify_service', data, function(res) {
             layer.msg(ysEsc(res.msg), {icon: res.status ? 1 : 2});
             if (res.status) {
                 layer.closeAll('page');
@@ -288,9 +288,9 @@ var yufeng_systemd = {
             'disable': pt('关闭自启')
         }[action];
         
-        layer.confirm(pt('确定要 {1} 服务 [{2}] 吗？').replace('{1}', action_name).replace('{2}', service_name), {icon: 3, title:  pt('提示')}, function(index) {
+        layer.confirm(pt('确定要 {1} 服务 [{2}] 吗？').replace('{1}', action_name).replace('{2}', ysEsc(service_name)), {icon: 3, title:  pt('提示')}, function(index) {
             layer.close(index);
-            this.request('control_service', {service_name: service_name, action: action}, function(res) {
+            yufeng_systemd.request('control_service', {service_name: service_name, action: action}, function(res) {
                 layer.msg(ysEsc(res.msg), {icon: res.status ? 1 : 2});
                 if (res.status) {
                     yufeng_systemd.get_list();
@@ -418,7 +418,7 @@ var yufeng_systemd = {
             }
         };
         var req_data = {
-            name: this.plugin_name,
+            name: yufeng_systemd.plugin_name,
             func: method,
             args: btoa(encodeURIComponent(JSON.stringify(args))),
             version: ''

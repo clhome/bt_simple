@@ -45,7 +45,15 @@ const layer = {
     close: function (id) { closed.push(id); },
     open: function () { return 1; },
     closeAll: function () {},
-    confirm: function () { return 1; },
+    confirm: function (msg, opts, yes, cancel) {
+        let callback = (typeof opts === 'function') ? opts : yes;
+        if (typeof callback === 'function') {
+            // 模拟真实浏览器下 layer.confirm 的按钮点击上下文（this 指向 layer 选项对象，而非 mod）
+            const dummyLayerContext = { index: 1, yes: callback };
+            callback.call(dummyLayerContext, 1);
+        }
+        return 1;
+    },
     alert: function () {}
 };
 
@@ -138,6 +146,30 @@ check('time:0 常驻 loading 只允许出现在 request 内', permanent === 1, '
 // ---- 4. 列表渲染：动态值必须经过转义助手 ----
 check('列表 unit 名经 ysEsc 输出', /ysEsc\(item\.name\)/.test(stripped));
 check('onclick 参数经 ysArg 输出', /ysArg\(item\.name\)/.test(stripped) && /'\+sname\+'/.test(stripped));
+
+// ---- 5. control / delete 操作上下文防错断言（彻底杜绝 this.request is not a function 异常） ----
+check('yufeng_systemd.js 中不含未绑定的 this.request', !/\bthis\.request\b/.test(stripped));
+
+let controlCalled = false;
+let controlAction = null;
+let controlServiceName = null;
+ajaxOpts = null;
+
+try {
+    mod.control('probe_service', 'stop');
+    if (ajaxOpts && ajaxOpts.data) {
+        let decodedArgs = {};
+        try {
+            decodedArgs = JSON.parse(decodeURIComponent(Buffer.from(ajaxOpts.data.args, 'base64').toString('utf8')));
+        } catch (e) {}
+        controlCalled = (ajaxOpts.data.func === 'control_service');
+        controlServiceName = decodedArgs.service_name;
+        controlAction = decodedArgs.action;
+    }
+} catch (err) {
+    failures.push('mod.control 执行抛出异常: ' + (err && err.stack ? err.stack : err));
+}
+check('mod.control 能够成功执行并触发 control_service 请求', controlCalled && controlServiceName === 'probe_service' && controlAction === 'stop', 'action=' + controlAction + ', service=' + controlServiceName);
 
 console.log(JSON.stringify({ ok: failures.length === 0, checks: checks, failures: failures }));
 process.exit(failures.length === 0 ? 0 : 1);

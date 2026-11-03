@@ -119,6 +119,11 @@
   - [x] 21.1 **修复插件 GeoLite 下载逻辑与文件守卫 (`plugins/op_waf/install.sh`, `plugins/webstats/install.sh`)**：使用 GitHub 原生 Releases latest download 路径（`.../releases/latest/download/GeoLite2-*.mmdb`），解除对限流易超时的 GitHub API 依赖；预留安全 fallback（`latest`），防止空变量产生 `download//`；增加下载目标文件存在性检查（`[ -f ... ]`），避免未下载成功时 `cp` 报找不到文件
   - [x] 21.2 **核心基础库 `github_download.sh` 鲁棒性与性能重构 (`scripts/github_download.sh`)**：非法 URL 前置拦截（防 `//` 畸变与空资源）；为 `_gh_try_download` 引入 `timeout "$timeout"` 命令级硬超时与 `--dns-timeout=10 --connect-timeout=10`，彻底根治 Slowloris/代理慢速挂死数分钟的问题；实现 HTTP 404 资源不存在快速失败（Fast-Fail）熔断机制，不再盲目轮询 8 个代理；智能过滤在测速中已判明不可用的死节点，将备选单节点超时压缩至 15 秒内
   - [x] 21.3 **自动化回归测试与门禁验证**：扩充/编写专门的测试用例验证 404 快速失败、非法 URL 拦截、超时控制及原生 latest download，运行相关测试套件确保无破坏，清理临时排查文件
+- [x] **任务 22：御风进程管理器操作报错修复与上下文作用域加固 (`plugins/yufeng_systemd/js/yufeng_systemd.js`)**
+  - [x] 22.1 **根因修复与作用域解耦**：将 `control` 函数中 `layer.confirm` 回调内的 `this.request` 修正为 `yufeng_systemd.request`，并对 confirm 弹窗提示中的服务名称增加 `ysEsc` XSS 转义防护
+  - [x] 22.2 **全局防错加固**：全面排查 `yufeng_systemd.js`，将内部所有方法（`init`, `get_list`, `save_service`, `request` 等）中不安全的 `this.` 引用统一显式绑定为 `yufeng_systemd.`，防止第三方库回调、事件冒泡或异步解构导致 `this` 丢失
+  - [x] 22.3 **前端测试与回归验证**：在 `testsuite/js/systemd_d06_frontend_probe.js` 中增加针对 `control` 方法在 layer 回调上下文中执行的模拟测试用例，运行 `testsuite/test_systemd_d06_hardening.py` 验证 100% 通过
+
 
 
 
