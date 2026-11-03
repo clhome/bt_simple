@@ -47,6 +47,10 @@ if [ -z "$_GH_DIRECT_STATE" ]; then
     export _GH_DIRECT_STATE=""
 fi
 
+# 全局缓存测速中确认存活与失败的节点列表
+_GH_ALIVE_PROXIES=()
+_GH_FAILED_PROXIES=()
+
 # 快速检测 GitHub 直连连通性 (5秒超时)
 _gh_check_direct() {
     if [ "$_GH_DIRECT_STATE" == "ok" ]; then return 0; fi
@@ -98,6 +102,7 @@ _gh_get_best_proxy() {
         
         # 重定向后一般是 200 状态码
         if [[ "$status" == "200" || "$status" == "206" ]]; then
+            _GH_ALIVE_PROXIES+=("$proxy")
             # 把速度转为 MB/s，保留两位小数
             local speed_mbps=$(awk -v s="$speed" 'BEGIN{printf "%.2f", s/1024/1024}')
             echo -e "\033[32m[存活, 速度: ${speed_mbps} MB/s]\033[0m" >&2
@@ -118,6 +123,7 @@ _gh_get_best_proxy() {
                 break
             fi
         else
+            _GH_FAILED_PROXIES+=("$proxy")
             echo -e "\033[31m[不可用或响应错]\033[0m" >&2
         fi
     done
@@ -481,7 +487,15 @@ _gh_try_download() {
     rm -f "$file" 2>/dev/null
 
     # 默认做 TLS 校验；放宽参数只能由 yf_wget_tls_extra_args 在显式 opt-in 时给出
-    wget $(yf_wget_tls_extra_args "$url") -O "$file" --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
+    # 补充 --dns-timeout=10 --connect-timeout=10 避免底层握手死等；
+    # 且若系统存在 timeout 命令，增加进程级硬超时强杀，杜绝假死节点长期阻塞
+    local _tls_extra
+    _tls_extra=$(yf_wget_tls_extra_args "$url")
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$timeout" wget $_tls_extra -O "$file" --dns-timeout=10 --connect-timeout=10 --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
+    else
+        wget $_tls_extra -O "$file" --dns-timeout=10 --connect-timeout=10 --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
+    fi
 
     # 校验: 文件必须有效
     if _gh_verify_file "$file"; then
@@ -553,6 +567,12 @@ github_download() {
         return 1
     fi
 
+    # 检查 URL 格式合法性：防止空 tag 导致产生形如 releases/download//xxx 的死链接
+    if [[ "$url" =~ (releases/download//|archive/refs/tags//) ]] || [[ "$url" =~ [^:]//[^/]+$ ]]; then
+        echo "[github_download] 错误: URL 包含非法空路径段或双斜杠: $url" >&2
+        return 1
+    fi
+
     # 如果文件已存在，校验其有效性；若无效则删除
     if [ -f "$file" ]; then
         if _gh_verify_file "$file"; then
@@ -598,12 +618,25 @@ github_download() {
             echo "[github_download] ✓ 下载成功 (大小: ${_sz} 字节，校验通过)"
             return 0
         else
-            echo "[github_download] ✗ 最佳节点下载失败，可能是资源不存在或网络抖动"
+            echo "[github_download] ✗ 最佳节点下载失败，正在探测响应状态..."
+            local probe_code=$(LC_ALL=C curl -sL -m 5 -o/dev/null -w "%{http_code}" "$proxy_url" 2>/dev/null)
+            if [ "$probe_code" = "404" ] || [ "$probe_code" = "410" ]; then
+                echo "[github_download] ✗ 目标资源不存在 (HTTP $probe_code Not Found)，终止所有代理轮询！" >&2
+                echo "[github_download] 提示: 上游 GitHub 资源不存在，请检查地址或 tag 是否正确: $url" >&2
+                return 1
+            fi
+            echo "[github_download] 状态码为 ${probe_code:-000}，非 404 错误，准备进入降级备选节点轮询"
         fi
     fi
 
     # 降级轮询机制
     echo "[github_download] === 进入最终降级轮询机制 ==="
+    # 备选节点单次超时压缩至最多 15 秒（避免无效等待数分钟）
+    local fallback_timeout=$timeout
+    if [ "$fallback_timeout" -gt 15 ]; then
+        fallback_timeout=15
+    fi
+
     for proxy in "${_GH_PROXY_LIST[@]}"; do
         local is_tested=false
         if [ "$best_proxy" = "direct" ] && [ -z "$proxy" ]; then
@@ -615,16 +648,48 @@ github_download() {
             continue
         fi
 
+        # 智能过滤：跳过在测速中已明确确认失败的死节点
+        local is_failed=false
+        for failed_p in "${_GH_FAILED_PROXIES[@]}"; do
+            if [ "$failed_p" = "$proxy" ]; then
+                is_failed=true
+                break
+            fi
+        done
+        if [ "$is_failed" = "true" ]; then
+            continue
+        fi
+
+        # 智能过滤：跳过在测速中已明确确认失败的死节点
+        local is_failed=false
+        for failed_p in "${_GH_FAILED_PROXIES[@]}"; do
+            if [ "$failed_p" = "$proxy" ]; then
+                is_failed=true
+                break
+            fi
+        done
+        if [ "$is_failed" = "true" ]; then
+            continue
+        fi
+
         local proxy_url=$(_gh_proxy_url "$proxy" "$url")
         local show_name=$proxy
         if [ -z "$show_name" ]; then
             show_name="官方直连"
         fi
-        echo "[github_download] 尝试备选节点: ${show_name} (${timeout}s)..."
-        if _gh_try_download "$file" "$proxy_url" "$timeout"; then
+        echo "[github_download] 尝试备选节点: ${show_name} (${fallback_timeout}s)..."
+        if _gh_try_download "$file" "$proxy_url" "$fallback_timeout"; then
             local _sz=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
             echo "[github_download] ✓ 降级轮询下载成功 (大小: ${_sz} 字节，校验通过)"
             return 0
+        else
+            # 若备选节点返回 404，也直接终止轮询（避免浪费时间）
+            local probe_code=$(LC_ALL=C curl -sL -m 5 -o/dev/null -w "%{http_code}" "$proxy_url" 2>/dev/null)
+            if [ "$probe_code" = "404" ] || [ "$probe_code" = "410" ]; then
+                echo "[github_download] ✗ 备选节点确认目标资源不存在 (HTTP $probe_code Not Found)，终止所有代理轮询！" >&2
+                echo "[github_download] URL: $url" >&2
+                return 1
+            fi
         fi
     done
 
@@ -694,6 +759,18 @@ github_clone() {
             continue
         fi
 
+        # 智能过滤：跳过在测速中已明确确认失败的死节点
+        local is_failed=false
+        for failed_p in "${_GH_FAILED_PROXIES[@]}"; do
+            if [ "$failed_p" = "$proxy" ]; then
+                is_failed=true
+                break
+            fi
+        done
+        if [ "$is_failed" = "true" ]; then
+            continue
+        fi
+
         local proxy_repo_url=$(_gh_proxy_url "$proxy" "$repo_url")
         local show_name=$proxy
         if [ -z "$show_name" ]; then
@@ -753,6 +830,18 @@ github_api_get() {
             is_tested=true
         fi
         if [ "$is_tested" = "true" ]; then
+            continue
+        fi
+
+        # 智能过滤：跳过在测速中已明确确认失败的死节点
+        local is_failed=false
+        for failed_p in "${_GH_FAILED_PROXIES[@]}"; do
+            if [ "$failed_p" = "$proxy" ]; then
+                is_failed=true
+                break
+            fi
+        done
+        if [ "$is_failed" = "true" ]; then
             continue
         fi
 

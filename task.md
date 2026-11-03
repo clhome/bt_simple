@@ -115,6 +115,11 @@
   - [x] 20.1 **核心修复与自适应增强 (`web/static/css/site.css`)**：将 `.softnum` 定位重构为 `right: 12px; left: auto; top: 12px;`，整体左移进入菜单项胶囊背景内；增加 `min-width: 20px; width: auto; padding: 0 4px; box-sizing: border-box;` 支持多位数自适应；
   - [x] 20.2 **多样式文件同步与折叠模式优化 (`web/static/css/site.css`, `web/static/css/ensite.css`)**：同步 `ensite.css` 中 `.softnum` 样式；优化 mini 折叠侧边栏下 `body.sidebar-mini .softnum` 的定位为 `left: auto; right: 0;`，确保折叠与展开状态下角标与外框皆完整呈现；
   - [x] 20.3 **样式回归验证与测试**：验证中/英多语言下文字与角标布局、单双位数字显示效果及响应式切换，确保无溢出截断、无视觉破坏。
+- [x] **任务 21：GitHub 下载链路性能优化与死链挂起根治 (`scripts/github_download.sh`, `op_waf`, `webstats`)**
+  - [x] 21.1 **修复插件 GeoLite 下载逻辑与文件守卫 (`plugins/op_waf/install.sh`, `plugins/webstats/install.sh`)**：使用 GitHub 原生 Releases latest download 路径（`.../releases/latest/download/GeoLite2-*.mmdb`），解除对限流易超时的 GitHub API 依赖；预留安全 fallback（`latest`），防止空变量产生 `download//`；增加下载目标文件存在性检查（`[ -f ... ]`），避免未下载成功时 `cp` 报找不到文件
+  - [x] 21.2 **核心基础库 `github_download.sh` 鲁棒性与性能重构 (`scripts/github_download.sh`)**：非法 URL 前置拦截（防 `//` 畸变与空资源）；为 `_gh_try_download` 引入 `timeout "$timeout"` 命令级硬超时与 `--dns-timeout=10 --connect-timeout=10`，彻底根治 Slowloris/代理慢速挂死数分钟的问题；实现 HTTP 404 资源不存在快速失败（Fast-Fail）熔断机制，不再盲目轮询 8 个代理；智能过滤在测速中已判明不可用的死节点，将备选单节点超时压缩至 15 秒内
+  - [x] 21.3 **自动化回归测试与门禁验证**：扩充/编写专门的测试用例验证 404 快速失败、非法 URL 拦截、超时控制及原生 latest download，运行相关测试套件确保无破坏，清理临时排查文件
+
 
 
 

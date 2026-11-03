@@ -109,21 +109,20 @@ Install_App(){
 		cp -rf ${DEFAULT_DIR}/lsqlite3.so $serverPath/op_waf/waf/conf/lsqlite3.so
 	fi
 
-	# download GeoLite Data
-	GeoLite2_TAG=`github_api_get "https://api.github.com/repos/P3TERX/GeoLite.mmdb/releases/latest" | grep '"tag_name":' | cut -d'"' -f4`
+	# download GeoLite Data (原生支持 releases/latest/download，无需依赖限流的 GitHub API)
 	if [ ! -f $serverPath/source/op_waf/GeoLite2-City.mmdb ];then
-		github_download $serverPath/source/op_waf/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/${GeoLite2_TAG}/GeoLite2-City.mmdb
+		github_download $serverPath/source/op_waf/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb
 	fi
 
-	if [ ! -f $serverPath/op_waf/GeoLite2-City.mmdb ];then
+	if [ -f $serverPath/source/op_waf/GeoLite2-City.mmdb ] && [ ! -f $serverPath/op_waf/GeoLite2-City.mmdb ];then
 		cp -rf $serverPath/source/op_waf/GeoLite2-City.mmdb $serverPath/op_waf/GeoLite2-City.mmdb
 	fi
 
 	if [ ! -f $serverPath/source/op_waf/GeoLite2-Country.mmdb ];then
-		github_download $serverPath/source/op_waf/GeoLite2-Country.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/${GeoLite2_TAG}/GeoLite2-Country.mmdb
+		github_download $serverPath/source/op_waf/GeoLite2-Country.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-Country.mmdb
 	fi
 
-	if [ ! -f $serverPath/op_waf/GeoLite2-Country.mmdb ];then
+	if [ -f $serverPath/source/op_waf/GeoLite2-Country.mmdb ] && [ ! -f $serverPath/op_waf/GeoLite2-Country.mmdb ];then
 		cp -rf $serverPath/source/op_waf/GeoLite2-Country.mmdb $serverPath/op_waf/GeoLite2-Country.mmdb
 	fi
 

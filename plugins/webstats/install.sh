@@ -123,16 +123,12 @@ Install_App()
 	# 	wget -O $serverPath/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/2022.10.16/GeoLite2-City.mmdb
 	# fi
 
-	# 缓存数据
-	GEO_VERSION=$(get_latest_release "P3TERX/GeoLite.mmdb")
-	if [ -z "$GEO_VERSION" ]; then
-		GEO_VERSION="2024.04.16"
-	fi
+	# 缓存数据 (原生支持 releases/latest/download，无需依赖限流的 GitHub API)
 	if [ ! -s $serverPath/source/webstats/GeoLite2-City.mmdb ];then
-		github_download $serverPath/source/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/${GEO_VERSION}/GeoLite2-City.mmdb
+		github_download $serverPath/source/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb
 	fi
 
-	if [ -s $serverPath/source/webstats/GeoLite2-City.mmdb ];then
+	if [ -s $serverPath/source/webstats/GeoLite2-City.mmdb ] && [ ! -s $serverPath/webstats/GeoLite2-City.mmdb ];then
 		cp -rf $serverPath/source/webstats/GeoLite2-City.mmdb $serverPath/webstats/GeoLite2-City.mmdb
 	fi
 	
