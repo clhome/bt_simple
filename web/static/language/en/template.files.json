@@ -33,6 +33,8 @@
     "deleting_please_wait": "Deleting, please wait...",
     "processing_please_wait": "Processing,Please wait...",
     "svg_preview": "SVGpreview",
+    "binary_preview_unsupported": "This file type cannot be viewed online. Please download it and open it with appropriate software.",
+    "file_too_large": "The file is larger than 2MB and cannot be viewed online. Please download it or view it in the terminal.",
     "per_page": "Per page",
     "item": "Items",
     "file_name_1": "' title='File name:",
@@ -212,9 +214,7 @@
     "recycle_bin_confirm": "Are you sure you want to move file [{1}] to the recycle bin?",
     "recycle_bin_confirm_dir": "Are you sure you want to move directory [{1}] to the recycle bin?",
     "force_refresh": "Force Refresh",
-    "msg_dir_unavailable": "This directory cannot be opened",
-    "binary_preview_unsupported": "This file type does not support online viewing. Please download it and open it with appropriate software.",
-    "file_too_large": "The file is larger than 2MB and cannot be viewed online. Please download it or view it in the terminal."
+    "msg_dir_unavailable": "This directory cannot be opened"
   },
   "file": {
     "dir_empty": "Directory cannot be empty!",
@@ -299,10 +299,7 @@
     "py_msg_7c6668": "Failed to create the directory!",
     "py_msg_d9523e": "File does not exist",
     "py_msg_b50947": "Files larger than 2MB cannot be edited online!",
-    "py_msg_binary": "The file is in binary format and does not support online viewing or editing!",
-    "py_msg_binary": "The file is in binary format and does not support online viewing or editing!",
-    "binary_preview_unsupported": "This file type does not support online viewing. Please download it and open it with appropriate software.",
-    "file_too_large": "The file is larger than 2MB and cannot be viewed online. Please download it or view it in the terminal.",
+    "py_msg_binary": "The file is in binary format and cannot be viewed or edited online!",
     "py_msg_92c109": "This is not a file!",
     "py_msg_aaad51": "The file was not opened properly!",
     "py_msg_24c6ab": "FilesSaved successfully",

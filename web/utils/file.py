@@ -1099,7 +1099,7 @@ def getFileBody(path):
                 break
             except Exception as ex:
                 if el == 'BIG5':
-                    return yf.returnData(False, 'file.py_msg_f48da9', None, str(ex))
+                    return yf.returnData(False, 'utils.py_msg_f48da9', None, str(ex))
     else:
         return yf.returnData(False, 'file.py_msg_aaad51')
     return yf.returnData(True, 'OK', data)

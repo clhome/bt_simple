@@ -33,6 +33,8 @@
     "deleting_please_wait": "Wird gelöscht, bitte warten...",
     "processing_please_wait": "Wird verarbeitet,Bitte warten...",
     "svg_preview": "SVGVorschau",
+    "binary_preview_unsupported": "Dieser Dateityp unterstützt keine Online-Anzeige. Bitte laden Sie ihn herunter.",
+    "file_too_large": "Die Datei ist größer als 2 MB und kann nicht online angezeigt werden. Bitte laden Sie sie herunter oder öffnen Sie sie im Terminal.",
     "per_page": "Pro Seite",
     "item": "Einträge",
     "file_name_1": "' title='Dateiname:",
@@ -212,9 +214,7 @@
     "recycle_bin_confirm": "Möchten Sie die Datei [{1}] wirklich in den Papierkorb verschieben?",
     "recycle_bin_confirm_dir": "Möchten Sie das Verzeichnis [{1}] wirklich in den Papierkorb verschieben?",
     "force_refresh": "Aktualisierung erzwingen",
-    "msg_dir_unavailable": "Dieses Verzeichnis kann nicht geöffnet werden",
-    "binary_preview_unsupported": "Dieser Dateityp unterstützt keine Online-Anzeige. Bitte laden Sie ihn herunter.",
-    "file_too_large": "Die Datei ist größer als 2 MB und kann nicht online angezeigt werden. Bitte laden Sie sie herunter oder öffnen Sie sie im Terminal."
+    "msg_dir_unavailable": "Dieses Verzeichnis kann nicht geöffnet werden"
   },
   "file": {
     "dir_empty": "Das Verzeichnis darf nicht leer sein!",
@@ -300,9 +300,6 @@
     "py_msg_d9523e": "DateienExistiert nicht",
     "py_msg_b50947": "Dateien größer als 2MBvonDateien!",
     "py_msg_binary": "Die Datei liegt im Binärformat vor und unterstützt keine Online-Anzeige oder -Bearbeitung!",
-    "py_msg_binary": "Die Datei liegt im Binärformat vor und unterstützt keine Online-Anzeige oder -Bearbeitung!",
-    "binary_preview_unsupported": "Dieser Dateityp unterstützt keine Online-Anzeige. Bitte laden Sie ihn herunter.",
-    "file_too_large": "Die Datei ist größer als 2 MB und kann nicht online angezeigt werden. Bitte laden Sie sie herunter oder öffnen Sie sie im Terminal.",
     "py_msg_92c109": "Dies ist keine Datei!",
     "py_msg_aaad51": "Dateiennicht ordnungsgemäß geöffnet!",
     "py_msg_24c6ab": "DateienErfolgreich gespeichert",

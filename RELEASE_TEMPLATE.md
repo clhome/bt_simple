@@ -8,6 +8,7 @@
 <div align="center">
 
 # 🚀 御风运维面板 BtSimple 2.0 正式版发布说明
+
 ### BtSimple v2.0 GA Release Notes — A Generational Leap
 
 <p>
@@ -77,34 +78,8 @@ yf rollback      # 一键回滚到上一次升级前的稳定版本
 
 ---
 
-## 完整性校验
-
-> 本节由发布流水线自动注入，请勿手动编辑。面板自升级采用 **fail-closed** 机制：Release 正文若缺失有效的 SHA-256 签名校验摘要，将拒绝执行升级。  
-> Notice: The sha256 entry below is automatically injected by the CI release pipeline. The self-upgrade engine strictly enforces fail-closed verification.
-
-sha256: __SHA256__
-
-- **自升级包校验和 (In-place Upgrade Package SHA-256)**：对应自升级落地的 `temp/yf.zip`，由发布流水线从 tag 源码包抽取并纳入 `SHA256SUMS` 签名。
-- **全量独立安装包校验和 (Full Standalone Tarball SHA-256)**：
-  
-  `__TARBALL_SHA256__  yf-panel-<版本>.tar.gz`
-
-- **离线与本地验签复核（Local Verification）**：
-  可通过 `python scripts/tools/yf_release_verify.py --pubkey keys/yf-release.pub --sums dist/SHA256SUMS --sig dist/SHA256SUMS.minisig --file <待验包>` 借助 Ed25519 签名公钥完成离线密码学验签。
-
----
-
-## 发布前自检
-
-- [ ] `python testsuite/run_all.py` 自动化测试套件全绿（包含静态代码门禁、安全棘轮与 i18n 校验）
-- [ ] release tag 与 `web/version.py` 版本号严格一致（CI 自动化断言阻断）
-- [ ] **境内多通道加速代理矩阵全部在线可用**：`gh-proxy.com` / `cors.zme.ink` / `gh.ddlc.top` / `ghproxy.net` / `gh.con.sh`，确保大陆服务器 100% 可达与高可用容灾
-- [ ] **SQLite 结构变更可自愈**：通过 `testsuite/test_db_migration_selfheal.py` 验证存量库自动增量升级与兼容容灾
-- [ ] 发布包经 Ed25519 签名完成且生成 CycloneDX SBOM 与带哈希的 `requirements.lock` 依赖锁
-
----
-
 # 🌟 2.0 版本 vs 早期 1.x 版本代际差异全景汇总
+
 ### Generational Comparison: BtSimple 2.0 vs Legacy 1.x
 
 <table width="100%">
@@ -199,6 +174,7 @@ sha256: __SHA256__
 ---
 
 ## 🏛️ 2.0 四大核心支柱深度解析
+
 ### Deep Dive into the 4 Core Pillars
 
 ### 1. 🔒 安全性：零信任纵深防御与供应链可信 (Security & Zero-Trust)

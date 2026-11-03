@@ -33,6 +33,8 @@
     "deleting_please_wait": "Suppression en cours, veuillez patienter...",
     "processing_please_wait": "Traitement en cours, veuillez patienter...",
     "svg_preview": "Aperçu SVG",
+    "binary_preview_unsupported": "Ce type de fichier ne prend pas en charge la visualisation en ligne. Veuillez le télécharger pour l'ouvrir.",
+    "file_too_large": "Le fichier dépasse 2 Mo et ne peut pas être visualisé en ligne. Veuillez le télécharger ou le consulter dans le terminal.",
     "per_page": "Par page",
     "item": "Éléments",
     "file_name_1": "' title='Nom du fichier :",
@@ -212,9 +214,7 @@
     "recycle_bin_confirm": "Voulez-vous vraiment mettre le fichier [{1}] dans la corbeille ?",
     "recycle_bin_confirm_dir": "Voulez-vous vraiment mettre le répertoire [{1}] dans la corbeille ?",
     "force_refresh": "Actualisation forcée",
-    "msg_dir_unavailable": "Impossible d'ouvrir ce répertoire",
-    "binary_preview_unsupported": "Ce type de fichier ne prend pas en charge la visualisation en ligne. Veuillez le télécharger pour l'ouvrir.",
-    "file_too_large": "Le fichier dépasse 2 Mo et ne peut pas être visualisé en ligne. Veuillez le télécharger ou le consulter dans le terminal."
+    "msg_dir_unavailable": "Impossible d'ouvrir ce répertoire"
   },
   "file": {
     "dir_empty": "Le répertoire ne doit pas être vide !",
@@ -300,9 +300,6 @@
     "py_msg_d9523e": "Les fichiers n'existent pas",
     "py_msg_b50947": "Il n'est pas possible de modifier en ligne des fichiers de plus de 2 Mo !",
     "py_msg_binary": "Le fichier est au format binaire et ne prend pas en charge la visualisation ou l'édition en ligne !",
-    "py_msg_binary": "Le fichier est au format binaire et ne prend pas en charge la visualisation ou l'édition en ligne !",
-    "binary_preview_unsupported": "Ce type de fichier ne prend pas en charge la visualisation en ligne. Veuillez le télécharger pour l'ouvrir.",
-    "file_too_large": "Le fichier dépasse 2 Mo et ne peut pas être visualisé en ligne. Veuillez le télécharger ou le consulter dans le terminal.",
     "py_msg_92c109": "Ce n'est pas un « Fichiers » !",
     "py_msg_aaad51": "Les fichiers ne s'ouvrent pas correctement !",
     "py_msg_24c6ab": "FichiersEnregistré avec succès",
