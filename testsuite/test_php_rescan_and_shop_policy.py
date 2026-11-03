@@ -141,6 +141,31 @@ class ForceRescanTest(unittest.TestCase):
         self.assertIn("' install ' in low", src)
         self.assertIn("' uninstall' in low", src)
 
+    def test_07_show_modal_triggers_rescan_and_scanning_state(self):
+        src = _read(INDEX_JS)
+        # 弹窗打开函数必须每次触发自动检测
+        start = src.find('showPhpSecModal:')
+        self.assertNotEqual(start, -1, 'btSecurityCenter 缺少 showPhpSecModal')
+        modal_fn = src[start:start + 2000]
+        self.assertIn('getPhpSecurityStatus(true)', modal_fn,
+                      '每次打开弹窗必须自动调用 getPhpSecurityStatus(true) 进行检测')
+        self.assertIn('layer.open', modal_fn, '弹窗打开必须调用 layer.open')
+
+        # 扫描态与按钮状态管理
+        self.assertIn('var _phpSecScanning = false;', src)
+        self.assertIn('setPhpSecBtnScanning(', src)
+        self.assertIn('php-sec-spin', src, '必须包含旋转动画类')
+        self.assertIn('.always(', src, '请求必须在 always 中恢复扫描状态')
+
+        # 运行前端沙箱探针验证弹窗生命周期与每次点开自动检测行为
+        probe_js = os.path.join(ROOT, 'testsuite', 'js', 'php_sec_modal_probe.js')
+        if os.path.exists(probe_js):
+            res = subprocess.run(['node', probe_js, INDEX_JS], capture_output=True, text=True,
+                                 encoding='utf-8')
+            self.assertEqual(res.returncode, 0, '前端弹窗探针执行失败:\n%s\n%s' % (res.stdout, res.stderr))
+            obj = json.loads(res.stdout.strip().splitlines()[-1])
+            self.assertTrue(obj.get('ok'), obj.get('failures'))
+
 
 class InstalledBranchesTest(unittest.TestCase):
     """`installed_branches()`：一次命令拿全，只认「真的装了」。"""

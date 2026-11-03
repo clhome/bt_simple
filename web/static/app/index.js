@@ -3160,8 +3160,26 @@ function phpSecRenderCard(data) {
     }
 }
 
+var _phpSecScanning = false;
+
+function setPhpSecBtnScanning(isScanning) {
+    var $btn = $('#phpSecRescanBtn');
+    if (!$btn.length) return;
+    if (isScanning) {
+        $btn.prop('disabled', true).addClass('disabled').css('opacity', '0.75');
+        $btn.html('<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' +
+            phpSecEscape(t('index.php_sec_refresh', '再次巡检')));
+    } else {
+        $btn.prop('disabled', false).removeClass('disabled').css('opacity', '1');
+        $btn.html(phpSecEscape(t('index.php_sec_refresh', '再次巡检')));
+    }
+}
+
 // 拉取巡检结果并渲染（forceRefresh 只影响前端缓存，后端始终返回最新快照）
 function getPhpSecurityStatus(forceRefresh) {
+    if (forceRefresh && _phpSecScanning) {
+        return;
+    }
     var CACHE_KEY = 'bt_php_sec_status_cache';
     var TTL = 5 * 60 * 1000;
     var cached = null;
@@ -3178,8 +3196,15 @@ function getPhpSecurityStatus(forceRefresh) {
     } catch (e) {}
 
     if (cached) {
-        phpSecRenderCard(cached);
-        if (!forceRefresh && (Date.now() - lastTime < TTL)) return;
+        if (!forceRefresh) {
+            phpSecRenderCard(cached);
+            if (Date.now() - lastTime < TTL) return;
+        }
+    }
+
+    if (forceRefresh) {
+        _phpSecScanning = true;
+        setPhpSecBtnScanning(true);
     }
 
     $.post('/get_php_security_status', { force: forceRefresh ? 1 : 0 }, function(rdata) {
@@ -3192,6 +3217,10 @@ function getPhpSecurityStatus(forceRefresh) {
                     phpSecEscape(msg) + '</div>');
                 $('#phpSecCard').show();
             }
+            if ($('#phpSecModalBody').length && !cached) {
+                $('#phpSecModalBody').html('<div class="c9 f12" style="padding:4px 0;">' +
+                    phpSecEscape(msg) + '</div>');
+            }
             return;
         }
         var data = rdata.data || {};
@@ -3201,9 +3230,19 @@ function getPhpSecurityStatus(forceRefresh) {
         phpSecRenderCard(data);
     }, 'json').fail(function() {
         if (!cached) {
+            var failMsg = t('public.fetch_fail_retry', '获取失败，请稍后重试');
             $('#phpSecBody').html('<div class="c9 f12" style="padding:4px 0;">' +
-                phpSecEscape(t('public.fetch_fail_retry', '获取失败，请稍后重试')) + '</div>');
+                phpSecEscape(failMsg) + '</div>');
             $('#phpSecCard').show();
+            if ($('#phpSecModalBody').length && !$('#phpSecModalBody .php-sec-item').length) {
+                $('#phpSecModalBody').html('<div class="c9 f12" style="padding:4px 0;">' +
+                    phpSecEscape(failMsg) + '</div>');
+            }
+        }
+    }).always(function() {
+        if (forceRefresh) {
+            _phpSecScanning = false;
+            setPhpSecBtnScanning(false);
         }
     });
 }
@@ -3520,16 +3559,20 @@ var btSecurityCenter = {
         var metaStr = meta.length ? '（' + meta.join(' · ') + '）' : '';
         var bodyHtml = $('#phpSecBody').html() || '';
 
+        var btnAttr = _phpSecScanning ? ' disabled style="padding:2px 10px; font-size:12px; opacity:0.75;"' : ' style="padding:2px 10px; font-size:12px;"';
+        var btnIcon = _phpSecScanning ? '<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' : '';
+
         // flex-wrap 必须有：标题区右侧现在是「再次巡检」按钮，德/法文长文案下不换行会把按钮压成两行
-        return '<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">' +
+        return '<style>@keyframes phpSecSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .php-sec-spin { display: inline-block; animation: phpSecSpin 1.2s linear infinite; }</style>' +
+            '<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">' +
                 '<span class="c9 f12">' + phpSecEscape(metaStr) + '</span>' +
                 // 「再次巡检」= 按钮样式 + 后端**强制重扫**（force=1）。
                 // 以前是个文字链接，而且 forceRefresh 只绕过浏览器缓存、后端照旧发旧快照：
                 // 用户卸了 PHP7.4 点一百次也还是报它。
                 '<button type="button" class="btn btn-success btn-xs" id="phpSecRescanBtn"' +
-                    ' style="padding:2px 10px; font-size:12px;"' +
+                    btnAttr +
                     ' onclick="getPhpSecurityStatus(true);">' +
-                    phpSecEscape(t('index.php_sec_refresh', '再次巡检')) +
+                    btnIcon + phpSecEscape(t('index.php_sec_refresh', '再次巡检')) +
                 '</button>' +
             '</div>' +
             '<div class="php-sec-content-list">' + bodyHtml + '</div>';
@@ -3541,16 +3584,22 @@ var btSecurityCenter = {
         }
     },
 
-    // 弹窗展示 PHP 安全基线详情
+    // 弹窗展示 PHP 安全基线详情（每次点开均自动执行一次最新检测）
     showPhpSecModal: function() {
         var data = this.phpData;
-        if (!data) {
-            getPhpSecurityStatus(true);
-            return;
+        var modalContent = '';
+        if (data) {
+            modalContent = this.buildPhpModalHtml();
+        } else {
+            modalContent = '<style>@keyframes phpSecSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .php-sec-spin { display: inline-block; animation: phpSecSpin 1.2s linear infinite; }</style>' +
+                '<div style="text-align:center; padding:40px 0; color:#666;">' +
+                    '<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:8px; font-size:14px;"></span>' +
+                    phpSecEscape(t('index.php_sec_loading', '正在巡检 PHP 版本...')) +
+                '</div>';
         }
 
         var modalHtml = '<div id="phpSecModalBody" style="padding: 16px 20px 24px; font-size: 12px; max-height: 480px; overflow-y: auto;">' +
-            this.buildPhpModalHtml() +
+            modalContent +
         '</div>';
 
         var that = this;
@@ -3564,6 +3613,9 @@ var btSecurityCenter = {
                 that.modalIndex = null;
             }
         });
+
+        // 每次点开，自动进行一次检测（强制重扫）
+        getPhpSecurityStatus(true);
     }
 };
 

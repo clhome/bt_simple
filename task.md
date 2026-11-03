@@ -123,6 +123,12 @@
   - [x] 22.1 **根因修复与作用域解耦**：将 `control` 函数中 `layer.confirm` 回调内的 `this.request` 修正为 `yufeng_systemd.request`，并对 confirm 弹窗提示中的服务名称增加 `ysEsc` XSS 转义防护
   - [x] 22.2 **全局防错加固**：全面排查 `yufeng_systemd.js`，将内部所有方法（`init`, `get_list`, `save_service`, `request` 等）中不安全的 `this.` 引用统一显式绑定为 `yufeng_systemd.`，防止第三方库回调、事件冒泡或异步解构导致 `this` 丢失
   - [x] 22.3 **前端测试与回归验证**：在 `testsuite/js/systemd_d06_frontend_probe.js` 中增加针对 `control` 方法在 layer 回调上下文中执行的模拟测试用例，运行 `testsuite/test_systemd_d06_hardening.py` 验证 100% 通过
+- [x] **任务 23：首页「PHP 安全基线」点击自动触发安全检测优化**
+  - [x] 23.1 改造 `web/static/app/index.js` 的 `btSecurityCenter.showPhpSecModal`，支持立即弹窗并每次自动调用 `getPhpSecurityStatus(true)`
+  - [x] 23.2 优化 `getPhpSecurityStatus` 与 `buildPhpModalHtml`，增加检测中（Scanning）按钮动画与防抖防并发机制，请求完成后自动刷新弹窗与首页角标
+  - [x] 23.3 在 `testsuite/test_php_rescan_and_shop_policy.py` 中扩充自动化测试用例，覆盖点开自动触发检测与按钮状态逻辑
+  - [x] 23.4 运行全量 PHP 安全基线与首页相关测试套件，确保 100% 通过
+  - [x] 23.5 更新任务完成状态并清理临时测试文件
 
 
 
