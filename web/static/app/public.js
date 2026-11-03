@@ -113,6 +113,10 @@ function initLayerI18n() {
       options = options || {};
     }
 
+    if (!options.maxWidth || options.maxWidth === 360) {
+      options.maxWidth = 600;
+    }
+
     if (!options.btn) {
       options.btn = getConfirmBtn();
     } else {
@@ -140,6 +144,10 @@ function initLayerI18n() {
       options = {};
     } else {
       options = options || {};
+    }
+
+    if (!options.maxWidth || options.maxWidth === 360) {
+      options.maxWidth = 600;
     }
 
     if (!options.btn) {
@@ -235,7 +243,7 @@ function initLayerI18n() {
     return origOpen.call(this, options);
   };
 
-  // 5. 增强 layer.msg 国际化与空内容/loading 异常保底
+  // 5. 增强 layer.msg 国际化与空内容/loading 异常保底及自适应宽度
   var origMsg = window.layer.msg;
   window.layer.msg = function (content, options, end) {
     if (typeof options === 'function') {
@@ -243,6 +251,10 @@ function initLayerI18n() {
       options = {};
     } else {
       options = options || {};
+    }
+
+    if (!options.maxWidth || options.maxWidth === 360) {
+      options.maxWidth = 650;
     }
 
     // 针对 loading 类型(icon: 16)进行内容安全保底，绝不传空字符串

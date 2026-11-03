@@ -89,3 +89,20 @@
   - [x] 16.3 前端与版本元数据同步：更新 `op_waf/js/op_waf.js` 蜜罐还原默认路径，升级 `op_waf/info.json` 版本至 1.6
   - [x] 16.4 `fail2ban` 协同与版本升级：升级 `fail2ban/info.json` 与 `install.sh` 版本至 1.3.0，规范安装脚本动作分发，优化 `op-waf` 蜜罐联动拦截原因展示
   - [x] 16.5 测试套件与全量回归：编写单元测试验证老用户升级增量合并、自定义规则绝不覆盖、蜜罐诱饵与拦截特征有效性，确保全量测试通过
+- [x] **任务 17：文件管理器双击打开体验优化与二进制安全探测 (`web/static/app/files.js`, `web/utils/file.py`, 多语言包)**
+  - [x] 17.1 **后端安全探测增强 (`web/utils/file.py`)**：在 `getFileBody` 中增加 NUL 空字节 (`\x00`) 二进制嗅探拦截，防止二进制文件误以文本解码并被破坏，规范多语言错误键为 `file.py_msg_binary` 及 `file.py_msg_f48da9`
+  - [x] 17.2 **多语言字典补充 (`template.files.json`)**：在 6 种语言包中补充 `py_msg_binary`、`binary_preview_unsupported`、`file_too_large` 等键值
+  - [x] 17.3 **前端双击分流与属性绑定 (`web/static/app/files.js`)**：
+    - 列表/图标渲染时绑定 `data-size` 属性；
+    - 重构 `openFilename(obj)`：支持图片（预览）、SVG（预览）、压缩包（调起解压）、二进制扩展名拦截提示、>2MB 文件提示，以及对无后缀（如 `config`, `HEAD`, `Dockerfile`）或未知后缀小文本文件放行并调用 `onlineEditFile`
+  - [x] 17.4 **自动化测试用例与全量验证**：编写测试脚本验证 `getFileBody` 对普通文本读取、空字节二进制文件拦截、超过 2MB 文件拦截及多语言映射，运行回归测试确保零破坏
+- [x] **任务 18：全局弹窗提示（layer.msg / alert / confirm）自适应宽度与长文本截断治理 (`site.css`, `ensite.css`, `public.js`, `files.js`)**
+  - [x] 18.1 **样式层彻底修复 (`site.css`, `ensite.css`)**：
+    - 移除 `.layui-layer-msg .layui-layer-content` 粗暴的 `white-space: nowrap !important`，放开 `.layui-layer-msg` 最大宽度为 `min(650px, 90vw)`，支持内容单行伸展自适应并可在超长时安全折行；
+    - 对 loading 类型单独设置 `white-space: nowrap` 维持无滚动条特性；
+    - 增强 `.layui-layer-dialog` (alert/confirm) 最大宽度自适应到 600px，支持长消息自动折行；
+  - [x] 18.2 **JS 拦截层全局保底增强 (`web/static/app/public.js`)**：在 `layer.msg`、`layer.alert`、`layer.confirm` 劫持逻辑中将 `maxWidth` 默认值提升（msg 提升为 650，alert/confirm 提升为 600），覆盖 layer.js 默认 360px 内联限制；
+  - [x] 18.3 **业务层双重防御 (`web/static/app/files.js`)**：在 `openFilename` 调用的 `layer.msg` 明确附带 `maxWidth: 650`；
+  - [x] 18.4 **全量弹窗排查与回归验证**：排查 tips、prompt、页面层弹窗，运行回归测试确保样式与逻辑稳定。
+
+

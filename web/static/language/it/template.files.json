@@ -212,7 +212,9 @@
     "recycle_bin_confirm": "Sei sicuro di voler spostare il file [{1}] nel cestino?",
     "recycle_bin_confirm_dir": "Sei sicuro di voler spostare la cartella [{1}] nel cestino?",
     "force_refresh": "Aggiornamento forzato",
-    "msg_dir_unavailable": "Impossibile aprire questa directory"
+    "msg_dir_unavailable": "Impossibile aprire questa directory",
+    "binary_preview_unsupported": "Questo tipo di file non supporta la visualizzazione online. Si prega di scaricarlo.",
+    "file_too_large": "Il file supera i 2 MB e non può essere visualizzato online. Si consiglia di scaricarlo o visualizzarlo nel terminale."
   },
   "file": {
     "dir_empty": "La directory non può essere vuota!",
@@ -297,6 +299,10 @@
     "py_msg_7c6668": "Creazione della directory fallita!",
     "py_msg_d9523e": "Il file non esiste",
     "py_msg_b50947": "Non è possibile modificare online file di dimensioni superiori a 2 MB!",
+    "py_msg_binary": "Il file è in formato binario e non supporta la visualizzazione o la modifica online!",
+    "py_msg_binary": "Il file è in formato binario e non supporta la visualizzazione o la modifica online!",
+    "binary_preview_unsupported": "Questo tipo di file non supporta la visualizzazione online. Si prega di scaricarlo.",
+    "file_too_large": "Il file supera i 2 MB e non può essere visualizzato online. Si consiglia di scaricarlo o visualizzarlo nel terminale.",
     "py_msg_92c109": "Questo non è un file!",
     "py_msg_aaad51": "Il file non si apre correttamente!",
     "py_msg_24c6ab": "FileSalvato con successo",

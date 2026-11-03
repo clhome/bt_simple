@@ -342,30 +342,40 @@ function setRecycleBin(db){
 }
 
 function openFilename(obj){
-    var path = $(obj).attr('data-path');
-    var ext = getSuffixName(path);
+    var $el = $(obj);
+    var path = $el.attr('data-path') || $el.closest('[data-path]').attr('data-path');
+    if(!path) return;
 
-    // console.log(path,ext);
-    if (inArray(ext,['html','htm','php','lua','rs','py','txt','md','js','css','scss','json','c','h','pl','java','log','conf','sh','json','ini', 'yml','yaml'])){
-        onlineEditFile(0, path);
+    var sizeStr = $el.attr('data-size') || $el.closest('[data-size]').attr('data-size');
+    var fileSize = parseInt(sizeStr || '0', 10);
+
+    var ext = (getSuffixName(path) || '').toLowerCase();
+    if (!ext) {
+        var dotIdx = path.lastIndexOf('.');
+        if (dotIdx !== -1 && dotIdx < path.length - 1) {
+            ext = path.substring(dotIdx + 1).toLowerCase();
+        }
     }
 
-    if (inArray(ext,['png','jpeg','jpg','gif','webp','bmp','ico'])){
+    // 1. 图片格式 -> 图片预览
+    if (inArray(ext, ['png', 'jpeg', 'jpg', 'gif', 'webp', 'bmp', 'ico'])) {
         getImage(path);
+        return;
     }
 
-    if (inArray(ext,['svg'])){
-        var url = '/files/download?filename='+path;
+    // 2. SVG 矢量图 -> SVG 专用预览窗口
+    if (ext === 'svg') {
+        var url = '/files/download?filename=' + encodeURIComponent(path);
         var svgTitle = (window.lan && lan.files && lan.files.svg_preview) || t('files.svg_preview', 'SVG预览');
         layer.open({
-            type:1,
+            type: 1,
             closeBtn: 1,
             title: svgTitle,
-            area: ['600px','500px'],
-            maxmin:true,
+            area: ['600px', '500px'],
+            maxmin: true,
             shadeClose: true,
             content: '<iframe width="100%" height="100%"\
-                src="'+url+'"\
+                src="' + url + '"\
                 frameborder="0"\
                 border="0"\
                 marginwidth="0"\
@@ -379,7 +389,38 @@ function openFilename(obj){
                 webkitallowfullscreen="webkitallowfullscreen"\
                 allowfullscreen="true"></iframe>'
         });
+        return;
     }
+
+    // 3. 压缩包格式 -> 调起解压弹窗
+    if (isCompressFile(path)) {
+        unCompressFile(path);
+        return;
+    }
+
+    // 4. 明确不支持文本在线查看的二进制/多媒体/办公文档格式黑名单
+    var binaryExts = [
+        'exe', 'dll', 'so', 'dylib', 'bin', 'pyc', 'pyo', 'class', 'o', 'obj',
+        'db', 'sqlite', 'sqlite3', 'iso', 'img', 'dmg',
+        'woff', 'woff2', 'ttf', 'eot', 'otf',
+        'avi', 'mp4', 'mp3', 'flv', 'mkv', 'mov', 'wav', 'wmv', 'rmvb',
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'
+    ];
+    if (inArray(ext, binaryExts)) {
+        var unsuppMsg = (window.lan && lan.files && lan.files.binary_preview_unsupported) || t('files.binary_preview_unsupported', '该类型文件不支持在线查看，请下载后使用对应软件打开');
+        layer.msg(unsuppMsg, {icon: 0, maxWidth: 650});
+        return;
+    }
+
+    // 5. 大于 2MB 的大文件防护拦截
+    if (fileSize > 2097152) {
+        var tooLargeMsg = (window.lan && lan.files && lan.files.file_too_large) || t('files.file_too_large', '文件大于2MB，暂不支持在线查看，建议下载或在终端中查看');
+        layer.msg(tooLargeMsg, {icon: 0, maxWidth: 650});
+        return;
+    }
+
+    // 6. 其余所有小文件（包含常规文本/脚本、以及无后缀如 config/HEAD/Dockerfile 等）放行在线编辑
+    onlineEditFile(0, path);
 }
 
 function searchFile(p){
@@ -684,7 +725,7 @@ function getFiles(Path) {
             
             totalSize +=  parseInt(fmp[1]);
             if(getCookie("rank")=="a"){
-                body += "<tr style='cursor:pointer;' class='folderBoxTr' data-path='" + rdata.path +"/"+ fmp[0] + "' filetype='" + fmp[0] + "' ondblclick='openFilename(this)'>\
+                body += "<tr style='cursor:pointer;' class='folderBoxTr' data-path='" + rdata.path +"/"+ fmp[0] + "' data-size='" + fmp[1] + "' filetype='" + fmp[0] + "' ondblclick='openFilename(this)'>\
                     <td><label><input type='checkbox' name='id' value='"+fmp[0]+"'></label></td>\
                     <td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
                     <td style='text-align: center;'>" + (toSize(fmp[1])) + "</td>\
@@ -704,11 +745,11 @@ function getFiles(Path) {
                 </tr>";
             }
             else{
-                body += "<div class='file folderBox menufile' data-path='" + rdata.path +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' title='"+fileNameLabel+"：" + fmp[0]+"&#13;"+fileSizeLabel+"："
+                body += "<div class='file folderBox menufile' data-path='" + rdata.path +"/"+ fmp[0] + "' data-size='" + fmp[1] + "' filetype='"+fmp[0]+"' title='"+fileNameLabel+"：" + fmp[0]+"&#13;"+fileSizeLabel+"："
                     + toSize(fmp[1])+"&#13;"+fileMtimeLabel+"："+getLocalTime(fmp[2])+"&#13;"+filePermLabel+"："+fmp[3]+"&#13;"+fileOwnLabel+"："+fmp[4]+"' >\
                     <input type='checkbox' name='id' value='"+fmp[0]+"' />\
-                    <div data-path='" + rdata.path +"/"+ fmp[0] + "' filetype='"+fmp[0]+"' class='ico ico-"+(getExtName(fmp[0]))+"' ondblclick='javascript;openFilename(this);'></div>\
-                    <div class='titleBox'>\
+                    <div data-path='" + rdata.path +"/"+ fmp[0] + "' data-size='" + fmp[1] + "' filetype='"+fmp[0]+"' class='ico ico-"+(getExtName(fmp[0]))+"' ondblclick='javascript;openFilename(this);'></div>\
+                    <div class='titleBox' data-path='" + rdata.path +"/"+ fmp[0] + "' data-size='" + fmp[1] + "' ondblclick='javascript:openFilename(this);'>\
                         <span class='tname'>" + fmp[0] + "</span>\
                     </div>\
                 </div>";

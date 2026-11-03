@@ -1087,6 +1087,10 @@ def getFileBody(path):
         srcBody = fp.read()
         fp.close()
 
+        # 探测二进制文件：检测是否含有空字节 NUL，避免二进制乱码及误写破坏
+        if b'\x00' in srcBody:
+            return yf.returnData(False, 'file.py_msg_binary')
+
         encoding_list = ['utf-8', 'GBK', 'BIG5']
         for el in encoding_list:
             try:
@@ -1095,7 +1099,7 @@ def getFileBody(path):
                 break
             except Exception as ex:
                 if el == 'BIG5':
-                    return yf.returnData(False, 'utils.py_msg_f48da9', None, str(ex))
+                    return yf.returnData(False, 'file.py_msg_f48da9', None, str(ex))
     else:
         return yf.returnData(False, 'file.py_msg_aaad51')
     return yf.returnData(True, 'OK', data)

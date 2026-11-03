@@ -6307,10 +6307,43 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     border-bottom-right-radius: 10px !important;
 }
 
-/* 彻底消除 layer.msg loading 弹窗右侧由于高度计算误差导致的上下滚动条/箭头异常 */
+/* layer.msg 提示弹窗自适应宽度与优雅折行（彻底消除长文本或多语言被截断问题） */
+.layui-layer-msg {
+    min-width: 160px !important;
+    max-width: min(650px, 90vw) !important;
+    width: auto !important;
+}
 .layui-layer-msg .layui-layer-content {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: break-all !important;
+    line-height: 22px !important;
+    overflow: visible !important;
+}
+/* 针对 loading 动画类弹窗保持单行紧凑与无滚动条 */
+.layui-layer-loading .layui-layer-content,
+.layui-layer-msg.layui-layer-loading .layui-layer-content,
+.layui-layer-msg .layui-layer-ico16 + * {
     overflow: hidden !important;
     white-space: nowrap !important;
+}
+
+/* layer 对话框 (alert/confirm) 最大宽度自适应放宽并支持自动折行 */
+.layui-layer-dialog {
+    min-width: 260px !important;
+    max-width: min(600px, 90vw) !important;
+}
+.layui-layer-dialog .layui-layer-content {
+    word-break: break-all !important;
+}
+
+/* layer 浮动气泡提示 (tips) 宽度放宽与防截断 */
+.layui-layer-tips {
+    max-width: 320px !important;
+}
+.layui-layer-tips .layui-layer-content {
+    word-break: break-all !important;
 }
 
 /* 彻底修复弹窗右上角关闭按钮(包括 closeBtn:2)位置偏移与被 overflow:hidden 裁剪问题 */
