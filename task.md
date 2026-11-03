@@ -98,6 +98,12 @@
   - [x] 17.4 **自动化测试用例与全量验证**：编写测试脚本验证 `getFileBody` 对普通文本读取、空字节二进制文件拦截、超过 2MB 文件拦截及多语言映射，运行回归测试确保零破坏
 - [x] **任务 18：全局弹窗提示（layer.msg / alert / confirm）自适应宽度与长文本截断治理 (`site.css`, `ensite.css`, `public.js`, `files.js`)**
   - [x] 18.1 **样式层彻底修复 (`site.css`, `ensite.css`)**：
+- [ ] **任务 19：修复 PHP 安全基线告警的存量旧版本（如 PHP 7.1）在软件商店缺失导致无法卸载缺陷 (`web/utils/plugin.py`, `plugins/php-apt/install.sh`)**
+  - [x] 19.1 **动态发现与补全已安装分支 (`web/utils/plugin.py`)**：在 `applyPhpVersionPolicy` 中探查真实安装分支，若存量已装版本（如 7.1 等老旧分支）不在静态列表中，动态补充该条目并标记 `setup=True` 与 `php_eol=True`
+  - [x] 19.2 **动态状态判存容灾与兼容 (`web/utils/plugin.py`)**：在 `refreshDynamicStatus` 中对由探针确认已安装的 PHP 分支保持 `setup=True`，杜绝因标记目录缺失误判为「未安装」
+  - [x] 19.3 **卸载鲁棒性提升 (`plugins/php-apt/install.sh`)**：卸载时移除对标记目录必须存在的硬约束，确保任何状态下均能干净停止服务并调用 apt 卸载
+  - [ ] 19.4 **自动化测试与全量回归**：编写 `testsuite/test_php_installed_legacy_versions.py` 验证已装老版本展示与卸载链路，全量回归相关门禁确保全绿
+
     - 移除 `.layui-layer-msg .layui-layer-content` 粗暴的 `white-space: nowrap !important`，放开 `.layui-layer-msg` 最大宽度为 `min(650px, 90vw)`，支持内容单行伸展自适应并可在超长时安全折行；
     - 对 loading 类型单独设置 `white-space: nowrap` 维持无滚动条特性；
     - 增强 `.layui-layer-dialog` (alert/confirm) 最大宽度自适应到 600px，支持长消息自动折行；

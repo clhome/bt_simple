@@ -884,6 +884,37 @@ class plugin(object):
             pInfo['php_eol'] = True
             pInfo['php_eol_min'] = '%s.%s' % (PHP_MIN_INSTALL_BRANCH[0], PHP_MIN_INSTALL_BRANCH[1:])
             kept.append(pInfo)
+
+        if installed is None:
+            installed = self._phpInstalledBranches()
+
+        existing = {(p.get('name'), str(p.get('versions'))) for p in kept}
+        for channel, plugin_name in (('src', 'php'), ('apt', 'php-apt'), ('yum', 'php-yum')):
+            branches = installed.get(channel) or set()
+            for br in sorted(branches):
+                br_str = str(br)
+                if (plugin_name, br_str) in existing:
+                    continue
+                # 针对该渠道，如果未在静态列表中但探针确定本机已安装（例如 7.1 等存量旧版本），
+                # 动态生成该版本的条目，确保用户能在软件商店中看到已安装的废弃版本并执行卸载。
+                raw_info = self.getPluginInfo(plugin_name)
+                if not raw_info:
+                    continue
+                import copy
+                info_copy = copy.deepcopy(raw_info)
+                info_copy['title'] = str(info_copy.get('title') or plugin_name) + '-' + br_str
+                info_copy['versions'] = br_str
+                dyn_pInfo = self.makePluginInfo(info_copy)
+                dyn_pInfo['setup'] = True
+                dyn_pInfo['setup_version'] = br_str
+                dyn_pInfo['setup_by_probe'] = True
+                branch_num = _php_branch_of(br_str)
+                if branch_num and branch_num < floor:
+                    dyn_pInfo['php_eol'] = True
+                    dyn_pInfo['php_eol_min'] = '%s.%s' % (PHP_MIN_INSTALL_BRANCH[0], PHP_MIN_INSTALL_BRANCH[1:])
+                kept.append(dyn_pInfo)
+                existing.add((plugin_name, br_str))
+
         return kept
 
     def getIndexList(self, simple=False):
@@ -1881,7 +1912,7 @@ class plugin(object):
             coexist = pInfo['coexist']
             install_checks = pInfo['install_checks']
             
-            pInfo['setup'] = os.path.exists(install_checks)
+            pInfo['setup'] = os.path.exists(install_checks) or bool(pInfo.get('setup_by_probe'))
             
             if coexist and pInfo['setup']:
                 pInfo['setup_version'] = version

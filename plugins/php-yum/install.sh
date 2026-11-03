@@ -269,7 +269,7 @@ if [ -n "${_yf_pkg_mgr}" ] && ! rpm -q remi-release >/dev/null 2>&1; then
 	fi
 fi
 
-if [ "${action}" == "uninstall" ] && [ -d "${serverPath}/php-yum/${type}" ];then
+if [ "${action}" == "uninstall" ];then
 	# 卸载清理 
 	_yf_yum_index stop "${type}"
 	_yf_yum_index initd_uninstall "${type}"

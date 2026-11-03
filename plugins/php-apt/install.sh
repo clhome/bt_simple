@@ -306,7 +306,7 @@ if [ "$OSNAME" == "debian" ];then
 	fi
 fi 
 
-if [ "${action}" == "uninstall" ] && [ -d "${serverPath}/php-apt/${type}" ];then
+if [ "${action}" == "uninstall" ];then
 	# 卸载清理
 	_yf_apt_index stop "${type}"
 	_yf_apt_index initd_uninstall "${type}"
