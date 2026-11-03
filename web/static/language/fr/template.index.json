@@ -831,7 +831,18 @@
     "login_details_entrance": "Accès sécurisé direct",
     "login_details_captcha_err": "Erreur de captcha",
     "login_details_password_err": "Erreur de mot de passe",
-    "login_details_active_session": "Session active actuelle"
+    "login_details_active_session": "Session active actuelle",
+    "sec_plain_http_rec_title": "Recommandé : Configurer un certificat SSL standard (Préféré)",
+    "sec_plain_http_rec_desc": "Émis par des autorités de certification reconnues, entièrement approuvé par les navigateurs avec cadenas vert, éliminant tout risque de piratage.",
+    "sec_plain_http_self_ssl_title": "Certificat auto-signé (Solution de secours · Déconseillé à long terme)",
+    "sec_plain_http_self_ssl_badge": "Dernier recours",
+    "sec_plain_http_self_ssl_role_limit": "[Rôle et limites] Les certificats auto-signés fournissent uniquement un chiffrement de transport de base. Faute d'autorité de certification de confiance, les navigateurs afficheront une alerte rouge et cela ne protège pas contre les attaques de l'homme du milieu.",
+    "sec_step_1_enable_self": "1. Cliquez sur [Activer le SSL auto-signé] en bas à gauche et confirmez le redémarrage",
+    "sec_plain_http_rec_steps_title": "Étapes de configuration du certificat SSL standard :",
+    "sec_plain_http_rec_step1": "1. Résolution DNS : pointez un domaine dédié (ex. panel.xxx.com) avec un enregistrement A vers l'IP publique",
+    "sec_plain_http_rec_step2": "2. Lier le domaine : cliquez sur [Accéder aux paramètres], puis liez le domaine dans 'Sécurité'",
+    "sec_plain_http_rec_step3": "3. Déployer : activez « SSL du panneau », choisissez « Certificat 90 jours (ACME) » ou importez votre certificat",
+    "sec_plain_http_rec_step4": "4. Accès sécurisé : redémarrez le panneau et accédez via https://domaine:port (cadenas vert sécurisé)"
   },
   "dashboard": {
     "the_ip_address_cannot": "L'adresse IP ne doit pas être vide",

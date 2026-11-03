@@ -831,7 +831,18 @@
     "login_details_entrance": "Sicherer Schnelleinstieg",
     "login_details_captcha_err": "Captcha-Fehler",
     "login_details_password_err": "Passwortfehler",
-    "login_details_active_session": "Aktuelle aktive Sitzung"
+    "login_details_active_session": "Aktuelle aktive Sitzung",
+    "sec_plain_http_rec_title": "Empfohlen: Standard-SSL-Zertifikat konfigurieren (Bevorzugt)",
+    "sec_plain_http_rec_desc": "Von vertrauenswürdigen CAs ausgestellt, von Browsern voll anerkannt, mit grünem Sicherheitsschloss, verhindert Man-in-the-Middle-Angriffe und Abhören.",
+    "sec_plain_http_self_ssl_title": "Selbstsigniertes Zertifikat (Notfalllösung · Langfristig nicht empfohlen)",
+    "sec_plain_http_self_ssl_badge": "Notlösung",
+    "sec_plain_http_self_ssl_role_limit": "[Zweck & Einschränkungen] Selbstsignierte Zertifikate bieten lediglich grundlegende Transportverschlüsselung gegen Klartext-Sniffing. Da keine anerkannte CA-Signatur vorliegt, warnen Browser vor Sicherheitsrisiken, und Man-in-the-Middle-Angriffe können nicht verhindert werden.",
+    "sec_step_1_enable_self": "1. Klicken Sie unten links auf [Selbstsigniertes SSL aktivieren] und bestätigen Sie den Neustart",
+    "sec_plain_http_rec_steps_title": "Schritte zur Konfiguration des Standard-SSL-Zertifikats:",
+    "sec_plain_http_rec_step1": "1. DNS-Eintrag: Dedizierte Domain (z.B. panel.xxx.com) per A-Record auf die Server-IP auflösen",
+    "sec_plain_http_rec_step2": "2. Domain binden: Unten rechts auf [Zu den Panel-Einstellungen] klicken und Domain in 'Sicherheit' binden",
+    "sec_plain_http_rec_step3": "3. Aktivieren: 'Panel-SSL' aktivieren, '90-Tage-Zertifikat (ACME)' wählen oder eigenes Zertifikat importieren",
+    "sec_plain_http_rec_step4": "4. Sicherer Zugriff: Panel neu starten und über https://domain:port aufrufen (grünes Schloss)"
   },
   "dashboard": {
     "the_ip_address_cannot": "ipdarf nicht leer sein",

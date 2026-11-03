@@ -3497,8 +3497,9 @@ var btSecurityCenter = {
         var that = this;
         var title = t('public.plain_http_warning_title', '当前为明文 HTTP，登录 Cookie 可被嗅探');
         var desc = t('public.plain_http_warning_desc', '请尽快在「面板设置」中启用 HTTPS；在启用前不要通过公网使用此面板。');
-        var content = '<div style="padding: 24px; font-size: 13px; line-height: 22px; color: #333;">' +
-            '<div style="display:flex; align-items:flex-start; gap:14px; padding:14px; background:#fff1f0; border:1px solid #ffa39e; border-radius:6px; margin-bottom:16px;">' +
+        var content = '<div style="padding: 22px 24px; font-size: 13px; line-height: 22px; color: #333;">' +
+            // 1. 风险警告框
+            '<div style="display:flex; align-items:flex-start; gap:14px; padding:14px; background:#fff1f0; border:1px solid #ffa39e; border-radius:6px; margin-bottom:14px;">' +
                 '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#cf1322" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">' +
                     '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' +
                     '<line x1="12" y1="9" x2="12" y2="13"/>' +
@@ -3509,14 +3510,31 @@ var btSecurityCenter = {
                     '<div style="margin-top: 4px; color: #595959;">' + phpSecEscape(desc) + '</div>' +
                 '</div>' +
             '</div>' +
-            '<div style="background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; padding: 12px 14px; color: #666; font-size: 12px; margin-bottom: 12px;">' +
-                '<p style="margin: 0 0 6px 0; font-weight: 600; color: #333;">' + phpSecEscape(t('index.sec_plain_http_why_title', '为什么会有该风险？')) + '</p>' +
+            // 2. 官方推荐方案：配置标准 SSL 证书（首选）
+            '<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; color: #475569; font-size: 12px; margin-bottom: 12px; line-height: 20px;">' +
+                '<div style="font-weight: 600; color: #1e293b; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">' +
+                    '<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#20a53a; flex-shrink:0;"></span>' +
+                    '<span>' + phpSecEscape(t('index.sec_plain_http_rec_title', '推荐方案：配置标准 SSL 证书（首选）')) + '</span>' +
+                '</div>' +
                 '<p style="margin: 0 0 6px 0;">' + phpSecEscape(t('index.sec_plain_http_why_desc', '在未开启 SSL 的明文 HTTP 连接下，网络链路上任意节点均可能截获您的登录凭证与会话 Cookie，导致面板被未授权控制。')) + '</p>' +
-                '<p style="margin: 0;">' + phpSecEscape(t('index.sec_plain_http_action_desc', '建议立即在「面板设置」-「安全设置」开启面板 SSL，启用 HTTPS 证书加密访问。')) + '</p>' +
+                '<p style="margin: 0 0 6px 0; color: #0f766e;">' + phpSecEscape(t('index.sec_plain_http_rec_desc', '由权威 CA 机构签发，受现代浏览器完全信任，具备安全绿锁，彻底杜绝劫持与嗅探。')) + '</p>' +
+                '<div style="font-weight: 600; color: #1e293b; margin-bottom: 2px;">' + phpSecEscape(t('index.sec_plain_http_rec_steps_title', '标准 SSL 证书配置步骤：')) + '</div>' +
+                '<div>' + phpSecEscape(t('index.sec_plain_http_rec_step1', '1. 域名解析：将专属域名（如 panel.xxx.com）A 记录解析至服务器公网 IP')) + '</div>' +
+                '<div>' + phpSecEscape(t('index.sec_plain_http_rec_step2', '2. 绑定域名：点击右下角【前往面板设置】，在「安全设置」绑定该域名')) + '</div>' +
+                '<div>' + phpSecEscape(t('index.sec_plain_http_rec_step3', '3. 申请部署：开启「面板 SSL」，选择“90天证书(ACME免费申请)”或导入已有证书')) + '</div>' +
+                '<div>' + phpSecEscape(t('index.sec_plain_http_rec_step4', '4. 加密访问：确认重启面板，使用 https://域名:端口 安全访问（地址栏绿锁受信）')) + '</div>' +
             '</div>' +
-            '<div style="background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #389e0d; line-height: 19px;">' +
-                '<div style="font-weight: 600; margin-bottom: 3px;">' + phpSecEscape(t('config.steps_for_accessing_self', '自签证书访问步骤：')) + '</div>' +
-                '<div>' + phpSecEscape(t('config.deploy_an_ssl_certificate', '1. 部署SSL证书')) + '</div>' +
+            // 3. 自签证书：应急过渡方案（无奈之举，告知作用与局限性）
+            '<div style="background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 11px 14px; font-size: 12px; color: #8c6b00; line-height: 19px;">' +
+                '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">' +
+                    '<span style="font-weight: 600; color: #ad6800;">' + phpSecEscape(t('index.sec_plain_http_self_ssl_title', '自签证书（应急过渡方案 · 不推荐长期使用）')) + '</span>' +
+                    '<span style="font-size: 11px; background: #fff1b8; color: #d46b08; padding: 0 6px; border-radius: 3px; line-height: 18px;">' + phpSecEscape(t('index.sec_plain_http_self_ssl_badge', '无奈之举')) + '</span>' +
+                '</div>' +
+                '<div style="margin-bottom: 7px; color: #614700; line-height: 18px;">' +
+                    phpSecEscape(t('index.sec_plain_http_self_ssl_role_limit', '【作用与局限性】自签证书仅能提供基础传输加密，防止密码和 Cookie 明文裸传；但因缺乏权威 CA 认证，浏览器必然提示红标警告，且无法防范中间人欺骗。建议仅作无域名时的临时应急过渡，后续请尽快切换为标准 SSL 证书。')) +
+                '</div>' +
+                '<div style="font-weight: 600; color: #ad6800; margin-bottom: 2px;">' + phpSecEscape(t('config.steps_for_accessing_self', '自签证书访问步骤：')) + '</div>' +
+                '<div>' + phpSecEscape(t('index.sec_step_1_enable_self', '1. 点击底部左侧【一键启用自签证书】并确认重启面板')) + '</div>' +
                 '<div>' + phpSecEscape(t('config.change_the_address_in', '2. 浏览器地址栏修改为https://访问')) + '</div>' +
                 '<div>' + phpSecEscape(t('config.if_risk_warning_appears', '3. 如提醒风险（正常现象）点击【高级】或【详情】')) + '</div>' +
                 '<div>' + phpSecEscape(t('config.continue_or_accept_the', '4.【继续访问】或【接收风险并继续】')) + '</div>' +
@@ -3526,16 +3544,86 @@ var btSecurityCenter = {
         layer.open({
             type: 1,
             title: [t('index.sec_modal_plain_http_title', '明文传输安全风险告警'), 'font-weight:600; font-size:14px;'],
-            area: ['560px', 'auto'],
-            btn: [t('index.sec_enable_self_ssl', '一键启用自签证书'), t('index.sec_goto_setting', '前往面板设置'), t('public.close', '关闭')],
+            area: ['580px', 'auto'],
+            btn: [
+                t('index.sec_goto_setting', '前往面板设置'),
+                t('public.close', '关闭'),
+                t('index.sec_enable_self_ssl', '一键启用自签证书')
+            ],
             content: content,
+            success: function(layero, index) {
+                var btnRow = layero.find('.layui-layer-btn');
+                var btn0 = btnRow.find('.layui-layer-btn0'); // 前往面板设置（推荐主操作）
+                var btn1 = btnRow.find('.layui-layer-btn1'); // 关闭（取消）
+                var btn2 = btnRow.find('.layui-layer-btn2'); // 一键启用自签证书（应急次要操作）
+
+                // 清除浮动溢出并规范内边距
+                btnRow.css({
+                    'overflow': 'hidden',
+                    'padding': '10px 20px 15px'
+                });
+
+                // 1. 【一键启用自签证书】样式与位置对调：放置底部左边，次要灰白按钮样式（无奈之举）
+                btn2.css({
+                    'float': 'left',
+                    'margin-left': '0',
+                    'background-color': '#f5f5f5',
+                    'border': '1px solid #d9d9d9',
+                    'color': '#666',
+                    'font-weight': 'normal',
+                    'border-radius': '4px',
+                    'padding': '0 15px',
+                    'height': '32px',
+                    'line-height': '30px'
+                }).hover(function() {
+                    $(this).css({ 'background-color': '#e8e8e8', 'color': '#333', 'border-color': '#ccc' });
+                }, function() {
+                    $(this).css({ 'background-color': '#f5f5f5', 'color': '#666', 'border-color': '#d9d9d9' });
+                });
+
+                // 2. 【前往面板设置】样式与位置对调：高亮绿色主按钮样式（官方推荐）
+                btn0.css({
+                    'background-color': '#20a53a',
+                    'border': '1px solid #20a53a',
+                    'color': '#fff',
+                    'font-weight': '600',
+                    'border-radius': '4px',
+                    'padding': '0 16px',
+                    'height': '32px',
+                    'line-height': '30px'
+                }).hover(function() {
+                    $(this).css({ 'background-color': '#1b8c31', 'border-color': '#1b8c31' });
+                }, function() {
+                    $(this).css({ 'background-color': '#20a53a', 'border-color': '#20a53a' });
+                });
+
+                // 3. 【关闭】标准取消按钮
+                btn1.css({
+                    'background-color': '#fff',
+                    'border': '1px solid #dedede',
+                    'color': '#555',
+                    'border-radius': '4px',
+                    'padding': '0 16px',
+                    'height': '32px',
+                    'line-height': '30px'
+                }).hover(function() {
+                    $(this).css({ 'background-color': '#f8f8f8', 'color': '#333' });
+                }, function() {
+                    $(this).css({ 'background-color': '#fff', 'color': '#555' });
+                });
+            },
             yes: function(index) {
                 layer.close(index);
-                that.applySelfSignedSsl();
+                window.location.href = '/setting/index';
+                return false;
             },
             btn2: function(index) {
                 layer.close(index);
-                window.location.href = '/setting/index';
+                return false;
+            },
+            btn3: function(index) {
+                layer.close(index);
+                that.applySelfSignedSsl();
                 return false;
             }
         });

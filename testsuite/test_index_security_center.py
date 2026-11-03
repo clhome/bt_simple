@@ -31,7 +31,18 @@ REQUIRED_KEYS = (
     'sec_modal_plain_http_title',
     'sec_enable_self_ssl',
     'sec_goto_setting',
-    'sec_modal_details_suffix'
+    'sec_modal_details_suffix',
+    'sec_plain_http_rec_title',
+    'sec_plain_http_rec_desc',
+    'sec_plain_http_rec_steps_title',
+    'sec_plain_http_rec_step1',
+    'sec_plain_http_rec_step2',
+    'sec_plain_http_rec_step3',
+    'sec_plain_http_rec_step4',
+    'sec_plain_http_self_ssl_title',
+    'sec_plain_http_self_ssl_badge',
+    'sec_plain_http_self_ssl_role_limit',
+    'sec_step_1_enable_self'
 )
 
 
@@ -92,6 +103,33 @@ class IndexSecurityCenterTest(unittest.TestCase):
         self.assertIn('/setting/set_panel_local_ssl', js, 'applySelfSignedSsl 必须调用 /setting/set_panel_local_ssl')
         self.assertIn('/setting/index', js, '明文 HTTP 弹窗跳转路径必须为 /setting/index')
         self.assertNotIn('/config/index', js, '禁止残留错误的 /config/index 跳转路由')
+
+    def test_07_plain_http_modal_button_swap_and_content(self):
+        js = _read(INDEX_JS)
+        # 1. 验证按钮顺序：前往面板设置（首推）在前，关闭在中间，一键启用自签证书（应急）在后
+        self.assertIn("t('index.sec_goto_setting'", js, '按钮必须包含前往面板设置')
+        self.assertIn("t('index.sec_enable_self_ssl'", js, '按钮必须包含一键启用自签证书')
+        goto_pos = js.find("t('index.sec_goto_setting'")
+        close_pos = js.find("t('public.close', '关闭')")
+        self_ssl_pos = js.find("t('index.sec_enable_self_ssl'")
+        self.assertLess(goto_pos, self_ssl_pos, '前往面板设置按钮应排在第一位，作为默认主操作')
+
+        # 2. 验证底部左侧定位与样式对调
+        self.assertIn("'float': 'left'", js, '一键启用自签证书必须设置 float: left 靠左排布')
+        self.assertIn("'background-color': '#20a53a'", js, '前往面板设置必须继承原主按钮高亮绿色样式')
+
+        # 3. 验证回调精准映射
+        self.assertIn("window.location.href = '/setting/index'", js, 'yes 回调必须跳转面板设置')
+        self.assertIn("that.applySelfSignedSsl()", js, 'btn3 回调必须触发 applySelfSignedSsl')
+
+        # 4. 验证推荐标准 SSL 方案与自签证书局限性文案引用
+        self.assertIn("index.sec_plain_http_rec_title", js, '缺少标准 SSL 推荐标题引用')
+        self.assertIn("index.sec_plain_http_rec_steps_title", js, '缺少标准 SSL 步骤标题引用')
+        self.assertIn("index.sec_plain_http_rec_step1", js, '缺少标准 SSL 步骤1引用')
+        self.assertIn("index.sec_plain_http_rec_step2", js, '缺少标准 SSL 步骤2引用')
+        self.assertIn("index.sec_plain_http_rec_step3", js, '缺少标准 SSL 步骤3引用')
+        self.assertIn("index.sec_plain_http_rec_step4", js, '缺少标准 SSL 步骤4引用')
+        self.assertIn("index.sec_plain_http_self_ssl_role_limit", js, '缺少自签证书作用与局限性引用')
 
 
 if __name__ == '__main__':
