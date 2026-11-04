@@ -82,6 +82,7 @@ This project has undergone comprehensive security audits and deep performance op
   ![System Details](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260630174623767.png)
 
 - **Software Management & Website Configuration Enhancements**:
+  - **Single-Port (80/443) Panel & Site Coexistence**: Engineered specifically for enterprise intranets or strict security groups where only port 80/443 is permitted and high panel ports are blocked externally. The `yf 33` / `yf proxy` reverse-proxy coexistence architecture introduces an innovative "Server-level `if` + HTTP 418 internal named routing + Cookie gatekeeper" design. Administrators accessing via the secret entrance URL gain immediate panel access via persistent cookie forwarding, while public visitors to site root, PHP scripts, and rewrite rules remain completely unaffected. Zero modification to existing site locations eliminates fatal `duplicate location "/"` conflicts with CMS rewrite templates (WordPress/ThinkPHP); `/.well-known/acme-challenge/` paths are never proxied, guaranteeing 100% normal Let's Encrypt certificate renewals; changing panel ports, entrances, or SSL settings triggers automatic live configuration synchronization and auto-healing in `yf repair`.
   - **Expanded Software Grid**: Dashboard software grid expanded from 4 columns to `col-lg-2` (6 icons per row), increasing maximum display capacity from 12 to 18 icons.
   - **Official Curated Ecosystem vs. Isolated Third-Party Plugins**: Display logic redesigned to present official certified plugins by default. A top-right settings gear modal allows toggling third-party or custom plugins with prominent `(Third-Party)` warning badges, maintaining ecosystem purity without sacrificing extensibility.
   - **Enriched Website Details & One-Click Takeover / Restore**: Website tables now display daily traffic estimations, active PHP versions, and SSL certificate validity days remaining. Added "Website List Migration & Restore", supporting automated scanning of backup `site.db` paths or manual path input, with asynchronous background reading and unbuffered real-time streaming web logs for seamless site takeover.
@@ -392,15 +393,19 @@ bs uninstall
 
 ### 3. Command Line Interface (CLI)
 
-The panel includes the powerful `bs` CLI (fully compatible with alias `mw`) for rapid terminal operations:
+The panel includes the powerful `yf` CLI (fully compatible with aliases `bs` and `mw`) for rapid terminal operations:
 
-- `bs default`: View default panel login credentials and URL.
-- `bs stop / start / restart`: Service lifecycle management.
-- `bs update`: Check for and apply panel updates.
+- `yf default`: View default panel login credentials, security entrance, and URLs.
+- `yf stop / start / restart`: Service lifecycle management.
+- `yf update`: Check for and apply panel updates.
+- `yf proxy`: Configure single-port (80/443) panel & website coexistence (interactive wizard).
+- `yf proxy status`: Health check single-port reverse proxy and Nginx configurations.
+- `yf proxy off`: Disable single-port coexistence and restore original site vhosts.
+- `yf repair`: Panel self-check and auto-repair (services, database, permissions, proxy coexist).
 
 ```sh
-root@debian:/root# bs
-========================bs_simple cli tools==========================
+root@debian:/root# yf
+======================== Yufeng Panel CLI Tools ========================
 (1)    Restart Panel Service            (2)    Stop Panel Service
 (3)    Start Panel Service              (4)    Reload Panel Service
 (5)    Modify Panel IP                  (6)    Modify Panel Port
@@ -408,14 +413,15 @@ root@debian:/root# bs
 (10)   View Panel Default Info          (11)   Modify Panel Password
 (12)   Modify Panel Username            (13)   Show Panel Error Log
 (14)   Disable Panel Access             (15)   Enable Panel Access
-(20)   Disable BasicAuth                (21)   Unbind Domain Name
-(22)   Unbind Panel SSL                 (23)   Enable IPv6 Support
-(24)   Disable IPv6 Support             (25)   Open Firewall SSH Port
-(26)   Disable Two-Factor Auth (2FA)    (27)   View Firewall Status
-(28)   Auto-Sync Firewall Ports         (29)   Auto-Sync Site Configuration
-(100)  Show PHP 5.2 in Store            (101)  Hide PHP 5.2 in Store
-(200)  Switch Linux Package Mirrors     (201)  Simple Speed Test
-(202)  SSH Terminal Management          (30)   Restore Baota Data (Takeover)
+(16)   Repair Panel Service             (20)   Disable BasicAuth
+(21)   Unbind Domain Name               (22)   Unbind Panel SSL
+(23)   Enable IPv6 Support              (24)   Disable IPv6 Support
+(25)   Open Firewall SSH Port           (26)   Disable Two-Factor Auth (2FA)
+(27)   View Firewall Status             (28)   Auto-Sync Firewall Ports
+(29)   Auto-Sync Site Configuration     (30)   Restore BT MySQL Data
+(31)   Restore BT Website List          (32)   Switch Panel Language
+(33)   Single-Port Panel Coexist        (200)  Switch Linux Software Mirrors
+(201)  System Benchmark Test            (202)  SSH Terminal Management
 (0)    Cancel
 ========================================================================
 Please enter command number:

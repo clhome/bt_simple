@@ -118,20 +118,14 @@ def _git_archive(dest_dir, ref='HEAD'):
 
 
 def _read_version():
-    ns = {}
     with open(os.path.join(ROOT, 'web', 'version.py'), encoding='utf-8') as fh:
         src = fh.read()
-    # 只取需要的常量，避免 import 整个模块带来的副作用
+    # 只取 APP_VERSION，避免 import 整个模块带来的副作用
     for line in src.split('\n'):
         line = line.strip()
-        for key in ('APP_RELEASE', 'APP_REVISION', 'APP_SMALL_VERSION', 'APP_SUFFIX'):
-            if line.startswith(key) and '=' in line:
-                ns[key] = line.split('=', 1)[1].strip().strip('"').strip("'")
-    ver = '%s.%s.%s' % (ns.get('APP_RELEASE', '0'), ns.get('APP_REVISION', '0'),
-                        ns.get('APP_SMALL_VERSION', '0'))
-    if ns.get('APP_SUFFIX'):
-        ver = '%s-%s' % (ver, ns['APP_SUFFIX'])
-    return ver
+        if line.startswith('APP_VERSION') and '=' in line:
+            return line.split('=', 1)[1].strip().strip('"').strip("'")
+    return '0.0.0'
 
 
 def _prune(root, edition):

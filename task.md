@@ -147,6 +147,14 @@
     - 深度细化《御风面板说明书》标准 SSL 证书配置章节，补充 80 端口放行、ACME 自动签发桥接验证及自定义证书导入等实操细节；
     - 扩充测试用例与全量回归验证。
 
+- [x] **任务 25：版本号单一定义源改造 (`APP_VERSION`) 与组件变量自动拆解**
+  - [x] 25.1 重构 `web/version.py`：以单一 `APP_VERSION` 作为定义入口，自动拆解出 `APP_RELEASE`、`APP_REVISION`、`APP_SMALL_VERSION`、`APP_SUFFIX` 并导出，保障模块层兼容
+  - [x] 25.2 改造 `deploy.sh`：将版本更新与检测从 3~4 个独立变量 sed/grep 统一简化为操作 `APP_VERSION`
+  - [x] 25.3 改造 `.github/workflows/release.yml`：CI 发布流校验直接比对 `APP_VERSION` 与 Release Tag
+  - [x] 25.4 改造 `scripts/tools/build_edition.py`：版本读取改为提取 `APP_VERSION`
+  - [x] 25.5 改造 `testsuite/test_supply_chain_guards.py`，新增 `testsuite/test_version_parsing.py` 覆盖拆解逻辑与兼容性
+  - [ ] 25.6 运行测试套件与全量回归验证，清理临时文件
+
 
 
 

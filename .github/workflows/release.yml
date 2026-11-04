@@ -58,15 +58,10 @@ jobs:
           import re, sys, pathlib
           tag = sys.argv[1]
           text = pathlib.Path('web/version.py').read_text(encoding='utf-8')
-          def grab(name):
-              m = re.search(r'^\s*%s\s*=\s*(.+?)\s*$' % name, text, re.M)
-              if not m:
-                  sys.exit('version.py 中找不到 %s' % name)
-              return m.group(1).strip().strip('"').strip("'")
-          ver = '%s.%s.%s' % (grab('APP_RELEASE'), grab('APP_REVISION'), grab('APP_SMALL_VERSION'))
-          suffix = grab('APP_SUFFIX')
-          if suffix:
-              ver = '%s-%s' % (ver, suffix)
+          m = re.search(r'^\s*APP_VERSION\s*=\s*[\'"]([^\'"]+)[\'"]\s*$', text, re.M)
+          if not m:
+              sys.exit('version.py 中找不到 APP_VERSION')
+          ver = m.group(1).strip()
           expect = tag[1:] if tag.startswith('v') else tag
           if ver != expect:
               sys.exit('tag(%s) 与 web/version.py 的版本(%s) 不一致；'

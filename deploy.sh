@@ -1184,30 +1184,12 @@ set_panel_version() {
 
     # 尝试同步修改 version.py 的硬编码，以防原始文件内容未更新导致读取错误
     if [ -n "$final_ver" ] && [ -f ${PANEL_DIR}/web/version.py ]; then
-        local new_rel=$(echo "$final_ver" | awk -F. '{print $1}')
-        local new_rev=$(echo "$final_ver" | awk -F. '{print $2}')
-        local new_smv=$(echo "$final_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
-        if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
-            sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" ${PANEL_DIR}/web/version.py
-            sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" ${PANEL_DIR}/web/version.py
-            sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" ${PANEL_DIR}/web/version.py
-        fi
+        sed -i "s/^[[:space:]]*APP_VERSION[[:space:]]*=.*/APP_VERSION = '${final_ver}'/" ${PANEL_DIR}/web/version.py
     fi
     
     # 1. 优先尝试从本地已下载覆盖的 web/version.py 中解析硬编码版本（最稳健的离线方案）
     if [ -z "$final_ver" ] && [ -f ${PANEL_DIR}/web/version.py ]; then
-        local app_rel=$(grep -E '^[[:space:]]*APP_RELEASE[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
-        local app_rev=$(grep -E '^[[:space:]]*APP_REVISION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
-        local app_smv=$(grep -E '^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
-        local app_suf=$(grep -E '^[[:space:]]*APP_SUFFIX[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d "[:space:]'\"")
-        
-        if [ -n "$app_rel" ] && [ -n "$app_rev" ] && [ -n "$app_smv" ]; then
-            if [ -n "$app_suf" ]; then
-                final_ver="${app_rel}.${app_rev}.${app_smv}-${app_suf}"
-            else
-                final_ver="${app_rel}.${app_rev}.${app_smv}"
-            fi
-        fi
+        final_ver=$(grep -E '^[[:space:]]*APP_VERSION[[:space:]]*=' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d "[:space:]'\"")
     fi
     
     # 2. 如果本地解析失败，且网络畅通，则尝试从远端获取 latest release 作为兜底
@@ -1758,17 +1740,11 @@ download_code() {
         local latest_tag=$(get_latest_release_tag)
         
         if [ -n "$latest_tag" ]; then
-            local clean_ver=$(echo "$latest_tag" | sed 's/^v//')
-            local new_rel=$(echo "$clean_ver" | awk -F. '{print $1}')
-            local new_rev=$(echo "$clean_ver" | awk -F. '{print $2}')
-            local new_smv=$(echo "$clean_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
-            if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
-                sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" /tmp/bt_simple_deploy/web/version.py
-                sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" /tmp/bt_simple_deploy/web/version.py
-                sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" /tmp/bt_simple_deploy/web/version.py
-            fi
+            local clean_ver=$(echo "$latest_tag" | sed 's/^v//' | awk -F- '{print $1}')
+            sed -i "s/^[[:space:]]*APP_VERSION[[:space:]]*=.*/APP_VERSION = '${clean_ver}-dev'/" /tmp/bt_simple_deploy/web/version.py
+        else
+            sed -i "s/^[[:space:]]*APP_VERSION[[:space:]]*=[[:space:]]*['\"]\([^'-]*\)\(-[^']*\)\?['\"].*/APP_VERSION = '\1-dev'/" /tmp/bt_simple_deploy/web/version.py
         fi
-        sed -i "s/^[[:space:]]*APP_SUFFIX[[:space:]]*=.*/APP_SUFFIX = 'dev'/" /tmp/bt_simple_deploy/web/version.py
     fi
 
     log_info "代码下载完成"

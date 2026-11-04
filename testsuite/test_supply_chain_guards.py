@@ -164,8 +164,7 @@ class SupplyChainGuardTest(unittest.TestCase):
 
     def test_08_release_workflow_asserts_tag_matches_version(self):
         text = _read('.github/workflows/release.yml')
-        self.assertIn('APP_SMALL_VERSION', text, '未校验 tag 与 version.py 一致')
-        self.assertIn('APP_RELEASE', text)
+        self.assertIn('APP_VERSION', text, '未校验 tag 与 version.py 一致')
         self.assertIn('不一致', text)
 
     def test_09_release_workflow_excludes_dev_artifacts(self):
