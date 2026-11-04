@@ -45,6 +45,13 @@ TOP_LEVEL = set(os.listdir(ROOT))
 # 不属于仓库源码，不做存在性校验。
 RUNTIME_PREFIXES = ('data/', 'logs/', 'ssl/')
 
+# 本地草稿目录：`test/` 从 2026-09 起由 `.gitignore` 忽略（不入库）。
+# `文档/` 里的对账表/测评报告/变异自证脚本**有意**指向这个目录，且文档正文已明写
+# 「`test/` 已被 `.gitignore` 忽略，不入库」—— 它们在克隆出来的仓里本就不存在。
+# 不归到这里的话会出现平台性差异：作者机器上有 test/ 就报死链、CI 上没有就跳过。
+# 注意范围必须窄：只豁免这一层前缀，`web/…` 等真实路径的死链照旧会被抓（见 test_22）。
+GITIGNORED_SCRATCH_PREFIXES = ('test/',)
+
 # 刻意不存在的引用：示例名 / 接口名 / README 已知缺口 / 提案文档里的规划产物。
 #
 # 注：`test/os_matrix/smoke.sh` 用拼接构造 —— 仓库契约禁止 testsuite/ 里出现指向
@@ -146,7 +153,7 @@ def _resolves(tok, doc_rel):
 
 
 def _is_allowed_missing(tok):
-    if tok.startswith(RUNTIME_PREFIXES):
+    if tok.startswith(RUNTIME_PREFIXES + GITIGNORED_SCRATCH_PREFIXES):
         return True
     return tok in ALLOWED_MISSING
 
@@ -252,6 +259,14 @@ class TestDocLocalRefs(unittest.TestCase):
                     and not _resolves(norm, 'README.md'):
                 found.append(norm)
         self.assertEqual(found, ['web/utils/definitely_not_a_real_file.py'])
+
+    def test_23_scratch_prefix_is_narrow(self):
+        """`test/` 豁免必须窄：只放过本地草稿前缀，不能变成“全局白名单”。"""
+        scratch = GITIGNORED_SCRATCH_PREFIXES[0]
+        self.assertTrue(_is_allowed_missing(scratch + 'recon_security.md'))
+        self.assertFalse(_is_allowed_missing('web/utils/definitely_not_a_real_file.py'))
+        self.assertFalse(_is_allowed_missing('docs2/nope.md'))
+        self.assertFalse(_is_allowed_missing('testsuite/nope.py'))
 
 
 class TestInternalDraftPlacement(unittest.TestCase):

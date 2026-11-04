@@ -33,7 +33,7 @@ var lan = {
 			"sec_plain_http_rec_desc": "由權威 CA 機構簽發，受現代瀏覽器完全信任，具備安全綠鎖，徹底杜絕劫持與嗅探。",
 			"sec_plain_http_self_ssl_title": "自簽證書（應急過渡方案 · 不推薦長期使用）",
 			"sec_plain_http_self_ssl_badge": "無奈之舉",
-			"sec_plain_http_self_ssl_role_limit": "【作用與局限性】自簽證書僅能提供基礎傳輸加密，防止密碼和 Cookie 明文裸傳；但因缺乏權威 CA 認證，瀏覽器必然提示紅標警告，且無法防範中間人欺騙。建議僅作無域名時的臨時應急過渡，後續請儘快切換為標準 SSL 證書。",
+			"sec_plain_http_self_ssl_role_limit": "【作用與侷限性】自簽證書僅能提供基礎傳輸加密，防止密碼和 Cookie 明文裸傳；但因缺乏權威 CA 認證，瀏覽器必然提示紅標警告，且無法防範中間人欺騙。建議僅作無域名時的臨時應急過渡，後續請儘快切換為標準 SSL 證書。",
 			"sec_step_1_enable_self": "1. 點擊底部左側【一鍵啟用自簽證書】並確認重啟面板",
 			"php_sec_unknown_version": "版本無法辨識",
 			"php_sec_no_auto_rollback": "APT/YUM 渠道升級後無法自動回退到舊版本，確認繼續？",
