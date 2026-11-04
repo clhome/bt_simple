@@ -508,7 +508,7 @@ def annotate_items(items, installed, index):
             branch = str(row.get('branch') or '')
             if not plugin or not branch:
                 continue
-            by_plugin_branch[(plugin, branch)] = row.get('version') or ''
+            by_plugin_branch[(plugin, branch)] = row
         except AttributeError:
             continue
 
@@ -525,13 +525,31 @@ def annotate_items(items, installed, index):
             key = (name, version)
             if key not in by_plugin_branch:
                 continue
-            current = by_plugin_branch[key]
+            row = by_plugin_branch[key]
+            current = row.get('version') or '' if isinstance(row, dict) else str(row or '')
+            channel = row.get('channel') or ('apt' if name == 'php-apt' else ('yum' if name == 'php-yum' else 'src')) if isinstance(row, dict) else ('apt' if name == 'php-apt' else ('yum' if name == 'php-yum' else 'src'))
+            pkg_ver = row.get('package_version') or '' if isinstance(row, dict) else ''
+
             if _is_eol_branch(version):
                 # 已停维分支：只带上当前版本号（界面显示用），**不**给「可更新」徽标；
                 # 软件商店对这类条目已经有红色「建议升级到 8.2 及以上」提示。
                 item['php_current_version'] = current
                 item['php_update_available'] = False
                 continue
+
+            # 对于 apt / yum 包管理器渠道：如果包本身已带回移补丁标记（如 deb.sury.org / deb12u / remi），
+            # 说明渠道源已经合入了安全补丁，小版本号低不代表未更新；或者若版本已达到安全基线，绝不报可更新。
+            if channel in ('apt', 'yum'):
+                if pkg_ver and baseline.has_backport_marker(channel, pkg_ver):
+                    item['php_current_version'] = current
+                    item['php_update_available'] = False
+                    continue
+                floor = baseline.branch_floor(version)
+                if floor and baseline.version_ge(current, floor):
+                    item['php_current_version'] = current
+                    item['php_update_available'] = False
+                    continue
+
             info = update_for(current, version, index)
             if not info:
                 # 已是最新（或索引里没有该分支）：只带上当前版本号，便于界面展示

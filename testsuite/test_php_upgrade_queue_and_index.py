@@ -576,6 +576,24 @@ class ReleaseIndexTest(unittest.TestCase):
         self.assertIn("submit_baseline_upgrade", src, '升级入口必须走基线升级（任务队列）')
         self.assertIn("t('soft.php_upgradable'", src, '缺少「可更新」徽标文案')
         self.assertIn('php_current_version', src, '列表未展示真实运行时版本')
+        self.assertIn('php_upgrade_tip_pkg', src, '包管理器（apt/yum）必须使用专用包升级提示，不得与源码编译混淆')
+
+    def test_09_annotate_apt_backport_or_baseline_not_updatable(self):
+        idx = self.idx
+        builtin = idx.builtin_index()
+        items = [
+            {'name': 'php-apt', 'versions': '84', 'setup': True},
+            {'name': 'php-apt', 'versions': '83', 'setup': True},
+        ]
+        installed = [
+            {'branch': '84', 'channel': 'apt', 'version': '8.4.21',
+             'package_version': '8.4.21-1+0~20260101.1+debian12~1.gbp123456+deb.sury.org'},
+            {'branch': '83', 'channel': 'apt', 'version': '8.3.36',
+             'package_version': '8.3.36-1.deb12'},
+        ]
+        idx.annotate_items(items, installed, builtin)
+        self.assertFalse(items[0]['php_update_available'], '带渠道回移标记的 APT 包不得被误标为可更新')
+        self.assertFalse(items[1]['php_update_available'], '已达安全基线的 APT 包不得被误标为可更新')
 
 
 class MirrorOptionTest(unittest.TestCase):

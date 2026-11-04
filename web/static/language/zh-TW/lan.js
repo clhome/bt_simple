@@ -3672,6 +3672,7 @@ var lan = {
 		"php_eol_tip": "該 PHP 分支官方已停止維護，不再提供安全修復，建議卸載後升級到 PHP 8.2 或以上。",
 		"service_alarm": "服務異常",
 		"php_upgrade_tip": "將重新編譯 PHP（約 10~30 分鐘），完成後自動重啟 FPM；失敗會自動還原舊版本。",
+		"php_upgrade_tip_pkg": "將透過套件管理器快速更新 PHP（約 1~2 分鐘），完成後自動重啟 FPM；失敗會自動還原舊版本。",
 		"php_upgrade_queued": "已提交升級任務，請在訊息盒查看進度",
 			"type_all": "全部",
 			"type_installed": "已安裝",

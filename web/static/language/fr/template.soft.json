@@ -12,6 +12,7 @@
     "php_eol_tip": "Cette branche PHP est en fin de vie et ne recoit plus de correctifs ; desinstallez-la et passez a PHP 8.2 ou plus.",
     "service_alarm": "Erreur de service",
     "php_upgrade_tip": "PHP sera recompilé (10-30 min), puis FPM redémarre ; en cas d'échec, l'ancienne version est restaurée.",
+    "php_upgrade_tip_pkg": "Les paquets PHP seront mis à jour via le gestionnaire de paquets (1-2 min), puis FPM redémarre ; en cas d'échec, l'ancienne version est restaurée.",
     "php_upgrade_queued": "Mise à niveau en file ; voir la boîte de messages",
     "type_all": "Tout",
     "type_installed": "Installé",

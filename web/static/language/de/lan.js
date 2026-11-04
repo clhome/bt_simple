@@ -3672,6 +3672,7 @@ var lan = {
 		"php_eol_tip": "Dieser PHP-Zweig ist EOL und erhaelt keine Sicherheitsfixes mehr; deinstallieren und auf PHP 8.2+ umsteigen.",
 		"service_alarm": "Dienstfehler",
 		"php_upgrade_tip": "PHP wird neu kompiliert (10-30 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
+		"php_upgrade_tip_pkg": "PHP-Pakete werden über die Paketverwaltung aktualisiert (1-2 Min.), danach startet FPM neu; bei Fehler wird die alte Version wiederhergestellt.",
 		"php_upgrade_queued": "Upgrade eingereiht; Fortschritt im Nachrichtenfeld",
 			"type_all": "Alle",
 			"type_installed": "Installiert",

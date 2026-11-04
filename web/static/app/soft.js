@@ -427,8 +427,12 @@ function getSList(isdisplay) {
         // （目标版本与官方哈希由后端决定，见 plugins/php/index.py::getUpgradeTarget）。
         var phpUpdateLink = '';
         if (plugin.php_update_available && plugin.php_update) {
+          var isPkg = (plugin.name === 'php-apt' || plugin.name === 'php-yum');
+          var phpTip = isPkg
+            ? t('soft.php_upgrade_tip_pkg', '将通过包管理器快速更新 PHP（约 1~2 分钟），完成后自动重启 FPM；失败会自动还原旧版本。')
+            : t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。');
           phpUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
-            yfSoftText(t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。')) + '"' +
+            yfSoftText(phpTip) + '"' +
             ' onclick="phpUpgradeSoft(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.versions) +
             '\',\'' + yfSoftJsStr(plugin.php_update.current || '') + '\',\'' + yfSoftJsStr(plugin.php_update.latest || '') + '\')">' +
             yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.php_update.latest || '') + '</a> | ';
@@ -1387,7 +1391,10 @@ function installPluginScriptConfirm(name, onConfirm) {
 // 编译 10~30 分钟，绝不能塞进同步请求里 —— 面板是单 worker，整段编译会把整个面板
 // 拖住，「点升级后面板卡死」就是这么来的（apt 渠道同理，见 php-apt/index.py）。
 function phpUpgradeSoft(name, branch, current_ver, latest_ver) {
-  var tip = t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。');
+  var isPkg = (name === 'php-apt' || name === 'php-yum');
+  var tip = isPkg
+    ? t('soft.php_upgrade_tip_pkg', '将通过包管理器快速更新 PHP（约 1~2 分钟），完成后自动重启 FPM；失败会自动还原旧版本。')
+    : t('soft.php_upgrade_tip', '将重新编译 PHP（约 10~30 分钟），完成后自动重启 FPM；失败会自动还原旧版本。');
   var title = (current_ver ? (current_ver + ' → ' + latest_ver) : latest_ver);
   layer.confirm('<b>' + yfSoftText(name) + ' ' + yfSoftText(branch) + '</b> ' + yfSoftText(title) +
     '<br><span class="c9">' + yfSoftText(tip) + '</span>', {
