@@ -454,7 +454,12 @@ def makeOpConf(version):
     if not tpl_content:
         return
     dfile = getDstEnablePHP(version)
-    if not os.path.exists(dfile):
+    need_write = not os.path.exists(dfile)
+    if not need_write:
+        cur_content = yf.readFile(dfile)
+        if cur_content and 'Auto-generated fallback stub' in cur_content:
+            need_write = True
+    if need_write:
         w_content = contentReplace(tpl_content, version)
         yf.writeFile(dfile, w_content)
 

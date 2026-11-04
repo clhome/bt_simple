@@ -445,6 +445,10 @@ def confReplace():
     if not os.path.exists(static_conf):
         yf.writeFile(static_conf, 'set $PHP_ENV 0;')
 
+    # 修复孤儿 PHP 配置引用，杜绝历史站点因删除了 PHP 版本导致 Nginx 启动失败
+    if hasattr(yf, 'repairMissingPhpConfStubs'):
+        yf.repairMissingPhpConfStubs()
+
     # vhost
     vhost_dir = yf.getServerDir() + '/web_conf/nginx/vhost'
     vhost_tpl_dir = getPluginDir() + '/conf/vhost'

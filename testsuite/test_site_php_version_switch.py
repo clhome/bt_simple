@@ -272,6 +272,53 @@ class PhpVersionListAndSwitchTest(unittest.TestCase):
         self.assertIn('enable-php-80.conf', _read(self.vhost_conf),
                       'nginx -t 失败必须回滚回原配置')
 
+    def test_06_repair_missing_php_conf_stub(self):
+        """测试对已删除 PHP 版本的孤儿引用能够自动补齐安全 stub 占位，解除 Nginx 启动阻塞。"""
+        ota_vhost = os.path.join(self.vhost, 'ota.yftec.top.conf')
+        apt80_conf = os.path.join(self.conf_dir, 'enable-php-apt8.0.conf')
+        if os.path.exists(apt80_conf):
+            os.remove(apt80_conf)
+        self.assertFalse(os.path.exists(apt80_conf))
+
+        with open(ota_vhost, 'w', encoding='utf-8') as fp:
+            fp.write('server {\n  listen 80;\n  server_name ota.yftec.top;\n  include %s/enable-php-apt8.0.conf;\n}\n' % self.conf_dir)
+
+        repaired = site_utils.yf.repairMissingPhpConfStubs(self.server)
+        self.assertEqual(repaired, 1)
+        self.assertTrue(os.path.exists(apt80_conf))
+        content = _read(apt80_conf)
+        self.assertIn('503 Service Unavailable', content)
+        self.assertIn('set $PHP_ENV 0;', content)
+
+    def test_07_check_web_config_auto_heals_missing_php_conf(self):
+        """测试 checkWebConfig 在发现缺失 enable-php 时能自动创建占位并重试成功。"""
+        from core.yf.panel import checkWebConfig as real_check_web_config
+        apt80_conf = os.path.join(self.conf_dir, 'enable-php-apt8.0.conf')
+        if os.path.exists(apt80_conf):
+            os.remove(apt80_conf)
+        self.assertFalse(os.path.exists(apt80_conf))
+
+        fail_msg = (
+            'nginx: [emerg] open() "%s" failed (2: No such file or directory) in /etc/nginx.conf:1\n'
+            'nginx: configuration file test failed' % apt80_conf
+        )
+        call_count = {'n': 0}
+
+        def fake_exec(cmd):
+            call_count['n'] += 1
+            if call_count['n'] == 1:
+                return (1, fail_msg)
+            return (0, 'nginx: the configuration file test is successful')
+
+        with mock.patch.object(site_utils.yf, 'execShell', side_effect=fake_exec), \
+                mock.patch.object(site_utils.yf, 'getServerDir', return_value=self.server):
+            res = real_check_web_config()
+
+        self.assertTrue(res is True)
+        self.assertEqual(call_count['n'], 2, '自愈后必须重试 nginx -t')
+        self.assertTrue(os.path.exists(apt80_conf))
+        self.assertIn('503 Service Unavailable', _read(apt80_conf))
+
 
 class SiteJsModalTest(unittest.TestCase):
     """前端弹窗：必须有真的 select，按钮必须走读它的提交函数。"""

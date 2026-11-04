@@ -25,6 +25,8 @@ import logging
 from random import Random
 import functools
 
+_log = logging.getLogger('yf.panel')
+
 
 # EXEC_*_TIMEOUT 是包级常量（定义在 __init__.py）。拆包时被漏掉，导致 `_do_reload`
 # 在本模块里 `NameError: EXEC_SERVICE_TIMEOUT` —— 该异常发生在 panel_task 的线程里，
@@ -55,6 +57,10 @@ def execShell(*args, **kwargs):
 
 def getPanelDir(*args, **kwargs):
     return _pkg().getPanelDir(*args, **kwargs)
+
+
+def makeDirs(*args, **kwargs):
+    return _pkg().makeDirs(*args, **kwargs)
 
 
 def getServerDir(*args, **kwargs):
@@ -287,13 +293,92 @@ def getOpVer():
     return version
 
 
+def makePhpConfStub(conf_path):
+    """为已卸载或缺失的 PHP 版本生成安全兜底占位配置，避免 Nginx 全局瘫痪及死锁。"""
+    if not conf_path:
+        return False
+    conf_dir = os.path.dirname(conf_path)
+    if not os.path.exists(conf_dir):
+        makeDirs(conf_dir)
+    stub_content = (
+        "# Yufeng Panel: Auto-generated fallback stub for uninstalled/missing PHP version\n"
+        "set $PHP_ENV 0;\n"
+        "location ~ [^/]\\.php(/|$)\n"
+        "{\n"
+        "    default_type text/html;\n"
+        '    return 503 "<html><head><title>503 Service Unavailable</title></head>'
+        '<body><center><h1>503 Service Unavailable</h1></center><hr>'
+        '<center>PHP version is uninstalled or unavailable. '
+        'Please reconfigure PHP version in Yufeng Panel.</center></body></html>";\n'
+        "}\n"
+    )
+    writeFile(conf_path, stub_content)
+    return True
+
+
+def repairMissingPhpConfStubs(server_dir=None):
+    """扫描所有 vhost 中引用的 enable-php-*.conf，若物理文件缺失则自动生成 stub 兜底。"""
+    sdir = server_dir or getServerDir()
+    vhost_dir = os.path.join(sdir, 'web_conf', 'nginx', 'vhost')
+    if not os.path.isdir(vhost_dir):
+        return 0
+    repaired = 0
+    pattern = re.compile(r'include\s+([^;\s]+[/\\]web_conf[/\\]php[/\\]conf[/\\]enable-php-([A-Za-z0-9._-]+)\.conf);')
+    try:
+        for fname in os.listdir(vhost_dir):
+            if not fname.endswith('.conf'):
+                continue
+            fpath = os.path.join(vhost_dir, fname)
+            if not os.path.isfile(fpath):
+                continue
+            content = readFile(fpath)
+            if not content:
+                continue
+            for match in pattern.finditer(content):
+                target_conf = match.group(1).strip()
+                if not os.path.exists(target_conf):
+                    if makePhpConfStub(target_conf):
+                        repaired += 1
+                        _log.warning('[panel] 自动为站点 %s 补全缺失的 PHP 占位配置: %s', fname, target_conf)
+    except Exception as e:
+        _log.warning('[panel] repairMissingPhpConfStubs 异常: %s', e)
+    return repaired
+
+
+def _auto_heal_missing_php_conf(err_msg):
+    """根据 Nginx 报错信息动态自愈缺失的 enable-php-*.conf"""
+    if not err_msg:
+        return False
+    # 匹配形如 open() "/www/server/web_conf/php/conf/enable-php-apt8.0.conf" failed (2: No such file or directory)
+    pattern = re.compile(r'open\(\)\s+"([^"]+[/\\]web_conf[/\\]php[/\\]conf[/\\]enable-php-([A-Za-z0-9._-]+)\.conf)"\s+failed\s+\(2:\s+No such file or directory\)')
+    healed = False
+    for match in pattern.finditer(err_msg):
+        missing_path = match.group(1).strip()
+        if not os.path.exists(missing_path):
+            if makePhpConfStub(missing_path):
+                healed = True
+                writeLog("软件管理", getInfo('自动补全缺失的 PHP 配置占位文件: {1}，恢复 Nginx 服务与配置检测', (missing_path,)))
+    return healed
+
+
 def checkWebConfig():
+    # 前置自愈：若有 vhost 引用的 enable-php-*.conf 缺失，预先生成安全占位
+    repairMissingPhpConfStubs()
+
     op_dir = getServerDir() + '/openresty/nginx'
     # "ulimit -n 10240 && " +
     cmd = op_dir + "/sbin/nginx -t -c " + op_dir + "/conf/nginx.conf"
     result = execShell(cmd)
     searchStr = 'test is successful'
     if result[1].find(searchStr) == -1:
+        # 运行时动态自愈：根据 nginx -t 报错日志捕获并补全缺失的 PHP 配置
+        retries = 0
+        while retries < 5 and _auto_heal_missing_php_conf(result[1]):
+            retries += 1
+            result = execShell(cmd)
+            if result[1].find(searchStr) != -1:
+                return True
+
         msg = getInfo('配置文件错误[openresty]: {1}', (result[1],))
         writeLog("软件管理", msg)
         return result[1]
