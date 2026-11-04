@@ -59,10 +59,6 @@ def getPanelDir(*args, **kwargs):
     return _pkg().getPanelDir(*args, **kwargs)
 
 
-def makeDirs(*args, **kwargs):
-    return _pkg().makeDirs(*args, **kwargs)
-
-
 def getServerDir(*args, **kwargs):
     return _pkg().getServerDir(*args, **kwargs)
 
@@ -299,7 +295,7 @@ def makePhpConfStub(conf_path):
         return False
     conf_dir = os.path.dirname(conf_path)
     if not os.path.exists(conf_dir):
-        makeDirs(conf_dir)
+        os.makedirs(conf_dir, exist_ok=True)
     stub_content = (
         "# Yufeng Panel: Auto-generated fallback stub for uninstalled/missing PHP version\n"
         "set $PHP_ENV 0;\n"

@@ -153,10 +153,8 @@
   - [x] 25.3 改造 `.github/workflows/release.yml`：CI 发布流校验直接比对 `APP_VERSION` 与 Release Tag
   - [x] 25.4 改造 `scripts/tools/build_edition.py`：版本读取改为提取 `APP_VERSION`
   - [x] 25.5 改造 `testsuite/test_supply_chain_guards.py`，新增 `testsuite/test_version_parsing.py` 覆盖拆解逻辑与兼容性
-  - [ ] 25.6 运行测试套件与全量回归验证，清理临时文件
-
-
-
-
-
+  - [x] **任务 26：修复拆包契约门禁失败 (`test_yf_package_contract.py`)**
+  - [x] 26.1 定位 `test_11_every_shim_is_documented_and_alone` 失败根因：`panel.py` 中冗余引入了 `makeDirs` 的 shim，且该符号已在 `__init__.py` 中由 `shell.py` 重导出，触发防自我覆盖死循环保护契约断言
+  - [x] 26.2 移除 `web/core/yf/panel.py` 中违规定义的 `makeDirs` shim，在 `makePhpConfStub` 内部改用标准 `os.makedirs(conf_dir, exist_ok=True)`
+  - [x] 26.3 验证 `test_yf_package_contract.py` 与 `test_site_php_version_switch.py` 确保 100% 通过
 
