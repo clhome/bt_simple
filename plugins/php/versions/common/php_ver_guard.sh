@@ -134,48 +134,174 @@ yf_php_install_needs_build() {
 }
 
 # ---------------------------------------------------------------------------------
-# PHP 编译构建排他锁（跨进程防并发踩踏）
+# PHP 编译构建排他锁（跨进程防并发踩踏 + 调用链递归可重入与父子继承）
 #
-# 目的：同一个 PHP 系列（如 84）在同一时刻只能有一个构建/安装进程运行。
+# 目的：同一个 PHP 系列（如 82）在同一时刻只能有一个构建/安装进程运行。
 # 杜绝两个进程并发进入源码目录执行 ./configure 或 make clean，引发
 # cannot compile and link、Unknown SIZEOF_SIZE_T 等灾难性竞态破坏。
+#
+# 自锁防护：外层 plugins/php/install.sh 与内层 versions/<NN>/install.sh
+# 均会声明锁。为了支持内层单独直跑，又杜绝父子进程嵌套调用时的自我死锁，
+# 本机制通过 PID 祖先链与令牌检测实现进程间锁继承，并在内层退出时不破坏外层锁。
 # ---------------------------------------------------------------------------------
+_yf_php_is_ancestor_pid() {
+	_yfa_target="$1"
+	[ -n "$_yfa_target" ] || return 1
+	case "$_yfa_target" in
+		''|*[!0-9]*) return 1 ;;
+	esac
+
+	# 1. 直接父进程（最常见情况：PPID 命中）
+	if [ "$_yfa_target" = "$PPID" ]; then
+		return 0
+	fi
+
+	# 2. 向上追溯祖先进程链（防 subshell 或 wrapper 中间层）
+	_yfa_cur="$PPID"
+	_yfa_hops=15
+	while [ -n "$_yfa_cur" ] && [ "$_yfa_hops" -gt 0 ]; do
+		case "$_yfa_cur" in
+			''|*[!0-9]*) break ;;
+		esac
+		if [ "$_yfa_cur" -le 1 ] 2>/dev/null; then
+			break
+		fi
+		if [ "$_yfa_cur" = "$_yfa_target" ]; then
+			return 0
+		fi
+
+		_yfa_next=""
+		if [ -r "/proc/${_yfa_cur}/status" ]; then
+			_yfa_next=`awk '/^PPid:[[:space:]]*/{print $2; exit}' "/proc/${_yfa_cur}/status" 2>/dev/null`
+		elif [ -r "/proc/${_yfa_cur}/stat" ]; then
+			_yfa_next=`awk '{print $4; exit}' "/proc/${_yfa_cur}/stat" 2>/dev/null`
+		elif command -v ps >/dev/null 2>&1; then
+			_yfa_next=`ps -o ppid= -p "${_yfa_cur}" 2>/dev/null | tr -d ' '`
+		fi
+
+		[ -n "$_yfa_next" ] || break
+		case "$_yfa_next" in
+			''|*[!0-9]*) break ;;
+		esac
+		if [ "$_yfa_next" = "$_yfa_cur" ]; then
+			break
+		fi
+		_yfa_cur="$_yfa_next"
+		_yfa_hops=`expr "$_yfa_hops" - 1`
+	done
+	return 1
+}
+
 yf_php_acquire_build_lock() {
 	_yfl_ver="$1"
 	[ -n "$_yfl_ver" ] || return 0
-	_yfl_dir="/tmp/yf_php_locks"
-	mkdir -p "$_yfl_dir" 2>/dev/null
-	_yfl_file="$_yfl_dir/php_${_yfl_ver}.lock"
+	_yfl_file="/tmp/yf_php_${_yfl_ver}.lock"
 
+	# 读取当前进程记录与环境变量（严格保持 POSIX sh 兼容）
+	_yfl_depth=0
+	_yfl_inherited=0
+	_yfl_env_owner=""
+	eval "_yfl_depth=\"\${_YF_PHP_LOCK_DEPTH_${_yfl_ver}:-0}\""
+	eval "_yfl_inherited=\"\${_YF_PHP_LOCK_INHERITED_${_yfl_ver}:-0}\""
+	eval "_yfl_env_owner=\"\${YF_PHP_BUILD_LOCK_${_yfl_ver}:-}\""
+
+	# 1. 同一进程内可重入（递归调用）：递增计数直接放行
+	if [ "$_yfl_depth" -gt 0 ] 2>/dev/null; then
+		_yfl_depth=`expr "$_yfl_depth" + 1`
+		eval "_YF_PHP_LOCK_DEPTH_${_yfl_ver}=\"$_yfl_depth\""
+		return 0
+	fi
+
+	# 2. 父子进程继承：外层 install.sh 已拿锁，内层版本 install.sh 判定为继承并放行
+	if [ -n "$_yfl_env_owner" ] && [ -f "$_yfl_file" ]; then
+		_yfl_cur_content=`head -n 1 "$_yfl_file" 2>/dev/null`
+		if [ -n "$_yfl_cur_content" ] && [ "$_yfl_env_owner" = "$_yfl_cur_content" ]; then
+			_yfl_owner_pid=`printf '%s\n' "$_yfl_env_owner" | cut -d: -f1`
+			if [ -n "$_yfl_owner_pid" ]; then
+				if [ "$_yfl_owner_pid" = "$$" ] || _yf_php_is_ancestor_pid "$_yfl_owner_pid"; then
+					if kill -0 "$_yfl_owner_pid" 2>/dev/null; then
+						eval "_YF_PHP_LOCK_INHERITED_${_yfl_ver}=1"
+						eval "_YF_PHP_LOCK_DEPTH_${_yfl_ver}=1"
+						return 0
+					fi
+				fi
+			fi
+		fi
+	fi
+
+	# 3. 物理排他锁获取
 	if command -v flock >/dev/null 2>&1; then
-		# 用固定文件描述符 200 尝试排他非阻塞锁
+		# 用固定文件描述符 200 尝试排他非阻塞锁（若由于极端只读环境无法打开则放行）
+		if ! ( exec 200>"$_yfl_file" ) 2>/dev/null; then
+			return 0
+		fi
 		exec 200>"$_yfl_file"
 		if ! flock -n 200; then
-			echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程正在运行（锁文件：${_yfl_file}），已阻止并发执行以避免破坏源码目录。" >&2
+			_yfl_holder=`head -n 1 "$_yfl_file" 2>/dev/null | cut -d: -f1`
+			if [ -n "$_yfl_holder" ]; then
+				echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程（PID: ${_yfl_holder}）正在运行（锁文件：${_yfl_file}），已阻止并发执行以避免破坏源码目录。" >&2
+			else
+				echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程正在运行（锁文件：${_yfl_file}），已阻止并发执行以避免破坏源码目录。" >&2
+			fi
 			return 1
 		fi
 	else
 		if [ -f "$_yfl_file" ]; then
-			_yfl_pid=`cat "$_yfl_file" 2>/dev/null`
+			_yfl_pid=`head -n 1 "$_yfl_file" 2>/dev/null | cut -d: -f1`
 			if [ -n "$_yfl_pid" ] && kill -0 "$_yfl_pid" 2>/dev/null; then
 				echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程（PID: ${_yfl_pid}）正在运行，已阻止并发执行以避免破坏源码目录。" >&2
 				return 1
 			fi
 		fi
-		echo "$$" > "$_yfl_file"
 	fi
+
+	# 生成本轮构建专属凭据并写入锁文件与环境变量
+	_yfl_gen_token="${$}_`date +%s 2>/dev/null || echo 0`"
+	_yfl_payload="${$}:${_yfl_gen_token}"
+	if command -v flock >/dev/null 2>&1; then
+		printf '%s\n' "$_yfl_payload" >&200 2>/dev/null || true
+	else
+		printf '%s\n' "$_yfl_payload" > "$_yfl_file" 2>/dev/null || true
+	fi
+	eval "export YF_PHP_BUILD_LOCK_${_yfl_ver}=\"\$_yfl_payload\""
+	eval "_YF_PHP_LOCK_INHERITED_${_yfl_ver}=0"
+	eval "_YF_PHP_LOCK_DEPTH_${_yfl_ver}=1"
 	return 0
 }
 
 yf_php_release_build_lock() {
 	_yfl_ver="$1"
 	[ -n "$_yfl_ver" ] || return 0
-	_yfl_file="/tmp/yf_php_locks/php_${_yfl_ver}.lock"
+	_yfl_file="/tmp/yf_php_${_yfl_ver}.lock"
+
+	_yfl_depth=0
+	_yfl_inherited=0
+	eval "_yfl_depth=\"\${_YF_PHP_LOCK_DEPTH_${_yfl_ver}:-0}\""
+	eval "_yfl_inherited=\"\${_YF_PHP_LOCK_INHERITED_${_yfl_ver}:-0}\""
+
+	# 1. 递归深度递减
+	if [ "$_yfl_depth" -gt 1 ] 2>/dev/null; then
+		_yfl_depth=`expr "$_yfl_depth" - 1`
+		eval "_YF_PHP_LOCK_DEPTH_${_yfl_ver}=\"$_yfl_depth\""
+		return 0
+	fi
+
+	eval "_YF_PHP_LOCK_DEPTH_${_yfl_ver}=0"
+
+	# 2. 若当前仅为继承父进程锁的子进程，退出时不释放底层物理锁，交由外层根持有者释放
+	if [ "$_yfl_inherited" = "1" ]; then
+		eval "_YF_PHP_LOCK_INHERITED_${_yfl_ver}=0"
+		return 0
+	fi
+
+	# 3. 根持有者释放底层物理排他锁与锁文件
 	if command -v flock >/dev/null 2>&1; then
 		flock -u 200 2>/dev/null || true
 		exec 200>&- 2>/dev/null || true
 	fi
 	rm -f "$_yfl_file" 2>/dev/null || true
+	eval "unset YF_PHP_BUILD_LOCK_${_yfl_ver}" 2>/dev/null || true
+	return 0
 }
 
 # ---------------------------------------------------------------------------------

@@ -28,6 +28,7 @@ class PhpInstalledLegacyVersionsTest(unittest.TestCase):
     def _obj(self, installed):
         obj = plugin_mod.plugin.__new__(plugin_mod.plugin)
         obj._plugin_dir = os.path.join(ROOT, 'plugins')
+        setattr(obj, '_plugin__plugin_dir', os.path.join(ROOT, 'plugins'))
         obj._phpInstalledBranches = lambda: installed
         return obj
 

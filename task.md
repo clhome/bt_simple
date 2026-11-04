@@ -163,5 +163,10 @@
   - [x] 27.3 **面板任务队列并发防重与升级互斥**：在 `plugins/php/index.py` 中增强 `submitBaselineUpgrade` 与 `upgradeToBaseline`，检测同版本已在排队或执行中的安装/升级任务并拦截，在执行层增加双重锁保护；同步加固 `web/utils/plugin.py` 安装判定
   - [x] 27.4 **后台任务守护进程 (panel_task.py) 单例锁加固**：在 `panel_task.py` 启动阶段引入独占文件锁，杜绝双实例同时启动、并发分发任务或日志流穿插打乱
   - [x] 27.5 **自动化测试与全量回归验证**：编写测试用例覆盖 configure 防御、并发任务去重、构建锁互斥与单例守卫，确保全量测试套件 100% 通过
+- [x] **任务 28：编译版 PHP 安装/升级构建锁父子进程自死锁治理 (`plugins/php`, `php_ver_guard.sh`)**
+  - [x] 28.1 **构建锁可重入与继承机制**：在 `plugins/php/versions/common/php_ver_guard.sh` 中实现纯 POSIX 兼容的祖先进程判定函数 `_yf_php_is_ancestor_pid`，加锁时登记并导出当前 PID 环境变量
+  - [x] 28.2 **嵌套调用与继承保护**：支持同进程内加锁深度计数，当子进程（或同一调用链）检测到锁已由祖先进程持有时判定为继承，跳过重复 flock 并标记继承状态；子进程释放锁时跳过释放底层物理锁，交由外层持有者统一释放
+  - [x] 28.3 **测试套件扩充与全量回归**：在 `testsuite/test_php_install_upgrade_robustness.py` 补充父子进程继承、递归重入、子进程退出不破锁与跨进程真实互斥的自动化用例，运行全量测试验证 100% 通过
+
 
 

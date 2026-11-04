@@ -73,6 +73,71 @@ class TestPhpInstallUpgradeRobustness(unittest.TestCase):
         self.assertIn('if not acquirePanelTaskSingletonLock():', src)
         self.assertIn('releasePanelTaskSingletonLock()', src)
 
+    def test_06_build_lock_reentrancy_and_inheritance(self):
+        """common/php_ver_guard.sh 构建锁必须支持进程内递归重入与父子继承，杜绝自死锁。"""
+        guard_path = os.path.join(ROOT, 'plugins', 'php', 'versions', 'common', 'php_ver_guard.sh')
+        with open(guard_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn('_yf_php_is_ancestor_pid()', content, '必须实现祖先进程探测函数')
+        self.assertIn('_YF_PHP_LOCK_DEPTH_', content, '必须支持递归加锁深度计数')
+        self.assertIn('_YF_PHP_LOCK_INHERITED_', content, '必须支持子进程继承状态标记')
+        self.assertIn('YF_PHP_BUILD_LOCK_', content, '必须通过环境变量传递锁凭据')
+
+        # 若本地存在 bash 环境，进行端到端嵌套调用与互斥行为验证
+        import shutil
+        import subprocess
+
+        bash_bin = None
+        git_bash = r'C:\Program Files\Git\bin\bash.exe'
+        if os.path.isfile(git_bash):
+            bash_bin = git_bash
+        else:
+            w_bash = shutil.which('bash')
+            if w_bash and 'windowsapps' not in w_bash.lower():
+                bash_bin = w_bash
+
+        if bash_bin:
+            guard_posix = guard_path.replace('\\', '/')
+            test_script = f"""
+set -euo pipefail
+. '{guard_posix}'
+TEST_V="auto_test_ver"
+rm -f "/tmp/yf_php_${{TEST_V}}.lock"
+
+# 1. 外层获取锁
+yf_php_acquire_build_lock "${{TEST_V}}"
+
+# 2. 进程内递归重入
+yf_php_acquire_build_lock "${{TEST_V}}"
+yf_php_release_build_lock "${{TEST_V}}"
+
+# 3. 派生子进程继承锁
+bash -c "
+set -euo pipefail
+. '{guard_posix}'
+yf_php_acquire_build_lock '${{TEST_V}}'
+yf_php_release_build_lock '${{TEST_V}}'
+"
+
+# 4. 验证子进程退出后锁文件未丢失
+[ -f "/tmp/yf_php_${{TEST_V}}.lock" ]
+
+# 5. 验证无关进程互斥拦截
+set +e
+env -u "YF_PHP_BUILD_LOCK_${{TEST_V}}" bash -c ". '{guard_posix}'; yf_php_acquire_build_lock '${{TEST_V}}'" 2>/dev/null
+OTHER_RC=$?
+set -e
+[ "$OTHER_RC" -ne 0 ]
+
+# 6. 外层根持有者释放锁
+yf_php_release_build_lock "${{TEST_V}}"
+[ ! -f "/tmp/yf_php_${{TEST_V}}.lock" ]
+"""
+            p = subprocess.run([bash_bin, '-c', test_script], capture_output=True, text=True, encoding='utf-8', errors='replace')
+            self.assertEqual(p.returncode, 0, '端到端测试失败，stdout: %s, stderr: %s' % (p.stdout, p.stderr))
+
+
 if __name__ == '__main__':
     unittest.main()
 

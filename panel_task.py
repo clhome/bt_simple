@@ -47,8 +47,8 @@ def acquirePanelTaskSingletonLock():
     if not os.path.exists(lock_dir):
         try:
             os.makedirs(lock_dir, exist_ok=True)
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 创建单例锁目录异常: %s', _e)
 
     try:
         _PANEL_TASK_LOCK_FP = open(lock_file, 'a+', encoding='utf-8')
@@ -64,8 +64,8 @@ def acquirePanelTaskSingletonLock():
             _log.warning('[panel_task] 检测到已有 panel_task 实例在运行（flock 互斥），本实例安全退出。')
             try:
                 _PANEL_TASK_LOCK_FP.close()
-            except Exception:
-                pass
+            except Exception as _e:
+                _log.debug('[panel_task] 关闭单例锁文件异常: %s', _e)
             _PANEL_TASK_LOCK_FP = None
             return False
 
@@ -95,8 +95,8 @@ def releasePanelTaskSingletonLock():
             if fcntl and hasattr(fcntl, 'flock') and hasattr(fcntl, 'LOCK_UN'):
                 fcntl.flock(_PANEL_TASK_LOCK_FP.fileno(), fcntl.LOCK_UN)
             _PANEL_TASK_LOCK_FP.close()
-        except Exception:
-            pass
+        except Exception as _e:
+            _log.debug('[panel_task] 释放单例锁异常: %s', _e)
         _PANEL_TASK_LOCK_FP = None
 
 
