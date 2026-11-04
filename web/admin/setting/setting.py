@@ -31,6 +31,20 @@ import thisdb
 import utils.config as utils_config
 
 
+def _sync_panel_proxy():
+    """改端口 / 改安全入口后刷新单端口共存反代（`yf 33` 写入的 nginx 片段）。
+
+    片段里写死了上游端口与入口路径，不同步 = 用户在面板里改完设置就**从 80/443 上失联**。
+    `panel_proxy.sync()` 自身保证不抛异常，这里再包一层以免拖垮保存流程。
+    """
+    try:
+        from utils import panel_proxy
+        if panel_proxy.is_enabled():
+            panel_proxy.sync()
+    except Exception as ex:                # noqa: BLE001
+        yf.writeFileLog('[setting] 同步单端口共存配置失败: %s' % ex)
+
+
 # 默认页面
 blueprint = Blueprint('setting', __name__, url_prefix='/setting', template_folder='../../templates')
 
@@ -185,6 +199,7 @@ def set_admin_path():
     src_admin_path = thisdb.getOption('admin_path')
     if admin_path != src_admin_path:
         thisdb.setOption('admin_path', admin_path[1:])
+        _sync_panel_proxy()
     return yf.returnData(True, 'common.edit_success')
 
 
@@ -531,6 +546,7 @@ def set_port():
 
         YfFirewall.instance().addAcceptPort(port, 'PANEL端口-配置修改', 'port')
         yf.restartPanel()
+        _sync_panel_proxy()
 
     return yf.returnData(True, 'setting.py_msg_922e9d')
 

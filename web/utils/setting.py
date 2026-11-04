@@ -18,6 +18,25 @@ import json
 
 import core.yf as yf
 import thisdb
+import logging
+
+_log = logging.getLogger('yf.setting')
+
+
+def _sync_panel_proxy():
+    """面板端口 / 安全入口 / 面板 SSL 变更后，刷新单端口共存反代。
+
+    单端口模式下面板的上游端口、入口路径、上游 scheme 都写死在 nginx 片段里，
+    不同步就只有一个结果：**用户改完设置，面板从 80/443 上直接失联**。
+    `panel_proxy.sync()` 自身保证不抛异常，这里再包一层，避免拖垮保存流程。
+    """
+    try:
+        from utils import panel_proxy
+        if panel_proxy.is_enabled():
+            panel_proxy.sync()
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[setting] 同步单端口共存配置失败: %s', ex)
+
 
 class setting(object):
 
@@ -134,6 +153,8 @@ class setting(object):
         panel_ssl_data['open'] = True
         panel_ssl_data['choose'] = choose
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
+        # 上游 scheme 变了（http→https），单端口反代必须跟着刷
+        _sync_panel_proxy()
         
         # 地址清单统一由 buildPanelAccessUrls 生成：内网/外网/绑定域名都列出来，
         # 前端各自可点复制（只给一个地址会让另一侧网络环境的用户打不开）。
@@ -229,6 +250,7 @@ class setting(object):
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
             
             yf.restartPanel()
+            _sync_panel_proxy()
             return yf.returnData(True, 'setting.py_msg_7f4ead', to_panel_url)
         return  yf.returnData(False, 'setting.py_msg_1f041f')
 
@@ -305,6 +327,7 @@ class setting(object):
         panel_ssl_data['open'] = True
         panel_ssl_data['choose'] = 'nginx'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
+        _sync_panel_proxy()
 
         return yf.returnData(True, 'setting.py_msg_dacd39', self.buildPanelAccessUrls())
 
@@ -328,6 +351,7 @@ class setting(object):
 
         panel_ssl_data['choose'] = 'local'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
+        _sync_panel_proxy()
         
         return yf.returnData(True, 'common.set_success', self.buildPanelAccessUrls())
 
@@ -339,6 +363,8 @@ class setting(object):
 
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         yf.restartPanel()
+        # 关面板 SSL：上游从 https 回到 http，不同步的话面板会从 80/443 上失联
+        _sync_panel_proxy()
 
         # 必须把「关掉 SSL 之后该去哪里」明确告诉前端，并且**带上安全入口**：
         # 关掉 SSL 后浏览器里那个带 Secure 标记的会话 Cookie 在明文 HTTP 下不会被

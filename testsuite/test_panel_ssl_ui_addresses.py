@@ -42,6 +42,13 @@ if WEB not in sys.path:
     sys.path.insert(0, WEB)
 
 UTILS_SETTING = os.path.join(WEB, 'utils', 'setting.py')
+
+#: `web/utils/setting.py` 里的模块级副作用助手。
+#: 它被 `setPanelLocalSsl` / `closePanelSsl` 等调用（刷新 `yf 33` 的单端口共存反代），
+#: 而本用例是「按函数名把单个函数 exec 进桩命名空间」跑的 —— 不补这个桩就是
+#: `NameError: _sync_panel_proxy`，与业务无关。真实行为由
+#: `testsuite/test_panel_proxy_coexist.py` 覆盖。
+_SYNC_STUB = lambda *a, **k: None
 URLS_JS = os.path.join(WEB, 'static', 'app', 'panel_ssl_urls.js')
 INDEX_JS = os.path.join(WEB, 'static', 'app', 'index.js')
 CONFIG_JS = os.path.join(WEB, 'static', 'app', 'config.js')
@@ -88,6 +95,7 @@ def _build_urls_ns(lan='', wan='', domain='', port='60374', admin_path=''):
             }.get(name, default),
         ),
         'os': os,
+        '_sync_panel_proxy': _SYNC_STUB,
     }
     exec(compile(_func_src(UTILS_SETTING, 'buildPanelAccessUrls'),
                  UTILS_SETTING, 'exec'), ns)
@@ -182,6 +190,7 @@ class TestSetPanelLocalSslReturnsUrlList(unittest.TestCase):
             ),
             'os': os,
             'json': json,
+            '_sync_panel_proxy': _SYNC_STUB,
         }
         exec(compile(_func_src(UTILS_SETTING, 'buildPanelAccessUrls'),
                      UTILS_SETTING, 'exec'), ns)
@@ -239,6 +248,7 @@ class TestCloseSslKeepsUserInside(unittest.TestCase):
             ),
             'os': os,
             'json': json,
+            '_sync_panel_proxy': _SYNC_STUB,
         }
         for fn in ('buildPanelAccessUrls', 'closePanelSsl'):
             exec(compile(_func_src(UTILS_SETTING, fn), UTILS_SETTING, 'exec'), ns)
@@ -325,6 +335,7 @@ class TestAdminPathStableAcrossSslToggle(unittest.TestCase):
             ),
             'os': os,
             'json': json,
+            '_sync_panel_proxy': _SYNC_STUB,
         }
         for fn in ('buildPanelAccessUrls', 'setPanelLocalSsl', 'closePanelSsl'):
             exec(compile(_func_src(UTILS_SETTING, fn), UTILS_SETTING, 'exec'), ns)

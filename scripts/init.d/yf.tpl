@@ -396,6 +396,11 @@ yf_repair(){
     cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py cli 16
 }
 
+# 单端口(80/443)面板共存：交互向导走 `yf 33`，命令行走 `yf proxy [80|443|status|off]`
+yf_proxy(){
+    cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py proxy "$@"
+}
+
 yf_mirror()
 {
     LOCAL_ADDR=common
@@ -656,6 +661,9 @@ yf_list(){
         echo -e "yf db-check        - Check database structure (read-only)"
         echo -e "yf migrate         - Align panel database schema (self-heal)"
         echo -e "yf repair          - Repair panel (service scripts/db/perms/logrotate, restart)"
+        echo -e "yf proxy           - Panel on port 80/443 alongside sites (interactive)"
+        echo -e "yf proxy status    - Check the single-port coexist config"
+        echo -e "yf proxy off       - Disable single-port coexist and restore sites"
         echo -e "yf migrate_restore - Restore Pagoda (BT) software data"
         echo -e "yf debug           - Start panel in debug mode"
         echo -e "yf list            - Show CLI command list"
@@ -674,6 +682,9 @@ yf_list(){
         echo -e "yf db-check        - 诊断面板库结构（只读）"
         echo -e "yf migrate         - 对齐面板库结构（自愈）"
         echo -e "yf repair          - 修复面板（服务脚本/库/权限/日志轮转，重启）"
+        echo -e "yf proxy           - 配置单端口(80/443)面板共存（交互向导）"
+        echo -e "yf proxy status    - 体检单端口共存配置"
+        echo -e "yf proxy off       - 关闭单端口共存并恢复站点配置"
         echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
         echo -e "yf debug           - 调式开发面板"
         echo -e "yf list            - 显示命令列表"
@@ -814,6 +825,7 @@ case "$1" in
     'db-check') yf_db_check;;
     'migrate') yf_migrate;;
     'repair') yf_repair;;
+    'proxy') yf_proxy "${@:2}";;
     'dev') yf_dev;;
     'update_dev') yf_update_dev;;
     'install_app') yf_install_app;;

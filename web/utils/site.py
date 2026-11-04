@@ -24,6 +24,21 @@ import logging
 
 _log = logging.getLogger('yf.site')
 
+
+def _sync_panel_proxy():
+    """站点 SSL 开/关后，刷新单端口共存反代里的 `$yf_panel_https_port`。
+
+    该变量决定「带 Cookie 的面板流量在 80 上要不要 301 到 https」：
+    站点关掉 SSL 后如果不同步，管理员会被 301 到一个已经不存在的 https 入口。
+    `panel_proxy.sync()` 自身保证不抛异常，这里再包一层。
+    """
+    try:
+        from utils import panel_proxy
+        if panel_proxy.is_enabled():
+            panel_proxy.sync()
+    except Exception as ex:                # noqa: BLE001
+        _log.debug('[site] 同步单端口共存配置失败: %s', ex)
+
 #: 站点名/模板名/证书名会被拼进 vhost、rewrite、pass、proxy、redirect、ssl 的文件路径，
 #: 因此必须先过白名单：拒绝空、超长、`..`、路径分隔符、控制字符与空白。
 #: （不限制非 ASCII：面板支持 IDN 站点，中文目录/文件名在 Linux 上是合法的。）
@@ -1059,6 +1074,7 @@ class sites(object):
         yf.writeLog('网站管理', msg)
 
         yf.restartWeb()
+        _sync_panel_proxy()
         return yf.returnData(True, 'site.ssl_enabled')
 
     # 设置网站备注
@@ -2911,6 +2927,7 @@ location  {from} {\n\
         msg = yf.getInfo('网站[{1}]关闭SSL成功!', (site_name,))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
+        _sync_panel_proxy()
         return yf.returnData(True, 'site.py_msg_a28e94')
 
     def deleteSsl(self,site_name,ssl_type):

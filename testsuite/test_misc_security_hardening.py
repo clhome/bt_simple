@@ -206,7 +206,10 @@ class TestPanelSslPrivateKeyPerms(unittest.TestCase):
             setOption=lambda *a, **k: None,
             getOption=lambda name, default=None: default,
         )
-        ns = {'yf': yf_stub, 'thisdb': thisdb_stub, 'os': os, 'json': json}
+        ns = {'yf': yf_stub, 'thisdb': thisdb_stub, 'os': os, 'json': json,
+              # setting.py 里的模块级助手（刷新 `yf 33` 单端口共存反代）；
+              # 真实行为由 testsuite/test_panel_proxy_coexist.py 覆盖
+              '_sync_panel_proxy': lambda *a, **k: None}
         exec(compile(_func_src(SETTING_PY, 'savePanelSsl'), SETTING_PY, 'exec'), ns)
         # savePanelSsl 成功后走 self.buildPanelAccessUrls() 生成内网/外网地址清单，
         # 这里只验「私钥 chmod」这一条，地址清单由 test_panel_ssl_ui_addresses 覆盖。

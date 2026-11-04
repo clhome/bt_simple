@@ -299,8 +299,13 @@ class ExecTimeoutDeadlockTest(unittest.TestCase):
                              'SERVICE_TIMEOUT 过宽：管道被外部持有时用户要干等这么久')
         self.assertGreaterEqual(consts.get('UNINSTALL_TIMEOUT', 0), consts['SERVICE_TIMEOUT'],
                                 '卸载脚本的余量不能比启停命令还小')
+        self.assertGreaterEqual(consts.get('PLUGIN_INSTALL_TIMEOUT', 0),
+                                consts.get('UNINSTALL_TIMEOUT', 0),
+                                '插件安装（可能是源码编译）的余量不能比卸载还小')
 
-        allowed = {'SERVICE_TIMEOUT', 'UNINSTALL_TIMEOUT'}
+        # PLUGIN_INSTALL_TIMEOUT：`yf 33` 引导安装 OpenResty（`bash install.sh install <ver>`）
+        # —— 它同样是 `['bash', ...]` 形状的长耗时命令，实测 5~30 分钟。
+        allowed = {'SERVICE_TIMEOUT', 'UNINSTALL_TIMEOUT', 'PLUGIN_INSTALL_TIMEOUT'}
         service_cmds = {'restart', 'stop', 'start', 'reload',
                         'restart_panel', 'restart_task', 'uninstall'}
         #: systemctl 的启停动词（`is-active` 这类状态查询不算启停，无需长超时）

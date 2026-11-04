@@ -145,6 +145,11 @@ SERVICE_TIMEOUT = 120
 #: 卸载脚本要停服务/删文件/卸依赖，耗时不确定，单独给更宽的余量。
 UNINSTALL_TIMEOUT = 600
 
+#: 插件安装（`yf 33` 引导安装 OpenResty）：install.sh 默认要**从源码编译**，
+#: 实测 5~30 分钟，慢机器更久。给 2 小时的上限，既不会被误判为超时，
+#: 又不会因为管道被外部持有而让调用方永久挂死（有界）。
+PLUGIN_INSTALL_TIMEOUT = 7200
+
 
 def _panel_python(panel_dir=None):
     """返回面板 venv 内的 Python 解释器（探测不到时回退到当前解释器）。
@@ -306,6 +311,17 @@ def _repairPanel():
     except Exception as ex:                # noqa: BLE001 —— 自检失败不影响修复流程
         print('      系统族: 读取失败（%s）' % ex)
 
+    # ③b 单端口共存自愈（只在已开启时生效；未开启时什么都不做）
+    try:
+        from utils import panel_proxy
+        if panel_proxy.is_enabled():
+            step('3b/5', '自愈单端口(80/443)面板共存')
+            _ok, checks = panel_proxy.self_check(repair=True)
+            bads = [c['key'] for c in checks if not c['ok']]
+            ok() if not bads else bad('未恢复: ' + ','.join(bads))
+    except Exception as ex:                # noqa: BLE001 —— 自愈失败不影响其余修复
+        _log.debug('[panel_tools] 单端口共存自愈失败: %s', ex)
+
     # ④ 日志轮转（与 yf_start 同一脚本）
     step('4/5', '重下发日志轮转配置')
     try:
@@ -354,6 +370,543 @@ def yf_input_cmd(msg):
     else:
         in_val = input(msg)
     return in_val
+
+
+# ---------------------------------------------------------------------------
+# 单端口(80/443)面板共存：菜单 33 / `yf proxy ...`
+#
+# 背景：政企专网 / 严格安全组只开 80(或 80+443)，面板端口从外网不可达。
+# 方案与踩坑记录见开发资料 `参考/20261103单端口访问v2.md`（本地资料，未入库）；实现全部在
+# `web/utils/panel_proxy.py`，这里只负责交互与文案（双语）。
+#
+# 关键约束（改之前先读文档）：
+#   1. 绝不在站点里注入 `location /` —— 伪静态模板自带 `location /`，
+#      再注入一个就是 `[emerg] duplicate location "/"`，站点改配置全部回滚；
+#   2. 绝不往 `web_conf/nginx/conf.d/` 写 websocket map —— 那个目录不被 include；
+#   3. 绝不代理 `/.well-known/acme-challenge/` —— 会让站点证书续签全部 404。
+# ---------------------------------------------------------------------------
+
+def _single_port_proxy(action=None, extra=None):
+    """菜单 (33) 与 `yf proxy [80|443|status|off] [站点...]` 的唯一实现。"""
+    try:
+        from utils import panel_proxy as pp
+    except Exception as ex:            # noqa: BLE001
+        yf.echoInfo(_t("加载单端口模块失败: %s" % ex,
+                       "Failed to load single-port module: %s" % ex))
+        return 1
+
+    action = (action or '').strip().lower()
+    extra = [x for x in (extra or []) if str(x).strip()]
+
+    if action in ('off', 'disable', 'remove'):
+        return _single_port_proxy_off(pp)
+    if action in ('status', 'check'):
+        return _single_port_proxy_status(pp)
+    return _single_port_proxy_wizard(pp, action, extra)
+
+
+def _single_port_proxy_status(pp):
+    ok, checks = pp.status()
+    enabled = pp.is_enabled()
+    title = _t("单端口(80/443)面板共存 —— 体检",
+               "Single-port (80/443) panel coexist - check")
+    print("================== %s ==================" % title)
+    for item in checks:
+        flag = 'OK  ' if item['ok'] else 'FAIL'
+        print("  [%s] %-28s %s" % (flag, item['key'], (item['detail'] or '')[:100]))
+    print("------------------------------------------------------------")
+    if not enabled:
+        yf.echoInfo(_t("当前未启用单端口共存。执行 `yf 33` 开启。",
+                       "Not enabled. Run `yf 33` to enable it."))
+        return 0
+    if ok:
+        yf.echoInfo(_t("全部正常。", "All checks passed."))
+        return 0
+    yf.echoInfo(_t("存在异常项：执行 `yf 33` 重新配置，或 `yf proxy off` 关闭共存。",
+                   "Something is wrong: run `yf 33` to reconfigure, or `yf proxy off` to disable."))
+    return 1
+
+
+def _single_port_proxy_off(pp):
+    if not pp.is_enabled():
+        # 状态文件丢了也要扫一遍残留，避免用户以为关了其实没关
+        _ok, checks = pp.status()
+        stray = [c for c in checks if c['key'].startswith('target:') and c['ok']]
+        if not stray:
+            yf.echoInfo(_t("当前未启用单端口共存。", "Single-port coexist is not enabled."))
+            return 0
+    if not yf_input_cmd(_t("确认关闭单端口共存并恢复站点配置？[y/N]：",
+                           "Disable single-port coexist and restore site config? [y/N]: ")) \
+            .strip().lower() in ('y', 'yes'):
+        yf.echoInfo(_t("操作已取消。", "Cancelled."))
+        return 0
+    res = pp.disable()
+    if not res['ok']:
+        yf.echoInfo(_t("关闭失败：%s" % ', '.join(res['errors']),
+                       "Failed: %s" % ', '.join(res['errors'])))
+        if res.get('nginx_error'):
+            print(res['nginx_error'])
+        return 1
+    yf.echoInfo(_t("已关闭单端口共存，站点配置已恢复（备份 *.conf_bak 仍保留）。",
+                   "Disabled; site configs restored (backups *.conf_bak kept)."))
+    return 0
+
+
+def _single_port_proxy_list_targets(pp):
+    """列出可作为注入目标的站点，供交互选择。
+
+    没有任何候选站点时返回空列表，由调用方引导用户创建站点
+    （不能把用户堵在「未发现站点」上 —— 新装的机器本来就没有站点）。
+    """
+    targets = pp.list_targets(80)
+    if not targets:
+        return []
+    default_idx = 0
+    for i, t in enumerate(targets):
+        if t['is_default']:
+            default_idx = i
+            break
+    print(_t("可承接面板入口的站点：", "Sites that can host the panel entry:"))
+    for i, t in enumerate(targets):
+        marks = []
+        if t['is_default']:
+            marks.append(_t('默认站点', 'default'))
+        if t['https_port']:
+            marks.append('HTTPS:%s' % t['https_port'])
+        if t['injected']:
+            marks.append(_t('已注入', 'injected'))
+        extra = ('  [' + ', '.join(marks) + ']') if marks else ''
+        print("  %d) %-28s %s%s" % (i + 1, t['site'],
+                                    ','.join(t['names'][:3]) or '-', extra))
+    return targets, default_idx
+
+
+# ---------------------------------------------------------------------------
+# 前置条件自处理：装 Web 服务器 / 建站点
+#
+# 现场（2026-11-04）：新装机器直接跑 `yf 33`，得到一句「未发现监听 80 端口的
+# 站点配置」就没下文了 —— 用户必须自己猜要先装 OpenResty、先建站。两个前置
+# 条件都应该由本菜单直接引导完成。
+# ---------------------------------------------------------------------------
+
+#: OpenResty 插件目录（相对面板根）
+_SP_PLUGIN_REL = 'plugins/openresty'
+
+#: 为面板入口专用而创建的站点的备注（用户可在网站列表里看到）
+_SP_SITE_PS = '单端口面板入口专用站点(yf 33 创建,建议保留)'
+
+
+def _sp_plugin_paths():
+    """返回 (plugin_dir, script, info, versions) —— 插件缺失时返回 (dir, '', {}, [])。"""
+    plugin_dir = os.path.join(yf.getPanelDir(), _SP_PLUGIN_REL)
+    info_file = os.path.join(plugin_dir, 'info.json')
+    if not os.path.exists(info_file):
+        return plugin_dir, '', {}, []
+    try:
+        info = json.loads(yf.readFile(info_file))
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[panel_tools] 读取 openresty info.json 失败: %s', ex)
+        return plugin_dir, '', {}, []
+    if not isinstance(info, dict):
+        return plugin_dir, '', {}, []
+    script = str(info.get('shell') or 'install.sh')
+    versions = [str(v) for v in (info.get('versions') or []) if str(v).strip()]
+    return plugin_dir, script, info, versions
+
+
+def _sp_install_openresty(pp):
+    """未装 OpenResty 时，在命令行里直接引导安装。成功返回 True。
+
+    走的是与「软件商店」完全同一条命令：`cd <plugin_dir> && bash install.sh install <ver>`
+    （见 web/utils/plugin.py::install 的 exec_bash 拼接）。区别只是前台实时回显，
+    而不是丢进任务队列 —— 用户就在终端里，看得见进度。
+    """
+    plugin_dir, script, info, versions = _sp_plugin_paths()
+    if not script or not os.path.exists(os.path.join(plugin_dir, script)):
+        yf.echoInfo(_t("未找到 OpenResty 安装脚本：%s" % plugin_dir,
+                       "OpenResty install script not found: %s" % plugin_dir))
+        yf.echoInfo(_t("请先执行 `yf update` 恢复面板文件，或在「软件商店」里安装 OpenResty。",
+                       "Run `yf update` to restore panel files, or install OpenResty from the app store."))
+        return False
+
+    if not versions:
+        yf.echoInfo(_t("插件信息里没有可用版本，请从「软件商店」安装 OpenResty。",
+                       "No installable version in plugin info; install OpenResty from the app store."))
+        return False
+
+    # 默认给最新版（versions 按升序排列，面板商店的「推荐」也是最新的）
+    default_ver = versions[-1]
+    print(_t("可安装的 OpenResty 版本：", "Available OpenResty versions:"))
+    for i, ver in enumerate(versions):
+        tip = _t('  (默认)', '  (default)') if ver == default_ver else ''
+        print("  %d) %s%s" % (i + 1, ver, tip))
+
+    raw = yf_input_cmd(_t("请选择版本序号（回车=%s）：" % default_ver,
+                          "Select version index (Enter=%s): " % default_ver))
+    raw = (raw or '').strip()
+    version = default_ver
+    if raw:
+        try:
+            idx = int(raw) - 1
+        except ValueError:
+            yf.echoInfo(_t("序号不合法：%s" % raw, "Invalid index: %s" % raw))
+            return False
+        if idx < 0 or idx >= len(versions):
+            yf.echoInfo(_t("序号超出范围：%s" % raw, "Index out of range: %s" % raw))
+            return False
+        version = versions[idx]
+
+    yf.echoInfo(_t("即将安装 OpenResty %s（从源码编译，通常需要 5~30 分钟）。" % version,
+                   "About to install OpenResty %s (source build, usually 5-30 minutes)." % version))
+    yf.echoInfo(_t("安装期间请不要中断，也不要重复执行本命令；可用 Ctrl+C 中止后改用「软件商店」安装。",
+                   "Do not interrupt; press Ctrl+C to abort and install from the app store instead."))
+    if yf_input_cmd(_t("确认开始安装？[Y/n]：", "Start installation? [Y/n]: ")) \
+            .strip().lower() in ('n', 'no'):
+        yf.echoInfo(_t("已取消安装。", "Installation cancelled."))
+        return False
+
+    try:
+        # 必须 cwd=插件目录：install.sh 靠 `pwd` 推 rootPath/serverPath
+        yf.safeExecShell(['bash', os.path.join(plugin_dir, script), 'install', version],
+                         cwd=plugin_dir, timeout=PLUGIN_INSTALL_TIMEOUT, echo=True)
+    except Exception as ex:            # noqa: BLE001
+        yf.echoInfo(_t("安装过程出错：%s" % ex, "Installation error: %s" % ex))
+
+    if pp.web_server_kind() == 'openresty':
+        yf.echoInfo(_t("OpenResty %s 安装完成。" % version,
+                       "OpenResty %s installed." % version))
+        return True
+
+    yf.echoInfo(_t("OpenResty 仍未就绪（未找到 nginx 主程序）。",
+                   "OpenResty is still not ready (nginx binary not found)."))
+    yf.echoInfo(_t("可查看安装日志后重试，或在「软件商店 → 运行环境」里安装：",
+                   "Check the install log and retry, or install from the app store:"))
+    print("  tail -n 50 %s/install.log" % plugin_dir)
+    return False
+
+
+def _sp_detect_addresses():
+    """返回 (lan, wan)：本机内网 IPv4 / 公网 IPv4，取不到为 ''。
+
+    `yf.getLanIp()` 是纯本机探测（UDP 出口 + `hostname -I`），很快；
+    `yf.getLocalIp()` 读 `data/iplist.txt`（已绑定 IP）或 curl 取公网 IP，
+    失败回退 `127.0.0.1`（当未知处理）。
+    """
+    lan = ''
+    try:
+        lan = (yf.getLanIp() or '').strip()
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[panel_tools] 探测内网地址失败: %s', ex)
+    if not lan:
+        try:
+            lan = (getLocalIp() or '').strip()
+            if lan in ('127.0.0.1', '0.0.0.0'):
+                lan = ''
+        except Exception as ex:        # noqa: BLE001
+            _log.debug('[panel_tools] 回退探测内网地址失败: %s', ex)
+
+    wan = ''
+    try:
+        wan = (yf.getLocalIp() or '').strip()
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[panel_tools] 探测公网地址失败: %s', ex)
+    if wan in ('127.0.0.1', '0.0.0.0'):
+        wan = ''
+    if wan and lan and wan == lan:
+        wan = ''                      # 公网 IP 直接绑在网卡上：两者是同一个地址
+    return lan, wan
+
+
+def _sp_create_site(pp):
+    """引导创建一个「面板入口专用」站点（80 端口、纯静态）。成功返回 True。
+
+    为什么要建站而不是「把面板端口改成 80」：面板端口一旦占 80，OpenResty 就起不来，
+    站点的自动签发/续签、伪静态、WAF 等能力全部失效。建一个最小站点然后把面板
+    挂在它的入口上，才能既不丢站点能力、又能用 80 访问面板。
+    """
+    # 公网地址需要联网探测（已绑定的直接从 data/iplist.txt 读），提示一下避免看起来卡住
+    yf.echoInfo(_t("正在探测本机内网/外网地址…", "Detecting LAN/WAN addresses..."))
+    lan, wan = _sp_detect_addresses()
+    yf.echoInfo(_t("将创建一个仅用于面板入口的静态站点（可在网站列表看到，请勿删除）。",
+                   "A static site dedicated to the panel entry will be created (visible in the site list; please keep it)."))
+
+    # 监听地址选择：统一用 (kind, 展示文案, 地址) 三元组，避免混合形状
+    options = []
+    if lan:
+        options.append(('lan', "%s（%s）" % (_t("内网地址", "LAN address"), lan), lan))
+    if wan:
+        options.append(('wan', "%s（%s）" % (_t("外网地址", "WAN address"), wan), wan))
+    if lan and wan:
+        options.append(('both', "%s（%s + %s）" % (_t("内网+外网都绑定", "bind both LAN and WAN"),
+                                                  lan, wan), wan))
+
+    if not options:
+        # 探测不到任何地址（容器/无默认路由）：让用户自己填
+        yf.echoInfo(_t("未能自动探测到本机地址。", "Could not detect a local address automatically."))
+        manual = (yf_input_cmd(_t("请手动输入用于访问面板的地址（IP 或域名，留空取消）：",
+                                   "Enter the address for panel access (IP or domain, empty to cancel): ")) or '').strip()
+        if not manual:
+            yf.echoInfo(_t("已取消。", "Cancelled."))
+            return False
+        if not (yf.isVaildIp(manual) or re.match(r'^[A-Za-z0-9.\-]+$', manual)):
+            yf.echoInfo(_t("地址不合法：%s" % manual, "Invalid address: %s" % manual))
+            return False
+        return _sp_create_site_with(pp, manual, [])
+
+    # 默认选「两者都绑」：只绑内网时，NAT 转发进来的请求 Host 是公网 IP，
+    # 匹配不上 server_name 会落到 openresty 自带的 nginx_status 站点直接 403。
+    default_idx = len(options) - 1 if (lan and wan) else 0
+    print(_t("面板入口使用哪个地址？（会写进站点 server_name）",
+             "Which address should the panel entry use? (written into server_name)"))
+    for i, opt in enumerate(options):
+        tip = _t('  (默认)', '  (default)') if i == default_idx else ''
+        print("  %d) %s%s" % (i + 1, opt[1], tip))
+
+    raw = yf_input_cmd(_t("请选择（回车=%d）：" % (default_idx + 1),
+                          "Select (Enter=%d): " % (default_idx + 1)))
+    raw = (raw or '').strip()
+    idx = default_idx
+    if raw:
+        try:
+            idx = int(raw) - 1
+        except ValueError:
+            yf.echoInfo(_t("序号不合法：%s" % raw, "Invalid index: %s" % raw))
+            return False
+        if idx < 0 or idx >= len(options):
+            yf.echoInfo(_t("序号超出范围：%s" % raw, "Index out of range: %s" % raw))
+            return False
+
+    kind, _label, primary = options[idx]
+    if kind == 'lan':
+        extras = []
+    elif kind == 'wan':
+        extras = []
+    else:
+        primary, extras = wan or lan, [lan] if (wan and lan) else []
+    return _sp_create_site_with(pp, primary, extras)
+
+
+def _sp_create_site_with(pp, primary, extras):
+    """真正调用站点模块建站（与面板「添加站点」同一入口，含 nginx -t 校验与回滚）。"""
+    from utils.site import sites as YfSites
+
+    site_path = yf.getWwwDir() + '/' + primary
+    site_json = json.dumps({'domain': primary, 'domainlist': [x for x in extras if x]})
+    yf.echoInfo(_t("正在创建站点：%s" % primary, "Creating site: %s" % primary))
+    try:
+        res = YfSites.instance().add(site_json, '80', _SP_SITE_PS, site_path, '00')
+    except Exception as ex:            # noqa: BLE001
+        yf.echoInfo(_t("创建站点失败：%s" % ex, "Failed to create site: %s" % ex))
+        return False
+    if not isinstance(res, dict) or not res.get('status'):
+        msg = res.get('msg') if isinstance(res, dict) else res
+        yf.echoInfo(_t("创建站点失败：%s" % msg, "Failed to create site: %s" % msg))
+        if isinstance(msg, str) and ('duplicate' in msg or 'exist' in msg.lower()):
+            yf.echoInfo(_t("该站点已存在，可直接在上面选择它。",
+                           "The site already exists; just pick it from the list."))
+        return False
+    yf.echoInfo(_t("站点已创建：%s（目录 %s）" % (primary, site_path),
+                   "Site created: %s (root %s)" % (primary, site_path)))
+    return True
+
+
+def _single_port_proxy_wizard(pp, action, extra):
+    title = _t("单端口(80/443)面板共存配置", "Single-port (80/443) panel coexist setup")
+    print("================== %s ==================" % title)
+
+    if action and action.isdigit():
+        # `yf proxy 80|443 [站点...]`：端口只是意图说明，实际以站点自身的 listen 为准
+        yf.echoInfo(_t("目标端口 %s：面板会注入到该端口对应的站点配置上"
+                       "（站点已启用 443 时自动同时提供 https 入口）。" % action,
+                       "Target port %s: the panel is injected into the site config of that"
+                       " port (https entry is added automatically if the site has 443)." % action))
+
+    # ① 环境：没装 OpenResty 就当场引导安装（不再把用户丢回“请去商店”死路）
+    kind = pp.web_server_kind()
+    if kind == '':
+        plugin_dir, script, _info, _vers = _sp_plugin_paths()
+        yf.echoInfo(_t("未检测到 OpenResty（%s/openresty/nginx/sbin/nginx）。"
+                       % pp.server_dir(),
+                       "OpenResty not found (%s/openresty/nginx/sbin/nginx)." % pp.server_dir()))
+        if not script or not os.path.exists(os.path.join(plugin_dir, script)):
+            _sp_install_openresty(pp)      # 统一在里面报错
+            return 1
+        if yf_input_cmd(_t("是否现在在命令行里安装 OpenResty？[Y/n]：",
+                          "Install OpenResty now from the command line? [Y/n]: ")) \
+                .strip().lower() in ('n', 'no'):
+            yf.echoInfo(_t("已取消。也可以稍后从「软件商店 → 运行环境」安装 OpenResty 后重跑 `yf 33`。",
+                           "Cancelled. You can also install OpenResty from the app store and re-run `yf 33`."))
+            return 1
+        if not _sp_install_openresty(pp):
+            return 1
+    elif kind != 'openresty':
+        yf.echoInfo(_t("当前 Web 服务器是 Apache，本功能一期只支持 OpenResty。",
+                       "Current web server is Apache; only OpenResty is supported."))
+        return 1
+
+    # ② 目标站点：一个都没有就引导建一个（新机器本就没站点）
+    plan = _single_port_proxy_list_targets(pp)
+    if not plan:
+        if pp.is_enabled():
+            yf.echoInfo(_t("单端口共存已开启，但目标站点配置已不存在；请执行 `yf proxy off` 后重试。",
+                           "Coexist is enabled but the target site config is gone;"
+                           " run `yf proxy off` and retry."))
+            return 1
+        yf.echoInfo(_t("当前还没有可用于承接面板入口的站点（80 端口上没有站点配置）。",
+                       "No site is available to host the panel entry (nothing listens on port 80)."))
+        if yf_input_cmd(_t("是否现在创建一个专用于面板入口的站点？[Y/n]：",
+                           "Create a dedicated site for the panel entry now? [Y/n]: ")) \
+                .strip().lower() in ('n', 'no'):
+            yf.echoInfo(_t("已取消。你没有站点可选，所以本功能无法继续。",
+                           "Cancelled. There is no site to host the entry, so this feature cannot continue."))
+            yf.echoInfo(_t("提示：若 80 端口确实空闲且不打算建站，也可以直接把面板端口改成 80"
+                           "（菜单 6），不需要反向代理。",
+                           "Hint: if port 80 is really free and you plan no sites, just change the panel"
+                           " port to 80 (menu 6) instead of using a reverse proxy."))
+            return 1
+        if not _sp_create_site(pp):
+            return 1
+        # 建站后重新枚举；若仍为空说明配置没落盘，不要再往下走
+        plan = _single_port_proxy_list_targets(pp)
+        if not plan:
+            yf.echoInfo(_t("站点已创建但未在 80 端口上找到它的配置，请执行 `yf 16` 修复面板后重试。",
+                           "The site was created but its config was not found on port 80;"
+                           " run `yf 16` to repair the panel and retry."))
+            return 1
+    targets, default_idx = plan
+
+    # ③ 选目标站点
+    picked = []
+    if extra:
+        wanted = set()
+        for item in extra:
+            for part in str(item).split(','):
+                if part.strip():
+                    wanted.add(part.strip())
+        for t in targets:
+            if t['site'] in wanted or set(t['names']) & wanted:
+                picked.append(t)
+        if not picked:
+            yf.echoInfo(_t("指定的站点不存在或未监听 80：%s" % ','.join(sorted(wanted)),
+                           "Site not found or not listening on 80: %s" % ','.join(sorted(wanted))))
+            return 1
+    else:
+        raw = yf_input_cmd(_t(
+            "请输入要承接面板入口的站点序号（多个用逗号分隔，回车=默认站点）：",
+            "Enter site index(es) to host the panel entry (comma separated, Enter=default): "))
+        raw = (raw or '').strip()
+        if raw == '':
+            picked = [targets[default_idx]]
+        else:
+            for piece in raw.replace('，', ',').split(','):
+                piece = piece.strip()
+                if not piece:
+                    continue
+                try:
+                    idx = int(piece) - 1
+                except ValueError:
+                    yf.echoInfo(_t("序号不合法：%s" % piece, "Invalid index: %s" % piece))
+                    return 1
+                if idx < 0 or idx >= len(targets):
+                    yf.echoInfo(_t("序号超出范围：%s" % piece, "Index out of range: %s" % piece))
+                    return 1
+                picked.append(targets[idx])
+    # 去重（保持顺序）
+    uniq, seen = [], set()
+    for t in picked:
+        if t['vhost'] not in seen:
+            seen.add(t['vhost'])
+            uniq.append(t)
+    picked = uniq
+
+    # ③ 面板 SSL / 入口 / 端口
+    panel_port = pp.panel_port()
+    scheme = pp.upstream_scheme()
+    admin_path = pp.get_admin_path()
+    entry = pp.normalize_entry(admin_path) or '(%s)' % _t('将自动生成', 'will be generated')
+
+    print("------------------------------------------------------------")
+    print(_t("面板端口 : %s（内部只监听本机，不需要对外开放）" % panel_port,
+             "Panel port : %s (internal only, no need to expose)" % panel_port))
+    print(_t("安全入口 : %s" % entry, "Admin path : %s" % entry))
+    print(_t("面板 SSL : %s" % ('已开启（上游将用 https）' if scheme == 'https' else '未开启'),
+             "Panel SSL : %s" % ('on (upstream via https)' if scheme == 'https' else 'off')))
+    print("------------------------------------------------------------")
+
+    warnings = []
+    if scheme == 'https':
+        # 面板 SSL 开着时会话 Cookie 带 Secure（web/admin/__init__.py:120），
+        # 浏览器在 http 下不回传 —— 通过 80 明文进面板会「登录成功立刻掉线」。
+        warnings.append(_t(
+            "面板 SSL 已开启：请只用 https 入口访问；如需 http 入口，请先关闭面板 SSL。",
+            "Panel SSL is on: use the https entry only, or turn panel SSL off for an http entry."))
+
+    for t in picked:
+        print(_t("目标站点 : %s（%s）" % (t['site'], ','.join(t['names'][:3]) or '-'),
+                 "Target : %s (%s)" % (t['site'], ','.join(t['names'][:3]) or '-')))
+    print("------------------------------------------------------------")
+
+    if yf_input_cmd(_t("确认写入配置并重载 OpenResty？[Y/n]：",
+                       "Write config and reload OpenResty? [Y/n]: ")) \
+            .strip().lower() in ('n', 'no'):
+        yf.echoInfo(_t("操作已取消。", "Cancelled."))
+        return 0
+
+    res = pp.apply(picked, entry_path=admin_path or None)
+    if not res['ok']:
+        yf.echoInfo(_t("配置失败：%s" % ', '.join(res['errors']),
+                       "Failed: %s" % ', '.join(res['errors'])))
+        if res.get('nginx_error'):
+            print("------------------------------------------------------------")
+            print(res['nginx_error'])
+            print("------------------------------------------------------------")
+        yf.echoInfo(_t("已自动回滚到修改前的配置，站点未受影响。",
+                       "Rolled back to the previous config; sites are unaffected."))
+        return 1
+
+    for w in warnings:
+        yf.echoInfo("[WARN] " + w)
+
+    entry = res.get('entry_path') or ''
+    port = res.get('panel_port') or pp.panel_port()
+    # 展示用的本机地址：内网地址优先（与「面板 SSL 访问地址」同一取值来源），
+    # 取不到再退回 hostname -I —— 不要为了打印一行地址去依赖 curl。
+    local_ip = ''
+    try:
+        local_ip = (yf.getLanIp() or '').strip()
+    except Exception as ex:            # noqa: BLE001
+        _log.debug('[panel_tools] 获取内网 IP 失败: %s', ex)
+    if not local_ip:
+        local_ip = yf.execShell("hostname -I | awk '{print $1}'")[0].strip()
+    if not local_ip:
+        local_ip = '127.0.0.1'
+    print("------------------------------------------------------------")
+    yf.echoInfo(_t("单端口共存已开启。", "Single-port coexist enabled."))
+    for t in res.get('targets') or []:
+        # 入口 URL 只看该站点 vhost 里真实的 server_name ——
+        # 拿「本机探测到的 IP」去拼会给用户一个它其实打不开的地址。
+        tnames = []
+        for item in picked:
+            if item['vhost'] == t['vhost']:
+                tnames = [n for n in item['names'] if n and n != '_']
+        print(_t("  站点 %s：" % t['site'], "  Site %s:" % t['site']))
+        if tnames:
+            for name in tnames[:4]:
+                print("    http://%s%s" % (name, entry))
+                if t.get('https_port'):
+                    print("    https://%s%s" % (name, entry))
+        else:
+            print("    http://%s%s" % (local_ip, entry))
+            if t.get('https_port'):
+                print("    https://%s%s" % (local_ip, entry))
+    print(_t("  面板自身端口仍可用：http://%s:%s%s（仅本机/内网）" % (local_ip, port, entry),
+             "  Panel port still works: http://%s:%s%s (local/LAN only)" % (local_ip, port, entry)))
+    print(_t("  切回官网：浏览器访问 <你的站点>/yf_exit_panel",
+             "  Back to the site: visit <your site>/yf_exit_panel in the browser"))
+    print(_t("  如需关闭：`yf proxy off`；体检：`yf proxy status`",
+             "  Disable: `yf proxy off`; check: `yf proxy status`"))
+    print("------------------------------------------------------------")
+    return 0
 
 # 兼容旧版调用
 def getRemainLen(cmd, max_length=100):
@@ -404,6 +957,7 @@ def yfcli(yf_input=None):
                 '(30)   Restore BT MySQL Data',
                 '(31)   Restore BT Website List',
                 '(32)   Switch Panel Language',
+                '(33)   Single-Port Panel Coexist',
                 '(200)  Switch Linux Software Mirrors',
                 '(201)  System Benchmark Test',
                 '(202)  SSH Terminal Management',
@@ -440,6 +994,7 @@ def yfcli(yf_input=None):
                 '(30)   恢复宝塔MySQL数据',
                 '(31)   恢复宝塔网站列表数据',
                 '(32)   切换面板语言',
+                '(33)   单端口(80/443)面板共存',
                 '(200)  切换Linux系统软件源',
                 '(201)  系统性能测试',
                 '(202)  SSH终端管理',
@@ -472,7 +1027,7 @@ def yfcli(yf_input=None):
     nums = [
         1, 2, 3, 4, 5, 6, 7, 9,
         10, 11, 12, 13, 14, 15, 16,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
         200, 201, 202
     ]
     if yf_input == "uninstall":
@@ -549,10 +1104,40 @@ def yfcli(yf_input=None):
             yf.writeFile(panel_port, str(in_port_int))
             yf.safeExecShell([INIT_CMD, 'restart_panel'], timeout=SERVICE_TIMEOUT, echo=True)
             yf.safeExecShell([INIT_CMD, 'default'], timeout=SERVICE_TIMEOUT, echo=True)
+            # 单端口共存模式下，反代上游端口写死在 nginx 片段里：不同步就会失联
+            try:
+                from utils import panel_proxy
+                if panel_proxy.is_enabled():
+                    panel_proxy.sync()
+                    yf.echoInfo(_t("已同步单端口共存配置中的上游端口。",
+                                   "Upstream port in the single-port config has been synced."))
+            except Exception as ex:            # noqa: BLE001
+                _log.debug('[panel_tools] 同步单端口共存配置失败: %s', ex)
         else:
             yf.echoInfo(_t("错误：端口范围应在 1-65535 之间", "Error: Port must be between 1 and 65535"))
         return
     elif yf_input == 7:
+        # 单端口共存模式下，安全入口就是 nginx 的判定值：清空 = 面板从 80/443 上失联。
+        # 所以这时不真关，而是换成新随机入口并同步片段。
+        try:
+            from utils import panel_proxy
+            coexist = panel_proxy.is_enabled()
+        except Exception as ex:            # noqa: BLE001
+            _log.debug('[panel_tools] 读取单端口共存状态失败: %s', ex)
+            coexist = False
+        if coexist:
+            try:
+                thisdb.setOption('admin_path', '')
+                new_path = panel_proxy.ensure_admin_path()
+                panel_proxy.sync()
+                yf.echoInfo(_t("单端口共存已开启，安全入口不能为空，已重新生成：/%s" % new_path,
+                               "Single-port coexist is on and the entry cannot be empty; regenerated: /%s"
+                               % new_path))
+            except Exception as ex:            # noqa: BLE001
+                _log.debug('[panel_tools] 重建安全入口失败: %s', ex)
+                yf.echoInfo(_t("重新生成安全入口失败，请执行 `yf 33` 检查配置。",
+                               "Failed to regenerate the entry; run `yf 33` to check the config."))
+            return
         thisdb.setOption('admin_path', '')
         yf.echoInfo(_t("关闭安全入口成功!", "Security entrance disabled successfully!"))
     elif yf_input == 9:
@@ -686,6 +1271,8 @@ def yfcli(yf_input=None):
     elif yf_input == 32:
         target = sys.argv[3] if len(sys.argv) > 3 else None
         switch_panel_language(target)
+    elif yf_input == 33:
+        _single_port_proxy()
     elif yf_input == 200:
         # 进程替换必须经 shell；URL 为常量，无变量进入 shell
         os.system("bash <(curl -sSL https://linuxmirrors.cn/main.sh)")  # 保留 os.system：进程替换需 shell，URL 常量
@@ -898,6 +1485,10 @@ def main():
     elif method == 'lang':
         target = sys.argv[2] if len(sys.argv) > 2 else None
         switch_panel_language(target)
+    elif method == 'proxy':
+        action = sys.argv[2] if len(sys.argv) > 2 else None
+        extra = sys.argv[3:] if len(sys.argv) > 3 else None
+        sys.exit(_single_port_proxy(action, extra))
     elif method == "cli":
         clinum = None
         try:
