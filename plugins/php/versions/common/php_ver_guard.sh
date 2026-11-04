@@ -134,6 +134,51 @@ yf_php_install_needs_build() {
 }
 
 # ---------------------------------------------------------------------------------
+# PHP 编译构建排他锁（跨进程防并发踩踏）
+#
+# 目的：同一个 PHP 系列（如 84）在同一时刻只能有一个构建/安装进程运行。
+# 杜绝两个进程并发进入源码目录执行 ./configure 或 make clean，引发
+# cannot compile and link、Unknown SIZEOF_SIZE_T 等灾难性竞态破坏。
+# ---------------------------------------------------------------------------------
+yf_php_acquire_build_lock() {
+	_yfl_ver="$1"
+	[ -n "$_yfl_ver" ] || return 0
+	_yfl_dir="/tmp/yf_php_locks"
+	mkdir -p "$_yfl_dir" 2>/dev/null
+	_yfl_file="$_yfl_dir/php_${_yfl_ver}.lock"
+
+	if command -v flock >/dev/null 2>&1; then
+		# 用固定文件描述符 200 尝试排他非阻塞锁
+		exec 200>"$_yfl_file"
+		if ! flock -n 200; then
+			echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程正在运行（锁文件：${_yfl_file}），已阻止并发执行以避免破坏源码目录。" >&2
+			return 1
+		fi
+	else
+		if [ -f "$_yfl_file" ]; then
+			_yfl_pid=`cat "$_yfl_file" 2>/dev/null`
+			if [ -n "$_yfl_pid" ] && kill -0 "$_yfl_pid" 2>/dev/null; then
+				echo "[ERROR] 检测到已有 PHP${_yfl_ver} 构建/安装进程（PID: ${_yfl_pid}）正在运行，已阻止并发执行以避免破坏源码目录。" >&2
+				return 1
+			fi
+		fi
+		echo "$$" > "$_yfl_file"
+	fi
+	return 0
+}
+
+yf_php_release_build_lock() {
+	_yfl_ver="$1"
+	[ -n "$_yfl_ver" ] || return 0
+	_yfl_file="/tmp/yf_php_locks/php_${_yfl_ver}.lock"
+	if command -v flock >/dev/null 2>&1; then
+		flock -u 200 2>/dev/null || true
+		exec 200>&- 2>/dev/null || true
+	fi
+	rm -f "$_yfl_file" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------------
 # 独立调用入口：只有「被直接执行」时才生效；被 install.sh `source` 时什么都不做。
 #
 # 判定方式：$0 必须是本文件（执行），且 basename 以 php_ver_guard.sh 结尾。
@@ -161,8 +206,16 @@ case "$0" in
 					yf_php_install_needs_build "$2" "$3"
 					exit $?
 					;;
+				acquire-build-lock)
+					yf_php_acquire_build_lock "$2"
+					exit $?
+					;;
+				release-build-lock)
+					yf_php_release_build_lock "$2"
+					exit $?
+					;;
 				*)
-					echo "usage: $0 {src-version|inst-version|src-need-fetch|inst-need-build} <dir> [target_version]" >&2
+					echo "usage: $0 {src-version|inst-version|src-need-fetch|inst-need-build|acquire-build-lock|release-build-lock} <dir|ver> [target_version]" >&2
 					exit 64
 					;;
 			esac

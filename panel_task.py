@@ -29,7 +29,76 @@ import core.yf as yf
 import thisdb
 import logging
 
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
 _log = logging.getLogger('yf.panel_task')
+
+_PANEL_TASK_LOCK_FP = None
+
+
+def acquirePanelTaskSingletonLock():
+    """获取 panel_task.py 守护进程的独占文件锁，杜绝双实例并发冲突。"""
+    global _PANEL_TASK_LOCK_FP
+    lock_file = yf.getPanelTaskLockFile()
+    lock_dir = os.path.dirname(lock_file)
+    if not os.path.exists(lock_dir):
+        try:
+            os.makedirs(lock_dir, exist_ok=True)
+        except Exception:
+            pass
+
+    try:
+        _PANEL_TASK_LOCK_FP = open(lock_file, 'a+', encoding='utf-8')
+    except Exception as _e:
+        _log.warning('[panel_task] 打开单例锁文件失败: %s', _e)
+        return True
+
+    if fcntl and hasattr(fcntl, 'flock') and hasattr(fcntl, 'LOCK_EX') and hasattr(fcntl, 'LOCK_NB'):
+        try:
+            fcntl.flock(_PANEL_TASK_LOCK_FP.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except (IOError, OSError):
+            _log.warning('[panel_task] 检测到已有 panel_task 实例在运行（flock 互斥），本实例安全退出。')
+            try:
+                _PANEL_TASK_LOCK_FP.close()
+            except Exception:
+                pass
+            _PANEL_TASK_LOCK_FP = None
+            return False
+
+    # Windows / 非 flock 平台回退到 PID 检查
+    try:
+        pid_file = yf.getPanelTaskPidFile()
+        if os.path.exists(pid_file):
+            with open(pid_file, 'r', encoding='utf-8') as f:
+                c = f.read().strip()
+            if c.isdigit():
+                existing_pid = int(c)
+                if existing_pid > 1 and existing_pid != os.getpid():
+                    if yf.checkPid(existing_pid):
+                        _log.warning('[panel_task] 检测到已有 panel_task 实例在运行（PID %s），本实例安全退出。', existing_pid)
+                        return False
+    except Exception as _ex:
+        _log.debug('[panel_task] 单例 PID 检测异常: %s', _ex)
+
+    return True
+
+
+def releasePanelTaskSingletonLock():
+    """释放 panel_task.py 单例锁。"""
+    global _PANEL_TASK_LOCK_FP
+    if _PANEL_TASK_LOCK_FP:
+        try:
+            if fcntl and hasattr(fcntl, 'flock') and hasattr(fcntl, 'LOCK_UN'):
+                fcntl.flock(_PANEL_TASK_LOCK_FP.fileno(), fcntl.LOCK_UN)
+            _PANEL_TASK_LOCK_FP.close()
+        except Exception:
+            pass
+        _PANEL_TASK_LOCK_FP = None
+
 
 # ---------------------------------------------------------------------------------
 # 事件驱动唤醒（第 0 层空转治理）
@@ -1118,6 +1187,10 @@ class TaskScheduler:
             _WATCHDOG_WAKE_EVENT.clear()
 
 def run():
+    # 单例互斥排他锁：杜绝双守护进程并发冲突
+    if not acquirePanelTaskSingletonLock():
+        sys.exit(0)
+
     # 事件驱动唤醒初始化（SIGUSR1），非 Linux 自动退化为短间隔轮询
     setupWakeSignal()
     writePanelTaskPidFile()
@@ -1181,6 +1254,7 @@ def run():
             time.sleep(86400)
     finally:
         removePanelTaskPidFile()
+        releasePanelTaskSingletonLock()
 
 # ---------------------------------------------------------------------------------
 # 恢复面板自身库（data/panel.db）—— 备份文件在 `<backup_path>/panel_db/panel_db_<时间戳>.db`

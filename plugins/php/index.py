@@ -1802,6 +1802,24 @@ def getUpgradeTarget(version):
     return (candidate, sha.lower(), source or 'builtin')
 
 
+def isPhpVersionBusy(ver):
+    """检查 tasks 表中是否已有该 PHP 版本的升级、安装或卸载任务处于活跃状态（排队 0 或执行中 -1）。"""
+    try:
+        import thisdb
+        active_tasks = thisdb.getTaskActiveList(page=1, size=50)
+        for task in active_tasks or []:
+            cmd = str(task.get('cmd') or '')
+            name = str(task.get('name') or '')
+            if re.search(r'(?:upgrade_to_baseline|install)\s+[\'"]?' + re.escape(ver) + r'[\'"]?(?:\s|$)', cmd):
+                return True, task
+            if ('PHP' + str(ver) in name) or ('php-' + str(ver) in name) or ('php' + str(ver) in name):
+                return True, task
+        return False, None
+    except Exception as ex:
+        _log.debug('[php] 检查版本任务活跃状态失败: %s', ex)
+        return False, None
+
+
 def submitBaselineUpgrade(version=''):
     """一键升级入口（前端调用）：只投递任务，不在这里编译。
 
@@ -1851,6 +1869,12 @@ def submitBaselineUpgrade(version=''):
             thisdb.removeFailedTaskByCmd(cmd)
         except Exception as ex:
             _log.debug('[php] 清理历史失败任务失败（忽略）: %s', ex)
+
+        busy, _active_t = isPhpVersionBusy(ver)
+        if busy:
+            return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度',
+                                 {'before': before, 'target': target})
+
         added = thisdb.addTask(name=task_name, cmd=cmd, status=0)
         yf.triggerTask()
     except Exception as e:

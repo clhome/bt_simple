@@ -157,4 +157,11 @@
   - [x] 26.1 定位 `test_11_every_shim_is_documented_and_alone` 失败根因：`panel.py` 中冗余引入了 `makeDirs` 的 shim，且该符号已在 `__init__.py` 中由 `shell.py` 重导出，触发防自我覆盖死循环保护契约断言
   - [x] 26.2 移除 `web/core/yf/panel.py` 中违规定义的 `makeDirs` shim，在 `makePhpConfStub` 内部改用标准 `os.makedirs(conf_dir, exist_ok=True)`
   - [x] 26.3 验证 `test_yf_package_contract.py` 与 `test_site_php_version_switch.py` 确保 100% 通过
+- [x] **任务 27：御风面板 PHP 安装与升级功能鲁棒性优化与并发冲突根治**
+  - [x] 27.1 **构建脚本 configure 退出码防御**：在各 PHP 编译安装脚本（`versions/80`~`85` 等）中检查 `./configure` 执行状态，失败时立即中止退出并清理 swap，根治因配置失败未中止引发的 `#error "Unknown SIZEOF_SIZE_T"` 虚假次生错误
+  - [x] 27.2 **OS/源码级排他构建锁 (Build Lock)**：在各 PHP 版本的 `install.sh` 中增加基于文件锁的构建排他互斥机制，若同版本已有构建正在进行则立即报错退出，彻底消除源码目录并发竞态破坏
+  - [x] 27.3 **面板任务队列并发防重与升级互斥**：在 `plugins/php/index.py` 中增强 `submitBaselineUpgrade` 与 `upgradeToBaseline`，检测同版本已在排队或执行中的安装/升级任务并拦截，在执行层增加双重锁保护；同步加固 `web/utils/plugin.py` 安装判定
+  - [x] 27.4 **后台任务守护进程 (panel_task.py) 单例锁加固**：在 `panel_task.py` 启动阶段引入独占文件锁，杜绝双实例同时启动、并发分发任务或日志流穿插打乱
+  - [x] 27.5 **自动化测试与全量回归验证**：编写测试用例覆盖 configure 防御、并发任务去重、构建锁互斥与单例守卫，确保全量测试套件 100% 通过
+
 

@@ -242,6 +242,18 @@ _yf_php_composer_install()
 
 # 确保 PHP 主构建核心依赖（libxml2 等），避免 configure 阶段才失败
 if [ "${action}" == "install" ]; then
+	_yf_ver_guard="${curPath}/versions/common/php_ver_guard.sh"
+	if [ -f "$_yf_ver_guard" ]; then
+		# shellcheck source=versions/common/php_ver_guard.sh
+		. "$_yf_ver_guard"
+		if command -v yf_php_acquire_build_lock >/dev/null 2>&1; then
+			if ! yf_php_acquire_build_lock "${type}"; then
+				exit 1
+			fi
+			trap 'if command -v yf_php_release_build_lock >/dev/null 2>&1; then yf_php_release_build_lock "${type}"; fi' EXIT
+		fi
+	fi
+
 	_yf_php_deps_lib="${curPath}/versions/common/php_ext_deps.sh"
 	if [ ! -f "$_yf_php_deps_lib" ]; then
 		echo "[ERROR] 核心依赖检查脚本缺失: ${_yf_php_deps_lib}，无法继续构建" >&2

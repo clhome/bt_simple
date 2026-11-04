@@ -170,7 +170,7 @@ fi
 
 	if [ ! -d $serverPath/php/${PHP_VER} ];then
 		cd $sourcePath/php/php${PHP_VER}
-		./configure \
+		if ! ./configure \
 		--prefix=$serverPath/php/${PHP_VER} \
 		--exec-prefix=$serverPath/php/${PHP_VER} \
 		--with-config-file-path=$serverPath/php/${PHP_VER}/etc \
@@ -189,7 +189,11 @@ fi
 		--disable-intl \
 		--disable-fileinfo \
 		$OPTIONS \
-		--enable-fpm
+		--enable-fpm; then
+			echo "[ERROR] PHP${PHP_VER} configure 失败，停止安装以避免次生错误。"
+			if command -v yf_cleanup_swap >/dev/null 2>&1; then yf_cleanup_swap; fi
+			exit 1
+		fi
 
 		make clean || true
 		if command -v yf_php_build >/dev/null 2>&1; then
