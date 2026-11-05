@@ -17,7 +17,7 @@ import logging
 _log = logging.getLogger('yf.version')
 
 # 应用程序全局唯一定义版本号（遵循 SemVer 语义化规范，例如 "1.1.19" 或 "1.1.19-dev"）
-APP_VERSION = '2.0.5'
+APP_VERSION = '2.0.6'
 
 # 优先读取外部覆盖文件（如有 .version 文件）
 _version_file = os.path.join(os.path.dirname(__file__), '../.version')
