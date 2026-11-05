@@ -246,13 +246,19 @@
   - [x] 35.4 **GitHub 下载链路双通道与重试加固**：`wget` 增加 `--tries=2 --waitretry=1 -c` 断点续传重试；Tag 动态源码包下载异常时自动回退至 Release 静态构建附件 `yf.zip`
   - [x] 35.5 **编写自动化回归测试与验证**：编写 `testsuite/test_upgrade_reliability_hardening.py`，覆盖清理时序、pip 参数、延迟重启、双通道下载 fallback 等，测试 100% 通过
 
-- [ ] **任务 36：门禁拦截修复与代码质量棘轮归零 (`panel_task.py`, `test_system_a08_hardening.py`)**
-  - [ ] 36.1 **消除 `silent_except` 违规 (`panel_task.py`)**：将第 538 行 `except Exception: pass` 改造为异常警告日志记录，彻底消除静默吞异常，使 `silent_except` 计数归零（恢复至基线 0）
-  - [ ] 36.2 **兼容双通道下载反证断言 (`testsuite/test_system_a08_hardening.py`)**：在 `test_04_mutation_positive_control` 中将 `len(urls) == 1` 断言兼容为 `len(urls) >= 1` 并断言所有调用 URL 均命中注入特征，适配双通道降级下载机制
-  - [ ] 36.3 **单元测试与代码质量门禁验证**：单独验证 `test_system_a08_hardening.py`、`test_request_security_hardening.py` 及 `scripts/verify_code_quality.py`
-  - [ ] 36.4 **全量门禁回归验证**：运行 `python testsuite/run_all.py`，确保所有测试用例与静态门禁 100% 通过，收尾更新任务状态
+- [x] **任务 36：门禁拦截修复与代码质量棘轮归零 (`panel_task.py`, `test_system_a08_hardening.py`)**
+  - [x] 36.1 **消除 `silent_except` 违规 (`panel_task.py`)**：将第 538 行 `except Exception: pass` 改造为异常警告日志记录，彻底消除静默吞异常，使 `silent_except` 计数归零（恢复至基线 0）
+  - [x] 36.2 **兼容双通道下载反证断言 (`testsuite/test_system_a08_hardening.py`)**：在 `test_04_mutation_positive_control` 中将 `len(urls) == 1` 断言兼容为 `len(urls) >= 1` 并断言所有调用 URL 均命中注入特征，适配双通道降级下载机制
+  - [x] 36.3 **单元测试与代码质量门禁验证**：单独验证 `test_system_a08_hardening.py`、`test_request_security_hardening.py` 及 `scripts/verify_code_quality.py`
+  - [x] 36.4 **全量门禁回归验证**：运行 `python testsuite/run_all.py`，确保所有测试用例与静态门禁 100% 通过，收尾更新任务状态
 
 - [x] **任务 37：服务存活巡检单元匹配加固与误报消除 (`web/core/service_patrol.py`)**
   - [x] 37.1 **精确同名单元最高优先级**：在 `pick_unit_for_plugin(plugin, units)` 中，当同名单元 `<plugin>.service`（如 `mysql.service`）命中时，赋予其绝对最高优先级直接返回，彻底消除带 `-`（如 `mysql-apt.service`）的失效历史服务因 ASCII 字典序抢占导致的误报
   - [x] 37.2 **严密路径边界防误判**：加固插件工作目录与二进制路径匹配，增加词边界校验，避免 `/server/mysql-apt`、`/server/mysql-community` 误作为 `/server/mysql` 前缀被匹配
   - [x] 37.3 **自动化单测与防回归验证**：在 `testsuite/test_install_fake_success_guards.py` 中增加同名服务优先与前缀隔离测试用例，运行相关单测确保 100% 通过
+
+- [x] **任务 38：门禁未通过修复（多语言 soft.already_latest 补齐与插件缓存清理 silent_except 治理）**
+  - [x] 38.1 **消除插件缓存清理处 `silent_except` 违规 (`web/admin/plugins/__init__.py`)**：在 `clear_cache` 异常处理中将 `pass` 替换为 `_log.debug`，使代码质量棘轮 `silent_except` 归零恢复基线
+  - [x] 38.2 **补齐六国语言包 `soft.already_latest` 映射 (`web/static/language/*/lan.js`)**：在 zh-CN、zh-TW、en、de、fr、it 六语言的 `lan.js` 中新增 `soft.already_latest` 键值
+  - [x] 38.3 **派生同步 `.json` 语言包载体**：运行 `python scripts/tools/export_lang_carriers.py --apply`，同步生成 `template.soft.json` 等载体，确保单源派生一致
+  - [x] 38.4 **静态门禁与单元测试验证**：运行 `python testsuite/run_all.py --static`、`test_i18n_web_backend_scope.py`、`test_request_security_hardening.py`，确保静态检查和相关用例 100% 通过

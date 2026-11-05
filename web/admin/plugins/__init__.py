@@ -289,7 +289,7 @@ def clear_cache():
         if os.path.exists(patrol_file):
             os.remove(patrol_file)
     except Exception as _e:
-        pass
+        _log.debug('[plugin] 清理服务巡检快照失败: %s', _e)
     return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 

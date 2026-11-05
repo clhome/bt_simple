@@ -3673,6 +3673,7 @@ var lan = {
 		},
 
 	"soft": {
+			"already_latest": "当前已是最新版本，无需升级",
 			"recommended":"推荐",
 			"redis_series_72":"经典稳定，纯开源协议，生产首选",
 			"redis_series_82":"LTS 长期演进，支持新特性",

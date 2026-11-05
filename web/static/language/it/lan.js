@@ -3673,6 +3673,7 @@ var lan = {
 		},
 
 	"soft": {
+			"already_latest": "Già l'ultima versione, nessun aggiornamento necessario",
 			"recommended":"Consigliato",
 			"redis_series_72":"Stabile classico, licenza open source pura, ideale in produzione",
 			"redis_series_82":"LTS, evoluzione a lungo termine con nuove funzioni",

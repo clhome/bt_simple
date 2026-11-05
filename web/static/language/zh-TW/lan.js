@@ -3673,6 +3673,7 @@ var lan = {
 		},
 
 	"soft": {
+			"already_latest": "當前已是最新版本，無需升級",
 			"recommended":"推薦",
 			"redis_series_72":"經典穩定，純開源協議，生產首選",
 			"redis_series_82":"LTS 長期演進，支援新特性",
