@@ -117,8 +117,14 @@ yf_start()
 yf_stop_task()
 {
     if [ -f ${PANEL_DIR}/logs/panel_task.lock ];then
-        echo -e "\033[32mthe task is running and cannot be stopped\033[0m"
-        return 0
+        panel_task=$(ps aux | grep 'panel_task.py'|grep -v grep|awk '{print $2}')
+        if [ "$panel_task" != '' ];then
+            echo -e "\033[32mthe task is running and cannot be stopped\033[0m"
+            return 0
+        else
+            # 进程已死亡，此 lock 文件为残留僵尸锁，自动清理以解除阻塞
+            rm -f ${PANEL_DIR}/logs/panel_task.lock
+        fi
     fi
 
     echo -e "stopping yf-tasks... \c";

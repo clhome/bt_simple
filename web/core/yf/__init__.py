@@ -1416,7 +1416,7 @@ from .fileio import backFile, getCommonFile, getFileMd5, getFileStatsDesc, getPa
 from . import github
 from .github import _makeGithubProxyUrl, getGithubProxy, getGithubProxyName, getSpeed, githubDownload, writeSpeed
 from . import paths
-from .paths import getAcmeDir, getAcmeDomainDir, getBackupDir, getLogsDir, getNotifyPath, getPanelLogs, getPanelPort, getPanelTaskExecLog, getPanelTaskLog, getPanelTaskPidFile, getPanelTmp, getRecycleBinDir, getSqitePrefix, getSshDir, getTriggerTaskLockFile, getWwwDir, getYfLogs, setBackupDir
+from .paths import getAcmeDir, getAcmeDomainDir, getBackupDir, getLogsDir, getNotifyPath, getPanelLogs, getPanelPort, getPanelTaskExecLog, getPanelTaskLockFile, getPanelTaskLog, getPanelTaskPidFile, getPanelTmp, getRecycleBinDir, getSqitePrefix, getSshDir, getTriggerTaskLockFile, getWwwDir, getYfLogs, setBackupDir
 from . import security
 from .security import DataCryptUnavailable, PwdCryptoUnavailable, aesDecrypt, aesEncrypt, checkPwd, checkPwdCompat, enDoubleCrypt, encodeImage, isLegacyPwdHash, md5
 from . import shell

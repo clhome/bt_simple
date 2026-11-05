@@ -149,6 +149,10 @@ def getTriggerTaskLockFile():
     return getPanelDir() + '/logs/panel_task.lock'
 
 
+def getPanelTaskLockFile():
+    return getYfLogs() + '/panel_task_daemon.lock'
+
+
 def getPanelTaskPidFile():
     return getYfLogs() + '/panel_task.pid'
 

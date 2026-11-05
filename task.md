@@ -43,7 +43,12 @@
 - [x] **任务 6：御风进程管理器更名与日志 5 秒自动刷新 (`plugins/yufeng_systemd`)**
   - [x] 6.1 将插件名称从「御风服务管理器」/「御风进程守护」统一更名为「御风进程管理器」，同步更新 `info.json`、多语言包和页面文案
   - [x] 6.2 优化 `plugins/yufeng_systemd/js/yufeng_systemd.js` 的 `get_logs` 弹窗，底部左侧增加「5秒自动刷新」复选框（默认勾选），更新时自动置底滚动，弹窗关闭清理定时器
-- [ ] **任务 7：插件 i18n 升级门禁修复与规范对齐 (`test_plugins_i18n_upgrade.py`)**
+- [x] **任务 8：修复后台任务守护进程单例锁与服务重启僵尸锁死锁问题**
+  - [x] 8.1 在 `web/core/yf/paths.py` 中补充 `getPanelTaskLockFile()` 并在 `web/core/yf/__init__.py` 中导出暴露
+  - [x] 8.2 加固 `panel_task.py` 中的 `acquirePanelTaskSingletonLock()`，增加兜底容错，防止属性缺失导致闪退，并在 `runPanelTask()` 增强异常隔离与锁释放保护
+  - [x] 8.3 优化 `scripts/init.d/yf.tpl` 的 `yf_stop_task()`，当 `panel_task.lock` 存在时增加进程存活探测，自动清理死亡进程的僵尸锁，避免 `yf 1` 重启卡死
+  - [x] 8.4 扩展/完善单元测试用例，端到端验证 `getPanelTaskLockFile` 与单例锁调用，运行测试套件确保全部绿灯
+
   - [ ] 7.1 **Gitea**: 修复 `plugins/gitea/install.html` 中 `<strong>3000</strong>` 导致的文本节点被切割问题，使其整句匹配 `"Gitea 默认服务端口为 3000。"` 语言包键
   - [ ] 7.2 **Docker**: 移除已废弃死键 `"Docker日志"`，补充 `docker.js` 中新引用的 `"获取日志失败"` 及其六国语言包映射
   - [ ] 7.3 **phpMyAdmin**: 为 `phpmyadmin.js` 中新增的 `pt('启动成功')` 和 `pt('启动失败')` 补充六国语言包映射

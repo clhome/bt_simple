@@ -42,7 +42,16 @@ _PANEL_TASK_LOCK_FP = None
 def acquirePanelTaskSingletonLock():
     """获取 panel_task.py 守护进程的独占文件锁，杜绝双实例并发冲突。"""
     global _PANEL_TASK_LOCK_FP
-    lock_file = yf.getPanelTaskLockFile()
+    try:
+        lock_file_getter = getattr(yf, 'getPanelTaskLockFile', None)
+        if callable(lock_file_getter):
+            lock_file = lock_file_getter()
+        else:
+            lock_file = os.path.join(yf.getYfLogs(), 'panel_task_daemon.lock')
+    except Exception as _e:
+        _log.warning('[panel_task] 计算单例锁文件路径异常: %s', _e)
+        return True
+
     lock_dir = os.path.dirname(lock_file)
     if not os.path.exists(lock_dir):
         try:
@@ -497,34 +506,45 @@ def runPanelTask():
 
             run_list = thisdb.getTaskList(status=0)
             for run_task in run_list:
-                start = int(time.time())
-                thisdb.setTaskData(run_task['id'], start=start)
-                thisdb.setTaskStatus(run_task['id'], -1)
+                try:
+                    start = int(time.time())
+                    thisdb.setTaskData(run_task['id'], start=start)
+                    thisdb.setTaskStatus(run_task['id'], -1)
 
-                success = False
-                if run_task['type'] == 'download':
-                    argv = run_task['cmd'].split('|yf|')
-                    success = downloadFile(argv[0], argv[1], task_id=run_task['id'])
-                elif run_task['type'] == 'execshell':
-                    res = execShell(run_task['cmd'], timeout=TASK_MAX_RUNTIME, task_id=run_task['id'])
-                    if res and res[0] == '0':
-                        success = True
-                    else:
-                        success = False
-                        writeLogs(f"\n[Error] 任务执行失败，退出代码: {res[0] if res else 'unknown'}", task_id=run_task['id'])
+                    success = False
+                    if run_task['type'] == 'download':
+                        argv = run_task['cmd'].split('|yf|')
+                        success = downloadFile(argv[0], argv[1], task_id=run_task['id'])
+                    elif run_task['type'] == 'execshell':
+                        res = execShell(run_task['cmd'], timeout=TASK_MAX_RUNTIME, task_id=run_task['id'])
+                        if res and res[0] == '0':
+                            success = True
+                        else:
+                            success = False
+                            writeLogs(f"\n[Error] 任务执行失败，退出代码: {res[0] if res else 'unknown'}", task_id=run_task['id'])
 
-                end = int(time.time())
-                thisdb.setTaskData(run_task['id'], end=end)
-                status = 1 if success else 2
-                thisdb.setTaskStatus(run_task['id'], status)
-                # PHP 装/卸完（无论成败）：让首页安全卡片下次拉取时重新巡检（原因见函数注释）
-                if _isPhpInstallTask(run_task.get('cmd')):
-                    _dropPhpSecSnapshot()
-
-            if thisdb.getTaskUnexecutedCount() < 1:
-                os.remove(lock_file)
+                    end = int(time.time())
+                    thisdb.setTaskData(run_task['id'], end=end)
+                    status = 1 if success else 2
+                    thisdb.setTaskStatus(run_task['id'], status)
+                    # PHP 装/卸完（无论成败）：让首页安全卡片下次拉取时重新巡检（原因见函数注释）
+                    if _isPhpInstallTask(run_task.get('cmd')):
+                        _dropPhpSecSnapshot()
+                except Exception as task_err:
+                    _log.error('[panel_task] 执行任务异常 (id=%s): %s', run_task.get('id'), task_err)
+                    try:
+                        thisdb.setTaskStatus(run_task['id'], 2)
+                        thisdb.setTaskData(run_task['id'], end=int(time.time()))
+                    except Exception:
+                        pass
     except Exception as e:
-        print('runPanelTask:',yf.getTracebackInfo())
+        print('runPanelTask:', yf.getTracebackInfo())
+    finally:
+        try:
+            if os.path.exists(lock_file) and thisdb.getTaskUnexecutedCount() < 1:
+                os.remove(lock_file)
+        except Exception as _e:
+            _log.debug('[panel_task] 移除触发锁文件异常: %s', _e)
 
 # 网站到期处理
 def siteEdateCheck():

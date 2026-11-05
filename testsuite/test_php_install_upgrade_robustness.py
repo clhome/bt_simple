@@ -63,7 +63,7 @@ class TestPhpInstallUpgradeRobustness(unittest.TestCase):
         self.assertIn('if busy:', src)
 
     def test_05_panel_task_singleton_lock(self):
-        """panel_task.py 必须实现单例排他锁并在 run() 时获取，防止多实例并发冲突。"""
+        """panel_task.py 必须实现单例排他锁并在 run() 时获取，且 yf.getPanelTaskLockFile 必须真实存在可用。"""
         panel_task_path = os.path.join(ROOT, 'panel_task.py')
         with open(panel_task_path, 'r', encoding='utf-8') as f:
             src = f.read()
@@ -72,6 +72,29 @@ class TestPhpInstallUpgradeRobustness(unittest.TestCase):
         self.assertIn('def releasePanelTaskSingletonLock():', src)
         self.assertIn('if not acquirePanelTaskSingletonLock():', src)
         self.assertIn('releasePanelTaskSingletonLock()', src)
+
+        # 真实端到端验证 yf 模块接口与加锁/解锁调用
+        import core.yf as yf
+        self.assertTrue(hasattr(yf, 'getPanelTaskLockFile'), 'core.yf 必须导出 getPanelTaskLockFile 接口')
+        lock_path = yf.getPanelTaskLockFile()
+        self.assertTrue(isinstance(lock_path, str) and lock_path.endswith('panel_task_daemon.lock'),
+                        'getPanelTaskLockFile 路径格式不正确: %s' % lock_path)
+
+        import panel_task
+        try:
+            ok = panel_task.acquirePanelTaskSingletonLock()
+            self.assertTrue(ok, '首次获取单例锁应成功')
+        finally:
+            panel_task.releasePanelTaskSingletonLock()
+
+    def test_07_initd_zombie_task_lock_auto_heal(self):
+        """scripts/init.d/yf.tpl 的 yf_stop_task 在进程死后必须能自动清理残留僵尸锁，解除重启卡死。"""
+        initd_path = os.path.join(ROOT, 'scripts', 'init.d', 'yf.tpl')
+        with open(initd_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        self.assertIn('rm -f ${PANEL_DIR}/logs/panel_task.lock', content,
+                      'yf.tpl 必须具备自动清理残留僵尸锁逻辑')
 
     def test_06_build_lock_reentrancy_and_inheritance(self):
         """common/php_ver_guard.sh 构建锁必须支持进程内递归重入与父子继承，杜绝自死锁。"""
