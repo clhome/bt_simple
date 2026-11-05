@@ -518,6 +518,30 @@ class TestPluginPyIntegration(unittest.TestCase):
         self.assertIn('_series_prefix_match(remainder, v)', code,
                       '安装中列表行必须显示「正在安装」（任务标题是补丁版，声明是系列号）')
 
+    def test_11_hint_clears_stale_update_when_already_latest(self):
+        """升级到最新补丁版本后（如 7.2.17），缓存残留的 series_update 必须被清理。"""
+        import sys
+        if str(WEB) not in sys.path:
+            sys.path.insert(0, str(WEB))
+        from utils.plugin import plugin
+        pInfo = {
+            'name': 'redis',
+            'version_series': True,
+            'setup': True,
+            'setup_version': '7.2.17',
+            'versions': ['7.2', '8.2', '6.2'],
+            'series_update': {
+                'current': '7.2.13',
+                'latest': '7.2.17',
+                'series': '7.2',
+            },
+            'series_kind': 'update',
+        }
+        plugin._seriesApplyVersionHint(pInfo)
+        self.assertNotIn('series_update', pInfo,
+                         '已安装为最新版 7.2.17 时必须彻底清除 series_update')
+        self.assertEqual(pInfo.get('series_kind'), '')
+
 
 class TestSoftJsFrontend(unittest.TestCase):
 
@@ -560,6 +584,15 @@ class TestSoftJsFrontend(unittest.TestCase):
     def test_05_generic_compare_disabled_for_series(self):
         self.assertIn("if (plugin.version_series) { mupdate = ''; }", self.src,
                       '系列号与补丁版是两种东西，不能让通用比较再给一条「更新」')
+
+    def test_06_series_update_defense_against_same_version(self):
+        """前端防守：当 series_update.latest 等于 setup_version 时，严禁渲染升级链接。"""
+        idx = self.src.index('if (plugin.series_update && plugin.series_update.latest) {')
+        body = self.src[idx:idx + 600]
+        self.assertIn('plugin.setup_version', body,
+                      'series_update 渲染必须与 setup_version 防守比对')
+        self.assertIn('soft.already_latest', self.src,
+                      'softUpdate 必须包含同版本防守拦截')
 
 
 NODE_CANDIDATES = [

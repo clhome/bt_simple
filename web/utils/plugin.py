@@ -1225,28 +1225,49 @@ class plugin(object):
         不允许为它等网络（与 PHP 升级提示同口径，见 `annotatePhpUpdates`）。
         """
         if not pInfo.get('version_series') or pInfo.get('setup') is not True:
+            pInfo.pop('series_update', None)
+            pInfo.pop('series_current', None)
+            pInfo.pop('series_kind', None)
             return pInfo
         name = str(pInfo.get('name') or '').strip().lower()
         if name not in SERIES_INDEX_PLUGINS:
+            pInfo.pop('series_update', None)
+            pInfo.pop('series_current', None)
+            pInfo.pop('series_kind', None)
             return pInfo
         installed = str(pInfo.get('setup_version') or '').strip()
         series_list = [str(v).strip() for v in (pInfo.get('versions') or []) if str(v).strip()]
         if not installed or not series_list:
+            pInfo.pop('series_update', None)
+            pInfo.pop('series_current', None)
+            pInfo.pop('series_kind', None)
             return pInfo
 
         kind, target = _series_state_of(name, installed, series_list)
         pInfo['series_current'] = installed
         pInfo['series_kind'] = kind
         if kind == 'update':
-            pInfo['series_update'] = {
-                'current': installed,
-                'latest': target,
-                'series': _series_of_text(installed),
-            }
+            if target and target != installed:
+                pInfo['series_update'] = {
+                    'current': installed,
+                    'latest': target,
+                    'series': _series_of_text(installed),
+                }
+            else:
+                pInfo.pop('series_update', None)
+            if pInfo.get('eol_kind') == 'removed':
+                pInfo.pop('eol_kind', None)
+                pInfo.pop('eol_upgrade_to', None)
         elif kind == 'removed':
+            pInfo.pop('series_update', None)
             # 复用 MySQL/MariaDB 的下架/维护期 UI（红标 + 可选「升级到 X」）
             pInfo['eol_kind'] = 'removed'
             pInfo['eol_upgrade_to'] = target
+        else:
+            pInfo.pop('series_update', None)
+            if pInfo.get('eol_kind') == 'removed':
+                pInfo.pop('eol_kind', None)
+                pInfo.pop('eol_upgrade_to', None)
         return pInfo
 
     @staticmethod
@@ -1280,6 +1301,8 @@ class plugin(object):
         if not isinstance(pInfo, dict):
             return pInfo
         if str(pInfo.get('name') or '').strip().lower() != 'gitea' or pInfo.get('setup') is not True:
+            pInfo['gitea_update_available'] = False
+            pInfo.pop('gitea_update', None)
             return pInfo
         try:
             installed = str(pInfo.get('setup_version') or '').strip()
@@ -1288,6 +1311,8 @@ class plugin(object):
                 if os.path.exists(ver_file):
                     installed = yf.readFile(ver_file).strip()
             if not installed:
+                pInfo['gitea_update_available'] = False
+                pInfo.pop('gitea_update', None)
                 return pInfo
 
             target = ''
@@ -1330,8 +1355,13 @@ class plugin(object):
                     'current': installed,
                     'latest': target,
                 }
+            else:
+                pInfo['gitea_update_available'] = False
+                pInfo.pop('gitea_update', None)
         except Exception as _e:
             _log.debug('[plugin] 计算 Gitea 升级状态失败: %s', _e)
+            pInfo['gitea_update_available'] = False
+            pInfo.pop('gitea_update', None)
         return pInfo
 
     def install(self, name, version,

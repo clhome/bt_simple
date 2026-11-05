@@ -452,11 +452,13 @@ function getSList(isdisplay) {
         }
         var eolUpgradeLink = '';
         if (plugin.eol_upgrade_to) {
-          eolUpgradeLink = '<a class="btlink" style="color:#ff2020" title="' +
-            yfSoftText(t('soft.eol_upgrade_tip', '当前版本已停止维护（官方不再提供安全更新）。升级会先完整备份数据目录，失败自动回滚；请自行决定是否升级。')) + '"' +
-            ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.eol_upgrade_to) +
-            '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
-            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.eol_upgrade_to) + '</a> | ';
+          if (String(plugin.eol_upgrade_to).trim() !== String(plugin.setup_version || '').trim()) {
+            eolUpgradeLink = '<a class="btlink" style="color:#ff2020" title="' +
+              yfSoftText(t('soft.eol_upgrade_tip', '当前版本已停止维护（官方不再提供安全更新）。升级会先完整备份数据目录，失败自动回滚；请自行决定是否升级。')) + '"' +
+              ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.eol_upgrade_to) +
+              '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
+              yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.eol_upgrade_to) + '</a> | ';
+          }
         }
         // 「按系列安装」的插件（redis）：后端已把系列号解析成当前最新补丁版
         // （plugin.series_update = {current, latest, series}），这里只负责给入口。
@@ -464,11 +466,13 @@ function getSList(isdisplay) {
         // 在浏览器里比大小必然判错（旧通用逻辑会把 7.2 当成比 7.2.13 更旧）。
         var seriesUpdateLink = '';
         if (plugin.series_update && plugin.series_update.latest) {
-          seriesUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
-            yfSoftText(t('soft.series_patch_update_tip', '同大版本内的补丁升级：先停服、备份数据与配置，再换二进制；失败自动回滚。')) + '"' +
-            ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.series_update.latest) +
-            '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
-            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.series_update.latest) + '</a> | ';
+          if (String(plugin.series_update.latest).trim() !== String(plugin.setup_version || '').trim()) {
+            seriesUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
+              yfSoftText(t('soft.series_patch_update_tip', '同大版本内的补丁升级：先停服、备份数据与配置，再换二进制；失败自动回滚。')) + '"' +
+              ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(plugin.series_update.latest) +
+              '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
+              yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(plugin.series_update.latest) + '</a> | ';
+          }
         }
         var giteaUpdateLink = '';
         if (plugin.name === 'gitea' && plugin.gitea_update_available) {
@@ -542,7 +546,9 @@ function getSList(isdisplay) {
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('public.update', '更新')) + '</span>';
       }
-      if (needUpdate || (plugin.php_update_available && plugin.php_update) || (plugin.series_update && plugin.series_update.latest) || (plugin.name === 'gitea' && plugin.gitea_update_available) || plugin.eol_upgrade_to) {
+      var hasSeriesUpd = Boolean(plugin.series_update && plugin.series_update.latest && String(plugin.series_update.latest).trim() !== String(plugin.setup_version || '').trim());
+      var hasEolUpd = Boolean(plugin.eol_upgrade_to && String(plugin.eol_upgrade_to).trim() !== String(plugin.setup_version || '').trim());
+      if (needUpdate || (plugin.php_update_available && plugin.php_update) || hasSeriesUpd || (plugin.name === 'gitea' && plugin.gitea_update_available) || hasEolUpd) {
         updatableCount++;
       }
       // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里
@@ -1432,6 +1438,10 @@ function phpUpgradeSoft(name, branch, current_ver, latest_ver) {
 }
 
 function softUpdate(name, ver, current_ver) {
+  if (ver && current_ver && String(ver).trim() === String(current_ver).trim()) {
+    layer.msg(t('soft.already_latest', '当前已是最新版本，无需升级'), { icon: 7 });
+    return;
+  }
   layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
     icon: 3,
     closeBtn: 1
