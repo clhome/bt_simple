@@ -488,7 +488,7 @@ setTimeout(function() {
 
 //检查更新
 function checkUpdate() {
-    var loadMsg = (window.lan && lan.index && lan.index.update_get) || (typeof t === 'function' ? t('index.update_get', '正在获取版本信息...') : '正在获取版本信息...');
+    var loadMsg = (window.lan && lan.index && lan.index.retrieving_updates_please_wait) || (typeof t === 'function' ? t('index.retrieving_updates_please_wait', '正在获取更新信息，请稍候...') : '正在获取更新信息，请稍候...');
     var loadT = layer.msg(loadMsg, { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/system/update_server?type=check', function(rdata) {
         layer.close(loadT);

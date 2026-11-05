@@ -17,13 +17,17 @@ class TestCheckUpdateDialog(unittest.TestCase):
         with open(index_js_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # 1. 绝不能出现已废弃或未定义的 lan.public.know
+        # 1. 绝不能出现已废弃或未定义的 lan.public.know 以及未收录的 update_get
         self.assertNotIn("lan.public.know", content, "index.js 不应出现未定义的 lan.public.know")
+        self.assertNotIn("update_get", content, "index.js 不应出现六语言包未收录的 update_get 键")
 
         # 2. 提取 checkUpdate 函数定义
         match = re.search(r"function\s+checkUpdate\s*\(\)\s*\{([\s\S]*?)\n\}", content)
         self.assertTrue(match, "未能匹配到 checkUpdate 函数定义")
         func_body = match.group(1)
+
+        # 校验 loading 提示使用正规六语言键
+        self.assertIn("retrieving_updates_please_wait", func_body)
 
         # 3. 校验 status === false 时的弹窗配置：应为单按钮（关闭）且不再传双按钮
         self.assertNotIn("btn: [lan.public.know, lan.public.close]", func_body)

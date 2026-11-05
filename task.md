@@ -171,6 +171,7 @@
   - [x] 29.1 修复 `web/static/app/index.js` 中 `checkUpdate()` 无更新提示弹窗：移除未定义的 `lan.public.know`，弹窗优化为仅保留一个「关闭」按钮的单按钮告知弹窗
   - [x] 29.2 加固 `web/static/app/public.js` 中 `localizeButtons` 对 `undefined`/`null` 等无效按钮的容错过滤
   - [x] 29.3 编写测试用例 `testsuite/test_check_update_dialog.py`，验证按钮合法性与无更新弹窗行为
+  - [x] 29.4 修复 `checkUpdate()` 中 loading 提示的 i18n 键：由不存在的 `index.update_get` 对齐为全局六语言包正规键 `index.retrieving_updates_please_wait`，解决 CI 静态门禁 `user-visible-damage` UNKNOWN 报错
 
 
 
