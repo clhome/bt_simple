@@ -2777,6 +2777,16 @@ var lan = {
 		},
 
 	"crontab": {
+			"task_name_acme_renew": "ACME定时自动续签",
+			"task_name_op_waf": "御风OP防火墙后台任务",
+			"task_name_clean": "系统日志清理与磁盘瘦身[clean]",
+			"task_name_webstats": "网站统计插件定时任务",
+			"task_name_check_site": "检查网站是否正常",
+			"task_name_auto_update": "面板自动更新",
+			"task_name_sync_plugin": "同步插件定时任务",
+			"task_name_sphinx_full": "Sphinx全量更新",
+			"task_name_sphinx_inc": "Sphinx增量更新",
+			"task_name_recovered": "恢复任务",
 			"exclude_dir_placeholder": "每行一条规则,目录不能以/结尾，示例:\n.git\nstatic/upload\n*.log",
 			"cycle_type_day": "每天",
 			"cycle_type_day_n": "每{1}天",
@@ -3200,7 +3210,10 @@ var lan = {
 			"task_not_running": "任务未在运行或已结束",
 			"task_terminated_success": "已成功终止任务 (PID: {1})",
 			"task_terminated_failed": "终止任务失败: {1}",
-			"terminating_task": "正在终止任务..."
+			"terminating_task": "正在终止任务...",
+			"system_task": "系统任务",
+			"system_task_protected": "系统内置核心任务，禁止删除",
+			"system_task_modify_protected": "系统内置核心任务，禁止修改"
 		},
 
 	"files": {

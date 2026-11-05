@@ -2777,6 +2777,16 @@ var lan = {
 		},
 
 	"crontab": {
+			"task_name_acme_renew": "ACME Scheduled SSL Renewal",
+			"task_name_op_waf": "Yufeng OP Firewall Background Task",
+			"task_name_clean": "System Log & Disk Cleaner [clean]",
+			"task_name_webstats": "Website Statistics Scheduled Task",
+			"task_name_check_site": "Check Website Availability",
+			"task_name_auto_update": "Panel Auto Update",
+			"task_name_sync_plugin": "Sync Plugin Scheduled Task",
+			"task_name_sphinx_full": "Sphinx Full Index Update",
+			"task_name_sphinx_inc": "Sphinx Incremental Index Update",
+			"task_name_recovered": "Recovered Task",
 			"exclude_dir_placeholder": "One rule per line, directories cannot end with /, example:\n.git\nstatic/upload\n*.log",
 			"cycle_type_day": "Every day",
 			"cycle_type_day_n": "Every {1} days",
@@ -3200,7 +3210,10 @@ var lan = {
 			"task_not_running": "Task is not running or has already finished",
 			"task_terminated_success": "Successfully terminated task (PID: {1})",
 			"task_terminated_failed": "Failed to terminate task: {1}",
-			"terminating_task": "Terminating task..."
+			"terminating_task": "Terminating task...",
+			"system_task": "System Task",
+			"system_task_protected": "System core task, deletion is forbidden",
+			"system_task_modify_protected": "System core task, modification is forbidden"
 		},
 
 	"files": {

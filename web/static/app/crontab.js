@@ -23,7 +23,7 @@ function getLogs(id, task_name) {
   if (typeof task_name == 'undefined' || task_name === null) {
     task_name = '';
   }
-  task_name = String(task_name);
+  task_name = translateTaskName(String(task_name));
   var reqTimer = null;
   var reqCount = 0;
   var tips = layer.msg(lan && lan.crontab && t('crontab.loading_please_wait') || "", {
@@ -117,7 +117,7 @@ function getLogs(id, task_name) {
 function killTask(id, task_name, callback) {
   if (id === undefined || id === null || String(id) === '') return;
   task_name = task_name ? String(task_name) : '';
-  var displayTaskName = cronEsc(task_name);
+  var displayTaskName = cronEsc(translateTaskName(task_name));
   var confirmMsg = t('crontab.confirm_emergency_stop', [displayTaskName], '确定要紧急终止正在运行的任务' + (displayTaskName ? '【' + displayTaskName + '】' : '') + '吗？');
   layer.confirm(confirmMsg, {
     icon: 3,
@@ -162,6 +162,106 @@ function killTask(id, task_name, callback) {
 // 不用 public.js 的 escapeHTML：它会把 = ( ` 也换成全角/实体，会篡改任务名与脚本内容。
 function cronEsc(v) {
   return (v == null ? '' : String(v)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+}
+
+// 智能任务名称翻译器：将系统内置任务及常见自动创建任务本地化翻译为当前语言
+function translateTaskName(name) {
+  if (!name) return '';
+  name = String(name).trim();
+
+  // 1. 系统任务前缀剥离判断
+  var clean_name = name.replace(/^\[(勿删|系统|可删)\]\s*/, '');
+  var has_sys_prefix = clean_name !== name;
+
+  // 2. 内置核心任务精确与别名匹配
+  if (clean_name === 'ACME定时强制更新' || clean_name === 'ACME定时自动续签' || clean_name === 'ACME定時強制更新' || clean_name === 'ACME Scheduled SSL Renewal') {
+    return (lan && lan.crontab && t('crontab.task_name_acme_renew')) || 'ACME定时自动续签';
+  }
+  if (clean_name === '御风OP防火墙后台任务' || clean_name === '御風OP防火牆後台任務' || clean_name === 'Yufeng OP Firewall Background Task') {
+    return (lan && lan.crontab && t('crontab.task_name_op_waf')) || '御风OP防火墙后台任务';
+  }
+  if (clean_name === '系统日志清理与磁盘瘦身[clean]' || clean_name === '系統日誌清理與磁碟瘦身[clean]' || clean_name === 'System Log & Disk Cleaner [clean]') {
+    return (lan && lan.crontab && t('crontab.task_name_clean')) || '系统日志清理与磁盘瘦身[clean]';
+  }
+  if (clean_name === '网站统计插件定时任务' || clean_name === '網站統計插件定時任務' || clean_name === 'Website Statistics Scheduled Task') {
+    return (lan && lan.crontab && t('crontab.task_name_webstats')) || '网站统计插件定时任务';
+  }
+  if (clean_name === '面板自动更新' || clean_name === '面板自動更新' || clean_name === 'Panel Auto Update') {
+    return (lan && lan.crontab && t('crontab.task_name_auto_update')) || '面板自动更新';
+  }
+  if (clean_name === '检查网站是否正常' || clean_name === '檢查網站是否正常' || clean_name === 'Check Website Availability') {
+    return (lan && lan.crontab && t('crontab.task_name_check_site')) || '检查网站是否正常';
+  }
+
+  // 3. 带参数的前缀匹配
+  // 3.1 同步插件
+  var mSync = clean_name.match(/^(?:同步插件定时任务|同步插件定時任務|Sync Plugin Scheduled Task)\s*\[(.*)\]$/);
+  if (mSync) {
+    var syncPrefix = (lan && lan.crontab && t('crontab.task_name_sync_plugin')) || '同步插件定时任务';
+    return syncPrefix + '[' + mSync[1] + ']';
+  }
+
+  // 3.2 Sphinx 全量与增量
+  var mSphinxFull = clean_name.match(/^(?:Sphinx全量更新|Sphinx Full Index Update)\s*\[(.*)\]$/);
+  if (mSphinxFull) {
+    var fullPrefix = (lan && lan.crontab && t('crontab.task_name_sphinx_full')) || 'Sphinx全量更新';
+    return fullPrefix + '[' + mSphinxFull[1] + ']';
+  }
+  var mSphinxInc = clean_name.match(/^(?:Sphinx增量更新|Sphinx Incremental Index Update)\s*\[(.*)\]$/);
+  if (mSphinxInc) {
+    var incPrefix = (lan && lan.crontab && t('crontab.task_name_sphinx_inc')) || 'Sphinx增量更新';
+    return incPrefix + '[' + mSphinxInc[1] + ']';
+  }
+
+  // 3.3 恢复任务
+  var mRecover = name.match(/^\[(?:恢复任务|恢復任務|Recovered Task)\]\s*(.*)$/);
+  if (mRecover) {
+    var recPrefix = (lan && lan.crontab && t('crontab.task_name_recovered')) || '恢复任务';
+    return '[' + recPrefix + '] ' + mRecover[1];
+  }
+
+  // 4. 常见业务定时任务匹配
+  // 4.1 备份数据库
+  var mDb = clean_name.match(/^(?:备份数据库|備份資料庫|Backup database|Datenbank sichern|Sauvegarder la base de données)\s*[\[【](.*)[\]】]$/i);
+  if (mDb) {
+    var dbPrefix = (lan && lan.crontab && t('crontab.back_up_the_database_5')) || '备份数据库';
+    return dbPrefix + '[' + mDb[1] + ']';
+  }
+
+  // 4.2 备份网站
+  var mSite = clean_name.match(/^(?:备份网站|備份網站|Backup website|Website sichern|Sauvegarder le site(?: Web)?)\s*[\[【](.*)[\]】]$/i);
+  if (mSite) {
+    var sitePrefix = (lan && lan.crontab && t('crontab.back_up_website_3')) || '备份网站';
+    return sitePrefix + '[' + mSite[1] + ']';
+  }
+
+  // 4.3 备份目录
+  var mDir = clean_name.match(/^(?:备份目录|備份目錄|Backup directory|Verzeichnis sichern)\s*[\[【](.*)[\]】]$/i);
+  if (mDir) {
+    var dirPrefix = (lan && lan.crontab && t('crontab.backup_directory_5')) || '备份目录';
+    return dirPrefix + '[' + mDir[1] + ']';
+  }
+
+  // 4.4 日志切割
+  var mLog = clean_name.match(/^(?:日志切割|日誌切割|Log rotation|Protokollrotation)\s*[\[【](.*)[\]】]$/i);
+  if (mLog) {
+    var logPrefix = (lan && lan.crontab && t('crontab.log_rotation')) || '日志切割';
+    return logPrefix + '[' + mLog[1] + ']';
+  }
+
+  // 4.5 释放内存
+  if (/^(?:释放内存|釋放記憶體|Release memory|Free up memory|Speicher freigeben|Libérer la mémoire|Libera memoria)$/i.test(clean_name)) {
+    return (lan && lan.crontab && t('crontab.free_up_memory')) || '释放内存';
+  }
+
+  // 4.6 检查网站是否正常[xxx] 带参数分支
+  var mCheckSite = clean_name.match(/^(?:检查网站是否正常|檢查網站是否正常|Check Website Availability)\s*[\[【](.*)[\]】]$/i);
+  if (mCheckSite) {
+    var chkPrefix = (lan && lan.crontab && t('crontab.task_name_check_site')) || '检查网站是否正常';
+    return chkPrefix + '[' + mCheckSite[1] + ']';
+  }
+
+  return has_sys_prefix ? clean_name : name;
 }
 // 行内操作的事件委派（执行/编辑/日志/删除/启停）
 // 背景（真实现场）：这些链接原来是 href="javascript:getLogs(' + id + ", '" + name + '\');"
@@ -249,8 +349,28 @@ function getCronData(page) {
         if (rdata.data[i]['sync_ok'] === false) {
           sync_mark = ' <span class="cron-sync-rejected" title="' + cronEsc(rdata.data[i]['sync_reason'] || '') + '" style="display:inline-block;margin-left:6px;padding:0 6px;border-radius:3px;background:#e74c3c;color:#fff;font-size:12px;white-space:nowrap;cursor:help;">' + cronEsc(t('crontab.cron_sync_rejected', '同步被拒')) + '</span>';
         }
-        cbody += "<tr><td><input type='checkbox' onclick='checkSelect();' title='" + cronEsc(row_name) + "' name='id' value='" + id_attr + "'></td>\
-					<td>" + cronEsc(row_name) + sync_mark + "</td>\
+
+        var is_system = (row_name.indexOf('[勿删]') === 0 || row_name.indexOf('[系统]') === 0);
+        var sys_badge = '';
+        if (is_system) {
+          var badge_text = (lan && lan.crontab && t('crontab.system_task')) || '系统任务';
+          sys_badge = '<span class="label label-success" style="display:inline-block;margin-right:6px;padding:2px 6px;border-radius:3px;font-size:12px;font-weight:normal;background-color:#20a53a;color:#fff;">' + cronEsc(badge_text) + '</span>';
+        }
+        var display_name = (rdata.data[i] && rdata.data[i]['name_display']) ? rdata.data[i]['name_display'] : translateTaskName(row_name);
+
+        var row_checkbox = is_system
+          ? "<input type='checkbox' disabled title='" + cronEsc((lan && lan.crontab && t('crontab.system_task_protected')) || '系统内置核心任务，禁止删除') + "' style='cursor:not-allowed;opacity:0.5;'>"
+          : "<input type='checkbox' onclick='checkSelect();' title='" + cronEsc(row_name) + "' name='id' value='" + id_attr + "'>";
+
+        var row_actions = '';
+        if (is_system) {
+          row_actions = "<a href=\"javascript:;\" class=\'btlink cron-row-act\' data-cron-act=\"run\" data-cron-id=\"" + id_attr + "\" data-cron-name=\"" + name_attr + "\">" + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="log" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.log || '日志') + '</a>';
+        } else {
+          row_actions = "<a href=\"javascript:;\" class=\'btlink cron-row-act\' data-cron-act=\"run\" data-cron-id=\"" + id_attr + "\" data-cron-name=\"" + name_attr + "\">" + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="edit" data-cron-id="' + id_attr + '">' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="log" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="del" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.del || '删除') + '</a>';
+        }
+
+        cbody += "<tr><td>" + row_checkbox + "</td>\
+					<td>" + sys_badge + cronEsc(display_name) + sync_mark + "</td>\
 					<td>" + status + "</td>\
 					<td>" + cronEsc(rdata.data[i].type) + "</td>\
 					<td>" + cronEsc(rdata.data[i].cycle) + "</td>\
@@ -258,8 +378,7 @@ function getCronData(page) {
 					<td>" + cronEsc(cron_backupto) + "</td>\
 					<td>" + getDayTypeText(rdata.data[i].day_type) + "</td>\
 					<td>" + cronEsc(rdata.data[i].last_run_time) + "</td>\
-					<td>\
-						<a href=\"javascript:;\" class=\'btlink cron-row-act\' data-cron-act=\"run\" data-cron-id=\"" + id_attr + "\" data-cron-name=\"" + name_attr + "\">" + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="edit" data-cron-id="' + id_attr + '">' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="log" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:;" class=\'btlink cron-row-act\' data-cron-act="del" data-cron-id="' + id_attr + '" data-cron-name="' + name_attr + '">' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
+					<td>" + row_actions + "</td></tr>";
       }
     }
     $('#cronbody').html(cbody);
@@ -361,7 +480,11 @@ function closeLogs(id, is_refresh) {
 
 //删除
 function planDel(id, name) {
-  safeMessage(t('del', [name]), lan && lan.crontab && t('crontab.are_you_sure_you') || "", function () {
+  if (name && (name.indexOf('[勿删]') === 0 || name.indexOf('[系统]') === 0)) {
+    layer.msg((lan && lan.crontab && t('crontab.system_task_protected')) || '系统内置核心任务，禁止删除', { icon: 2 });
+    return;
+  }
+  safeMessage(t('del', [translateTaskName(name)]), lan && lan.crontab && t('crontab.are_you_sure_you') || "", function () {
     var load = layer.msg(lan && lan.crontab && t('crontab.processing_please_wait_2') || "", {
       icon: 16,
       time: 0,
@@ -827,6 +950,13 @@ function editTaskInfo(id) {
     layer.closeAll();
     if (rdata && rdata.status === false) {
       layer.msg(rdata.msg, {
+        icon: 2,
+        time: 2000
+      });
+      return;
+    }
+    if (rdata && rdata.name && (rdata.name.indexOf('[勿删]') === 0 || rdata.name.indexOf('[系统]') === 0)) {
+      layer.msg((lan && lan.crontab && t('crontab.system_task_modify_protected')) || '系统内置核心任务，禁止修改', {
         icon: 2,
         time: 2000
       });

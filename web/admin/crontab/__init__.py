@@ -55,7 +55,12 @@ def logs():
 @blueprint.route('/del', endpoint='del', methods=['POST'])
 @panel_login_required
 def crontab_del():
-    cron_id = request.form.get('id', '')   
+    cron_id = request.form.get('id', '')
+    cron = thisdb.getCrond(cron_id)
+    if cron:
+        name = str(cron.get('name') or '')
+        if name.startswith('[勿删]') or name.startswith('[系统]'):
+            return yf.returnData(False, 'crontab.system_task_protected')
     return YfCrontab.instance().delete(cron_id)
 
 # 删除计划任务日志
@@ -95,6 +100,13 @@ def get_crond_find():
 @blueprint.route('/modify_crond', endpoint='modify_crond', methods=['POST'])
 @panel_login_required
 def modify_crond():
+    cron_id = request.form.get('id', '')
+    cron = thisdb.getCrond(cron_id)
+    if cron:
+        name = str(cron.get('name') or '')
+        if name.startswith('[勿删]') or name.startswith('[系统]'):
+            return yf.returnData(False, 'crontab.system_task_modify_protected')
+
     request_data = {}
     
     request_data['name'] = request.form.get('name', '')

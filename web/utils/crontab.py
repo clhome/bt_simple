@@ -828,12 +828,85 @@ class crontab(object):
         except Exception as _e:
             return yf.returnData(False, 'crontab.py_msg_96779b')
 
+    def humanTaskName(self, name):
+        if not name:
+            return ''
+        name = str(name).strip()
+
+        # 1. 系统核心任务
+        clean_name = re.sub(r'^\[(勿删|系统|可删)\]\s*', '', name)
+
+        if clean_name in ('ACME定时强制更新', 'ACME定时自动续签', 'ACME定時強制更新', 'ACME Scheduled SSL Renewal'):
+            return _t('crontab.task_name_acme_renew')
+        if clean_name in ('御风OP防火墙后台任务', '御風OP防火牆後台任務', 'Yufeng OP Firewall Background Task'):
+            return _t('crontab.task_name_op_waf')
+        if clean_name in ('系统日志清理与磁盘瘦身[clean]', '系統日誌清理與磁碟瘦身[clean]', 'System Log & Disk Cleaner [clean]'):
+            return _t('crontab.task_name_clean')
+        if clean_name in ('网站统计插件定时任务', '網站統計插件定時任務', 'Website Statistics Scheduled Task'):
+            return _t('crontab.task_name_webstats')
+        if clean_name in ('面板自动更新', '面板自動更新', 'Panel Auto Update'):
+            return _t('crontab.task_name_auto_update')
+        if clean_name in ('检查网站是否正常', '檢查網站是否正常', 'Check Website Availability'):
+            return _t('crontab.task_name_check_site')
+
+        # 同步插件
+        m = re.match(r'^(?:同步插件定时任务|同步插件定時任務|Sync Plugin Scheduled Task)\s*\[(.*)\]$', clean_name)
+        if m:
+            return f"{_t('crontab.task_name_sync_plugin')}[{m.group(1)}]"
+
+        # Sphinx
+        m = re.match(r'^(?:Sphinx全量更新|Sphinx Full Index Update)\s*\[(.*)\]$', clean_name)
+        if m:
+            return f"{_t('crontab.task_name_sphinx_full')}[{m.group(1)}]"
+        m = re.match(r'^(?:Sphinx增量更新|Sphinx Incremental Index Update)\s*\[(.*)\]$', clean_name)
+        if m:
+            return f"{_t('crontab.task_name_sphinx_inc')}[{m.group(1)}]"
+
+        # 恢复任务
+        m = re.match(r'^\[(?:恢复任务|恢復任務|Recovered Task)\]\s*(.*)$', name)
+        if m:
+            return f"[{_t('crontab.task_name_recovered')}] {m.group(1)}"
+
+        # 2. 常见业务任务
+        # 备份数据库
+        m = re.match(r'^(?:备份数据库|備份資料庫|Backup database|Datenbank sichern|Sauvegarder la base de données)\s*[\[【](.*)[\]】]$', clean_name, re.I)
+        if m:
+            return f"{_t('crontab.back_up_the_database_5')}[{m.group(1)}]"
+
+        # 备份网站
+        m = re.match(r'^(?:备份网站|備份網站|Backup website|Website sichern|Sauvegarder le site(?: Web)?)\s*[\[【](.*)[\]】]$', clean_name, re.I)
+        if m:
+            return f"{_t('crontab.back_up_website_3')}[{m.group(1)}]"
+
+        # 备份目录
+        m = re.match(r'^(?:备份目录|備份目錄|Backup directory|Verzeichnis sichern)\s*[\[【](.*)[\]】]$', clean_name, re.I)
+        if m:
+            return f"{_t('crontab.backup_directory_5')}[{m.group(1)}]"
+
+        # 日志切割
+        m = re.match(r'^(?:日志切割|日誌切割|Log rotation|Protokollrotation)\s*[\[【](.*)[\]】]$', clean_name, re.I)
+        if m:
+            return f"{_t('crontab.log_rotation')}[{m.group(1)}]"
+
+        # 释放内存
+        if re.match(r'^(?:释放内存|釋放記憶體|Release memory|Free up memory|Speicher freigeben|Libérer la mémoire|Libera memoria)$', clean_name, re.I):
+            return _t('crontab.free_up_memory')
+
+        # 检查网站是否正常[xxx]
+        m = re.match(r'^(?:检查网站是否正常|檢查網站是否正常|Check Website Availability)\s*[\[【](.*)[\]】]$', clean_name, re.I)
+        if m:
+            return f"{_t('crontab.task_name_check_site')}[{m.group(1)}]"
+
+        # 若是系统任务剥离了前缀，返回剥离后的名称；否则原样返回
+        return clean_name if clean_name != name else name
+
     def getCrontabHuman(self, data):
         rdata = []
         week_keys = ('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
         for i in range(len(data)):
             t = data[i]
             t['type_raw'] = t['type']
+            t['name_display'] = self.humanTaskName(t.get('name', ''))
             if t['type'] == "day":
                 t['type'] = _t('crontab.cycle_type_day')
                 t['cycle'] = _t('crontab.cycle_desc_day', str(t['where_hour']), str(t['where_minute']))

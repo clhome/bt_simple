@@ -2777,6 +2777,16 @@ var lan = {
 		},
 
 	"crontab": {
+			"task_name_acme_renew": "Renouvellement SSL automatique ACME",
+			"task_name_op_waf": "Tâche d'arrière-plan du pare-feu Yufeng OP",
+			"task_name_clean": "Nettoyeur de journaux & disque [clean]",
+			"task_name_webstats": "Tâche planifiée des statistiques du site Web",
+			"task_name_check_site": "Vérifier la disponibilité du site Web",
+			"task_name_auto_update": "Mise à jour automatique du panneau",
+			"task_name_sync_plugin": "Tâche planifiée du plugin de synchronisation",
+			"task_name_sphinx_full": "Mise à jour complète de l'index Sphinx",
+			"task_name_sphinx_inc": "Mise à jour incrémentielle de l'index Sphinx",
+			"task_name_recovered": "Tâche récupérée",
 			"exclude_dir_placeholder": "Une règle par ligne, les répertoires ne peuvent pas se terminer par /, exemple :\n.git\nstatic/upload\n*.log",
 			"cycle_type_day": "Tous les jours",
 			"cycle_type_day_n": "Tous les {1} jours",
@@ -3200,7 +3210,10 @@ var lan = {
 			"task_not_running": "La tâche n'est pas en cours d'exécution ou est déjà terminée",
 			"task_terminated_success": "Tâche arrêtée avec succès (PID : {1})",
 			"task_terminated_failed": "Échec de l'arrêt de la tâche : {1}",
-			"terminating_task": "Arrêt de la tâche en cours..."
+			"terminating_task": "Arrêt de la tâche en cours...",
+			"system_task": "Tâche système",
+			"system_task_protected": "Tâche système essentielle, suppression interdite",
+			"system_task_modify_protected": "Tâche système essentielle, modification interdite"
 		},
 
 	"files": {

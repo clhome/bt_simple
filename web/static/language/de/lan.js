@@ -2777,6 +2777,16 @@ var lan = {
 		},
 
 	"crontab": {
+			"task_name_acme_renew": "Automatische ACME-SSL-Verlängerung",
+			"task_name_op_waf": "Yufeng OP-Firewall Hintergrundaufgabe",
+			"task_name_clean": "Protokoll- & Festplattenbereinigung [clean]",
+			"task_name_webstats": "Website-Statistik Geplante Aufgabe",
+			"task_name_check_site": "Website-Verfügbarkeit prüfen",
+			"task_name_auto_update": "Automatische Panel-Aktualisierung",
+			"task_name_sync_plugin": "Synchronisations-Plugin Geplante Aufgabe",
+			"task_name_sphinx_full": "Vollständige Sphinx-Index-Aktualisierung",
+			"task_name_sphinx_inc": "Inkrementelle Sphinx-Index-Aktualisierung",
+			"task_name_recovered": "Wiederhergestellte Aufgabe",
 			"exclude_dir_placeholder": "Eine Regel pro Zeile, Verzeichnisse dürfen nicht mit / enden, Beispiel:\n.git\nstatic/upload\n*.log",
 			"cycle_type_day": "Täglich",
 			"cycle_type_day_n": "Alle {1} Tage",
@@ -3200,7 +3210,10 @@ var lan = {
 			"task_not_running": "Die Aufgabe läuft nicht oder ist bereits beendet",
 			"task_terminated_success": "Aufgabe erfolgreich beendet (PID: {1})",
 			"task_terminated_failed": "Aufgabe konnte nicht beendet werden: {1}",
-			"terminating_task": "Aufgabe wird beendet..."
+			"terminating_task": "Aufgabe wird beendet...",
+			"system_task": "Systemaufgabe",
+			"system_task_protected": "Systemkernaufgabe, Loeschen ist verboten",
+			"system_task_modify_protected": "Systemkernaufgabe, Aenderung ist verboten"
 		},
 
 	"files": {
