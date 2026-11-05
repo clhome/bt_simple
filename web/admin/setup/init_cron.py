@@ -49,23 +49,42 @@ def cron_todb(data):
 
 def init_acme_cron():
     name = "[勿删]ACME定时强制更新"
-    res = yf.M("crontab").field("id, name").where("name=?", (name,)).find()
+    acme_dir = yf.getAcmeDir()
+    correct_cmd = f"{acme_dir}/acme.sh --cron --home {acme_dir}"
+
+    res = yf.M("crontab").field("id, name, sbody, echo").where("name=?", (name,)).find()
     if res:
+        # 存量任务自愈：若历史任务含有会导致 80 端口冲突的 --standalone 或易触发 429 限流的 --force，则就地校准更新
+        old_body = res.get('sbody', '')
+        if '--standalone' in old_body or '--force' in old_body:
+            try:
+                yf.M("crontab").where("id=?", (res['id'],)).save({"sbody": correct_cmd})
+                echo_id = res.get('echo', '')
+                if echo_id:
+                    script_file = yf.getServerDir() + '/cron/' + echo_id
+                    if os.path.exists(script_file):
+                        content = yf.readFile(script_file)
+                        if content and ('--standalone' in content or '--force' in content):
+                            import re as _re
+                            new_content = _re.sub(r"[^\n]*acme\.sh\s+--cron[^\n]*", correct_cmd, content)
+                            yf.writeFile(script_file, new_content)
+                yf.writeFileLog(f"[setup] 已自动校准存量 ACME 续签定时任务为标准命令: {correct_cmd}")
+            except Exception as e:
+                yf.writeFileLog(f"[setup] 校准存量 ACME 任务失败: {e}")
         return False
 
-    cmd = "/root/.acme.sh/acme.sh --cron --force --standalone"
     params = {
         'name': name,
         'type': 'day-n',
         'week': "",
-        'where1': "15",
+        'where1': "1",
         'hour': 4,
         'minute': 15,
         'save': "",
         'backup_to': "",
         'stype': "toShell",
         'sname': '',
-        'sbody': cmd,
+        'sbody': correct_cmd,
         'url_address': '',
         'attr':'',
     }

@@ -2579,6 +2579,15 @@ location  {from} {\n\
         else:
             csr_path = path + '/fullchain.pem'                              # 生成证书路径
             key_path = path + '/privkey.pem'                                # 密钥文件路径
+            # 若默认路径不存在，但 Nginx 配置中指定了实际证书与私钥路径，则动态适配提取
+            if not os.path.exists(csr_path) and content:
+                cert_match = re.search(r"ssl_certificate\s+([^;\s]+);", content)
+                if cert_match and os.path.exists(cert_match.group(1).strip()):
+                    csr_path = cert_match.group(1).strip()
+            if not os.path.exists(key_path) and content:
+                key_match = re.search(r"ssl_certificate_key\s+([^;\s]+);", content)
+                if key_match and os.path.exists(key_match.group(1).strip()):
+                    key_path = key_match.group(1).strip()
 
         key = ''
         if os.path.exists(key_path):

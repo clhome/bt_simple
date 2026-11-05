@@ -89,14 +89,30 @@ def list():
         php_match = re.search(r"enable-php-(.*)\.conf", conf_content)
         site['php_version'] = php_match.group(1) if php_match else '00'
         
-        # 2. 获取 SSL 信息 (仅当配置中包含 ssl_certificate 且证书存在时，才解析过期天数)
+        # 2. 获取 SSL 信息 (配置中包含 ssl_certificate 且证书存在时，解析过期天数)
         site['ssl_days'] = -1
         if conf_content.find('ssl_certificate') != -1:
-            cert_path = YfSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
-            if os.path.exists(cert_path):
+            cert_path = None
+            # 优先从 Nginx 配置中正则提取 ssl_certificate 实际指向的证书路径（支持泛域名与证书夹）
+            cert_match = re.search(r"ssl_certificate\s+([^;\s]+);", conf_content)
+            if cert_match:
+                candidate = cert_match.group(1).strip()
+                if os.path.exists(candidate):
+                    cert_path = candidate
+
+            # 未提取到或文件不存在时，回退到站点默认目录证书
+            if not cert_path:
+                default_path = YfSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
+                if os.path.exists(default_path):
+                    cert_path = default_path
+
+            if cert_path:
                 cert_data = yf.getCertName(cert_path)
                 if cert_data:
                     site['ssl_days'] = cert_data.get('endtime', -1)
+                else:
+                    # 配置文件已开启 SSL 且证书存在，但若解析天数异常时兜底为 0（已部署但到期/未知），避免误标为“未部署”
+                    site['ssl_days'] = 0
             
         # 3. 获取日流量 (用当日日志文件大小估算)
         log_path = yf.getLogsDir() + '/' + site_name + '.log'

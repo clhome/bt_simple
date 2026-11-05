@@ -356,45 +356,116 @@ def fileNameCheck(filename):
 
 # 获取证书名称
 def getCertName(certPath):
-    if not os.path.exists(certPath):
+    if not certPath:
         return None
+    cert_content = None
+    if isinstance(certPath, str) and '-----BEGIN CERTIFICATE-----' in certPath:
+        cert_content = certPath
+    elif os.path.exists(certPath):
+        cert_content = readFile(certPath)
+    if not cert_content:
+        return None
+
+    # 1. 优先使用标准权威的 cryptography.x509 解析
+    try:
+        from cryptography import x509
+        from cryptography.x509.oid import NameOID, ExtensionOID
+        import datetime
+
+        cert_bytes = cert_content.encode('utf-8') if isinstance(cert_content, str) else cert_content
+        cert = x509.load_pem_x509_certificate(cert_bytes)
+        result = {}
+
+        cn_attrs = cert.issuer.get_attributes_for_oid(NameOID.COMMON_NAME)
+        o_attrs = cert.issuer.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
+        result['issuer'] = cn_attrs[0].value if cn_attrs else (o_attrs[0].value if o_attrs else '')
+        result['issuer_o'] = o_attrs[0].value if o_attrs else (cn_attrs[0].value if cn_attrs else '')
+
+        if hasattr(cert, 'not_valid_after_utc'):
+            not_after = cert.not_valid_after_utc
+            not_before = cert.not_valid_before_utc
+            now = datetime.datetime.now(datetime.timezone.utc)
+        else:
+            not_after = cert.not_valid_after
+            not_before = cert.not_valid_before
+            now = datetime.datetime.utcnow()
+
+        result['notAfter'] = not_after.strftime('%Y-%m-%d')
+        result['notBefore'] = not_before.strftime('%Y-%m-%d')
+
+        result['dns'] = []
+        try:
+            san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+            for name in san_ext.value:
+                if isinstance(name, x509.DNSName):
+                    result['dns'].append(name.value)
+                elif isinstance(name, x509.IPAddress):
+                    result['dns'].append(str(name.value))
+        except Exception as _e_san:
+            writeFileLog('[cert] 解析SAN扩展异常: %s' % _e_san)
+
+        subj_cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)
+        if subj_cn:
+            result['subject'] = subj_cn[0].value
+            if not result['dns']:
+                result['dns'].append(result['subject'])
+        elif result['dns']:
+            result['subject'] = result['dns'][0]
+        else:
+            result['subject'] = ''
+
+        diff_seconds = (not_after - now).total_seconds()
+        result['endtime'] = int(diff_seconds / 86400)
+        return result
+    except Exception as e_crypto:
+        writeFileLog('[cert] cryptography解析异常回退: %s' % e_crypto)
+
+    # 2. 兜底回退：使用 OpenSSL.crypto（防御性容错）
     try:
         import OpenSSL
+        import re as _re
         result = {}
-        x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, readFile(certPath))
+        cert_data = cert_content.encode('utf-8') if isinstance(cert_content, str) else cert_content
+        x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_data)
+        
         # 取产品名称
         issuer = x509.get_issuer()
         result['issuer'] = ''
-        if hasattr(issuer, 'CN'):
+        if hasattr(issuer, 'CN') and issuer.CN:
             result['issuer'] = issuer.CN
         if not result['issuer']:
-            is_key = [b'0', '0']
-            issue_comp = issuer.get_components()
-            if len(issue_comp) == 1:
-                is_key = [b'CN', 'CN']
+            issue_comp = issuer.get_components() or []
             for iss in issue_comp:
-                if iss[0] in is_key:
-                    result['issuer'] = iss[1].decode()
+                if iss[0] in [b'CN', 'CN']:
+                    result['issuer'] = iss[1].decode() if isinstance(iss[1], bytes) else str(iss[1])
                     break
-        if not result['issuer']:
-            if hasattr(issuer, 'O'):
-                result['issuer'] = issuer.O
+        if not result['issuer'] and hasattr(issuer, 'O') and issuer.O:
+            result['issuer'] = issuer.O
 
         # 取证书分类（Organization）
         result['issuer_o'] = ''
-        if hasattr(issuer, 'O'):
+        if hasattr(issuer, 'O') and issuer.O:
             result['issuer_o'] = issuer.O
         if not result['issuer_o']:
-            issue_comp = issuer.get_components()
+            issue_comp = issuer.get_components() or []
             for iss in issue_comp:
                 if iss[0] in [b'O', 'O']:
-                    result['issuer_o'] = iss[1].decode()
+                    result['issuer_o'] = iss[1].decode() if isinstance(iss[1], bytes) else str(iss[1])
                     break
 
-        # 取到期时间
-        result['notAfter'] = strfDate(bytes.decode(x509.get_notAfter())[:-1])
-        # 取申请时间
-        result['notBefore'] = strfDate(bytes.decode(x509.get_notBefore())[:-1])
+        def _clean_date_str(raw):
+            if isinstance(raw, bytes):
+                raw = raw.decode('utf-8', errors='ignore')
+            raw = str(raw).rstrip('Z')
+            m = _re.search(r"(\d{4})(\d{2})(\d{2})", raw)
+            if m:
+                return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+            return ''
+
+        # 取到期时间与申请时间
+        result['notAfter'] = _clean_date_str(x509.get_notAfter())
+        result['notBefore'] = _clean_date_str(x509.get_notBefore())
+
         # 取可选名称
         result['dns'] = []
         for i in range(x509.get_extension_count()):
@@ -402,23 +473,34 @@ def getCertName(certPath):
             if s_name.get_short_name() in [b'subjectAltName', 'subjectAltName']:
                 s_dns = str(s_name).split(',')
                 for d in s_dns:
-                    result['dns'].append(d.split(':')[1])
-        subject = x509.get_subject().get_components()
-        # 取主要认证名称
-        if len(subject) == 1:
-            result['subject'] = subject[0][1].decode()
-        else:
+                    d_clean = d.strip()
+                    if ':' in d_clean:
+                        parts = d_clean.split(':', 1)
+                        if len(parts) > 1 and parts[1].strip():
+                            result['dns'].append(parts[1].strip())
+
+        subject = x509.get_subject().get_components() or []
+        subj_dict = {}
+        for sub in subject:
+            k = sub[0].decode() if isinstance(sub[0], bytes) else str(sub[0])
+            v = sub[1].decode() if isinstance(sub[1], bytes) else str(sub[1])
+            subj_dict[k] = v
+
+        if 'CN' in subj_dict:
+            result['subject'] = subj_dict['CN']
             if not result['dns']:
-                for sub in subject:
-                    if sub[0] == b'CN':
-                        result['subject'] = sub[1].decode()
-                        break
-                if 'subject' in result:
-                    result['dns'].append(result['subject'])
-            else:
-                result['subject'] = result['dns'][0]
-        result['endtime'] = int(int(time.mktime(time.strptime(
-            result['notAfter'], "%Y-%m-%d")) - time.time()) / 86400)
+                result['dns'].append(result['subject'])
+        elif result['dns']:
+            result['subject'] = result['dns'][0]
+        else:
+            result['subject'] = ''
+
+        if result['notAfter']:
+            target_ts = time.mktime(time.strptime(result['notAfter'], "%Y-%m-%d"))
+            result['endtime'] = int((target_ts - time.time()) / 86400)
+        else:
+            result['endtime'] = -1
+
         return result
     except Exception as e:
         writeFileLog(getTracebackInfo())

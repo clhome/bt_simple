@@ -179,6 +179,13 @@
   - [x] 30.3 修复安装请求异常被前端误判为成功，补齐服务端与前端回归测试
   - [x] 30.4 运行升级专项、静态门禁与全量回归，清理临时排查文件
 
+- [x] **任务 31：网站列表 SSL 状态显示修复与 ACME 自动续签加固**
+  - [x] 31.1 重构 `yf.getCertName` 证书解析引擎 (`web/core/yf/system.py`)：优先使用 `cryptography.x509` 解析，增强 pyOpenSSL 兜底容错
+  - [x] 31.2 修复网站列表 SSL 状态与证书路径提取 (`web/admin/site/site.py`)：从 vhost 配置动态提取 `ssl_certificate` 路径，完善状态降级
+  - [x] 31.3 修复 ACME 自动续签定时任务与历史自愈机制 (`web/admin/setup/init_cron.py`)：移除 `--standalone` 与 `--force`，实现存量任务自动校准
+  - [x] 31.4 编写专门测试用例并执行全量门禁回归验证
+
+
 
 
 
