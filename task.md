@@ -216,6 +216,13 @@
   - [x] 35.4 **GitHub 下载链路双通道与重试加固**：`wget` 增加 `--tries=2 --waitretry=1 -c` 断点续传重试；Tag 动态源码包下载异常时自动回退至 Release 静态构建附件 `yf.zip`
   - [x] 35.5 **编写自动化回归测试与验证**：编写 `testsuite/test_upgrade_reliability_hardening.py`，覆盖清理时序、pip 参数、延迟重启、双通道下载 fallback 等，测试 100% 通过
 
+- [ ] **任务 36：门禁拦截修复与代码质量棘轮归零 (`panel_task.py`, `test_system_a08_hardening.py`)**
+  - [ ] 36.1 **消除 `silent_except` 违规 (`panel_task.py`)**：将第 538 行 `except Exception: pass` 改造为异常警告日志记录，彻底消除静默吞异常，使 `silent_except` 计数归零（恢复至基线 0）
+  - [ ] 36.2 **兼容双通道下载反证断言 (`testsuite/test_system_a08_hardening.py`)**：在 `test_04_mutation_positive_control` 中将 `len(urls) == 1` 断言兼容为 `len(urls) >= 1` 并断言所有调用 URL 均命中注入特征，适配双通道降级下载机制
+  - [ ] 36.3 **单元测试与代码质量门禁验证**：单独验证 `test_system_a08_hardening.py`、`test_request_security_hardening.py` 及 `scripts/verify_code_quality.py`
+  - [ ] 36.4 **全量门禁回归验证**：运行 `python testsuite/run_all.py`，确保所有测试用例与静态门禁 100% 通过，收尾更新任务状态
+
+
 
 
 

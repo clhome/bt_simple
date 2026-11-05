@@ -83,6 +83,28 @@ _YF_NAMES = ('execShell', 'safeExecShell', 'execShellRc', 'readFile', 'writeFile
              'githubDownload', 'makeDirs', 'deleteFile', 'removeDir', 'returnData')
 
 
+def _find_real_bash():
+    cands = []
+    if os.name == 'nt':
+        for base in (os.environ.get('ProgramFiles', r'C:\Program Files'),
+                     os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'),
+                     r'D:\Program Files', r'D:\Git', r'C:\Git'):
+            cands.append(os.path.join(base, 'Git', 'bin', 'bash.exe'))
+            cands.append(os.path.join(base, 'Git', 'usr', 'bin', 'bash.exe'))
+    cands.extend([shutil.which('bash'), shutil.which('bash.exe')])
+    for cand in cands:
+        if not cand or not os.path.exists(cand):
+            continue
+        try:
+            proc = subprocess.run([cand, '-c', 'echo YF_BASH_OK'], stdout=subprocess.PIPE,
+                                  stderr=subprocess.DEVNULL, timeout=10)
+        except Exception:
+            continue
+        if b'YF_BASH_OK' in proc.stdout:
+            return cand
+    return None
+
+
 def _read(path):
     with open(path, 'r', encoding='utf-8') as fh:
         return fh.read()
@@ -230,8 +252,9 @@ class TestA08UpdateVersionGuard(unittest.TestCase):
         try:
             with mock.patch.object(update_mod, 'isAllowedUpdateVersion', lambda *a: True):
                 res, urls = self._call_update(payload, 'download', tmp)
-            self.assertEqual(len(urls), 1, '旧实现下必须真的走到下载（证明断言有效）')
-            self.assertIn(payload, urls[0], '旧实现下 payload 原样进下载 URL = 命令注入')
+            self.assertGreaterEqual(len(urls), 1, '旧实现下必须真的走到下载（证明断言有效）')
+            for u in urls:
+                self.assertIn(payload, u, '旧实现下 payload 原样进下载 URL = 命令注入')
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
@@ -641,9 +664,9 @@ class TestA08RememoryEndpointAndFrontend(unittest.TestCase):
         lines = [ln for ln in src.splitlines()
                  if 'SCRIPT_DIR=' in ln or 'rootPath=' in ln]
         self.assertTrue(lines, '未找到 rootPath 解析行')
-        bash = shutil.which('bash')
+        bash = _find_real_bash()
         if not bash:
-            self.skipTest('未安装 bash，跳过脚本执行校验')
+            self.skipTest('未安装可用 bash，跳过脚本执行校验')
         # 必须让 BASH_SOURCE 真实生效：`bash -c` 下 BASH_SOURCE 是空的
         # （dirname "" = "." → 结果退化成 cwd，测了个寂寞）。所以把**真实脚本的
         # 路径解析行**截断成临时副本，当文件执行；三个不同 cwd 下结果必须一致，

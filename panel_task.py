@@ -535,8 +535,8 @@ def runPanelTask():
                     try:
                         thisdb.setTaskStatus(run_task['id'], 2)
                         thisdb.setTaskData(run_task['id'], end=int(time.time()))
-                    except Exception:
-                        pass
+                    except Exception as _status_err:
+                        _log.warning('[panel_task] 标记任务失败状态异常 (id=%s): %s', run_task.get('id'), _status_err)
     except Exception as e:
         print('runPanelTask:', yf.getTracebackInfo())
     finally:
