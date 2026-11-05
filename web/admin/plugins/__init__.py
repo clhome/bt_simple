@@ -282,6 +282,14 @@ def clear_cache():
     # 插件设置页的 HTML/语言包缓存也要跟着失效，否则升级插件后仍然展示旧页面
     _PLUGIN_HTML_CACHE.clear()
     _PLUGIN_LANG_CACHE.clear()
+    # 同时清理服务存活告警快照，避免升级/重启服务后的陈旧告警持续误报
+    try:
+        from core import service_patrol
+        patrol_file = yf.getPanelDataDir() + '/' + service_patrol.SNAPSHOT_FILENAME
+        if os.path.exists(patrol_file):
+            os.remove(patrol_file)
+    except Exception as _e:
+        pass
     return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 

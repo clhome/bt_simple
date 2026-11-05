@@ -59,6 +59,7 @@
   - [x] 10.1 后端 `_seriesApplyVersionHint` 与提示缓存清理：当 `kind != 'update'` 或目标版本不高于当前版本时，彻底清理 `series_update` 等残留字段；治理 `_giteaApplyVersionHint` 共性逻辑
   - [x] 10.2 前端 `web/static/app/soft.js` 健全版本防御逻辑：最新目标与已安装版本相同时严禁渲染「升级到」超链接，并在 `softUpdate` 与徽标判断处增强校验
   - [x] 10.3 补充单测用例覆盖版本升级后旧提示消除场景，运行全量测试套件验证
+  - [x] 10.4 治理升级或重启后后台服务存活巡检快照残留导致的「服务异常」红标假阳性误报（当前服务在线 `status: true` 时严禁挂异常红标，点击刷新列表主动失效旧快照）
   - [ ] 7.1 **Gitea**: 修复 `plugins/gitea/install.html` 中 `<strong>3000</strong>` 导致的文本节点被切割问题，使其整句匹配 `"Gitea 默认服务端口为 3000。"` 语言包键
   - [ ] 7.2 **Docker**: 移除已废弃死键 `"Docker日志"`，补充 `docker.js` 中新引用的 `"获取日志失败"` 及其六国语言包映射
   - [ ] 7.3 **phpMyAdmin**: 为 `phpmyadmin.js` 中新增的 `pt('启动成功')` 和 `pt('启动失败')` 补充六国语言包映射

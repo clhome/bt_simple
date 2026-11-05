@@ -570,7 +570,7 @@ function getSList(isdisplay) {
           yfSoftText(t('soft.php_eol', [plugin.php_eol_min || '8.2'],
             '建议升级到 ' + (plugin.php_eol_min || '8.2') + ' 及以上')) + '</span>';
       }
-      if (plugin.service_alarm) {
+      if (plugin.service_alarm && !plugin.status) {
         // 《问题报告》P2-2：已装插件的服务存在崩循环/启动失败/刚被停掉时，
         // 在插件名旁边打一个红色标记，并把「插件名 + 最近失败原因」放进 tooltip。
         // 数据来自后台 5 分钟一次的服务存活巡检（data/service_patrol.json），

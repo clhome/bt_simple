@@ -2546,8 +2546,13 @@ class plugin(object):
             for item in items or []:
                 if not isinstance(item, dict):
                     continue
+                # 服务当前正常运行中（绿色运行状态），绝对不挂「服务异常」红标
+                if item.get('status') is True:
+                    item.pop('service_alarm', None)
+                    continue
                 rec = snap.get(item.get('name'))
                 if not isinstance(rec, dict) or not rec.get('alarm'):
+                    item.pop('service_alarm', None)
                     continue
                 item['service_alarm'] = {
                     'state': rec.get('state'),
