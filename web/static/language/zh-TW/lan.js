@@ -5144,7 +5144,12 @@ var lan = {
 			"py_msg_d56c7a": "未找到發行說明",
 			"py_msg_7f876a": "升級版本參數非法!",
 			"py_msg_339e87": "程式碼覆蓋失敗，已回滾到升級前快照!",
-			"py_msg_fac254": "程式碼覆蓋失敗，且無備份可回滾!"
+			"py_msg_fac254": "程式碼覆蓋失敗，且無備份可回滾!",
+			"py_msg_upd_step": "升級步驟參數非法，只允許 download/backup/install/all",
+			"py_msg_upd_rb": "升級結果校驗失敗，已回滾：%s",
+			"py_msg_upd_norb": "升級結果校驗失敗，且無備份可回滾：%s",
+			"py_msg_upd_envw": "依賴更新腳本寫入失敗：%s",
+			"py_msg_upd_enve": "面板程式碼已更新，但依賴安裝失敗(exit=%s)：%s。請檢查磁碟、網路與 Python 環境後重試修復。"
 		},
 
 	"task": {

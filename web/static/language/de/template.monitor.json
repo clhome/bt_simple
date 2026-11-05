@@ -172,6 +172,11 @@
     "py_msg_d56c7a": "Versionshinweise nicht gefunden",
     "py_msg_7f876a": "Ungültige Version!",
     "py_msg_339e87": "Kopieren fehlgeschlagen, auf den Stand vor dem Update zurückgesetzt!",
-    "py_msg_fac254": "Kopieren fehlgeschlagen, kein Backup zum Zurücksetzen!"
+    "py_msg_fac254": "Kopieren fehlgeschlagen, kein Backup zum Zurücksetzen!",
+    "py_msg_upd_step": "Ungültiger Aktualisierungsschritt; nur download/backup/install/all sind zulässig",
+    "py_msg_upd_rb": "Überprüfung des Updates fehlgeschlagen, zurückgesetzt: %s",
+    "py_msg_upd_norb": "Überprüfung des Updates fehlgeschlagen und kein Backup zum Zurücksetzen verfügbar: %s",
+    "py_msg_upd_envw": "Schreiben des Skripts zur Aktualisierung der Abhängigkeiten fehlgeschlagen: %s",
+    "py_msg_upd_enve": "Der Panel-Code wurde aktualisiert, aber die Installation der Abhängigkeiten ist fehlgeschlagen (exit=%s): %s. Prüfen Sie Datenträger, Netzwerk und Python-Umgebung und starten Sie die Reparatur erneut."
   }
 }

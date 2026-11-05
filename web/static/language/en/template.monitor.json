@@ -172,6 +172,11 @@
     "py_msg_d56c7a": "Release notes not found",
     "py_msg_7f876a": "Invalid version!",
     "py_msg_339e87": "Copy failed, rolled back to pre-update snapshot!",
-    "py_msg_fac254": "Copy failed and no backup to roll back!"
+    "py_msg_fac254": "Copy failed and no backup to roll back!",
+    "py_msg_upd_step": "Invalid upgrade step; only download/backup/install/all are allowed",
+    "py_msg_upd_rb": "Upgrade verification failed; rolled back: %s",
+    "py_msg_upd_norb": "Upgrade verification failed and no backup is available for rollback: %s",
+    "py_msg_upd_envw": "Failed to write the dependency update script: %s",
+    "py_msg_upd_enve": "Panel code was updated, but dependency installation failed (exit=%s): %s. Check disk, network and the Python environment, then repair again."
   }
 }

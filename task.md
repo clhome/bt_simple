@@ -173,6 +173,12 @@
   - [x] 29.3 编写测试用例 `testsuite/test_check_update_dialog.py`，验证按钮合法性与无更新弹窗行为
   - [x] 29.4 修复 `checkUpdate()` 中 loading 提示的 i18n 键：由不存在的 `index.update_get` 对齐为全局六语言包正规键 `index.retrieving_updates_please_wait`，解决 CI 静态门禁 `user-visible-damage` UNKNOWN 报错
 
+- [x] **任务 30：面板自升级可靠性与假成功根治 (`web/utils/system/update.py`, `index.js`)**
+  - [x] 30.1 校验升级步骤、目标源码包结构和版本声明，拒绝不完整或错误的升级目录
+  - [x] 30.2 严格检查解压回退、版本号落盘及依赖安装结果；失败如实报错并保留重试能力
+  - [x] 30.3 修复安装请求异常被前端误判为成功，补齐服务端与前端回归测试
+  - [x] 30.4 运行升级专项、静态门禁与全量回归，清理临时排查文件
+
 
 
 

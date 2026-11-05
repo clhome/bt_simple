@@ -325,6 +325,18 @@ def _lookup_message(key, lang):
         menu_dict = _get_template_menu(menu, lang)
         if key in menu_dict and isinstance(menu_dict[key], str):
             return menu_dict[key]
+
+    # 兜底：flat 键其实大量嵌在各分片的 section 里（如 `py_msg_*` 写在 system 段）。
+    # 只查主菜单顶层会让这些后端消息全部查不到 —— 用户界面直接看到 `py_msg_339e87`
+    # 这种键名。段名排序后再查，保证不同语言的热点顺序一致（不随 JSON 行序漂移）。
+    for menu in _MENU_NAMES:
+        menu_dict = _get_template_menu(menu, lang)
+        if not isinstance(menu_dict, dict):
+            continue
+        for sec in sorted(k for k, v in menu_dict.items() if isinstance(v, dict)):
+            hit = menu_dict[sec].get(key)
+            if isinstance(hit, str):
+                return hit
     return None
 
 _HTML_RE = None

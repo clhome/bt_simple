@@ -172,6 +172,11 @@
     "py_msg_d56c7a": "未找到发行说明",
     "py_msg_7f876a": "升级版本参数非法!",
     "py_msg_339e87": "代码覆盖失败，已回滚到升级前快照!",
-    "py_msg_fac254": "代码覆盖失败，且无备份可回滚!"
+    "py_msg_fac254": "代码覆盖失败，且无备份可回滚!",
+    "py_msg_upd_step": "升级步骤参数非法，只允许 download/backup/install/all",
+    "py_msg_upd_rb": "升级结果校验失败，已回滚：%s",
+    "py_msg_upd_norb": "升级结果校验失败，且无备份可回滚：%s",
+    "py_msg_upd_envw": "依赖更新脚本写入失败：%s",
+    "py_msg_upd_enve": "面板代码已更新，但依赖安装失败(exit=%s)：%s。请检查磁盘、网络与 Python 环境后重试修复。"
   }
 }

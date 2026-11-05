@@ -184,6 +184,15 @@ class TestA08UpdateVersionGuard(unittest.TestCase):
         self.assertFalse(update_mod.isAllowedUpdateVersion('v1.2.3', ''))
         self.assertFalse(update_mod.isAllowedUpdateVersion('v1.2.3', None))
 
+    def test_02b_unknown_step_is_rejected(self):
+        tmp = tempfile.mkdtemp(prefix='yufeng_a08_step_')
+        try:
+            res, _ = self._call_update('v9.9.9', 'unknown', tmp)
+            self.assertFalse(res['status'])
+            self.assertIn('升级步骤参数非法', res['msg'])
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
     def _call_update(self, version, step, tmpdir, remote_tag='v9.9.9'):
         """走真实的 updateServer，只把「网络 / 面板目录」两处外部依赖换成桩。"""
         urls = []
@@ -246,19 +255,42 @@ class TestA08UpdateVersionGuard(unittest.TestCase):
 class TestA08InstallRollback(unittest.TestCase):
     """缺陷 2：安装阶段丢弃 cp 返回码 → 拷贝失败仍回报「安装更新成功」。"""
 
-    def _run_install(self, tmpdir, copy_exc=None, backup_ok=True):
+    def _run_install(self, tmpdir, copy_exc=None, backup_ok=True,
+                     write_version=True, env_rc=0, complete_source=True):
         src_dir = os.path.join(tmpdir, 'temp', 'bt_simple-v9.9.9')
         os.makedirs(os.path.join(src_dir, 'web'), exist_ok=True)
         with open(os.path.join(src_dir, 'web', 'marker.txt'), 'w', encoding='utf-8') as fh:
             fh.write('new')
+        if complete_source:
+            with open(os.path.join(src_dir, 'web', 'version.py'), 'w', encoding='utf-8') as fh:
+                fh.write("APP_VERSION = '9.9.9'\n")
+            for name in ('panel_task.py', 'panel_tools.py', 'requirements.txt'):
+                with open(os.path.join(src_dir, name), 'w', encoding='utf-8') as fh:
+                    fh.write('')
 
         rollback_calls = []
         remove_calls = []
+        copy_errors = []
+        real_copytree = shutil.copytree
 
-        def fake_copy(*a, **k):
+        def fake_copy(src, dst, *args, **kwargs):
             if copy_exc is not None:
                 raise copy_exc
-            return os.path.join(tmpdir, 'web')
+            try:
+                return real_copytree(src, dst, **kwargs)
+            except Exception as e:
+                copy_errors.append(e)
+                raise
+
+        def fake_write(path, content, *args, **kwargs):
+            if path.endswith('/.version') and not write_version:
+                return False
+            parent = os.path.dirname(path)
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent)
+            with open(path, 'w', encoding='utf-8') as fh:
+                fh.write(content)
+            return True
 
         with mock.patch.object(update_mod, 'getServerInfo',
                                lambda: {'tag_name': 'v9.9.9', 'name': 'x', 'body': ''}), \
@@ -269,11 +301,14 @@ class TestA08InstallRollback(unittest.TestCase):
                 mock.patch.object(shutil, 'copytree', fake_copy), \
                 mock.patch.object(update_mod, 'yf', _yf_stub(
                     isRestart=lambda: True,
+                    restartPanel=lambda: True,
                     getPanelDir=lambda: tmpdir,
                     removeDir=lambda p: remove_calls.append(p),
+                    writeFile=fake_write,
+                    execShellRc=lambda *a, **k: (env_rc, '', 'dependency error'),
                     writeFileLog=lambda *a, **k: True)):
             res = update_mod.updateServer('update', 'v9.9.9', step='install')
-        return res, rollback_calls, remove_calls
+        return res, rollback_calls, remove_calls, copy_errors
 
     def test_10_copy_uses_shutil_not_shell_concat(self):
         src = _read(UPDATE_PY)
@@ -285,7 +320,7 @@ class TestA08InstallRollback(unittest.TestCase):
     def test_11_copy_failure_rolls_back_and_reports_failure(self):
         tmp = tempfile.mkdtemp(prefix='yufeng_a08_cp_')
         try:
-            res, rollback_calls, remove_calls = self._run_install(
+            res, rollback_calls, remove_calls, _copy_errors = self._run_install(
                 tmp, copy_exc=OSError('disk full'))
             self.assertFalse(res['status'], '拷贝失败绝不能回报安装成功')
             self.assertTrue(_msg_is(res, 'system.py_msg_339e87'),
@@ -300,7 +335,7 @@ class TestA08InstallRollback(unittest.TestCase):
     def test_12_copy_failure_without_backup_reports_failure(self):
         tmp = tempfile.mkdtemp(prefix='yufeng_a08_cp2_')
         try:
-            res, rollback_calls, _ = self._run_install(
+            res, rollback_calls, _, _ = self._run_install(
                 tmp, copy_exc=OSError('disk full'), backup_ok=False)
             self.assertFalse(res['status'])
             self.assertTrue(_msg_is(res, 'system.py_msg_fac254'),
@@ -309,7 +344,53 @@ class TestA08InstallRollback(unittest.TestCase):
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
-    def test_13_rollback_panel_does_not_concat_shell(self):
+    def test_14_version_write_failure_never_reports_success(self):
+        tmp = tempfile.mkdtemp(prefix='yufeng_a08_ver_write_')
+        try:
+            res, rollback_calls, _, copy_errors = self._run_install(tmp, write_version=False)
+            self.assertFalse(res['status'])
+            self.assertIn('升级结果校验失败', res['msg'], copy_errors)
+            self.assertIn('.version', res['msg'], '报错必指出卡在哪一步，而非笼统失败')
+            self.assertEqual(len(rollback_calls), 1)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_15_incomplete_source_is_rejected_before_copy(self):
+        tmp = tempfile.mkdtemp(prefix='yufeng_a08_src_')
+        try:
+            with mock.patch('shutil.copytree') as copy:
+                res, rollback_calls, _, _ = self._run_install(tmp, complete_source=False)
+            self.assertFalse(res['status'])
+            self.assertIn('升级包结构不完整', res['msg'])
+            copy.assert_not_called()
+            self.assertEqual(rollback_calls, [])
+            self.assertFalse(os.path.exists(os.path.join(tmp, '.version')))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_16_dependency_failure_is_not_success(self):
+        tmp = tempfile.mkdtemp(prefix='yufeng_a08_dep_')
+        try:
+            res, rollback_calls, _, copy_errors = self._run_install(tmp, env_rc=1)
+            self.assertFalse(res['status'])
+            self.assertIn('依赖安装失败', res['msg'], copy_errors)
+            self.assertEqual(rollback_calls, [], '代码已经完整落盘，pip 失败不应拿归档回滚')
+            self.assertTrue(os.path.exists(os.path.join(tmp, '.version')))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_17_complete_install_checks_all_results(self):
+        tmp = tempfile.mkdtemp(prefix='yufeng_a08_ok_')
+        try:
+            res, rollback_calls, _, copy_errors = self._run_install(tmp)
+            self.assertTrue(res['status'], (res, copy_errors))
+            self.assertEqual(rollback_calls, [])
+            with open(os.path.join(tmp, '.version'), encoding='utf-8') as fh:
+                self.assertEqual(fh.read(), 'v9.9.9')
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_19_rollback_panel_does_not_concat_shell(self):
         src = _fn_src(UPDATE_PY, 'rollback_panel')
         self.assertIn('safeExecShell', src, '回滚解压必须走列表传参，不拼 shell')
         self.assertNotIn('yf.execShell(cmd)', src)

@@ -172,6 +172,11 @@
     "py_msg_d56c7a": "Description de l'émission introuvable",
     "py_msg_7f876a": "Version invalide !",
     "py_msg_339e87": "Copie échouée, retour à l'instantané avant mise à jour !",
-    "py_msg_fac254": "Copie échouée et aucune sauvegarde disponible !"
+    "py_msg_fac254": "Copie échouée et aucune sauvegarde disponible !",
+    "py_msg_upd_step": "Étape de mise à jour invalide ; seules download/backup/install/all sont autorisées",
+    "py_msg_upd_rb": "Échec de la vérification de la mise à jour, retour arrière effectué : %s",
+    "py_msg_upd_norb": "Échec de la vérification de la mise à jour et aucune sauvegarde disponible pour un retour arrière : %s",
+    "py_msg_upd_envw": "Échec de l'écriture du script de mise à jour des dépendances : %s",
+    "py_msg_upd_enve": "Le code du panneau a été mis à jour, mais l'installation des dépendances a échoué (exit=%s) : %s. Vérifiez le disque, le réseau et l'environnement Python, puis relancez la réparation."
   }
 }

@@ -438,6 +438,16 @@ class TestVerifyReleaseGate(_UpgradeBase, unittest.TestCase):
         ok, _msg = update_mod._extract_upgrade_package(self.fx['pkg'], toPath)
         self.assertTrue(ok, '干净包必须能正常解压')
 
+    def test_18_unzip_fallback_checks_exit_code(self):
+        """Python 解压异常后，unzip 非零退出绝不能继续报解压成功。"""
+        with mock.patch('utils.file.safeArchiveCheck', return_value=(True, 'ok')), \
+                mock.patch('zipfile.ZipFile', side_effect=OSError('zipfile failed')), \
+                mock.patch.object(update_mod.yf, 'execShellRc',
+                                  return_value=(1, '', 'disk full')):
+            ok, msg = update_mod._extract_upgrade_package(self.fx['pkg'], self._tmp)
+        self.assertFalse(ok)
+        self.assertIn('解压失败', msg)
+
 
 class TestSelfUpgradeStaticGuards(unittest.TestCase):
     """静态守卫：写法回落即红（比运行期用例更早发现「修了一半」）。"""

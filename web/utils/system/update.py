@@ -402,8 +402,56 @@ def _extract_upgrade_package(dist_yf, toPath):
         return True, '升级包解压完成'
     except Exception as e:
         _log.warning('[update] python 解压失败，回退 unzip: %s', e)
-    yf.safeExecShell(['unzip', '-o', dist_yf, '-d', toPath], timeout=90)
+    rc, out, err = yf.execShellRc(
+        ['unzip', '-o', dist_yf, '-d', toPath], timeout=90, shell=False)
+    if rc != 0:
+        return False, '升级包解压失败(exit=%s)：%s' % (rc, (err or out or '无错误输出')[:300])
     return True, '升级包解压完成'
+
+
+def _validate_upgrade_source(src_path, version):
+    """覆盖面板前校验源码包：结构完整，且声明版本就是本次目标版本。
+
+    仅检查目录存在会让空目录或错误版本被复制并写入新 ``.version``；安装后
+    再从落盘文件读一次，确认不是「只更新了显示版本号」。
+    """
+    required = ('web', 'web/version.py', 'panel_task.py', 'panel_tools.py',
+                'requirements.txt')
+    for rel in required:
+        if not os.path.exists(os.path.join(src_path, rel)):
+            return False, '升级包结构不完整，缺少：%s' % rel
+    try:
+        with open(os.path.join(src_path, 'web', 'version.py'),
+                  'r', encoding='utf-8') as fh:
+            source = fh.read()
+    except OSError as e:
+        return False, '无法读取升级包版本声明：%s' % e
+    match = re.search(r'^APP_VERSION\s*=\s*[\'\"]([^\'\"]+)[\'\"]', source, re.M)
+    expected = str(version).strip().lstrip('v')
+    if not match or match.group(1).strip().lstrip('v') != expected:
+        actual = match.group(1).strip() if match else '未声明'
+        return False, '升级包版本不符：目标 %s，实际 %s' % (expected, actual)
+    return True, ''
+
+
+def _verify_installed_version(panel_dir, version):
+    """版本文件必须写入成功，且与本次已部署源码的声明一致。"""
+    expected = str(version).strip().lstrip('v')
+    version_path = os.path.join(panel_dir, '.version')
+    try:
+        with open(version_path, 'r', encoding='utf-8') as fh:
+            actual = fh.read().strip().lstrip('v')
+        with open(os.path.join(panel_dir, 'web', 'version.py'),
+                  'r', encoding='utf-8') as fh:
+            source = fh.read()
+    except OSError as e:
+        return False, '无法核对升级结果：%s' % e
+    if actual != expected:
+        return False, '版本号落盘校验失败：目标 %s，实际 %s' % (expected, actual or '空')
+    match = re.search(r'^APP_VERSION\s*=\s*[\'\"]([^\'\"]+)[\'\"]', source, re.M)
+    if not match or match.group(1).strip().lstrip('v') != expected:
+        return False, '面板源码版本与目标版本不一致，请检查代码覆盖结果'
+    return True, ''
 
 
 def _cleanup_upgrade_temp(*paths):
@@ -415,12 +463,44 @@ def _cleanup_upgrade_temp(*paths):
         except Exception as e:
             _log.warning('[update] 清理升级临时文件失败 %s: %s', path, e)
 
+def _build_env_update_script(panel_dir):
+    """生成「建 venv + 装依赖」脚本。
+
+    关键：每步失败都必须 **exit 非 0**。旧脚本没有 ``set -e``，pip 装失败后
+    还会继续跑后面的命令，脚本最终退出码变成 0 → 调用方误判「安装成功」。
+    """
+    return f'''#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+P_VER=`python3 -V | awk '{{print $2}}'`
+if [ ! -f {panel_dir}/bin/activate ];then
+    cd {panel_dir} && python3 -m venv . || exit $?
+fi
+cd {panel_dir} && source bin/activate || exit $?
+cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\\"country\\": \\"CN\\"")
+PIPSRC="https://pypi.python.org/simple"
+if [ ! -z "$cn" ];then
+    PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
+fi
+cd {panel_dir} && pip3 install -r requirements.txt -i $PIPSRC || exit $?
+P_VER_D=`echo "$P_VER"|awk -F '.' '{{print $1}}'`
+P_VER_M=`echo "$P_VER"|awk -F '.' '{{print $2}}'`
+NEW_P_VER=${{P_VER_D}}.${{P_VER_M}}
+if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
+    cd {panel_dir} && pip3 install -r version/r${{NEW_P_VER}}.txt -i $PIPSRC || exit $?
+fi
+'''
+
+
 def updateServer(stype, version='', step='all'):
     import config
     # 更新服务
     try:
         if not yf.isRestart():
             return yf.returnData(False, 'system.py_msg_0322b3')
+        if stype not in ('check', 'info', 'update'):
+            return yf.returnData(False, 'system.py_msg_5b8e2d')
+        if stype == 'update' and step not in ('all', 'download', 'backup', 'install'):
+            return yf.returnData(False, 'system.py_msg_upd_step')
 
         version_new_info = getServerInfo()
         if version_new_info is None:
@@ -544,13 +624,10 @@ def updateServer(stype, version='', step='all'):
                     src_path = toPath + '/bt_simple-' + no_v_version
                 
                 if src_path == "":
-                    # 尝试查找解压出的任何目录
-                    import glob
-                    dirs = glob.glob(toPath + '/bt_simple-*')
-                    if dirs:
-                        src_path = dirs[0]
-                    else:
-                        return yf.returnData(False, 'system.py_msg_ac67c4')
+                    return yf.returnData(False, 'system.py_msg_ac67c4')
+                source_ok, source_msg = _validate_upgrade_source(src_path, version)
+                if not source_ok:
+                    return yf.returnData(False, source_msg)
 
                 # 执行代码覆盖：走 shutil 不经 shell（src_path 的目录名来自解压包，
                 # 拼 shell 会被目录名里的元字符注入），且失败必须如实报错并回滚——
@@ -569,37 +646,30 @@ def updateServer(stype, version='', step='all'):
                 yf.removeDir(src_path)
                 yf.removeDir(toPath + '/yf.zip')
                 
-                # 自动写入版本号到 .version 文件
+                # 写入后立即回读两个版本源，任何失败都必须阻止「假成功」。
                 version_path = panel_dir + '/.version'
-                yf.writeFile(version_path, version)
+                version_ok = yf.writeFile(version_path, version)
+                verify_ok, verify_msg = _verify_installed_version(panel_dir, version)
+                if not version_ok or not verify_ok:
+                    yf.writeFileLog('panel upgrade version verification failed: %s' % verify_msg)
+                    if backup_status:
+                        rollback_panel()
+                        return yf.returnData(False, 'system.py_msg_upd_rb', None, verify_msg)
+                    return yf.returnData(False, 'system.py_msg_upd_norb', None, verify_msg)
 
-                update_env = f'''
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-P_VER=`python3 -V | awk '{{print $2}}'`
-if [ ! -f {panel_dir}/bin/activate ];then
-    cd {panel_dir} && python3 -m venv .
-    cd {panel_dir} && source bin/activate
-else
-    cd {panel_dir} && source bin/activate
-fi
-cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\\"country\\": \\"CN\\"")
-PIPSRC="https://pypi.python.org/simple"
-if [ ! -z "$cn" ];then
-    PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
-fi
-cd {panel_dir} && pip3 install -r requirements.txt -i $PIPSRC
-P_VER_D=`echo "$P_VER"|awk -F '.' '{{print $1}}'`
-P_VER_M=`echo "$P_VER"|awk -F '.' '{{print $2}}'`
-NEW_P_VER=${{P_VER_D}}.${{P_VER_M}}
-if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
-    cd {panel_dir} && pip3 install -r version/r${{NEW_P_VER}}.txt -i $PIPSRC
-fi
-'''
+                update_env = _build_env_update_script(panel_dir)
                 # 环境更新脚本落盘后以 shell 执行（面板路径来自程序内部，无用户输入）
                 env_script = toPath + '/yf_env_update.sh'
-                yf.writeFile(env_script, update_env)
-                yf.safeExecShell(['bash', env_script], timeout=600)
+                if not yf.writeFile(env_script, update_env):
+                    return yf.returnData(False, 'system.py_msg_upd_envw', None, env_script)
+                env_rc, env_out, env_err = yf.execShellRc(
+                    ['bash', env_script], timeout=600, shell=False)
+                if env_rc != 0:
+                    detail = (env_err or env_out or '无错误输出').strip()[-500:]
+                    yf.writeFileLog('panel upgrade dependency update failed(exit=%s): %s'
+                                    % (env_rc, detail))
+                    return yf.returnData(
+                        False, 'system.py_msg_upd_enve', None, env_rc, detail)
 
                 # 自动检查并清理历史废弃插件（如 system_safe）
                 try:

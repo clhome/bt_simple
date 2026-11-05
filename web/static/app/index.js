@@ -713,16 +713,15 @@ function updateStep(step, version, barId, textId, callback) {
         }
     }, 'json').fail(function() {
         if (intervalId) clearInterval(intervalId);
+        $(textId).text("连接失败").css("color", "#ff4d4f");
+        $(barId).css("background", "#ff4d4f");
+        layer.msg("与服务器连接断开，升级结果未知。请刷新页面确认版本，勿重复执行安装。", {icon: 2, time: 8000});
         if (step == 'install') {
-            $(barId).css("width", "100%");
-            $(textId).text("已完成").css("color", "#20a53a");
-            if (callback) callback();
+            $("#start-update-btn").attr("disabled", true).addClass("disabled").text("请刷新确认结果");
         } else {
-            $(textId).text("连接失败").css("color", "#ff4d4f");
-            $(barId).css("background", "#ff4d4f");
-            layer.msg("与服务器连接断开，请检查网络。", {icon: 2});
-            $(".layui-layer-close").show();
+            $("#start-update-btn").attr("disabled", false).removeClass("disabled").text("重试");
         }
+        $(".layui-layer-close").show();
     });
 }
 
