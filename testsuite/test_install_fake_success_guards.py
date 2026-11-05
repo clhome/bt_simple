@@ -432,6 +432,24 @@ class ServicePatrolTest(unittest.TestCase):
                          self.sp.pick_unit_for_plugin('gitea', units))
         self.assertEqual('', self.sp.pick_unit_for_plugin('mysql', units))
 
+    def test_05b_unit_picked_exact_match_precedence(self):
+        """同名单元 <plugin>.service 优先：绝不受带 '-' 衍生单元（如 mysql-apt）抢占。"""
+        units = {
+            # '-' 的 ASCII 为 45，'.' 的 ASCII 为 46；纯 ASCII 排序时 'mysql-apt' 排在 'mysql.' 之前
+            'mysql-apt.service': '[Service]\nExecStart=/www/server/mysql-apt/bin/mysqld\n',
+            'mysql.service': '[Service]\nExecStart=/www/server/mysql/bin/mysqld\n',
+        }
+        self.assertEqual('mysql.service',
+                         self.sp.pick_unit_for_plugin('mysql', units))
+
+    def test_05c_unit_picked_prefix_isolation(self):
+        """目录边界严格匹配：包含 /server/mysql-apt 时绝不误判为属于 mysql 插件。"""
+        units = {
+            'mysql-apt.service': '[Service]\nWorkingDirectory=/www/server/mysql-apt\nExecStart=/www/server/mysql-apt/bin/mysqld\n',
+        }
+        self.assertEqual('', self.sp.pick_unit_for_plugin('mysql', units))
+
+
     def test_06_alarm_rules(self):
         sp = self.sp
         # 崩循环：一定告警

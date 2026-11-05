@@ -143,27 +143,46 @@ def extract_journal_reason(text, max_len=REASON_MAX_LEN):
     return picked
 
 
+def _matches_plugin_dir(text, plugin):
+    """判定单元文件内容是否真正引用了该插件的目录（带边界校验，防前缀混淆）。"""
+    needle_dir = '/server/%s/' % plugin
+    if needle_dir in text:
+        return True
+    needle_wd = '/server/%s' % plugin
+    pos = 0
+    while True:
+        idx = text.find(needle_wd, pos)
+        if idx == -1:
+            break
+        end_idx = idx + len(needle_wd)
+        # 必须是路径分隔符、空白、引号、换行或结尾，避免 /server/mysql-apt 误判为 /server/mysql
+        if end_idx >= len(text) or text[end_idx] in ('/', ' ', '\t', '\r', '\n', '"', "'", ';', '='):
+            return True
+        pos = end_idx + 1
+    return False
+
+
 def pick_unit_for_plugin(plugin, units):
     """在 `{unit_name: unit_file_text}` 里找出属于某插件的 systemd 单元。
 
-    判据（任一即可，全部基于**内容**而不是命名巧合）：
-      1. `ExecStart=` 路径里含 `/server/<plugin>/`（插件自己的二进制）；
-      2. `WorkingDirectory=` 含 `/server/<plugin>`；
-      3. 单元文件名正好是 `<plugin>.service`。
-    多个命中时取排序后的第一个，保证结果稳定（快照可比对）。
+    判据：
+      1. 精确同名单元 `<plugin>.service` 且属于该插件（或同名兜底）享有最高优先级；
+      2. 内容中 `ExecStart=` 或 `WorkingDirectory=` 明确包含 `/server/<plugin>/`。
+    多单元命中时精确同名优先，其余按排序取第一个（保证稳定且不被衍生服务抢占）。
     """
     plugin = str(plugin or '').strip()
     if not plugin or not units:
         return ''
-    needle_dir = '/server/%s/' % plugin
-    needle_wd = '/server/%s' % plugin
+    exact_name = plugin + '.service'
     hits = []
     for name, text in units.items():
         body = str(text or '')
-        if name == plugin + '.service' or needle_dir in body or needle_wd in body:
+        if name == exact_name or _matches_plugin_dir(body, plugin):
             hits.append(name)
     if not hits:
         return ''
+    if exact_name in hits:
+        return exact_name
     hits.sort()
     return hits[0]
 

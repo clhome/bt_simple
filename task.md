@@ -222,6 +222,13 @@
   - [ ] 36.3 **单元测试与代码质量门禁验证**：单独验证 `test_system_a08_hardening.py`、`test_request_security_hardening.py` 及 `scripts/verify_code_quality.py`
   - [ ] 36.4 **全量门禁回归验证**：运行 `python testsuite/run_all.py`，确保所有测试用例与静态门禁 100% 通过，收尾更新任务状态
 
+- [x] **任务 37：服务存活巡检单元匹配加固与误报消除 (`web/core/service_patrol.py`)**
+  - [x] 37.1 **精确同名单元最高优先级**：在 `pick_unit_for_plugin(plugin, units)` 中，当同名单元 `<plugin>.service`（如 `mysql.service`）命中时，赋予其绝对最高优先级直接返回，彻底消除带 `-`（如 `mysql-apt.service`）的失效历史服务因 ASCII 字典序抢占导致的误报
+  - [x] 37.2 **严密路径边界防误判**：加固插件工作目录与二进制路径匹配，增加词边界校验，避免 `/server/mysql-apt`、`/server/mysql-community` 误作为 `/server/mysql` 前缀被匹配
+  - [x] 37.3 **自动化单测与防回归验证**：在 `testsuite/test_install_fake_success_guards.py` 中增加同名服务优先与前缀隔离测试用例，运行相关单测确保 100% 通过
+
+
+
 
 
 
