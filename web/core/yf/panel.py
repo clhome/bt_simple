@@ -253,11 +253,21 @@ def restartTask():
 
 
 def restartPanel():
-    restart_file = getPanelDir()+'/data/restart.pl'
-    writeFile(restart_file, 'True')
-    # 确保后台看门狗存活并唤醒执行重启，替代 3 秒空转检测
-    ensurePanelTaskRunning()
-    wakePanelTask()
+    """触发面板重启。
+
+    为避免视图函数内调用立即杀掉 Gunicorn 工作进程导致 HTTP 响应未送达浏览器（网络断连/假失败），
+    采用轻量守护线程延迟 1 秒触发落盘与唤醒。
+    """
+    def _do_restart():
+        time.sleep(1)
+        restart_file = getPanelDir() + '/data/restart.pl'
+        writeFile(restart_file, 'True')
+        # 确保后台看门狗存活并唤醒执行重启，替代 3 秒空转检测
+        ensurePanelTaskRunning()
+        wakePanelTask()
+
+    t = threading.Thread(target=_do_restart, daemon=True)
+    t.start()
     return True
 
 

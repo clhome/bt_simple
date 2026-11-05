@@ -468,6 +468,7 @@ def _build_env_update_script(panel_dir):
 
     关键：每步失败都必须 **exit 非 0**。旧脚本没有 ``set -e``，pip 装失败后
     还会继续跑后面的命令，脚本最终退出码变成 0 → 调用方误判「安装成功」。
+    同时使用 `--no-cache-dir` 避免在低配紧凑内存服务器（1G/2G RAM）上堆积 wheel 缓存导致 OOM。
     """
     return f'''#!/bin/bash
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
@@ -481,12 +482,12 @@ PIPSRC="https://pypi.python.org/simple"
 if [ ! -z "$cn" ];then
     PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
 fi
-cd {panel_dir} && pip3 install -r requirements.txt -i $PIPSRC || exit $?
+cd {panel_dir} && pip3 install --no-cache-dir -r requirements.txt -i $PIPSRC || exit $?
 P_VER_D=`echo "$P_VER"|awk -F '.' '{{print $1}}'`
 P_VER_M=`echo "$P_VER"|awk -F '.' '{{print $2}}'`
 NEW_P_VER=${{P_VER_D}}.${{P_VER_M}}
 if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
-    cd {panel_dir} && pip3 install -r version/r${{NEW_P_VER}}.txt -i $PIPSRC || exit $?
+    cd {panel_dir} && pip3 install --no-cache-dir -r version/r${{NEW_P_VER}}.txt -i $PIPSRC || exit $?
 fi
 '''
 
@@ -551,7 +552,11 @@ def updateServer(stype, version='', step='all'):
                 if os.path.exists(sig_yf): yf.deleteFile(sig_yf)
                 
                 # 使用带轮询降级机制的下载函数，设置期望最小大小为 1MB (1048576 bytes)，超时设置长一点
+                # 优先下载 Tag 动态归档包，若下载异常自动降级尝试 Release 静态构建产物 yf.zip（双通道保障）
                 download_status = yf.githubDownload(originalUrl, dist_yf, timeout=20, min_size=1048576)
+                if not download_status or not os.path.exists(dist_yf):
+                    release_asset_url = "https://github.com/clhome/bt_simple/releases/download/" + version + "/yf.zip"
+                    download_status = yf.githubDownload(release_asset_url, dist_yf, timeout=20, min_size=1048576)
                 
                 if not download_status or not os.path.exists(dist_yf):
                     return yf.returnData(False, 'system.py_msg_eb2036')
@@ -623,6 +628,14 @@ def updateServer(stype, version='', step='all'):
                 elif os.path.exists(toPath + '/bt_simple-' + no_v_version):
                     src_path = toPath + '/bt_simple-' + no_v_version
                 
+                # 自愈容错：若目录缺失但 yf.zip 仍完好（如解压意外中断或被误删），尝试重新解压自愈
+                if src_path == "" and os.path.exists(toPath + '/yf.zip'):
+                    _extract_upgrade_package(toPath + '/yf.zip', toPath)
+                    if os.path.exists(toPath + '/bt_simple-' + v_version):
+                        src_path = toPath + '/bt_simple-' + v_version
+                    elif os.path.exists(toPath + '/bt_simple-' + no_v_version):
+                        src_path = toPath + '/bt_simple-' + no_v_version
+
                 if src_path == "":
                     return yf.returnData(False, 'system.py_msg_ac67c4')
                 source_ok, source_msg = _validate_upgrade_source(src_path, version)
@@ -641,10 +654,6 @@ def updateServer(stype, version='', step='all'):
                         rollback_panel()
                         return yf.returnData(False, 'system.py_msg_339e87')
                     return yf.returnData(False, 'system.py_msg_fac254')
-
-                # 清理临时文件
-                yf.removeDir(src_path)
-                yf.removeDir(toPath + '/yf.zip')
                 
                 # 写入后立即回读两个版本源，任何失败都必须阻止「假成功」。
                 version_path = panel_dir + '/.version'
@@ -677,6 +686,10 @@ def updateServer(stype, version='', step='all'):
                     cleanup_legacy_plugins()
                 except Exception as e:
                     yf.writeFileLog("cleanup_legacy_plugins error: " + str(e))
+
+                # 全部校验与依赖环境更新均成功后，才清理临时升级文件；若中途失败则保留包体供重试自愈
+                yf.removeDir(src_path)
+                yf.removeDir(toPath + '/yf.zip')
 
                 yf.restartPanel()
                 return yf.returnData(True, 'system.py_msg_f9fd8e')

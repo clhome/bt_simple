@@ -94,7 +94,7 @@ def githubDownload(url, save_path, timeout=10, min_size=0):
         # 先清除可能的空文件
         if os.path.exists(save_path):
             os.remove(save_path)
-        cmd = 'wget -O "{}" --timeout={} --tries=1 -q "{}" 2>/dev/null'.format(
+        cmd = 'wget -O "{}" --timeout={} --tries=2 --waitretry=1 -c -q "{}" 2>/dev/null'.format(
             save_path, timeout, download_url
         )
         execShell(cmd)

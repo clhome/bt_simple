@@ -204,6 +204,14 @@
   - [x] 34.4 优化 `testsuite/test_crontab_manual_run_force.py` 中 `_run` 的 `current_hm` 逻辑，杜绝环境残留污染
   - [x] 34.5 运行全量门禁回归，确保 100% 通过
 
+- [x] **任务 35：面板升级可靠性加固与竞态自愈优化 (`web/utils/system/update.py`, `panel.py`, `github.py`)**
+  - [x] 35.1 **源码目录清理时序重构**：将 `step == 'install'` 中的临时包删除移至全部校验与依赖更新成功之后；失败时保留包体，杜绝重试时「更新源码包未找到」误报；若目录缺失但 zip 仍在时自动解压自愈
+  - [x] 35.2 **依赖更新 pip 内存优化**：在 `_build_env_update_script` 中为 `pip3 install` 强制增加 `--no-cache-dir`，降低低配服务器内存峰值
+  - [x] 35.3 **优雅延迟重启消除 HTTP 竞态断连**：加固 `yf.restartPanel()` 支持异步延迟 1 秒重启，保证 Gunicorn 完整下发 HTTP JSON 响应，杜绝工作进程提前被 kill 造成假失败
+  - [x] 35.4 **GitHub 下载链路双通道与重试加固**：`wget` 增加 `--tries=2 --waitretry=1 -c` 断点续传重试；Tag 动态源码包下载异常时自动回退至 Release 静态构建附件 `yf.zip`
+  - [x] 35.5 **编写自动化回归测试与验证**：编写 `testsuite/test_upgrade_reliability_hardening.py`，覆盖清理时序、pip 参数、延迟重启、双通道下载 fallback 等，测试 100% 通过
+
+
 
 
 
