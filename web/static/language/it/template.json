@@ -2698,6 +2698,16 @@
     "py_msg_c11397": "Indirizzo Connessioni errato"
   },
   "crontab": {
+    "task_name_acme_renew": "Rinnovo automatico SSL ACME",
+    "task_name_op_waf": "Attività in background del firewall Yufeng OP",
+    "task_name_clean": "Pulitore log e disco [clean]",
+    "task_name_webstats": "Attività pianificata statistiche sito web",
+    "task_name_check_site": "Verifica disponibilità sito web",
+    "task_name_auto_update": "Aggiornamento automatico pannello",
+    "task_name_sync_plugin": "Attività pianificata plugin di sincronizzazione",
+    "task_name_sphinx_full": "Aggiornamento completo dell'indice Sphinx",
+    "task_name_sphinx_inc": "Aggiornamento incrementale dell'indice Sphinx",
+    "task_name_recovered": "Attività recuperata",
     "exclude_dir_placeholder": "Una regola per riga, le directory non possono terminare con /, esempio:\n.git\nstatic/upload\n*.log",
     "cycle_type_day": "Ogni giorno",
     "cycle_type_day_n": "Ogni {1} giorni",
@@ -3121,7 +3131,10 @@
     "task_not_running": "L'attività non è in esecuzione o è già terminata",
     "task_terminated_success": "Attività interrotta con successo (PID: {1})",
     "task_terminated_failed": "Impossibile terminare l'attività: {1}",
-    "terminating_task": "Interruzione dell'attività in corso..."
+    "terminating_task": "Interruzione dell'attività in corso...",
+    "system_task": "Attività di sistema",
+    "system_task_protected": "Attività principale di sistema, eliminazione vietata",
+    "system_task_modify_protected": "Attività principale di sistema, modifica vietata"
   },
   "day_limit": "Restrizione giorni",
   "day_none": "nessuno",

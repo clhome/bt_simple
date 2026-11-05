@@ -197,6 +197,14 @@
   - [x] 33.3 后端 `getCrontabHuman` 同步支持 (`web/utils/crontab.py`)：补充 `name_display` 国际化计算，保持前后端契约完整与兼容
   - [x] 33.4 自动化测试与全量回归验证：编写测试用例验证多语言环境下任务名称正确翻译，确保 i18n 与代码质量门禁 100% 通过
 
+- [x] **任务 34：门禁测试未通过修复与回归治理**
+  - [x] 34.1 修复 `test_upgrade_transaction.py` 中 `_build_env_update_script` 的 PATH 设置与 bash 检测，确保依赖更新脚本退出码正确传递且 Windows 环境兼容
+  - [x] 34.2 修复 `test_crontab_sync_status.py` 中 `test_04d_frontend_marks_rejected_tasks` 任务名渲染断言，兼容 `display_name`
+  - [x] 34.3 运行 `python scripts/tools/export_lang_carriers.py --apply` 同步多语言载体，消除 `test_lang_carrier_derivation.py` 漂移
+  - [x] 34.4 优化 `testsuite/test_crontab_manual_run_force.py` 中 `_run` 的 `current_hm` 逻辑，杜绝环境残留污染
+  - [x] 34.5 运行全量门禁回归，确保 100% 通过
+
+
 
 
 

@@ -2,6 +2,7 @@
 """面板自升级安装事务与前端失败契约回归测试。"""
 import os
 import re
+import shutil
 import subprocess
 import sys
 import unittest
@@ -11,6 +12,27 @@ WEB = os.path.join(ROOT, 'web')
 INDEX_JS = os.path.join(WEB, 'static', 'app', 'index.js')
 if WEB not in sys.path:
     sys.path.insert(0, WEB)
+
+
+def _find_real_bash():
+    cands = []
+    if os.name == 'nt':
+        for base in (os.environ.get('ProgramFiles', r'C:\Program Files'),
+                     os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')):
+            cands.append(os.path.join(base, 'Git', 'bin', 'bash.exe'))
+            cands.append(os.path.join(base, 'Git', 'usr', 'bin', 'bash.exe'))
+    cands.extend([shutil.which('bash'), shutil.which('bash.exe')])
+    for cand in cands:
+        if not cand or not os.path.exists(cand):
+            continue
+        try:
+            proc = subprocess.run([cand, '-c', 'echo YF_BASH_OK'], stdout=subprocess.PIPE,
+                                  stderr=subprocess.DEVNULL, timeout=30)
+        except Exception:
+            continue
+        if b'YF_BASH_OK' in proc.stdout:
+            return cand
+    return None
 
 
 class TestUpgradeMessagesAreTranslatable(unittest.TestCase):
@@ -71,9 +93,9 @@ class TestDependencyScriptExitCode(unittest.TestCase):
         import core.yf as real_yf
         import utils.system.update as update_mod
 
-        bash = shutil.which('bash')
+        bash = _find_real_bash()
         if not bash:
-            self.skipTest('未找到 bash')
+            self.skipTest('未找到可用的 bash')
 
         tmp = tempfile.mkdtemp(prefix='yf_env_script_')
         self.addCleanup(shutil.rmtree, tmp, True)
@@ -113,9 +135,9 @@ class TestDependencyScriptExitCode(unittest.TestCase):
         import tempfile
         import utils.system.update as update_mod
 
-        bash = shutil.which('bash')
+        bash = _find_real_bash()
         if not bash:
-            self.skipTest('未找到 bash')
+            self.skipTest('未找到可用的 bash')
         tmp = tempfile.mkdtemp(prefix='yf_env_syntax_')
         self.addCleanup(shutil.rmtree, tmp, True)
         path = os.path.join(tmp, 'env.sh')
@@ -141,6 +163,8 @@ class TestUpgradeFrontendFailureContract(unittest.TestCase):
                       '安装请求可能已执行，禁止断线后直接重复点击安装')
 
     def test_index_javascript_syntax(self):
+        if not shutil.which('node'):
+            self.skipTest('未找到 node')
         result = subprocess.run(['node', '--check', INDEX_JS],
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)

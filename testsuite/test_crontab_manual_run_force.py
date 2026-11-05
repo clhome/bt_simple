@@ -241,7 +241,7 @@ class TestManualRunIgnoresScheduleGate(unittest.TestCase):
             env[FORCE_ENV] = '1'
         if current_hm is not None:
             env['YF_CRON_CURRENT_HM'] = str(current_hm)
-        elif 'YF_CRON_CURRENT_HM' not in env:
+        else:
             env['YF_CRON_CURRENT_HM'] = '0600'
         run_path = path.replace('\\', '/') if os.name == 'nt' else path
         proc = subprocess.run([BASH, run_path], env=env, stdout=subprocess.PIPE,
