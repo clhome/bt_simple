@@ -471,7 +471,6 @@ def _build_env_update_script(panel_dir):
     """
     return f'''#!/bin/bash
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
-export PATH
 P_VER=`python3 -V | awk '{{print $2}}'`
 if [ ! -f {panel_dir}/bin/activate ];then
     cd {panel_dir} && python3 -m venv . || exit $?
