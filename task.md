@@ -167,6 +167,11 @@
   - [x] 28.1 **构建锁可重入与继承机制**：在 `plugins/php/versions/common/php_ver_guard.sh` 中实现纯 POSIX 兼容的祖先进程判定函数 `_yf_php_is_ancestor_pid`，加锁时登记并导出当前 PID 环境变量
   - [x] 28.2 **嵌套调用与继承保护**：支持同进程内加锁深度计数，当子进程（或同一调用链）检测到锁已由祖先进程持有时判定为继承，跳过重复 flock 并标记继承状态；子进程释放锁时跳过释放底层物理锁，交由外层持有者统一释放
   - [x] 28.3 **测试套件扩充与全量回归**：在 `testsuite/test_php_install_upgrade_robustness.py` 补充父子进程继承、递归重入、子进程退出不破锁与跨进程真实互斥的自动化用例，运行全量测试验证 100% 通过
+- [x] **任务 29：修复右上角检查更新弹窗中的无效 undefined 按钮 (`web/static/app/index.js`, `public.js`)**
+  - [x] 29.1 修复 `web/static/app/index.js` 中 `checkUpdate()` 无更新提示弹窗：移除未定义的 `lan.public.know`，弹窗优化为仅保留一个「关闭」按钮的单按钮告知弹窗
+  - [x] 29.2 加固 `web/static/app/public.js` 中 `localizeButtons` 对 `undefined`/`null` 等无效按钮的容错过滤
+  - [x] 29.3 编写测试用例 `testsuite/test_check_update_dialog.py`，验证按钮合法性与无更新弹窗行为
+
 
 
 

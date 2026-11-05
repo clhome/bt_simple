@@ -1183,7 +1183,7 @@ trap 'rm -f "$YF_CRON_PID_FILE"' EXIT
             if 'type' in param and param['type'] == 'minute-n':
                 time_check = '''
 # 执行时段限制判定
-CURRENT_HM=$(date +"%H%M")
+CURRENT_HM=${YF_CRON_CURRENT_HM:-$(date +"%H%M")}
 '''
                 if str(param.get('min_start_en', '0')) == '1':
                     start_hm = "%02d%02d" % (int(param.get('min_start_h', 0)), int(param.get('min_start_m', 0)))

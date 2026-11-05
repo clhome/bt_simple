@@ -488,7 +488,8 @@ setTimeout(function() {
 
 //检查更新
 function checkUpdate() {
-    var loadT = layer.msg(lan.index.update_get, { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadMsg = (window.lan && lan.index && lan.index.update_get) || (typeof t === 'function' ? t('index.update_get', '正在获取版本信息...') : '正在获取版本信息...');
+    var loadT = layer.msg(loadMsg, { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/system/update_server?type=check', function(rdata) {
         layer.close(loadT);
 
@@ -497,7 +498,9 @@ function checkUpdate() {
         }
 
         if (rdata.status === false) {
-            layer.confirm(rdata.msg, { title: lan.index.update_check, icon: 1, closeBtn: 1, btn: [lan.public.know, lan.public.close] });
+            var closeText = (window.lan && lan.public && lan.public.close) || (typeof t === 'function' ? t('public.close', '关闭') : '关闭');
+            var infoTitle = (window.lan && lan.public && lan.public.info) || (typeof t === 'function' ? t('public.info', '信息') : '信息');
+            layer.alert(rdata.msg, { title: infoTitle, icon: 1, closeBtn: 1, btn: [closeText] });
             return;
         }
         layer.msg(rdata.msg, { icon: 1 });

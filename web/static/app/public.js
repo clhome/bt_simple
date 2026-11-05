@@ -78,7 +78,11 @@ function initLayerI18n() {
 
   function localizeButtons(btnArr) {
     if (!Array.isArray(btnArr)) return btnArr;
-    return btnArr.map(function (item) {
+    // 过滤掉 undefined / null / 空等无效按钮项，防止 Layer 渲染出 "undefined" 无效按钮
+    var validButtons = btnArr.filter(function (item) {
+      return item !== undefined && item !== null && item !== false && item !== '';
+    });
+    return validButtons.map(function (item) {
       if (typeof item === 'string') {
         var trimmed = item.trim();
         if (trimmed === '确定' || trimmed === '确认' || trimmed === '&#x786E;&#x5B9A;') {

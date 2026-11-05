@@ -200,15 +200,13 @@ def _load_namespace():
 
 def _minute_task(**over):
     """「每 N 分钟执行 + 时段限制」的任务行（限制窗口故意设在“还没到”）。"""
-    now = time.localtime()
-    start_h = min(now.tm_hour + 2, 23)
     row = {
         'id': 1, 'name': 'test', 'type': 'minute-n', 'where1': '30',
         'where_hour': '', 'where_minute': '', 'echo': 'aaaabbbbccccdddd',
         'status': 1, 'save': '', 'backup_to': 'localhost', 'stype': 'toShell',
         'sname': 'ALL', 'sbody': 'echo ' + RAN, 'url_address': '', 'attr': '',
         'day_type': 0,
-        'min_start_en': 1, 'min_start_h': start_h, 'min_start_m': 0,
+        'min_start_en': 1, 'min_start_h': 8, 'min_start_m': 0,
         'min_end_en': 0, 'min_end_h': 23, 'min_end_m': 59,
         'last_run_time': '', 'add_time': '', 'update_time': '',
     }
@@ -236,11 +234,15 @@ class TestManualRunIgnoresScheduleGate(unittest.TestCase):
         self.assertTrue(os.path.exists(path), '脚本必须落盘：%s' % path)
         return path
 
-    def _run(self, path, with_force):
+    def _run(self, path, with_force, current_hm=None):
         env = dict(os.environ)
         env.pop(FORCE_ENV, None)
         if with_force:
             env[FORCE_ENV] = '1'
+        if current_hm is not None:
+            env['YF_CRON_CURRENT_HM'] = str(current_hm)
+        elif 'YF_CRON_CURRENT_HM' not in env:
+            env['YF_CRON_CURRENT_HM'] = '0600'
         run_path = path.replace('\\', '/') if os.name == 'nt' else path
         proc = subprocess.run([BASH, run_path], env=env, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=120)
