@@ -262,3 +262,8 @@
   - [x] 38.2 **补齐六国语言包 `soft.already_latest` 映射 (`web/static/language/*/lan.js`)**：在 zh-CN、zh-TW、en、de、fr、it 六语言的 `lan.js` 中新增 `soft.already_latest` 键值
   - [x] 38.3 **派生同步 `.json` 语言包载体**：运行 `python scripts/tools/export_lang_carriers.py --apply`，同步生成 `template.soft.json` 等载体，确保单源派生一致
   - [x] 38.4 **静态门禁与单元测试验证**：运行 `python testsuite/run_all.py --static`、`test_i18n_web_backend_scope.py`、`test_request_security_hardening.py`，确保静态检查和相关用例 100% 通过
+
+- [x] **任务 39：御风面板 SSH 管理全面升级（ED25519 升级、后台生效修复与开关交互治理）**
+  - [x] 39.1 **全面升级现代 ED25519 并修复后台密钥生效与权限缺陷 (`web/utils/firewall.py`)**：清理重复定义的 `resetRootSshKey`；生成标准高强度 ED25519 密钥对；生成后将公钥严格写入 `/root/.ssh/authorized_keys` 并纠正权限（目录 700、authorized_keys 与私钥 600、公钥 644）；健全 `checkRootSshKey` 与写盘错误检测
+  - [x] 39.2 **修复前端开关文案颠倒、取消回滚错乱与状态同步缺陷 (`web/static/app/firewall.js`)**：修正 `setSshPubkeyStatus`、`setSshRootStatus`、`setSshPassStatus`、`setMstscStatus` 的文案三元判断逻辑（开启提示开启、关闭提示禁止）；优化原生事件交互防止取消乱跳；确认执行后精准同步状态；关闭密码登录前增加防自锁警告
+  - [x] 39.3 **自动化回归测试与门禁验证**：扩充 `testsuite/test_firewall_a04_hardening.py`，覆盖 ED25519 密钥生成、authorized_keys 同步写入与权限断言；运行全量测试与代码质量门禁确保 100% 通过

@@ -115,25 +115,25 @@ function sshMgr() {
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.start_ssh || '启动SSH') + '</span>' +
       '<div class="ssh-item" style="margin-left:0">' +
       '<input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" ' + ssh_status + '>' +
-      '<label class="btswitch-btn" for="sshswitch" onclick="setMstscStatus()"></label>' +
+      '<label class="btswitch-btn" for="sshswitch" onclick="setMstscStatus(event)"></label>' +
       '</div></div>' +
       '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_root || '允许root登陆') + '</span>' +
       '<div class="ssh-item" style="margin-left:0">' +
       '<input class="btswitch btswitch-ios" id="root_status" type="checkbox" ' + root_prohibit_status + '>' +
-      '<label class="btswitch-btn" for="root_status" onclick="setSshRootStatus()"></label>' +
+      '<label class="btswitch-btn" for="root_status" onclick="setSshRootStatus(event)"></label>' +
       '</div></div>' +
       '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_pass || '允许密码登陆') + '</span>' +
       '<div class="ssh-item" style="margin-left:0">' +
       '<input class="btswitch btswitch-ios" id="pass_status" type="checkbox" ' + pass_prohibit_status + '>' +
-      '<label class="btswitch-btn" for="pass_status" onclick="setSshPassStatus()"></label>' +
+      '<label class="btswitch-btn" for="pass_status" onclick="setSshPassStatus(event)"></label>' +
       '</div></div>' +
       '<div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_pubkey || '允许密钥登陆') + '</span>' +
       '<div class="ssh-item" style="margin-left:0">' +
       '<input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" ' + pubkey_prohibit_status + '>' +
-      '<label class="btswitch-btn" for="pubkey_status" onclick="setSshPubkeyStatus()"></label>' +
+      '<label class="btswitch-btn" for="pubkey_status" onclick="setSshPubkeyStatus(event)"></label>' +
       '</div></div>' +
       '<div style="display: flex;flex-wrap:wrap; justify-content: space-between; align-items: center; padding-top: 5px;">' +
       '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.root_key || 'Root密钥') + '</span>' +
@@ -309,37 +309,39 @@ function firewall(status) {
  * 设置远程服务状态
  * @param {Int} state 0.启用 1.关闭
  */
-function setMstscStatus() {
-  status = $("#sshswitch").prop("checked") == true ? 1 : 0;
-  var msg = status == 1 ? lan && lan.firewall && t('firewall.disabling_the_ssh_service') || "" : lan && lan.firewall && t('firewall.are_you_sure_you') || "";
+function setMstscStatus(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  var currentChecked = $("#sshswitch").prop("checked");
+  var targetStatus = currentChecked ? 1 : 0;
+  var msg = currentChecked ? lan && lan.firewall && t('firewall.disabling_the_ssh_service') || "" : lan && lan.firewall && t('firewall.are_you_sure_you') || "";
   layer.confirm(msg, {
     title: lan && lan.firewall && t('firewall.warning') || "",
-    closeBtn: 2,
-    cancel: function () {
-      if (status == 0) {
-        $("#sshswitch").prop("checked", false);
-      } else {
-        $("#sshswitch").prop("checked", true);
-      }
-    }
+    closeBtn: 2
   }, function (index) {
-    if (index > 0) {
-      layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_2') || "", {
-        icon: 16,
-        time: 20000
+    layer.close(index);
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_2') || "", {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+    $.post('/firewall/set_ssh_status', 'status=' + targetStatus, function (rdata) {
+      layer.close(loadT);
+      layer.msg(rdata.msg, {
+        icon: rdata.status ? 1 : 2
       });
-      $.post('/firewall/set_ssh_status', 'status=' + status, function (rdata) {
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-      }, 'json');
-    }
-  }, function () {
-    if (status == 0) {
-      $("#sshswitch").prop("checked", false);
-    } else {
-      $("#sshswitch").prop("checked", true);
-    }
+      if (rdata.status) {
+        $("#sshswitch").prop("checked", !currentChecked);
+        getSshInfo();
+      }
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -347,38 +349,38 @@ function setMstscStatus() {
  * 设置远程服务状态
  * @param {Int} state 0.启用 1.关闭
  */
-function setSshRootStatus() {
-  var checked = $("#root_status").prop("checked");
-  var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && t('firewall.are_you_sure_you_1') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_2') || "";
+function setSshRootStatus(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  var currentChecked = $("#root_status").prop("checked");
+  var targetStatus = currentChecked ? 0 : 1;
+  var msg = currentChecked ? lan && lan.firewall && t('firewall.are_you_sure_you_2') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_1') || "";
   layer.confirm(msg, {
     title: lan && lan.firewall && t('firewall.warning_1') || "",
-    closeBtn: 2,
-    cancel: function () {
-      if (checked) {
-        $("#root_status").prop("checked", false);
-      } else {
-        $("#root_status").prop("checked", true);
-      }
-    }
+    closeBtn: 2
   }, function (index) {
-    if (index > 0) {
-      layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_3') || "", {
-        icon: 16,
-        time: 20000
+    layer.close(index);
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_3') || "", {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+    $.post('/firewall/set_ssh_root_status', 'status=' + targetStatus, function (rdata) {
+      layer.close(loadT);
+      layer.msg(rdata.msg, {
+        icon: rdata.status ? 1 : 2
       });
-      $.post('/firewall/set_ssh_root_status', 'status=' + status, function (rdata) {
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-      }, 'json');
-    }
-  }, function () {
-    if (checked) {
-      $("#root_status").prop("checked", false);
-    } else {
-      $("#root_status").prop("checked", true);
-    }
+      if (rdata.status) {
+        $("#root_status").prop("checked", !currentChecked);
+      }
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -386,38 +388,43 @@ function setSshRootStatus() {
  * 设置远程服务状态
  * @param {Int} state 0.启用 1.关闭
  */
-function setSshPassStatus() {
-  var checked = $("#pass_status").prop("checked");
-  var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && t('firewall.are_you_sure_you_3') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_4') || "";
+function setSshPassStatus(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  var currentChecked = $("#pass_status").prop("checked");
+  var targetStatus = currentChecked ? 0 : 1;
+  var msg = currentChecked ? lan && lan.firewall && t('firewall.are_you_sure_you_4') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_3') || "";
+
+  if (currentChecked && !$("#pubkey_status").prop("checked")) {
+    msg = '<span style="color: #ff5722; font-weight: bold;">' + (lan && lan.firewall && t('firewall.warning') || '警告') + '：' + (lan && lan.firewall && lan.firewall.allow_pubkey || '允许密钥登陆') + '未开启！</span><br>' + msg;
+  }
+
   layer.confirm(msg, {
     title: lan && lan.firewall && t('firewall.warning_2') || "",
-    closeBtn: 2,
-    cancel: function () {
-      if (checked) {
-        $("#pass_status").prop("checked", false);
-      } else {
-        $("#pass_status").prop("checked", true);
-      }
-    }
+    closeBtn: 2
   }, function (index) {
-    if (index > 0) {
-      layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_4') || "", {
-        icon: 16,
-        time: 20000
+    layer.close(index);
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_4') || "", {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+    $.post('/firewall/set_ssh_pass_status', 'status=' + targetStatus, function (rdata) {
+      layer.close(loadT);
+      layer.msg(rdata.msg, {
+        icon: rdata.status ? 1 : 2
       });
-      $.post('/firewall/set_ssh_pass_status', 'status=' + status, function (rdata) {
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-      }, 'json');
-    }
-  }, function () {
-    if (checked) {
-      $("#pass_status").prop("checked", false);
-    } else {
-      $("#pass_status").prop("checked", true);
-    }
+      if (rdata.status) {
+        $("#pass_status").prop("checked", !currentChecked);
+      }
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -425,38 +432,38 @@ function setSshPassStatus() {
  * 设置远程服务状态
  * @param {Int} state 0.启用 1.关闭
  */
-function setSshPubkeyStatus() {
-  var checked = $("#pubkey_status").prop("checked");
-  var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && t('firewall.are_you_sure_you_5') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_6') || "";
+function setSshPubkeyStatus(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  var currentChecked = $("#pubkey_status").prop("checked");
+  var targetStatus = currentChecked ? 0 : 1;
+  var msg = currentChecked ? lan && lan.firewall && t('firewall.are_you_sure_you_6') || "" : lan && lan.firewall && t('firewall.are_you_sure_you_5') || "";
   layer.confirm(msg, {
     title: lan && lan.firewall && t('firewall.warning_3') || "",
-    closeBtn: 2,
-    cancel: function () {
-      if (checked) {
-        $("#pubkey_status").prop("checked", false);
-      } else {
-        $("#pubkey_status").prop("checked", true);
-      }
-    }
+    closeBtn: 2
   }, function (index) {
-    if (index > 0) {
-      layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_5') || "", {
-        icon: 16,
-        time: 20000
+    layer.close(index);
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.processing_please_wait_5') || "", {
+      icon: 16,
+      time: 0,
+      shade: [0.3, '#000']
+    });
+    $.post('/firewall/set_ssh_pubkey_status', 'status=' + targetStatus, function (rdata) {
+      layer.close(loadT);
+      layer.msg(rdata.msg, {
+        icon: rdata.status ? 1 : 2
       });
-      $.post('/firewall/set_ssh_pubkey_status', 'status=' + status, function (rdata) {
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-      }, 'json');
-    }
-  }, function () {
-    if (checked) {
-      $("#pubkey_status").prop("checked", false);
-    } else {
-      $("#pubkey_status").prop("checked", true);
-    }
+      if (rdata.status) {
+        $("#pubkey_status").prop("checked", !currentChecked);
+      }
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }
 
@@ -776,13 +783,18 @@ function downloadRootKey() {
       return;
     }
     window.open('/files/download?filename=/root/.ssh/id_ed25519');
-  }, 'json');
+  }, 'json').fail(function () {
+    layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+      icon: 2
+    });
+  });
 }
 function resetRootKey() {
   layer.confirm(lan && lan.firewall && t('firewall.after_the_reset_the') || "", {
     title: lan && lan.firewall && t('firewall.reset_root_key') || "",
     icon: 3
   }, function (index) {
+    layer.close(index);
     var loadT = layer.msg(lan && lan.firewall && t('firewall.the_key_pair_is') || "", {
       icon: 16,
       time: 0,
@@ -794,6 +806,11 @@ function resetRootKey() {
         icon: rdata.status ? 1 : 2,
         time: 3000
       });
-    }, 'json');
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      layer.msg(lan && lan.firewall && t('firewall.failed_to_connect_to') || "", {
+        icon: 2
+      });
+    });
   });
 }

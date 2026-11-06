@@ -984,19 +984,6 @@ class Firewall(object):
         yf.writeLog("SSH管理", msg)
         return yf.returnData(True, msg)
 
-    def resetRootSshKey(self):
-        ssh_dir = '/root/.ssh'
-        if not os.path.exists(ssh_dir):
-            os.makedirs(ssh_dir)
-            yf.execShell('chmod 700 ' + ssh_dir)
-
-        yf.execShell('rm -f /root/.ssh/id_rsa /root/.ssh/id_rsa.pub')
-        yf.execShell('ssh-keygen -q -t rsa -P "" -f /root/.ssh/id_rsa')
-        yf.execShell('cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys')
-        yf.execShell('chmod 600 /root/.ssh/authorized_keys')
-        
-        return yf.returnJson(True, 'firewall.py_msg_e3ea63')
-
     def setStatus(self, id, port, protocol, status):
         if not self.getFwStatus():
             return yf.returnData(False, 'firewall.py_msg_7e10e3')
@@ -1031,15 +1018,55 @@ class Firewall(object):
 
     def checkRootSshKey(self):
         key_file = '/root/.ssh/id_ed25519'
-        if os.path.exists(key_file):
+        pub_file = '/root/.ssh/id_ed25519.pub'
+        auth_file = '/root/.ssh/authorized_keys'
+        if os.path.exists(key_file) and os.path.exists(pub_file) and os.path.exists(auth_file):
+            return yf.returnJson(True, 'OK')
+        elif os.path.exists(key_file):
             return yf.returnJson(True, 'OK')
         return yf.returnJson(False, 'firewall.py_msg_0597c6')
 
     def resetRootSshKey(self):
-        if not os.path.exists('/root/.ssh'):
+        ssh_dir = '/root/.ssh'
+        if not os.path.exists(ssh_dir):
             yf.execShell("mkdir -p /root/.ssh && chmod 700 /root/.ssh")
+        else:
+            yf.execShell("chmod 700 /root/.ssh")
+
+        key_file = '/root/.ssh/id_ed25519'
+        pub_file = '/root/.ssh/id_ed25519.pub'
+        auth_file = '/root/.ssh/authorized_keys'
+
         yf.execShell("rm -f /root/.ssh/id_ed25519*")
-        yf.execShell("ssh-keygen -t ed25519 -N '' -f /root/.ssh/id_ed25519 -q")
-        if os.path.exists('/root/.ssh/id_ed25519'):
-            return yf.returnJson(True, 'firewall.py_msg_962795')
-        return yf.returnJson(False, 'firewall.py_msg_cd9f26')
+        yf.execShell("ssh-keygen -t ed25519 -N '' -C 'yufeng_panel_root' -f /root/.ssh/id_ed25519 -q")
+
+        if not os.path.exists(key_file) or not os.path.exists(pub_file):
+            return yf.returnJson(False, 'firewall.py_msg_cd9f26')
+
+        yf.execShell("chmod 600 /root/.ssh/id_ed25519")
+        yf.execShell("chmod 644 /root/.ssh/id_ed25519.pub")
+
+        pub_key = yf.readFile(pub_file)
+        if pub_key:
+            pub_key = pub_key.strip()
+
+        if not pub_key:
+            return yf.returnJson(False, 'firewall.py_msg_cd9f26')
+
+        auth_content = ""
+        if os.path.exists(auth_file):
+            auth_content = yf.readFile(auth_file) or ""
+
+        # 清理旧的 yufeng_panel_root 标识公钥（如有）并追加/合并新公钥
+        lines = [line.strip() for line in auth_content.splitlines() if line.strip()]
+        lines = [line for line in lines if not line.endswith('yufeng_panel_root') and line != pub_key]
+        lines.append(pub_key)
+        new_auth_content = "\n".join(lines) + "\n"
+
+        if not yf.writeFile(auth_file, new_auth_content):
+            return yf.returnJson(False, 'firewall.py_msg_cd9f26')
+
+        yf.execShell("chmod 600 /root/.ssh/authorized_keys")
+
+        yf.writeLog("SSH管理", "重置Root SSH密钥(ED25519)成功并同步写入authorized_keys")
+        return yf.returnJson(True, 'firewall.py_msg_e3ea63')

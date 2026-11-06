@@ -567,6 +567,41 @@ class TestSshToggles(FirewallCase):
         self.assertFalse(res['status'])
         self.assertEqual(self.yf.written, [])
 
+    def test_reset_root_ssh_key_ed25519(self):
+        """重置 SSH 密钥必须使用 ED25519 且严格同步写入 authorized_keys 并纠正权限。"""
+        pub_line = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleFakeKey yufeng_panel_root"
+        self.yf.files['/root/.ssh/id_ed25519.pub'] = pub_line
+        self.yf.files['/root/.ssh/authorized_keys'] = "ssh-rsa AAAAB3... old_key\n"
+
+        self.ns['os'] = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: True),
+            makedirs=lambda *a, **k: None)
+
+        res = self.fw.resetRootSshKey()
+        self.assertTrue(res['status'])
+        # 必须生成 ed25519 密钥
+        self.assertTrue(any('ssh-keygen -t ed25519' in c for c in self.yf.shell_calls))
+        # 必须设置正确权限
+        self.assertTrue(any('chmod 600 /root/.ssh/id_ed25519' in c for c in self.yf.shell_calls))
+        self.assertTrue(any('chmod 600 /root/.ssh/authorized_keys' in c for c in self.yf.shell_calls))
+        # 必须将公钥写入 authorized_keys
+        auth_writes = [w[1] for w in self.yf.written if w[0] == '/root/.ssh/authorized_keys']
+        self.assertTrue(len(auth_writes) > 0)
+        self.assertIn(pub_line, auth_writes[-1])
+
+    def test_check_root_ssh_key(self):
+        self.ns['os'] = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: p == '/root/.ssh/id_ed25519'),
+            makedirs=lambda *a, **k: None)
+        res = self.fw.checkRootSshKey()
+        self.assertTrue(res['status'])
+
+        self.ns['os'] = types.SimpleNamespace(
+            path=types.SimpleNamespace(exists=lambda p: False),
+            makedirs=lambda *a, **k: None)
+        res_fail = self.fw.checkRootSshKey()
+        self.assertFalse(res_fail['status'])
+
 
 class TestSourceGuards(unittest.TestCase):
     """源码级守卫：修复被回退即变红（AST / 去空白后断言，注释骗不过）。"""
