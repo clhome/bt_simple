@@ -132,6 +132,17 @@ def healGzipConf(content):
     return content, need_write
 
 
+def healServerHeader(content):
+    need_write = False
+    # 前置守护判断：纯 C 子串快速命中，未包含旧标识时耗时不足 0.01ms，零额外开销
+    if 'mdserver-web' in content:
+        pattern = r'more_set_headers\s+["\']Server:\s*mdserver-web["\']\s*;'
+        if re.search(pattern, content):
+            content = re.sub(pattern, 'more_set_headers "Server: Yufeng-Panel";', content)
+            need_write = True
+    return content, need_write
+
+
 def confSelfHeal():
     try:
         conf_file = getConf()
@@ -148,6 +159,11 @@ def confSelfHeal():
             # 智能升级与补齐 Gzip 代理传输及预压缩静态文件优化配置
             content, gzip_healed = healGzipConf(content)
             if gzip_healed:
+                need_write = True
+
+            # 智能纠正旧版 mdserver-web 遗留的 Server 响应头，统一替换为 Yufeng-Panel（0 额外 I/O）
+            content, header_healed = healServerHeader(content)
+            if header_healed:
                 need_write = True
                 
             if need_write:

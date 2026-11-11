@@ -2094,12 +2094,14 @@ conn.close()
     fi
 
     # 递归替换 Nginx / OpenResty 的配置项 (Section 7.1 step 9)
-    log_info "更新 Web 服务配置文件路径..."
+    log_info "更新 Web 服务配置文件路径与标识..."
     if [ -d "/www/server/nginx/conf/" ]; then
         find /www/server/nginx/conf/ -type f -name "*.conf" -exec sed -i 's|/www/server/mdserver-web|/www/server/yufeng_panel|g' {} + 2>/dev/null
+        find /www/server/nginx/conf/ -type f -name "*.conf" -exec sed -i 's/Server: mdserver-web/Server: Yufeng-Panel/g' {} + 2>/dev/null
     fi
     if [ -d "/www/server/openresty/" ]; then
         find /www/server/openresty/ -type f -name "*.conf" -exec sed -i 's|/www/server/mdserver-web|/www/server/yufeng_panel|g' {} + 2>/dev/null
+        find /www/server/openresty/ -type f -name "*.conf" -exec sed -i 's/Server: mdserver-web/Server: Yufeng-Panel/g' {} + 2>/dev/null
     fi
 
     # 更新 cron 任务中可能残留的废弃模块调用

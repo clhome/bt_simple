@@ -68,6 +68,11 @@ do
 done
 
 
+# 静默自愈历史 OpenResty Server 标头（毫秒级单次替换，零运行时开销）
+if [ -f /www/server/openresty/nginx/conf/nginx.conf ]; then
+    sed -i 's/Server: mdserver-web/Server: Yufeng-Panel/g' /www/server/openresty/nginx/conf/nginx.conf 2>/dev/null
+fi
+
 echo -e "start yf"
 cd /www/server/yufeng_panel && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
