@@ -24,6 +24,19 @@ if ! command -v yf_nginx_addon_fetch >/dev/null 2>&1; then
 	exit 1
 fi
 
+# 核心源码包获取器
+for _yf_src_lib in "${curPath}/../common/openresty_src_fetch.sh" \
+	"/www/server/yufeng_panel/plugins/openresty/versions/common/openresty_src_fetch.sh"; do
+	if [ -f "$_yf_src_lib" ]; then
+		. "$_yf_src_lib"
+		break
+	fi
+done
+if ! command -v yf_openresty_src_fetch >/dev/null 2>&1; then
+	echo "[ERROR] 缺少源码获取器 openresty_src_fetch.sh，停止安装"
+	exit 1
+fi
+
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -73,23 +86,10 @@ if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/
 	mkdir -p ${openrestyDir}
 	echo '正在安装脚本文件...'
 
-	# wget -O openresty-1.21.4.1.tar.gz https://openresty.org/download/openresty-1.21.4.1.tar.gz
-	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget -nv --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
+	if ! yf_openresty_src_fetch "${openrestyDir}" "${VERSION}"; then
+		echo "[ERROR] OpenResty 核心源码包获取或校验失败，停止安装" >&2
+		exit 1
 	fi
-
-	DOWNLOAD_SIZE=`wc -c ${openrestyDir}/openresty-${VERSION}.tar.gz | awk '{print $1}'`
-	if [ "$DOWNLOAD_SIZE" == "0" ];then
-		echo 'download failed, download again'
-		rm -rf ${openrestyDir}/openresty-${VERSION}.tar.gz
-	fi
-
-	# Last Download Method (USTC Mirror)
-	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget -nv --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirrors.ustc.edu.cn/openresty/download/openresty-${VERSION}.tar.gz -T 10
-	fi
-
-	cd ${openrestyDir} && tar -zxf openresty-${VERSION}.tar.gz
 
 	OPTIONS=''
 

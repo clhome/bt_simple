@@ -165,21 +165,14 @@ function yf_download() {
         fi
     fi
 
-    # 非 GitHub URL（如 OpenResty 官方镜像等）
-    local addr=$(get_local_addr)
-    if [ "$addr" == "cn" ]; then
-        # OpenResty Mirror
-        if [[ $url == https://openresty.org/download/* ]]; then
-            local filename=$(basename $url)
-            local proxy_url="https://mirrors.ustc.edu.cn/openresty/download/$filename"
-            echo "Downloading from mirror: $proxy_url"
-            wget $(yf_wget_tls_extra_args "$proxy_url") -O $file --tries=3 --timeout=$timeout $proxy_url
+    # 非 GitHub URL
+    if [ ! -s "$file" ]; then
+        echo "Downloading from: $url"
+        rm -f "$file" 2>/dev/null
+        wget $(yf_wget_tls_extra_args "$url") -O "$file" --tries=3 --timeout="$timeout" "$url"
+        if [ ! -s "$file" ]; then
+            rm -f "$file" 2>/dev/null
         fi
-    fi
-
-    if [ ! -f $file ]; then
-        echo "Downloading from original: $url"
-        wget $(yf_wget_tls_extra_args "$url") -O $file --tries=3 --timeout=$timeout $url
     fi
 }
 

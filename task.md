@@ -267,3 +267,17 @@
   - [x] 39.1 **全面升级现代 ED25519 并修复后台密钥生效与权限缺陷 (`web/utils/firewall.py`)**：清理重复定义的 `resetRootSshKey`；生成标准高强度 ED25519 密钥对；生成后将公钥严格写入 `/root/.ssh/authorized_keys` 并纠正权限（目录 700、authorized_keys 与私钥 600、公钥 644）；健全 `checkRootSshKey` 与写盘错误检测
   - [x] 39.2 **修复前端开关文案颠倒、取消回滚错乱与状态同步缺陷 (`web/static/app/firewall.js`)**：修正 `setSshPubkeyStatus`、`setSshRootStatus`、`setSshPassStatus`、`setMstscStatus` 的文案三元判断逻辑（开启提示开启、关闭提示禁止）；优化原生事件交互防止取消乱跳；确认执行后精准同步状态；关闭密码登录前增加防自锁警告
   - [x] 39.3 **自动化回归测试与门禁验证**：扩充 `testsuite/test_firewall_a04_hardening.py`，覆盖 ED25519 密钥生成、authorized_keys 同步写入与权限断言；运行全量测试与代码质量门禁确保 100% 通过
+
+- [x] **任务 40：Web 服务器 (OpenResty) 历史 `Server: mdserver-web` 标头静默自愈与零开销根治**
+  - [x] 40.1 在 `plugins/openresty/index.py` 中实现 `healServerHeader` 并在 `confSelfHeal` 中接入，前置子串守护零额外 I/O
+  - [x] 40.2 在 `deploy.sh` 从 mdserver-web 迁移与系统更新脚本中增加一次性定向静默修正（仅在迁移/更新瞬时执行，日常 0 开销）
+  - [x] 40.3 编写自动化单元测试 `testsuite/test_openresty_server_header_heal.py`，覆盖各种单双引号变体、零多余写盘、幂等性等
+  - [x] 40.4 运行回归测试套件与代码质量门禁，确保 100% 通过
+
+- [x] **任务 41：OpenResty 源码包与关键依赖下载鲁棒性治理（根除 404 镜像、3秒短超时与解压缺失 `./configure` 假目录缺陷）**
+  - [x] 41.1 新建源码通用获取器 `plugins/openresty/versions/common/openresty_src_fetch.sh`：半成品坏目录清理、官方+GitHub Release 双通道高可用下载、大小与 gzip 完整性强校验、解压后 `./configure` 存在性强校验熔断
+  - [x] 41.2 全量重构 8 个 OpenResty 版本安装脚本（`1.17.8`, `1.19.3`, `1.21.4`, `1.25.3`, `1.27.1`, `1.29.2`, `1.31.1`, `rtmp`），彻底消除 `-T 3`、404 中科大镜像与假成功解压
+  - [x] 41.3 修复 `scripts/lib.sh` 中 `mw_download` 对 OpenResty 的 404 死镜像引用与 0 字节文件残留判定缺陷
+  - [x] 41.4 编写单元测试 `testsuite/test_openresty_src_fetch.py` 验证各场景（坏包清理、半成品目录修复、双通道回退与 configure 校验）
+  - [x] 41.5 运行全量代码质量门禁与测试套件验证
+
