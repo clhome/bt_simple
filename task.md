@@ -281,3 +281,15 @@
   - [x] 41.4 编写单元测试 `testsuite/test_openresty_src_fetch.py` 验证各场景（坏包清理、半成品目录修复、双通道回退与 configure 校验）
   - [x] 41.5 运行全量代码质量门禁与测试套件验证
 
+- [x] **任务 42：御风网站防火墙 (`plugins/op_waf`) SEO 优化与自带底层白名单增强**
+  - [x] 42.1 **底层 SEO 核心白名单机制（Default Underlying SEO Whitelist）**：在 `init.lua` 中构建内置 SEO 白名单通道，对安全只读方法（GET/HEAD）访问 `/robots.txt`、`/sitemap*.xml`（含各类命名与 `.gz`/`.txt` 变体）及 `/favicon.ico` 给予免除海外 IP 屏蔽、人机验证（JS 盾）、curl 保护与常规爬虫过滤的豁免，彻底消除误杀，同时对带有非法注入参数的恶意请求保持参数层检查。
+  - [x] 42.2 **智能蜘蛛白名单 UA 识别扩充与官方 IP 库（IPv4 & IPv6）全面补全**：
+    - 扩充 `waf_spider` UA 正则，支持 Google-InspectionTool、Google-Site-Verification 等全系列官方探测工具及 DuckDuckBot 等主流引擎；
+    - 全面扩充 `spider_ip.json`，补充 Google 官方完整 CIDR（含 IPv6 爬虫网段）、Bing 官方网段以及百度、字节跳动等权威网段；
+    - 保持 `conf/rule_spider_ip.lua` 同步生成与平滑热重载。
+  - [x] 42.3 **默认 URL 白名单规则同步预置**：在 `rule/url_white.json` 中预置 `^/robots\.txt$` 与 `^/sitemap.*` 规则，面板端直观可控。
+  - [x] 42.4 **后端 `index.py` 统计与同步逻辑适配**：在 `getSpiderConf` 与 `syncSpiderIp` 中适配 IPv6 蜘蛛与新增引擎统计，确保界面数据完整准确。
+  - [x] 42.5 **自动化单元测试与门禁验证**：扩充 `testsuite/test_op_waf_spider.py` 与新建专门针对底层 SEO 白名单放行与防绕过的单测，确保测试与代码质量门禁 100% 通过。
+  - [x] 42.6 **双保险自动升级与无感自愈**：提升 `info.json` 版本号至 `1.7`（支持面板前端显式点击升级）；在 `upgradeRules()` 增量合并中纳入 `url_white` 与 `spider_ip`；自动比对运行时 OpenResty 的 `opwaf_init.lua`，发现缺少底层白名单时静默平滑热同步并重载，实现零操作全自动无感升级；扩充 `testsuite/test_op_waf_rule_upgrade.py` 增量合并断言，测试 100% 通过。
+
+

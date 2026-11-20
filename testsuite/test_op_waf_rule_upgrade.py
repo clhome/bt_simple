@@ -32,7 +32,7 @@ class TestOpWafRuleUpgrade(unittest.TestCase):
         op_waf_info = os.path.join(workspace, 'plugins', 'op_waf', 'info.json')
         with open(op_waf_info, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        self.assertIn('1.6', data.get('versions', []), "op_waf 版本未升级至 1.6")
+        self.assertTrue(any(v in ['1.6', '1.7'] for v in data.get('versions', [])), "op_waf 版本应 >= 1.6")
 
         f2b_info = os.path.join(workspace, 'plugins', 'fail2ban', 'info.json')
         with open(f2b_info, 'r', encoding='utf-8') as f:
@@ -125,6 +125,22 @@ class TestOpWafRuleUpgrade(unittest.TestCase):
             with open(vuln_file, 'w', encoding='utf-8') as f:
                 json.dump(user_vuln_rules, f, ensure_ascii=False, indent=4)
 
+            # 2.1 模拟老用户的 url_white.json (包含用户自建白名单，但缺少新官方 robots/sitemap)
+            user_url_white = [
+                [1, "^/my_custom_oauth_callback", "用户自建OAuth白名单", 0]
+            ]
+            url_white_file = os.path.join(rule_dir, 'url_white.json')
+            with open(url_white_file, 'w', encoding='utf-8') as f:
+                json.dump(user_url_white, f, ensure_ascii=False, indent=4)
+
+            # 2.2 模拟老用户的 spider_ip.json (包含老规则与用户自建爬虫，但缺少新版官方 Google IPv6)
+            user_spider_ip = [
+                ["198.51.100.0/24", "用户自建爬虫网段"]
+            ]
+            spider_ip_file = os.path.join(rule_dir, 'spider_ip.json')
+            with open(spider_ip_file, 'w', encoding='utf-8') as f:
+                json.dump(user_spider_ip, f, ensure_ascii=False, indent=4)
+
             # 3. 执行 upgradeRules
             changed = op_waf_index.upgradeRules()
             self.assertTrue(changed, "老用户首次升级时应当产生增量合并")
@@ -156,6 +172,21 @@ class TestOpWafRuleUpgrade(unittest.TestCase):
             self.assertEqual(rule_0[0], 0, "用户禁用的官方旧规则被意外重置为启用状态")
             # 新规则增量追加
             self.assertTrue(any('spring-boot.*restart' in p for p in patterns), "新规则未成功追加进 vuln.json")
+
+            # 5.1 验证 url_white.json 合并：用户自建保留 + 官方新增 robots/sitemap 增量追加
+            with open(url_white_file, 'r', encoding='utf-8') as f:
+                upgraded_white = json.load(f)
+            white_patterns = [r[1] for r in upgraded_white]
+            self.assertIn("^/my_custom_oauth_callback", white_patterns, "用户自建 URL 白名单丢失")
+            self.assertTrue(any("robots" in p for p in white_patterns), "robots.txt 白名单未自动增量合并")
+            self.assertTrue(any("sitemap" in p for p in white_patterns), "sitemap.* 白名单未自动增量合并")
+
+            # 5.2 验证 spider_ip.json 合并：用户自建保留 + 官方新增 Google IPv6 增量追加
+            with open(spider_ip_file, 'r', encoding='utf-8') as f:
+                upgraded_spiders = json.load(f)
+            spider_ips = [r[0] for r in upgraded_spiders]
+            self.assertIn("198.51.100.0/24", spider_ips, "用户自建爬虫 IP 丢失")
+            self.assertIn("2001:4860:4801::/48", spider_ips, "官方 Google IPv6 爬虫网段未自动增量合并")
 
             # 6. 验证幂等性：再次调用返回 False 且内容无变化
             changed_second = op_waf_index.upgradeRules()

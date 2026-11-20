@@ -288,7 +288,7 @@ local function waf_spider()
     local ua = params['request_header']['user-agent']
     if not ua or type(ua) ~= "string" then return false end
     
-    if not ngx.re.find(ua, "(Baiduspider|Googlebot|bingbot|Sogou|360Spider|YisouSpider|YandexBot|Bytespider|PetalBot)", "ijo") then
+    if not ngx.re.find(ua, "(Baiduspider|Googlebot|Google-InspectionTool|Google-Site-Verification|Feedfetcher-Google|Storebot-Google|bingbot|msnbot|BingPreview|Sogou|360Spider|HaosouSpider|YisouSpider|YandexBot|Bytespider|PetalBot|DuckDuckBot)", "ijo") then
         return false
     end
     
@@ -1070,6 +1070,54 @@ local function waf_404_warning()
     return false
 end
 
+local function waf_seo_white()
+    local method = params['method']
+    -- 仅放行安全的只读方法（GET / HEAD）
+    if method ~= "GET" and method ~= "HEAD" then
+        return false
+    end
+
+    local uri = params['uri'] or ngx.var.uri or ""
+    local lower_uri = string.lower(uri)
+
+    -- 校验是否命中核心 SEO 元文件白名单：
+    -- 1. /robots.txt
+    -- 2. /favicon.ico
+    -- 3. /sitemap.xml 及其分卷与变体（/sitemap_index.xml, /sitemap*.xml, /sitemap*.txt, /sitemap*.xml.gz 等）
+    local is_seo_path = false
+    if lower_uri == "/robots.txt" or lower_uri == "/favicon.ico" then
+        is_seo_path = true
+    elseif ngx.re.find(lower_uri, "^/sitemap([-_a-z0-9]*)?\\.(xml|txt|xml\\.gz)$", "ijo") then
+        is_seo_path = true
+    end
+
+    if not is_seo_path then
+        return false
+    end
+
+    -- 安全防线：严防黑客利用 SEO 白名单路径携带恶意参数发起注入/漏洞攻击
+    if params['uri_request_args'] and next(params['uri_request_args']) ~= nil then
+        if C:ngx_match_list(args_rules, params['uri_request_args']) then
+            C:write_log('args', 'regular')
+            C:return_html(config['get']['status'], get_html)
+            return true
+        end
+        if C:ngx_match_list(ssrf_rules, params['uri_request_args']) then
+            C:write_log('ssrf', 'ssrf_args')
+            C:return_html(config['get']['status'], get_html)
+            return true
+        end
+        if C:ngx_match_list(vuln_rules, params['uri_request_args']) then
+            C:write_log('scan', 'vuln_args')
+            C:return_html(config['get']['status'], get_html)
+            return true
+        end
+    end
+
+    -- 验证通过：安全放行（豁免海外地区限制、curl保护拦截、User-Agent过滤、强制JS挑战和CC频控拦截）
+    return true
+end
+
 function run_app_waf()
     if waf_method() then return true end
     if waf_smuggling() then return true end
@@ -1109,6 +1157,9 @@ function run_app_waf()
 
         -- 404 警告拦截
         if waf_404_warning() then return true end
+
+        -- underlying seo white (内置底层 SEO 白名单放行)
+        if waf_seo_white() then return true end
 
         -- country limit
         if config['area_limit'] then

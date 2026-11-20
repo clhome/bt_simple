@@ -1,4 +1,6 @@
 [
     [1, "^/(phpmyadmin)", "MySQL[phpMyAdmin]", 0],
-    [1, "^/login/oauth/", "OAuth认证白名单", 0]
+    [1, "^/login/oauth/", "OAuth认证白名单", 0],
+    [1, "^/robots\\.txt$", "搜索引擎Robots协议(免检)", 0],
+    [1, "^/sitemap.*\\.(xml|txt|xml\\.gz)$", "站点地图Sitemap(免检)", 0]
 ]

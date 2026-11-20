@@ -596,7 +596,7 @@ def upgradeRules(raise_err=False):
                                     errors.append('写入 config.json 蜜罐路径失败')
 
         # 2. 合并 waf/rule/*.json 规则文件（列表型规则）
-        list_rule_files = ['vuln', 'url', 'args', 'post', 'cookie', 'user_agent', 'ssrf']
+        list_rule_files = ['vuln', 'url', 'args', 'post', 'cookie', 'user_agent', 'ssrf', 'url_white']
         for rname in list_rule_files:
             dst_file = getServerDir() + "/waf/rule/" + rname + ".json"
             src_file = getPluginDir() + "/waf/rule/" + rname + ".json"
@@ -638,7 +638,36 @@ def upgradeRules(raise_err=False):
                 else:
                     errors.append(f'写入 {rname}.json 失败')
 
-        # 3. 合并 scan_black.json 字典型规则文件
+        # 3. 合并 spider_ip.json 爬虫权威库
+        dst_spider = getServerDir() + "/waf/rule/spider_ip.json"
+        src_spider = getPluginDir() + "/waf/rule/spider_ip.json"
+        if os.path.exists(dst_spider) and os.path.exists(src_spider):
+            try:
+                dst_raw = yf.readFile(dst_spider)
+                src_raw = yf.readFile(src_spider)
+                if dst_raw and src_raw:
+                    dst_spider_rules = json.loads(dst_raw)
+                    src_spider_rules = json.loads(src_raw)
+                    if isinstance(dst_spider_rules, list) and isinstance(src_spider_rules, list):
+                        existing_ips = {r[0].strip() for r in dst_spider_rules if isinstance(r, (list, tuple)) and len(r) > 0 and isinstance(r[0], str)}
+                        spider_added = False
+                        for sr in src_spider_rules:
+                            if isinstance(sr, (list, tuple)) and len(sr) > 0 and isinstance(sr[0], str):
+                                ip_cidr = sr[0].strip()
+                                if ip_cidr not in existing_ips:
+                                    dst_spider_rules.append(sr)
+                                    existing_ips.add(ip_cidr)
+                                    spider_added = True
+                        if spider_added:
+                            if yf.writeFile(dst_spider, json.dumps(dst_spider_rules, ensure_ascii=False, indent=4)):
+                                modified = True
+                                autoMakeLuaConfSingle('spider_ip', conf_reload=True)
+                            else:
+                                errors.append('写入 spider_ip.json 失败')
+            except Exception as spe:
+                errors.append(f'spider_ip.json 合并异常: {spe}')
+
+        # 4. 合并 scan_black.json 字典型规则文件
         dst_scan = getServerDir() + "/waf/rule/scan_black.json"
         src_scan = getPluginDir() + "/waf/rule/scan_black.json"
         if os.path.exists(dst_scan) and os.path.exists(src_scan):
@@ -662,6 +691,18 @@ def upgradeRules(raise_err=False):
                                 errors.append('写入 scan_black.json 失败')
             except Exception as se:
                 errors.append(f'scan_black.json 合并异常: {se}')
+
+        # 5. 运行时 Lua 核心引擎平滑自愈（自动同步新版 waf_seo_white 底层白名单）
+        try:
+            root_access_dir = yf.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+            access_file_dst = root_access_dir + '/opwaf_init.lua'
+            if os.path.exists(access_file_dst):
+                cur_lua = yf.readFile(access_file_dst)
+                if isinstance(cur_lua, str) and 'waf_seo_white' not in cur_lua:
+                    makeOpDstRunLua(conf_reload=True)
+                    modified = True
+        except Exception as lue:
+            _log.debug('[op_waf] autoSyncLuaEngine 异常已忽略: %s', lue)
     except Exception as e:
         _log.warning('[op_waf] upgradeRules 异常: %s', e)
         errors.append(str(e))
@@ -2840,6 +2881,7 @@ def getSpiderConf():
         '360': 0,
         'shenma': 0,
         'yandex': 0,
+        'duckduckgo': 0,
         'custom': 0,
         'total': len(ip_list)
     }
@@ -2847,9 +2889,9 @@ def getSpiderConf():
         ps = item[1] if len(item) > 1 else ''
         if '百度' in ps:
             engine_stats['baidu'] += 1
-        elif '谷歌' in ps:
+        elif '谷歌' in ps or 'Google' in ps or 'google' in ps:
             engine_stats['google'] += 1
-        elif '必应' in ps:
+        elif '必应' in ps or 'Bing' in ps or 'bing' in ps:
             engine_stats['bing'] += 1
         elif '字节' in ps:
             engine_stats['bytedance'] += 1
@@ -2863,6 +2905,8 @@ def getSpiderConf():
             engine_stats['shenma'] += 1
         elif 'Yandex' in ps or 'yandex' in ps:
             engine_stats['yandex'] += 1
+        elif 'DuckDuck' in ps or 'duckduck' in ps:
+            engine_stats['duckduckgo'] += 1
         else:
             engine_stats['custom'] += 1
 
