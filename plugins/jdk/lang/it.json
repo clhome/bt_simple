@@ -52,5 +52,19 @@
     "请求失败": "Richiesta non riuscita",
     "请输入JDK路径": "Inserisci il percorso del JDK",
     "路径无效": "Percorso non valido",
-    "面板安装": "Installato da pannello"
+    "面板安装": "Installato da pannello",
+    "Java4Shell安全防御": "Difesa di sicurezza Java4Shell",
+    "安全": "Sicuro",
+    "已缓解": "Mitigato",
+    "硬件免疫": "Hardware immune",
+    "高危利用风险": "Rischio di exploit elevato",
+    "服务器硬件暴露面": "Esposizione hardware del server",
+    "全局JVM安全缓解": "Mitigazione di sicurezza globale della JVM",
+    "一键开启缓解": "Abilita mitigazione",
+    "关闭缓解": "Disabilita mitigazione",
+    "已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解": "Mitigazione opzione globale -XX:-UseBASE64Intrinsics abilitata",
+    "未配置全局启动缓解": "Mitigazione globale all'avvio non configurata",
+    "确认开启全局 Java4Shell 临时安全缓解？": "Confermare l'attivazione della mitigazione temporanea Java4Shell?",
+    "确认关闭全局安全缓解？": "Confermare la disattivazione della mitigazione globale?",
+    "升级": "Aggiorna"
 }

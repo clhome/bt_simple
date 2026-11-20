@@ -281,15 +281,21 @@
   - [x] 41.4 编写单元测试 `testsuite/test_openresty_src_fetch.py` 验证各场景（坏包清理、半成品目录修复、双通道回退与 configure 校验）
   - [x] 41.5 运行全量代码质量门禁与测试套件验证
 
-- [x] **任务 42：御风网站防火墙 (`plugins/op_waf`) SEO 优化与自带底层白名单增强**
-  - [x] 42.1 **底层 SEO 核心白名单机制（Default Underlying SEO Whitelist）**：在 `init.lua` 中构建内置 SEO 白名单通道，对安全只读方法（GET/HEAD）访问 `/robots.txt`、`/sitemap*.xml`（含各类命名与 `.gz`/`.txt` 变体）及 `/favicon.ico` 给予免除海外 IP 屏蔽、人机验证（JS 盾）、curl 保护与常规爬虫过滤的豁免，彻底消除误杀，同时对带有非法注入参数的恶意请求保持参数层检查。
   - [x] 42.2 **智能蜘蛛白名单 UA 识别扩充与官方 IP 库（IPv4 & IPv6）全面补全**：
     - 扩充 `waf_spider` UA 正则，支持 Google-InspectionTool、Google-Site-Verification 等全系列官方探测工具及 DuckDuckBot 等主流引擎；
     - 全面扩充 `spider_ip.json`，补充 Google 官方完整 CIDR（含 IPv6 爬虫网段）、Bing 官方网段以及百度、字节跳动等权威网段；
     - 保持 `conf/rule_spider_ip.lua` 同步生成与平滑热重载。
-  - [x] 42.3 **默认 URL 白名单规则同步预置**：在 `rule/url_white.json` 中预置 `^/robots\.txt$` 与 `^/sitemap.*` 规则，面板端直观可控。
   - [x] 42.4 **后端 `index.py` 统计与同步逻辑适配**：在 `getSpiderConf` 与 `syncSpiderIp` 中适配 IPv6 蜘蛛与新增引擎统计，确保界面数据完整准确。
   - [x] 42.5 **自动化单元测试与门禁验证**：扩充 `testsuite/test_op_waf_spider.py` 与新建专门针对底层 SEO 白名单放行与防绕过的单测，确保测试与代码质量门禁 100% 通过。
   - [x] 42.6 **双保险自动升级与无感自愈**：提升 `info.json` 版本号至 `1.7`（支持面板前端显式点击升级）；在 `upgradeRules()` 增量合并中纳入 `url_white` 与 `spider_ip`；自动比对运行时 OpenResty 的 `opwaf_init.lua`，发现缺少底层白名单时静默平滑热同步并重载，实现零操作全自动无感升级；扩充 `testsuite/test_op_waf_rule_upgrade.py` 增量合并断言，测试 100% 通过。
+- [x] **任务 43：御风 JDK 管理器安全加固与全面升级（Java4Shell / CVE-2026-114938 专项防御与管理优化）**
+  - [x] 43.1 **后端：硬件脆弱性审计与 CPU 指令集探测（AVX-512 VBMI & ARM64）**：实现 `_check_hw_vulnerability`，精确探测 Linux `/proc/cpuinfo` flags 中的 `avx512_vbmi`，区分 ARM64 天然免疫、x86 无 VBMI 硬件免疫与 x86+VBMI 硬件暴露面
+  - [x] 43.2 **后端：CVE-2026-114938 (Java4Shell) 版本漏洞判定引擎**：实现 `_check_java4shell_vuln`，精准解析版本号并比对漏洞区间（JDK 17/21/25/27 及 JDK 8 perf），结合硬件暴露面与全局缓解参数生成精确防护状态（safe/mitigated/hw_immune/vulnerable）
+  - [x] 43.3 **后端：默认在线版本升级至安全版本与动态选优**：将预设清单升级至 Adoptium 安全补丁版本（如 `17.0.21.1`、`21.0.13.1`、`25.0.5.1`），更新比对 key 优先选择更高安全补丁
+  - [x] 43.4 **后端：一键全局安全缓解参数配置 (`-XX:-UseBASE64Intrinsics`)**：实现 `toggle_global_mitigation` 与 `get_global_mitigation`，在 `/etc/profile.d/java.sh` 中安全管理 `JDK_JAVA_OPTIONS`，设为默认时自动联动
+  - [x] 43.5 **前端：UI 视觉与交互全面升级 (`index.html`)**：顶部新增 Java4Shell 安全防御与硬件暴露面卡片，增加一键缓解开关；列表中展示直观的漏洞与安全状态徽标（安全/已缓解/硬件免疫/待加固）
+  - [x] 43.6 **多语言包扩充与元数据升级 (`lang/*.json`, `info.json`)**：对齐 6 国语言包新增键值，升级插件版本至 1.3
+  - [x] 43.7 **自动化单元测试与质量门禁验证**：编写 `testsuite/test_jdk_java4shell_hardening.py`，全量回归测试与代码质量棘轮门禁 100% 通过
+
 
 

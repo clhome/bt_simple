@@ -52,5 +52,19 @@
     "请求失败": "Échec de la requête",
     "请输入JDK路径": "Veuillez saisir le chemin du JDK",
     "路径无效": "Chemin non valide",
-    "面板安装": "Installé par le panneau"
+    "面板安装": "Installé par le panneau",
+    "Java4Shell安全防御": "Défense de sécurité Java4Shell",
+    "安全": "Sécurisé",
+    "已缓解": "Atténué",
+    "硬件免疫": "Immunisé par le matériel",
+    "高危利用风险": "Risque d'exploitation élevé",
+    "服务器硬件暴露面": "Exposition matérielle du serveur",
+    "全局JVM安全缓解": "Atténuation de sécurité globale de la JVM",
+    "一键开启缓解": "Activer l'atténuation",
+    "关闭缓解": "Désactiver l'atténuation",
+    "已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解": "Atténuation par paramètre global -XX:-UseBASE64Intrinsics activée",
+    "未配置全局启动缓解": "Atténuation globale au démarrage non configurée",
+    "确认开启全局 Java4Shell 临时安全缓解？": "Confirmer l'activation de l'atténuation temporaire Java4Shell ?",
+    "确认关闭全局安全缓解？": "Confirmer la désactivation de l'atténuation globale ?",
+    "升级": "Mettre à niveau"
 }

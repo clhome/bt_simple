@@ -359,7 +359,7 @@ class JdkE01Test(unittest.TestCase):
         self.assertEqual(['bash ' + shlex.quote(script_file)], cmds)
         # 生成的脚本本身必须是合法 bash（本机无 bash 时跳过语法校验，断言仍在上方完成）
         bash = shutil.which('bash')
-        if bash:
+        if bash and not (sys.platform == 'win32' and 'system32' in bash.lower()):
             import subprocess
             res = subprocess.run([bash, '-n', script_file], capture_output=True, text=True)
             self.assertEqual(0, res.returncode, res.stderr)

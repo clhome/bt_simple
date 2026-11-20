@@ -76,6 +76,170 @@ def _system_arch():
     return 'x64'
 
 
+def _get_cpu_flags():
+    """获取 Linux CPU flags"""
+    flags = set()
+    try:
+        if os.path.exists('/proc/cpuinfo'):
+            with open('/proc/cpuinfo', 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if line.startswith('flags') or line.startswith('Features'):
+                        parts = line.split(':', 1)
+                        if len(parts) > 1:
+                            for fl in parts[1].split():
+                                flags.add(fl.lower())
+    except Exception as e:
+        _log.debug('[jdk] read /proc/cpuinfo error: %s', e)
+    return flags
+
+
+def _check_hw_vulnerability():
+    """审计服务器硬件利用暴露面 (CVE-2026-114938 / Java4Shell)。
+    
+    仅 x86-64 且支持 AVX-512 VBMI 的处理器处于可利用范围内；
+    ARM64 平台不受此漏洞影响。
+    """
+    import platform
+    m = platform.machine().lower()
+    if m in ('aarch64', 'arm64'):
+        return {
+            'arch': m,
+            'has_vbmi': False,
+            'hw_vulnerable': False,
+            'status': 'arm_immune',
+            'desc': 'ARM64架构（天然免疫，不受此漏洞影响）'
+        }
+    
+    cpu_flags = _get_cpu_flags()
+    has_vbmi = 'avx512_vbmi' in cpu_flags or 'avx512vbmi' in cpu_flags
+    
+    if has_vbmi:
+        return {
+            'arch': m,
+            'has_vbmi': True,
+            'hw_vulnerable': True,
+            'status': 'exposed',
+            'desc': 'x86-64（已检测到 AVX-512 VBMI 指令集，处于可利用硬件范围）'
+        }
+    else:
+        return {
+            'arch': m,
+            'has_vbmi': False,
+            'hw_vulnerable': False,
+            'status': 'hw_immune',
+            'desc': 'x86-64（未开启或不支持 AVX-512 VBMI，硬件免疫）'
+        }
+
+
+def _parse_java_semver(ver_str):
+    """解析 Java 版本为 5 位标准元组 (feature, interim, update, patch, build)"""
+    if not ver_str or not isinstance(ver_str, str):
+        return (0, 0, 0, 0, 0)
+    cleaned = re.sub(r'^(?:jdk|openjdk|java)[\-_]?', '', ver_str.strip(), flags=re.I)
+    m = re.match(r'^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?', cleaned)
+    if not m:
+        m_u = re.match(r'^(\d+)u(\d+)', cleaned)
+        if m_u:
+            return (int(m_u.group(1)), 0, int(m_u.group(2)), 0, 0)
+        return (0, 0, 0, 0, 0)
+    parts = [int(x) if x is not None else 0 for x in m.groups()]
+    return tuple(parts)
+
+
+def _is_java4shell_vulnerable_version(ver_str):
+    """根据 CVE-2026-114938 规则判定软件版本是否命中漏洞区间"""
+    if not ver_str:
+        return False
+    if '8u511' in ver_str and 'perf' in ver_str:
+        return True
+    
+    t = _parse_java_semver(ver_str)
+    major = t[0]
+    
+    if major in (8, 11):
+        return False
+    elif major == 17:
+        # >= 17.0.6 且 <= 17.0.21.0.3
+        return (17, 0, 6, 0, 0) <= t <= (17, 0, 21, 0, 3)
+    elif major == 21:
+        # >= 21 且 <= 21.0.13.0.3
+        return (21, 0, 0, 0, 0) <= t <= (21, 0, 13, 0, 3)
+    elif major == 25:
+        # >= 25 且 <= 25.0.5.0.3
+        return (25, 0, 0, 0, 0) <= t <= (25, 0, 5, 0, 3)
+    elif major == 27:
+        # >= 27 且 <= 27.0.1.0.3
+        return (27, 0, 0, 0, 0) <= t <= (27, 0, 1, 0, 3)
+    
+    return False
+
+
+def _get_jdk_version_str(path, fallback_name=''):
+    """获取 JDK 真实版本字符串"""
+    if path and os.path.isfile(path) and os.access(path, os.X_OK):
+        try:
+            rc, out, err = yf.execShellRc([path, '-version'], shell=False, timeout=5)
+            full_text = (out or '') + '\n' + (err or '')
+            m = re.search(r'version\s+"([^"]+)"', full_text, re.I)
+            if m:
+                return m.group(1).strip()
+            m2 = re.search(r'(?:openjdk|java)\s+([0-9a-zA-Z._\-]+)', full_text, re.I)
+            if m2:
+                return m2.group(1).strip()
+        except Exception as e:
+            _log.debug('[jdk] 获取 JDK 运行时版本失败: %s', e)
+    return fallback_name
+
+
+def _is_mitigation_active():
+    """检测当前系统是否已配置 Java4Shell 临时缓解参数"""
+    if os.path.exists(_JAVA_PROFILE):
+        content = yf.readFile(_JAVA_PROFILE)
+        if content and isinstance(content, str):
+            if '-XX:-UseBASE64Intrinsics' in content or '-XX:UseAVX=2' in content:
+                return True
+    env_opt = os.environ.get('JDK_JAVA_OPTIONS', '')
+    if '-XX:-UseBASE64Intrinsics' in env_opt or '-XX:UseAVX=2' in env_opt:
+        return True
+    return False
+
+
+def _eval_java4shell_status(ver_str, hw_info, is_mitigated):
+    """综合评估 JDK 针对 CVE-2026-114938 的防护状态"""
+    is_vuln_ver = _is_java4shell_vulnerable_version(ver_str)
+    if not is_vuln_ver:
+        return {
+            'status': 'safe',
+            'is_vuln_ver': False,
+            'title': '安全版本（不受 CVE-2026-114938 漏洞影响）',
+            'version_parsed': ver_str
+        }
+    
+    if is_mitigated:
+        return {
+            'status': 'mitigated',
+            'is_vuln_ver': True,
+            'title': '已通过全局启动参数 (-XX:-UseBASE64Intrinsics) 缓解',
+            'version_parsed': ver_str
+        }
+    
+    if not hw_info.get('hw_vulnerable'):
+        return {
+            'status': 'hw_immune',
+            'is_vuln_ver': True,
+            'title': '版本受影响，但服务器硬件不满足 AVX-512 VBMI 利用条件，硬件免疫',
+            'version_parsed': ver_str
+        }
+    
+    return {
+        'status': 'vulnerable',
+        'is_vuln_ver': True,
+        'title': '处于 CVE-2026-114938 漏洞影响范围且硬件支持 AVX-512 VBMI，建议尽快升级或开启缓解',
+        'version_parsed': ver_str
+    }
+
+
+
 def _jdk_filename_ver_key(filename):
     """提取文件名中的版本元组与 build 元组作为版本比对 key。
     严格区分 (version, build)，避免 build 号与子补丁版本混淆导致的字典序/段位倒挂。
@@ -430,9 +594,9 @@ class jdk_main:
         default_jdks = [
             {"version": "jdk-8", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/{arch}/linux/OpenJDK8U-jdk_{arch}_linux_hotspot_8u504b01.tar.gz"},
             {"version": "jdk-11", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/{arch}/linux/OpenJDK11U-jdk_{arch}_linux_hotspot_11.0.32.1_1.tar.gz"},
-            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21_9.tar.gz"},
-            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13_9.tar.gz"},
-            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5_8.tar.gz"}
+            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21.1_1.tar.gz"},
+            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13.1_1.tar.gz"},
+            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5.1_1.tar.gz"}
         ]
 
         if not force_update and os.path.exists(cache_file):
@@ -440,9 +604,9 @@ class jdk_main:
             if content and isinstance(content, str):
                 try:
                     cached = _normalize_jdk_items(json.loads(content))
-                    # 检查旧缓存是否过时（如缺少 jdk-25 或仍包含已 404 的老旧版本）
+                    # 检查旧缓存是否过时（如缺少 jdk-25 或仍包含已 404 / 存在 Java4Shell 漏洞的老旧版本）
                     cached_vers = [c.get('version') for c in cached]
-                    has_stale_url = any('8u492b09' in c.get('url', '') or '21.0.11' in c.get('url', '') for c in cached)
+                    has_stale_url = any('8u492b09' in c.get('url', '') or '21.0.11' in c.get('url', '') or '21.0.13_9' in c.get('url', '') or '17.0.21_9' in c.get('url', '') or '25.0.5_8' in c.get('url', '') for c in cached)
                     if cached and 'jdk-25' in cached_vers and not has_stale_url:
                         return cached
                 except Exception as e:
@@ -494,11 +658,74 @@ class jdk_main:
                 return True
         return False
 
+    def get_security_overview(self, args=None):
+        """获取当前系统的 JDK 安全总览 (包含硬件脆弱性与全局缓解状态)"""
+        hw_info = _check_hw_vulnerability()
+        is_mitigated = _is_mitigation_active()
+        return yf.returnJson(True, {
+            'hw_info': hw_info,
+            'mitigation': is_mitigated
+        })
+
+    def get_global_mitigation(self, args=None):
+        """获取全局 Java4Shell 临时缓解配置状态"""
+        return yf.returnJson(True, {
+            'enabled': _is_mitigation_active(),
+            'option': '-XX:-UseBASE64Intrinsics'
+        })
+
+    def toggle_global_mitigation(self, args=None):
+        """开启或关闭全局 Java4Shell 临时安全缓解参数 (-XX:-UseBASE64Intrinsics)"""
+        current = _is_mitigation_active()
+        target = not current
+        if args and isinstance(args, dict) and 'enable' in args:
+            target = bool(args['enable'])
+        
+        env_content = yf.readFile(_JAVA_PROFILE) or ''
+        if target:
+            if '-XX:-UseBASE64Intrinsics' not in env_content:
+                if 'JDK_JAVA_OPTIONS' in env_content:
+                    lines = []
+                    for l in env_content.splitlines():
+                        if 'JDK_JAVA_OPTIONS' in l:
+                            lines.append('export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"')
+                        else:
+                            lines.append(l)
+                    new_content = '\n'.join(lines) + '\n'
+                elif env_content.strip():
+                    new_content = env_content.rstrip() + '\nexport JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+                else:
+                    new_content = 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+                if not yf.writeFile(_JAVA_PROFILE, new_content):
+                    return yf.returnJson(False, '写配置文件失败')
+            return yf.returnJson(True, '安全缓解开启成功')
+        else:
+            if env_content:
+                lines = [l for l in env_content.splitlines() if 'JDK_JAVA_OPTIONS' not in l and '-XX:-UseBASE64Intrinsics' not in l]
+                new_content = '\n'.join(lines)
+                if new_content.strip():
+                    new_content += '\n'
+                    if not yf.writeFile(_JAVA_PROFILE, new_content):
+                        return yf.returnJson(False, '写配置文件失败')
+                elif not self.get_config().get('default'):
+                    try:
+                        if os.path.exists(_JAVA_PROFILE):
+                            os.remove(_JAVA_PROFILE)
+                    except Exception as e:
+                        _log.debug('[jdk] remove profile error: %s', e)
+                    yf.execShellRc(['rm', '-f', _JAVA_PROFILE], shell=False, timeout=10)
+                else:
+                    if not yf.writeFile(_JAVA_PROFILE, ''):
+                        return yf.returnJson(False, '写配置文件失败')
+            return yf.returnJson(True, '安全缓解已关闭')
+
     def get_jdk_list(self, args=None):
         """获取所有JDK列表 (包括预设在线版本和已安装版本)"""
         ret = []
         config = self.get_config()
         default_jdk = config.get("default", "")
+        hw_info = _check_hw_vulnerability()
+        is_mitigated = _is_mitigation_active()
 
         def _attach_ca_status(item):
             p = item.get('path')
@@ -515,6 +742,24 @@ class jdk_main:
             item['ca_checked'] = False
             item['vuln_aliases'] = []
 
+        def _attach_java4shell_status(item):
+            p = item.get('path')
+            v_str = ''
+            if p and os.path.exists(p):
+                v_str = _get_jdk_version_str(p, item.get('name', ''))
+            elif item.get('download_url'):
+                m = re.search(r'hotspot_([0-9a-zA-Z._\-]+)\.tar\.gz$', item['download_url'])
+                if m:
+                    v_str = m.group(1).split('_')[0]
+            if not v_str:
+                v_str = item.get('name', '')
+            
+            j_stat = _eval_java4shell_status(v_str, hw_info, is_mitigated)
+            item['java4shell'] = j_stat
+            item['has_java4shell_vuln'] = (j_stat['status'] == 'vulnerable')
+            item['java4shell_status'] = j_stat['status']
+            item['java4shell_title'] = j_stat['title']
+
         # 1. 获取在线版本 (带本地缓存)
         online_jdks = self.get_online_jdks()
         custom_jdks = config.get("custom", [])
@@ -528,19 +773,24 @@ class jdk_main:
                     "operation": 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url']
                 }
                 _attach_ca_status(row)
+                _attach_java4shell_status(row)
                 ret.append(row)
             elif self._is_installing(jdk['version']):
-                ret.append({
+                row = {
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 3, "is_default": False, "download_url": jdk['url'],
                     "has_ca_vuln": False, "ca_checked": False
-                })
+                }
+                _attach_java4shell_status(row)
+                ret.append(row)
             else:
-                ret.append({
+                row = {
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 0, "is_default": False, "download_url": jdk['url'],
                     "has_ca_vuln": False, "ca_checked": False
-                })
+                }
+                _attach_java4shell_status(row)
+                ret.append(row)
 
         # 2. 本地自定义 JDK
         for custom_path in custom_jdks:
@@ -550,6 +800,7 @@ class jdk_main:
                     "operation": 2, "is_default": (custom_path == default_jdk)
                 }
                 _attach_ca_status(row)
+                _attach_java4shell_status(row)
                 ret.append(row)
 
         # 3. 检查系统预装 JDK
@@ -563,6 +814,7 @@ class jdk_main:
                     "operation": 4, "is_default": (sys_java == default_jdk)
                 }
                 _attach_ca_status(row)
+                _attach_java4shell_status(row)
                 ret.append(row)
 
         # 纯粹按照版本号降序排列
@@ -571,7 +823,7 @@ class jdk_main:
             return int(m.group()) if m else 0
 
         ret = sorted(ret, key=lambda x: -get_ver(x['name']))
-        return yf.returnJson(True, ret)
+        return yf.returnJson(True, {"list": ret, "hw_info": hw_info, "mitigation": is_mitigated})
 
     def check_ca_security(self, args):
         """检测指定 JDK 的 cacerts 证书安全性"""
@@ -790,8 +1042,12 @@ echo 'JDK {version} 安装完成'
 
         if config.get("default") == path:
             config["default"] = ""
-            # 清除环境变量（旧实现还跟着 `source /etc/profile`，在子 shell 里毫无作用）
-            yf.execShellRc(['rm', '-f', _JAVA_PROFILE], shell=False, timeout=10)
+            # 清除环境变量（若配置了全局缓解则保留缓解选项）
+            if _is_mitigation_active():
+                if not yf.writeFile(_JAVA_PROFILE, 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'):
+                    return yf.returnJson(False, '写配置文件失败')
+            else:
+                yf.execShellRc(['rm', '-f', _JAVA_PROFILE], shell=False, timeout=10)
 
         if not self._save_config(config):
             return yf.returnJson(False, 'jdk.save_failed')
@@ -813,12 +1069,18 @@ echo 'JDK {version} 安装完成'
         if any(ch in java_home for ch in ('\n', '\r', '\x00')):
             return yf.returnJson(False, 'jdk.invalid_path')
 
+        config = self.get_config()
+        mitigation_line = ""
+        if _is_mitigation_active():
+            mitigation_line = 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+
         q = yf.shlexQuote
         env_content = (
             "export JAVA_HOME={0}\n"
             "export PATH=$JAVA_HOME/bin:$PATH\n"
             "export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar\n"
-        ).format(q(java_home)).replace('\r\n', '\n')
+            "{1}"
+        ).format(q(java_home), mitigation_line).replace('\r\n', '\n')
         if not yf.writeFile(_JAVA_PROFILE, env_content):
             return yf.returnJson(False, 'jdk.set_default_failed')
         if 'JAVA_HOME=' not in (yf.readFile(_JAVA_PROFILE) or ''):
@@ -831,7 +1093,6 @@ echo 'JDK {version} 安装完成'
             return yf.returnJson(False, 'jdk.set_default_failed')
 
         # 保存到配置文件
-        config = self.get_config()
         config["default"] = path
         if not self._save_config(config):
             return yf.returnJson(False, 'jdk.save_failed')

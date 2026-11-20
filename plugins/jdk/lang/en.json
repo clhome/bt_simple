@@ -52,5 +52,19 @@
     "请求失败": "Request failed",
     "请输入JDK路径": "Please enter JDK path",
     "路径无效": "Invalid path",
-    "面板安装": "Panel Installed"
+    "面板安装": "Panel Installed",
+    "Java4Shell安全防御": "Java4Shell Security Defense",
+    "安全": "Safe",
+    "已缓解": "Mitigated",
+    "硬件免疫": "Hardware Immune",
+    "高危利用风险": "High Exploitation Risk",
+    "服务器硬件暴露面": "Server Hardware Exposure",
+    "全局JVM安全缓解": "Global JVM Security Mitigation",
+    "一键开启缓解": "Enable Mitigation",
+    "关闭缓解": "Disable Mitigation",
+    "已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解": "Enabled -XX:-UseBASE64Intrinsics global JVM option mitigation",
+    "未配置全局启动缓解": "Global startup mitigation not configured",
+    "确认开启全局 Java4Shell 临时安全缓解？": "Confirm enabling global Java4Shell temporary security mitigation?",
+    "确认关闭全局安全缓解？": "Confirm disabling global security mitigation?",
+    "升级": "Upgrade"
 }

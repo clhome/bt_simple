@@ -157,7 +157,44 @@ resetPluginWinHeight(520);
         render_table: function () {
             var _that = this;
             this.send('get_jdk_list', {}, function (rdata) {
-                var list = rdata.msg || [];
+                var resMsg = rdata.msg || {};
+                var list = Array.isArray(resMsg) ? resMsg : (resMsg.list || []);
+                var hwInfo = resMsg.hw_info || null;
+                var isMitigated = !!resMsg.mitigation;
+
+                var hwBadgeStyle = 'margin-left:6px;font-size:11px;padding:2px 6px;border-radius:3px;';
+                var hwText = '';
+                if (hwInfo) {
+                    if (hwInfo.status === 'arm_immune') {
+                        hwBadgeStyle += 'background-color:#52c41a;color:#fff;';
+                        hwText = 'ARM64 (' + pt('硬件免疫') + ')';
+                    } else if (hwInfo.status === 'exposed') {
+                        hwBadgeStyle += 'background-color:#faad14;color:#fff;';
+                        hwText = 'x86-64 + VBMI (' + pt('高危利用风险') + ')';
+                    } else {
+                        hwBadgeStyle += 'background-color:#52c41a;color:#fff;';
+                        hwText = 'x86-64 (' + pt('硬件免疫') + ')';
+                    }
+                } else {
+                    hwText = 'Linux x86-64';
+                    hwBadgeStyle += 'background-color:#909399;color:#fff;';
+                }
+
+                var secCardHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">' +
+                    '<div>' +
+                        '<span style="font-weight:bold; font-size:12px; color:#1e293b;"><i class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:4px;"></i>' + pt('Java4Shell安全防御') + '</span>' +
+                        '<span style="margin-left:8px; font-size:12px; color:#64748b;">' + pt('服务器硬件暴露面') + ': <span class="label" style="' + hwBadgeStyle + '">' + jdkEsc(hwText) + '</span></span>' +
+                    '</div>' +
+                    '<div>' +
+                        '<span style="font-size:12px; margin-right:8px; color:' + (isMitigated ? '#20a53a' : '#d97706') + '; font-weight:500;">' +
+                            (isMitigated ? pt('已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解') : pt('未配置全局启动缓解')) +
+                        '</span>' +
+                        '<button class="btn btn-xs ' + (isMitigated ? 'btn-default' : 'btn-warning') + '" onclick="jdk_manager.toggle_mitigation(' + (!isMitigated) + ')">' +
+                            (isMitigated ? pt('关闭缓解') : pt('一键开启缓解')) +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
+
                 var tbody = '';
                 for (var i = 0; i < list.length; i++) {
                     var row = list[i];
@@ -175,6 +212,21 @@ resetPluginWinHeight(520);
                     } else if (row.ca_checked) {
                         nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('已免疫CVE-2026-91403/114820弱私钥证书劫持风险')) + '">' + pt('已加固') + '</span>';
                     }
+
+                    if (row.java4shell) {
+                        var jStatus = row.java4shell.status;
+                        var jTitle = row.java4shell.title || '';
+                        if (jStatus === 'safe') {
+                            nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('安全') + '</span>';
+                        } else if (jStatus === 'mitigated') {
+                            nameHtml += '<span class="label label-info" style="margin-left:6px;font-size:11px;background-color:#1890ff;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('已缓解') + '</span>';
+                        } else if (jStatus === 'hw_immune') {
+                            nameHtml += '<span class="label label-default" style="margin-left:6px;font-size:11px;background-color:#8c8c8c;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('硬件免疫') + '</span>';
+                        } else if (jStatus === 'vulnerable') {
+                            nameHtml += '<span class="label label-danger" style="margin-left:6px;font-size:11px;background-color:#ff4d4f;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('待加固') + '</span>';
+                        }
+                    }
+
                     var rowDir = row.path ? row.path.substring(0, row.path.lastIndexOf('/')) : '';
                     var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + jdkEsc(pt('点击打开目录')) + '" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
                     
@@ -218,7 +270,8 @@ resetPluginWinHeight(520);
                     tbody = '<tr><td colspan="3" style="text-align:center;">' + pt('暂无可使用的JDK版本') + '</td></tr>';
                 }
                 
-                var html = '<div class="mb15" style="margin-bottom: 15px;">' +
+                var html = secCardHtml +
+                            '<div class="mb15" style="margin-bottom: 15px;">' +
                                 '<button class="btn btn-success btn-sm" onclick="jdk_manager.add_custom()">' + pt('添加自定义JDK') + '</button>' +
                                 '<button class="btn btn-default btn-sm pull-right" onclick="jdk_manager.render_table()">' + pt('刷新列表') + '</button>' +
                             '</div>' +
@@ -235,6 +288,17 @@ resetPluginWinHeight(520);
                                 '</table>' +
                             '</div>';
                 $('#webEdit-con').html(html);
+            });
+        },
+        toggle_mitigation: function(enable) {
+            var _that = this;
+            var confirmMsg = enable ? pt('确认开启全局 Java4Shell 临时安全缓解？') : pt('确认关闭全局安全缓解？');
+            layer.confirm(confirmMsg, { icon: 3, title: pt('安全加固') }, function (index) {
+                layer.close(index);
+                _that.send('toggle_global_mitigation', { enable: enable }, function (res) {
+                    layer.msg(res.msg, { icon: res.status ? 1 : 2 });
+                    _that.render_table();
+                });
             });
         },
         fix_ca: function(path) {

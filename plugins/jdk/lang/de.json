@@ -52,5 +52,19 @@
     "请求失败": "Anfrage fehlgeschlagen",
     "请输入JDK路径": "Bitte geben Sie den JDK-Pfad ein",
     "路径无效": "Ungültiger Pfad",
-    "面板安装": "Panel-installiert"
+    "面板安装": "Panel-installiert",
+    "Java4Shell安全防御": "Java4Shell-Sicherheitsabwehr",
+    "安全": "Sicher",
+    "已缓解": "Abgemildert",
+    "硬件免疫": "Hardware-immun",
+    "高危利用风险": "Hohes Ausnutzungsrisiko",
+    "服务器硬件暴露面": "Server-Hardware-Exposition",
+    "全局JVM安全缓解": "Globale JVM-Sicherheitsabmilderung",
+    "一键开启缓解": "Abmilderung aktivieren",
+    "关闭缓解": "Abmilderung deaktivieren",
+    "已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解": "-XX:-UseBASE64Intrinsics globale JVM-Option aktiviert",
+    "未配置全局启动缓解": "Globale Start-Abmilderung nicht konfiguriert",
+    "确认开启全局 Java4Shell 临时安全缓解？": "Globale temporäre Java4Shell-Sicherheitsabmilderung aktivieren?",
+    "确认关闭全局安全缓解？": "Globale Sicherheitsabmilderung deaktivieren?",
+    "升级": "Aktualisieren"
 }

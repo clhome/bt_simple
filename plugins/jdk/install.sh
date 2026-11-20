@@ -387,7 +387,7 @@ Uninstall_jdk()
 action=$1
 PLUGIN_VER=$2
 if [ -z "${PLUGIN_VER}" ]; then
-	PLUGIN_VER="1.2"
+	PLUGIN_VER="1.3"
 fi
 if [ "${action}" == 'install' ];then
 	Install_jdk
