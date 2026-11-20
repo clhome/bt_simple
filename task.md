@@ -139,6 +139,18 @@
   - [x] 19.5 **P2-4 修复**：`plugins/op_waf/index.py` 中 `upgradeRules` 与 `upgradeRulesCli` 成功契约规范化（失败显式回退，拒绝假成功）
   - [x] 19.6 **全量回归与测试验证**：运行相关单元测试及门禁确保全部通过
 
+- [x] **任务 20：JDK 管理器 Java4Shell (CVE-2026-114938) 漏洞审计、小版本展示、平滑升级与升级徽标 (`plugins/jdk`)**
+  - [x] 20.1 **漏洞审计与小版本探测**：实现 `_parse_java_semver`、`_is_java4shell_vulnerable_version` 与 `_get_jdk_version_info`，精准判定 JDK 17/21/25/27 及 JDK 8 perf 受影响区间，提取真实小版本号（如 `21.0.12.1`）及完整版本输出
+  - [x] 20.2 **全局启动参数缓解**：实现 `get_global_mitigation` 与 `toggle_global_mitigation`，在 `/etc/profile.d/java.sh` 中管理 `-XX:-UseBASE64Intrinsics` 环境变量，与 `set_default_jdk` / `uninstall_jdk` 联动持久化
+  - [x] 20.3 **平滑升级链路与升级入口**：
+    - 后端 `get_jdk_list` 识别已安装低版本与在线最新安全版本，生成 `can_upgrade`、`latest_version`、`is_security_upgrade`
+    - 实现 `upgrade_jdk` 后台平滑下载、临时解压校验、自动完成新版本 cacerts 加固并无缝覆盖原目录，避免删除旧目录引发进程运行异常
+  - [x] 20.4 **前端界面与建议升级徽标**：
+    - 在版本列增加小版本展示 `jdk-21 (21.0.12.1)`，悬浮 tooltip 显示完整环境信息
+    - 检测到可升级时，版本列展示「建议升级至 21.0.13.1」红色醒目徽章（高危漏洞）或「可升级至 ...」橙色徽章，点击可直接触发升级
+    - 操作列增加「升级」操作按钮，弹窗说明将从 Adoptium 镜像源后台下载并平滑升级覆盖，修复已知漏洞
+  - [x] 20.5 **多语言与质量自检**：补齐全部 6 种语言包新增键值（西文 0 中文字符），测试套件 44 项全部通过，代码质量指标保持零恶化，UTF-8 无 BOM、LF 换行符合规范
+
 - [x] **任务 20：左侧导航栏软件菜单升级提示角标（.softnum）定位修正与自适应布局优化 (`site.css`, `ensite.css`)**
   - [x] 20.1 **核心修复与自适应增强 (`web/static/css/site.css`)**：将 `.softnum` 定位重构为 `right: 12px; left: auto; top: 12px;`，整体左移进入菜单项胶囊背景内；增加 `min-width: 20px; width: auto; padding: 0 4px; box-sizing: border-box;` 支持多位数自适应；
   - [x] 20.2 **多样式文件同步与折叠模式优化 (`web/static/css/site.css`, `web/static/css/ensite.css`)**：同步 `ensite.css` 中 `.softnum` 样式；优化 mini 折叠侧边栏下 `body.sidebar-mini .softnum` 的定位为 `left: auto; right: 0;`，确保折叠与展开状态下角标与外框皆完整呈现；

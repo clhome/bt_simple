@@ -644,11 +644,15 @@ class jdk_main:
                     matches = re.findall(pattern, html)
                     if matches:
                         latest_file = max(matches, key=_jdk_filename_ver_key)
-                        candidate = base_url + latest_file
-                        # 镜像返回的文件名不可信：仍按同一套 url 白名单校验后才采用
-                        if _valid_jdk_url(candidate):
-                            updated_jdks.append({"version": jdk['version'], "url": candidate})
-                            continue
+                        latest_key = _jdk_filename_ver_key(latest_file)
+                        default_key = _jdk_filename_ver_key(os.path.basename(jdk['url']))
+                        # 仅当镜像站有更新的版本时才采用；若镜像站仍是未包含安全补丁的旧版，则保留官方安全版本
+                        if latest_key > default_key:
+                            candidate = base_url + latest_file
+                            # 镜像返回的文件名不可信：仍按同一套 url 白名单校验后才采用
+                            if _valid_jdk_url(candidate):
+                                updated_jdks.append({"version": jdk['version'], "url": candidate})
+                                continue
             except Exception as e:
                 _log.debug('[jdk] get_online_jdks 异常已忽略: %s', e)
             updated_jdks.append(jdk)
@@ -791,6 +795,9 @@ class jdk_main:
         # 检查在线版本是否已安装
         for jdk in online_jdks:
             jdk_path = self._java_dir + '/' + jdk['version'] + '/bin/java'
+            m_online = re.search(r'hotspot_([0-9a-zA-Z._\-]+)\.tar\.gz$', jdk.get('url', ''))
+            online_ver = m_online.group(1).split('_')[0] if m_online else ''
+
             if os.path.exists(jdk_path):
                 row = {
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
@@ -798,12 +805,27 @@ class jdk_main:
                 }
                 _attach_ca_status(row)
                 _attach_java4shell_status(row)
+
+                # 升级判断：对比已安装版本与在线最新版本
+                inst_ver = row.get('installed_version', '')
+                t_inst = _parse_java_semver(inst_ver)
+                t_online = _parse_java_semver(online_ver)
+                if online_ver and t_online > t_inst:
+                    row['can_upgrade'] = True
+                    row['latest_version'] = online_ver
+                    row['is_security_upgrade'] = _is_java4shell_vulnerable_version(inst_ver)
+                else:
+                    row['can_upgrade'] = False
+                    row['latest_version'] = online_ver or inst_ver
+                    row['is_security_upgrade'] = False
+
                 ret.append(row)
             elif self._is_installing(jdk['version']):
                 row = {
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 3, "is_default": False, "download_url": jdk['url'],
-                    "has_ca_vuln": False, "ca_checked": False
+                    "has_ca_vuln": False, "ca_checked": False,
+                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False
                 }
                 _attach_java4shell_status(row)
                 ret.append(row)
@@ -811,7 +833,8 @@ class jdk_main:
                 row = {
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 0, "is_default": False, "download_url": jdk['url'],
-                    "has_ca_vuln": False, "ca_checked": False
+                    "has_ca_vuln": False, "ca_checked": False,
+                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False
                 }
                 _attach_java4shell_status(row)
                 ret.append(row)
@@ -996,6 +1019,84 @@ echo 'JDK {version} 安装完成'
             return yf.returnJson(False, 'jdk.task_added_failed')
         cmd = f"bash {q(script_file)}"
         title = f'安装JDK-{version}'
+        thisdb.addTask(name=title, cmd=cmd, status=0)
+        yf.triggerTask()
+        return yf.returnJson(True, 'jdk.task_added')
+
+    def upgrade_jdk(self, args):
+        """升级已安装的 JDK 到最新版本（平滑下载解压覆盖）"""
+        version = _as_text(args.get("version"))
+        url = _as_text(args.get("download_url"))
+        if not version or not url:
+            return yf.returnJson(False, 'jdk.param_error')
+        if not _valid_jdk_version(version):
+            return yf.returnJson(False, 'jdk.invalid_version')
+        if not _valid_jdk_url(url):
+            return yf.returnJson(False, 'jdk.invalid_url')
+
+        dest_dir = self._java_dir + '/' + version
+        java_bin = dest_dir + '/bin/java'
+        if not os.path.isdir(dest_dir) or not os.path.exists(java_bin):
+            return yf.returnJson(False, 'jdk.not_installed')
+
+        if not _is_under(dest_dir, self._java_dir) or os.path.realpath(os.path.dirname(dest_dir)) != os.path.realpath(self._java_dir):
+            return yf.returnJson(False, 'jdk.invalid_version')
+
+        if self._is_installing(version):
+            return yf.returnJson(False, 'jdk.already_running')
+
+        import thisdb
+        script_file = self._plugin_path + '/upgrade_' + version + '.sh'
+        tarball = version + '_upgrade.tar.gz'
+        tmp_dir = self._java_dir + '/' + version + '_upgrade_tmp'
+        q = yf.shlexQuote
+        script_content = f"""#!/bin/bash
+rm -rf {q(tmp_dir)}
+mkdir -p {q(tmp_dir)}
+cd {q(self._java_dir)}
+echo '正在下载 JDK {version} 最新安全版本...'
+wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)}
+if [ $? -ne 0 ]; then
+    echo 'JDK {version} 下载失败，请检查网络连接'
+    rm -f {q(tarball)}
+    rm -rf {q(tmp_dir)}
+    exit 1
+fi
+echo '正在解压并校验新版本...'
+tar -zxf {q(tarball)} -C {q(tmp_dir)} --strip-components=1
+if [ ! -f {q(tmp_dir + '/bin/java')} ]; then
+    echo 'JDK {version} 解压异常，未找到 bin/java'
+    rm -f {q(tarball)}
+    rm -rf {q(tmp_dir)}
+    exit 1
+fi
+chmod +x {q(tmp_dir + '/bin')}/*
+_cacerts={q(tmp_dir + '/lib/security/cacerts')}
+[ -f "$_cacerts" ] || _cacerts={q(tmp_dir + '/jre/lib/security/cacerts')}
+_kt={q(tmp_dir + '/bin/keytool')}
+if [ -f "$_cacerts" ] && [ -x "$_kt" ]; then
+    echo '正在执行新版本 cacerts 安全加固 (清理 CVE-2026-91403/114820 风险根证书)...'
+    for _alias in "emsignrootcag1 [jdk]" "emsignrootcag2 [jdk]" "emsigneccrootcag3 [jdk]" "comodoaaaca [jdk]" "emsignrootcag1" "emsignrootcag2" "emsigneccrootcag3" "comodoaaaca"; do
+        "$_kt" -delete -alias "$_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || :
+    done
+    _dyn_aliases=$("$_kt" -list -keystore "$_cacerts" -storepass changeit 2>/dev/null | grep -iE 'emsign|aaa_certificate_services' | awk -F',' '{{print $1}}' | sed 's/^[ \t]*//;s/[ \t]*$//' || :)
+    if [ -n "$_dyn_aliases" ]; then
+        while IFS= read -r _d_alias; do
+            [ -n "$_d_alias" ] && "$_kt" -delete -alias "$_d_alias" -keystore "$_cacerts" -storepass changeit -noprompt >/dev/null 2>&1 || :
+        done <<< "$_dyn_aliases"
+    fi
+fi
+echo '正在平滑覆盖至原 JDK 运行目录...'
+cp -rf {q(tmp_dir)}/* {q(dest_dir)}/
+rm -f {q(tarball)}
+rm -rf {q(tmp_dir)}
+echo 'JDK {version} 平滑升级完成'
+""".replace('\r\n', '\n')
+
+        if not yf.writeFile(script_file, script_content):
+            return yf.returnJson(False, 'jdk.task_added_failed')
+        cmd = f"bash {q(script_file)}"
+        title = f'升级JDK-{version}'
         thisdb.addTask(name=title, cmd=cmd, status=0)
         yf.triggerTask()
         return yf.returnJson(True, 'jdk.task_added')

@@ -240,6 +240,14 @@ resetPluginWinHeight(520);
                         }
                     }
 
+                    if (row.can_upgrade && isInstalled) {
+                        if (row.is_security_upgrade) {
+                            nameHtml += '<a class="badge-upgrade-sec" style="margin-left:6px; font-size:11px; background-color:#fff1f0; color:#cf1322; border:1px solid #ffa39e; padding:1px 6px; border-radius:3px; cursor:pointer; font-weight:bold; text-decoration:none;" onclick="jdk_manager.upgrade(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')" title="' + jdkEsc(pt('当前版本存在安全漏洞，建议立即升级至安全版本') + ' ' + (row.latest_version || '')) + '"><i class="glyphicon glyphicon-arrow-up" style="font-size:10px;"></i> ' + pt('建议升级至') + ' ' + jdkEsc(row.latest_version) + '</a>';
+                        } else {
+                            nameHtml += '<a class="badge-upgrade-normal" style="margin-left:6px; font-size:11px; background-color:#fff7e6; color:#d46b08; border:1px solid #ffd591; padding:1px 6px; border-radius:3px; cursor:pointer; font-weight:bold; text-decoration:none;" onclick="jdk_manager.upgrade(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')" title="' + jdkEsc(pt('发现新版本，点击可直接平滑升级') + ' ' + (row.latest_version || '')) + '"><i class="glyphicon glyphicon-arrow-up" style="font-size:10px;"></i> ' + pt('可升级至') + ' ' + jdkEsc(row.latest_version) + '</a>';
+                        }
+                    }
+
                     var rowDir = row.path ? row.path.substring(0, row.path.lastIndexOf('/')) : '';
                     var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + jdkEsc(pt('点击打开目录')) + '" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
                     
@@ -255,6 +263,11 @@ resetPluginWinHeight(520);
                         } else {
                             opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('设为默认') + '</a>';
                         }
+                    }
+                    
+                    // 升级按钮 (针对面板安装且有新版本的条目)
+                    if (row.can_upgrade && row.operation == 1) {
+                        opsHtml += '<a class="bt_warning" style="color:#d46b08; font-weight:bold; cursor: pointer; margin-right:10px;" onclick="jdk_manager.upgrade(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('升级') + '</a>';
                     }
                     
                     // 安装/卸载
@@ -294,7 +307,7 @@ resetPluginWinHeight(520);
                                         '<tr>' +
                                             '<th>' + pt('JDK版本') + '</th>' +
                                             '<th>' + pt('JDK路径') + '</th>' +
-                                            '<th style="text-align:right; width:100px; white-space:nowrap;">' + pt('操作') + '</th>' +
+                                            '<th style="text-align:right; width:140px; white-space:nowrap;">' + pt('操作') + '</th>' +
                                         '</tr>' +
                                     '</thead>' +
                                     '<tbody>' + tbody + '</tbody>' +
@@ -358,6 +371,24 @@ resetPluginWinHeight(520);
                 layer.close(index);
                 _that.send('install_jdk', { version: version, download_url: url }, function (res) {
                     layer.msg(res.msg, {icon: res.status ? 1 : 2});
+                    if (res.status) {
+                        _that.render_table();
+                        if (typeof messageBox === 'function') messageBox();
+                    }
+                });
+            });
+        },
+        upgrade: function(version, curVer, newVer, url) {
+            var _that = this;
+            var confirmTitle = pt('确认将【{1}】从当前版本 {2} 升级至 {3} 吗？')
+                .replace('{1}', jdkEsc(version))
+                .replace('{2}', jdkEsc(curVer || ''))
+                .replace('{3}', jdkEsc(newVer || ''));
+            confirmTitle += '<br><span style="color:#666; font-size:12px;">' + pt('将从 Adoptium 镜像源后台下载并平滑升级覆盖，修复已知安全漏洞。') + '</span>';
+            layer.confirm(confirmTitle, { icon: 3, title: pt('版本升级') }, function (index) {
+                layer.close(index);
+                _that.send('upgrade_jdk', { version: version, download_url: url }, function (res) {
+                    layer.msg(res.msg, { icon: res.status ? 1 : 2 });
                     if (res.status) {
                         _that.render_table();
                         if (typeof messageBox === 'function') messageBox();

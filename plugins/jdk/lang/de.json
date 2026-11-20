@@ -73,5 +73,12 @@
     "高危漏洞(待升级)": "Hohes Risiko (Upgrade erforderlich)",
     "Java4Shell安全": "Java4Shell sicher",
     "已参数缓解": "Abgemildert",
-    "官方安全版": "Offizieller sicherer Build"
+    "官方安全版": "Offizieller sicherer Build",
+    "建议升级至": "Empfohlenes Upgrade auf",
+    "可升级至": "Aktualisierbar auf",
+    "当前版本存在安全漏洞，建议立即升级至安全版本": "Aktuelle Version weist Sicherheitslücke auf, Upgrade empfohlen",
+    "发现新版本，点击可直接平滑升级": "Neue Version gefunden, zum nahtlosen Upgrade klicken",
+    "确认将【{1}】从当前版本 {2} 升级至 {3} 吗？": "Möchten Sie [{1}] wirklich von Version {2} auf {3} aktualisieren?",
+    "将从 Adoptium 镜像源后台下载并平滑升级覆盖，修复已知安全漏洞。": "Wird im Hintergrund vom Adoptium-Spiegel heruntergeladen und nahtlos aktualisiert, um bekannte Schwachstellen zu beheben.",
+    "版本升级": "Versions-Upgrade"
 }

@@ -267,6 +267,69 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
         finally:
             jdk_mod.yf.execShellRc = orig_exec
 
+    # ---------------- 7. 平滑升级判定与任务生成 ----------------
+    def test_08_jdk_upgrade_detection_and_task_generation(self):
+        obj = jdk_mod.jdk_main()
+        home = os.path.join(self.javadir, 'jdk-21')
+        os.makedirs(os.path.join(home, 'bin'), exist_ok=True)
+        java_bin = home + '/bin/java'
+        with open(java_bin, 'w', encoding='utf-8') as f:
+            f.write('#!/bin/sh\nexit 0\n')
+        os.chmod(java_bin, 0o755)
+
+        # 模拟已安装版本为 21.0.12.1
+        orig_get_info = jdk_mod._get_jdk_version_info
+        jdk_mod._get_jdk_version_info = lambda path, name='': ('21.0.12.1', 'openjdk 21.0.12.1')
+        try:
+            # 1. 列表获取，在线最新为 21.0.13.1，应该触发 can_upgrade = True 且 is_security_upgrade = True
+            res_raw = obj.get_jdk_list()
+            res = json.loads(res_raw)
+            self.assertTrue(res['status'])
+            row_21 = None
+            for r in res['msg']['list']:
+                if r['name'] == 'jdk-21':
+                    row_21 = r
+                    break
+            self.assertIsNotNone(row_21)
+            self.assertTrue(row_21['can_upgrade'])
+            self.assertEqual(row_21['latest_version'], '21.0.13.1')
+            self.assertTrue(row_21['is_security_upgrade'])
+
+            # 2. 调用 upgrade_jdk
+            # 校验参数拦截
+            res_err = json.loads(obj.upgrade_jdk({'version': 'jdk-21;rm -rf /', 'download_url': 'http://evil.com/a.tar.gz'}))
+            self.assertFalse(res_err['status'])
+
+            # 校验未安装版本拦截
+            res_no_inst = json.loads(obj.upgrade_jdk({'version': 'jdk-17', 'download_url': 'https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.21.1_1.tar.gz'}))
+            self.assertFalse(res_no_inst['status'])
+
+            # 校验正常加入升级任务
+            valid_url = 'https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_1.tar.gz'
+            tasks_added = []
+            orig_add_task = getattr(jdk_mod, 'thisdb', None)
+            import thisdb
+            orig_add = thisdb.addTask
+            thisdb.addTask = lambda name, cmd, status: tasks_added.append((name, cmd, status))
+            try:
+                res_ok = json.loads(obj.upgrade_jdk({'version': 'jdk-21', 'download_url': valid_url}))
+                self.assertTrue(res_ok['status'])
+                self.assertEqual(len(tasks_added), 1)
+                self.assertIn('升级JDK-jdk-21', tasks_added[0][0])
+                
+                # 检查生成的升级脚本内容
+                script_path = os.path.join(self.plug, 'upgrade_jdk-21.sh')
+                self.assertTrue(os.path.exists(script_path))
+                with open(script_path, 'r', encoding='utf-8') as f:
+                    script_content = f.read()
+                self.assertIn('jdk-21_upgrade_tmp', script_content)
+                self.assertIn('cp -rf', script_content)
+                self.assertIn('cacerts', script_content)
+            finally:
+                thisdb.addTask = orig_add
+        finally:
+            jdk_mod._get_jdk_version_info = orig_get_info
+
 
 if __name__ == '__main__':
     unittest.main()
