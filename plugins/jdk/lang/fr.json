@@ -66,5 +66,12 @@
     "未配置全局启动缓解": "Atténuation globale au démarrage non configurée",
     "确认开启全局 Java4Shell 临时安全缓解？": "Confirmer l'activation de l'atténuation temporaire Java4Shell ?",
     "确认关闭全局安全缓解？": "Confirmer la désactivation de l'atténuation globale ?",
-    "升级": "Mettre à niveau"
+    "升级": "Mettre à niveau",
+    "CA已加固": "CA renforcée",
+    "CA待加固": "CA non renforcée",
+    "存在漏洞(硬件暂免疫)": "Vulnérable (Matériel immunisé)",
+    "高危漏洞(待升级)": "Risque élevé (Mise à niveau requise)",
+    "Java4Shell安全": "Java4Shell sécurisé",
+    "已参数缓解": "Atténué",
+    "官方安全版": "Version officielle sécurisée"
 }

@@ -121,6 +121,7 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
         # JDK 21 (>= 21 且 <= 21.0.13.0.3 受影响; >= 21.0.13.1 安全)
         self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('jdk-21'))
         self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('21.0.0'))
+        self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('21.0.12.1'))  # 用户真机版本
         self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('21.0.13'))
         self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('21.0.13_9'))
         self.assertTrue(jdk_mod._is_java4shell_vulnerable_version('21.0.13.0.3'))
@@ -230,6 +231,41 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
             if lang in ('en', 'de', 'fr', 'it'):
                 for k, val in data.items():
                     self.assertFalse(ZH_RE.search(val), f"Chinese text found in {lang}.json for key {k}: {val}")
+
+    # ---------------- 6. 用户真实版本 (21.0.12.1) 状态评估与小版本提取 ----------------
+    def test_07_user_version_evaluation_and_version_info(self):
+        # 1. 软件版本 21.0.12.1 处于受影响区间，在无 VBMI 的机器上判定为 hw_immune
+        hw_info = {'arch': 'x86_64', 'has_vbmi': False, 'hw_vulnerable': False, 'status': 'hw_immune'}
+        st = jdk_mod._eval_java4shell_status('21.0.12.1', hw_info, is_mitigated=False)
+        self.assertEqual(st['status'], 'hw_immune')
+        self.assertTrue(st['is_vuln_ver'])
+        self.assertIn('21.0.12.1', st['title'])
+        self.assertIn('硬件暂免疫', st['title'])
+
+        # 2. 模拟从 java -version 输出中提取小版本号与完整输出
+        home = os.path.join(self.javadir, 'jdk-21')
+        os.makedirs(os.path.join(home, 'bin'), exist_ok=True)
+        java_bin = home + '/bin/java'
+        with open(java_bin, 'w', encoding='utf-8') as f:
+            f.write('#!/bin/sh\n')
+            f.write('echo "openjdk version \\"21.0.12.1\\" 2026-08-18 LTS" >&2\n')
+            f.write('echo "OpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)" >&2\n')
+            f.write('echo "OpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)" >&2\n')
+        os.chmod(java_bin, 0o755)
+
+        orig_exec = jdk_mod.yf.execShellRc
+        jdk_mod.yf.execShellRc = lambda cmd, **kw: (
+            0, '',
+            'openjdk version "21.0.12.1" 2026-08-18 LTS\n'
+            'OpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)\n'
+        )
+        try:
+            short_v, full_v = jdk_mod._get_jdk_version_info(java_bin, 'jdk-21')
+            self.assertEqual(short_v, '21.0.12.1')
+            self.assertIn('21.0.12.1', full_v)
+            self.assertIn('Temurin-21.0.12.1+1', full_v)
+        finally:
+            jdk_mod.yf.execShellRc = orig_exec
 
 
 if __name__ == '__main__':

@@ -66,5 +66,12 @@
     "未配置全局启动缓解": "Globale Start-Abmilderung nicht konfiguriert",
     "确认开启全局 Java4Shell 临时安全缓解？": "Globale temporäre Java4Shell-Sicherheitsabmilderung aktivieren?",
     "确认关闭全局安全缓解？": "Globale Sicherheitsabmilderung deaktivieren?",
-    "升级": "Aktualisieren"
+    "升级": "Aktualisieren",
+    "CA已加固": "CA gehärtet",
+    "CA待加固": "CA ungehärtet",
+    "存在漏洞(硬件暂免疫)": "Verwundbar (HW-immun)",
+    "高危漏洞(待升级)": "Hohes Risiko (Upgrade erforderlich)",
+    "Java4Shell安全": "Java4Shell sicher",
+    "已参数缓解": "Abgemildert",
+    "官方安全版": "Offizieller sicherer Build"
 }

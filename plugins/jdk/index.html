@@ -203,27 +203,40 @@ resetPluginWinHeight(520);
                     else if (row.type === '用户自定义') typeText = (window.lan && lan.jdk && lan.jdk.type_custom) || t('jdk.type_custom', '用户自定义');
                     else if (row.type === '系统预装') typeText = (window.lan && lan.jdk && lan.jdk.type_sys) || t('jdk.type_sys', '系统预装');
 
-                    var nameHtml = '<span>' + jdkEsc(row.name) + '</span><span class="jdk-type"> (' + jdkEsc(typeText) + ')</span>';
+                    var isInstalled = !!(row.path && row.operation !== 0 && row.operation !== 3);
+                    var verTitle = row.version_full || (isInstalled ? (row.installed_version ? '已安装版本: ' + row.installed_version : row.name) : ('可安装版本: ' + (row.java4shell ? row.java4shell.version_parsed : row.name)));
+
+                    var verLabel = jdkEsc(row.name);
+                    if (isInstalled && row.installed_version && row.installed_version !== row.name) {
+                        verLabel += ' <span style="font-size:12px; color:#475569; font-weight:normal;" title="' + jdkEsc(verTitle) + '">(' + jdkEsc(row.installed_version) + ')</span>';
+                    }
+                    var nameHtml = '<span style="cursor:pointer;" title="' + jdkEsc(verTitle) + '">' + verLabel + '</span><span class="jdk-type"> (' + jdkEsc(typeText) + ')</span>';
                     if (row.is_default) {
                         nameHtml += '<span class="jdk-default-badge">' + pt('系统默认') + '</span>';
                     }
                     if (row.has_ca_vuln) {
-                        nameHtml += '<span class="label label-warning" style="margin-left:6px;font-size:11px;background-color:#faad14;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('发现CVE-2026-91403弱私钥根证书，建议立即加固')) + '">' + pt('待加固') + '</span>';
+                        nameHtml += '<span class="label label-warning" style="margin-left:6px;font-size:11px;background-color:#faad14;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('发现CVE-2026-91403弱私钥根证书，建议立即加固')) + '">' + pt('CA待加固') + '</span>';
                     } else if (row.ca_checked) {
-                        nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('已免疫CVE-2026-91403/114820弱私钥证书劫持风险')) + '">' + pt('已加固') + '</span>';
+                        nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(pt('已免疫CVE-2026-91403/114820弱私钥证书劫持风险')) + '">' + pt('CA已加固') + '</span>';
                     }
 
                     if (row.java4shell) {
                         var jStatus = row.java4shell.status;
                         var jTitle = row.java4shell.title || '';
-                        if (jStatus === 'safe') {
-                            nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('安全') + '</span>';
-                        } else if (jStatus === 'mitigated') {
-                            nameHtml += '<span class="label label-info" style="margin-left:6px;font-size:11px;background-color:#1890ff;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('已缓解') + '</span>';
-                        } else if (jStatus === 'hw_immune') {
-                            nameHtml += '<span class="label label-default" style="margin-left:6px;font-size:11px;background-color:#8c8c8c;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('硬件免疫') + '</span>';
-                        } else if (jStatus === 'vulnerable') {
-                            nameHtml += '<span class="label label-danger" style="margin-left:6px;font-size:11px;background-color:#ff4d4f;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('待加固') + '</span>';
+                        if (isInstalled) {
+                            if (jStatus === 'safe') {
+                                nameHtml += '<span class="label label-success" style="margin-left:6px;font-size:11px;background-color:#52c41a;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('Java4Shell安全') + '</span>';
+                            } else if (jStatus === 'mitigated') {
+                                nameHtml += '<span class="label label-info" style="margin-left:6px;font-size:11px;background-color:#1890ff;color:#fff;padding:2px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('已参数缓解') + '</span>';
+                            } else if (jStatus === 'hw_immune') {
+                                nameHtml += '<span class="label label-warning" style="margin-left:6px;font-size:11px;background-color:#fa8c16;color:#fff;padding:2px 5px;border-radius:3px;cursor:pointer;" title="' + jdkEsc(jTitle) + '">' + pt('存在漏洞(硬件暂免疫)') + '</span>';
+                            } else if (jStatus === 'vulnerable') {
+                                nameHtml += '<span class="label label-danger" style="margin-left:6px;font-size:11px;background-color:#ff4d4f;color:#fff;padding:2px 5px;border-radius:3px;cursor:pointer;" title="' + jdkEsc(jTitle) + '">' + pt('高危漏洞(待升级)') + '</span>';
+                            }
+                        } else {
+                            if (jStatus === 'safe') {
+                                nameHtml += '<span class="label" style="margin-left:6px;font-size:11px;background-color:#e6f7ff;color:#1890ff;border:1px solid #91d5ff;padding:1px 5px;border-radius:3px;" title="' + jdkEsc(jTitle) + '">' + pt('官方安全版') + '</span>';
+                            }
                         }
                     }
 

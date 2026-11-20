@@ -66,5 +66,12 @@
     "未配置全局启动缓解": "Mitigazione globale all'avvio non configurata",
     "确认开启全局 Java4Shell 临时安全缓解？": "Confermare l'attivazione della mitigazione temporanea Java4Shell?",
     "确认关闭全局安全缓解？": "Confermare la disattivazione della mitigazione globale?",
-    "升级": "Aggiorna"
+    "升级": "Aggiorna",
+    "CA已加固": "CA rafforzata",
+    "CA待加固": "CA non rafforzata",
+    "存在漏洞(硬件暂免疫)": "Vulnerabile (HW immune)",
+    "高危漏洞(待升级)": "Rischio elevato (Aggiornamento necessario)",
+    "Java4Shell安全": "Java4Shell sicuro",
+    "已参数缓解": "Mitigato",
+    "官方安全版": "Build sicuro ufficiale"
 }

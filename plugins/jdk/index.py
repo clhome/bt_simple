@@ -174,21 +174,40 @@ def _is_java4shell_vulnerable_version(ver_str):
     return False
 
 
-def _get_jdk_version_str(path, fallback_name=''):
-    """获取 JDK 真实版本字符串"""
+def _get_jdk_version_info(path, fallback_name=''):
+    """获取 JDK 真实小版本号及完整版本输出"""
+    short_ver = fallback_name
+    full_ver = ''
     if path and os.path.isfile(path) and os.access(path, os.X_OK):
         try:
             rc, out, err = yf.execShellRc([path, '-version'], shell=False, timeout=5)
-            full_text = (out or '') + '\n' + (err or '')
+            full_text = ((out or '') + '\n' + (err or '')).strip()
+            
+            # 正则匹配真实小版本号
             m = re.search(r'version\s+"([^"]+)"', full_text, re.I)
             if m:
-                return m.group(1).strip()
-            m2 = re.search(r'(?:openjdk|java)\s+([0-9a-zA-Z._\-]+)', full_text, re.I)
-            if m2:
-                return m2.group(1).strip()
+                short_ver = m.group(1).strip()
+            else:
+                m2 = re.search(r'(?:openjdk|java)\s+([0-9a-zA-Z._\-]+)', full_text, re.I)
+                if m2:
+                    short_ver = m2.group(1).strip()
+            
+            lines = [l.strip() for l in full_text.splitlines() if l.strip()]
+            if len(lines) >= 2:
+                full_ver = f"{lines[0]} ({lines[1]})"
+            elif lines:
+                full_ver = lines[0]
+            else:
+                full_ver = short_ver
         except Exception as e:
             _log.debug('[jdk] 获取 JDK 运行时版本失败: %s', e)
-    return fallback_name
+    return short_ver, full_ver
+
+
+def _get_jdk_version_str(path, fallback_name=''):
+    """获取 JDK 真实版本字符串"""
+    s, _ = _get_jdk_version_info(path, fallback_name)
+    return s
 
 
 def _is_mitigation_active():
@@ -211,7 +230,7 @@ def _eval_java4shell_status(ver_str, hw_info, is_mitigated):
         return {
             'status': 'safe',
             'is_vuln_ver': False,
-            'title': '安全版本（不受 CVE-2026-114938 漏洞影响）',
+            'title': f'安全版本（{ver_str}，不受 CVE-2026-114938 漏洞影响）',
             'version_parsed': ver_str
         }
     
@@ -219,7 +238,7 @@ def _eval_java4shell_status(ver_str, hw_info, is_mitigated):
         return {
             'status': 'mitigated',
             'is_vuln_ver': True,
-            'title': '已通过全局启动参数 (-XX:-UseBASE64Intrinsics) 缓解',
+            'title': f'【已开启防护】版本 {ver_str} 处于受影响区间，但已配置全局参数 (-XX:-UseBASE64Intrinsics) 临时缓解',
             'version_parsed': ver_str
         }
     
@@ -227,14 +246,14 @@ def _eval_java4shell_status(ver_str, hw_info, is_mitigated):
         return {
             'status': 'hw_immune',
             'is_vuln_ver': True,
-            'title': '版本受影响，但服务器硬件不满足 AVX-512 VBMI 利用条件，硬件免疫',
+            'title': f'【存在漏洞(硬件暂免疫)】当前安装版本为 {ver_str}，处于漏洞影响区间 (<= 21.0.13.0.3)。由于当前服务器 CPU 未开启 AVX-512 VBMI 硬件指令集，硬件层面暂无法利用，但代码存在缺陷，仍强烈建议升级至安全补丁版本 (>= 21.0.13.1)！',
             'version_parsed': ver_str
         }
     
     return {
         'status': 'vulnerable',
         'is_vuln_ver': True,
-        'title': '处于 CVE-2026-114938 漏洞影响范围且硬件支持 AVX-512 VBMI，建议尽快升级或开启缓解',
+        'title': f'【高危风险(待升级)】当前版本为 {ver_str}，处于 CVE-2026-114938 漏洞影响范围且硬件支持 AVX-512 VBMI，建议立即升级或开启缓解',
         'version_parsed': ver_str
     }
 
@@ -745,14 +764,19 @@ class jdk_main:
         def _attach_java4shell_status(item):
             p = item.get('path')
             v_str = ''
-            if p and os.path.exists(p):
-                v_str = _get_jdk_version_str(p, item.get('name', ''))
+            full_ver = ''
+            is_installed = bool(p and os.path.exists(p))
+            if is_installed:
+                v_str, full_ver = _get_jdk_version_info(p, item.get('name', ''))
             elif item.get('download_url'):
                 m = re.search(r'hotspot_([0-9a-zA-Z._\-]+)\.tar\.gz$', item['download_url'])
                 if m:
                     v_str = m.group(1).split('_')[0]
             if not v_str:
                 v_str = item.get('name', '')
+            
+            item['installed_version'] = v_str if is_installed else ''
+            item['version_full'] = full_ver if is_installed else ''
             
             j_stat = _eval_java4shell_status(v_str, hw_info, is_mitigated)
             item['java4shell'] = j_stat

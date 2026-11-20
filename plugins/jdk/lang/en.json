@@ -66,5 +66,12 @@
     "未配置全局启动缓解": "Global startup mitigation not configured",
     "确认开启全局 Java4Shell 临时安全缓解？": "Confirm enabling global Java4Shell temporary security mitigation?",
     "确认关闭全局安全缓解？": "Confirm disabling global security mitigation?",
-    "升级": "Upgrade"
+    "升级": "Upgrade",
+    "CA已加固": "CA Hardened",
+    "CA待加固": "CA Unsecured",
+    "存在漏洞(硬件暂免疫)": "Vulnerable (HW Immune)",
+    "高危漏洞(待升级)": "High Risk (Upgrade Needed)",
+    "Java4Shell安全": "Java4Shell Safe",
+    "已参数缓解": "Mitigated",
+    "官方安全版": "Official Safe Build"
 }
