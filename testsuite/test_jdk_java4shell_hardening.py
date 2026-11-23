@@ -44,12 +44,15 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
         jdk_mod.jdk_main._java_dir = self.javadir
         jdk_mod.jdk_main._plugin_path = self.plug
         jdk_mod.jdk_main._config_file = os.path.join(self.plug, 'data.json')
+        self._orig_sys_java = getattr(jdk_mod.jdk_main, '_sys_java', '/usr/bin/java')
+        jdk_mod.jdk_main._sys_java = os.path.join(self.tmp, 'nonexistent_sys_java')
         self.fake_profile = os.path.join(self.tmp, 'java.sh')
         self._orig_profile = jdk_mod._JAVA_PROFILE
         jdk_mod._JAVA_PROFILE = self.fake_profile
 
     def tearDown(self):
         jdk_mod._JAVA_PROFILE = self._orig_profile
+        jdk_mod.jdk_main._sys_java = self._orig_sys_java
 
     # ---------------- 1. 硬件审计与指令集探测 ----------------
     def test_01_hw_vulnerability_detection(self):

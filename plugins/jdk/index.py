@@ -596,6 +596,7 @@ class jdk_main:
     _plugin_path = yf.getPluginDir() + '/jdk'
     _java_dir = yf.getServerDir() + '/jdk'
     _config_file = _plugin_path + '/data.json'
+    _sys_java = '/usr/bin/java'
 
     def __init__(self):
         if not os.path.exists(self._plugin_path):
@@ -978,8 +979,8 @@ class jdk_main:
                 ret.append(row)
 
         # 3. 检查系统预装 JDK
-        sys_java = '/usr/bin/java'
-        if os.path.exists(sys_java):
+        sys_java = getattr(self, '_sys_java', '/usr/bin/java')
+        if sys_java and os.path.exists(sys_java):
             real_sys_java = os.path.realpath(sys_java)
             # 防止重复添加（如果它是指向面板已安装JDK的软连接，则不显示）
             if not any(x['path'] == sys_java or x['path'] == real_sys_java for x in ret):

@@ -45,15 +45,18 @@ class TestJdkBadgeAndUpgradeTip(unittest.TestCase):
         self._orig_java_dir = jdk_mod.jdk_main._java_dir
         self._orig_plugin_path = jdk_mod.jdk_main._plugin_path
         self._orig_config_file = jdk_mod.jdk_main._config_file
+        self._orig_sys_java = getattr(jdk_mod.jdk_main, '_sys_java', '/usr/bin/java')
 
         jdk_mod.jdk_main._java_dir = self.javadir
         jdk_mod.jdk_main._plugin_path = self.plug
         jdk_mod.jdk_main._config_file = os.path.join(self.plug, 'data.json')
+        jdk_mod.jdk_main._sys_java = os.path.join(self.tmp, 'nonexistent_sys_java')
 
     def tearDown(self):
         jdk_mod.jdk_main._java_dir = self._orig_java_dir
         jdk_mod.jdk_main._plugin_path = self._orig_plugin_path
         jdk_mod.jdk_main._config_file = self._orig_config_file
+        jdk_mod.jdk_main._sys_java = self._orig_sys_java
 
     def test_format_release_date(self):
         """测试 _format_release_date 对各种日期字符串的解析"""

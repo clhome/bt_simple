@@ -123,7 +123,7 @@ resetPluginWinHeight(520);
                 }
             });
             // 绑定安全徽章与升级按钮的浮层 Tooltip 事件
-            $(document).off('mouseenter.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade').on('mouseenter.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade', function () {
+            $(document).off('mouseenter.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade, .jdk-sec-mitigation-tip').on('mouseenter.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade, .jdk-sec-mitigation-tip', function () {
                 var tipHtml = $(this).attr('data-tip-html');
                 if (tipHtml && window.layer && typeof window.layer.tips === 'function') {
                     var $el = $(this);
@@ -138,7 +138,7 @@ resetPluginWinHeight(520);
                     });
                     $el.data('tip-idx', tipIdx);
                 }
-            }).on('mouseleave.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade', function () {
+            }).on('mouseleave.jdkTip', '.jdk-sec-badge, .jdk-btn-upgrade, .jdk-sec-mitigation-tip', function () {
                 var $el = $(this);
                 var tipIdx = $el.data('tip-idx');
                 if (tipIdx && window.layer && typeof window.layer.close === 'function') {
@@ -282,19 +282,87 @@ resetPluginWinHeight(520);
                     hwBadgeStyle += 'background-color:#909399;color:#fff;';
                 }
 
+                // 统计已安装 JDK 的脆弱性
+                var installedCount = 0;
+                var hasVulnerableJdk = false;
+                for (var j = 0; j < list.length; j++) {
+                    var it = list[j];
+                    var isInst = !!(it.path && it.operation !== 0 && it.operation !== 3);
+                    if (isInst) {
+                        installedCount++;
+                        var jStat = it.java4shell ? it.java4shell.status : 'safe';
+                        var isVulnVer = it.java4shell ? !!it.java4shell.is_vuln_ver : false;
+                        if (isVulnVer || jStat === 'vulnerable' || jStat === 'hw_immune') {
+                            hasVulnerableJdk = true;
+                        }
+                    }
+                }
+
+                var rightHtml = '';
+                if (installedCount > 0 && !hasVulnerableJdk) {
+                    // 场景 A：已安装版本全都是最新安全版
+                    if (!isMitigated) {
+                        var tipContent = '<div style="min-width:240px; max-width:320px; padding:4px 2px; font-size:12px; line-height:1.6; color:#fff;">' +
+                            '<div style="font-weight:bold; color:#52c41a; margin-bottom:4px;"><i class="glyphicon glyphicon-ok-sign" style="margin-right:4px;"></i>' + pt('核心版本已修复') + '</div>' +
+                            '<div>' + pt('当前已安装的 JDK 均为官方安全补丁版本，底层已根治 Java4Shell (CVE-2026-114938) 漏洞。') + '</div>' +
+                            '<div style="color:#94a3b8; margin-top:4px;">' + pt('无需额外配置 -XX:-UseBASE64Intrinsics 缓解参数，CPU 硬件加速全速运行中。') + '</div>' +
+                        '</div>';
+                        var plainTip = pt('已安装JDK均为官方安全补丁版本，底层已修复漏洞，无需额外开启缓解参数，已保持全速运行。');
+                        rightHtml = '<span class="jdk-sec-mitigation-tip" style="font-size:12px; color:#20a53a; font-weight:500; cursor:pointer;" data-tip-html="' + jdkEsc(tipContent) + '" title="' + jdkEsc(plainTip) + '">' +
+                            '<i class="glyphicon glyphicon-ok-sign" style="margin-right:4px;"></i>' + pt('核心版本已修复，无需缓解') +
+                        '</span>';
+                    } else {
+                        var tipContent = '<div style="min-width:240px; max-width:320px; padding:4px 2px; font-size:12px; line-height:1.6; color:#fff;">' +
+                            '<div style="font-weight:bold; color:#52c41a; margin-bottom:4px;"><i class="glyphicon glyphicon-info-sign" style="margin-right:4px;"></i>' + pt('核心已安全，缓解参数可按需移除') + '</div>' +
+                            '<div>' + pt('当前核心版本已安全，环境变量中仍保留了全局缓解参数。') + '</div>' +
+                            '<div style="color:#94a3b8; margin-top:4px;">' + pt('点击右侧【关闭缓解】可移除该参数，恢复 Base64 硬件汇编加速性能。') + '</div>' +
+                        '</div>';
+                        var plainTip = pt('当前核心版本已安全，可点击【关闭缓解】移除参数以恢复硬件全速性能。');
+                        rightHtml = '<span class="jdk-sec-mitigation-tip" style="font-size:12px; margin-right:8px; color:#20a53a; font-weight:500; cursor:pointer;" data-tip-html="' + jdkEsc(tipContent) + '" title="' + jdkEsc(plainTip) + '">' +
+                            '<i class="glyphicon glyphicon-info-sign" style="margin-right:4px;"></i>' + pt('核心已安全（已配置缓解参数）') +
+                        '</span>' +
+                        '<button class="btn btn-xs btn-default" onclick="jdk_manager.toggle_mitigation(false)">' + pt('关闭缓解') + '</button>';
+                    }
+                } else if (hasVulnerableJdk) {
+                    // 场景 B：存在处于漏洞区间的版本
+                    if (!isMitigated) {
+                        var tipContent = '<div style="min-width:240px; max-width:320px; padding:4px 2px; font-size:12px; line-height:1.6; color:#fff;">' +
+                            '<div style="font-weight:bold; color:#faad14; margin-bottom:4px;"><i class="glyphicon glyphicon-warning-sign" style="margin-right:4px;"></i>' + pt('存在受漏洞影响的JDK版本') + '</div>' +
+                            '<div>' + pt('检测到当前存在未打补丁的旧版 JDK，若暂时无法升级，建议开启全局启动参数缓解阻断漏洞利用。') + '</div>' +
+                        '</div>';
+                        var plainTip = pt('检测到存在受漏洞影响的旧版JDK，建议升级至安全版本或开启全局启动缓解。');
+                        rightHtml = '<span class="jdk-sec-mitigation-tip" style="font-size:12px; margin-right:8px; color:#d97706; font-weight:500; cursor:pointer;" data-tip-html="' + jdkEsc(tipContent) + '" title="' + jdkEsc(plainTip) + '">' +
+                            '<i class="glyphicon glyphicon-warning-sign" style="margin-right:4px;"></i>' + pt('未配置全局启动缓解') +
+                        '</span>' +
+                        '<button class="btn btn-xs btn-warning" onclick="jdk_manager.toggle_mitigation(true)">' + pt('一键开启缓解') + '</button>';
+                    } else {
+                        var tipContent = '<div style="min-width:240px; max-width:320px; padding:4px 2px; font-size:12px; line-height:1.6; color:#fff;">' +
+                            '<div style="font-weight:bold; color:#52c41a; margin-bottom:4px;"><i class="glyphicon glyphicon-shield" style="margin-right:4px;"></i>' + pt('全局参数缓解生效中') + '</div>' +
+                            '<div>' + pt('已配置 -XX:-UseBASE64Intrinsics 参数保护未打补丁的 JDK；彻底修复仍建议点击操作栏【升级】。') + '</div>' +
+                        '</div>';
+                        var plainTip = pt('已启用全局启动参数缓解，正在保护受影响的JDK版本。');
+                        rightHtml = '<span class="jdk-sec-mitigation-tip" style="font-size:12px; margin-right:8px; color:#20a53a; font-weight:500; cursor:pointer;" data-tip-html="' + jdkEsc(tipContent) + '" title="' + jdkEsc(plainTip) + '">' +
+                            '<i class="glyphicon glyphicon-shield" style="margin-right:4px;"></i>' + pt('已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解') +
+                        '</span>' +
+                        '<button class="btn btn-xs btn-default" onclick="jdk_manager.toggle_mitigation(false)">' + pt('关闭缓解') + '</button>';
+                    }
+                } else {
+                    // 场景 C：尚未安装任何 JDK
+                    var tipContent = '<div style="min-width:200px; padding:4px 2px; font-size:12px; line-height:1.6; color:#fff;">' +
+                        '<div>' + pt('尚未安装任何 JDK，建议在下方列表中选择官方安全版本进行安装。') + '</div>' +
+                    '</div>';
+                    var plainTip = pt('暂未安装任何JDK版本');
+                    rightHtml = '<span class="jdk-sec-mitigation-tip" style="font-size:12px; color:#64748b; cursor:pointer;" data-tip-html="' + jdkEsc(tipContent) + '" title="' + jdkEsc(plainTip) + '">' +
+                        '<i class="glyphicon glyphicon-info-sign" style="margin-right:4px;"></i>' + pt('暂未安装JDK') +
+                    '</span>';
+                }
+
                 var secCardHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
                     '<div>' +
                         '<span style="font-weight:bold; font-size:12px; color:#1e293b;"><i class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:4px;"></i>' + pt('Java4Shell安全防御') + '</span>' +
                         '<span style="margin-left:8px; font-size:12px; color:#64748b;">' + pt('服务器硬件暴露面') + ': <span class="label" style="' + hwBadgeStyle + '">' + jdkEsc(hwText) + '</span></span>' +
                     '</div>' +
-                    '<div>' +
-                        '<span style="font-size:12px; margin-right:8px; color:' + (isMitigated ? '#20a53a' : '#d97706') + '; font-weight:500;">' +
-                            (isMitigated ? pt('已启用 -XX:-UseBASE64Intrinsics 全局启动参数缓解') : pt('未配置全局启动缓解')) +
-                        '</span>' +
-                        '<button class="btn btn-xs ' + (isMitigated ? 'btn-default' : 'btn-warning') + '" onclick="jdk_manager.toggle_mitigation(' + (!isMitigated) + ')">' +
-                            (isMitigated ? pt('关闭缓解') : pt('一键开启缓解')) +
-                        '</button>' +
-                    '</div>' +
+                    '<div>' + rightHtml + '</div>' +
                 '</div>';
 
                 var tbody = '';

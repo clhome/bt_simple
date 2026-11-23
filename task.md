@@ -346,6 +346,19 @@
   - [x] 49.3 **多语言 6 国语言包同步与对称性保障**：同步更新 `zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it`，并通过 `verify_i18n.py` 12 项检查
   - [x] 49.4 **本地门禁与单测全量回归验证**：运行 `scripts/quick_gate.py` 与自动化单元测试验证，全部通过（Exit Code 0）
 
+- [x] **任务 50：JDK 管理器全局安全缓解提示动态自适应与鼠标悬浮解释优化 (`plugins/jdk/`)**
+  - [x] 50.1 **前端自适应状态渲染与智能隐藏**：遍历已安装 JDK，当均已升级为安全版本且未开启缓解时，自动隐藏黄色未配置警告与一键开启按钮，显示绿色安全标识；若已配置缓解参数则提示可按需关闭恢复全速性能
+  - [x] 50.2 **鼠标悬浮浮层解释 Tooltip**：状态项接入 `.jdk-sec-mitigation-tip`，悬浮时使用 `layer.tips` 展示清晰的背景原理（漏洞已被源码修复、无需降速运行/可恢复硬件加速等）
+  - [x] 50.3 **多语言 6 国语言包同步与对称性保障**：更新 `zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it` 新增提示词条并通过 `verify_i18n.py` 12 项检查
+  - [x] 50.4 **本地自动化门禁与单测全量回归**：执行 `scripts/quick_gate.py`，全部通过（Exit Code 0）
+
+- [x] **任务 51：修复 CI 门禁失败（Linux Runner 下系统预装 `/usr/bin/java` 泄漏污染测试）**
+  - [x] 51.1 **后端类属性化系统预装 Java 路径**：在 `plugins/jdk/index.py` 中将系统预装 Java 抽象为类属性 `_sys_java = '/usr/bin/java'`，支持运行时配置与测试隔离
+  - [x] 51.2 **单元测试环境沙箱化隔离**：在 `testsuite/test_jdk_badge_and_upgrade_tip.py` 与 `testsuite/test_jdk_java4shell_hardening.py` 的 `setUp` / `tearDown` 中隔离 `_sys_java`，彻底阻断真实 Linux 环境预装 Java 侵入
+  - [x] 51.3 **运行门禁全量回归验证**：运行 `scripts/quick_gate.py` 与单测验证，保证在 Linux/Windows 跨平台下 100% 稳定通过（Exit Code 0）
+
+
+
 
 
 
