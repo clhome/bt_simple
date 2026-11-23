@@ -340,6 +340,13 @@
   - [x] 48.3 **更新 `git-commit-flow` Skill 工作流规范**：在自定义 skill 中增加提交前自动运行预检逻辑，双保险拦截
   - [x] 48.4 **实测运行验证**：执行 `scripts/quick_gate.py` 验证智能识别与通过情况，确保无阻塞与高效性
 
+- [x] **任务 49：JDK 管理器列表防换行、拉宽弹窗与开发直觉缩写优化 (`plugins/jdk/`)**
+  - [x] 49.1 **拉长弹窗宽度与表格列宽防换行**：将 `resetPluginWinWidth` 由 800px 扩展至 880px；表格操作列宽度设为 `min-width: 220px` 并强制 `white-space: nowrap`；路径列支持自适应与单行文本省略，防止长路径挤占
+  - [x] 49.2 **精简操作栏与类型标记词条（符合开发直觉）**：多语言包中将类型标记缩写（如 `Panel Installed` -> `Panel`，`System Pre-installed` -> `System`）；操作栏 `Set as Default` 缩写为 `Set Default`；`Official Safe Build` 缩写为 `Official Safe`
+  - [x] 49.3 **多语言 6 国语言包同步与对称性保障**：同步更新 `zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it`，并通过 `verify_i18n.py` 12 项检查
+  - [x] 49.4 **本地门禁与单测全量回归验证**：运行 `scripts/quick_gate.py` 与自动化单元测试验证，全部通过（Exit Code 0）
+
+
 
 
 

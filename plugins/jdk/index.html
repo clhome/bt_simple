@@ -95,7 +95,7 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
     ? window.YfI18n.createPluginTranslator('jdk') 
     : function(k) { return k; };
 
-resetPluginWinWidth(800);
+resetPluginWinWidth(880);
 resetPluginWinHeight(520);
 
     // 回显值（JDK 路径/版本/下载地址）来自服务端，直接拼进 innerHTML 与行内 onclick
@@ -323,25 +323,25 @@ resetPluginWinHeight(520);
                     }
 
                     var rowDir = row.path ? row.path.substring(0, row.path.lastIndexOf('/')) : '';
-                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + jdkEsc(pt('点击打开目录')) + '" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
+                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer; max-width:270px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; font-family:Consolas, monospace; font-size:12px;" title="' + jdkEsc(row.path) + ' (' + jdkEsc(pt('点击打开目录')) + ')" onclick="openPath(\'' + jdkJsArg(rowDir) + '\')">' + jdkEsc(row.path) + '</a>' : '-';
                     
                     var opsHtml = '';
                     // CA 证书加固按钮
                     if (row.has_ca_vuln && row.path) {
-                        opsHtml += '<a class="bt_warning" style="color:#e6a23c; cursor: pointer; margin-right:10px;" onclick="jdk_manager.fix_ca(\'' + jdkJsArg(row.path) + '\')">' + pt('加固CA') + '</a>';
+                        opsHtml += '<a class="bt_warning" style="color:#e6a23c; cursor: pointer; margin-right:8px;" onclick="jdk_manager.fix_ca(\'' + jdkJsArg(row.path) + '\')">' + pt('加固CA') + '</a>';
                     }
                     // 设为默认
                     if (row.operation == 1 || row.operation == 2 || row.operation == 4) {
                         if (row.is_default) {
-                            opsHtml += '<span style="color:#999; margin-right:10px;">' + pt('已是默认') + '</span>';
+                            opsHtml += '<span style="color:#999; margin-right:8px;">' + pt('已是默认') + '</span>';
                         } else {
-                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('设为默认') + '</a>';
+                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:8px;" onclick="jdk_manager.set_default(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('设为默认') + '</a>';
                         }
                     }
                     
                     // 升级按钮 (针对面板安装且有新版本的条目)
                     if (row.is_upgrading || (row.operation == 3 && row.path)) {
-                        opsHtml += '<span style="color:#d46b08; font-weight:600; margin-right:10px;"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在升级...') + '</span>';
+                        opsHtml += '<span style="color:#d46b08; font-weight:600; margin-right:8px;"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在升级...') + '</span>';
                     } else if (row.can_upgrade && row.operation == 1) {
                         var upDate = row.upgrade_release_date || row.release_date || '';
                         var upVer = row.latest_version || '';
@@ -350,7 +350,7 @@ resetPluginWinHeight(520);
                             '<div><i class="glyphicon glyphicon-cloud-download" style="color:#60a5fa; margin-right:4px;"></i>' + pt('目标版本') + ': <b>' + jdkEsc(upVer) + '</b></div>' +
                             (upDate ? ('<div><i class="glyphicon glyphicon-calendar" style="color:#34d399; margin-right:4px;"></i>' + pt('发布时间') + ': ' + jdkEsc(upDate) + '</div>') : '') +
                         '</div>';
-                        opsHtml += '<a class="bt_warning jdk-btn-upgrade" style="color:#d46b08; font-weight:bold; cursor: pointer; margin-right:10px;" data-tip-html="' + jdkEsc(upTipHtml) + '" title="' + jdkEsc(upTip) + '" onclick="jdk_manager.upgrade(this, \'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('升级') + '</a>';
+                        opsHtml += '<a class="bt_warning jdk-btn-upgrade" style="color:#d46b08; font-weight:bold; cursor: pointer; margin-right:8px;" data-tip-html="' + jdkEsc(upTipHtml) + '" title="' + jdkEsc(upTip) + '" onclick="jdk_manager.upgrade(this, \'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('升级') + '</a>';
                     }
                     
                     // 安装/卸载
@@ -374,7 +374,7 @@ resetPluginWinHeight(520);
                         opsHtml += '<span>' + pt('不可操作') + '</span>';
                     }
                     
-                    tbody += '<tr><td>' + nameHtml + '</td><td>' + pathHtml + '</td><td style="text-align:right;">' + opsHtml + '</td></tr>';
+                    tbody += '<tr><td style="white-space:nowrap;">' + nameHtml + '</td><td>' + pathHtml + '</td><td style="text-align:right; white-space:nowrap;">' + opsHtml + '</td></tr>';
                 }
                 
                 if (list.length === 0) {
@@ -390,9 +390,9 @@ resetPluginWinHeight(520);
                                 '<table class="table table-hover">' +
                                     '<thead>' +
                                         '<tr>' +
-                                            '<th>' + pt('JDK版本') + '</th>' +
+                                            '<th style="white-space:nowrap;">' + pt('JDK版本') + '</th>' +
                                             '<th>' + pt('JDK路径') + '</th>' +
-                                            '<th style="text-align:right; width:140px; white-space:nowrap;">' + pt('操作') + '</th>' +
+                                            '<th style="text-align:right; width:220px; min-width:220px; white-space:nowrap;">' + pt('操作') + '</th>' +
                                         '</tr>' +
                                     '</thead>' +
                                     '<tbody>' + tbody + '</tbody>' +
