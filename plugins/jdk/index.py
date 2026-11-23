@@ -539,6 +539,35 @@ def _valid_jdk_url(url):
     return parsed.path.endswith('.tar.gz')
 
 
+def _format_release_date(raw_date):
+    """将镜像目录/HTTP日期字符串解析为标准 YYYY-MM-DD 日期"""
+    if not raw_date or not isinstance(raw_date, str):
+        return ''
+    raw_date = raw_date.strip()
+    try:
+        import email.utils
+        parsed = email.utils.parsedate_to_datetime(raw_date)
+        if parsed:
+            return parsed.strftime('%Y-%m-%d')
+    except Exception as e:
+        _log.debug('[jdk] parsedate_to_datetime error: %s', e)
+    month_map = {
+        'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+        'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+        'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+    }
+    m = re.search(r'(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})', raw_date)
+    if m:
+        day = m.group(1).zfill(2)
+        mon = month_map.get(m.group(2).lower(), '01')
+        year = m.group(3)
+        return f"{year}-{mon}-{day}"
+    m2 = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', raw_date)
+    if m2:
+        return f"{m2.group(1)}-{m2.group(2).zfill(2)}-{m2.group(3).zfill(2)}"
+    return raw_date
+
+
 def _normalize_jdk_items(items):
     """过滤在线版本清单：只保留 version 合法、url 合法的条目。
 
@@ -553,8 +582,12 @@ def _normalize_jdk_items(items):
             continue
         version = item.get('version')
         url = item.get('url')
+        release_date = item.get('release_date', '')
         if _valid_jdk_version(version) and _valid_jdk_url(url):
-            ret.append({'version': version, 'url': url})
+            norm_item = {'version': version, 'url': url}
+            if release_date:
+                norm_item['release_date'] = str(release_date)
+            ret.append(norm_item)
     return ret
 
 
@@ -611,11 +644,11 @@ class jdk_main:
         cache_file = self._plugin_path + '/versions.json'
         arch = _system_arch()
         default_jdks = [
-            {"version": "jdk-8", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/{arch}/linux/OpenJDK8U-jdk_{arch}_linux_hotspot_8u504b01.tar.gz"},
-            {"version": "jdk-11", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/{arch}/linux/OpenJDK11U-jdk_{arch}_linux_hotspot_11.0.32.1_1.tar.gz"},
-            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21.1_1.tar.gz"},
-            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13.1_1.tar.gz"},
-            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5.1_1.tar.gz"}
+            {"version": "jdk-8", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/{arch}/linux/OpenJDK8U-jdk_{arch}_linux_hotspot_8u504b01.tar.gz", "release_date": "2026-01-20"},
+            {"version": "jdk-11", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/{arch}/linux/OpenJDK11U-jdk_{arch}_linux_hotspot_11.0.32.1_1.tar.gz", "release_date": "2026-01-20"},
+            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21.1_1.tar.gz", "release_date": "2026-01-20"},
+            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13.1_1.tar.gz", "release_date": "2026-01-20"},
+            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5.1_1.tar.gz", "release_date": "2026-01-20"}
         ]
 
         if not force_update and os.path.exists(cache_file):
@@ -627,6 +660,11 @@ class jdk_main:
                     cached_vers = [c.get('version') for c in cached]
                     has_stale_url = any('8u492b09' in c.get('url', '') or '21.0.11' in c.get('url', '') or '21.0.13_9' in c.get('url', '') or '17.0.21_9' in c.get('url', '') or '25.0.5_8' in c.get('url', '') for c in cached)
                     if cached and 'jdk-25' in cached_vers and not has_stale_url:
+                        # 确保缓存中缺少 release_date 时回退默认发布日期
+                        def_date_map = {d['version']: d.get('release_date', '') for d in default_jdks}
+                        for c in cached:
+                            if not c.get('release_date') and c.get('version') in def_date_map:
+                                c['release_date'] = def_date_map[c['version']]
                         return cached
                 except Exception as e:
                     _log.debug('[jdk] 在线版本缓存解析失败，改为重新获取: %s', e)
@@ -636,12 +674,22 @@ class jdk_main:
         for jdk in default_jdks:
             v_num = jdk['version'].split('-')[1]
             base_url = f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{v_num}/jdk/{arch}/linux/"
+            file_date_map = {}
+            matched = False
             try:
                 req = urllib.request.Request(base_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=5) as response:
                     html = response.read().decode('utf-8')
-                    pattern = r'href="(OpenJDK' + v_num + r'U-jdk_' + arch + r'_linux_hotspot_[^"]+\.tar\.gz)"'
-                    matches = re.findall(pattern, html)
+                    pattern = r'href="(OpenJDK' + v_num + r'U-jdk_' + arch + r'_linux_hotspot_[^"]+\.tar\.gz)".*?<td class="date">([^<]+)</td>'
+                    matches_with_date = re.findall(pattern, html, flags=re.S)
+                    if matches_with_date:
+                        for fn, dt_str in matches_with_date:
+                            file_date_map[fn] = _format_release_date(dt_str)
+                        matches = list(file_date_map.keys())
+                    else:
+                        pattern_simple = r'href="(OpenJDK' + v_num + r'U-jdk_' + arch + r'_linux_hotspot_[^"]+\.tar\.gz)"'
+                        matches = re.findall(pattern_simple, html)
+
                     if matches:
                         latest_file = max(matches, key=_jdk_filename_ver_key)
                         latest_key = _jdk_filename_ver_key(latest_file)
@@ -651,11 +699,20 @@ class jdk_main:
                             candidate = base_url + latest_file
                             # 镜像返回的文件名不可信：仍按同一套 url 白名单校验后才采用
                             if _valid_jdk_url(candidate):
-                                updated_jdks.append({"version": jdk['version'], "url": candidate})
-                                continue
+                                rel_date = file_date_map.get(latest_file, jdk.get('release_date', ''))
+                                updated_jdks.append({"version": jdk['version'], "url": candidate, "release_date": rel_date})
+                                matched = True
             except Exception as e:
                 _log.debug('[jdk] get_online_jdks 异常已忽略: %s', e)
-            updated_jdks.append(jdk)
+            
+            if not matched:
+                def_filename = os.path.basename(jdk['url'])
+                if def_filename in file_date_map and file_date_map[def_filename]:
+                    item_copy = dict(jdk)
+                    item_copy['release_date'] = file_date_map[def_filename]
+                    updated_jdks.append(item_copy)
+                else:
+                    updated_jdks.append(jdk)
 
         yf.writeFile(cache_file, json.dumps(updated_jdks))
         return updated_jdks
@@ -797,11 +854,13 @@ class jdk_main:
             jdk_path = self._java_dir + '/' + jdk['version'] + '/bin/java'
             m_online = re.search(r'hotspot_([0-9a-zA-Z._\-]+)\.tar\.gz$', jdk.get('url', ''))
             online_ver = m_online.group(1).split('_')[0] if m_online else ''
+            release_date = jdk.get('release_date', '')
 
             if os.path.exists(jdk_path):
                 row = {
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
-                    "operation": 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url']
+                    "operation": 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url'],
+                    "release_date": release_date
                 }
                 _attach_ca_status(row)
                 _attach_java4shell_status(row)
@@ -813,10 +872,12 @@ class jdk_main:
                 if online_ver and t_online > t_inst:
                     row['can_upgrade'] = True
                     row['latest_version'] = online_ver
+                    row['upgrade_release_date'] = release_date
                     row['is_security_upgrade'] = _is_java4shell_vulnerable_version(inst_ver)
                 else:
                     row['can_upgrade'] = False
                     row['latest_version'] = online_ver or inst_ver
+                    row['upgrade_release_date'] = ''
                     row['is_security_upgrade'] = False
 
                 ret.append(row)
@@ -825,7 +886,8 @@ class jdk_main:
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 3, "is_default": False, "download_url": jdk['url'],
                     "has_ca_vuln": False, "ca_checked": False,
-                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False
+                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False,
+                    "release_date": release_date, "upgrade_release_date": ""
                 }
                 _attach_java4shell_status(row)
                 ret.append(row)
@@ -834,7 +896,8 @@ class jdk_main:
                     "name": jdk['version'], "type": "面板安装", "path": "",
                     "operation": 0, "is_default": False, "download_url": jdk['url'],
                     "has_ca_vuln": False, "ca_checked": False,
-                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False
+                    "can_upgrade": False, "latest_version": online_ver, "is_security_upgrade": False,
+                    "release_date": release_date, "upgrade_release_date": ""
                 }
                 _attach_java4shell_status(row)
                 ret.append(row)
