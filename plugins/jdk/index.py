@@ -718,24 +718,34 @@ class jdk_main:
         return updated_jdks
 
     def _is_installing(self, version):
-        r"""是否存在正在下载该版本的 wget 进程。
-
-        旧实现走 `ps` + `grep` 管道（版本号直接拼进 grep 模式），且要靠排除自身
-        `sh -c` 命令行才不假报；改为列表化 pgrep（无 shell），并在 Python 侧精确匹配。
-        改为列表化 pgrep（无 shell），并在 Python 侧做精确匹配。
-        """
+        """检查指定 JDK 版本是否处于安装或升级活跃状态（包括任务队列排队 0、执行中 -1，以及底层下载进程）"""
         if not version or not isinstance(version, str):
             return False
+
+        # 1. 优先检查面板 tasks 数据库中排队中 (0) 或执行中 (-1) 的活跃任务
+        try:
+            import thisdb
+            active_tasks = thisdb.getTaskActiveList(page=1, size=50)
+            for t in active_tasks or []:
+                name = str(t.get('name') or '')
+                cmd = str(t.get('cmd') or '')
+                if ('安装JDK-' + version in name) or ('升级JDK-' + version in name) or (version in name):
+                    return True
+                if (f'install_{version}.sh' in cmd) or (f'upgrade_{version}.sh' in cmd) or (version in cmd and ('wget' in cmd or 'tar' in cmd)):
+                    return True
+        except Exception as e:
+            _log.debug('[jdk] 检查任务队列活跃状态异常: %s', e)
+
+        # 2. 检查系统底层正在下载该版本的 wget / tar 进程
         try:
             rc, out, _ = yf.execShellRc(['pgrep', '-af', 'wget'], shell=False, timeout=10)
+            if rc == 0 and out:
+                for line in out.splitlines():
+                    if 'wget' in line and version in line:
+                        return True
         except Exception as e:
-            _log.debug('[jdk] 安装中判定失败: %s', e)
-            return False
-        if rc != 0 or not out:
-            return False
-        for line in out.splitlines():
-            if 'wget' in line and version in line:
-                return True
+            _log.debug('[jdk] 安装中进程判定失败: %s', e)
+
         return False
 
     def get_security_overview(self, args=None):
@@ -749,16 +759,17 @@ class jdk_main:
             parsed = json.loads(jdk_list_res) if isinstance(jdk_list_res, str) else jdk_list_res
             all_list = parsed.get('msg', {}).get('list', []) if isinstance(parsed, dict) else []
             for item in all_list:
-                # 仅审计已安装的 JDK (有 path 且 operation 在 1, 2, 4 中)
-                if not item.get('path') or item.get('operation') not in (1, 2, 4):
+                # 仅审计已安装的 JDK (有 path 且 operation 在 1, 2, 3, 4 中)
+                if not item.get('path') or item.get('operation') not in (1, 2, 3, 4):
                     continue
 
+                is_upgrading = bool(item.get('is_upgrading'))
                 has_ca = bool(item.get('has_ca_vuln'))
                 j_stat = item.get('java4shell', {}).get('status') if isinstance(item.get('java4shell'), dict) else item.get('java4shell_status', 'safe')
                 has_j4s = (j_stat != 'safe')
-                has_up = bool(item.get('can_upgrade'))
+                has_up = bool(item.get('can_upgrade')) and (not is_upgrading)
 
-                if has_ca or has_j4s or has_up:
+                if has_ca or has_j4s or has_up or is_upgrading:
                     vuln_types = []
                     if has_ca:
                         vuln_types.append('ca')
@@ -766,6 +777,8 @@ class jdk_main:
                         vuln_types.append('java4shell')
                     if has_up:
                         vuln_types.append('upgrade')
+                    if is_upgrading:
+                        vuln_types.append('upgrading')
 
                     vulnerable_items.append({
                         'name': item.get('name', ''),
@@ -776,6 +789,7 @@ class jdk_main:
                         'java4shell_status': j_stat,
                         'java4shell_title': item.get('java4shell_title', ''),
                         'can_upgrade': has_up,
+                        'is_upgrading': is_upgrading,
                         'latest_version': item.get('latest_version', ''),
                         'upgrade_release_date': item.get('upgrade_release_date', ''),
                         'download_url': item.get('download_url', ''),
@@ -905,10 +919,12 @@ class jdk_main:
             release_date = jdk.get('release_date', '')
 
             if os.path.exists(jdk_path):
+                is_upgrading = self._is_installing(jdk['version'])
                 row = {
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
-                    "operation": 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url'],
-                    "release_date": release_date
+                    "operation": 3 if is_upgrading else 1, "is_default": (jdk_path == default_jdk), "download_url": jdk['url'],
+                    "release_date": release_date,
+                    "is_upgrading": is_upgrading
                 }
                 _attach_ca_status(row)
                 _attach_java4shell_status(row)
@@ -917,7 +933,7 @@ class jdk_main:
                 inst_ver = row.get('installed_version', '')
                 t_inst = _parse_java_semver(inst_ver)
                 t_online = _parse_java_semver(online_ver)
-                if online_ver and t_online > t_inst:
+                if online_ver and t_online > t_inst and (not is_upgrading):
                     row['can_upgrade'] = True
                     row['latest_version'] = online_ver
                     row['upgrade_release_date'] = release_date

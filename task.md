@@ -323,6 +323,12 @@
   - [x] 45.3 **错峰流水线加载与多语言国际化**：在 `index.html` 错峰流水线中接入巡检；在 6 国语言包中补充对应键并同步派生
   - [x] 45.4 **自动化测试与质量门禁验证**：编写单测验证漏洞有无时的卡片条件显示与国际化一致性，回归质量门禁
 
+- [x] **任务 46：全局安装/升级操作状态即时反馈与防重复点击优化 (`plugins/jdk/`, `web/static/app/`)**
+  - [x] 46.1 **后端 JDK 活跃任务精准识别**：在 `plugins/jdk/index.py` 中将 `_is_installing` 升级为结合 `thisdb.getTaskActiveList()` 与进程级精准检测，在 `get_jdk_list` 及 `get_security_overview` 中对已排队或升级中的 JDK 标记 `is_upgrading=True, can_upgrade=False`，防止重复提交
+  - [x] 46.2 **首页安全扫描弹窗按钮即时状态反馈**：在 `web/static/app/index.js` 中优化 `handleUpgradeJdk` 与 `handleFixCa`，点击后立即锁定按钮置灰并显示旋转加载态“正在升级...”，调用 `getTaskCount()` 刷新左上角任务角标，渲染时对 `is_upgrading` 条目展示进行中状态
+  - [x] 46.3 **JDK 插件管理页与全局相关模块联动优化**：在 `plugins/jdk/index.html` 与 `web/static/app/index.js`（PHP安全基线升级）中统一增强升级中按钮不可重复点击、动态显示旋转状态
+  - [x] 46.4 **多语言扩展与自动化回归测试**：在 6 国语言包中补齐“正在升级...”等状态词条，扩充测试用例并全量回归质量门禁
+
 
 
 

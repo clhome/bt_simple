@@ -240,7 +240,10 @@ class TestJdkBadgeAndUpgradeTip(unittest.TestCase):
             'jdk_sec_confirm_upgrade_to',
             'jdk_sec_confirm_fix_ca',
             'jdk_sec_security_hardening',
-            'jdk_sec_version_upgrade'
+            'jdk_sec_version_upgrade',
+            'jdk_sec_upgrading',
+            'jdk_sec_upgrading_desc',
+            'jdk_sec_hardening_ca'
         ]
         for lang in LANGS:
             carrier_path = os.path.join(ROOT, 'web', 'static', 'language', lang, 'template.index.json')
@@ -250,6 +253,49 @@ class TestJdkBadgeAndUpgradeTip(unittest.TestCase):
             index_dict = cdata.get('index', {})
             for k in expected_keys:
                 self.assertIn(k, index_dict, f"Language {lang} is missing index key: {k}")
+
+    def test_upgrading_active_status_detection(self):
+        """测试任务队列存在升级任务时，准确识别 is_upgrading 且禁用 can_upgrade"""
+        main = jdk_mod.jdk_main()
+        fake_cache = [
+            {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_1.tar.gz", "release_date": "2026-11-18"}
+        ]
+        with open(os.path.join(self.plug, 'versions.json'), 'w', encoding='utf-8') as f:
+            json.dump(fake_cache, f)
+
+        jdk21_bin = os.path.join(self.javadir, 'jdk-21', 'bin')
+        os.makedirs(jdk21_bin)
+        java_exe = os.path.join(jdk21_bin, 'java')
+        with open(java_exe, 'w') as f:
+            f.write('#!/bin/sh\nexit 0\n')
+
+        orig_getinfo = jdk_mod._get_jdk_version_info
+        orig_installing = main._is_installing
+        try:
+            jdk_mod._get_jdk_version_info = lambda p, f: ('21.0.12.1', 'openjdk 21.0.12.1')
+            # 模拟活跃升级任务
+            main._is_installing = lambda ver: (ver == 'jdk-21')
+
+            # 1. 测试 get_jdk_list 输出状态
+            res_str = main.get_jdk_list()
+            data = json.loads(res_str)
+            item = next((x for x in data['msg']['list'] if x['name'] == 'jdk-21'), None)
+            self.assertIsNotNone(item)
+            self.assertEqual(item.get('operation'), 3)
+            self.assertTrue(item.get('is_upgrading'))
+            self.assertFalse(item.get('can_upgrade'))
+
+            # 2. 测试 get_security_overview 输出状态
+            sec_str = main.get_security_overview()
+            sec_data = json.loads(sec_str)
+            sec_item = next((x for x in sec_data['msg']['items'] if x['name'] == 'jdk-21'), None)
+            self.assertIsNotNone(sec_item)
+            self.assertTrue(sec_item.get('is_upgrading'))
+            self.assertFalse(sec_item.get('can_upgrade'))
+            self.assertIn('upgrading', sec_item.get('vuln_types', []))
+        finally:
+            jdk_mod._get_jdk_version_info = orig_getinfo
+            main._is_installing = orig_installing
 
 
 if __name__ == '__main__':

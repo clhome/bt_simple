@@ -1,4 +1,6 @@
 <style>
+@keyframes phpSecSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.php-sec-spin { display: inline-block; animation: phpSecSpin 1.2s linear infinite; }
 /* 弹窗整体固定尺寸与 Flex 布局 */
 .bt-form {
     height: 100% !important;
@@ -338,7 +340,9 @@ resetPluginWinHeight(520);
                     }
                     
                     // 升级按钮 (针对面板安装且有新版本的条目)
-                    if (row.can_upgrade && row.operation == 1) {
+                    if (row.is_upgrading || (row.operation == 3 && row.path)) {
+                        opsHtml += '<span style="color:#d46b08; font-weight:600; margin-right:10px;"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在升级...') + '</span>';
+                    } else if (row.can_upgrade && row.operation == 1) {
                         var upDate = row.upgrade_release_date || row.release_date || '';
                         var upVer = row.latest_version || '';
                         var upTip = upDate ? pt('发布时间：{1}，目标版本：{2}').replace('{1}', upDate).replace('{2}', upVer) : (pt('目标版本') + ': ' + upVer);
@@ -346,16 +350,18 @@ resetPluginWinHeight(520);
                             '<div><i class="glyphicon glyphicon-cloud-download" style="color:#60a5fa; margin-right:4px;"></i>' + pt('目标版本') + ': <b>' + jdkEsc(upVer) + '</b></div>' +
                             (upDate ? ('<div><i class="glyphicon glyphicon-calendar" style="color:#34d399; margin-right:4px;"></i>' + pt('发布时间') + ': ' + jdkEsc(upDate) + '</div>') : '') +
                         '</div>';
-                        opsHtml += '<a class="bt_warning jdk-btn-upgrade" style="color:#d46b08; font-weight:bold; cursor: pointer; margin-right:10px;" data-tip-html="' + jdkEsc(upTipHtml) + '" title="' + jdkEsc(upTip) + '" onclick="jdk_manager.upgrade(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('升级') + '</a>';
+                        opsHtml += '<a class="bt_warning jdk-btn-upgrade" style="color:#d46b08; font-weight:bold; cursor: pointer; margin-right:10px;" data-tip-html="' + jdkEsc(upTipHtml) + '" title="' + jdkEsc(upTip) + '" onclick="jdk_manager.upgrade(this, \'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.installed_version) + '\', \'' + jdkJsArg(row.latest_version) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('升级') + '</a>';
                     }
                     
                     // 安装/卸载
-                    if (row.operation == 1) {
+                    if (row.is_upgrading || (row.operation == 3 && row.path)) {
+                        opsHtml += '<span style="color:#999;">' + pt('升级中不可卸载') + '</span>';
+                    } else if (row.operation == 1) {
                         opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.type) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('卸载') + '</a>';
                     } else if (row.operation == 0) {
                         opsHtml += '<a class="bt_success" style="cursor: pointer;" onclick="jdk_manager.install(\'' + jdkJsArg(row.name) + '\', \'' + jdkJsArg(row.download_url) + '\')">' + pt('安装') + '</a>';
                     } else if (row.operation == 3) {
-                        opsHtml += '<span style="color:#e6a23c">' + pt('正在安装...') + '</span>';
+                        opsHtml += '<span style="color:#e6a23c"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在安装...') + '</span>';
                     } else if (row.operation == 2) {
                         if (row.type === '系统预装') {
                             opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
@@ -457,7 +463,7 @@ resetPluginWinHeight(520);
                 });
             });
         },
-        upgrade: function(version, curVer, newVer, url) {
+        upgrade: function(btn, version, curVer, newVer, url) {
             var _that = this;
             var confirmTitle = pt('确认将【{1}】从当前版本 {2} 升级至 {3} 吗？')
                 .replace('{1}', jdkEsc(version))
@@ -466,8 +472,12 @@ resetPluginWinHeight(520);
             confirmTitle += '<br><span style="color:#666; font-size:12px;">' + pt('将从 Adoptium 镜像源后台下载并平滑升级覆盖，修复已知安全漏洞。') + '</span>';
             layer.confirm(confirmTitle, { icon: 3, title: pt('版本升级') }, function (index) {
                 layer.close(index);
+                if (btn && $(btn).length) {
+                    $(btn).replaceWith('<span style="color:#d46b08; font-weight:600; margin-right:10px;"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在升级...') + '</span>');
+                }
                 _that.send('upgrade_jdk', { version: version, download_url: url }, function (res) {
                     layer.msg(res.msg, { icon: res.status ? 1 : 2 });
+                    if (typeof getTaskCount === 'function') getTaskCount();
                     if (res.status) {
                         _that.render_table();
                         if (typeof messageBox === 'function') messageBox();

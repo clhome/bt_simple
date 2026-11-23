@@ -87,5 +87,7 @@
     "发布时间": "Veröffentlichungsdatum",
     "写配置文件失败": "Konfigurationsdatei konnte nicht geschrieben werden",
     "安全缓解开启成功": "Sicherheitsminderung erfolgreich aktiviert",
-    "安全缓解已关闭": "Sicherheitsminderung deaktiviert"
+    "安全缓解已关闭": "Sicherheitsminderung deaktiviert",
+    "正在升级...": "Wird aktualisiert...",
+    "升级中不可卸载": "Deinstallation während des Upgrades nicht möglich"
 }

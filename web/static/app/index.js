@@ -3258,6 +3258,11 @@ function upgradePhpToBaseline(el) {
     if (!branch || !plugin) return;
 
     var doUpgrade = function() {
+        var $el = $(el);
+        if ($el.length) {
+            $el.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.85', 'cursor': 'not-allowed' })
+                .html('<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' + phpSecEscape(t('index.php_sec_upgrading', '正在升级...')));
+        }
         var loadT = layer.msg(t('public.getting', '正在获取中...'), { icon: 16, time: 0, shade: 0.2 });
         $.post('/plugins/run', { name: plugin, func: 'submit_baseline_upgrade', version: branch }, function(rdata) {
             if (loadT) layer.close(loadT);
@@ -3269,12 +3274,22 @@ function upgradePhpToBaseline(el) {
             var msg = (info && info.msg) ? info.msg : ((rdata && rdata.msg) || '');
             layer.msg(msg || (ok ? 'OK' : 'ERROR'), { icon: ok ? 1 : 0, time: 4000, shade: [0.3, '#000'] });
             if (ok) {
+                if (typeof getTaskCount === 'function') {
+                    getTaskCount();
+                }
                 try { sessionStorage.removeItem('bt_php_sec_status_cache'); } catch (e) {}
                 setTimeout(function() { getPhpSecurityStatus(true); }, 1200);
+            } else if ($el.length) {
+                $el.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' })
+                    .html(phpSecEscape(t('index.php_sec_upgrade', '升级到安全版本')));
             }
         }, 'json').fail(function() {
             if (loadT) layer.close(loadT);
             layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 0, time: 2000 });
+            if ($el.length) {
+                $el.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' })
+                    .html(phpSecEscape(t('index.php_sec_upgrade', '升级到安全版本')));
+            }
         });
     };
 
@@ -3308,44 +3323,84 @@ function getJdkSecurityStatus(forceRefresh) {
         }
     } catch (e) {}
 
-    if (cached) {
-        if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
-            btSecurityCenter.updateJdkStatus(cached);
+    // 解析并提取 JDK 安全数据的统一工具方法（支持直接路由返回值与 /plugins/run 双重序列化格式）
+    function parseJdkSecurityData(res) {
+        if (!res) return null;
+        var cur = res;
+        for (var i = 0; i < 3; i++) {
+            if (typeof cur === 'string') {
+                try { cur = JSON.parse(cur); } catch (e) { break; }
+            }
+            if (cur && typeof cur === 'object') {
+                if (typeof cur.alarm_count === 'number' || Array.isArray(cur.items)) {
+                    return cur;
+                }
+                if (cur.data && typeof cur.data === 'object' && (typeof cur.data.alarm_count === 'number' || Array.isArray(cur.data.items))) {
+                    return cur.data;
+                }
+                if (cur.msg && typeof cur.msg === 'object' && (typeof cur.msg.alarm_count === 'number' || Array.isArray(cur.msg.items))) {
+                    return cur.msg;
+                }
+                if (cur.data) {
+                    cur = cur.data;
+                } else if (cur.msg) {
+                    cur = cur.msg;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
         }
-        if (!forceRefresh && (Date.now() - lastTime < TTL)) {
-            return;
-        }
+        return (cur && typeof cur === 'object') ? cur : null;
     }
 
-    $.post('/get_jdk_security_status', { force: forceRefresh ? 1 : 0 }, function(rdata) {
-        if (!rdata || !rdata.status) {
-            // 降级尝试通过 plugins/run 获取
-            $.post('/plugins/run', { name: 'jdk', func: 'get_security_overview' }, function(pdata) {
-                var r;
-                try { r = JSON.parse(pdata.data); } catch(e) { r = pdata.data; }
-                if (r && r.status && r.msg) {
-                    var data = r.msg;
-                    try {
-                        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: data, t: Date.now() }));
-                    } catch(e) {}
-                    if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
-                        btSecurityCenter.updateJdkStatus(data);
-                    }
-                }
-            }, 'json');
-            return;
-        }
-        var data = rdata.data || {};
+    function applySuccess(data) {
+        if (!data || typeof data !== 'object') return;
         try {
             sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: data, t: Date.now() }));
         } catch (e) {}
         if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
             btSecurityCenter.updateJdkStatus(data);
         }
-    }, 'json').fail(function() {
-        if (cached && window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+    }
+
+    // 降级兜底通道：通过面板通用的 /plugins/run 接口获取（即使面板后台未重启加载新路由亦能 100% 成功）
+    function fetchViaPluginsRun() {
+        $.post('/plugins/run', { name: 'jdk', func: 'get_security_overview' }, function(pdata) {
+            var extracted = parseJdkSecurityData(pdata);
+            if (extracted) {
+                applySuccess(extracted);
+            }
+        }, 'json').fail(function() {
+            if (cached && window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+                btSecurityCenter.updateJdkStatus(cached);
+            }
+        });
+    }
+
+    // 存在有效缓存且在有效期内（且非强制刷新），先立即呈现
+    if (cached) {
+        if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
             btSecurityCenter.updateJdkStatus(cached);
         }
+        // 如果缓存命中且距上次巡检小于 TTL，无需再次发网络请求（若缓存记录问题数为 0，则后台允许静默再校准一次）
+        if (!forceRefresh && (Date.now() - lastTime < TTL) && (cached.alarm_count > 0 || (cached.items && cached.items.length > 0))) {
+            return;
+        }
+    }
+
+    // 首选请求快捷仪表盘路由，若 404/500/失败则自动无缝降级至 /plugins/run
+    $.post('/get_jdk_security_status', { force: forceRefresh ? 1 : 0 }, function(rdata) {
+        var extracted = parseJdkSecurityData(rdata);
+        if (rdata && rdata.status && extracted) {
+            applySuccess(extracted);
+        } else {
+            fetchViaPluginsRun();
+        }
+    }, 'json').fail(function() {
+        // 关键自愈：当后端未重启导致 404 或网络波动时，立即触发 /plugins/run 降级
+        fetchViaPluginsRun();
     });
 }
 
@@ -3851,7 +3906,10 @@ var btSecurityCenter = {
                 var it = items[i];
                 var nameStr = (it.name || '') + (it.installed_version ? ' (' + it.installed_version + ')' : '');
                 var descLines = [];
-                if (it.can_upgrade) {
+                if (it.is_upgrading) {
+                    descLines.push('<div style="color:#d46b08; line-height:20px;"><span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:6px;"></span>' +
+                        phpSecEscape(t('index.jdk_sec_upgrading_desc', '核心版本：升级任务已在后台执行，请查看左上角任务栏')) + '</div>');
+                } else if (it.can_upgrade) {
                     descLines.push('<div style="color:#cf1322; line-height:20px;"><span style="font-weight:bold; margin-right:6px;">✕</span>' +
                         phpSecEscape(t('index.jdk_sec_upgrade_tip', '核心版本：发现新版本 {1}，建议升级修复').replace('{1}', it.latest_version || '')) + '</div>');
                 }
@@ -3864,6 +3922,13 @@ var btSecurityCenter = {
                         phpSecEscape(it.java4shell_title || t('index.jdk_sec_j4s_tip', 'Java4Shell防御：存在漏洞缺陷')) + '</div>');
                 }
 
+                var upgradeBtnHtml = '';
+                if (it.is_upgrading) {
+                    upgradeBtnHtml = '<button class="btn btn-default btn-xs" disabled style="opacity:0.85; cursor:not-allowed;"><span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' + phpSecEscape(t('index.jdk_sec_upgrading', '正在升级...')) + '</button>';
+                } else if (it.can_upgrade) {
+                    upgradeBtnHtml = '<button class="btn btn-warning btn-xs" style="background-color:#d46b08; border-color:#d46b08; color:#fff;" onclick="btSecurityCenter.handleUpgradeJdk(this,\'' + phpSecEscape(it.name) + '\',\'' + phpSecEscape(it.installed_version) + '\',\'' + phpSecEscape(it.latest_version) + '\',\'' + phpSecEscape(it.download_url) + '\')">' + phpSecEscape(t('index.jdk_sec_upgrade_btn', '立即升级')) + '</button>';
+                }
+
                 listHtml += '<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:12px 14px; margin-bottom:10px;">' +
                     '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
                         '<div>' +
@@ -3872,8 +3937,8 @@ var btSecurityCenter = {
                             '<span class="label label-danger" style="margin-left:8px; font-size:10px; background-color:#ff4d4f; color:#fff; padding:1px 5px; border-radius:3px;">' + phpSecEscape(t('index.jdk_sec_danger_tag', '高危')) + '</span>' +
                         '</div>' +
                         '<div style="display:flex; gap:8px;">' +
-                            (it.can_upgrade ? '<button class="btn btn-warning btn-xs" style="background-color:#d46b08; border-color:#d46b08; color:#fff;" onclick="btSecurityCenter.handleUpgradeJdk(\'' + phpSecEscape(it.name) + '\',\'' + phpSecEscape(it.installed_version) + '\',\'' + phpSecEscape(it.latest_version) + '\',\'' + phpSecEscape(it.download_url) + '\')">' + phpSecEscape(t('index.jdk_sec_upgrade_btn', '立即升级')) + '</button>' : '') +
-                            (it.has_ca_vuln ? '<button class="btn btn-warning btn-xs" onclick="btSecurityCenter.handleFixCa(\'' + phpSecEscape(it.path) + '\')">' + phpSecEscape(t('index.jdk_sec_fix_ca_btn', '加固CA')) + '</button>' : '') +
+                            upgradeBtnHtml +
+                            (it.has_ca_vuln ? '<button class="btn btn-warning btn-xs" onclick="btSecurityCenter.handleFixCa(this,\'' + phpSecEscape(it.path) + '\')">' + phpSecEscape(t('index.jdk_sec_fix_ca_btn', '加固CA')) + '</button>' : '') +
                             '<button class="btn btn-default btn-xs" onclick="btSecurityCenter.openJdkManager()">' + phpSecEscape(t('index.jdk_sec_manage_btn', '管理')) + '</button>' +
                         '</div>' +
                     '</div>' +
@@ -3904,36 +3969,67 @@ var btSecurityCenter = {
         }
     },
 
-    handleUpgradeJdk: function(version, curVer, newVer, url) {
+    handleUpgradeJdk: function(btn, version, curVer, newVer, url) {
         var that = this;
         var confirmMsg = t('index.jdk_sec_confirm_upgrade_to', '确认将【{1}】升级至 {2} 吗？').replace('{1}', version).replace('{2}', newVer);
         layer.confirm(confirmMsg, { icon: 3, title: t('index.jdk_sec_version_upgrade', '版本升级') }, function(index) {
             layer.close(index);
+            var $btn = $(btn);
+            if ($btn.length) {
+                $btn.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.85', 'cursor': 'not-allowed', 'background-color': '#e2e8f0', 'border-color': '#cbd5e1', 'color': '#64748b' })
+                    .html('<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' + phpSecEscape(t('index.jdk_sec_upgrading', '正在升级...')));
+            }
+            if (that.jdkData && Array.isArray(that.jdkData.items)) {
+                for (var i = 0; i < that.jdkData.items.length; i++) {
+                    if (that.jdkData.items[i].name === version) {
+                        that.jdkData.items[i].is_upgrading = true;
+                        that.jdkData.items[i].can_upgrade = false;
+                        break;
+                    }
+                }
+            }
+
             var loadT = layer.msg(t('public.getting', '正在获取...'), { icon: 16, time: 0, shade: 0.3 });
             $.post('/plugins/run', { name: 'jdk', func: 'upgrade_jdk', args: JSON.stringify({ version: version, download_url: url }) }, function(res) {
                 layer.close(loadT);
-                layer.msg((res && res.msg) || t('public.success', '操作成功'), { icon: 1, time: 2000 });
-                setTimeout(function() { getJdkSecurityStatus(true); }, 1000);
+                layer.msg((res && res.msg) || t('public.success', '操作成功'), { icon: (res && res.status) ? 1 : 2, time: 2500 });
+                if (typeof getTaskCount === 'function') {
+                    getTaskCount();
+                }
+                that.updateJdkModalContent();
+                setTimeout(function() { getJdkSecurityStatus(true); }, 1200);
             }, 'json').fail(function() {
                 layer.close(loadT);
                 layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 2 });
+                if ($btn.length) {
+                    $btn.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer', 'background-color': '#d46b08', 'border-color': '#d46b08', 'color': '#fff' })
+                        .html(phpSecEscape(t('index.jdk_sec_upgrade_btn', '立即升级')));
+                }
             });
         });
     },
 
-    handleFixCa: function(path) {
+    handleFixCa: function(btn, path) {
         var that = this;
         var confirmMsg = t('index.jdk_sec_confirm_fix_ca', '确认对该 JDK 进行证书库安全加固？');
         layer.confirm(confirmMsg, { icon: 3, title: t('index.jdk_sec_security_hardening', '安全加固') }, function(index) {
             layer.close(index);
+            var $btn = $(btn);
+            if ($btn.length) {
+                $btn.prop('disabled', true).addClass('disabled').css({ 'opacity': '0.85', 'cursor': 'not-allowed' })
+                    .html('<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' + phpSecEscape(t('index.jdk_sec_hardening_ca', '加固中...')));
+            }
             var loadT = layer.msg(t('public.getting', '正在获取...'), { icon: 16, time: 0, shade: 0.3 });
             $.post('/plugins/run', { name: 'jdk', func: 'fix_ca_security', args: JSON.stringify({ path: path }) }, function(res) {
                 layer.close(loadT);
-                layer.msg((res && res.msg) || t('public.success', '加固完成'), { icon: 1, time: 2000 });
+                layer.msg((res && res.msg) || t('public.success', '加固完成'), { icon: (res && res.status) ? 1 : 2, time: 2000 });
                 setTimeout(function() { getJdkSecurityStatus(true); }, 1000);
             }, 'json').fail(function() {
                 layer.close(loadT);
                 layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 2 });
+                if ($btn.length) {
+                    $btn.prop('disabled', false).removeClass('disabled').html(phpSecEscape(t('index.jdk_sec_fix_ca_btn', '加固CA')));
+                }
             });
         });
     },

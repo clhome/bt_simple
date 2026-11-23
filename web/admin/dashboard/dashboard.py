@@ -300,6 +300,10 @@ def get_php_security_status():
 @panel_login_required
 def get_jdk_security_status():
     """首页安全扫描：获取 JDK 安全漏洞巡检状态"""
+    panel_dir = yf.getPanelDir()
+    if panel_dir and panel_dir not in sys.path:
+        sys.path.insert(0, panel_dir)
+
     try:
         from plugins.jdk.index import jdk_main
         res_str = jdk_main().get_security_overview()
@@ -309,7 +313,17 @@ def get_jdk_security_status():
         msg = res_dict.get('msg', '获取JDK安全状态失败') if isinstance(res_dict, dict) else '获取JDK安全状态失败'
         return yf.returnData(False, msg)
     except Exception as e:
-        _log.debug('[dashboard] 获取 JDK 安全状态失败: %s', e)
+        _log.warning('[dashboard] 进程内直接调用 JDK 安全巡检失败，尝试通过插件系统调度: %s', e)
+        try:
+            from utils.plugin import plugin as YfPlugin
+            out, err = YfPlugin.instance().run('jdk', 'get_security_overview')
+            if out:
+                parsed = json.loads(out) if isinstance(out, str) else out
+                if isinstance(parsed, dict) and parsed.get('status'):
+                    return yf.returnData(True, 'ok', parsed.get('data') or parsed.get('msg', {}))
+        except Exception as e2:
+            _log.error('[dashboard] 调度 JDK 巡检双通道均失败: %s', e2)
+
         return yf.returnData(True, 'ok', {
             'has_vuln': False,
             'alarm_count': 0,
