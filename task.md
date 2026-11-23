@@ -334,6 +334,13 @@
   - [x] 47.2 **修复 `test_shell_concat_ratchet` 棘轮报错**：将 `plugins/jdk/index.py` 中 `export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"` 替换为单引号语法 `export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'`，杜绝双引号 `$()`/反引号展开风险，通过 export 双引号零残留检测
   - [x] 47.3 **本地全量运行门禁验证**：运行 `test_dialog_i18n_overflow` 与 `test_shell_concat_ratchet` 等门禁测试，27 tests 全部通过（Exit Code 0）
 
+- [x] **任务 48：落地方案 B（智能增量提交前预检与 Git Hook 集成）**
+  - [x] 48.1 **升级 `scripts/quick_gate.py` 为智能增量预检**：纳入 i18n 静态门禁、代码质量棘轮、弹窗溢出护栏 (`test_dialog_i18n_overflow`)、shell 防注入棘轮 (`test_shell_concat_ratchet`)；增加 Git Diff 变动文件智能分析，按需执行变动插件/模块关联测试
+  - [x] 48.2 **配置本地 Git Hook (`.git/hooks/pre-commit`)**：执行 `scripts/setup_git_hooks.py` 挂载 pre-commit 钩子，支持跨平台与命令行/IDE 提交时自动拦截
+  - [x] 48.3 **更新 `git-commit-flow` Skill 工作流规范**：在自定义 skill 中增加提交前自动运行预检逻辑，双保险拦截
+  - [x] 48.4 **实测运行验证**：执行 `scripts/quick_gate.py` 验证智能识别与通过情况，确保无阻塞与高效性
+
+
 
 
 
