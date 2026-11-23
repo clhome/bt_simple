@@ -357,6 +357,13 @@
   - [x] 51.2 **单元测试环境沙箱化隔离**：在 `testsuite/test_jdk_badge_and_upgrade_tip.py` 与 `testsuite/test_jdk_java4shell_hardening.py` 的 `setUp` / `tearDown` 中隔离 `_sys_java`，彻底阻断真实 Linux 环境预装 Java 侵入
   - [x] 51.3 **运行门禁全量回归验证**：运行 `scripts/quick_gate.py` 与单测验证，保证在 Linux/Windows 跨平台下 100% 稳定通过（Exit Code 0）
 
+- [x] **任务 52：根据最新修改内容完善补充文档体系 (`README.md`, `README_cn.md`, `RELEASE_TEMPLATE.md`, `说明书.md`)**
+  - [x] 52.1 **更新 `README.md` 与 `README_cn.md`**：补充 JDK 管理器 1.3 及 Java4Shell (CVE-2026-114938) 硬件级防御体系、御风OP防火墙 1.7 搜索引擎 SEO 官方爬虫 IP 库与白名单放行机制、OpenResty 双通道高可用源码下载熔断校验机制与核心计划任务防误删防护
+  - [x] 52.2 **更新 `RELEASE_TEMPLATE.md`**：在发版说明中增补 JDK 1.3 与 WAF 1.7 升级要点、代际差异全景对比及四大核心支柱（安全性/可靠性/现代UX与插件）详述
+  - [x] 52.3 **更新 `文档/御风面板说明书/说明书.md`**：重写扩充第 7.9 节为完整的 JDK 管理插件运维指南（真实小版本、Java4Shell硬件指令审计、一键全局缓解、平滑热升级与CA自愈、单徽标修复指引、首页安全中心联动）；在第 7.4 节扩充 WAF 1.7 搜索引擎 SEO 智能识别与官方 IPv4/IPv6 白名单机制；在计划任务及安全中心章节补充对应保护机制说明
+  - [x] 52.4 **质量门禁与格式验证**：执行 `python scripts/quick_gate.py` 及相关门禁检查，确保所有文档 UTF-8 无 BOM、LF 换行，测试套件 100% 通过
+
+
 
 
 

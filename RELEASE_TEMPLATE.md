@@ -58,8 +58,9 @@
   - **Web 端**：进入面板 →「设置」→「检查更新」一键平滑升级。
   - **命令行 (CLI)**：在终端执行 `yf update` 完成安全增量更新。
 - **安全与防护引擎协同升级（Security Engine Cooperative Upgrade）**：
-  - 「御风OP防火墙」升级至 **1.6**，「御风F2B防火墙 (Fail2ban)」升级至 **1.3.0**。
-  - **规则智能合并机制（Non-destructive Rule Merge）**：已安装老版本的用户在「软件管理」中点击升级即可；内置 `upgradeRules()` 引擎会自动将官方最新的 Java/Spring Boot、PHP 等高危漏洞蜜罐诱饵与防护规则增量补齐，**100% 完整保留用户的自定义规则与自建蜜罐路径，绝不覆盖**。
+  - 「御风OP防火墙」升级至 **1.7**，「御风F2B防火墙 (Fail2ban)」升级至 **1.3.0**，「御风 JDK 管理器」升级至 **1.3**。
+  - **规则智能合并与 SEO 白名单（Non-destructive Rule Merge & SEO Whitelist）**：已安装 OP 防火墙老版本的用户在「软件管理」中点击升级即可；内置 `upgradeRules()` 引擎不仅将官方最新的高危漏洞蜜罐诱饵与防护规则增量补齐，而且全量同步 Google（含 IPv6）、Bing、百度、字节跳动等权威搜索引擎蜘蛛官方 IP 库并快速放行，杜绝防 CC 误伤正常 SEO 抓取，**100% 完整保留用户的自定义规则与自建蜜罐路径，绝不覆盖**。
+  - **JDK 管理器 Java4Shell 防护与平滑升级（Java4Shell Defense & Hot Upgrade）**：已安装 JDK 的用户可在插件管理页查看真实小版本与 Java4Shell (CVE-2026-114938) 漏洞审计状态；支持一键配置全局 `-XX:-UseBASE64Intrinsics` 缓解参数，并支持一键平滑热升级至 Adoptium 官方安全补丁版本（自动加固迁移 `cacerts` 证书链），首页安全中心亦已接入错峰巡检与一键处置弹窗。
 - **单端口 (80/443) 面板与业务站点共存反代（Single-Port Coexist Proxy）**：
   - 针对政企专网或严格安全组仅开放 80/443 端口的场景，新增菜单 **`(33) 单端口(80/443)面板共存`** 与专用 CLI `yf proxy`（体检：`yf proxy status`；关闭：`yf proxy off`）。独创内部 418 命名路由与 Cookie 门禁机制，绝不破坏现有站点的任何伪静态与静态资源分流，且绝不影响 Let's Encrypt 证书申请与续签。
 - **运行环境兼容与废弃项（Deprecations & Compatibility）**：
@@ -133,7 +134,8 @@ sha256: __SHA256__
         • <b>全仓 Shell 参数化与 <code>shlex.quote</code> 强转义</b>，彻底杜绝注入<br>
         • <b><code>safePath</code> / realpath 强矩阵</b>，严防跨目录越权读取<br>
         • <b>Ed25519 签名 + SHA256SUMS + SBOM + requirements.lock</b> 供应链加固<br>
-        • <b>OP WAF 1.6 + Fail2ban 1.3.0 双层蜜罐</b>，触碰直接内核 iptables 阻断 TCP<br>
+        • <b>OP WAF 1.7 + Fail2ban 1.3.0 双层蜜罐与 SEO 官方白名单</b>，诱饵触碰直接内核 iptables 阻断，官方搜索引擎蜘蛛智能免拦截<br>
+        • <b>JDK Java4Shell (CVE-2026-114938) 硬件级漏洞审计</b>：AVX-512 VBMI 指令集探测与一键全局安全缓解<br>
         • <b>全链路登录监控与 IP 归属地审计</b>，密码与历史 CVE 彻底清洗
       </td>
     </tr>
@@ -152,6 +154,8 @@ sha256: __SHA256__
         • <b>双向可逆升级快照</b>（<code>yf rollback</code>），回滚操作自身亦具备防损备份<br>
         • <b>核心服务智能巡检自愈</b>：PHP-FPM socket 隔离、phpMyAdmin 502 自愈、Redis 密码多级自愈<br>
         • <b>单端口 (80/443) 面板与业务站点无感共存</b>：Server 级 if + 418 内部路由 + Cookie 门禁，零改动伪静态，ACME 续签 100% 畅通，全链路参数联动自愈<br>
+        • <b>OpenResty 源码双通道构建高可用与下载熔断校验</b>，彻底根除 404 死镜像与假成功解压<br>
+        • <b>系统核心计划任务前后端硬防误删与智能多语言</b>，关键自动化运维不中断<br>
         • <b>Docker 存储一键热迁移</b>：容量预检 + rsync 校验 + 失败防唤醒自愈<br>
         • <b>内置 5 大境内加速代理与清华/Adoptium 双通道镜像</b>，保障 100% 部署率
       </td>
@@ -196,6 +200,7 @@ sha256: __SHA256__
       <td>
         • <b>高阶磨砂玻璃拟态（Glassmorphism）</b> + Google Fonts 精英字体 + 弹性响应式布局<br>
         • <b>御风 Python 多版本管理器 1.0</b>：基于极速 <code>uv</code> 构建，企业级 <code>.venv</code> 极速隔离<br>
+        • <b>御风 JDK 管理器 1.3</b>：真实小版本识别 + Adoptium 平滑热升级（自动加固迁移 <code>cacerts</code>）+ 首页安全中心与消息盒子联动<br>
         • <b>PostgreSQL 容器化管理插件 1.0</b>：Docker 隔离实例 + 动态内外网边界 + 定时无锁热备
       </td>
     </tr>
@@ -221,9 +226,13 @@ sha256: __SHA256__
   - **严格参数化与边界转义**：Docker 容器控制、Crontab 定时任务、备份脚本、网站配置管理全面采用原生参数列表或 `shlex.quote` 转义，彻底铲除 shell 裸拼安全漏洞。
   - **`safePath` 多层路径边界校验**：全模块引入规范的 `safePath` 与真实路径（realpath）白名单校验矩阵，强力封堵目录穿越试图读取 `/etc/shadow`、`/etc/passwd` 或面板私有数据库的越权行为。
   - **SQL 注入与 XSS 存储转义**：彻底淘汰 SQL 裸拼，全面推行参数化查询与 ORDER BY 列名白名单；前端引入 `yfText`、`yfJsStr`、`logsEsc`、`cronEsc` 等统一转义函数，杜绝反射型与存储型 XSS。
-- **🐝 双层蜜罐联动与全端口内核阻断 (Cooperative Honeypot & Kernel-Level Ban)**：
-  - **高危漏洞诱饵覆盖**：御风 OP 防火墙 1.6 内置针对 Spring Boot DevTools (CVE-2026-40972)、Spring 路径遍历 (CVE-2026-41843)、PHP2Shell 等端点的诱饵特征。
+- **🐝 双层蜜罐联动、全端口内核阻断与 SEO 智能白名单 (Honeypot, Kernel Ban & SEO Protection)**：
+  - **高危漏洞诱饵覆盖**：御风 OP 防火墙 1.7 内置针对 Spring Boot DevTools (CVE-2026-40972)、Spring 路径遍历 (CVE-2026-41843)、PHP2Shell 等端点的诱饵特征。
   - **应用层与内核层全端口联动**：扫描器一旦命中诱饵，应用层立即拉黑 24 小时；开启 `ban_sync` 时实时通知御风 F2B 防火墙，在 Linux 内核层（iptables/nftables）直接封禁恶意 IP 的全部端口，连 TCP 握手都无法建立。
+  - **搜索引擎蜘蛛 SEO 智能白名单**：全面收录并维护 Google（含 IPv6 爬虫网段）、Bing、百度、字节跳动等权威官方搜索引擎蜘蛛 IP 库与扩展 UA，在 Lua 底层前置快速放行，杜绝防 CC 或频率限制误伤正常搜索引擎抓取，彻底消除网站被降权风险，支持规则平滑热重载与增量无损合并。
+- **☕ JDK Java4Shell (CVE-2026-114938) 硬件级漏洞审计与全域防御 (JDK Security & Hardware-Aware Defense)**：
+  - **指令集暴露面精准探测**：深入探测 Linux `/proc/cpuinfo`，智能甄别 ARM64 架构、x86 无 VBMI 硬件免疫以及 x86+VBMI 硬件暴露面，评估真实受威胁风险。
+  - **版本审计与一键全局安全缓解**：全量比对 JDK 17/21/25/27 及 JDK 8 perf 漏洞区间，提供一键写入 `/etc/profile.d/java.sh` 的 `-XX:-UseBASE64Intrinsics` 全局缓解参数；支持 Adoptium 官方源后台静默下载与平滑覆盖升级，自动加固迁移 `cacerts` 证书链；深度联动首页安全中心错峰巡检，发现漏洞时高亮角标直达处置。
 - **👁️ 全链路登录监控与安全审计 (End-to-End Audit & Access Control)**：
   - **面板与 SSH 统一审计**：首页新增登录记录模块，实时归集 Web 面板（两步验证、安全入口）与 SSH 终端的成功与失败登录。
   - **智能 IP 归属地解析**：集成多通道国内/国际 IP 地理位置解析与客户端防污染缓存，直观展示登录来源与高危告警。
@@ -255,6 +264,10 @@ sha256: __SHA256__
   - **核心机制与零冲突**：首创「Server 级 `if` + HTTP 418 内部命名路由 + Cookie 门禁」，管理员带安全入口访问即可完成身份锚定，普通用户正常访问站点根目录、伪静态与静态资源丝毫未受干扰；**绝不修改站点任何现有 location**，彻底杜绝伪静态模板 `duplicate location "/"` 语法冲突引发的 Nginx 崩溃；
   - **ACME 续签安全隔离**：明确排除 `/.well-known/acme-challenge/` 路径，保障站点 Let's Encrypt 证书申请与 60 天自动续签 100% 畅通；
   - **全链路参数联动自愈**：面板端口变更、安全入口重置、SSL 状态切换或站点 SSL 变更均全自动无缝同步刷新反代配置片段与跳转逻辑，并在 `yf repair` 中纳入全自动自愈巡检。
+- **🌐 OpenResty 源码构建双通道与下载鲁棒性熔断 (Resilient OpenResty Source Fetching)**：
+  - 实现专用源码通用获取引擎，支持官方源与 GitHub Release 双通道高可用下载、半成品自动清理、大小与 gzip 完整性校验、解压后 `./configure` 存在性强校验熔断，彻底根除 404 死镜像与假成功解压；静默自愈历史 `Server: mdserver-web` 标头。
+- **🛡️ 计划任务系统核心任务硬防误删与智能多语言 (Protected System Tasks & Smart i18n)**：
+  - 对系统内置关键任务（以 `[勿删]` 开头，如 ACME 证书自动续签）实施前后端硬拦截保护，禁止编辑与删除，展示为「系统任务」绿色徽章；全仓任务名称接入多语言智能解析与翻译引擎。
 - **🇨🇳 中国大陆网络生命线保障 (Mainland High-Availability Mirror Matrix)**：
   - 建立 5 大 GitHub 加速代理多通道容灾矩阵，配合清华大学镜像源与 Adoptium 全球 CDN，消除恶劣网络下的下载超时，保障服务器 100% 部署成功率。
 
@@ -312,6 +325,11 @@ sha256: __SHA256__
 - **🐍 御风 Python 多版本管理器 1.0 (NextGen Python Multi-Version Manager)**：
   - 基于 Rust 编写的高性能工具 `uv` 构建，支持毫秒级一键安装管理 Python 多版本环境，环境全隔离零污染。
   - 独创企业级虚拟环境构建机制，一键生成 `.venv` 并提取项目名称作为终端提示符，搭载防误删保护机制。
+- **☕ 御风 JDK 管理器 1.3 (Enterprise Java & Live Hot-Patching)**：
+  - 提取并精准展示真实小版本号（如 `jdk-21 (21.0.12.1)`），悬浮展示完整运行环境与小版本详情；
+  - 基于 Adoptium 官方源后台静默下载、临时解压校验、自动迁移 `cacerts` 证书链并平滑覆盖原目录；
+  - 整合【已加固】与【高危】单徽标及悬浮深度检测项（版本升级、CA加固、Java4Shell 专项防护状态），提供清晰修复指引；
+  - 深度联动首页安全中心错峰巡检与消息盒子，操作即时置灰与旋转加载反馈，杜绝重复提交。
 - **🐘 PostgreSQL 容器化管理插件 1.0 (PostgreSQL Containerized Manager)**：
   - 支持基于 Docker 快速部署 PostgreSQL 隔离实例；支持在 Web 界面瞬间动态切换内外网访问边界（`0.0.0.0` / `127.0.0.1`）。
   - 内置全自动化灾备体系，支持定时无锁热备与备份文件的独立存储、直链下载与一键还原。
