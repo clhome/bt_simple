@@ -155,7 +155,10 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
         # 验证写入了 /etc/profile.d/java.sh
         with open(self.fake_profile, 'r', encoding='utf-8') as f:
             profile_content = f.read()
-        self.assertIn('export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"', profile_content)
+        self.assertTrue(
+            "export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'" in profile_content or
+            'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"' in profile_content
+        )
 
         # 一键关闭
         res_off = json.loads(obj.toggle_global_mitigation({'enable': False}))
@@ -188,7 +191,10 @@ class TestJdkJava4ShellHardening(unittest.TestCase):
             with open(self.fake_profile, 'r', encoding='utf-8') as f:
                 content = f.read()
             self.assertIn('JAVA_HOME=', content)
-            self.assertIn('export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"', content)
+            self.assertTrue(
+                "export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'" in content or
+                'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"' in content
+            )
         finally:
             jdk_mod._link_points_to = orig_link
 

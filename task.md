@@ -329,6 +329,12 @@
   - [x] 46.3 **JDK 插件管理页与全局相关模块联动优化**：在 `plugins/jdk/index.html` 与 `web/static/app/index.js`（PHP安全基线升级）中统一增强升级中按钮不可重复点击、动态显示旋转状态
   - [x] 46.4 **多语言扩展与自动化回归测试**：在 6 国语言包中补齐“正在升级...”等状态词条，扩充测试用例并全量回归质量门禁
 
+- [x] **任务 47：修复 GitHub Actions 门禁报错（i18n flex 换行护栏与 shell concat 棘轮校验）**
+  - [x] 47.1 **修复 `test_dialog_i18n_overflow` 护栏报错**：在 `plugins/jdk/index.html` 与 `web/static/app/index.js` 的 `space-between` 行上补充 `flex-wrap: wrap; gap: 8px;`，消除长语言文本下按钮组被压缩风险
+  - [x] 47.2 **修复 `test_shell_concat_ratchet` 棘轮报错**：将 `plugins/jdk/index.py` 中 `export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"` 替换为单引号语法 `export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'`，杜绝双引号 `$()`/反引号展开风险，通过 export 双引号零残留检测
+  - [x] 47.3 **本地全量运行门禁验证**：运行 `test_dialog_i18n_overflow` 与 `test_shell_concat_ratchet` 等门禁测试，27 tests 全部通过（Exit Code 0）
+
+
 
 
 

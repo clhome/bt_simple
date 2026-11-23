@@ -282,7 +282,7 @@ resetPluginWinHeight(520);
                     hwBadgeStyle += 'background-color:#909399;color:#fff;';
                 }
 
-                var secCardHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">' +
+                var secCardHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
                     '<div>' +
                         '<span style="font-weight:bold; font-size:12px; color:#1e293b;"><i class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:4px;"></i>' + pt('Java4Shell安全防御') + '</span>' +
                         '<span style="margin-left:8px; font-size:12px; color:#64748b;">' + pt('服务器硬件暴露面') + ': <span class="label" style="' + hwBadgeStyle + '">' + jdkEsc(hwText) + '</span></span>' +

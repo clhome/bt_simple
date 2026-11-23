@@ -830,14 +830,14 @@ class jdk_main:
                     lines = []
                     for l in env_content.splitlines():
                         if 'JDK_JAVA_OPTIONS' in l:
-                            lines.append('export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"')
+                            lines.append("export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'")
                         else:
                             lines.append(l)
                     new_content = '\n'.join(lines) + '\n'
                 elif env_content.strip():
-                    new_content = env_content.rstrip() + '\nexport JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+                    new_content = env_content.rstrip() + "\nexport JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'\n"
                 else:
-                    new_content = 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+                    new_content = "export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'\n"
                 if not yf.writeFile(_JAVA_PROFILE, new_content):
                     return yf.returnJson(False, '写配置文件失败')
             return yf.returnJson(True, '安全缓解开启成功')
@@ -1296,7 +1296,7 @@ echo 'JDK {version} 平滑升级完成'
             config["default"] = ""
             # 清除环境变量（若配置了全局缓解则保留缓解选项）
             if _is_mitigation_active():
-                if not yf.writeFile(_JAVA_PROFILE, 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'):
+                if not yf.writeFile(_JAVA_PROFILE, "export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'\n"):
                     return yf.returnJson(False, '写配置文件失败')
             else:
                 yf.execShellRc(['rm', '-f', _JAVA_PROFILE], shell=False, timeout=10)
@@ -1324,7 +1324,7 @@ echo 'JDK {version} 平滑升级完成'
         config = self.get_config()
         mitigation_line = ""
         if _is_mitigation_active():
-            mitigation_line = 'export JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"\n'
+            mitigation_line = "export JDK_JAVA_OPTIONS='-XX:-UseBASE64Intrinsics'\n"
 
         q = yf.shlexQuote
         env_content = (

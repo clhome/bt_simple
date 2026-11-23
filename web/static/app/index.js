@@ -3930,7 +3930,7 @@ var btSecurityCenter = {
                 }
 
                 listHtml += '<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:12px 14px; margin-bottom:10px;">' +
-                    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">' +
                         '<div>' +
                             '<span style="font-weight:bold; font-size:13px; color:#1e293b;">' + phpSecEscape(nameStr) + '</span>' +
                             '<span style="font-size:11px; color:#888; margin-left:8px;">(' + phpSecEscape(it.type || '') + ')</span>' +
