@@ -739,10 +739,58 @@ class jdk_main:
         return False
 
     def get_security_overview(self, args=None):
-        """获取当前系统的 JDK 安全总览 (包含硬件脆弱性与全局缓解状态)"""
+        """获取当前系统的 JDK 安全总览 (包含硬件脆弱性、全局缓解状态与已安装 JDK 漏洞审计)"""
         hw_info = _check_hw_vulnerability()
         is_mitigated = _is_mitigation_active()
+
+        vulnerable_items = []
+        try:
+            jdk_list_res = self.get_jdk_list()
+            parsed = json.loads(jdk_list_res) if isinstance(jdk_list_res, str) else jdk_list_res
+            all_list = parsed.get('msg', {}).get('list', []) if isinstance(parsed, dict) else []
+            for item in all_list:
+                # 仅审计已安装的 JDK (有 path 且 operation 在 1, 2, 4 中)
+                if not item.get('path') or item.get('operation') not in (1, 2, 4):
+                    continue
+
+                has_ca = bool(item.get('has_ca_vuln'))
+                j_stat = item.get('java4shell', {}).get('status') if isinstance(item.get('java4shell'), dict) else item.get('java4shell_status', 'safe')
+                has_j4s = (j_stat != 'safe')
+                has_up = bool(item.get('can_upgrade'))
+
+                if has_ca or has_j4s or has_up:
+                    vuln_types = []
+                    if has_ca:
+                        vuln_types.append('ca')
+                    if has_j4s:
+                        vuln_types.append('java4shell')
+                    if has_up:
+                        vuln_types.append('upgrade')
+
+                    vulnerable_items.append({
+                        'name': item.get('name', ''),
+                        'installed_version': item.get('installed_version', ''),
+                        'type': item.get('type', ''),
+                        'path': item.get('path', ''),
+                        'has_ca_vuln': has_ca,
+                        'java4shell_status': j_stat,
+                        'java4shell_title': item.get('java4shell_title', ''),
+                        'can_upgrade': has_up,
+                        'latest_version': item.get('latest_version', ''),
+                        'upgrade_release_date': item.get('upgrade_release_date', ''),
+                        'download_url': item.get('download_url', ''),
+                        'vuln_types': vuln_types
+                    })
+        except Exception as e:
+            _log.debug('[jdk] get_security_overview 提取漏洞列表异常: %s', e)
+
+        alarm_count = len(vulnerable_items)
+        has_vuln = (alarm_count > 0)
+
         return yf.returnJson(True, {
+            'has_vuln': has_vuln,
+            'alarm_count': alarm_count,
+            'items': vulnerable_items,
             'hw_info': hw_info,
             'mitigation': is_mitigated
         })

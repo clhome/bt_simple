@@ -155,9 +155,12 @@ class TestJdkBadgeAndUpgradeTip(unittest.TestCase):
         checked_files = [
             os.path.join(ROOT, 'plugins', 'jdk', 'index.py'),
             os.path.join(ROOT, 'plugins', 'jdk', 'index.html'),
+            os.path.join(ROOT, 'web', 'admin', 'dashboard', 'dashboard.py'),
+            os.path.join(ROOT, 'web', 'static', 'app', 'index.js'),
         ]
         for lang in LANGS:
             checked_files.append(os.path.join(LANG_DIR, f"{lang}.json"))
+            checked_files.append(os.path.join(ROOT, 'web', 'static', 'language', lang, 'lan.js'))
 
         for fp in checked_files:
             with open(fp, 'rb') as f:
@@ -168,6 +171,85 @@ class TestJdkBadgeAndUpgradeTip(unittest.TestCase):
             self.assertNotIn(b'\r\n', raw_bytes, f"CRLF (\\r\\n) detected in {fp}")
             # 必须为合法 UTF-8
             raw_bytes.decode('utf-8')
+
+    def test_get_security_overview_no_jdk(self):
+        """测试未安装任何 JDK 时 get_security_overview 返回 has_vuln=False, alarm_count=0"""
+        main = jdk_mod.jdk_main()
+        json_str = main.get_security_overview()
+        data = json.loads(json_str) if isinstance(json_str, str) else json_str
+        self.assertTrue(data.get('status'))
+        msg = data.get('msg', {})
+        self.assertFalse(msg.get('has_vuln'))
+        self.assertEqual(msg.get('alarm_count'), 0)
+        self.assertEqual(msg.get('items'), [])
+
+    def test_get_security_overview_with_vulnerabilities(self):
+        """测试当存在可升级/有漏洞的已安装 JDK 时，返回 has_vuln=True 且 alarm_count>0"""
+        main = jdk_mod.jdk_main()
+        fake_cache = [
+            {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_1.tar.gz", "release_date": "2026-11-18"}
+        ]
+        with open(os.path.join(self.plug, 'versions.json'), 'w', encoding='utf-8') as f:
+            json.dump(fake_cache, f)
+
+        jdk21_bin = os.path.join(self.javadir, 'jdk-21', 'bin')
+        os.makedirs(jdk21_bin)
+        java_exe = os.path.join(jdk21_bin, 'java')
+        with open(java_exe, 'w') as f:
+            f.write('#!/bin/sh\nexit 0\n')
+
+        orig_getinfo = jdk_mod._get_jdk_version_info
+        try:
+            jdk_mod._get_jdk_version_info = lambda p, f: ('21.0.12.1', 'openjdk 21.0.12.1')
+            json_str = main.get_security_overview()
+            data = json.loads(json_str) if isinstance(json_str, str) else json_str
+            self.assertTrue(data.get('status'))
+            msg = data.get('msg', {})
+            self.assertTrue(msg.get('has_vuln'))
+            self.assertEqual(msg.get('alarm_count'), 1)
+            self.assertEqual(len(msg.get('items', [])), 1)
+            item = msg['items'][0]
+            self.assertEqual(item.get('name'), 'jdk-21')
+            self.assertTrue(item.get('can_upgrade'))
+            self.assertIn('upgrade', item.get('vuln_types', []))
+        finally:
+            jdk_mod._get_jdk_version_info = orig_getinfo
+
+    def test_homepage_i18n_keys_consistency(self):
+        """测试 6 国语言包中均包含首页安全扫描新增的 JDK 词条"""
+        expected_keys = [
+            'sec_item_jdk_sec',
+            'jdk_sec_title',
+            'jdk_sec_open_manager',
+            'jdk_sec_upgrade_btn',
+            'jdk_sec_fix_ca_btn',
+            'jdk_sec_manage_btn',
+            'jdk_sec_refresh',
+            'jdk_sec_loading',
+            'jdk_sec_no_vuln',
+            'jdk_sec_hardware_exposure',
+            'jdk_sec_global_mitigation',
+            'jdk_sec_mitigation_enabled',
+            'jdk_sec_mitigation_disabled',
+            'jdk_sec_hw_immune',
+            'jdk_sec_high_risk_exposure',
+            'jdk_sec_danger_tag',
+            'jdk_sec_upgrade_tip',
+            'jdk_sec_ca_tip',
+            'jdk_sec_j4s_tip',
+            'jdk_sec_confirm_upgrade_to',
+            'jdk_sec_confirm_fix_ca',
+            'jdk_sec_security_hardening',
+            'jdk_sec_version_upgrade'
+        ]
+        for lang in LANGS:
+            carrier_path = os.path.join(ROOT, 'web', 'static', 'language', lang, 'template.index.json')
+            self.assertTrue(os.path.exists(carrier_path), f"Carrier missing: {carrier_path}")
+            with open(carrier_path, 'r', encoding='utf-8') as f:
+                cdata = json.load(f)
+            index_dict = cdata.get('index', {})
+            for k in expected_keys:
+                self.assertIn(k, index_dict, f"Language {lang} is missing index key: {k}")
 
 
 if __name__ == '__main__':

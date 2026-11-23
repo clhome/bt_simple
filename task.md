@@ -317,6 +317,13 @@
   - [x] 44.5 **全语言国际化支持**：同步扩充 `zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it` 六国语言包（`plugins/jdk/lang/*.json`）
   - [x] 44.6 **自动化单元测试与门禁验证**：编写测试用例，全量运行代码质量与回归测试门禁
 
+- [x] **任务 45：首页安全扫描模块接入 JDK 安全漏洞单独检测卡片 (`web/static/app/index.js`, `plugins/jdk/index.py`, `dashboard.py`)**
+  - [x] 45.1 **后端 JDK 漏洞巡检与接口实现**：在 `plugins/jdk/index.py` 增强 `get_security_overview` 提取漏洞已安装 JDK 列表与报警数；在 `web/admin/dashboard/dashboard.py` 新增 `/get_jdk_security_status` 路由
+  - [x] 45.2 **前端首页安全中心卡片与弹窗实现**：在 `web/static/app/index.js` 扩展 `btSecurityCenter`，接入 `getJdkSecurityStatus()`，当发现漏洞时单独渲染带红色角标的 JDK 图标卡片；实现 `showJdkSecModal()` 漏洞处理弹窗并支持跳转 JDK 管理
+  - [x] 45.3 **错峰流水线加载与多语言国际化**：在 `index.html` 错峰流水线中接入巡检；在 6 国语言包中补充对应键并同步派生
+  - [x] 45.4 **自动化测试与质量门禁验证**：编写单测验证漏洞有无时的卡片条件显示与国际化一致性，回归质量门禁
+
+
 
 
 

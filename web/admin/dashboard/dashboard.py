@@ -295,6 +295,30 @@ def get_php_security_status():
     return yf.returnData(True, 'ok', data)
 
 
+@blueprint.route('/get_jdk_security_status', endpoint='get_jdk_security_status',
+                 methods=['GET', 'POST'])
+@panel_login_required
+def get_jdk_security_status():
+    """首页安全扫描：获取 JDK 安全漏洞巡检状态"""
+    try:
+        from plugins.jdk.index import jdk_main
+        res_str = jdk_main().get_security_overview()
+        res_dict = json.loads(res_str) if isinstance(res_str, str) else res_str
+        if isinstance(res_dict, dict) and res_dict.get('status'):
+            return yf.returnData(True, 'ok', res_dict.get('data') or res_dict.get('msg', {}))
+        msg = res_dict.get('msg', '获取JDK安全状态失败') if isinstance(res_dict, dict) else '获取JDK安全状态失败'
+        return yf.returnData(False, msg)
+    except Exception as e:
+        _log.debug('[dashboard] 获取 JDK 安全状态失败: %s', e)
+        return yf.returnData(True, 'ok', {
+            'has_vuln': False,
+            'alarm_count': 0,
+            'items': [],
+            'hw_info': None,
+            'mitigation': False
+        })
+
+
 @blueprint.route('/get_login_guard_status', endpoint='get_login_guard_status',
                  methods=['GET', 'POST'])
 @panel_login_required

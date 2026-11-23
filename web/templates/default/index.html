@@ -453,6 +453,13 @@ function startLoadStatus() {
     setTimeout(function() {
         getPhpSecurityStatus();
     }, 750);
+
+    // F. JDK 安全漏洞巡检结果，错峰延迟 850ms，读巡检快照，不在首屏阻塞
+    setTimeout(function() {
+        if (typeof getJdkSecurityStatus === 'function') {
+            getJdkSecurityStatus();
+        }
+    }, 850);
 }
 
 </script>

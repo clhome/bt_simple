@@ -3291,6 +3291,64 @@ function upgradePhpToBaseline(el) {
         function(index) { layer.close(index); doUpgrade(); });
 }
 
+// 拉取 JDK 安全漏洞巡检结果 (首页安全监控专用)
+function getJdkSecurityStatus(forceRefresh) {
+    var CACHE_KEY = 'bt_jdk_sec_status_cache';
+    var TTL = 5 * 60 * 1000;
+    var cached = null;
+    var lastTime = 0;
+    try {
+        var raw = sessionStorage.getItem(CACHE_KEY);
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.data) {
+                cached = parsed.data;
+                lastTime = parsed.t || 0;
+            }
+        }
+    } catch (e) {}
+
+    if (cached) {
+        if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+            btSecurityCenter.updateJdkStatus(cached);
+        }
+        if (!forceRefresh && (Date.now() - lastTime < TTL)) {
+            return;
+        }
+    }
+
+    $.post('/get_jdk_security_status', { force: forceRefresh ? 1 : 0 }, function(rdata) {
+        if (!rdata || !rdata.status) {
+            // 降级尝试通过 plugins/run 获取
+            $.post('/plugins/run', { name: 'jdk', func: 'get_security_overview' }, function(pdata) {
+                var r;
+                try { r = JSON.parse(pdata.data); } catch(e) { r = pdata.data; }
+                if (r && r.status && r.msg) {
+                    var data = r.msg;
+                    try {
+                        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: data, t: Date.now() }));
+                    } catch(e) {}
+                    if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+                        btSecurityCenter.updateJdkStatus(data);
+                    }
+                }
+            }, 'json');
+            return;
+        }
+        var data = rdata.data || {};
+        try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: data, t: Date.now() }));
+        } catch (e) {}
+        if (window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+            btSecurityCenter.updateJdkStatus(data);
+        }
+    }, 'json').fail(function() {
+        if (cached && window.btSecurityCenter && typeof btSecurityCenter.updateJdkStatus === 'function') {
+            btSecurityCenter.updateJdkStatus(cached);
+        }
+    });
+}
+
 // =====================================================================================
 // 首页安全监控中心（Security Center）
 // 汇聚系统安全风险（目前包括：明文 HTTP、PHP 安全基线等），
@@ -3300,12 +3358,32 @@ var btSecurityCenter = {
     plainHttp: false,
     phpAlarmCount: 0,
     phpData: null,
+    jdkAlarmCount: 0,
+    jdkData: null,
     modalIndex: null,
 
     // 初始化检查
     init: function() {
         this.plainHttp = ($('#plainHttpWarning').length > 0);
         this.render();
+    },
+
+    // 更新 JDK 安全漏洞数据
+    updateJdkStatus: function(data) {
+        this.jdkData = data;
+        var count = 0;
+        if (data) {
+            if (typeof data.alarm_count === 'number') {
+                count = data.alarm_count;
+            } else if (Array.isArray(data.items)) {
+                count = data.items.length;
+            }
+        }
+        this.jdkAlarmCount = count;
+        this.render();
+        if (this.modalIndex && $('#jdkSecModalBody').length) {
+            this.updateJdkModalContent();
+        }
     },
 
     // 更新 PHP 安全基线数据
@@ -3333,7 +3411,7 @@ var btSecurityCenter = {
         var $container = $('#securityItemsContainer');
         if (!$box.length || !$container.length) return;
 
-        var totalProblems = (this.plainHttp ? 1 : 0) + this.phpAlarmCount;
+        var totalProblems = (this.plainHttp ? 1 : 0) + this.phpAlarmCount + this.jdkAlarmCount;
 
         // 若无任何安全问题，整块安全模块隐藏不占位
         if (totalProblems <= 0) {
@@ -3366,6 +3444,21 @@ var btSecurityCenter = {
                 '</svg>' +
                 '<span>' + phpSecEscape(t('index.sec_item_php_sec', 'PHP 安全基线')) + '</span>' +
                 '<span class="sec-btn-badge">' + this.phpAlarmCount + '</span>' +
+            '</a>';
+        }
+
+        // 3. JDK 安全漏洞按钮（存在漏洞才显示）
+        if (this.jdkAlarmCount > 0) {
+            html += '<a href="javascript:;" class="sec-btn-card" onclick="btSecurityCenter.showJdkSecModal()">' +
+                '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #ff4d4f; flex-shrink: 0;">' +
+                    '<path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>' +
+                    '<path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>' +
+                    '<line x1="6" y1="1" x2="6" y2="4"></line>' +
+                    '<line x1="10" y1="1" x2="10" y2="4"></line>' +
+                    '<line x1="14" y1="1" x2="14" y2="4"></line>' +
+                '</svg>' +
+                '<span>' + phpSecEscape(t('index.sec_item_jdk_sec', 'JDK 漏洞风险')) + '</span>' +
+                '<span class="sec-btn-badge">' + this.jdkAlarmCount + '</span>' +
             '</a>';
         }
 
@@ -3706,10 +3799,179 @@ var btSecurityCenter = {
 
         // 每次点开，自动进行一次检测（强制重扫）
         getPhpSecurityStatus(true);
+    },
+
+    // 构建 JDK 安全弹窗内容
+    buildJdkModalHtml: function() {
+        var data = this.jdkData || {};
+        var hwInfo = data.hw_info || null;
+        var isMitigated = !!data.mitigation;
+        var items = Array.isArray(data.items) ? data.items : [];
+
+        var hwText = '';
+        var hwColor = '#52c41a';
+        if (hwInfo) {
+            if (hwInfo.status === 'arm_immune') {
+                hwText = 'ARM64 (' + t('index.jdk_sec_hw_immune', '硬件免疫') + ')';
+            } else if (hwInfo.status === 'exposed') {
+                hwText = 'x86-64 + VBMI (' + t('index.jdk_sec_high_risk_exposure', '高危利用风险') + ')';
+                hwColor = '#ff4d4f';
+            } else {
+                hwText = 'x86-64 (' + t('index.jdk_sec_hw_immune', '硬件免疫') + ')';
+            }
+        } else {
+            hwText = 'Linux x86-64';
+            hwColor = '#64748b';
+        }
+
+        var headerHtml = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
+            '<div>' +
+                '<span style="font-weight:600; font-size:12px; color:#1e293b;">' + phpSecEscape(t('index.jdk_sec_hardware_exposure', '服务器硬件暴露面')) + ': </span>' +
+                '<span style="font-size:12px; color:' + hwColor + '; font-weight:600; margin-right:12px;">' + phpSecEscape(hwText) + '</span>' +
+                '<span style="font-weight:600; font-size:12px; color:#1e293b;">' + phpSecEscape(t('index.jdk_sec_global_mitigation', '全局启动缓解')) + ': </span>' +
+                '<span style="font-size:12px; color:' + (isMitigated ? '#20a53a' : '#d97706') + '; font-weight:600;">' +
+                    (isMitigated ? phpSecEscape(t('index.jdk_sec_mitigation_enabled', '已启用')) : phpSecEscape(t('index.jdk_sec_mitigation_disabled', '未配置'))) +
+                '</span>' +
+            '</div>' +
+            '<div>' +
+                '<button type="button" class="btn btn-default btn-xs" onclick="getJdkSecurityStatus(true);">' +
+                    '<span class="glyphicon glyphicon-refresh" style="margin-right:4px;"></span>' + phpSecEscape(t('index.jdk_sec_refresh', '再次巡检')) +
+                '</button>' +
+            '</div>' +
+        '</div>';
+
+        var listHtml = '';
+        if (items.length === 0) {
+            listHtml = '<div style="text-align:center; padding:30px 0; color:#52c41a; font-size:13px;">' +
+                '<span class="glyphicon glyphicon-ok-circle" style="font-size:24px; margin-bottom:8px; display:block;"></span>' +
+                phpSecEscape(t('index.jdk_sec_no_vuln', '未检测到 JDK 安全漏洞')) +
+            '</div>';
+        } else {
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i];
+                var nameStr = (it.name || '') + (it.installed_version ? ' (' + it.installed_version + ')' : '');
+                var descLines = [];
+                if (it.can_upgrade) {
+                    descLines.push('<div style="color:#cf1322; line-height:20px;"><span style="font-weight:bold; margin-right:6px;">✕</span>' +
+                        phpSecEscape(t('index.jdk_sec_upgrade_tip', '核心版本：发现新版本 {1}，建议升级修复').replace('{1}', it.latest_version || '')) + '</div>');
+                }
+                if (it.has_ca_vuln) {
+                    descLines.push('<div style="color:#d46b08; line-height:20px;"><span style="font-weight:bold; margin-right:6px;">✕</span>' +
+                        phpSecEscape(t('index.jdk_sec_ca_tip', 'CA证书库：检测到弱私钥根证书，建议加固')) + '</div>');
+                }
+                if (it.java4shell_status && it.java4shell_status !== 'safe') {
+                    descLines.push('<div style="color:#ff4d4f; line-height:20px;"><span style="font-weight:bold; margin-right:6px;">✕</span>' +
+                        phpSecEscape(it.java4shell_title || t('index.jdk_sec_j4s_tip', 'Java4Shell防御：存在漏洞缺陷')) + '</div>');
+                }
+
+                listHtml += '<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:12px 14px; margin-bottom:10px;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+                        '<div>' +
+                            '<span style="font-weight:bold; font-size:13px; color:#1e293b;">' + phpSecEscape(nameStr) + '</span>' +
+                            '<span style="font-size:11px; color:#888; margin-left:8px;">(' + phpSecEscape(it.type || '') + ')</span>' +
+                            '<span class="label label-danger" style="margin-left:8px; font-size:10px; background-color:#ff4d4f; color:#fff; padding:1px 5px; border-radius:3px;">' + phpSecEscape(t('index.jdk_sec_danger_tag', '高危')) + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:8px;">' +
+                            (it.can_upgrade ? '<button class="btn btn-warning btn-xs" style="background-color:#d46b08; border-color:#d46b08; color:#fff;" onclick="btSecurityCenter.handleUpgradeJdk(\'' + phpSecEscape(it.name) + '\',\'' + phpSecEscape(it.installed_version) + '\',\'' + phpSecEscape(it.latest_version) + '\',\'' + phpSecEscape(it.download_url) + '\')">' + phpSecEscape(t('index.jdk_sec_upgrade_btn', '立即升级')) + '</button>' : '') +
+                            (it.has_ca_vuln ? '<button class="btn btn-warning btn-xs" onclick="btSecurityCenter.handleFixCa(\'' + phpSecEscape(it.path) + '\')">' + phpSecEscape(t('index.jdk_sec_fix_ca_btn', '加固CA')) + '</button>' : '') +
+                            '<button class="btn btn-default btn-xs" onclick="btSecurityCenter.openJdkManager()">' + phpSecEscape(t('index.jdk_sec_manage_btn', '管理')) + '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="font-size:11px; color:#64748b; margin-bottom:6px; font-family:Consolas, monospace;">' + phpSecEscape(it.path || '') + '</div>' +
+                    '<div style="font-size:12px; background:#fff1f0; padding:8px 10px; border-radius:4px; border:1px dashed #ffa39e;">' +
+                        descLines.join('') +
+                    '</div>' +
+                '</div>';
+            }
+        }
+
+        return headerHtml + '<div class="jdk-sec-content-list" style="max-height:360px; overflow-y:auto;">' + listHtml + '</div>';
+    },
+
+    updateJdkModalContent: function() {
+        if ($('#jdkSecModalBody').length) {
+            $('#jdkSecModalBody').html(this.buildJdkModalHtml());
+        }
+    },
+
+    openJdkManager: function() {
+        if (this.modalIndex) {
+            layer.close(this.modalIndex);
+            this.modalIndex = null;
+        }
+        if (typeof softMain === 'function') {
+            softMain('jdk', t('plugins.jdk.title', '御风JDK管理器'));
+        }
+    },
+
+    handleUpgradeJdk: function(version, curVer, newVer, url) {
+        var that = this;
+        var confirmMsg = t('index.jdk_sec_confirm_upgrade_to', '确认将【{1}】升级至 {2} 吗？').replace('{1}', version).replace('{2}', newVer);
+        layer.confirm(confirmMsg, { icon: 3, title: t('index.jdk_sec_version_upgrade', '版本升级') }, function(index) {
+            layer.close(index);
+            var loadT = layer.msg(t('public.getting', '正在获取...'), { icon: 16, time: 0, shade: 0.3 });
+            $.post('/plugins/run', { name: 'jdk', func: 'upgrade_jdk', args: JSON.stringify({ version: version, download_url: url }) }, function(res) {
+                layer.close(loadT);
+                layer.msg((res && res.msg) || t('public.success', '操作成功'), { icon: 1, time: 2000 });
+                setTimeout(function() { getJdkSecurityStatus(true); }, 1000);
+            }, 'json').fail(function() {
+                layer.close(loadT);
+                layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 2 });
+            });
+        });
+    },
+
+    handleFixCa: function(path) {
+        var that = this;
+        var confirmMsg = t('index.jdk_sec_confirm_fix_ca', '确认对该 JDK 进行证书库安全加固？');
+        layer.confirm(confirmMsg, { icon: 3, title: t('index.jdk_sec_security_hardening', '安全加固') }, function(index) {
+            layer.close(index);
+            var loadT = layer.msg(t('public.getting', '正在获取...'), { icon: 16, time: 0, shade: 0.3 });
+            $.post('/plugins/run', { name: 'jdk', func: 'fix_ca_security', args: JSON.stringify({ path: path }) }, function(res) {
+                layer.close(loadT);
+                layer.msg((res && res.msg) || t('public.success', '加固完成'), { icon: 1, time: 2000 });
+                setTimeout(function() { getJdkSecurityStatus(true); }, 1000);
+            }, 'json').fail(function() {
+                layer.close(loadT);
+                layer.msg(t('public.fetch_fail_retry', '获取失败，请稍后重试'), { icon: 2 });
+            });
+        });
+    },
+
+    // 弹窗展示 JDK 安全漏洞详情
+    showJdkSecModal: function() {
+        var that = this;
+        var modalContent = this.buildJdkModalHtml();
+        var modalHtml = '<div id="jdkSecModalBody" style="padding: 16px 20px 24px; font-size: 12px;">' +
+            modalContent +
+        '</div>';
+
+        this.modalIndex = layer.open({
+            type: 1,
+            title: [t('index.jdk_sec_title', 'JDK 安全漏洞检测') + ' - ' + t('index.sec_modal_details_suffix', '风险处理'), 'font-weight:600; font-size:14px;'],
+            area: ['640px', 'auto'],
+            btn: [t('index.jdk_sec_open_manager', '打开JDK管理器'), t('public.close', '关闭')],
+            content: modalHtml,
+            yes: function(index) {
+                that.openJdkManager();
+                return false;
+            },
+            btn2: function(index) {
+                layer.close(index);
+                return false;
+            },
+            end: function() {
+                that.modalIndex = null;
+            }
+        });
+
+        // 每次点开，自动进行一次检测（强制重扫）
+        getJdkSecurityStatus(true);
     }
 };
 
 window.btSecurityCenter = btSecurityCenter;
+window.getJdkSecurityStatus = getJdkSecurityStatus;
 
 // 页面加载或脚本初始化时自动尝试启动
 $(function() {
