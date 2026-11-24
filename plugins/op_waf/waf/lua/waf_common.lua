@@ -450,6 +450,7 @@ function _M.add_reputation_penalty(self, ip, points, reason)
         self:dict_set("waf_drop_ip", drop_key, 999, 86400)
         local params = self.params or {ip = ip}
         self:log(params, 'scan', "信誉归零，触发自动拉黑 24 小时 (" .. reason .. ")")
+        self:stats_total('scan', "信誉归零，触发自动拉黑 24 小时 (" .. reason .. ")")
         -- 御风F2B防火墙情报联动：信誉归零是最高级别威胁，同步交给内核层持久封禁
         self:push_ban_sync(ip, 86400, "reputation:" .. tostring(reason))
         
@@ -850,26 +851,30 @@ function _M.timer_stats_total(self)
         end
     end
 
+    local today = ngx.today()
     if not total then
         total = {
             total = 0,
-            today_date = ngx.today(),
+            today_date = today,
             today_total = 0,
             rules = {},
             sites = {}
         }
     end
 
+    local date_changed = false
+    if not total['today_date'] or total['today_date'] ~= today then
+        total['today_date'] = today
+        total['today_total'] = 0
+        date_changed = true
+    end
+
     -- 检查并合并共享内存中的原子增量
     local inc_total = ngx.shared.waf_limit:get("stat:inc:total")
-    if inc_total and inc_total > 0 then
-        ngx.shared.waf_limit:incr("stat:inc:total", -inc_total)
-        total['total'] = (total['total'] or 0) + inc_total
-
-        local today = ngx.today()
-        if not total['today_date'] or total['today_date'] ~= today then
-            total['today_date'] = today
-            total['today_total'] = 0
+    if (inc_total and inc_total > 0) or date_changed then
+        if inc_total and inc_total > 0 then
+            ngx.shared.waf_limit:incr("stat:inc:total", -inc_total)
+            total['total'] = (total['total'] or 0) + inc_total
         end
 
         local inc_today = ngx.shared.waf_limit:get("stat:inc:today:" .. today)
@@ -880,7 +885,11 @@ function _M.timer_stats_total(self)
 
         -- 提取所有规则增量
         if not total['rules'] then total['rules'] = {} end
-        local rule_keys = {"args", "url", "scan", "post", "cookie", "user_agent", "cc", "spider", "upload_ext", "upload_mime", "upload_header", "xxe", "ssrf"}
+        local rule_keys = {
+            "args", "url", "scan", "post", "cookie", "user_agent", "cc",
+            "spider", "upload_ext", "upload_mime", "upload_header", "xxe",
+            "ssrf", "method", "honeypot", "drop_ip", "ip_black", "area"
+        }
         for _, rname in ipairs(rule_keys) do
             local inc_r = ngx.shared.waf_limit:get("stat:inc:rule:" .. rname)
             if inc_r and inc_r > 0 then

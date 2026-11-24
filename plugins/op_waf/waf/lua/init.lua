@@ -222,6 +222,7 @@ local function waf_method()
         GET=true, POST=true, PUT=true, DELETE=true, OPTIONS=true, HEAD=true
     }
     if not allowed_methods[params['method']] then
+        C:stats_total('method', '非法请求方法:' .. tostring(params['method']))
         ngx.exit(444)
         return true
     end
@@ -231,6 +232,7 @@ end
 local function waf_smuggling()
     local headers = params["request_header"]
     if headers["transfer-encoding"] and headers["content-length"] then
+        C:stats_total('scan', 'HTTP请求走私拦截')
         ngx.exit(400)
         return true
     end
@@ -361,6 +363,7 @@ local function waf_ip_black()
     end
 
     if matched then
+        C:stats_total('ip_black', '黑名单IP拦截')
         ngx.exit(config['cc']['status'])
         return true
     end
@@ -369,6 +372,7 @@ local function waf_ip_black()
     for _,rule in ipairs(ipv6_black_rules)
     do
         if rule == params['ip'] then 
+            C:stats_total('ip_black', '黑名单IPv6拦截')
             ngx.exit(config['cc']['status'])
             return true 
         end
@@ -443,6 +447,7 @@ local function waf_drop_ip()
     -- C:D("waf_drop;count > retry:"..tostring(count > retry))
     if count >  retry then
         -- C:D("waf_drop_ip........... true")
+        C:stats_total('drop_ip', '封禁IP拦截')
         ngx.exit(config['cc']['status'])
         return true
     end
@@ -669,6 +674,7 @@ local function waf_honeypot()
 
     for _, path in ipairs(paths) do
         if string.find(uri, path, 1, true) then
+            C:stats_total('honeypot', '触碰蜜罐路径: ' .. path)
             C:add_reputation_penalty(params['ip'], 100, "触碰蜜罐路径: " .. path)
             ngx.exit(config['honeypot']['status'])
             return true
@@ -1021,6 +1027,7 @@ local function area_limit(overall_country, server_name, status)
             if val['site']['allsite'] and val['site']['allsite'] == '1' and val['types'] == 'refuse' then
                 for rk, reg_val in pairs(val['region']) do
                     if rk == overall_country then
+                        C:stats_total('area', '地区限制拦截:' .. tostring(overall_country))
                         ngx.exit(403)
                         return true
                     end
@@ -1030,6 +1037,7 @@ local function area_limit(overall_country, server_name, status)
             if val['site'][server_name] and val['site'][server_name] == '1' and val['types'] == 'refuse' then
                 for rk, reg_val in pairs(val['region']) do
                     if rk == overall_country then
+                        C:stats_total('area', '地区限制拦截:' .. tostring(overall_country))
                         ngx.exit(403)
                         return true
                     end
@@ -1042,6 +1050,7 @@ local function area_limit(overall_country, server_name, status)
                         return false
                     end
                 end
+                C:stats_total('area', '非允许地区拦截:' .. tostring(overall_country))
                 ngx.exit(403)
                 return true
             end
@@ -1052,6 +1061,7 @@ local function area_limit(overall_country, server_name, status)
                         return false
                     end
                 end
+                C:stats_total('area', '非允许地区拦截:' .. tostring(overall_country))
                 ngx.exit(403)
                 return true
             end
@@ -1064,6 +1074,7 @@ local function waf_404_warning()
     local warn_key = "404_warning:" .. params['ip']
     local is_warn = ngx.shared.waf_limit:get(warn_key)
     if is_warn then
+        C:stats_total('scan', '404警告页面拦截')
         C:return_html(403, warning_404_html)
         return true
     end

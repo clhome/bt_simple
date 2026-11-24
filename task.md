@@ -127,3 +127,43 @@ AssertionError: 'def check_socketio_origin(origin):' not found in ...
   - [x] 2.1 针对 `test_p0_security_fixes.py` 进行定向回归验证，确保用例通过
   - [x] 2.2 运行项目快速门禁与全量静态/质量检测，确保 Exit Code 0
 
+---
+
+# 修复御风 OP 防火墙今日拦截与总拦截计数异常及漏记问题
+
+## 背景与根因剖析
+
+用户反馈御风 OP 防火墙【1.7】首页中，今日明明天有大量攻击，但“今日拦截（次）”显示为 0；且“总拦截（次）”不确定是否准确，要求排查修复。
+经全链路代码审计，根因剖析如下：
+1. **多场景拦截计数完全缺失（导致总拦截和今日拦截严重漏记）**：
+   - `waf_drop_ip()`：封锁 IP（如信誉归零或超限被拉黑的恶意 IP）后续的大量重复攻击，被 `ngx.exit()` 阻断，但未调用 `stats_total` 计数，导致海量拦截在计数器中彻底隐形；
+   - `waf_ip_black()`：黑名单 IP 拦截直接 `ngx.exit()`，无计数；
+   - `waf_honeypot()` 与 `add_reputation_penalty()`：触碰蜜罐与信誉归零拉黑只记日志或直接退出，未调用 `stats_total`；
+   - `waf_method()`：非法 HTTP Method 拦截直接 `ngx.exit(444)`，未计数，导致“恶意HEAD请求”卡片永远为 0；
+   - `area_limit()` / `waf_smuggling()` / `waf_404_warning()`：阻断未计入总统计；
+2. **今日拦截归零与时区比对脆弱性**：
+   - 在 `waf_common.lua` 的 `timer_stats_total` 中，跨天判断仅在 `inc_total > 0` 时才会处理；且当 `today_date` 不匹配时将 `today_total` 置 0，若新增量为 0 则落盘为 0；
+   - 前端 `op_waf.js` 使用客户端本地时间字符串与后端 `today_date` 做严格相等对比 `if (rdata.today_date === today_str)`，一旦服务端时区与浏览器不一致或跨天窗口，强制归零；
+   - 后端 `getWafSrceen()` 仅仅读取 `total.json` 文件文本，未做任何跨天自愈与对账校准；
+3. **缺少与持久化数据库（SQLite `waf.db`）的对账与自愈兜底机制**：
+   - 封锁历史数据库已落盘精确日志，但首页统计全由内存 timer 写入的 `total.json` 决定。一旦 Nginx 重载、重启或缓存丢失，计数就会清零且无法自愈；
+4. **安全防护天数常年为 0**：
+   - `initTotalInfo()` 每次执行无条件重置 `start_time = str(time.time())`，导致天数计算永远不足 1 天显示 0。
+
+## 任务拆解与进度 (Task List)
+
+- [x] **任务 1：Lua 运行时全场景拦截计数补全与定时同步修复 (`waf/lua/`)**
+  - [x] 1.1 在 `init.lua` 中补全所有缺失计数的拦截点：`waf_drop_ip`、`waf_ip_black`、`waf_honeypot`、`add_reputation_penalty`、`waf_method`、`area_limit`、`waf_smuggling`、`waf_404_warning`
+  - [x] 1.2 在 `waf_common.lua` 中扩充 `rule_keys`（纳入 `method`, `honeypot`, `drop_ip`, `ip_black`, `area`），修复 `timer_stats_total` 跨天更新与增量合并逻辑
+- [x] **任务 2：Python 后端数据校准、自愈与对账机制 (`index.py`)**
+  - [x] 2.1 修复 `initTotalInfo()`：仅在不存在时初始化 `start_time`，确保默认字段完整
+  - [x] 2.2 增强 `getWafSrceen()`：解析 `total.json`，联动 SQLite 数据库 `logs` 表统计今天真实拦截数 `today_db_count` 与历史总拦截数 `total_db_count` 进行权威对账取最大值，写回自愈并返回权威数据
+  - [x] 2.3 同样增强 `getTotalStatistics()`，确保外部及状态栏读取的数据精准一致
+- [x] **任务 3：前端今日拦截与各规则数据展示优化 (`js/op_waf.js`)**
+  - [x] 3.1 优化 `wafScreen()`：优先取后端权威 `today_total`，容错处理时区差异
+  - [x] 3.2 将“恶意HEAD请求”小卡片绑定至 `rdata.rules.method || 0`
+- [x] **任务 4：自动化测试、质量自检与门禁验证**
+  - [x] 4.1 在 `test/` 下编写跨平台单元测试，验证各拦截计数、跨天重置、数据库对账自愈逻辑
+  - [x] 4.2 执行静态语法检查与门禁测试，确保 Exit Code 0，工作区整洁
+
+

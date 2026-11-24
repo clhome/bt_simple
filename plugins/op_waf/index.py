@@ -262,6 +262,94 @@ def initSiteInfo(conf_reload=False):
     yf.writeFile(path_site, cjson)
 
 
+def reconcileWafTotal(total_contents=None, auto_save=True):
+    path_total = getJsonPath('total')
+    if total_contents is None:
+        try:
+            content = yf.readFile(path_total)
+            total_contents = json.loads(content) if content else {}
+        except Exception:
+            total_contents = {}
+
+    if not isinstance(total_contents, dict):
+        total_contents = {}
+
+    changed = False
+
+    # 1. 确保 start_time 存在且不被意外重置，保护“安全防护天数”
+    if 'start_time' not in total_contents or not total_contents['start_time']:
+        total_contents['start_time'] = str(time.time())
+        changed = True
+
+    # 2. 确保 rules 完整
+    if 'rules' not in total_contents or not isinstance(total_contents['rules'], dict):
+        total_contents['rules'] = {}
+        changed = True
+
+    default_rules = [
+        'path', 'php_path', 'upload_ext', 'upload_mime', 'upload_header',
+        'user_agent', 'scan', 'cookie', 'post', 'args', 'url', 'cc',
+        'spider', 'xxe', 'ssrf', 'method', 'honeypot', 'drop_ip', 'ip_black', 'area'
+    ]
+    for rk in default_rules:
+        if rk not in total_contents['rules']:
+            total_contents['rules'][rk] = 0
+            changed = True
+
+    if 'sites' not in total_contents or not isinstance(total_contents['sites'], dict):
+        total_contents['sites'] = {}
+        changed = True
+
+    # 3. 日期校准与跨天判断
+    today_str = time.strftime('%Y-%m-%d', time.localtime())
+    file_today_date = total_contents.get('today_date')
+    if file_today_date != today_str:
+        total_contents['today_date'] = today_str
+        total_contents['today_total'] = 0
+        changed = True
+
+    # 4. 从 SQLite 日志数据库 (waf.db logs表) 对账兜底自愈
+    try:
+        now = time.localtime()
+        today_start = int(time.mktime((now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1)))
+        today_end = today_start + 86400
+
+        conn = pSqliteDb('logs')
+        # 统计今日 logs 记录数
+        c_today = conn.field("count(*) as num").where("time >= ? and time < ?", (today_start, today_end)).inquiry()
+        today_db_count = c_today[0]['num'] if (c_today and isinstance(c_today[0], dict) and 'num' in c_today[0]) else 0
+
+        # 统计历史总 logs 记录数
+        c_total = conn.field("count(*) as num").where("1=1", ()).inquiry()
+        total_db_count = c_total[0]['num'] if (c_total and isinstance(c_total[0], dict) and 'num' in c_total[0]) else 0
+
+        # 对今日拦截进行对账校准（取 total.json 与数据库中的较大值）
+        cur_today = int(total_contents.get('today_total', 0) or 0)
+        if today_db_count > cur_today:
+            total_contents['today_total'] = today_db_count
+            changed = True
+
+        # 对总拦截进行对账校准（取 当前值、数据库总记录数、单项规则总和 的最大值）
+        rules_sum = sum(int(v or 0) for v in total_contents['rules'].values())
+        cur_total = int(total_contents.get('total', 0) or 0)
+        calibrated_total = max(cur_total, total_db_count, rules_sum)
+        if calibrated_total > cur_total:
+            total_contents['total'] = calibrated_total
+            changed = True
+
+    except Exception as e:
+        _log.debug('[op_waf] reconcileWafTotal 对账异常已忽略: %s', e)
+
+    # 5. 若数据发生自愈校准且允许保存，自动持久化写回 total.json
+    if changed and auto_save:
+        try:
+            yf.writeFile(path_total, yf.getJson(total_contents))
+        except Exception as e:
+            _log.debug('[op_waf] reconcileWafTotal 保存异常已忽略: %s', e)
+
+    return total_contents
+
+
 def initTotalInfo(conf_reload=False):
     data = []
 
@@ -271,7 +359,10 @@ def initTotalInfo(conf_reload=False):
     domain_contents = yf.readFile(path_domains)
     if not domain_contents or type(domain_contents) == bool:
         domain_contents = "[]"
-    domain_contents = json.loads(domain_contents)
+    try:
+        domain_contents = json.loads(domain_contents)
+    except Exception:
+        domain_contents = []
 
     try:
         total_contents = yf.readFile(path_total)
@@ -280,15 +371,19 @@ def initTotalInfo(conf_reload=False):
     except Exception as e:
         total_contents = "{}"
 
-    total_contents = json.loads(total_contents)
-    total_contents_new = {}
+    try:
+        total_contents = json.loads(total_contents)
+    except Exception:
+        total_contents = {}
+    if not isinstance(total_contents, dict):
+        total_contents = {}
+
+    if 'sites' not in total_contents or not isinstance(total_contents['sites'], dict):
+        total_contents['sites'] = {}
+
     for x in range(len(domain_contents)):
         name = domain_contents[x]['name']
-        if 'sites' in total_contents and name in total_contents['sites']:
-            pass
-        else:
-            if 'sites' not in total_contents:
-                total_contents['sites'] = {}
+        if name not in total_contents['sites']:
             tmp = {}
             tmp['cdn'] = 0
             tmp['log'] = 0
@@ -300,9 +395,8 @@ def initTotalInfo(conf_reload=False):
             tmp['upload_ext'] = 0
             total_contents['sites'][name] = tmp
 
-    total_contents['start_time'] = str(time.time())
-    cjson = yf.getJson(total_contents)
-    yf.writeFile(path_total, cjson)
+    # 统一通过 reconcileWafTotal 维护全局计数与自愈，保护 start_time 不被意外重置
+    reconcileWafTotal(total_contents, auto_save=True)
 
 
 def contentReplace(content):
@@ -2304,8 +2398,8 @@ def setSiteObjOpen():
 
 
 def getWafSrceen():
-    conf = getJsonPath('total')
-    return yf.readFile(conf)
+    data = reconcileWafTotal(auto_save=True)
+    return yf.getJson(data)
 
 
 def getTotalStatistics():
@@ -2313,15 +2407,10 @@ def getTotalStatistics():
     isInstall = os.path.exists(getServerDir() + '/waf/total.json')
     if isInstall:
         try:
-            content = yf.readFile(getServerDir() + '/waf/total.json')
-            total_data = json.loads(content)
+            total_data = reconcileWafTotal(auto_save=True)
             total = total_data.get('total', 0)
-            today_total = 0
+            today_total = total_data.get('today_total', 0)
             
-            today_str = time.strftime('%Y-%m-%d', time.localtime())
-            if total_data.get('today_date') == today_str:
-                today_total = total_data.get('today_total', 0)
-                
             data['status'] = True
             data['count'] = f"{today_total}/{total}"
             

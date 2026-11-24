@@ -1081,7 +1081,12 @@ function wafScreen(){
         var today_total = 0;
         if (rdata.today_date === today_str) {
             today_total = rdata.today_total || 0;
+        } else if (rdata.today_total !== undefined) {
+            // 容错时区微小偏差与服务端权威对账校准值
+            today_total = rdata.today_total || 0;
         }
+        var total_val = (rdata.total !== undefined) ? rdata.total : 0;
+        var rules = rdata.rules || {};
 
         var css = `<style>
             .waf-dashboard { padding: 0 15px 5px 5px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; animation: wafFadeIn 0.4s ease; }
@@ -1127,7 +1132,7 @@ function wafScreen(){
             </div>\
             <div class="waf-card-primary">\
                 <div class="waf-card-title">' + pt('总拦截 (次)') + '</div>\
-                <div class="waf-card-val">' + rdata.total + '</div>\
+                <div class="waf-card-val">' + total_val + '</div>\
             </div>\
             <div class="waf-card-info">\
                 <div class="waf-card-title">' + pt('安全防护 (天)') + '</div>\
@@ -1136,18 +1141,18 @@ function wafScreen(){
         </div>';
 
         con += '<div class="waf-grid">\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('POST渗透') + '</div><div class="waf-stat-val">' + rdata.rules.post + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('GET渗透') + '</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('CC攻击') + '</div><div class="waf-stat-val">' + rdata.rules.cc + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意User-Agent') + '</div><div class="waf-stat-val">' + rdata.rules.user_agent + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('Cookie渗透') + '</div><div class="waf-stat-val">' + rdata.rules.cookie + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意扫描') + '</div><div class="waf-stat-val">' + rdata.rules.scan + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意HEAD请求') + '</div><div class="waf-stat-val">0</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI自定义拦截') + '</div><div class="waf-stat-val">' + rdata.rules.url + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI保护') + '</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意文件上传') + '</div><div class="waf-stat-val">' + rdata.rules.upload_ext + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止的扩展名') + '</div><div class="waf-stat-val">' + rdata.rules.path + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止PHP脚本') + '</div><div class="waf-stat-val">' + rdata.rules.php_path + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('POST渗透') + '</div><div class="waf-stat-val">' + (rules.post || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('GET渗透') + '</div><div class="waf-stat-val">' + (rules.args || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('CC攻击') + '</div><div class="waf-stat-val">' + (rules.cc || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意User-Agent') + '</div><div class="waf-stat-val">' + (rules.user_agent || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('Cookie渗透') + '</div><div class="waf-stat-val">' + (rules.cookie || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意扫描') + '</div><div class="waf-stat-val">' + (rules.scan || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意HEAD请求') + '</div><div class="waf-stat-val">' + (rules.method || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI自定义拦截') + '</div><div class="waf-stat-val">' + (rules.url || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI保护') + '</div><div class="waf-stat-val">' + (rules.args || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意文件上传') + '</div><div class="waf-stat-val">' + (rules.upload_ext || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止的扩展名') + '</div><div class="waf-stat-val">' + (rules.path || 0) + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止PHP脚本') + '</div><div class="waf-stat-val">' + (rules.php_path || 0) + '</div></div>\
         </div>';
 
         con += '<ul class="waf-help-list">\

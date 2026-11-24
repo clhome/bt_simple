@@ -176,6 +176,15 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
 - `[x]` 任务 5：编写与运行全面的自动化回归测试脚本 `test/test_op_waf_full_i18n_v2.py`，验证 6 国语言包对称性、无中文泄漏及代码集成。
 - `[x]` 任务 6：清理测试阶段临时文件，更新 `task.md` 与 `walkthrough.md` 交付成果。
 
+### 需求 27：修复今日拦截与总拦截计数异常及漏记问题
+- `[x]` 任务 1：在 `waf/lua/init.lua` 中补全所有缺失计数的拦截点（`waf_drop_ip`, `waf_ip_black`, `waf_honeypot`, `add_reputation_penalty`, `waf_method`, `area_limit`, `waf_smuggling`, `waf_404_warning`）。
+- `[x]` 任务 2：在 `waf/lua/waf_common.lua` 中扩充 `rule_keys`（纳入 `method`, `honeypot`, `drop_ip`, `ip_black`, `area`），修复 `timer_stats_total` 跨天更新与增量合并逻辑。
+- `[x]` 任务 3：在 `index.py` 中修复 `initTotalInfo()`，防止 `start_time` 反复被覆盖，初始化 `today_total` 与新增字段。
+- `[x]` 任务 4：在 `index.py` 中重构 `getWafSrceen()` 与 `getTotalStatistics()`，引入 SQLite `logs` 数据库对账兜底与自动写回自愈机制。
+- `[x]` 任务 5：在 `js/op_waf.js` 中优化 `wafScreen()`，优先使用后端权威统计并绑定 `rules.method`。
+- `[x]` 任务 6：编写自动化测试并执行项目质量门禁验证。
+
+
 
 
 
