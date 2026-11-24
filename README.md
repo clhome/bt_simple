@@ -155,7 +155,7 @@ The panel **can be installed and run** on the following distributions, but known
 | MySQL Non-LTS Versions | `plugins/mysql/info.json` | **Delisted** (2026-10-27): 5.5/5.6 (EOL) and 8.2/8.3/9.0~9.4 (Innovation short-term releases) are no longer offered; only LTS releases are retained (5.7 / 8.0 / 8.4 / 9.7). Existing installations can upgrade to corresponding LTS with one click |
 | MariaDB Non-LTS Versions | `plugins/mariadb/info.json` | **Delisted** (2026-10-27): Only LTS releases retained (10.6 / 10.11 / 11.4 / 11.8). Rolling short-term versions (10.7~10.9, 11.0~11.3, 11.5~11.7, 12.x non-LTS) delisted; existing installations can upgrade to nearest series LTS |
 | Redis Version Selection | `plugins/redis/info.json` | **Converged into 3 series** (2026-10-28): Redis 7.2 (Default recommended) / 8.2 (LTS) / 6.2 (Lightweight). 12 patch versions removed from UI; panel automatically resolves chosen series to **its latest patch release** (e.g., 7.2 → 7.2.17) |
-| PHP 5.2–5.6 Source Compilation | `plugins/php/versions/5{2..6}/install.sh` ✅ | Adapted: Debian 13 explicitly identifies non-support and exits gracefully |
+| PHP Releases Below 8.2 | `plugins/php/info.json` | **Delisted / Minimum Enforced at PHP 8.2**: Out of strict security hardening against unpatched critical CVEs (such as CVE-2026-109618 / 109619), legacy releases below 8.2 (PHP 5.x, 7.x, 8.0, 8.1) are EOL and no longer offered for installation; only actively supported versions (PHP 8.2 / 8.3 / 8.4 / 8.5) are provided |
 | Docker Images | `docker/Dockerfile.debian13` ✅ | Adapted: Added `debian:13-slim` variant, retaining 12 as base |
 
 > **MySQL Version Policy (2026-10-27)**: Installation catalog retains only **LTS** releases: `5.7`, `8.0`, `8.4`, and `9.7` (both 8.4 and 9.7 are official LTS; 8.2/8.3/9.0~9.4 are Innovation short-term releases supported only until the next innovation release, unsuitable for production; 5.5/5.6 are long EOL and require OpenSSL 1.0.x which fails to build against OpenSSL 3.x).
@@ -176,7 +176,11 @@ The panel **can be installed and run** on the following distributions, but known
 >
 > Test guards: `testsuite/test_redis_version_series.py` (47 items).
 
-> **Completed Adaptations**: MySQL 5.7 / 8.x (`Install_dep_debain13()` uses gcc-12 toolchain), PHP 7.2 / 7.3 (reentrancy patch injected), Swap plugin (switched to `shutil.which`).
+> **PHP Version Policy (Effective 2026-10-22)**: For system-wide security hardening and mitigation of critical unpatched vulnerabilities (such as CVE-2026-109618 / 109619 "php2shell"), the panel strictly enforces **PHP 8.2 as the minimum supported version**. Legacy End-of-Life branches (PHP 5.2~5.6, 7.0~7.4, 8.0, 8.1) have been delisted and are no longer provided for installation. Existing workloads are recommended to migrate to actively maintained security baseline versions: `8.2`, `8.3`, `8.4`, or `8.5`.
+>
+> Test guards: `testsuite/test_php_cve_version_floor.py` (P0-1 baseline guard), `testsuite/test_php_security_baseline.py` (P0-2 inspection testsuite).
+
+> **Completed Adaptations**: MySQL 5.7 / 8.x (`Install_dep_debain13()` uses gcc-12 toolchain), PHP 8.2+ modern security baseline versions, Swap plugin (switched to `shutil.which`).
 
 #### Debian 14 (forky) / Ubuntu 26.04 (resolute)
 

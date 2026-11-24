@@ -155,7 +155,7 @@
 | MySQL 非 LTS 版本安装 | `plugins/mysql/info.json` | **已下架**（2026-10-27）：5.5/5.6（EOL）与 8.2/8.3/9.0~9.4（Innovation 短期版）不再提供安装；列表只留 LTS（5.7 / 8.0 / 8.4 / 9.7），已装旧版可在商店一键升级到同系列 LTS |
 | MariaDB 非 LTS 版本安装 | `plugins/mariadb/info.json` | **已下架**（2026-10-27）：只留 LTS（10.6 / 10.11 / 11.4 / 11.8），Rolling 短期版（10.7~10.9、11.0~11.3、11.5~11.7、12.x 非 LTS）不再提供安装，已装旧版可一键升级到同系列最接近的 LTS |
 | Redis 版本选择 | `plugins/redis/info.json` | **已收敛为 3 个系列**（2026-10-28）：Redis 7.2（默认推荐）/ 8.2（LTS）/ 6.2（轻量），共 12 个补丁版号不再出现在界面上；选定系列后由面板自动解析成**该系列当前最新补丁版**（如 7.2→7.2.17），上游发新补丁版前端零改动 |
-| PHP 5.2–5.6 源码编译 | `plugins/php/versions/5{2..6}/install.sh` ✅ | 已适配：Debian 13 显式判定不支持并退出 |
+| PHP 低于 8.2 的旧版本安装 | `plugins/php/info.json` | **已全面下架（最低控制在 PHP 8.2）**：出于防范高危漏洞（如 CVE-2026-109618 / 109619 等）与系统安全考量，低于 8.2 的老旧分支（5.x / 7.x / 8.0 / 8.1）已停止官方维护并全面下架，不再提供新安装；系统仅保留官方活跃维护的 PHP 8.2 / 8.3 / 8.4 / 8.5 等安全基线版本 |
 | Docker 镜像 | `docker/Dockerfile.debian13` ✅ | 已适配：新增 `debian:13-slim` 变体，保留 12 主镜像 |
 
 > **MySQL 版本口径（2026-10-27）**：安装列表只保留 **LTS** —— `5.7` / `8.0` / `8.4` / `9.7`
@@ -202,7 +202,11 @@
 > 守卫：`testsuite/test_redis_version_series.py`（47 项，含数值排序/RC 排除/状态矩阵/
 > 缓存兜底/回滚顺序/前端选项行为的 Node 行为测试）。
 
-> **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 7.2 / 7.3（注入 reentrancy 补丁）、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
+> **PHP 版本口径（2026-10-22 起执行安全基线）**：出于全链路系统安全与防范高危供应链漏洞（如 CVE-2026-109618 / 109619「php2shell」等）考量，已**将最低运行与安装版本严格控制在 PHP 8.2**。低于 PHP 8.2 的历史旧版本（包括已彻底 EOL 的 PHP 5.2~5.6、7.0~7.4、8.0、8.1）由于官方早已停止发布安全维护补丁且存在严重已知 CVE，面板已全线下架并不再提供新安装。线上存量站点建议全面平滑迁移至受官方活跃安全维护的 `8.2`、`8.3`、`8.4` 或 `8.5` 安全基线版本。
+>
+> 守卫：`testsuite/test_php_cve_version_floor.py`（P0-1 源码安装基线守卫）、`testsuite/test_php_security_baseline.py`（P0-2 安全巡检用例）。
+
+> **已完成的适配**：MySQL 5.7 / 8.x（`Install_dep_debain13()` 使用 gcc-12 工具链）、PHP 8.2+ 现代安全基线版本、Swap 插件（改用 `shutil.which` 规避 `which` 缺失）。
 
 #### Debian 14 (forky) / Ubuntu 26.04 (resolute)
 
