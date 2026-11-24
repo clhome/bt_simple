@@ -3068,6 +3068,16 @@ function phpSecRenderItem(item) {
     var args = [item.migrate_to || ''];
     var statusText = key ? t(key, args, item.text || '') : '';
     var color = (item.status === 'ok') ? '#20a53a' : '#ff2020';
+    var isUpgrading = !!item.upgrading;
+    try {
+        if (sessionStorage.getItem('php_upgrading_' + branch)) {
+            isUpgrading = true;
+        }
+    } catch(e) {}
+    if (isUpgrading) {
+        statusText = t('index.php_sec_upgrading_notice', '后台编译升级中（约需15~30分钟）...');
+        color = '#fa8c16';
+    }
     var html = '<div class="php-sec-item" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px dashed var(--border-color, #edf2f7); font-size:12px;">';
     html += '<span class="php-sec-branch" style="font-weight:600; min-width:104px;">PHP ' + branch +
         ' <span class="c9 f11">(' + phpSecEscape(phpSecChannelLabel(item.channel)) + ')</span></span>';
@@ -3078,10 +3088,14 @@ function phpSecRenderItem(item) {
     if (floor) {
         html += '<span class="c9 f11">' + floor + '</span>';
     }
-    // migrate_to 非空 = 该分支已停止维护（< 8.2），官方不会再给本次漏洞任何修复：
-    // 唯一出路是卸载并迁到 8.2+。这里**不再**挂「升级到安全版本」这种点了也没用的入口
-    // （真机 7.4/8.0/8.1 就是挂着按钮但升不动）。
-    if (item.migrate_to) {
+    if (isUpgrading) {
+        html += '<span class="f11" style="margin-left:auto; color:#fa8c16; font-weight:600;">' +
+            '<span class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></span>' +
+            (item.upgrading_target ? t('index.php_sec_building_target', [item.upgrading_target], '正在构建 ' + phpSecEscape(item.upgrading_target)) : phpSecEscape(t('index.php_sec_building', '正在构建中...'))) +
+            '</span>' +
+            '<a class="btlink f11" style="margin-left:8px;" href="javascript:;" onclick="messageBox();" title="' + phpSecEscape(t('index.php_sec_view_log', '查看编译实时日志')) + '">' +
+            '[' + phpSecEscape(t('public.execution_log', '执行日志')) + ']</a>';
+    } else if (item.migrate_to) {
         // 可点击：跳到「软件商店」里这个 PHP 版本的那一行并打开管理面板，
         // 用户在那里直接点卸载（官方无修复，唯一出路就是卸了换 8.2+）。
         var adviceText = t('index.php_sec_migrate_advice', args, '');
@@ -3272,16 +3286,38 @@ function upgradePhpToBaseline(el) {
             }
             var ok = info ? !!info.status : !!(rdata && rdata.status);
             var msg = (info && info.msg) ? info.msg : ((rdata && rdata.msg) || '');
-            layer.msg(msg || (ok ? 'OK' : 'ERROR'), { icon: ok ? 1 : 0, time: 4000, shade: [0.3, '#000'] });
-            if (ok) {
+            var isBusy = !!(info && (info.busy || (info.data && info.data.busy)));
+
+            if (isBusy) {
+                // 已有任务或物理锁正在运行
+                layer.msg(t('index.php_sec_already_busy', '当前版本正在后台编译升级中，请勿重复操作'), { icon: 7, time: 5000, shade: [0.3, '#000'] });
+                if (plugin === 'php') {
+                    try { sessionStorage.setItem('php_upgrading_' + branch, '1'); } catch (e) {}
+                    if (typeof messageBox === 'function') {
+                        setTimeout(function() { messageBox(); }, 800);
+                    }
+                }
+                try { sessionStorage.removeItem('bt_php_sec_status_cache'); } catch (e) {}
+                setTimeout(function() { getPhpSecurityStatus(true); }, 1200);
+            } else if (ok) {
+                layer.msg(t('index.php_sec_task_submitted', '升级任务已提交后台执行'), { icon: 1, time: 3500, shade: [0.3, '#000'] });
+                if (plugin === 'php') {
+                    try { sessionStorage.setItem('php_upgrading_' + branch, '1'); } catch (e) {}
+                    if (typeof messageBox === 'function') {
+                        setTimeout(function() { messageBox(); }, 800);
+                    }
+                }
                 if (typeof getTaskCount === 'function') {
                     getTaskCount();
                 }
                 try { sessionStorage.removeItem('bt_php_sec_status_cache'); } catch (e) {}
                 setTimeout(function() { getPhpSecurityStatus(true); }, 1200);
-            } else if ($el.length) {
-                $el.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' })
-                    .html(phpSecEscape(t('index.php_sec_upgrade', '升级到安全版本')));
+            } else {
+                layer.msg(msg || 'ERROR', { icon: 0, time: 4000, shade: [0.3, '#000'] });
+                if ($el.length) {
+                    $el.prop('disabled', false).removeClass('disabled').css({ 'opacity': '1', 'cursor': 'pointer' })
+                        .html(phpSecEscape(t('index.php_sec_upgrade', '升级到安全版本')));
+                }
             }
         }, 'json').fail(function() {
             if (loadT) layer.close(loadT);
@@ -3294,10 +3330,33 @@ function upgradePhpToBaseline(el) {
     };
 
     if (plugin === 'php') {
-        // 编译版：面板会先备份旧二进制，升级失败自动还原
-        layer.confirm(t('index.php_sec_upgrade', '升级到安全版本') + '?',
-            { btn: [t('public.confirm', '确认'), t('public.cancel', '取消')], icon: 0 },
-            function(index) { layer.close(index); doUpgrade(); });
+        var vDisplay = (branch.length === 2) ? (branch.charAt(0) + '.' + branch.charAt(1)) : branch;
+        var confirmMsg = '<div style="padding:10px 5px;line-height:22px;">' +
+            '<p style="font-weight:bold;color:#333;margin-bottom:8px;">' +
+            '<span class="glyphicon glyphicon-info-sign" style="color:#20a53a;margin-right:6px;"></span>' +
+            t('index.php_sec_confirm_question', [vDisplay], '确认将 PHP ' + phpSecEscape(vDisplay) + ' 升级到安全基线版本？') + '</p>' +
+            '<p class="c9" style="font-size:12px;margin-bottom:6px;">• <b>' +
+            phpSecEscape(t('index.php_sec_confirm_label_compile', '源码编译')) + '</b>：' +
+            phpSecEscape(t('index.php_sec_confirm_tip_compile', '该版本为源码编译安装，将在后台下载源码并现场编译（预计耗时 15~30 分钟，期间 CPU 占用较高属正常现象）。')) + '</p>' +
+            '<p class="c9" style="font-size:12px;margin-bottom:6px;">• <b>' +
+            phpSecEscape(t('index.php_sec_confirm_label_backup', '自动保护')) + '</b>：' +
+            phpSecEscape(t('index.php_sec_confirm_tip_backup', '面板会自动备份现有执行文件，若编译失败将自动还原旧版本。')) + '</p>' +
+            '<p class="c9" style="font-size:12px;">• <b>' +
+            phpSecEscape(t('index.php_sec_confirm_label_log', '实时日志')) + '</b>：' +
+            phpSecEscape(t('index.php_sec_confirm_tip_log', '任务提交后将自动打开消息盒子，可随时查看实时编译进度。')) + '</p>' +
+            '</div>';
+        layer.confirm(confirmMsg,
+            {
+                title: t('index.php_sec_confirm_title', [vDisplay], 'PHP ' + vDisplay + ' 升级确认'),
+                area: ['440px', 'auto'],
+                btn: [t('index.php_sec_confirm_btn', '立即开始升级'), t('public.cancel', '取消')],
+                icon: 3
+            },
+            function(index) {
+                layer.close(index);
+                doUpgrade();
+            }
+        );
         return;
     }
     // apt/yum：包管理器升级后无法保证回退，必须明示

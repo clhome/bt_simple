@@ -20,12 +20,15 @@ Flask 视图与 testsuite 都能用同一份采集逻辑，离线（Windows 开�
 """
 
 import json
+import logging
 import os
 import re
 import subprocess
 import time
 
 from core import php_sec_baseline as baseline
+
+_log = logging.getLogger('yf.php_sec_scan')
 
 #: 编译版安装根（面板 `yf.getServerDir() + '/php'`，默认 /www/server/php）。
 DEFAULT_SERVER_PHP_DIR = '/www/server/php'
@@ -284,6 +287,44 @@ def collect_yum(yum_root=DEFAULT_YUM_ROOT, run=_run):
     return out
 
 
+def _detect_php_upgrading(branch):
+    """检测指定分支的 PHP 是否正在后台编译/升级中。"""
+    if not branch:
+        return False, None
+    lock_file = f'/tmp/yf_php_{branch}.lock'
+    is_building = False
+    if os.path.isfile(lock_file):
+        try:
+            with open(lock_file, 'r', encoding='utf-8', errors='ignore') as f:
+                first_line = f.readline().strip()
+            if first_line:
+                pid_part = first_line.split(':')[0]
+                if pid_part.isdigit() and int(pid_part) > 0:
+                    import core.yf as yf
+                    if yf.checkPid(int(pid_part)):
+                        is_building = True
+        except Exception as _fe:
+            _log.debug('[php_sec_scan] read lock %s error: %s', lock_file, _fe)
+
+    target_ver = None
+    try:
+        import thisdb
+        active_tasks = thisdb.getTaskActiveList(page=1, size=20)
+        for t in active_tasks or []:
+            cmd = str(t.get('cmd') or '')
+            name = str(t.get('name') or '')
+            if (f'upgrade_to_baseline {branch}' in cmd) or (f'PHP{branch}' in name and '升级' in name):
+                is_building = True
+                m = re.search(r'升级到\s+([0-9]+\.[0-9]+\.[0-9]+)', name)
+                if m:
+                    target_ver = m.group(1)
+                break
+    except Exception as _te:
+        _log.debug('[php_sec_scan] query active tasks error: %s', _te)
+
+    return is_building, target_ver
+
+
 def scan(server_php_dir=DEFAULT_SERVER_PHP_DIR, apt_root=DEFAULT_APT_ROOT,
          yum_root=DEFAULT_YUM_ROOT, offline=False, run=_run, now=None):
     """采全三条渠道并判定，返回可直接 JSON 化的巡检结果。"""
@@ -292,6 +333,13 @@ def scan(server_php_dir=DEFAULT_SERVER_PHP_DIR, apt_root=DEFAULT_APT_ROOT,
     entries.extend(collect_apt(apt_root, run=run))
     entries.extend(collect_yum(yum_root, run=run))
     result = baseline.evaluate(entries, offline=offline)
+    for item in result.get('items') or []:
+        b = item.get('branch')
+        if b and item.get('channel') == 'src':
+            upgrading, target_ver = _detect_php_upgrading(b)
+            if upgrading:
+                item['upgrading'] = True
+                item['upgrading_target'] = target_ver
     result['scan_time'] = int(now if now is not None else time.time())
     result['scan_time_text'] = time.strftime('%Y-%m-%d %H:%M:%S',
                                              time.localtime(result['scan_time']))

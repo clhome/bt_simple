@@ -266,5 +266,8 @@
     "未知任务": "Unknown task",
     "通过面板添加的计划任务": "Scheduled task added via panel",
     "基于acme.sh的证书续签任务": "Certificate renewal task based on acme.sh",
-    "基于certbot的证书续签任务": "Certificate renewal task based on certbot"
+    "基于certbot的证书续签任务": "Certificate renewal task based on certbot",
+    "源码编译 (make)": "Source compilation (make)",
+    "御风面板-软件编译": "Panel software build",
+    "PHP {1} 源码编译 ({2})": "PHP {1} source compile ({2})"
 }

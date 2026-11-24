@@ -11,6 +11,8 @@ function tmTransPs(ps) {
     if (t !== ps) return t;
     var m = /^PHP(.+?)进程$/.exec(ps);
     if (m) return msgTpl(pt('PHP{1}进程'), [m[1]]);
+    var m2 = /^PHP\s*(.+?)\s*源码编译\s*\((.+?)\)$/.exec(ps);
+    if (m2) return msgTpl(pt('PHP {1} 源码编译 ({2})'), [m2[1], m2[2]]);
     return ps;
 }
 

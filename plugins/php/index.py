@@ -8,6 +8,11 @@ import re
 import json
 import shutil
 
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
 # reload(sys)
 # sys.setdefaultencoding('utf8')
 
@@ -1803,7 +1808,55 @@ def getUpgradeTarget(version):
 
 
 def isPhpVersionBusy(ver):
-    """检查 tasks 表中是否已有该 PHP 版本的升级、安装或卸载任务处于活跃状态（排队 0 或执行中 -1）。"""
+    """检查 tasks 表或物理构建锁中是否已有该 PHP 版本的升级、安装或构建任务正在执行。"""
+    # 1. 物理构建锁检测（直接反映底层 make/install.sh 真实运行状态）
+    try:
+        lock_file = f'/tmp/yf_php_{ver}.lock'
+        if os.path.isfile(lock_file):
+            holder_pid = None
+            try:
+                with open(lock_file, 'r', encoding='utf-8', errors='ignore') as f:
+                    first_line = f.readline().strip()
+                if first_line:
+                    pid_part = first_line.split(':')[0]
+                    if pid_part.isdigit() and int(pid_part) > 0:
+                        holder_pid = int(pid_part)
+            except Exception as _fe:
+                _log.debug('[php] 读取锁文件 %s 异常: %s', lock_file, _fe)
+
+            if holder_pid and yf.checkPid(holder_pid):
+                return True, {
+                    'name': f'PHP{ver} 源码构建中',
+                    'cmd': f'PID: {holder_pid}',
+                    'status': -1,
+                    'is_building': True,
+                    'lock_file': lock_file,
+                    'pid': holder_pid
+                }
+
+            # 非 Windows 平台通过 flock 非阻塞探测锁持有状态
+            if fcntl and hasattr(fcntl, 'flock'):
+                try:
+                    fd = os.open(lock_file, os.O_RDWR)
+                    try:
+                        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        fcntl.flock(fd, fcntl.LOCK_UN)
+                    except (IOError, OSError, BlockingIOError):
+                        return True, {
+                            'name': f'PHP{ver} 源码构建中',
+                            'cmd': 'flock_held',
+                            'status': -1,
+                            'is_building': True,
+                            'lock_file': lock_file
+                        }
+                    finally:
+                        os.close(fd)
+                except Exception as _oe:
+                    _log.debug('[php] flock 探测锁文件异常: %s', _oe)
+    except Exception as ex_lock:
+        _log.debug('[php] 检查物理构建锁异常: %s', ex_lock)
+
+    # 2. 任务表队列检测
     try:
         import thisdb
         active_tasks = thisdb.getTaskActiveList(page=1, size=50)
@@ -1872,20 +1925,18 @@ def submitBaselineUpgrade(version=''):
 
         busy, _active_t = isPhpVersionBusy(ver)
         if busy:
-            return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度',
-                                 {'before': before, 'target': target})
+            return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度' % (ver, target, source),
+                                 {'before': before, 'target': target, 'busy': True, 'task': _active_t})
 
         added = thisdb.addTask(name=task_name, cmd=cmd, status=0)
         yf.triggerTask()
     except Exception as e:
         return yf.returnJson(False, '投递升级任务失败: %s' % e)
     if not added:
-        return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度',
-                             {'before': before, 'target': target})
-    return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度'
-                         % (before or '未知', target,
-                            '官方版本索引' if source == 'online' else '内置基线表'),
-                         {'before': before, 'target': target, 'source': source})
+        return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度' % (ver, target, source),
+                             {'before': before, 'target': target, 'busy': True})
+    return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度' % (ver, target, source),
+                         {'before': before, 'target': target, 'source': source, 'submitted': True})
 
 
 def _writeVersionAuto(ver, target, sha):
@@ -1957,8 +2008,10 @@ def upgradeToBaseline(version=''):
     verdict = php_sec_baseline.verify_upgrade(ver, before, after, floor=target)
 
     if not verdict['ok']:
-        restored = []
-        if backup_dir:
+        hint = ''
+        combined = tail or ''
+        is_lock_conflict = ('已阻止并发执行' in combined or 'lock' in combined)
+        if not is_lock_conflict and backup_dir:
             try:
                 restored = restoreRuntimeBinary(ver, backup_dir)
             except Exception as e:
@@ -1969,12 +2022,12 @@ def upgradeToBaseline(version=''):
         except Exception as _e:
             _log.debug('[php] 升级失败后重启 PHP%s 异常: %s', ver, _e)
         dropPhpSecSnapshot()
-        hint = ''
-        combined = tail or ''
         if '源码包' in combined or 'YF_PHP_MIRROR' in combined:
             hint = '；源码获取失败的具体原因（每个镜像的报错与离线放置目录）见任务日志'
+        elif is_lock_conflict:
+            hint = '；检测到后台已有相同 PHP 版本的构建/升级进程正在运行，本次任务自动拦截避免破坏源码目录'
         msg = '升级失败: %s（安装脚本退出码 %s），已还原旧二进制: %s%s' % (
-            verdict['text'], rc, ','.join(restored) or '无备份可还原', hint)
+            verdict['text'], rc, (','.join(restored) or '无备份可还原') if not is_lock_conflict else '检测到已有构建进行中无需还原', hint)
         yf.writeLog('PHP安全升级', 'PHP%s 升级失败: %s' % (ver, msg))
         return yf.returnJson(False, msg, {'before': before, 'after': after,
                                           'target': target, 'rc': rc, 'log_tail': tail})

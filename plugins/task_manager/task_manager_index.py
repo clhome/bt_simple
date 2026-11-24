@@ -188,6 +188,129 @@ def _parse_pid(source):
     return pid, ''
 
 
+def _format_php_ver(v_str):
+    """把 '84' 格式化成 '8.4'，'80' -> '8.0'，'56' -> '5.6'"""
+    v = str(v_str if v_str is not None else '').strip()
+    if len(v) == 2 and v.isdigit():
+        return '%s.%s' % (v[0], v[1])
+    return v
+
+
+def _detect_compile_process(p, name, p_exe, panel_marks):
+    """智能识别编译进程（make/gcc/cc1等）正在构建的具体软件，返回友好的描述串。"""
+    c_name = name.lower() if name else ''
+    if not c_name and p_exe:
+        c_name = os.path.basename(p_exe).lower()
+
+    php_ver = None
+    matched_app = None
+    is_panel_task = False
+
+    # 1. 尝试从 p 的 open_files 探测物理锁（如 /tmp/yf_php_84.lock）
+    if p:
+        try:
+            for f in p.open_files():
+                m = re.search(r'/tmp/yf_php_(\d+)\.lock', f.path)
+                if m:
+                    php_ver = m.group(1)
+                    break
+        except Exception as _e:
+            _log.debug('[task_manager] open_files 异常: %s', _e)
+
+    # 2. 尝试从 p 的 cwd 探测源码目录（如 /www/server/source/php/php84 或 /www/server/source/nginx-1.24）
+    if p and not php_ver:
+        try:
+            cwd = p.cwd()
+            m_php = re.search(r'source/(?:php/)?php(\d{2})', cwd)
+            if m_php:
+                php_ver = m_php.group(1)
+            elif 'source/' in cwd:
+                m_app = re.search(r'source/([^/]+)', cwd)
+                if m_app:
+                    matched_app = m_app.group(1)
+        except Exception as _e:
+            _log.debug('[task_manager] cwd 异常: %s', _e)
+
+    # 3. 检查父进程链（ancestors）：
+    #   * 父级是否打开了 /tmp/yf_php_<ver>.lock
+    #   * 父级 cwd 是否在 source/ 下
+    #   * 父级 cmdline 是否包含 php 构建、task.py、或插件安装脚本
+    if p and not php_ver and not matched_app:
+        try:
+            for parent in p.parents():
+                # 检查父级 cwd
+                try:
+                    p_cwd = parent.cwd()
+                    m_php = re.search(r'source/(?:php/)?php(\d{2})', p_cwd)
+                    if m_php:
+                        php_ver = m_php.group(1)
+                        break
+                    elif 'source/' in p_cwd and not matched_app:
+                        m_app = re.search(r'source/([^/]+)', p_cwd)
+                        if m_app:
+                            matched_app = m_app.group(1)
+                except Exception as _e:
+                    _log.debug('[task_manager] parent cwd 异常: %s', _e)
+
+                # 检查父级 cmdline
+                try:
+                    p_cmd = ' '.join(parent.cmdline()).strip()
+                    m_lock = re.search(r'/tmp/yf_php_(\d+)\.lock', p_cmd)
+                    if m_lock:
+                        php_ver = m_lock.group(1)
+                        break
+                    m_pcmd = re.search(r'php[_\-]?(\d{2})', p_cmd, re.I)
+                    if m_pcmd and any(k in p_cmd for k in ('install', 'upgrade', 'build', 'compile')):
+                        php_ver = m_pcmd.group(1)
+                        break
+                    if _is_panel_task_process(p_cmd, panel_marks):
+                        is_panel_task = True
+                except Exception as _e:
+                    _log.debug('[task_manager] parent cmdline 异常: %s', _e)
+        except Exception as _e:
+            _log.debug('[task_manager] parents 异常: %s', _e)
+
+    # 4. 如果尚未锁定具体版本，但在 /tmp 下存在活动的 yf_php_*.lock 且当前编译进程在 panel_task 下
+    if not php_ver and not matched_app:
+        try:
+            tmp_dir = '/tmp'
+            if os.path.isdir(tmp_dir):
+                for fname in os.listdir(tmp_dir):
+                    if fname.startswith('yf_php_') and fname.endswith('.lock'):
+                        m = re.search(r'yf_php_(\d+)\.lock', fname)
+                        if m:
+                            lock_path = os.path.join(tmp_dir, fname)
+                            try:
+                                with open(lock_path, 'r') as lf:
+                                    first_line = lf.readline().strip()
+                                lock_pid = int(first_line.split(':')[0]) if first_line else 0
+                                if lock_pid > 0 and p:
+                                    cur_pids = [p.pid] + [par.pid for par in p.parents()]
+                                    if lock_pid in cur_pids:
+                                        php_ver = m.group(1)
+                                        break
+                            except Exception as _e:
+                                _log.debug('[task_manager] read lock 异常: %s', _e)
+        except Exception as _e:
+            _log.debug('[task_manager] tmp_dir 异常: %s', _e)
+
+    # 组合输出
+    if php_ver:
+        return 'PHP %s 源码编译 (%s)' % (_format_php_ver(php_ver), name)
+    if matched_app:
+        app_name = matched_app
+        if app_name.lower().startswith('openresty'):
+            app_name = 'OpenResty'
+        elif app_name.lower().startswith('nginx'):
+            app_name = 'Nginx'
+        elif app_name.lower().startswith('mysql'):
+            app_name = 'MySQL'
+        return '%s 源码编译 (%s)' % (app_name, name)
+    if is_panel_task:
+        return '御风面板-软件编译 (%s)' % name
+    return '源码编译 (%s)' % name
+
+
 class mainClass(object):
 
     pids = None
@@ -456,8 +579,25 @@ class mainClass(object):
             'php': 'PHP CLI模式进程',
             'blkmapd': 'NFS映射服务',
             'lsyncd': '文件同步服务',
-            'sleep': '延迟进程'
+            'sleep': '延迟进程',
+            'make': '源码编译 (make)',
+            'gmake': '源码编译 (gmake)',
+            'gcc': 'C编译器 (gcc)',
+            'g++': 'C++编译器 (g++)',
+            'cc1': 'C/C++编译核心 (cc1)',
+            'cc1plus': 'C++编译核心 (cc1plus)',
+            'cmake': 'CMake构建工具',
+            'ninja': 'Ninja构建工具'
         }
+
+        # 编译工具链（make/gcc/cc1/cmake等）进程智能溯源识别
+        compile_tools = {'make', 'gmake', 'gcc', 'g++', 'cc', 'cc1', 'cc1plus', 'cmake', 'ninja', 'ld', 'as', 'clang', 'clang++'}
+        c_name = (name or '').lower()
+        if c_name in compile_tools or (p_exe and os.path.basename(p_exe).lower() in compile_tools):
+            comp_ps = _detect_compile_process(p, name, p_exe, panel_marks)
+            if comp_ps:
+                return comp_ps
+
         if p_exe:
             # print(name.lower(), pid, p_exe)
             # if p:
@@ -529,14 +669,30 @@ class mainClass(object):
                 return 'OpenResty主进程'
             elif name == 'yf':
                 return '御风面板-命令'
-            elif p_exe == '/usr/bin/bash':
-                cmdline = ' '.join(p.cmdline()).strip()
+            elif p_exe in ('/usr/bin/bash', '/bin/bash') or name == 'bash':
+                cmdline = ' '.join(p.cmdline()).strip() if p else ''
                 if cmdline.find('task.py') != -1:
                     return '御风面板-后台任务'
                 if cmdline.find('/www/server/cron/') != -1:
                     return '面板计划任务'
+                m_php = re.search(r'yf_php_(\d{2})\.lock', cmdline) or re.search(r'php.*?install\.sh\s*.*?(?:upgrade|install)\s*(\d{2})', cmdline)
+                if m_php:
+                    return 'PHP %s 安装/构建脚本 (bash)' % _format_php_ver(m_php.group(1))
                 if _is_panel_plugin_process(cmdline, panel_marks):
+                    m_p = re.search(r'plugins/php.*?(\d{2})', cmdline)
+                    if m_p:
+                        return 'PHP %s 插件脚本 (bash)' % _format_php_ver(m_p.group(1))
                     return '面板插件进程'
+            elif name == 'sh' or (p_exe and os.path.basename(p_exe) == 'sh'):
+                if p:
+                    try:
+                        cmdline = ' '.join(p.cmdline()).strip()
+                        m_php = re.search(r'yf_php_(\d{2})\.lock', cmdline) or re.search(r'php.*?(\d{2})', cmdline)
+                        if m_php and any(k in cmdline for k in ('install', 'upgrade', 'build', 'compile')):
+                            return 'PHP %s 编译脚本 (sh)' % _format_php_ver(m_php.group(1))
+                    except Exception as _e:
+                        _log.debug('[task_manager] sh cmdline 异常: %s', _e)
+                return 'shell进程'
             
 
         if name in processPs: return processPs[name]

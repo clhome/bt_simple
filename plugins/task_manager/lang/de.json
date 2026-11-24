@@ -266,5 +266,8 @@
     "未知任务": "Unbekannte Aufgabe",
     "通过面板添加的计划任务": "Über das Panel hinzugefügte geplante Aufgabe",
     "基于acme.sh的证书续签任务": "Zertifikatserneuerungsaufgabe basierend auf acme.sh",
-    "基于certbot的证书续签任务": "Zertifikatserneuerungsaufgabe basierend auf certbot"
+    "基于certbot的证书续签任务": "Zertifikatserneuerungsaufgabe basierend auf certbot",
+    "源码编译 (make)": "Quellcode-Kompilierung (make)",
+    "御风面板-软件编译": "Panel-Software-Kompilierung",
+    "PHP {1} 源码编译 ({2})": "PHP {1} Quellcode-Kompilierung ({2})"
 }
