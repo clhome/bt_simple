@@ -369,10 +369,11 @@ resetPluginWinHeight(520);
                 var tbody = '';
                 for (var i = 0; i < list.length; i++) {
                     var row = list[i];
-                    var typeText = row.type;
-                    if (row.type === '面板安装') typeText = (window.lan && lan.jdk && lan.jdk.type_panel) || t('jdk.type_panel', '面板安装');
-                    else if (row.type === '用户自定义') typeText = (window.lan && lan.jdk && lan.jdk.type_custom) || t('jdk.type_custom', '用户自定义');
-                    else if (row.type === '系统预装') typeText = (window.lan && lan.jdk && lan.jdk.type_sys) || t('jdk.type_sys', '系统预装');
+                    var typeHtml = '';
+                    if (row.type === '系统预装' || row.type === '系统安装') {
+                        var sysText = pt('系统安装');
+                        typeHtml = '<span class="jdk-type"> (' + jdkEsc(sysText) + ')</span>';
+                    }
 
                     var isInstalled = !!(row.path && row.operation !== 0 && row.operation !== 3);
                     var verTitle = row.version_full || (isInstalled ? (row.installed_version ? '已安装版本: ' + row.installed_version : row.name) : ('可安装版本: ' + (row.java4shell ? row.java4shell.version_parsed : row.name)));
@@ -381,7 +382,7 @@ resetPluginWinHeight(520);
                     if (isInstalled && row.installed_version && row.installed_version !== row.name) {
                         verLabel += ' <span style="font-size:12px; color:#475569; font-weight:normal;" title="' + jdkEsc(verTitle) + '">(' + jdkEsc(row.installed_version) + ')</span>';
                     }
-                    var nameHtml = '<span style="cursor:pointer;" title="' + jdkEsc(verTitle) + '">' + verLabel + '</span><span class="jdk-type"> (' + jdkEsc(typeText) + ')</span>';
+                    var nameHtml = '<span style="cursor:pointer;" title="' + jdkEsc(verTitle) + '">' + verLabel + '</span>' + typeHtml;
                     if (row.is_default) {
                         nameHtml += '<span class="jdk-default-badge">' + pt('系统默认') + '</span>';
                     }
@@ -432,7 +433,7 @@ resetPluginWinHeight(520);
                     } else if (row.operation == 3) {
                         opsHtml += '<span style="color:#e6a23c"><i class="glyphicon glyphicon-refresh php-sec-spin" style="margin-right:4px;"></i>' + pt('正在安装...') + '</span>';
                     } else if (row.operation == 2) {
-                        if (row.type === '系统预装') {
+                        if (row.type === '系统预装' || row.type === '系统安装') {
                             opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
                         } else {
                             opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + jdkJsArg(row.path) + '\', \'' + jdkJsArg(row.type) + '\', \'' + jdkJsArg(row.name) + '\')">' + pt('移除记录') + '</a>';
