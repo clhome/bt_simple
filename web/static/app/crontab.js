@@ -180,6 +180,9 @@ function translateTaskName(name) {
   if (clean_name === '御风OP防火墙后台任务' || clean_name === '御風OP防火牆後台任務' || clean_name === 'Yufeng OP Firewall Background Task') {
     return (lan && lan.crontab && t('crontab.task_name_op_waf')) || '御风OP防火墙后台任务';
   }
+  if (clean_name === '御风JDK在线版本同步' || clean_name === '御風JDK在線版本同步' || clean_name === '御風JDK在綫版本同步' || clean_name === 'Yufeng JDK Online Versions Sync') {
+    return (lan && lan.crontab && t('crontab.task_name_jdk_sync')) || '御风JDK在线版本同步';
+  }
   if (clean_name === '系统日志清理与磁盘瘦身[clean]' || clean_name === '系統日誌清理與磁碟瘦身[clean]' || clean_name === 'System Log & Disk Cleaner [clean]') {
     return (lan && lan.crontab && t('crontab.task_name_clean')) || '系统日志清理与磁盘瘦身[clean]';
   }

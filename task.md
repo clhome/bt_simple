@@ -370,6 +370,13 @@
   - [x] 54.4 **优化前端刷新与交互联动 (`plugins/jdk/index.html`)**：前端“刷新列表”触发后端穿透刷新在线缓存
   - [x] 54.5 **单元测试覆盖与门禁全量回归**：编写单测验证版本映射、双通道下载脚本生成与缓存刷新逻辑，执行 `python scripts/quick_gate.py` 确保 100% 通过
 
+- [x] **任务 55：御风 JDK 管理器在线版本自动同步计划任务（Crontab 系统任务）**
+  - [x] 55.1 **实现后台任务管理脚本 (`plugins/jdk/tool_task.py`)**：对齐 `op_waf` 规范，实现 `run`、`add`、`remove`、`status`，每天凌晨 2:10 执行在线版本更新并安全记录日志
+  - [x] 55.2 **注册系统任务识别与国际化支持 (`web/utils/crontab.py`, `web/static/app/crontab.js`, 语言包)**：支持 `[勿删]御风JDK在线版本同步` 前端绿色 `[系统任务]` 徽章展示、防误删保护及 6 国语言本地化映射
+  - [x] 55.3 **插件生命周期与运行时自愈联动 (`plugins/jdk/install.sh`, `plugins/jdk/index.py`)**：在安装与卸载时自动维护计划任务，并在面板打开或调用时实现幂等自愈补齐
+  - [x] 55.4 **单元测试编写与质量门禁验证 (`testsuite/`)**：扩充系统任务保护单测，新增 JDK 计划任务专项单测，运行 `python scripts/quick_gate.py` 确保 100% 绿灯
+
+
 
 
 

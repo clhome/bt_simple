@@ -840,6 +840,8 @@ class crontab(object):
             return _t('crontab.task_name_acme_renew')
         if clean_name in ('御风OP防火墙后台任务', '御風OP防火牆後台任務', 'Yufeng OP Firewall Background Task'):
             return _t('crontab.task_name_op_waf')
+        if clean_name in ('御风JDK在线版本同步', '御風JDK在線版本同步', '御風JDK在綫版本同步', 'Yufeng JDK Online Versions Sync'):
+            return _t('crontab.task_name_jdk_sync')
         if clean_name in ('系统日志清理与磁盘瘦身[clean]', '系統日誌清理與磁碟瘦身[clean]', 'System Log & Disk Cleaner [clean]'):
             return _t('crontab.task_name_clean')
         if clean_name in ('网站统计插件定时任务', '網站統計插件定時任務', 'Website Statistics Scheduled Task'):

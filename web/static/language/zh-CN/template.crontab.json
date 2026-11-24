@@ -2,6 +2,7 @@
   "crontab": {
     "task_name_acme_renew": "ACME定时自动续签",
     "task_name_op_waf": "御风OP防火墙后台任务",
+    "task_name_jdk_sync": "御风JDK在线版本同步",
     "task_name_clean": "系统日志清理与磁盘瘦身[clean]",
     "task_name_webstats": "网站统计插件定时任务",
     "task_name_check_site": "检查网站是否正常",

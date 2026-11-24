@@ -892,8 +892,21 @@ class jdk_main:
                         return yf.returnJson(False, '写配置文件失败')
             return yf.returnJson(True, '安全缓解已关闭')
 
+    def _ensure_crontab_task(self):
+        """自愈并确保护航在线版本自动同步计划任务存在"""
+        try:
+            try:
+                from plugins.jdk.tool_task import createBgTask
+            except ImportError:
+                import tool_task
+                createBgTask = getattr(tool_task, 'createBgTask')
+            createBgTask()
+        except Exception as e:
+            _log.debug('[jdk] _ensure_crontab_task: %s', e)
+
     def get_jdk_list(self, args=None):
         """获取所有JDK列表 (包括预设在线版本和已安装版本)"""
+        self._ensure_crontab_task()
         ret = []
         config = self.get_config()
         default_jdk = config.get("default", "")

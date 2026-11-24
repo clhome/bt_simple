@@ -2806,6 +2806,7 @@ var lan = {
 	"crontab": {
 			"task_name_acme_renew": "Automatische ACME-SSL-Verlängerung",
 			"task_name_op_waf": "Yufeng OP-Firewall Hintergrundaufgabe",
+			"task_name_jdk_sync": "Yufeng JDK Online-Versionssynchronisierung",
 			"task_name_clean": "Protokoll- & Festplattenbereinigung [clean]",
 			"task_name_webstats": "Website-Statistik Geplante Aufgabe",
 			"task_name_check_site": "Website-Verfügbarkeit prüfen",

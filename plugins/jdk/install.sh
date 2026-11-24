@@ -369,12 +369,27 @@ Install_jdk()
 	_clean_vuln_cacerts "${_dest}"
 
 	echo "${PLUGIN_VER}" > "${JDK_DIR}/version.pl"
+
+	# 注册每天凌晨 2:10 在线版本自动同步系统计划任务
+	local _py_bin="python3"
+	[ -x "/www/server/panel/pyenv/bin/python3" ] && _py_bin="/www/server/panel/pyenv/bin/python3"
+	if [ -f "${curPath}/tool_task.py" ]; then
+		"${_py_bin}" "${curPath}/tool_task.py" add || :
+	fi
+
 	echo "安装完成: ${_dest}"
 	echo Successify
 }
 
 Uninstall_jdk()
 {
+	# 卸载前先清理注册的系统计划任务
+	local _py_bin="python3"
+	[ -x "/www/server/panel/pyenv/bin/python3" ] && _py_bin="/www/server/panel/pyenv/bin/python3"
+	if [ -f "${curPath}/tool_task.py" ]; then
+		"${_py_bin}" "${curPath}/tool_task.py" remove || :
+	fi
+
 	# 只删除本插件目录（curPath 由 BASH_SOURCE 推导），并回读确认，避免假成功
 	rm -rf "$curPath"
 	if [ -d "$curPath" ];then

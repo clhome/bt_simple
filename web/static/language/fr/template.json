@@ -2727,6 +2727,7 @@
   "crontab": {
     "task_name_acme_renew": "Renouvellement SSL automatique ACME",
     "task_name_op_waf": "Tâche d'arrière-plan du pare-feu Yufeng OP",
+    "task_name_jdk_sync": "Synchronisation des versions en ligne Yufeng JDK",
     "task_name_clean": "Nettoyeur de journaux & disque [clean]",
     "task_name_webstats": "Tâche planifiée des statistiques du site Web",
     "task_name_check_site": "Vérifier la disponibilité du site Web",

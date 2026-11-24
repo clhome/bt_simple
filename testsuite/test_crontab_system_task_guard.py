@@ -56,7 +56,8 @@ class TestCrontabSystemTaskGuard(unittest.TestCase):
             '1': {'id': 1, 'name': '[勿删]ACME定时强制更新', 'echo': 'echo_acme'},
             '2': {'id': 2, 'name': '[勿删]御风OP防火墙后台任务', 'echo': 'echo_op_waf'},
             '3': {'id': 3, 'name': '[系统]日志维护任务', 'echo': 'echo_sys_log'},
-            '4': {'id': 4, 'name': '普通用户备份任务', 'echo': 'echo_normal'}
+            '4': {'id': 4, 'name': '普通用户备份任务', 'echo': 'echo_normal'},
+            '5': {'id': 5, 'name': '[勿删]御风JDK在线版本同步', 'echo': 'echo_jdk_sync'}
         }
 
         old_getCrond = thisdb.getCrond
@@ -78,8 +79,19 @@ class TestCrontabSystemTaskGuard(unittest.TestCase):
             self.assertFalse(res['status'])
             self.assertEqual(res['msg'], _t('crontab.system_task_protected'))
 
+            # 测试 2.1: 尝试删除 [勿删]御风JDK在线版本同步
+            flask.request.form = {'id': '5'}
+            res = crontab_del()
+            self.assertFalse(res['status'])
+            self.assertEqual(res['msg'], _t('crontab.system_task_protected'))
+
             # 测试 3: 尝试修改系统核心任务
             flask.request.form = {'id': '2', 'name': '篡改名字'}
+            res = modify_crond()
+            self.assertFalse(res['status'])
+            self.assertEqual(res['msg'], _t('crontab.system_task_modify_protected'))
+
+            flask.request.form = {'id': '5', 'name': '篡改JDK任务名字'}
             res = modify_crond()
             self.assertFalse(res['status'])
             self.assertEqual(res['msg'], _t('crontab.system_task_modify_protected'))
@@ -108,11 +120,14 @@ class TestCrontabSystemTaskGuard(unittest.TestCase):
         # 5. planDel 函数具有前置防御
         self.assertIn("function planDel(id, name)", src)
         self.assertIn("name.indexOf('[勿删]') === 0", src)
-        # 6. translateTaskName 函数存在并被使用
+        # 6. translateTaskName 函数存在并包含对 JDK 同步任务的翻译
         self.assertIn("function translateTaskName(name)", src)
         self.assertIn("translateTaskName(row_name)", src)
+        self.assertIn("clean_name === '御风JDK在线版本同步'", src)
+        self.assertIn("task_name_jdk_sync", src)
 
     def test_03_multilingual_task_name_translation(self):
+        from core.i18n import t as _t
         from utils.crontab import crontab as crontab_util
         cron_inst = crontab_util.instance()
 
@@ -128,6 +143,12 @@ class TestCrontabSystemTaskGuard(unittest.TestCase):
         name_waf = cron_inst.humanTaskName("[勿删]御风OP防火墙后台任务")
         self.assertNotIn("[勿删]", name_waf)
         self.assertTrue(len(name_waf) > 0)
+
+        # JDK 在线版本同步
+        name_jdk = cron_inst.humanTaskName("[勿删]御风JDK在线版本同步")
+        self.assertNotIn("[勿删]", name_jdk)
+        self.assertEqual(name_jdk, _t('crontab.task_name_jdk_sync'))
+        self.assertEqual(cron_inst.humanTaskName("Yufeng JDK Online Versions Sync"), _t('crontab.task_name_jdk_sync'))
 
         # 备份数据库
         name_db = cron_inst.humanTaskName("备份数据库[ALL]")
