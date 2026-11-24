@@ -1933,7 +1933,7 @@ def submitBaselineUpgrade(version=''):
     except Exception as e:
         return yf.returnJson(False, '投递升级任务失败: %s' % e)
     if not added:
-        return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度' % (ver, target, source),
+        return yf.returnJson(True, '该升级任务已在队列中（排队或执行中），请在消息盒子查看进度',
                              {'before': before, 'target': target, 'busy': True})
     return yf.returnJson(True, '已提交升级任务: %s → %s（目标来自%s），请在消息盒子查看进度' % (ver, target, source),
                          {'before': before, 'target': target, 'source': source, 'submitted': True})
