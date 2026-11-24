@@ -2499,7 +2499,7 @@ function loadImage() {
     }
   });
 }
-var socket, gterm;
+var socket, gterm, _webShellInterval = null;
 function webShell(dir) {
   var loadT = layer.msg(lan && lan.public && t('public.loading_terminal_components') || "", {
     icon: 16,
@@ -2523,6 +2523,12 @@ function _webShellInit(dir) {
   var sendTotal = 0;
   if (!socket) socket = io.connect();
 
+  // 若已有旧定时器先清理
+  if (_webShellInterval) {
+    clearInterval(_webShellInterval);
+    _webShellInterval = null;
+  }
+
   // 移除已有的同一监听器，避免重复绑定内存泄漏和写冲突
   socket.off('server_response');
   var isFirstResponse = true;
@@ -2537,6 +2543,19 @@ function _webShellInit(dir) {
     letterSpacing: 1
   });
   gterm = term;
+
+  var cleanUpWebShell = function () {
+    if (_webShellInterval) {
+      clearInterval(_webShellInterval);
+      _webShellInterval = null;
+    }
+    if (term) {
+      try {
+        term.destroy();
+      } catch (e) {}
+    }
+  };
+
   socket.on('server_response', function (data) {
     term.write(data.data);
 
@@ -2555,18 +2574,19 @@ function _webShellInit(dir) {
     if (data.data == (lan && lan.public && t('public.log_out') || "") || data.data == (lan && lan.public && t('public.log_out_1') || "") || data.data == '\r\nlogout\r\n' || data.data == 'logout\r\n') {
       setTimeout(function () {
         layer.closeAll();
-        term.destroy();
-        clearInterval(interval);
+        cleanUpWebShell();
       }, 500);
     }
   });
-  $(window).on('unload', function () {
-    term.destroy();
-    clearInterval(interval);
+
+  // 现代浏览器统一使用 beforeunload 与 pagehide，杜绝 unload 的 Permissions policy violation
+  $(window).off('beforeunload.webshell pagehide.webshell').on('beforeunload.webshell pagehide.webshell', function () {
+    cleanUpWebShell();
   });
+
   if (socket) {
     socket.emit('webssh', '');
-    interval = setInterval(function () {
+    _webShellInterval = setInterval(function () {
       socket.emit('webssh', '');
     }, 500);
   }
@@ -2781,8 +2801,13 @@ function _webShellInit(dir) {
       if (socket) {
         socket.emit('webssh', 'exit\r');
       }
-      term.destroy();
-      clearInterval(interval);
+      cleanUpWebShell();
+    },
+    end: function () {
+      cleanUpWebShell();
+      $(window).off('beforeunload.webshell pagehide.webshell');
+      $(document).off('click.ssh_menu');
+      $("#term-paste-bubble").remove();
     }
   });
   setTimeout(function () {

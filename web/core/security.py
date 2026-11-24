@@ -134,3 +134,47 @@ def extract_supplied_token(headers, form):
         except Exception:
             value = ''
     return value or ''
+
+
+def check_socketio_origin_allowed(origin, environ=None, request_host='', panel_domain='', server_ips=None):
+    """判定 Socket.IO / WebSocket 连接请求的 Origin 是否合法（纯函数，无 Flask 上下文强依赖）。
+
+    :param origin: 客户端 Origin 字符串
+    :param environ: WSGI 环境变量字典（脱离 Flask 请求上下文时优先使用）
+    :param request_host: 上下文内提取的 Host 字符串（可选）
+    :param panel_domain: 面板绑定的自定义域名（可选）
+    :param server_ips: 服务器已知 IP 集合（局域网 IP / 公网 IP，可选）
+    :return: bool 放行或拦截
+    """
+    if not origin:
+        return True
+    try:
+        parsed_origin = urlparse(origin)
+        orig_host = parsed_origin.hostname
+        if not orig_host:
+            return False
+
+        orig_lower = orig_host.lower()
+        if orig_lower in ('127.0.0.1', 'localhost', '::1'):
+            return True
+
+        req_host = ''
+        if environ and isinstance(environ, dict):
+            raw_host = environ.get('HTTP_X_FORWARDED_HOST') or environ.get('HTTP_HOST') or ''
+            raw_host = raw_host.split(',')[0].strip()
+            if raw_host:
+                parsed_host = urlparse('//' + raw_host if '//' not in raw_host else raw_host)
+                req_host = parsed_host.hostname or raw_host.split(':')[0]
+        elif request_host:
+            req_host = (request_host.split(':')[0]).strip('[]')
+
+        if req_host and orig_lower == req_host.lower().strip('[]'):
+            return True
+
+        if panel_domain and orig_lower == panel_domain.strip().lower():
+            return True
+
+        return bool(server_ips and orig_host in server_ips)
+    except Exception:
+        return False
+

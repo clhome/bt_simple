@@ -34,3 +34,45 @@
   - [x] 4.1 编写针对防重入、物理锁联动、任务管理器编译进程识别的测试用例（9项测试全部通过）
   - [x] 4.2 运行 Python 静态检查与格式验证，确保 Exit Code 0，无语法和排版报错
   - [x] 4.3 清理临时测试文件，确保工作区整洁
+
+
+---
+
+# 修复文件菜单本地终端 Socket.IO 连接 400 及 WebSocket 失败问题
+
+## 背景与根因剖析
+
+用户在“文件”管理页面点击顶部工具栏的命令行图标打开“本地终端”时，终端弹窗黑屏无响应，且浏览器控制台报错：
+1. `[Violation] Permissions policy violation: unload is not allowed in this document`
+2. `POST http://172.17.60.248:60374/socket.io/?EIO=4&transport=polling&t=...&sid=... 400 (BAD REQUEST)`
+3. `WebSocket connection to 'ws://.../socket.io/?EIO=4&transport=websocket&sid=...' failed: WebSocket is closed before the connection is established.`
+
+### 核心根因：
+1. **脱离请求上下文导致来源校验抛出异常拒收**：`web/admin/__init__.py` 中的 `check_socketio_origin(origin)` 由底层 Engine.IO 引擎在 WSGI 处理阶段调用。此时 Flask 的请求上下文未激活（`has_request_context() == False`）。直接解引用 `request.host` 抛出 `RuntimeError: Working outside of request context.`，被外层 `except Exception: return False` 捕获并返回 `False`，使得所有携带 `Origin` 请求头的 WebSocket 升级与 POST 长轮询请求均被返回 `400 (BAD REQUEST: Not an accepted origin)`。
+2. **主机解析及多网络场景兼容**：`check_socketio_origin` 函数未能利用 Engine.IO 传递的 `environ` 参数提取 `HTTP_HOST` 或 `HTTP_X_FORWARDED_HOST`；且原实现通过 `split(':')[0]` 截断主机名无法正确解析 IPv6 格式。
+3. **前端生命周期与现代浏览器兼容性**：
+   - 现代浏览器（Chrome 等）已禁用/警告 `unload` 事件监听，需使用 `beforeunload` / `pagehide`。
+   - `public.js` 中 `interval` 为未声明的隐式全局变量，弹窗关闭后未进行完整的生命周期回收（缺乏 layer 的 `end` 钩子），导致反复打开时定时器串扰。
+
+---
+
+## 任务拆解与进度 (Task List)
+
+- [x] **任务 1：方案分析与根因定位**
+  - [x] 1.1 复现 Engine.IO 在 WSGI 层回调 `check_socketio_origin` 时的 `RuntimeError` 异常与 400 行为
+  - [x] 1.2 确认 WebSocket 握手失败与 HTTP Polling POST 400 的链路因果关系
+- [x] **任务 2：修复后端 Socket.IO 来源校验 (`web/admin/__init__.py`)**
+  - [x] 2.1 修改 `check_socketio_origin(origin, environ=None)` 签名，兼容 Engine.IO 的双参/单参调用
+  - [x] 2.2 优先从 `environ` 获取 `HTTP_X_FORWARDED_HOST` 或 `HTTP_HOST`，若进入 Flask 上下文则安全回退至 `request.host`
+  - [x] 2.3 使用 `urlparse(origin).hostname` 严格提取主机名，天然兼容 IPv4、IPv6 与域名
+  - [x] 2.4 放行同源、本地回环（127.0.0.1、localhost、::1）、面板配置域名及服务器内网/公网 IP
+- [x] **任务 3：修复前端本地终端组件与生命周期 (`web/static/app/public.js`)**
+  - [x] 3.1 替换 `$(window).on('unload', ...)` 为 `$(window).on('beforeunload pagehide', ...)`
+  - [x] 3.2 规范轮询定时器作用域，弹窗初始化前彻底清除旧定时器
+  - [x] 3.3 为 `layer.open` 增加 `end:` 回调，确保无论是点 X、按 Esc、遮罩点击还是 API 关闭，均彻底执行终端与定时器销毁
+- [x] **任务 4：编写自动化测试并验证闭环**
+  - [x] 4.1 编写单元测试用例，覆盖：无上下文调用、WSGI environ 传参、同源判定、公网/局域网/IPv6/域名、非同源防攻击（CSWSH 拦截）
+  - [x] 4.2 验证全部测试通过
+- [x] **任务 5：质量自检与代码规范门禁**
+  - [x] 5.1 执行 Python 静态检查与格式验证，确保 Exit Code 0
+  - [x] 5.2 清理测试与临时文件，确认工作区洁净

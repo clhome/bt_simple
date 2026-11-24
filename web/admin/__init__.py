@@ -551,21 +551,40 @@ def inject_global_variables():
     )
 
 # webssh
-def check_socketio_origin(origin):
-    if not origin:
-        return True
+def check_socketio_origin(origin, environ=None):
+    from core.security import check_socketio_origin_allowed
+    domain = ''
     try:
-        from urllib.parse import urlparse
-        orig_netloc = urlparse(origin).netloc.split(':')[0]
-        req_host = request.host.split(':')[0] if request else ''
-        if orig_netloc == req_host or orig_netloc in ('127.0.0.1', 'localhost'):
-            return True
-        domain = thisdb.getOption('panel_domain', default='')
-        if domain and orig_netloc == domain:
-            return True
-        return False
-    except Exception:
-        return False
+        domain = (thisdb.getOption('panel_domain', default='') or '').strip()
+    except Exception as e:
+        _log.debug('获取 panel_domain 失败: %s', e)
+
+    server_ips = set()
+    try:
+        lan_ip = yf.getLanIp()
+        if lan_ip:
+            server_ips.add(lan_ip.strip())
+        wan_ip = yf.getLocalIp()
+        if wan_ip:
+            server_ips.add(wan_ip.strip())
+    except Exception as e:
+        _log.debug('获取服务器已知 IP 失败: %s', e)
+
+    req_host = ''
+    try:
+        from flask import has_request_context
+        if has_request_context():
+            req_host = request.host
+    except Exception as e:
+        _log.debug('获取 request.host 失败: %s', e)
+
+    return check_socketio_origin_allowed(
+        origin=origin,
+        environ=environ,
+        request_host=req_host,
+        panel_domain=domain,
+        server_ips=server_ips,
+    )
 
 socketio = SocketIO(logger=False,
     engineio_logger=False,
