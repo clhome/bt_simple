@@ -99,3 +99,31 @@
 - [x] **任务 4：质量门禁自检与验证**
   - [x] 4.1 执行代码语法检查与静态验证（`python scripts/quick_gate.py` 全部通过）
   - [x] 4.2 验证各状态渲染结果并清理临时文件
+
+
+---
+
+# 修复门禁测试 test_p0_security_fixes.py 中 Socket.IO 来源验证签名断言失败问题
+
+## 背景与根因剖析
+
+在门禁自动化测试运行过程中，`test_p0_security_fixes.py` 报错：
+```
+FAIL: test_05_socketio_cors_hardened (testsuite.test_p0_security_fixes.TestP0SecurityFixes.test_05_socketio_cors_hardened)
+测试 5: 验证 WebSSH SocketIO 跨域通配符已收紧，防止 CSWSH
+AssertionError: 'def check_socketio_origin(origin):' not found in ...
+```
+
+### 核心根因：
+在修复“本地终端 Socket.IO 连接 400 及 WebSocket 失败问题”时，为了兼容 Engine.IO 引擎在 WSGI 处理阶段调用回调时传入 `environ` 参数的场景，`web/admin/__init__.py` 中的来源校验函数签名被扩充为 `def check_socketio_origin(origin, environ=None):`。
+而 `testsuite/test_p0_security_fixes.py` 内部的 `test_05_socketio_cors_hardened` 用例使用了硬编码的精确子串匹配 `self.assertIn("def check_socketio_origin(origin):", code)`，导致匹配失败。
+
+## 任务拆解与进度 (Task List)
+
+- [x] **任务 1：用例断言兼容性修复 (`testsuite/test_p0_security_fixes.py`)**
+  - [x] 1.1 将 `test_05_socketio_cors_hardened` 中的精确子串匹配优化为正则表达式匹配，兼顾 `(origin)` 和 `(origin, environ=None)` 两种合法签名
+  - [x] 1.2 确保文件采用 UTF-8 无 BOM 且 LF 换行
+- [x] **任务 2：执行门禁回归测试与质量自检**
+  - [x] 2.1 针对 `test_p0_security_fixes.py` 进行定向回归验证，确保用例通过
+  - [x] 2.2 运行项目快速门禁与全量静态/质量检测，确保 Exit Code 0
+

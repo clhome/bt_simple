@@ -105,8 +105,11 @@ class TestP0SecurityFixes(unittest.TestCase):
         self.assertNotIn('cors_allowed_origins="*"', code)
         self.assertNotIn("cors_allowed_origins='*'", code)
 
-        # 确保存在来源验证函数 check_socketio_origin
-        self.assertIn("def check_socketio_origin(origin):", code)
+        # 确保存在来源验证函数 check_socketio_origin（兼容单参或带 environ 参数签名）
+        self.assertTrue(
+            bool(re.search(r"def check_socketio_origin\s*\(origin(?:,\s*environ\s*=\s*None)?\):", code)),
+            "未在 web/admin/__init__.py 中找到合法的 check_socketio_origin 函数定义"
+        )
         self.assertIn("cors_allowed_origins=check_socketio_origin", code)
 
         # 逻辑模拟 origin 校验算法
