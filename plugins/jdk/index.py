@@ -522,7 +522,7 @@ def _valid_jdk_version(version):
 
 
 def _valid_jdk_url(url):
-    """只放行「受信镜像 + http(s) + .tar.gz」的下载地址。"""
+    """只放行「受信镜像 + http(s) + .tar.gz 或官方 API 端点」的下载地址。"""
     if not url or not isinstance(url, str):
         return False
     if any(ch in url for ch in (' ', '\t', '\n', '\r', '"', "'", '`', '\\', ';', '|', '&', '$', '<', '>')):
@@ -536,6 +536,8 @@ def _valid_jdk_url(url):
     host = (parsed.hostname or '').lower()
     if host not in _JDK_URL_HOSTS:
         return False
+    if host == 'api.adoptium.net':
+        return parsed.path.startswith('/v3/binary/latest/')
     return parsed.path.endswith('.tar.gz')
 
 
@@ -644,31 +646,59 @@ class jdk_main:
     def get_online_jdks(self, force_update=False):
         cache_file = self._plugin_path + '/versions.json'
         arch = _system_arch()
-        default_jdks = [
-            {"version": "jdk-8", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/{arch}/linux/OpenJDK8U-jdk_{arch}_linux_hotspot_8u504b01.tar.gz", "release_date": "2026-01-20"},
-            {"version": "jdk-11", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/{arch}/linux/OpenJDK11U-jdk_{arch}_linux_hotspot_11.0.32.1_1.tar.gz", "release_date": "2026-01-20"},
-            {"version": "jdk-17", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/{arch}/linux/OpenJDK17U-jdk_{arch}_linux_hotspot_17.0.21.1_1.tar.gz", "release_date": "2026-01-20"},
-            {"version": "jdk-21", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/{arch}/linux/OpenJDK21U-jdk_{arch}_linux_hotspot_21.0.13.1_1.tar.gz", "release_date": "2026-01-20"},
-            {"version": "jdk-25", "url": f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/{arch}/linux/OpenJDK25U-jdk_{arch}_linux_hotspot_25.0.5.1_1.tar.gz", "release_date": "2026-01-20"}
-        ]
+        if arch == 'aarch64':
+            default_jdks = [
+                {"version": "jdk-8", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/aarch64/linux/OpenJDK8U-jdk_aarch64_linux_hotspot_8u512b09.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-11", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/aarch64/linux/OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.33_10.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-17", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/aarch64/linux/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.21.1_2.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/aarch64/linux/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.13.1_2.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-25", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/aarch64/linux/OpenJDK25U-jdk_aarch64_linux_hotspot_25.0.5.1_2.tar.gz", "release_date": "2026-11-18"}
+            ]
+        else:
+            default_jdks = [
+                {"version": "jdk-8", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u514b01.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-11", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/x64/linux/OpenJDK11U-jdk_x64_linux_hotspot_11.0.33.1_1.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-17", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.21.1_2.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13.1_2.tar.gz", "release_date": "2026-11-18"},
+                {"version": "jdk-25", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/25/jdk/x64/linux/OpenJDK25U-jdk_x64_linux_hotspot_25.0.5.1_2.tar.gz", "release_date": "2026-11-18"}
+            ]
 
+        _CACHE_TTL = 86400  # 24小时TTL，避免长期死锁在失效URL
         if not force_update and os.path.exists(cache_file):
-            content = yf.readFile(cache_file)
-            if content and isinstance(content, str):
-                try:
-                    cached = _normalize_jdk_items(json.loads(content))
-                    # 检查旧缓存是否过时（如缺少 jdk-25 或仍包含已 404 / 存在 Java4Shell 漏洞的老旧版本）
-                    cached_vers = [c.get('version') for c in cached]
-                    has_stale_url = any('8u492b09' in c.get('url', '') or '21.0.11' in c.get('url', '') or '21.0.13_9' in c.get('url', '') or '17.0.21_9' in c.get('url', '') or '25.0.5_8' in c.get('url', '') for c in cached)
-                    if cached and 'jdk-25' in cached_vers and not has_stale_url:
-                        # 确保缓存中缺少 release_date 时回退默认发布日期
-                        def_date_map = {d['version']: d.get('release_date', '') for d in default_jdks}
-                        for c in cached:
-                            if not c.get('release_date') and c.get('version') in def_date_map:
-                                c['release_date'] = def_date_map[c['version']]
-                        return cached
-                except Exception as e:
-                    _log.debug('[jdk] 在线版本缓存解析失败，改为重新获取: %s', e)
+            cache_expired = False
+            try:
+                import time
+                if time.time() - os.path.getmtime(cache_file) > _CACHE_TTL:
+                    cache_expired = True
+            except Exception:
+                cache_expired = False
+
+            if not cache_expired:
+                content = yf.readFile(cache_file)
+                if content and isinstance(content, str):
+                    try:
+                        cached = _normalize_jdk_items(json.loads(content))
+                        # 检查旧缓存是否过时（如缺少 jdk-25 或仍包含已 404 / 存在 Java4Shell 漏洞的老旧版本）
+                        cached_vers = [c.get('version') for c in cached]
+                        has_stale_url = any(
+                            '8u492b09' in c.get('url', '') or '8u504b01' in c.get('url', '') or
+                            '11.0.32.1' in c.get('url', '') or
+                            '17.0.21_9' in c.get('url', '') or '17.0.21.1_1' in c.get('url', '') or
+                            '21.0.11' in c.get('url', '') or '21.0.13_9' in c.get('url', '') or
+                            '25.0.5_8' in c.get('url', '')
+                            for c in cached
+                        )
+                        # 检查缓存架构与当前系统架构是否匹配
+                        arch_mismatch = any(f'_{arch}_' not in c.get('url', '') and f'/{arch}/' not in c.get('url', '') for c in cached if c.get('url'))
+                        if cached and 'jdk-25' in cached_vers and not has_stale_url and not arch_mismatch:
+                            # 确保缓存中缺少 release_date 时回退默认发布日期
+                            def_date_map = {d['version']: d.get('release_date', '') for d in default_jdks}
+                            for c in cached:
+                                if not c.get('release_date') and c.get('version') in def_date_map:
+                                    c['release_date'] = def_date_map[c['version']]
+                            return cached
+                    except Exception as e:
+                        _log.debug('[jdk] 在线版本缓存解析失败，改为重新获取: %s', e)
 
         import urllib.request
         updated_jdks = []
@@ -695,8 +725,8 @@ class jdk_main:
                         latest_file = max(matches, key=_jdk_filename_ver_key)
                         latest_key = _jdk_filename_ver_key(latest_file)
                         default_key = _jdk_filename_ver_key(os.path.basename(jdk['url']))
-                        # 仅当镜像站有更新的版本时才采用；若镜像站仍是未包含安全补丁的旧版，则保留官方安全版本
-                        if latest_key > default_key:
+                        # 当镜像站有等于或更新的版本时采用；若镜像站仍是未包含安全补丁的旧版，则保留官方安全版本
+                        if latest_key >= default_key:
                             candidate = base_url + latest_file
                             # 镜像返回的文件名不可信：仍按同一套 url 白名单校验后才采用
                             if _valid_jdk_url(candidate):
@@ -908,8 +938,11 @@ class jdk_main:
             item['java4shell_status'] = j_stat['status']
             item['java4shell_title'] = j_stat['title']
 
-        # 1. 获取在线版本 (带本地缓存)
-        online_jdks = self.get_online_jdks()
+        # 1. 获取在线版本 (带本地缓存，支持前端主动穿透刷新)
+        force_update = False
+        if isinstance(args, dict):
+            force_update = bool(args.get("force_update"))
+        online_jdks = self.get_online_jdks(force_update=force_update)
         custom_jdks = config.get("custom", [])
 
         # 检查在线版本是否已安装
@@ -1075,23 +1108,6 @@ class jdk_main:
         if not _is_under(dest_dir, self._java_dir) or os.path.realpath(os.path.dirname(dest_dir)) != os.path.realpath(self._java_dir):
             return yf.returnJson(False, 'jdk.invalid_version')
 
-        # 下载前预检URL，如果404则自动刷新提取最新版本
-        import urllib.request
-        import urllib.error
-        try:
-            req = urllib.request.Request(url, method='HEAD', headers={'User-Agent': 'Mozilla/5.0'})
-            urllib.request.urlopen(req, timeout=5)
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                online_jdks = self.get_online_jdks(force_update=True)
-                for jdk in online_jdks:
-                    if jdk['version'] == version:
-                        url = jdk['url']
-                        break
-        except Exception as e:
-            # 忽略其他网络错误，交由bash脚本处理
-            _log.debug('[jdk] install_jdk 预检异常已忽略: %s', e)
-
         java_bin = dest_dir + '/bin/java'
         if os.path.exists(java_bin):
             return yf.returnJson(False, 'jdk.already_installed')
@@ -1099,6 +1115,12 @@ class jdk_main:
         # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
             yf.removeDir(dest_dir)
+
+        # 提取主版本数字与架构，生成 Adoptium 官方全球 CDN 动态备选端点（双通道高可用）
+        v_match = re.search(r'\d+', version)
+        v_num = v_match.group() if v_match else ''
+        arch = _system_arch()
+        backup_url = f"https://api.adoptium.net/v3/binary/latest/{v_num}/ga/linux/{arch}/jdk/hotspot/normal/eclipse" if v_num else ""
 
         # 写入安装脚本并投递至任务队列
         import thisdb
@@ -1108,13 +1130,45 @@ class jdk_main:
         script_content = f"""#!/bin/bash
 mkdir -p {q(dest_dir)}
 cd {q(self._java_dir)}
-wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)}
-if [ $? -ne 0 ]; then
-    echo 'JDK {version} 下载失败，请检查网络连接'
+
+download_ok=0
+echo '正在下载 JDK {version}...'
+if command -v curl >/dev/null 2>&1; then
+    curl -4 -fSL --connect-timeout 20 --max-time 1800 -o {q(tarball)} {q(url)} && download_ok=1
+fi
+if [ $download_ok -ne 1 ] && command -v wget >/dev/null 2>&1; then
+    wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)} && download_ok=1
+fi
+
+if [ $download_ok -eq 1 ] && [ -s {q(tarball)} ] && tar -tzf {q(tarball)} >/dev/null 2>&1; then
+    download_ok=1
+else
+    download_ok=0
+fi
+
+if [ $download_ok -ne 1 ] && [ -n {q(backup_url)} ]; then
+    echo '主镜像源不可用或资源不存在(404)，正在自动切换至 Adoptium 官方全球 CDN 容灾下载...'
+    rm -f {q(tarball)}
+    if command -v curl >/dev/null 2>&1; then
+        curl -4 -fSL --connect-timeout 20 --max-time 1800 -o {q(tarball)} {q(backup_url)} && download_ok=1
+    fi
+    if [ $download_ok -ne 1 ] && command -v wget >/dev/null 2>&1; then
+        wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(backup_url)} && download_ok=1
+    fi
+    if [ $download_ok -eq 1 ] && [ -s {q(tarball)} ] && tar -tzf {q(tarball)} >/dev/null 2>&1; then
+        download_ok=1
+    else
+        download_ok=0
+    fi
+fi
+
+if [ $download_ok -ne 1 ]; then
+    echo 'JDK {version} 下载失败，所有镜像与官方通道均不可达，请检查网络连接'
     rm -f {q(tarball)}
     rm -rf {q(dest_dir)}
     exit 1
 fi
+
 tar -zxf {q(tarball)} -C {q(dest_dir)} --strip-components=1
 if [ ! -f {q(java_bin)} ]; then
     echo 'JDK {version} 解压异常，未找到 bin/java'
@@ -1173,6 +1227,12 @@ echo 'JDK {version} 安装完成'
         if self._is_installing(version):
             return yf.returnJson(False, 'jdk.already_running')
 
+        # 提取主版本数字与架构，生成 Adoptium 官方全球 CDN 动态备选端点（双通道高可用）
+        v_match = re.search(r'\d+', version)
+        v_num = v_match.group() if v_match else ''
+        arch = _system_arch()
+        backup_url = f"https://api.adoptium.net/v3/binary/latest/{v_num}/ga/linux/{arch}/jdk/hotspot/normal/eclipse" if v_num else ""
+
         import thisdb
         script_file = self._plugin_path + '/upgrade_' + version + '.sh'
         tarball = version + '_upgrade.tar.gz'
@@ -1182,14 +1242,45 @@ echo 'JDK {version} 安装完成'
 rm -rf {q(tmp_dir)}
 mkdir -p {q(tmp_dir)}
 cd {q(self._java_dir)}
+
+download_ok=0
 echo '正在下载 JDK {version} 最新安全版本...'
-wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)}
-if [ $? -ne 0 ]; then
-    echo 'JDK {version} 下载失败，请检查网络连接'
+if command -v curl >/dev/null 2>&1; then
+    curl -4 -fSL --connect-timeout 20 --max-time 1800 -o {q(tarball)} {q(url)} && download_ok=1
+fi
+if [ $download_ok -ne 1 ] && command -v wget >/dev/null 2>&1; then
+    wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(url)} && download_ok=1
+fi
+
+if [ $download_ok -eq 1 ] && [ -s {q(tarball)} ] && tar -tzf {q(tarball)} >/dev/null 2>&1; then
+    download_ok=1
+else
+    download_ok=0
+fi
+
+if [ $download_ok -ne 1 ] && [ -n {q(backup_url)} ]; then
+    echo '主镜像源不可用或资源不存在(404)，正在自动切换至 Adoptium 官方全球 CDN 容灾下载...'
+    rm -f {q(tarball)}
+    if command -v curl >/dev/null 2>&1; then
+        curl -4 -fSL --connect-timeout 20 --max-time 1800 -o {q(tarball)} {q(backup_url)} && download_ok=1
+    fi
+    if [ $download_ok -ne 1 ] && command -v wget >/dev/null 2>&1; then
+        wget -4 --timeout=60 --tries=3 -O {q(tarball)} {q(backup_url)} && download_ok=1
+    fi
+    if [ $download_ok -eq 1 ] && [ -s {q(tarball)} ] && tar -tzf {q(tarball)} >/dev/null 2>&1; then
+        download_ok=1
+    else
+        download_ok=0
+    fi
+fi
+
+if [ $download_ok -ne 1 ]; then
+    echo 'JDK {version} 下载失败，所有镜像与官方通道均不可达，请检查网络连接'
     rm -f {q(tarball)}
     rm -rf {q(tmp_dir)}
     exit 1
 fi
+
 echo '正在解压并校验新版本...'
 tar -zxf {q(tarball)} -C {q(tmp_dir)} --strip-components=1
 if [ ! -f {q(tmp_dir + '/bin/java')} ]; then

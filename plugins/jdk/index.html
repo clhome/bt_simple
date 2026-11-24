@@ -256,9 +256,10 @@ resetPluginWinHeight(520);
                 layer.msg(pt('请求失败') + ': ' + (xhr && xhr.status), { icon: 0, time: 3000, shade: [0.3, '#000'] });
             });
         },
-        render_table: function () {
+        render_table: function (force_update) {
             var _that = this;
-            this.send('get_jdk_list', {}, function (rdata) {
+            var reqData = force_update ? { force_update: 1 } : {};
+            this.send('get_jdk_list', reqData, function (rdata) {
                 var resMsg = rdata.msg || {};
                 var list = Array.isArray(resMsg) ? resMsg : (resMsg.list || []);
                 var hwInfo = resMsg.hw_info || null;
@@ -452,7 +453,7 @@ resetPluginWinHeight(520);
                 var html = secCardHtml +
                             '<div class="mb15" style="margin-bottom: 15px;">' +
                                 '<button class="btn btn-success btn-sm" onclick="jdk_manager.add_custom()">' + pt('添加自定义JDK') + '</button>' +
-                                '<button class="btn btn-default btn-sm pull-right" onclick="jdk_manager.render_table()">' + pt('刷新列表') + '</button>' +
+                                '<button class="btn btn-default btn-sm pull-right" onclick="jdk_manager.render_table(true)">' + pt('刷新列表') + '</button>' +
                             '</div>' +
                             '<div class="divtable">' +
                                 '<table class="table table-hover">' +

@@ -363,10 +363,13 @@
   - [x] 52.3 **更新 `文档/御风面板说明书/说明书.md`**：重写扩充第 7.9 节为完整的 JDK 管理插件运维指南（真实小版本、Java4Shell硬件指令审计、一键全局缓解、平滑热升级与CA自愈、单徽标修复指引、首页安全中心联动）；在第 7.4 节扩充 WAF 1.7 搜索引擎 SEO 智能识别与官方 IPv4/IPv6 白名单机制；在计划任务及安全中心章节补充对应保护机制说明
   - [x] 52.4 **质量门禁与格式验证**：执行 `python scripts/quick_gate.py` 及相关门禁检查，确保所有文档 UTF-8 无 BOM、LF 换行，测试套件 100% 通过
 
-- [x] **任务 53：全面排查与修正 README 低于 PHP 8.2 的旧版本描述并建立 PHP 版本口径 (`README_cn.md`, `README.md`)**
-  - [x] 53.1 **更新 `README_cn.md`**：修正 Debian 13 表格中 PHP 5.2-5.6 的旧条目为低于 8.2 下架口径；移除适配总结中 PHP 7.2/7.3 的历史描述；增补「PHP 版本口径」说明最低版本严格控制在 8.2 及以上
-  - [x] 53.2 **更新 `README.md`**：同步更新英文版表格、适配说明，增补「PHP Version Policy」确保中英文一致
-  - [x] 53.3 **格式与质量门禁验证**：验证 UTF-8 无 BOM、LF 换行，运行 `python scripts/quick_gate.py` 确保 100% 通过
+- [x] **任务 54：修复 JDK 管理器安装 JDK-17 报 404 缺陷及全版本多源容灾加固 (`plugins/jdk/`)**
+  - [x] 54.1 **全面核查 Adoptium 各版本镜像状态**：实测核对 JDK 8/11/17/21/25 在 x64 与 aarch64 上的最新实际文件名与状态，确认旧硬编码版本均已 404
+  - [x] 54.2 **升级基准版本与缓存动态刷新机制 (`plugins/jdk/index.py`)**：将 `default_jdks` 基准列表升级为当前最新的官方安全稳定版本并适配 CPU 架构；完善 `get_online_jdks` 引入 TTL 缓存有效期与过时 URL 检测；`get_jdk_list` 支持强制刷新
+  - [x] 54.3 **重构双通道高可用下载机制 (`plugins/jdk/index.py`)**：重构 `install_jdk` 与 `upgrade_jdk` 下载逻辑，支持镜像源（清华源）与 Adoptium 官方全球 CDN 动态端点（API latest）双通道故障自动切换与重试
+  - [x] 54.4 **优化前端刷新与交互联动 (`plugins/jdk/index.html`)**：前端“刷新列表”触发后端穿透刷新在线缓存
+  - [x] 54.5 **单元测试覆盖与门禁全量回归**：编写单测验证版本映射、双通道下载脚本生成与缓存刷新逻辑，执行 `python scripts/quick_gate.py` 确保 100% 通过
+
 
 
 
