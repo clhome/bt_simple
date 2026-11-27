@@ -315,13 +315,26 @@ def reconcileWafTotal(total_contents=None, auto_save=True):
         today_end = today_start + 86400
 
         conn = pSqliteDb('logs')
-        # 统计今日 logs 记录数
-        c_today = conn.field("count(*) as num").where("time >= ? and time < ?", (today_start, today_end)).inquiry()
-        today_db_count = c_today[0]['num'] if (c_today and isinstance(c_today[0], dict) and 'num' in c_today[0]) else 0
+        count_key = "count(*) as num"
+
+        def _extract_count(rows):
+            if not rows or not isinstance(rows, list) or not isinstance(rows[0], dict):
+                return 0
+            row = rows[0]
+            if count_key in row:
+                return int(row[count_key] or 0)
+            if 'num' in row:
+                return int(row['num'] or 0)
+            first_val = next(iter(row.values()), 0)
+            return int(first_val or 0)
+
+        # 统计今日 logs 记录数（web/core/db.py 的 inquiry() 返回的 key 为完整字段表达式）
+        c_today = conn.field(count_key).where("time >= ? and time < ?", (today_start, today_end)).inquiry()
+        today_db_count = _extract_count(c_today)
 
         # 统计历史总 logs 记录数
-        c_total = conn.field("count(*) as num").where("1=1", ()).inquiry()
-        total_db_count = c_total[0]['num'] if (c_total and isinstance(c_total[0], dict) and 'num' in c_total[0]) else 0
+        c_total = conn.field(count_key).where("1=1", ()).inquiry()
+        total_db_count = _extract_count(c_total)
 
         # 对今日拦截进行对账校准（取 total.json 与数据库中的较大值）
         cur_today = int(total_contents.get('today_total', 0) or 0)

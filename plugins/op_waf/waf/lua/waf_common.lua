@@ -833,23 +833,27 @@ end
 function _M.timer_stats_total(self)
     local total_path = self.cpath .. 'total.json'
     local total = nil
+    local disk_total = nil
+
+    -- 优先读取磁盘上的 total.json，防止覆盖 Python 端对账自愈结果
+    local tbody = self:read_file_body(total_path)
+    if tbody then
+        local ok, data = pcall(json.decode, tbody)
+        if ok and type(data) == 'table' then
+            disk_total = data
+        end
+    end
+
+    local cached_total = nil
     local total_cached = ngx.shared.waf_limit:get(total_path)
     if total_cached then
         local ok, data = pcall(json.decode, total_cached)
         if ok and type(data) == 'table' then
-            total = data
+            cached_total = data
         end
     end
 
-    if not total then
-        local tbody = self:read_file_body(total_path)
-        if tbody then
-            local ok, data = pcall(json.decode, tbody)
-            if ok and type(data) == 'table' then
-                total = data
-            end
-        end
-    end
+    total = disk_total or cached_total
 
     local today = ngx.today()
     if not total then
@@ -860,6 +864,16 @@ function _M.timer_stats_total(self)
             rules = {},
             sites = {}
         }
+    elseif disk_total and cached_total then
+        -- 合并磁盘与共享内存计数，取较大值避免丢数或回滚
+        if (cached_total['total'] or 0) > (total['total'] or 0) then
+            total['total'] = cached_total['total']
+        end
+        if cached_total['today_date'] == today and total['today_date'] == today then
+            if (cached_total['today_total'] or 0) > (total['today_total'] or 0) then
+                total['today_total'] = cached_total['today_total']
+            end
+        end
     end
 
     local date_changed = false
@@ -871,13 +885,13 @@ function _M.timer_stats_total(self)
 
     -- 检查并合并共享内存中的原子增量
     local inc_total = ngx.shared.waf_limit:get("stat:inc:total")
-    if (inc_total and inc_total > 0) or date_changed then
+    local inc_today = ngx.shared.waf_limit:get("stat:inc:today:" .. today)
+    if (inc_total and inc_total > 0) or (inc_today and inc_today > 0) or date_changed then
         if inc_total and inc_total > 0 then
             ngx.shared.waf_limit:incr("stat:inc:total", -inc_total)
             total['total'] = (total['total'] or 0) + inc_total
         end
 
-        local inc_today = ngx.shared.waf_limit:get("stat:inc:today:" .. today)
         if inc_today and inc_today > 0 then
             ngx.shared.waf_limit:incr("stat:inc:today:" .. today, -inc_today)
             total['today_total'] = (total['today_total'] or 0) + inc_today
