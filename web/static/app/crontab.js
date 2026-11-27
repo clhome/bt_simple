@@ -183,6 +183,10 @@ function translateTaskName(name) {
   if (clean_name === '御风JDK在线版本同步' || clean_name === '御風JDK在線版本同步' || clean_name === '御風JDK在綫版本同步' || clean_name === 'Yufeng JDK Online Versions Sync') {
     return (lan && lan.crontab && t('crontab.task_name_jdk_sync')) || '御风JDK在线版本同步';
   }
+  // 统一后的「御风软件版本在线同步」（JDK + OpenResty 版本情报）；旧名仍保留在上面
+  if (clean_name === '御风软件版本在线同步' || clean_name === '御風軟體版本線上同步' || clean_name === 'Yufeng Software Versions Sync') {
+    return (lan && lan.crontab && t('crontab.task_name_version_sync')) || '御风软件版本在线同步';
+  }
   if (clean_name === '系统日志清理与磁盘瘦身[clean]' || clean_name === '系統日誌清理與磁碟瘦身[clean]' || clean_name === 'System Log & Disk Cleaner [clean]') {
     return (lan && lan.crontab && t('crontab.task_name_clean')) || '系统日志清理与磁盘瘦身[clean]';
   }

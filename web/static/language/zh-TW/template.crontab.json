@@ -3,6 +3,7 @@
     "task_name_acme_renew": "ACME定時自動續簽",
     "task_name_op_waf": "御風OP防火牆後臺任務",
     "task_name_jdk_sync": "御風JDK在線版本同步",
+    "task_name_version_sync": "御風軟體版本線上同步",
     "task_name_clean": "系統日誌清理與磁碟瘦身[clean]",
     "task_name_webstats": "網站統計插件定時任務",
     "task_name_check_site": "檢查網站是否正常",

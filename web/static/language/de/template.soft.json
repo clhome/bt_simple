@@ -105,6 +105,8 @@
     "are_you_sure_you": "Möchten Sie wirklich [",
     "from": "] von",
     "upgrade_to": "Aktualisieren auf",
+    "online_update_tip": "Upstream hat {1} veröffentlicht; Upgrade enthält aktuelle Sicherheitsfixes",
+    "openresty_script_missing": "Installationsskript fehlt und Erzeugung fehlgeschlagen; Plugin-Rechte prüfen",
     "eol_kind_eol": "EOL",
     "eol_kind_removed": "Ausgemustert",
     "eol_version_tip": "Diese Version ist EOL; bitte auf die LTS-Version derselben Reihe aktualisieren",

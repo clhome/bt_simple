@@ -39,6 +39,18 @@ trap "rm -f ${lockFile}" EXIT
 VERSION=$2
 openrestyDir=${serverPath}/source/openresty
 
+# 版本脚本会写**完整上游版本号**（1.31.9.1 / 1.31.1.1）。这里只在其缺失或与本次
+# 安装目录无关时才回填目录名（历史行为），否则覆盖会让 1.31.1.1 与 1.31.1.2
+# 都落成 "1.31.1"，面板看不出补丁差异。
+yf_write_version_pl() {
+	local _cur=""
+	[ -f "$serverPath/openresty/version.pl" ] && _cur=$(cat "$serverPath/openresty/version.pl" 2>/dev/null)
+	case "${_cur}" in
+		"${VERSION}"|"${VERSION}".*) return 0 ;;
+	esac
+	echo "${VERSION}" > "$serverPath/openresty/version.pl"
+}
+
 if id www &> /dev/null ;then 
     echo "www uid is `id -u www`"
     echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
@@ -54,7 +66,7 @@ if [ "${action}" == "upgrade" ];then
 		exit 1
 	fi
 	
-	echo "${VERSION}" > $serverPath/openresty/version.pl
+	yf_write_version_pl
 
 	mkdir -p $serverPath/web_conf/php/conf
 	echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf
@@ -111,7 +123,7 @@ if [ "$?" != "0" ];then
 fi
 
 if [ "${action}" == "install" ] && [ -d $serverPath/openresty ];then
-	echo "${VERSION}" > $serverPath/openresty/version.pl
+	yf_write_version_pl
 
 	mkdir -p $serverPath/web_conf/php/conf
 	echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf

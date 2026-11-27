@@ -77,6 +77,8 @@
 			<p onclick="pluginLogs('openresty');">错误日志</p>
 		</div>
 		<div class="bt-w-con pd15">
+			<!-- 版本升级提示条（只在「已装版本落后于上游」时由 JS 显示；不联网，读本地索引缓存） -->
+			<div id="orVerTip" style="display:none;margin:0 0 12px 0;padding:10px 14px;border:1px solid #f0c36d;background:#fdf7e3;border-radius:6px;color:#7a5b00;font-size:13px;line-height:22px;"></div>
 			<div class="soft-man-con"></div>
 		</div>
 	</div>
@@ -89,5 +91,6 @@ resetPluginWinHeight(620);
 
 $.getScript( "/plugins/file?name=openresty&f=js/openresty.js&_t=" + new Date().getTime(), function(){
 	orPluginService('openresty');
+	orVersionCheck();
 });
 </script>

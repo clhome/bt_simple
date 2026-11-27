@@ -40,8 +40,12 @@ class TestJdkCrontabTask(unittest.TestCase):
         if os.path.exists(self.tmp_dir):
             shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
-    def test_01_create_bg_task_creates_crontab_entry_and_config(self):
-        # 1. Mock DB 与 YfCrontab
+    def test_01_create_bg_task_delegates_to_unified_version_sync(self):
+        """JDK 不再单独建任务：统一到「御风软件版本在线同步」（见 core/version_sync.py）。"""
+        from core import version_sync as vs
+        from utils.crontab import crontab as YfCrontab
+
+        vs._last_ensure_at[0] = 0.0
         fake_db = MagicMock()
         fake_find = MagicMock(return_value=None)
         fake_db.field.return_value.where.return_value.find = fake_find
@@ -51,37 +55,34 @@ class TestJdkCrontabTask(unittest.TestCase):
 
         mock_crontab = MagicMock()
         mock_crontab.add.return_value = 99
-        old_inst = tool_task.YfCrontab.instance
-        tool_task.YfCrontab.instance = MagicMock(return_value=mock_crontab)
+        old_inst = YfCrontab.instance
+        YfCrontab.instance = MagicMock(return_value=mock_crontab)
 
         try:
-            # 首次创建
-            res = tool_task.createBgTask()
-            self.assertTrue(res)
+            self.assertTrue(tool_task.createBgTask())
 
-            # 验证 add 参数
             mock_crontab.add.assert_called_once()
             params = mock_crontab.add.call_args[0][0]
-            self.assertEqual(params['name'], "[勿删]御风JDK在线版本同步")
-            self.assertEqual(params['type'], "day")
-            self.assertEqual(params['hour'], "2")
-            self.assertEqual(params['minute'], "10")
-            self.assertIn("tool_task.py", params['sbody'])
-            self.assertIn("run", params['sbody'])
+            self.assertEqual(params['name'], vs.TASK_NAME)
+            self.assertEqual(params['name'], '[勿删]御风软件版本在线同步')
+            self.assertEqual(params['type'], 'day')
+            self.assertEqual(params['hour'], '2')
+            self.assertEqual(params['minute'], '10')
+            self.assertIn('scripts/version_sync.py', params['sbody'].replace('\\', '/'))
+            self.assertIn(' run', params['sbody'])
+            # 旧形态的 JDK 专属任务名不再被创建
+            self.assertNotEqual(params['name'], tool_task.TASK_NAME)
 
-            # 验证配置落盘
-            cfg = tool_task.getConfigData()
-            self.assertEqual(cfg.get('task_id'), 99)
-
-            # 幂等性验证：当 DB 中已存在同名任务时，不会重复调用 add
+            # 幂等：库里已有统一任务时不再重复 add
             mock_crontab.add.reset_mock()
-            fake_find.return_value = {"id": 99, "name": "[勿删]御风JDK在线版本同步"}
-            res2 = tool_task.createBgTask()
-            self.assertTrue(res2)
+            fake_find.return_value = {'id': 99, 'name': vs.TASK_NAME,
+                                      'echo': 'echo_vs', 'sbody': params['sbody']}
+            self.assertTrue(tool_task.createBgTask())
             mock_crontab.add.assert_not_called()
         finally:
             yf.M = old_M
-            tool_task.YfCrontab.instance = old_inst
+            YfCrontab.instance = old_inst
+            vs._last_ensure_at[0] = 0.0
 
     def test_02_remove_bg_task_deletes_and_cleans_config(self):
         conf_file = tool_task.getTaskConf()

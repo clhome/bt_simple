@@ -105,6 +105,8 @@
     "are_you_sure_you": "Youconfirmwill [",
     "from": "]from ",
     "upgrade_to": "upgrade to ",
+    "online_update_tip": "Upstream released {1}; upgrade includes the latest security fixes",
+    "openresty_script_missing": "Install script missing and auto-generation failed; check plugin dir permissions",
     "eol_kind_eol": "EOL",
     "eol_kind_removed": "Discontinued",
     "eol_version_tip": "This version is EOL; upgrade to the LTS release of the same series",

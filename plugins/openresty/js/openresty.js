@@ -351,14 +351,165 @@ function cronDelCheck(){
     });
 }
 
+// ---------------------------------------------------------------------------
+// 版本升级提示（服务页顶部黄条）
+//
+// 数据来自 /plugins/run?func=version_info（**不联网**：只读 data/openresty_release_index.json
+// 缓存与内置表，联网刷新交给夜间「御风软件版本在线同步」）。版本号只作为文本渲染，
+// 不拼进 innerHTML / 行内 onclick —— 上游页面解析结果属于外部输入，一律当不可信。
+// ---------------------------------------------------------------------------
+var orInstalledVersion = '';
 
+function orHideVersionTip() {
+    var $box = $('#orVerTip');
+    if ($box.length) {
+        $box.hide().empty();
+    }
+}
 
+function orVersionCheck() {
+    api.post('version_info', {}, function (res) {
+        var d = null;
+        try {
+            d = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+        } catch (e) {
+            d = null;
+        }
+        if (!d) {
+            orHideVersionTip();
+            return;
+        }
+        orInstalledVersion = d.installed || '';
+        orRenderVersionTip(d);
+    });
+}
 
+function orRenderVersionTip(d) {
+    var $box = $('#orVerTip');
+    if (!$box.length) return;
+    if (!d || !d.needs_update || !d.latest) {
+        orHideVersionTip();
+        return;
+    }
 
+    $box.empty().show();
 
+    var tipText = msgTpl(pt('发现新版本 {1}（发布于 {2}），当前版本 {3} 已落后，建议升级。'),
+        [d.latest, d.release_date || '-', d.installed || '-']);
+    $('<span>').text(tipText).appendTo($box);
 
+    if (d.changelog) {
+        $('<a>')
+            .attr({ 'href': d.changelog, 'target': '_blank', 'rel': 'noopener noreferrer' })
+            .css({ 'margin-left': '10px', 'color': '#b07800', 'text-decoration': 'underline' })
+            .text(pt('更新日志'))
+            .appendTo($box);
+    }
 
+    $('<button type="button" class="btn btn-warning btn-xs or-ver-upgrade">')
+        .css({ 'margin-left': '12px' })
+        .attr('data-ver', d.latest)
+        .text(pt('立即升级'))
+        .on('click', function () {
+            orUpgradeVersion($(this).attr('data-ver'));
+        })
+        .appendTo($box);
+}
 
+function orUpgradeVersion(ver) {
+    if (!ver) return;
+    var msg = msgTpl(pt('确认将 OpenResty 从 {1} 升级到 {2} 吗？升级会重新编译并重启服务，期间网站短暂中断。'),
+        [orInstalledVersion || '-', ver]);
+    layer.confirm(msg, { icon: 3, closeBtn: 1, title: pt('升级确认') }, function (index) {
+        layer.close(index);
+        var loadT = layer.msg(pt('已提交升级任务，正在后台编译...'), { icon: 16, time: 0, shade: 0.3 });
+        $.post('/plugins/install', { name: 'openresty', version: ver, upgrade: 1, type: 0 }, function (r) {
+            layer.close(loadT);
+            if (r && r.status) {
+                orHideVersionTip();
+                layer.msg(pt('升级任务已提交，可在消息盒子查看进度'), { icon: 1 });
+                if (typeof getTaskCount === 'function') {
+                    getTaskCount();
+                }
+                // 编译完成后自动收尾：隐藏黄条 + 刷新首页卡片/软件商店（不用等用户手动刷新）
+                orWatchUpgradeDone(ver);
+            } else {
+                layer.msg((r && r.msg) || pt('提交升级任务失败'), { icon: 2 });
+            }
+        }, 'json').fail(function () {
+            layer.close(loadT);
+            layer.msg(pt('操作异常!'), { icon: 2 });
+        });
+    });
+}
 
+// ---------------------------------------------------------------------------
+// 升级收尾联动
+//
+// 为什么需要：源码安装是后台任务（编译 10~30 分钟），任务结束后面板的已装版本
+// 已经变了，但首页卡片/软件商店里的「新版本」角标来自服务端快照——不重新拉取就
+// 会一直挂着，用户会以为升级没生效。这里做两件事：
+//   1. 本页轮询 version_info，检测到版本变化 → 关黄条 + 提示 + 刷新列表；
+//   2. 跨页面的通用信号在 public.js（yfWatchTaskIdle → yf:tasks-changed），
+//      即使用户关掉本窗口，首页也会在任务结束几秒内自己刷新。
+// 轮询间隔 60s、最长 45 分钟（按 1C 机器上限兜底），结束后自动停止。
+// ---------------------------------------------------------------------------
+var orUpgradeWatchTimer = null;
 
+function orStopUpgradeWatch() {
+    if (orUpgradeWatchTimer) {
+        clearTimeout(orUpgradeWatchTimer);
+        orUpgradeWatchTimer = null;
+    }
+}
 
+function orRefreshPanelSoft() {
+    try {
+        localStorage.removeItem('index_soft_cache_html');
+        localStorage.removeItem('index_soft_cache_html_v3');
+    } catch (e) {}
+    if (typeof getSList === 'function' && $('#softList').length > 0) {
+        getSList(true);
+    }
+    if ($('#indexsoft').length > 0) {
+        if (typeof indexListHtml === 'function') {
+            indexListHtml();
+        } else if (typeof refreshIndexSoft === 'function') {
+            refreshIndexSoft();
+        }
+    }
+    if (typeof getTaskCount === 'function') {
+        getTaskCount();
+    }
+}
+
+function orWatchUpgradeDone(targetVer) {
+    orStopUpgradeWatch();
+    var fromVer = orInstalledVersion || '';
+    var startedAt = Date.now();
+    var maxMs = 45 * 60 * 1000;
+    function tick() {
+        if (Date.now() - startedAt > maxMs) {
+            orStopUpgradeWatch();
+            return;
+        }
+        api.post('version_info', {}, function (res) {
+            var d = null;
+            try {
+                d = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+            } catch (e) {
+                d = null;
+            }
+            if (d && d.installed && d.installed !== fromVer && !d.needs_update) {
+                orInstalledVersion = d.installed;
+                orHideVersionTip();
+                layer.msg(msgTpl(pt('OpenResty 已升级到 {1}'), [d.installed]), { icon: 1 });
+                orRefreshPanelSoft();
+                orStopUpgradeWatch();
+                return;
+            }
+            orUpgradeWatchTimer = setTimeout(tick, 60000);
+        });
+    }
+    orUpgradeWatchTimer = setTimeout(tick, 20000);
+}

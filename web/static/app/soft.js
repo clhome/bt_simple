@@ -356,6 +356,8 @@ function getSList(isdisplay) {
       }
       if (plugin.setup == true) {
         var mupdate = '';
+        // 上游在线索引（OpenResty）给出的「已装版本落后于上游最新正式版」
+        var hasOnlineUpd = Boolean(plugin.online_update_to && String(plugin.online_update_to).trim() !== String(plugin.setup_version || '').trim());
         var latest_version = '';
         if (plugin.versions) {
           if (typeof plugin.versions == 'string') {
@@ -481,7 +483,22 @@ function getSList(isdisplay) {
             ' onclick="softMain(\'gitea\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\');">' +
             yfSoftText(t('public.update', '更新')) + '</a> | ';
         }
-        handle = eolBadge + eolUpgradeLink + seriesUpdateLink + giteaUpdateLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
+        // 上游在线索引（OpenResty）：已装版本落后于**上游最新正式版**时的升级入口。
+        // 与上面的 `mupdate` 不同：那个只认 info.json 里的版本清单（面板发版快照），
+        // 这个是「夜间同步任务抓到的新版」，因此上游发补丁版不必等面板重新发版。
+        // 目标目录下的 install.sh 由后端 `ensure_version_script()` 按统一模板生成。
+        var onlineUpdateLink = '';
+        if (plugin.online_update_to && String(plugin.online_update_to).trim() !== String(plugin.setup_version || '').trim()) {
+          var onlineVer = String(plugin.online_update_to).trim();
+          var ouTip = t('soft.online_update_tip', '上游已发布新版本 {1}，建议升级以包含最新的安全修复');
+          if (typeof ouTip === 'string') { ouTip = ouTip.replace('{1}', onlineVer); }
+          onlineUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
+            yfSoftText(ouTip) + '"' +
+            ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(onlineVer) +
+            '\',\'' + yfSoftJsStr(plugin.setup_version) + '\');">' +
+            yfSoftText(t('soft.upgrade_to', '升级到')) + ' ' + yfSoftText(onlineVer) + '</a> | ';
+        }
+        handle = eolBadge + eolUpgradeLink + seriesUpdateLink + onlineUpdateLink + giteaUpdateLink + mupdate + phpUpdateLink + settingsLink + ' | ' + uninstallLink;
         if (plugin.name === 'gitea' && plugin.gitea_update_available) {
           titleClick = 'onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\')" style="cursor:pointer"';
         } else {
@@ -541,14 +558,14 @@ function getSList(isdisplay) {
           ' title="' + yfSoftText(t('plugins.gitea.new_version_tip', '发现新版本，点击跳转到版本管理')) + '"' +
           ' onclick="event.stopPropagation();softMain(\'gitea\',\'' + yfSoftJsStr(display_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\',\'version_manage\');">' +
           yfSoftText(t('plugins.gitea.new_version_badge', '发现新版本')) + '</span>';
-      } else if (needUpdate) {
+      } else if (needUpdate || hasOnlineUpd) {
         plugin_title += '<span class="soft-update-badge" style="margin-left:6px;padding:1px 6px;border-radius:9px;' +
           'background:#ff2020;color:#fff;font-size:11px;line-height:16px;display:inline-block;vertical-align:middle;">' +
           yfSoftText(t('public.update', '更新')) + '</span>';
       }
       var hasSeriesUpd = Boolean(plugin.series_update && plugin.series_update.latest && String(plugin.series_update.latest).trim() !== String(plugin.setup_version || '').trim());
       var hasEolUpd = Boolean(plugin.eol_upgrade_to && String(plugin.eol_upgrade_to).trim() !== String(plugin.setup_version || '').trim());
-      if (needUpdate || (plugin.php_update_available && plugin.php_update) || hasSeriesUpd || (plugin.name === 'gitea' && plugin.gitea_update_available) || hasEolUpd) {
+      if (needUpdate || (plugin.php_update_available && plugin.php_update) || hasSeriesUpd || hasOnlineUpd || (plugin.name === 'gitea' && plugin.gitea_update_available) || hasEolUpd) {
         updatableCount++;
       }
       // PHP < 8.2 已停止维护：后端只在**确实装了**的情况下把旧分支留在列表里
@@ -1103,6 +1120,17 @@ function indexListHtml(callback) {
       var raw_title = t('plugins.' + plugin.name + '.title', plugin.title);
       // 首页卡片名称不显示版本号，大幅精简文本长度提升美观度
       var name = raw_title;
+      // 「上游已发布新版本」角标：数据来自后端离线索引（online_update_to），
+      // 不联网、不参与排序；只是提示，点击卡片仍进软件面板。
+      var newBadge = '';
+      if (plugin.online_update_to) {
+        var badgeTip = t('soft.online_update_tip', '上游已发布新版本 {1}，建议升级以包含最新的安全修复');
+        if (typeof badgeTip === 'string') { badgeTip = badgeTip.replace('{1}', plugin.online_update_to); }
+        newBadge = '<span class="soft-new-ver" style="margin-left:3px;padding:0 4px;border-radius:6px;' +
+          'background:#ff2020;color:#fff;font-size:9px;line-height:13px;display:inline-block;vertical-align:top;"' +
+          ' title="' + yfSoftText(badgeTip) + '">' +
+          yfSoftText(t('index.soft_new_version_badge', '新版本')) + '</span>';
+      }
       var data_id = plugin.name + '-' + plugin.setup_version;
       if (plugin.coexist) {
         data_id = plugin.name + '-' + plugin.versions;
@@ -1123,7 +1151,7 @@ function indexListHtml(callback) {
                 <span class="spanmove"></span>\
                 <div class="soft-card-box neu-btn-card" onclick="softMain(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(raw_title) + '\',\'' + yfSoftJsStr(plugin.setup_version) + '\')">\
                 <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + encodeURIComponent(plugin.name) + '&f=ico.png" style="max-width:36px;"></div>\
-                <div class="sname"' + fontStyle + ' title="' + yfSoftText(raw_title) + '">' + yfSoftText(name) + state + '</div>\
+                <div class="sname"' + fontStyle + ' title="' + yfSoftText(raw_title) + '">' + yfSoftText(name) + state + newBadge + '</div>\
                 </div>\
             </div>';
 

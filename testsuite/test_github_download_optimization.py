@@ -89,9 +89,11 @@ class TestGitHubDownloadOptimization(unittest.TestCase):
         if not bash:
             self.skipTest('系统无可用 Git Bash 环境，跳过动态子进程测试')
 
-        # 使用一个必定不存在的模拟 404 地址
+        # 使用一个必定不存在的模拟 404 地址；curl 用 shell 函数替身固定返回 404，
+        # 避免受本机代理/网络波动影响（实测真实探测有时返回 000，用例会假红）。
         script = '''
         source "%s"
+        curl() { printf '404'; }
         # 预设已选节点直接走快速下载分支
         export _GH_BEST_PROXY="https://ghfast.top/"
         github_download "/tmp/test_404_fast_fail.tar.gz" "https://github.com/clhome/bt_simple/releases/download/v999.999.999/not_found_12345.tar.gz" 10
@@ -101,6 +103,114 @@ class TestGitHubDownloadOptimization(unittest.TestCase):
         self.assertNotEqual(proc.returncode, 0, '404 资源必须返回非 0 退出码')
         self.assertIn('目标资源不存在', proc.stderr + proc.stdout)
         self.assertNotIn('=== 进入最终降级轮询机制 ===', proc.stdout, '命中 404 时必须立即熔断，严禁进入降级轮询')
+
+
+    def test_05_speed_probe_is_small_and_cached(self):
+        """测速探针必须是「小样本 + Range 限流 + 磁盘缓存」，不能再整仓归档当探针。
+
+        背景（2026-11-27 真机）：旧探针用 `archive/refs/heads/master.tar.gz`，
+        curl -m 5 每个节点白下数 MB，且每次都让 GitHub 现场打包；结果只存在进程
+        环境变量里，每个安装任务都要重测一遍。
+        """
+        src = read_file(GH_SH)
+        self.assertIn('releases/download/', src, '测速探针应改用 release 固定资产')
+        self.assertIn('-r "$_GH_SPEED_TEST_RANGE"', src, '测速必须用 Range 限流，避免白下整包')
+        # 探针里不得再出现「面板整仓归档」这个动态打包 URL
+        probe_url_line = [l for l in src.splitlines() if '_GH_SPEED_TEST_URL=' in l]
+        self.assertTrue(probe_url_line, '缺少 _GH_SPEED_TEST_URL 定义')
+        joined = '\n'.join(probe_url_line)
+        self.assertNotIn('archive/refs/', joined, '探针 URL 不得指向动态打包的整仓归档')
+        self.assertIn('_GH_SPEED_CACHE_FILE', src, '缺少跨任务复用的测速结果磁盘缓存')
+        self.assertIn('_gh_speed_cache_load', src)
+        # 直连快判必须真的被调用（历史上 _gh_check_direct 只定义从未调用 = 死代码）
+        fn_body = src.split('_gh_get_best_proxy() {', 1)[1]
+        self.assertIn('_gh_check_direct', fn_body, '直连快判必须参与测速决策')
+
+    def _run_bash(self, body, timeout=20):
+        bash = find_bash()
+        if not bash:
+            self.skipTest('系统无可用 Git Bash 环境，跳过动态子进程测试')
+        script = 'source "%s"\n%s' % (GH_SH.replace('\\', '/'), body)
+        return subprocess.run([bash, '-c', script], capture_output=True, text=True,
+                              encoding='utf-8', errors='replace', timeout=timeout)
+
+    def test_06_cache_hit_skips_probing(self):
+        """TTL 内的缓存必须直接命中，一个探针都不发（跨安装任务复用）。"""
+        import tempfile
+        import time
+        work = tempfile.mkdtemp()
+        cache = os.path.join(work, 'speed')
+        marker = os.path.join(work, 'probed')
+        with open(cache, 'w', encoding='utf-8') as fp:
+            fp.write('%d|https://cached.example/\n' % int(time.time()))
+        try:
+            proc = self._run_bash(
+                '_GH_SPEED_CACHE_FILE="%s"\n'
+                '_gh_speed_probe() { : > "%s"; echo "206|99999999|524288"; }\n'
+                '_gh_check_direct() { return 0; }\n'
+                '_gh_get_best_proxy' % (cache.replace('\\', '/'), marker.replace('\\', '/')))
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.strip(), 'https://cached.example/')
+            self.assertFalse(os.path.exists(marker), '缓存命中时不应再发起任何探针')
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+    def test_07_parallel_probe_picks_fastest_and_records_dead_nodes(self):
+        """并行探测按速度取胜者，死节点进 _GH_FAILED_PROXIES，并把结果写盘缓存。"""
+        import tempfile
+        import time
+        work = tempfile.mkdtemp()
+        cache = os.path.join(work, 'speed')
+        try:
+            body = (
+                '_GH_SPEED_CACHE_FILE="%s"\n'
+                '_gh_check_direct() { return 1; }\n'
+                '_gh_speed_probe() {\n'
+                '  case "$1" in\n'
+                '    *fast*) echo "206|3145728|524288";;\n'
+                '    *slow*) echo "206|102400|524288";;\n'
+                '    *) echo "000|0|0";;\n'
+                '  esac\n'
+                '}\n'
+                '_GH_PROXY_LIST=("https://fast.example/" "https://slow.example/" "https://dead.example/")\n'
+                '_gh_get_best_proxy >/dev/null\n'
+                'echo "BEST=$_GH_BEST_PROXY"\n'
+                'echo "FAILED=${_GH_FAILED_PROXIES[*]}"\n'
+            ) % cache.replace('\\', '/')
+            proc = self._run_bash(body)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn('BEST=https://fast.example/', proc.stdout)
+            self.assertIn('dead.example', proc.stdout.split('FAILED=')[-1])
+            with open(cache, encoding='utf-8') as fp:
+                ts, best = fp.read().strip().split('|', 1)
+            self.assertTrue(ts.isdigit())
+            self.assertEqual(best, 'https://fast.example/')
+            self.assertLessEqual(int(time.time()) - int(ts), 1800)
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+    def test_08_fast_direct_skips_proxy_sweep(self):
+        """直连速度达标时应跳过整轮代理测速（这正是旧实现的浪费点之一）。"""
+        import tempfile
+        work = tempfile.mkdtemp()
+        cache = os.path.join(work, 'speed')
+        probe_log = os.path.join(work, 'probes')
+        try:
+            body = (
+                '_GH_SPEED_CACHE_FILE="%s"\n'
+                '_gh_check_direct() { return 0; }\n'
+                '_gh_speed_probe() { echo "$1" >> "%s"; echo "206|9437184|524288"; }\n'
+                '_GH_PROXY_LIST=("https://p1.example/" "https://p2.example/")\n'
+                '_gh_get_best_proxy >/dev/null\n'
+                'echo "BEST=$_GH_BEST_PROXY"\n'
+                'echo "PROBES=$(wc -l < "%s")"\n'
+            ) % (cache.replace('\\', '/'), probe_log.replace('\\', '/'), probe_log.replace('\\', '/'))
+            proc = self._run_bash(body)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn('BEST=direct', proc.stdout)
+            self.assertIn('PROBES=1', proc.stdout, '直连达标后不应再探测任何代理')
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
 
 
 if __name__ == '__main__':

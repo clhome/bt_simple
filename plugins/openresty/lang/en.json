@@ -73,5 +73,14 @@
     "错误日志": "error log",
     "驻留进程(Waiting)": "Residence Process (Waiting)",
     "缺少必要参数:": "Missing required parameter:",
-    "配置出错:": "Configuration error:"
+    "配置出错:": "Configuration error:",
+    "发现新版本 {1}（发布于 {2}），当前版本 {3} 已落后，建议升级。": "New version {1} (released {2}); current {3} is outdated.",
+    "更新日志": "Changelog",
+    "立即升级": "Upgrade now",
+    "升级确认": "Confirm upgrade",
+    "确认将 OpenResty 从 {1} 升级到 {2} 吗？升级会重新编译并重启服务，期间网站短暂中断。": "Upgrade OpenResty {1} to {2}? It rebuilds and restarts, with brief downtime.",
+    "已提交升级任务，正在后台编译...": "Upgrade submitted, compiling in background...",
+    "升级任务已提交，可在消息盒子查看进度": "Upgrade submitted. Check messages for progress.",
+    "提交升级任务失败": "Failed to submit upgrade",
+    "OpenResty 已升级到 {1}": "OpenResty upgraded to {1}"
 }

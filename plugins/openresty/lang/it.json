@@ -73,5 +73,14 @@
     "错误日志": "Log errori",
     "驻留进程(Waiting)": "Processo di attesa (Waiting)",
     "缺少必要参数:": "Parametro obbligatorio mancante:",
-    "配置出错:": "Errore di configurazione:"
+    "配置出错:": "Errore di configurazione:",
+    "发现新版本 {1}（发布于 {2}），当前版本 {3} 已落后，建议升级。": "Nuova versione {1} ({2}) disponibile; attuale {3} obsoleta.",
+    "更新日志": "Changelog",
+    "立即升级": "Aggiorna ora",
+    "升级确认": "Conferma aggiornamento",
+    "确认将 OpenResty 从 {1} 升级到 {2} 吗？升级会重新编译并重启服务，期间网站短暂中断。": "Aggiornare OpenResty {1} a {2}? Ricompila e riavvia, breve interruzione.",
+    "已提交升级任务，正在后台编译...": "Aggiornamento inviato, compilazione in corso...",
+    "升级任务已提交，可在消息盒子查看进度": "Aggiornamento inviato. Vedi i messaggi.",
+    "提交升级任务失败": "Invio non riuscito",
+    "OpenResty 已升级到 {1}": "OpenResty aggiornato a {1}"
 }

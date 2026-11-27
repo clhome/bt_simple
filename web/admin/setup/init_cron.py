@@ -54,11 +54,15 @@ def init_acme_cron():
 
     res = yf.M("crontab").field("id, name, sbody, echo").where("name=?", (name,)).find()
     if res:
+        # 面板 DB 多列查询会给后续列名带上前导空格（{'id':..,' sbody':..}），
+        # 不归一化会让 `res.get('sbody')` 永远为 None —— 本自愈段历史上因此从未生效。
+        res = {str(k).strip(): v for k, v in res.items()}
         # 存量任务自愈：若历史任务含有会导致 80 端口冲突的 --standalone 或易触发 429 限流的 --force，则就地校准更新
         old_body = res.get('sbody', '')
         if '--standalone' in old_body or '--force' in old_body:
             try:
-                yf.M("crontab").where("id=?", (res['id'],)).save({"sbody": correct_cmd})
+                # save() 签名是 save('col', (value,))，传字典会直接 TypeError
+                yf.M("crontab").where("id=?", (res['id'],)).save('sbody', (correct_cmd,))
                 echo_id = res.get('echo', '')
                 if echo_id:
                     script_file = yf.getServerDir() + '/cron/' + echo_id

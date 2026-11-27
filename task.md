@@ -1,169 +1,142 @@
-# 完善御风面板后台升级与编译体验优化任务
+# OpenResty 1.31.9.1 升级支持 + 御风软件版本在线同步（综合脚本）
 
-## 项目背景与核心痛点
+## 背景
 
-用户反馈在御风面板中点击 PHP 升级后，虽然消息盒子或前端提示成功，但服务器后台一直在高负荷编译（`make -j1` 持续占用 40%+ CPU），而且：
-1. **用户无法获知系统当前在做什么**：任务管理器中只显示冷冰冰的 `make`，用户怀疑卡死或异常；
-2. **状态提示严重不同步与误导**：前端点击升级后弱提示“成功”，用户误以为升级已完成；刷新后因编译尚未完成版本未变，导致用户再次点击，触发排他锁报错；
-3. **左上角任务数归零错觉**：重复提交的任务失败后导致任务队列显示为 0，而底层实际编译仍在后台持续，造成“没有任务却在疯狂消耗资源”的严重认知割裂。
+2026-11-27 上游发布 **OpenResty 1.31.9.1**（nginx core 1.31.8 → 1.31.9，含 10 项安全修复：
+HTTP/2、HTTP/3 内存破坏与 UAF、resolver/mail proxy UAF、`try_files`+`alias` 溢出等）。
+面板现状：`plugins/openresty/versions/` 最高只有 `1.31.1`，`info.json` 版本清单也止于
+`1.31.1`，已装用户既看不到「有新版本」，也没有可执行的升级入口。
 
-目标：**完善御风面板全流程的使用体验与状态透明度，让用户在任何环节都能清晰知道“当前正在做什么、为什么占用资源、预计耗时多久、如何查看进度”。**
+同时，上游发补丁版的节奏远快于面板发版：每次都要人工复制一份 300 行的版本安装脚本，
+漏同步一次就等于把安全修复漏掉。故本次把「版本情报」和「版本可安装性」一起做成可自动化。
 
----
+## 用户口径（2026-11-27 确认）
 
-## 任务拆解与进度 (Task List)
-
-- [x] **任务 1：升级任务防重提交与物理锁联动感知 (`plugins/php/index.py`)**
-  - [x] 1.1 在 `isPhpVersionBusy()` 中增加对物理锁文件 `/tmp/yf_php_<ver>.lock` 及进程存活状态（`kill -0 <pid>`）的物理层检查，杜绝锁存在时重入排队
-  - [x] 1.2 优化 `submitBaselineUpgrade()`：在持锁构建中时拦截并返回清晰友好的状态信息（`正在后台编译构建中，请勿重复提交，可前往消息盒子查看`），避免生成失败任务污染队列
-  - [x] 1.3 确保升级成功/失败的回执信息对编译长耗时有明确的文案引导与防误回滚设计
-
-- [x] **任务 2：安全巡检与首页卡片状态联动 (`core/php_sec_scan.py` & `web/static/app/index.js`)**
-  - [x] 2.1 后端 `php_sec_scan.py` 巡检时联动检查 PHP 编译锁与任务队列，输出 `upgrading: True` 及目标版本
-  - [x] 2.2 前端首页安全卡片升级交互改造：
-    - 点击升级前弹出二次确认，明确告知：“源码编译需耗时 15~30 分钟，期间 CPU 占用较高属正常现象”；
-    - 提交成功或检测到构建中自动弹起消息盒子展示实时编译日志流；
-    - 渲染卡片时感知 `upgrading` 状态，显示旋转 loading、`[正在构建中...]` 与 `[执行日志]` 直达链接，禁用重复升级按钮
-
-- [x] **任务 3：任务管理器智能识别编译进程 (`plugins/task_manager/task_manager_index.py`)**
-  - [x] 3.1 在 `get_process_ps` 中对 `make`、`gcc`、`g++`、`cc1`、`cmake`、`sh`、`bash` 等工具链进程进行智能溯源识别
-  - [x] 3.2 识别持锁 `/tmp/yf_php_<ver>.lock`、源码目录 `/www/server/source/` 或面板后台任务派生的编译进程，将名称展示为 `PHP 8.4 源码编译 (make)`，描述清晰注明源码编译中
-  - [x] 3.3 补齐多语言字典支持，确保中英文均友好展示
-
-- [x] **任务 4：质量自检与回归测试闭环**
-  - [x] 4.1 编写针对防重入、物理锁联动、任务管理器编译进程识别的测试用例（9项测试全部通过）
-  - [x] 4.2 运行 Python 静态检查与格式验证，确保 Exit Code 0，无语法和排版报错
-  - [x] 4.3 清理临时测试文件，确保工作区整洁
-
-
----
-
-# 修复文件菜单本地终端 Socket.IO 连接 400 及 WebSocket 失败问题
-
-## 背景与根因剖析
-
-用户在“文件”管理页面点击顶部工具栏的命令行图标打开“本地终端”时，终端弹窗黑屏无响应，且浏览器控制台报错：
-1. `[Violation] Permissions policy violation: unload is not allowed in this document`
-2. `POST http://172.17.60.248:60374/socket.io/?EIO=4&transport=polling&t=...&sid=... 400 (BAD REQUEST)`
-3. `WebSocket connection to 'ws://.../socket.io/?EIO=4&transport=websocket&sid=...' failed: WebSocket is closed before the connection is established.`
-
-### 核心根因：
-1. **脱离请求上下文导致来源校验抛出异常拒收**：`web/admin/__init__.py` 中的 `check_socketio_origin(origin)` 由底层 Engine.IO 引擎在 WSGI 处理阶段调用。此时 Flask 的请求上下文未激活（`has_request_context() == False`）。直接解引用 `request.host` 抛出 `RuntimeError: Working outside of request context.`，被外层 `except Exception: return False` 捕获并返回 `False`，使得所有携带 `Origin` 请求头的 WebSocket 升级与 POST 长轮询请求均被返回 `400 (BAD REQUEST: Not an accepted origin)`。
-2. **主机解析及多网络场景兼容**：`check_socketio_origin` 函数未能利用 Engine.IO 传递的 `environ` 参数提取 `HTTP_HOST` 或 `HTTP_X_FORWARDED_HOST`；且原实现通过 `split(':')[0]` 截断主机名无法正确解析 IPv6 格式。
-3. **前端生命周期与现代浏览器兼容性**：
-   - 现代浏览器（Chrome 等）已禁用/警告 `unload` 事件监听，需使用 `beforeunload` / `pagehide`。
-   - `public.js` 中 `interval` 为未声明的隐式全局变量，弹窗关闭后未进行完整的生命周期回收（缺乏 layer 的 `end` 钩子），导致反复打开时定时器串扰。
-
----
+1. 自动更新边界 = **只更新清单 + 自动生成安装脚本**，绝不自动升级线上服务；
+2. 升级提示位置 = 软件商店「更新」徽标 + OpenResty 服务页顶部提示条 + 首页卡片角标；
+3. 夜间任务 = **统一系统任务**（`[勿删]御风软件版本在线同步`），一次同步 JDK + OpenResty，
+   并平滑迁移掉历史 `[勿删]御风JDK在线版本同步`（不留两条重复任务）；
+4. `info.json` 版本清单 = 只保留近两代 + 新版（`1.31.1`、`1.31.9.1`）。
 
 ## 任务拆解与进度 (Task List)
 
-- [x] **任务 1：方案分析与根因定位**
-  - [x] 1.1 复现 Engine.IO 在 WSGI 层回调 `check_socketio_origin` 时的 `RuntimeError` 异常与 400 行为
-  - [x] 1.2 确认 WebSocket 握手失败与 HTTP Polling POST 400 的链路因果关系
-- [x] **任务 2：修复后端 Socket.IO 来源校验 (`web/admin/__init__.py`)**
-  - [x] 2.1 修改 `check_socketio_origin(origin, environ=None)` 签名，兼容 Engine.IO 的双参/单参调用
-  - [x] 2.2 优先从 `environ` 获取 `HTTP_X_FORWARDED_HOST` 或 `HTTP_HOST`，若进入 Flask 上下文则安全回退至 `request.host`
-  - [x] 2.3 使用 `urlparse(origin).hostname` 严格提取主机名，天然兼容 IPv4、IPv6 与域名
-  - [x] 2.4 放行同源、本地回环（127.0.0.1、localhost、::1）、面板配置域名及服务器内网/公网 IP
-- [x] **任务 3：修复前端本地终端组件与生命周期 (`web/static/app/public.js`)**
-  - [x] 3.1 替换 `$(window).on('unload', ...)` 为 `$(window).on('beforeunload pagehide', ...)`
-  - [x] 3.2 规范轮询定时器作用域，弹窗初始化前彻底清除旧定时器
-  - [x] 3.3 为 `layer.open` 增加 `end:` 回调，确保无论是点 X、按 Esc、遮罩点击还是 API 关闭，均彻底执行终端与定时器销毁
-- [x] **任务 4：编写自动化测试并验证闭环**
-  - [x] 4.1 编写单元测试用例，覆盖：无上下文调用、WSGI environ 传参、同源判定、公网/局域网/IPv6/域名、非同源防攻击（CSWSH 拦截）
-  - [x] 4.2 验证全部测试通过
-- [x] **任务 5：质量自检与代码规范门禁**
-  - [x] 5.1 执行 Python 静态检查与格式验证，确保 Exit Code 0
-  - [x] 5.2 清理测试与临时文件，确认工作区洁净
+- [x] **任务 1：1.31.9.1 可安装（构建配方唯一真源）**
+  - [x] 1.1 新增 `plugins/openresty/versions/common/openresty_build.sh`：把原 `1.31.1/install.sh`
+        的 300 行配方收敛为共享实现（含源码双通道获取、OpenSSL/jemalloc/brotli/zstd 依赖、
+        Makefile OpenSSL `gmake clean` 兼容修补、按脚本位置解析路径而非 `pwd`）
+  - [x] 1.2 `--with-http_v3_module` 由「硬编码 `1.31.1`」改为数值比较（`>= 1.31.1` 自动继承）
+  - [x] 1.3 新增 `versions/1.31.9.1/install.sh`（薄封装，`YF_OPENRESTY_VERSION=1.31.9.1`）
+  - [x] 1.4 `versions/1.31.1/install.sh` 改为同一薄封装（`VERSION=1.31.1.1`，保留三段目录名）
+  - [x] 1.5 `install.sh` 的 `version.pl` 回填改为「不覆盖版本脚本写的完整上游号」，
+        让 `1.31.1.1` / `1.31.1.2` 这类同系列补丁版在面板里可区分
+  - [x] 1.6 `info.json` 版本清单 → `["1.31.1", "1.31.9.1"]`；面板初始化推荐版本 → `1.31.9.1`
 
+- [x] **任务 2：在线版本索引（`web/core/openresty_release_index.py`）**
+  - [x] 2.1 解析 `openresty.org/en/download.html`：只认 4 段正式版包名（排除 `ngx_openresty-*`、`-rc*`）
+  - [x] 2.2 数值比较 / 三段历史号兼容（`1.31.1` 与 `1.31.1.1` 视为同版本，不反复提示）
+  - [x] 2.3 缓存 `data/openresty_release_index.json`（12h TTL）+ 内置兜底表 + 抓取失败留痕
+  - [x] 2.4 `ensure_version_script()`：按统一模板生成 `versions/<ver>/install.sh`，已存在绝不覆盖
+  - [x] 2.5 `panel_hint()`：离线提示（软件列表/首页/插件页共用），附 changelog 链接与「情报日期」
 
----
+- [x] **任务 3：升级提示三处落地**
+  - [x] 3.1 后端：`plugin.py::_onlineApplyVersionHint()` 挂 `online_update_to` / `online_update`
+  - [x] 3.2 软件商店：`soft.js` 增加「升级到 1.31.9.1」入口 + 红色「更新」徽标（计入可更新计数）
+  - [x] 3.3 首页卡片：`/plugins/index_list` 带 `online_update_to`，`soft.js` 渲染「新版本」角标
+  - [x] 3.4 OpenResty 服务页：`index.html` 黄条容器 + `js/openresty.js` 渲染/一键升级（DOM 文本渲染，防注入）
+  - [x] 3.5 `index.py::versionInfo()` 新增 `version_info` 回调（离线，读缓存），并顺手补齐安装脚本
+  - [x] 3.6 `plugin.py::install()` 对 openresty 下发安装前确保版本脚本存在，缺失则明确报错而不是假成功
 
-# 优化 JDK 管理器安装类型显示规则
+- [x] **任务 4：统一版本同步任务（替换 JDK 单任务）**
+  - [x] 4.1 新增 `web/core/version_sync.py`：按「版本源」注册（JDK 复用 `get_online_jdks`，OpenResty 走索引模块）
+  - [x] 4.2 新增 `scripts/version_sync.py`：`run [--only]` / `add` / `remove` / `status`
+  - [x] 4.3 `ensure_task()`：同名任务只校正脚本；否则把历史 JDK 任务改名迁移（保留 id/周期）；都没有才新建
+  - [x] 4.4 触发点：首页 `getIndexList()`、OpenResty `version_info`、JDK 插件 `_ensure_crontab_task`（6h 节流）
+  - [x] 4.5 `plugins/jdk/tool_task.py`：`createBgTask()` 委托统一引擎；`removeBgTask()` 只清历史 JDK 任务
+  - [x] 4.6 计划任务名称翻译：`crontab.py::humanTaskName` + `crontab.js::translateTaskName` + 6 语言包
 
-## 需求背景与目标
+- [x] **任务 5：国际化**
+  - [x] 5.1 插件语言包 6 语言新增 8 个键（提示条/升级按钮/确认文案），Key 集合 100% 对齐
+  - [x] 5.2 Web 语言包 6 语言新增 4 个键（任务名、首页角标、上游提示、脚本缺失），
+        并由 `scripts/tools/export_lang_carriers.py --apply` 派生 `.json` 载体
 
-用户反馈：在 JDK 管理器列表中，面板安装的各版本均显示 `(面板安装)`，界面信息冗余繁琐。
-明确规范：**如果是面板安装的，就不用显示；只有系统安装的才显示括号和里面的信息。**
+- [x] **任务 6：质量门禁**
+  - [x] 6.1 新增 `testsuite/test_openresty_version_sync.py`（14 个用例：解析/比较/缓存/生成脚本/成品一致性/任务迁移/多源汇总/DB 列名归一化）
+  - [x] 6.2 `bash -n` / `sh -n` 校验全部改动脚本；`node --check` 校验改动 JS
+  - [x] 6.3 运行 `python testsuite/run_all.py`（356 模块 / 4578 用例 + 4 项静态门禁，全绿）
+  - [x] 6.4 清理临时文件，确认工作区无残留
+  - [x] 6.5 顺带修掉同族既有缺陷（本轮实测发现）：
+        - `web/core/db.py::save()` 的真实签名是 `save('col1,col2',(v1,v2))`，而
+          `web/admin/setup/init_cron.py` 的 ACME 自愈与旧 JDK `tool_task` 的「平滑升级」
+          都写成了 `save({...})` → 每次静默 TypeError，自愈从未生效；两处均改为列名+值
+        - 面板 DB 多列查询会给后续列名带前导空格（`{'id':..,' sbody':..}`），
+          导致 `row.get('sbody')` 恒为 None；统一在读取处 strip 列名
+        - 对应用例的 DB mock 同步改为真实签名（`test_ssl_status_and_cron_fix`）
 
-## 任务拆解与进度 (Task List)
+## 结论与后续
 
-- [x] **任务 1：前端列表显示逻辑改造 (`plugins/jdk/index.html`)**
-  - [x] 1.1 针对 `row.type === '面板安装'`，隐藏类型标识标签，不再拼接显示括号和内容
-  - [x] 1.2 仅在系统安装/系统预装时，拼接显示 `(系统安装)`
-- [x] **任务 2：多语言国际化词条补齐 (`plugins/jdk/lang/*.json`)**
-  - [x] 2.1 补充各语言 JSON 文件中的 `"系统安装"` 词条（简体、繁体、英文、德文、法文、意大利文）
-- [x] **任务 3：后端兼容核验 (`plugins/jdk/index.py`)**
-  - [x] 3.1 兼容后端卸载判断逻辑支持 `'系统预装'` 与 `'系统安装'`
-- [x] **任务 4：质量门禁自检与验证**
-  - [x] 4.1 执行代码语法检查与静态验证（`python scripts/quick_gate.py` 全部通过）
-  - [x] 4.2 验证各状态渲染结果并清理临时文件
-
-
----
-
-# 修复门禁测试 test_p0_security_fixes.py 中 Socket.IO 来源验证签名断言失败问题
-
-## 背景与根因剖析
-
-在门禁自动化测试运行过程中，`test_p0_security_fixes.py` 报错：
-```
-FAIL: test_05_socketio_cors_hardened (testsuite.test_p0_security_fixes.TestP0SecurityFixes.test_05_socketio_cors_hardened)
-测试 5: 验证 WebSSH SocketIO 跨域通配符已收紧，防止 CSWSH
-AssertionError: 'def check_socketio_origin(origin):' not found in ...
-```
-
-### 核心根因：
-在修复“本地终端 Socket.IO 连接 400 及 WebSocket 失败问题”时，为了兼容 Engine.IO 引擎在 WSGI 处理阶段调用回调时传入 `environ` 参数的场景，`web/admin/__init__.py` 中的来源校验函数签名被扩充为 `def check_socketio_origin(origin, environ=None):`。
-而 `testsuite/test_p0_security_fixes.py` 内部的 `test_05_socketio_cors_hardened` 用例使用了硬编码的精确子串匹配 `self.assertIn("def check_socketio_origin(origin):", code)`，导致匹配失败。
-
-## 任务拆解与进度 (Task List)
-
-- [x] **任务 1：用例断言兼容性修复 (`testsuite/test_p0_security_fixes.py`)**
-  - [x] 1.1 将 `test_05_socketio_cors_hardened` 中的精确子串匹配优化为正则表达式匹配，兼顾 `(origin)` 和 `(origin, environ=None)` 两种合法签名
-  - [x] 1.2 确保文件采用 UTF-8 无 BOM 且 LF 换行
-- [x] **任务 2：执行门禁回归测试与质量自检**
-  - [x] 2.1 针对 `test_p0_security_fixes.py` 进行定向回归验证，确保用例通过
-  - [x] 2.2 运行项目快速门禁与全量静态/质量检测，确保 Exit Code 0
+- 上游发新补丁版后：夜间任务抓到 → 自动生成 `versions/<ver>/install.sh` → 软件商店/首页/插件页
+  立刻出现「升级到 x.y.z」，用户点击即走原有安装任务流程（停服 → 编译 → 启动）。
+- 若要扩展第三个版本源（如 PHP/Redis），只改 `web/core/version_sync.py` 的 `SOURCES` 注册表。
+- 历史版本目录（1.17.8 … 1.29.2）仍保留在磁盘上（只从 `info.json` 清单移除），
+  已装用户仍可正常卸载；不删除是为了避免「装得上、卸不掉」。
 
 ---
 
-# 修复御风 OP 防火墙今日拦截与总拦截计数异常及漏记问题
+## 追加任务：GitHub 测速探针改造（2026-11-27，用户真机日志触发）
 
-## 背景与根因剖析
+**现象**：点 OpenResty 升级，日志出现
+`正在测速节点: ... +++ curl ... https://gh.ddlc.top/https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz`，
+看起来像在下载整包御风面板。
 
-用户反馈御风 OP 防火墙【1.7】首页中，今日明明天有大量攻击，但“今日拦截（次）”显示为 0；且“总拦截（次）”不确定是否准确，要求排查修复。
-经全链路代码审计，根因剖析如下：
-1. **多场景拦截计数完全缺失（导致总拦截和今日拦截严重漏记）**：
-   - `waf_drop_ip()`：封锁 IP（如信誉归零或超限被拉黑的恶意 IP）后续的大量重复攻击，被 `ngx.exit()` 阻断，但未调用 `stats_total` 计数，导致海量拦截在计数器中彻底隐形；
-   - `waf_ip_black()`：黑名单 IP 拦截直接 `ngx.exit()`，无计数；
-   - `waf_honeypot()` 与 `add_reputation_penalty()`：触碰蜜罐与信誉归零拉黑只记日志或直接退出，未调用 `stats_total`；
-   - `waf_method()`：非法 HTTP Method 拦截直接 `ngx.exit(444)`，未计数，导致“恶意HEAD请求”卡片永远为 0；
-   - `area_limit()` / `waf_smuggling()` / `waf_404_warning()`：阻断未计入总统计；
-2. **今日拦截归零与时区比对脆弱性**：
-   - 在 `waf_common.lua` 的 `timer_stats_total` 中，跨天判断仅在 `inc_total > 0` 时才会处理；且当 `today_date` 不匹配时将 `today_total` 置 0，若新增量为 0 则落盘为 0；
-   - 前端 `op_waf.js` 使用客户端本地时间字符串与后端 `today_date` 做严格相等对比 `if (rdata.today_date === today_str)`，一旦服务端时区与浏览器不一致或跨天窗口，强制归零；
-   - 后端 `getWafSrceen()` 仅仅读取 `total.json` 文件文本，未做任何跨天自愈与对账校准；
-3. **缺少与持久化数据库（SQLite `waf.db`）的对账与自愈兜底机制**：
-   - 封锁历史数据库已落盘精确日志，但首页统计全由内存 timer 写入的 `total.json` 决定。一旦 Nginx 重载、重启或缓存丢失，计数就会清零且无法自愈；
-4. **安全防护天数常年为 0**：
-   - `initTotalInfo()` 每次执行无条件重置 `start_time = str(time.time())`，导致天数计算永远不足 1 天显示 0。
+**定位**：不是下载面板包，是 `scripts/github_download.sh::_gh_get_best_proxy()` 给 9 个
+GitHub 加速节点测速，样本 URL 被硬编码成面板仓库整仓归档（`curl -m 5 -o /dev/null`，
+只跑 5 秒）。但旧实现确有 4 个真问题：
 
-## 任务拆解与进度 (Task List)
+1. 每节点白下最多 5 秒数据（1.6MB/s ≈ 8MB/节点，9 节点 ≈ 70MB）；
+2. 样本是 codeload **动态打包**的 tar.gz，慢且计入归档限流；
+3. 样本（归档）与真实目标（release 资产）不同源，选点偏差；
+4. `_gh_check_direct()` 只定义从未调用（死代码）；结果只活在进程环境变量里，
+   每个安装任务都要重测。
 
-- [x] **任务 1：Lua 运行时全场景拦截计数补全与定时同步修复 (`waf/lua/`)**
-  - [x] 1.1 在 `init.lua` 中补全所有缺失计数的拦截点：`waf_drop_ip`、`waf_ip_black`、`waf_honeypot`、`add_reputation_penalty`、`waf_method`、`area_limit`、`waf_smuggling`、`waf_404_warning`
-  - [x] 1.2 在 `waf_common.lua` 中扩充 `rule_keys`（纳入 `method`, `honeypot`, `drop_ip`, `ip_black`, `area`），修复 `timer_stats_total` 跨天更新与增量合并逻辑
-- [x] **任务 2：Python 后端数据校准、自愈与对账机制 (`index.py`)**
-  - [x] 2.1 修复 `initTotalInfo()`：仅在不存在时初始化 `start_time`，确保默认字段完整
-  - [x] 2.2 增强 `getWafSrceen()`：解析 `total.json`，联动 SQLite 数据库 `logs` 表统计今天真实拦截数 `today_db_count` 与历史总拦截数 `total_db_count` 进行权威对账取最大值，写回自愈并返回权威数据
-  - [x] 2.3 同样增强 `getTotalStatistics()`，确保外部及状态栏读取的数据精准一致
-- [x] **任务 3：前端今日拦截与各规则数据展示优化 (`js/op_waf.js`)**
-  - [x] 3.1 优化 `wafScreen()`：优先取后端权威 `today_total`，容错处理时区差异
-  - [x] 3.2 将“恶意HEAD请求”小卡片绑定至 `rdata.rules.method || 0`
-- [x] **任务 4：自动化测试、质量自检与门禁验证**
-  - [x] 4.1 在 `test/` 下编写跨平台单元测试，验证各拦截计数、跨天重置、数据库对账自愈逻辑
-  - [x] 4.2 执行静态语法检查与门禁测试，确保 Exit Code 0，工作区整洁
+**改造（B+C 方案）**：
 
+- [x] 1. 探针改为面板 release 固定资产 + `-r 0-524287`（≤512KB/节点，不再触发动态打包）
+- [x] 2. 官方直连先单独测，达到 3MB/s 阈值直接收工（复活 `_gh_check_direct`）
+- [x] 3. 测速结果落盘缓存 30 分钟（`${TMPDIR:-/tmp}/.yf_gh_proxy_speed`，可用
+      `YF_GH_SPEED_CACHE` 覆盖）；最佳节点下载失败时立即作废缓存
+- [x] 4. 其余代理并行探测（临时文件汇总，tie-break 与原实现一致）；无 `mktemp` 时退回串行
+- [x] 5. 面板侧同源对齐：`web/core/yf/__init__.py` 的后台测速同样改成 release 资产 + Range
+- [x] 6. 守卫用例：`testsuite/test_github_download_optimization.py` 新增 4 例
+      （探针不许回到整仓归档 / 缓存命中零探针 / 并行取最快且记录死节点 / 直连达标跳过代理）
+- [x] 7. `bash -n` + 全量门禁（356 模块 / 4582 用例）全绿
 
+---
+
+## 追加任务：升级完成后首页/软件商店自动刷新（2026-11-27 用户反馈）
+
+**现象**：OpenResty 升级完成（后台编译结束、`version.pl` 已是 1.31.9.1）后，首页卡片仍显示
+「新版本」角标，要等一段时间（甚至重启面板）才消失，用户误以为升级没生效。
+
+**根因（两层，缺一不可）**：
+
+1. **服务端**：`/plugins/index_list`（首页）直接返回 `getStaticPluginList()` 的**进程级缓存快照**，
+   其中 `setup_version` / `online_update_to` 是「构建缓存那一刻」算出来的；而软件商店页
+   （`getList`）每次请求都会 `refreshDynamicStatus` 重算 —— 所以商店页正常、首页卡住，
+   且多 worker 时表现随机（命中哪个 worker 的旧缓存）。
+2. **前端**：任务结束后没有任何触发点让首页重新拉 `/plugins/index_list`，只有手动刷新/重载。
+
+**改造**：
+
+- [x] 1. `web/utils/plugin.py::getIndexList()` 每请求 `refreshDynamicStatus()` 重算已装状态与在线提示
+- [x] 2. `plugin.install()` 提交后清 `__plugin_list_static_cache`（同 worker 立即失效）
+- [x] 3. `public.js`：`yfWatchTaskIdle()`（任务计数**下降**=有任务结束，800ms 防抖）→ 派发
+      `yf:tasks-changed`；监听器清首屏 localStorage 缓存并重拉 `getSList` / `indexListHtml`
+- [x] 4. 首页 3s 轮询的 `net.task_count` 也喂给该监听器（`index.js`），非首页 6s 的 `getTaskCount` 同理
+- [x] 5. OpenResty 服务页：提交升级后 60s 轮询 `version_info`，版本变化 → 关黄条 + 提示
+      「OpenResty 已升级到 x」（45 分钟封顶，成功即停止轮询）+ 刷新首页卡片/商店列表
+- [x] 6. 新增 `testsuite/test_plugin_update_linkage.py`（8 例，含 jsdom 无关的 node 行为探针
+      `testsuite/js/task_idle_watcher_probe.js`：下降派发/不变不派发/防抖合并/非法值忽略）
+- [x] 7. 顺带修掉两处用例的环境性假红：`test_files_delete_modal_i18n` 的极简 window 沙盒
+      （`public.js` 里补 `addEventListener` 能力判断）；`test_github_download_optimization::test_04`
+      用 `curl(){ printf '404'; }` 固定返回，不再受真实代理波动影响
+- [x] 8. 全量门禁：357 模块 / 4590 用例 / 4 项静态门禁 全绿

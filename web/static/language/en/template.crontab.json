@@ -3,6 +3,7 @@
     "task_name_acme_renew": "ACME Scheduled SSL Renewal",
     "task_name_op_waf": "Yufeng OP Firewall Background Task",
     "task_name_jdk_sync": "Yufeng JDK Online Versions Sync",
+    "task_name_version_sync": "Yufeng Software Versions Sync",
     "task_name_clean": "System Log & Disk Cleaner [clean]",
     "task_name_webstats": "Website Statistics Scheduled Task",
     "task_name_check_site": "Check Website Availability",

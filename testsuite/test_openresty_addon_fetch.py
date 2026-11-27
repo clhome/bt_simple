@@ -30,8 +30,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 VERSIONS_DIR = os.path.join(ROOT, 'plugins', 'openresty', 'versions')
 HELPER = os.path.join(VERSIONS_DIR, 'common', 'nginx_addon_fetch.sh')
+#: 构建配方唯一真源（薄封装版本脚本 source 它）
+BUILDER = os.path.join(VERSIONS_DIR, 'common', 'openresty_build.sh')
 
-VERSIONS = ('1.17.8', '1.19.3', '1.21.4', '1.25.3', '1.27.1', '1.29.2', '1.31.1', 'rtmp')
+VERSIONS = ('1.17.8', '1.19.3', '1.21.4', '1.25.3', '1.27.1', '1.29.2', '1.31.1',
+            '1.31.9.1', 'rtmp')
 MODULES = ('ngx_cache_purge-master', 'nginx-http-concat-master',
            'ngx_http_substitutions_filter_module-master')
 
@@ -50,7 +53,7 @@ def find_posix_bash():
         if 'system32' in cand.lower() or 'windowsapps' in cand.lower():
             continue
         try:
-            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True, text=True, timeout=10)
+            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=10)
         except Exception:
             continue
         if proc.returncode == 0 and 'ok' in (proc.stdout or ''):
@@ -74,33 +77,39 @@ class AddonFetchContractTest(unittest.TestCase):
         self.assertIn('github_clone', src, '缺少 git clone 兜底（CI 上 codeload 常被限流）')
 
     def test_02_every_installer_uses_helper(self):
+        # 构建配方已收敛到 common/openresty_build.sh（唯一真源）：版本脚本要么自己
+        # 加载获取器，要么是 source 共享配方的薄封装 —— 两形态都必须 fail-closed。
+        builder = _read(BUILDER)
+        self.assertIn('nginx_addon_fetch.sh', builder, '共享配方未加载附加模块获取器')
+        for name in MODULES:
+            self.assertIn('yf_nginx_addon_fetch "${openrestyDir}" %s' % name, builder,
+                          '共享配方未通过获取器拉取 %s' % name)
+        self.assertIn('缺少附加模块获取器', builder,
+                      '获取器缺失时必须 fail-closed（不能静默继续 configure）')
+        for repo in ('ngx_cache_purge.git', 'nginx-http-concat.git',
+                     'ngx_http_substitutions_filter_module.git'):
+            self.assertIn(repo, builder, '未把 %s 的仓库地址传给获取器（clone 兜底失效）' % repo)
+
         for ver in VERSIONS:
             path = os.path.join(VERSIONS_DIR, ver, 'install.sh')
             src = _read(path)
             with self.subTest(version=ver):
-                self.assertIn('nginx_addon_fetch.sh', src,
-                              '未加载附加模块获取器')
-                for name in MODULES:
-                    self.assertIn('yf_nginx_addon_fetch "${openrestyDir}" %s' % name, src,
-                                  '未通过获取器拉取 %s' % name)
-                self.assertIn('缺少附加模块获取器', src,
-                              '获取器缺失时必须 fail-closed（不能静默继续 configure）')
-                for repo in ('ngx_cache_purge.git', 'nginx-http-concat.git',
-                             'ngx_http_substitutions_filter_module.git'):
-                    self.assertIn(repo, src, '未把 %s 的仓库地址传给获取器（clone 兜底失效）' % repo)
+                self.assertTrue('nginx_addon_fetch.sh' in src or 'openresty_build.sh' in src,
+                                '既未加载附加模块获取器，也未复用共享构建配方')
 
     def test_03_no_unchecked_tarball_pattern(self):
         """不许再出现「github_download …tar.gz + 裸 tar -zxf + 无校验」。"""
         bad = []
-        for ver in VERSIONS:
-            path = os.path.join(VERSIONS_DIR, ver, 'install.sh')
+        targets = [os.path.join(VERSIONS_DIR, ver, 'install.sh') for ver in VERSIONS] + [BUILDER]
+        for path in targets:
             lines = _read(path).splitlines()
             for idx, line in enumerate(lines):
                 if 'github_download' in line and '.tar.gz' in line \
                         and 'ngx_cache_purge' in line or (
                         'github_download' in line and '.tar.gz' in line
                         and ('http-concat' in line or 'substitutions' in line)):
-                    bad.append('%s:%d %s' % (ver, idx + 1, line.strip()[:70]))
+                    bad.append('%s:%d %s' % (os.path.basename(os.path.dirname(path)), idx + 1,
+                                              line.strip()[:70]))
         self.assertEqual([], bad, '仍有无校验的模块下载点:\n' + '\n'.join(bad))
 
 
@@ -126,7 +135,7 @@ class AddonFetchBehaviourTest(unittest.TestCase):
             % (payload_py.replace(chr(92), '/'), fake_rc,
                HELPER.replace(chr(92), '/'), work.replace(chr(92), '/'))
         )
-        proc = subprocess.run([BASH, '-c', script], capture_output=True, text=True, timeout=120)
+        proc = subprocess.run([BASH, '-c', script], capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
         return (proc.stdout or '') + (proc.stderr or ''), work
 
     @unittest.skipIf(BASH is None, '本机没有可用的 bash')

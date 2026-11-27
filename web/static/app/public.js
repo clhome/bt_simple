@@ -1741,10 +1741,60 @@ function removeTask(b) {
   });
 }
 
+// 全局任务计数监听：任务队列「有任务结束」（计数下降）时派发 yf:tasks-changed。
+//
+// 为什么需要：安装/升级任务是在后台跑的，跑完之后面板里的「已装版本」已经变了，
+// 但首页卡片与软件商店里的「新版本」角标来自服务端快照（/plugins/index_list、
+// /plugins/list），不重新拉取就会一直挂着——用户会以为升级没生效。这里只用一个
+// **通用信号**（计数下降 = 至少一个任务结束），不绑定具体插件。
+// 数据源有两处：本文件的 getTaskCount（非首页 6s 轮询）与 index.js 的
+// /system/network（首页 3s 轮询，返回 net.task_count）。
+window.__yfTaskCountWatcher = { last: null, timer: null };
+function yfWatchTaskIdle(count) {
+  var w = window.__yfTaskCountWatcher;
+  var cur = parseInt(count, 10);
+  if (isNaN(cur) || cur < 0) return;
+  var prev = w.last;
+  w.last = cur;
+  if (prev === null || cur >= prev) return;
+  // 合并短时间内的连续完成（队列里连跑两个任务时只刷一次）
+  clearTimeout(w.timer);
+  w.timer = setTimeout(function () {
+    try {
+      window.dispatchEvent(new CustomEvent('yf:tasks-changed'));
+    } catch (e) {}
+  }, 800);
+}
+
+// 任务结束后重拉软件快照：让「新版本」角标 / 已装版本 / 运行状态立即对齐
+(function () {
+  // 防空环境：部分沙盒/探针只提供了极简 window对象，没有 addEventListener
+  if (!window || typeof window.addEventListener !== 'function') return;
+  if (window.__yfTasksChangedBound) return;
+  window.__yfTasksChangedBound = true;
+  window.addEventListener('yf:tasks-changed', function () {
+    if (typeof getSList === 'function' && $('#softList').length > 0) {
+      getSList(true);
+    }
+    if ($('#indexsoft').length > 0) {
+      try {
+        localStorage.removeItem('index_soft_cache_html');
+        localStorage.removeItem('index_soft_cache_html_v3');
+      } catch (e) {}
+      if (typeof indexListHtml === 'function') {
+        indexListHtml();
+      } else if (typeof indexSoft === 'function') {
+        indexSoft();
+      }
+    }
+  });
+})();
+
 //获取任务总数
 function getTaskCount() {
   $.get("/task/count?t=" + new Date().getTime(), '', function (data) {
     $(".task").text(data.data);
+    yfWatchTaskIdle(data.data);
   }, 'json');
 }
 getTaskCount();

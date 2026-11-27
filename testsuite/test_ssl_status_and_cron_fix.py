@@ -164,7 +164,10 @@ class TestSslStatusAndCronFix(unittest.TestCase):
                 return self
             def find(self):
                 return fake_db_record
-            def save(self, data):
+            def save(self, keys, param):
+                # 面板 DB 的真实签名是 save('col1,col2', (v1, v2))；旧用例按字典写，
+                # 会让 init_acme_cron 的自愈永远抛 TypeError（静默失效）。
+                data = dict(zip(str(keys).split(','), param))
                 updated_body.append(data.get('sbody'))
                 fake_db_record['sbody'] = data.get('sbody')
                 return True

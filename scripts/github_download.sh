@@ -66,73 +66,189 @@ _gh_check_direct() {
     fi
 }
 
-# 获取最佳代理节点 (测速后取带宽最大的节点，若大于3MB/s则提前退出)
+# ---------- 测速探针（2026-11-27 改造） ----------
+#
+# 历史写法：探针直接用面板仓库的整仓归档
+#   https://github.com/<panel>/archive/refs/heads/master.tar.gz  +  curl -m 5
+# 三个问题（真机实测）：
+#   1. 每个节点都会白下最多 5 秒的数据。1.6MB/s 的机器 ≈ 8MB/节点，9 个节点 ≈ 70MB，
+#      全部丢弃（-o /dev/null），运维在日志里会误以为「在下载面板包」；
+#   2. 该 URL 由 GitHub **现场打包**（codeload 动态生成 tar.gz），既慢又计入归档限流，
+#      测出来的"最快节点"与真正下载的 release 资产不是同一条链路；
+#   3. 结果只活在进程环境变量里，每个安装任务都要重测一遍。
+#
+# 现在改为：
+#   * 探针 = 面板 release 下的**固定资产** + HTTP Range 只取前 512KB（≤512KB/节点，
+#     且完全不再让 GitHub 现场打包）；
+#   * 官方直连先单独测，达到阈值就直接用（不再扫代理）；
+#   * 结果落盘缓存 30 分钟（跨安装任务复用）；
+#   * 其余代理**并行**探测（各写临时文件，再按列表顺序汇总，tie-break 与旧实现一致）。
+#
+# 全部参数可用 YF_GH_* 环境变量覆盖（内网镜像 / 排障时用）。
+_GH_SPEED_TEST_URL="${YF_GH_SPEED_TEST_URL:-https://github.com/clhome/bt_simple/releases/download/v2.1.4/yf-panel-2.1.4.tar.gz}"
+_GH_SPEED_TEST_RANGE="${YF_GH_SPEED_TEST_RANGE:-0-524287}"
+_GH_SPEED_TIMEOUT="${YF_GH_SPEED_TIMEOUT:-4}"
+_GH_SPEED_CACHE_FILE="${YF_GH_SPEED_CACHE:-${TMPDIR:-/tmp}/.yf_gh_proxy_speed}"
+_GH_SPEED_CACHE_TTL="${YF_GH_SPEED_CACHE_TTL:-1800}"
+_GH_SPEED_FAST_LIMIT="${YF_GH_SPEED_FAST_LIMIT:-3145728}"
+
+# 探测单个节点：输出 "<http状态>|<速度字节/秒>|<实际字节数>"（不落盘）
+_gh_speed_probe() {
+    local prefix=$1
+    local url
+    url=$(_gh_proxy_url "$prefix" "$_GH_SPEED_TEST_URL")
+    local out
+    out=$(LC_ALL=C curl -s -L -o /dev/null \
+        -w '%{http_code}|%{speed_download}|%{size_download}' \
+        -r "$_GH_SPEED_TEST_RANGE" -m "$_GH_SPEED_TIMEOUT" "$url" 2>/dev/null)
+    [ -n "$out" ] || out="000|0|0"
+    echo "$out"
+}
+
+# 读磁盘缓存：TTL 内命中则输出节点前缀（"direct" 或代理 URL），未命中返回 1
+_gh_speed_cache_load() {
+    [ -f "$_GH_SPEED_CACHE_FILE" ] || return 1
+    local ts=""
+    local best=""
+    local now=""
+    IFS='|' read -r ts best < "$_GH_SPEED_CACHE_FILE" 2>/dev/null || return 1
+    case "$ts" in ''|*[!0-9]*) return 1 ;; esac
+    [ -n "$best" ] || return 1
+    now=$(date +%s 2>/dev/null)
+    case "$now" in ''|*[!0-9]*) return 1 ;; esac
+    local age=$((now - ts))
+    [ "$age" -ge 0 ] 2>/dev/null || return 1
+    [ "$age" -le "$_GH_SPEED_CACHE_TTL" ] || return 1
+    echo "$best"
+}
+
+# 写磁盘缓存（失败静默：缓存只是加速手段，绝不能影响安装）
+_gh_speed_cache_save() {
+    local now
+    now=$(date +%s 2>/dev/null)
+    case "$now" in ''|*[!0-9]*) return 0 ;; esac
+    printf '%s|%s\n' "$now" "$1" > "$_GH_SPEED_CACHE_FILE" 2>/dev/null || true
+}
+
+# 记录一个节点的测速结果：打印 + 维护存活/失败表 + 选最优（结果存在全局变量里，
+# 因为并行子 shell 收不到父进程的数组改动，汇总必须在父进程按顺序重放一遍）。
+# 用法: _gh_speed_apply <proxy> <"status|speed|size">
+_gh_speed_apply() {
+    local proxy=$1
+    local result=$2
+    local show_name=$proxy
+    if [ -z "$show_name" ]; then
+        show_name="官方直连"
+    fi
+    local status=${result%%|*}
+    local rest=${result#*|}
+    local speed=${rest%%|*}
+    case "$status" in ''|*[!0-9]*) status="000" ;; esac
+    case "$speed" in ''|*[!0-9.]*) speed="0" ;; esac
+
+    if [ "$status" = "200" ] || [ "$status" = "206" ]; then
+        _GH_ALIVE_PROXIES+=("$proxy")
+        local speed_mbps
+        speed_mbps=$(awk -v s="$speed" 'BEGIN{printf "%.2f", s/1024/1024}')
+        echo -e "  - 测速节点: ${show_name} ... \033[32m[存活, 速度: ${speed_mbps} MB/s]\033[0m" >&2
+        if awk -v s1="$speed" -v s2="$_GH_MAX_SPEED" 'BEGIN{if(s1>s2) exit 0; else exit 1}'; then
+            _GH_MAX_SPEED=$speed
+            if [ -z "$proxy" ]; then
+                _GH_BEST_CANDIDATE="direct"
+            else
+                _GH_BEST_CANDIDATE=$proxy
+            fi
+        fi
+    else
+        _GH_FAILED_PROXIES+=("$proxy")
+        echo -e "  - 测速节点: ${show_name} ... \033[31m[不可用或响应错]\033[0m" >&2
+    fi
+}
+
+# 获取最佳代理节点（测速后取带宽最大的节点；直连达标则提前结束）
 _gh_get_best_proxy() {
     if [ -n "$_GH_BEST_PROXY" ]; then
         echo "$_GH_BEST_PROXY"
         return 0
     fi
-    
-    echo -e "正在测速寻找最快的 GitHub 节点..." >&2
-    local best_proxy=""
-    local max_speed=0
-    
-    # 限制 3MB/s 提前退出 (3 * 1024 * 1024 = 3145728 字节/秒)
-    local speed_limit=3145728
-    
-    for proxy in "${_GH_PROXY_LIST[@]}"; do
-        local show_name=$proxy
-        if [ -z "$show_name" ]; then
-            show_name="官方直连"
+
+    # 1) 磁盘缓存：30 分钟内测过就直接复用（避免每个安装任务都重测一遍）
+    local cached
+    cached=$(_gh_speed_cache_load 2>/dev/null)
+    if [ -n "$cached" ]; then
+        export _GH_BEST_PROXY="$cached"
+        echo -e "  - 复用 30 分钟内的测速结果: ${cached}" >&2
+        echo "$_GH_BEST_PROXY"
+        return 0
+    fi
+
+    echo -e "正在测速寻找最快的 GitHub 节点（单节点最长 ${_GH_SPEED_TIMEOUT}s，每节点最多 512KB）..." >&2
+    _GH_MAX_SPEED=0
+    _GH_BEST_CANDIDATE=""
+    _GH_ALIVE_PROXIES=()
+    _GH_FAILED_PROXIES=()
+
+    # 2) 官方直连先单独测：快就直接收工，不扫代理
+    if _gh_check_direct; then
+        _gh_speed_apply "" "$(_gh_speed_probe "")"
+        if awk -v s="$_GH_MAX_SPEED" -v limit="$_GH_SPEED_FAST_LIMIT" 'BEGIN{if(s>=limit) exit 0; else exit 1}'; then
+            export _GH_BEST_PROXY="direct"
+            _gh_speed_cache_save "direct"
+            echo -e "  -> 官方直连已达 $(awk -v s="$_GH_MAX_SPEED" 'BEGIN{printf "%.2f", s/1024/1024}') MB/s，跳过代理轮询。" >&2
+            echo "$_GH_BEST_PROXY"
+            return 0
         fi
-        echo -n "  - 正在测速节点: $show_name ... " >&2
-        
-        # 使用真实的 release 压缩包进行测速
-        local test_url=$(_gh_proxy_url "$proxy" "https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz")
-        
-        # 增加 -L (跟随重定向) 和 %{speed_download} (提取速度字节/秒)，严格限制 5 秒超时，不落盘。
-        # 设定 LC_ALL=C 避免某些语种环境小数点变成逗号导致截断报错
-        local result=$(LC_ALL=C curl -s -L -o /dev/null -w "%{http_code}:%{speed_download}" -m 5 "$test_url" 2>/dev/null)
-        
-        local status=$(echo "$result" | cut -d: -f1)
-        local speed=$(echo "$result" | cut -d: -f2)
-        
-        if [ -z "$status" ]; then status="000"; fi
-        if [ -z "$speed" ]; then speed="0"; fi
-        
-        # 重定向后一般是 200 状态码
-        if [[ "$status" == "200" || "$status" == "206" ]]; then
-            _GH_ALIVE_PROXIES+=("$proxy")
-            # 把速度转为 MB/s，保留两位小数
-            local speed_mbps=$(awk -v s="$speed" 'BEGIN{printf "%.2f", s/1024/1024}')
-            echo -e "\033[32m[存活, 速度: ${speed_mbps} MB/s]\033[0m" >&2
-            
-            # 利用 awk 比较，选出速度最大(max_speed)的节点
-            if awk -v s1="$speed" -v s2="$max_speed" 'BEGIN{if(s1>s2) exit 0; else exit 1}'; then
-                max_speed=$speed
-                if [ -z "$proxy" ]; then
-                    best_proxy="direct"
-                else
-                    best_proxy=$proxy
-                fi
-            fi
-            
-            # 判断速度是否大于 3MB/s，如果是则提前退出
-            if awk -v s="$speed" -v limit="$speed_limit" 'BEGIN{if(s>=limit) exit 0; else exit 1}'; then
-                echo -e "  -> 节点速度 ${speed_mbps} MB/s 已大于阈值 3.00 MB/s，停止后续测速。" >&2
-                break
-            fi
-        else
-            _GH_FAILED_PROXIES+=("$proxy")
-            echo -e "\033[31m[不可用或响应错]\033[0m" >&2
-        fi
+    else
+        _GH_FAILED_PROXIES+=("")
+        echo -e "  - 测速节点: 官方直连 ... \033[31m[不可达]\033[0m" >&2
+    fi
+
+    # 3) 其余代理并行探测
+    local -a _plist=()
+    local _p
+    for _p in "${_GH_PROXY_LIST[@]}"; do
+        [ -z "$_p" ] && continue
+        _plist+=("$_p")
     done
-    
-    if [ -n "$best_proxy" ]; then
-        export _GH_BEST_PROXY="$best_proxy"
-        local final_speed_mbps=$(awk -v s="$max_speed" 'BEGIN{printf "%.2f", s/1024/1024}')
-        
-        local show_best=$best_proxy
+
+    if [ "${#_plist[@]}" -gt 0 ]; then
+        local _tmpdir=""
+        _tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/.yf_gh_speed.XXXXXX" 2>/dev/null)
+        if [ -n "$_tmpdir" ]; then
+            local -a _pids=()
+            local _i=0
+            for _p in "${_plist[@]}"; do
+                ( _gh_speed_probe "$_p" > "$_tmpdir/$_i" 2>/dev/null ) &
+                _pids+=("$!")
+                _i=$((_i + 1))
+            done
+            local _pid
+            for _pid in "${_pids[@]}"; do
+                wait "$_pid" 2>/dev/null
+            done
+            _i=0
+            for _p in "${_plist[@]}"; do
+                local _r="000|0|0"
+                [ -f "$_tmpdir/$_i" ] && _r=$(cat "$_tmpdir/$_i" 2>/dev/null)
+                [ -n "$_r" ] || _r="000|0|0"
+                _gh_speed_apply "$_p" "$_r"
+                _i=$((_i + 1))
+            done
+            rm -rf "$_tmpdir" 2>/dev/null
+        else
+            # 没有 mktemp 的极端环境：退回串行（探针已限流，成本仍远低于旧版）
+            for _p in "${_plist[@]}"; do
+                _gh_speed_apply "$_p" "$(_gh_speed_probe "$_p")"
+            done
+        fi
+    fi
+
+    if [ -n "$_GH_BEST_CANDIDATE" ]; then
+        export _GH_BEST_PROXY="$_GH_BEST_CANDIDATE"
+        _gh_speed_cache_save "$_GH_BEST_PROXY"
+        local final_speed_mbps
+        final_speed_mbps=$(awk -v s="$_GH_MAX_SPEED" 'BEGIN{printf "%.2f", s/1024/1024}')
+        local show_best=$_GH_BEST_PROXY
         if [ "$show_best" = "direct" ]; then
             show_best="官方直连"
         fi
@@ -140,7 +256,7 @@ _gh_get_best_proxy() {
         echo "$_GH_BEST_PROXY"
         return 0
     fi
-    
+
     echo -e "✗ 所有 GitHub 节点均探测失败，本次将使用 GitHub 官方直连" >&2
     export _GH_BEST_PROXY="direct"
     echo "$_GH_BEST_PROXY"
@@ -619,6 +735,9 @@ github_download() {
             return 0
         else
             echo "[github_download] ✗ 最佳节点下载失败，正在探测响应状态..."
+            # 测速缓存里的"最佳节点"已实际失败（节点挂了/被限流）：立刻作废缓存，
+            # 否则接下来 30 分钟内的每个安装任务都会先撞一次同一个节点。
+            rm -f "$_GH_SPEED_CACHE_FILE" 2>/dev/null
             local probe_code=$(LC_ALL=C curl -sL -m 5 -o/dev/null -w "%{http_code}" "$proxy_url" 2>/dev/null)
             if [ "$probe_code" = "404" ] || [ "$probe_code" = "410" ]; then
                 echo "[github_download] ✗ 目标资源不存在 (HTTP $probe_code Not Found)，终止所有代理轮询！" >&2
@@ -959,7 +1078,8 @@ function _yf_multi_curl() {
     local url=$1 out=$2 conns=$3 to=$4
     local size="" hdr=""
     hdr=$(curl -sIL -m 20 "$url" 2>/dev/null)
-    size=$(printf '%s' "$hdr" | awk 'tolower($1)=="content-length:" {v=$2} END{print v}' | tr -d '')
+    size=$(printf '%s' "$hdr" | awk 'tolower($1)=="content-length:" {v=$2} END{print v}' | tr -d '
+')
     case "$size" in ''|*[!0-9]*) size="" ;; esac
 
     # 小于 8MB 或拿不到长度：单线程 + 续传重试

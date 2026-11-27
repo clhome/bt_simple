@@ -1041,13 +1041,81 @@ def installPreInspection():
     return 'ok'
 
 
-if __name__ == "__main__":
+def getInstalledVersion():
+    """已装版本（完整上游号优先：1.31.9.1 / 1.31.1.1）。
 
-    version = '1.27.1'
+    旧安装的 version.pl 只有三段（1.31.1），也要原样返回 —— 版本比较与
+    「同系列三段号视为同版本」的兼容逻辑在 `core.openresty_release_index` 里。
+    """
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = yf.readFile(version_pl)
+        try:
+            ver = (yf.readFile(version_pl) or '').strip()
+            if ver:
+                return ver
+        except Exception as _e:
+            _log.debug('[openresty] 读取 version.pl 失败: %s', _e)
+    return ''
 
+
+def ensureVersionSyncTask():
+    """确保「御风软件版本在线同步」系统任务存在（打开本页即自愈一次）。
+
+    统一任务同时负责 JDK 与 OpenResty；`core.version_sync.ensure_task()` 自带
+    进程内节流，并会把历史 `[勿删]御风JDK在线版本同步` 平滑迁移过来。
+    """
+    try:
+        from core.version_sync import ensure_task
+        return bool(ensure_task())
+    except Exception as _e:
+        _log.debug('[openresty] ensureVersionSyncTask: %s', _e)
+        return False
+
+
+def versionInfo():
+    """服务页顶部「有新版本」提示条的数据源（**不联网**，只读缓存/内置表）。
+
+    不联网是有意的：每次进插件页都等上游 10 秒不可接受，且列表/首页也都走
+    同一份离线索引；真正的联网刷新由夜间同步任务负责。
+    """
+    installed = getInstalledVersion()
+    ensureVersionSyncTask()
+
+    data = {
+        'installed': installed,
+        'latest': '',
+        'needs_update': False,
+        'release_date': '',
+        'changelog': '',
+        'source': '',
+        'source_date': '',
+        'script_ready': False,
+    }
+    if not installed:
+        return yf.getJson(data)
+
+    try:
+        from core import openresty_release_index as idx
+        hint = idx.panel_hint(installed, yf.getPanelDataDir())
+        if hint:
+            data.update({
+                'latest': hint.get('latest') or '',
+                'needs_update': True,
+                'release_date': hint.get('release_date') or '',
+                'changelog': hint.get('changelog') or '',
+                'source': hint.get('source') or '',
+                'source_date': hint.get('source_date') or '',
+            })
+            # 顺手补齐新版本的安装脚本：否则用户点「更新」会落成一个缺脚本的失败任务
+            data['script_ready'] = bool(idx.ensure_version_script(getPluginDir(), data['latest']))
+    except Exception as _e:
+        _log.debug('[openresty] versionInfo 异常已忽略: %s', _e)
+        data['needs_update'] = False
+
+    return yf.getJson(data)
+
+
+if __name__ == "__main__":
 
     func = sys.argv[1]
     if func == 'status':
@@ -1068,6 +1136,8 @@ if __name__ == "__main__":
         print(initdUinstall())
     elif func == 'install_pre_inspection':
         print(installPreInspection())
+    elif func == 'version_info':
+        print(versionInfo())
     elif func == 'conf':
         print(getConf())
     elif func == 'get_os':

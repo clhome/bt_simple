@@ -567,6 +567,12 @@ def _php_branch_of(version):
 #: 目前只有 redis 声明，其它插件即使写了 `version_series` 也会因不在本元组而被忽略。
 SERIES_INDEX_PLUGINS = ('redis',)
 
+#: 「在线版本索引」插件：已装版本与上游最新版的差异不靠 `info.json.versions`
+#: （那是面板发版时的快照），而是靠 `core/openresty_release_index.py` 的离线索引。
+#: 夜间同步任务刷新索引后，软件列表/首页/插件页立刻能提示新版本，不必等面板发版。
+#: 扩展方式：新增版本索引模块后把插件名加进来，并实现对应的 `panel_hint()` 适配。
+ONLINE_VERSION_INDEX_PLUGINS = ('openresty',)
+
 
 def _redis_release_index():
     """惰性导入 Redis 发布索引模块。
@@ -918,6 +924,15 @@ class plugin(object):
         return kept
 
     def getIndexList(self, simple=False):
+        # 首页每次登录都会走这里：顺手确保「御风软件版本在线同步」系统任务存在
+        # （内部 6 小时节流，并会把历史 `[勿删]御风JDK在线版本同步` 平滑迁移过来）。
+        # 放在这里而不是只在 JDK 插件页：用户可能从不打开 JDK/OpenResty 插件页。
+        try:
+            from core.version_sync import ensure_task as _ensure_version_sync
+            _ensure_version_sync()
+        except Exception as _e:                  # noqa: BLE001 —— 自愈失败不能影响首页渲染
+            _log.debug('[plugin] 确保版本同步任务失败: %s', _e)
+
         indexList = thisdb.getOptionByJson('display_index', default=[])
         plist = []
         static_list = self.getStaticPluginList()
@@ -947,6 +962,12 @@ class plugin(object):
                         plist.append(p_copy)
                         break
 
+        # 首页数据也必须**每次重算**已装状态：`getStaticPluginList()` 是进程级缓存，
+        # 里面带着 build 那一刻的 `setup_version` / `online_update_to`。升级任务在后台
+        # 跑完后（version.pl 已变），若直接返回这份缓存，首页会一直挂着「新版本」角标
+        # —— 实测就是「要等一会儿（或重启面板）才消失」。与软件商店同口径：
+        # 先按 install_checks / version.pl 重算，再叠加状态缓存。
+        plist = self.refreshDynamicStatus(plist)
         plist = self.checkStatusMThreadsByCache(plist)
 
         if simple:
@@ -959,7 +980,9 @@ class plugin(object):
                     'status': item.get('status', False),
                     'display_status': item.get('display_status', True),
                     'coexist': item.get('coexist', False),
-                    'versions': item.get('versions', '')
+                    'versions': item.get('versions', ''),
+                    # 首页卡片「新版本」角标：只在真有待升级版本时带值（离线索引，不联网）
+                    'online_update_to': item.get('online_update_to', ''),
                 }
                 simple_list.append(simple_item)
             plist = simple_list
@@ -972,7 +995,9 @@ class plugin(object):
             return yf.returnData(False, 'ok')
 
         plugin_names = {
-            'openresty': '1.31.1',
+            # 新装默认给上游最新版（1.31.9.1，含 10 项 nginx 安全修复）；
+            # 旧版目录仍保留，老用户卸载/降级不受影响
+            'openresty': '1.31.9.1',
             'php': '80',
             'swap': '1.1',
             'mysql': '5.7',
@@ -1288,6 +1313,49 @@ class plugin(object):
         return pInfo
 
     @staticmethod
+    def _onlineApplyVersionHint(pInfo):
+        """给「在线版本索引」类插件挂上「上游已发布新版本」提示（**离线**，只读缓存）。
+
+        为什么需要：OpenResty 的补丁版（1.31.1.1 → 1.31.9.1，含 10 项 nginx
+        安全修复）比面板发版快得多，`info.json.versions` 写死的清单天然滞后。
+        离线索引由夜间「御风软件版本在线同步」刷新（`scripts/version_sync.py`），
+        这里只读 `data/openresty_release_index.json` + 内置表，绝不联网 —— 软件列表
+        是同步渲染路径，不能为它等网络（与 PHP/Redis 的提示同一口径）。
+
+        提示字段（前端 `soft.js` / 首页卡片直接用）：
+          * `online_update_to` —— 建议升级到的完整上游版本号；
+          * `online_update`    —— 对应元信息（发布日期、changelog、情报来源）。
+        """
+        pInfo.pop('online_update_to', None)
+        pInfo.pop('online_update', None)
+        name = str(pInfo.get('name') or '').strip().lower()
+        if name not in ONLINE_VERSION_INDEX_PLUGINS:
+            return pInfo
+        if pInfo.get('setup') is not True:
+            return pInfo
+        installed = str(pInfo.get('setup_version') or '').strip()
+        if not installed:
+            return pInfo
+        try:
+            from core import openresty_release_index as _idx
+            hint = _idx.panel_hint(installed, yf.getPanelDataDir())
+        except Exception as _e:                  # noqa: BLE001 —— 判定失败不能影响列表渲染
+            _log.debug('[plugin] 计算在线版本提示失败(%s): %s', name, _e)
+            return pInfo
+        if not hint:
+            return pInfo
+        pInfo['online_update_to'] = hint.get('latest') or ''
+        pInfo['online_update'] = {
+            'current': hint.get('installed') or installed,
+            'latest': hint.get('latest') or '',
+            'release_date': hint.get('release_date') or '',
+            'changelog': hint.get('changelog') or '',
+            'source': hint.get('source') or '',
+            'source_date': hint.get('source_date') or '',
+        }
+        return pInfo
+
+    @staticmethod
     def _giteaApplyVersionHint(pInfo):
         """给 Gitea 列表条目挂上更新状态信息（识别 28.x SemVer 与本地缓存）。
 
@@ -1444,6 +1512,24 @@ class plugin(object):
                             % (_name_l, version, _resolved))
             version = _resolved
 
+        # OpenResty：「夜间同步 → 提示可更新 → 点升级」这条链要求目标版本目录下的
+        # install.sh 已经存在。新版由 `core/openresty_release_index.ensure_version_script()`
+        # 按统一模板生成（构建配方在 versions/common/openresty_build.sh），面板不必
+        # 为每个上游补丁版重新发版。版本号已过白名单校验，这里只阻断生成失败。
+        if _name_l == 'openresty':
+            try:
+                from core import openresty_release_index as _ori
+                _o_script = _ori.ensure_version_script(yf.getPluginDir() + '/' + name, version)
+                if not _o_script:
+                    yf.writeFileLog('[plugin] openresty 版本安装脚本缺失且自动生成失败: '
+                                    'version=%s plugin_dir=%s'
+                                    % (version, yf.getPluginDir() + '/' + name))
+                    return yf.returnData(False, 'soft.openresty_script_missing')
+            except Exception as _oe:              # noqa: BLE001 —— 生成链路异常要明确报错而不是假成功
+                yf.writeFileLog('[plugin] openresty 版本安装脚本生成异常: version=%s err=%s'
+                                % (version, _oe))
+                return yf.returnData(False, 'soft.openresty_script_missing')
+
         # 发行版不支持的渠道（如 Debian 上装 php-yum）：前端已隐藏，接口再拦一道。
         # 「前端看不到按钮」不等于「接口调不到」——用户/NAT 脚本可以直接 POST。
         try:
@@ -1492,6 +1578,9 @@ class plugin(object):
         )
 
         self.hookInstall(info_data)
+        # 安装/升级提交后让进程级静态列表缓存失效：否则同 worker 后续请求仍拿着
+        # 提交前的快照（首页「新版本」角标、已装版本都靠它）。
+        self.__plugin_list_static_cache = None
         title = '{0}[{1}-{2}]'.format(msg_head,name,version)
         thisdb.addTask(name=title,cmd=exec_bash, status=0)
         yf.triggerTask()
@@ -1836,6 +1925,8 @@ class plugin(object):
 
         self._dbApplyEolHint(pInfo)
         self._seriesApplyVersionHint(pInfo)
+        self._giteaApplyVersionHint(pInfo)
+        self._onlineApplyVersionHint(pInfo)
 
         if 'install_pre_inspection' in info:
             pInfo['install_pre_inspection'] = info['install_pre_inspection']
@@ -1957,6 +2048,7 @@ class plugin(object):
             self._dbApplyEolHint(pInfo)
             self._seriesApplyVersionHint(pInfo)
             self._giteaApplyVersionHint(pInfo)
+            self._onlineApplyVersionHint(pInfo)
 
             display = False
             if coexist:

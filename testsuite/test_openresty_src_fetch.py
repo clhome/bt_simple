@@ -21,7 +21,7 @@ def find_posix_bash():
         if 'system32' in cand.lower() or 'windowsapps' in cand.lower():
             continue
         try:
-            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True, text=True, timeout=5)
+            proc = subprocess.run([cand, '-c', 'echo ok'], capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=5)
         except Exception:
             continue
         if proc.returncode == 0 and 'ok' in (proc.stdout or ''):
@@ -35,20 +35,30 @@ BASH = find_posix_bash()
 class TestOpenRestySrcFetch(unittest.TestCase):
 
     def setUp(self):
-        self.versions = ['1.17.8', '1.19.3', '1.21.4', '1.25.3', '1.27.1', '1.29.2', '1.31.1', 'rtmp']
+        self.versions = ['1.17.8', '1.19.3', '1.21.4', '1.25.3', '1.27.1', '1.29.2', '1.31.1',
+                         '1.31.9.1', 'rtmp']
 
     def test_src_fetch_script_exists(self):
         self.assertTrue(os.path.exists(src_fetch_script), "openresty_src_fetch.sh 必须存在")
 
     def test_all_versions_use_unified_src_fetch(self):
+        # 构建配方收敛到 common/openresty_build.sh 后：版本脚本是 source 它的薄封装，
+        # 「必须走统一源码获取器」这条契约由共享配方承担。
+        builder = os.path.join(common_dir, 'openresty_build.sh')
+        self.assertTrue(os.path.exists(builder), "共享构建配方必须存在")
+        with open(builder, 'r', encoding='utf-8') as f:
+            build_content = f.read()
+        self.assertIn("openresty_src_fetch.sh", build_content)
+        self.assertIn("yf_openresty_src_fetch", build_content)
+
         for v in self.versions:
             install_path = os.path.join(project_dir, 'plugins', 'openresty', 'versions', v, 'install.sh')
             self.assertTrue(os.path.exists(install_path), f"版本安装脚本应存在: {install_path}")
             with open(install_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            self.assertIn("openresty_src_fetch.sh", content, f"版本 {v} 必须引入 openresty_src_fetch.sh")
-            self.assertIn("yf_openresty_src_fetch", content, f"版本 {v} 必须调用 yf_openresty_src_fetch")
+            self.assertTrue("openresty_src_fetch.sh" in content or "openresty_build.sh" in content,
+                            f"版本 {v} 必须引入 openresty_src_fetch.sh 或复用共享构建配方")
             self.assertNotIn("mirrors.ustc.edu.cn", content, f"版本 {v} 严禁包含失效的 ustc 404 镜像")
             self.assertNotIn("-T 3\n", content, f"版本 {v} 严禁使用极易超时的 -T 3 短超时")
 
@@ -63,7 +73,7 @@ class TestOpenRestySrcFetch(unittest.TestCase):
             self.skipTest("本机没有可用的 POSIX bash")
         with open(src_fetch_script, 'r', encoding='utf-8') as f:
             script_code = f.read()
-        res = subprocess.run([BASH, '-n'], input=script_code, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run([BASH, '-n'], input=script_code, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', errors='replace')
         self.assertEqual(res.returncode, 0, f"openresty_src_fetch.sh bash 语法错误: {res.stderr}")
 
     @unittest.skipIf(BASH is None, '本机没有可用的 POSIX bash')
@@ -83,7 +93,7 @@ source "{posix_src}"
 yf_openresty_src_fetch "{posix_work}" "1.27.1.2"
 echo "exit_code=$?"
 '''
-            res = subprocess.run([BASH, '-c', test_script], capture_output=True, text=True)
+            res = subprocess.run([BASH, '-c', test_script], capture_output=True, text=True, encoding='utf-8', errors='replace')
             self.assertIn("exit_code=0", res.stdout, "已存在 configure 时必须直接幂等成功返回")
         finally:
             shutil.rmtree(work, ignore_errors=True)
@@ -106,7 +116,7 @@ curl() {{ return 1; }}
 wget() {{ return 1; }}
 yf_openresty_src_fetch "{posix_work}" "1.27.1.2"
 '''
-            res = subprocess.run([BASH, '-c', test_script], capture_output=True, text=True)
+            res = subprocess.run([BASH, '-c', test_script], capture_output=True, text=True, encoding='utf-8', errors='replace')
             self.assertFalse(os.path.exists(target_dir), "缺失 configure 的假目录必须在初始自愈阶段被强制清理")
             self.assertIn("检测到残缺源码目录", res.stdout)
         finally:

@@ -105,6 +105,8 @@
     "are_you_sure_you": "Êtes-vous sûr de vouloir [",
     "from": "】À partir de",
     "upgrade_to": "Passer à",
+    "online_update_tip": "Amont a publié {1} ; la mise à jour inclut les correctifs de sécurité",
+    "openresty_script_missing": "Script d'installation absent et génération échouée ; vérifiez les droits du dossier plugin",
     "eol_kind_eol": "EOL",
     "eol_kind_removed": "Retire",
     "eol_version_tip": "Cette version est EOL ; passez a la version LTS de la meme serie",

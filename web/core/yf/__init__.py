@@ -484,7 +484,12 @@ def getGithubProxyInfo(wait_if_testing=False):
         # 避免「代理列表加了新站、测速表还是旧的」导致新站永远选不上
         test_list = {name: prefix for prefix, name in _GITHUB_PROXY_NAMED}
         
-        test_url = "https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz"
+        # 测速探针：面板 release 下的**固定资产** + Range 只取前 512KB。
+        #   旧写法用整仓归档 `archive/refs/heads/master.tar.gz`：每次测速都让 GitHub
+        #   现场打包 tar.gz（慢、计入归档限流），且单节点要白下最多 5 秒的数据。
+        #   现在完全不再触发动态打包，且单节点流量上限 512KB。
+        #   与 scripts/github_download.sh::_GH_SPEED_TEST_URL 保持同源（改一处要同步另一处）。
+        test_url = "https://github.com/clhome/bt_simple/releases/download/v2.1.4/yf-panel-2.1.4.tar.gz"
         best_speed = -1.0
         best_name = "direct"
         best_url = ""
@@ -497,7 +502,7 @@ def getGithubProxyInfo(wait_if_testing=False):
         for name, prefix in test_list.items():
             try:
                 full_url = prefix + test_url if prefix == "" else prefix + test_url.replace("https://", "")
-                cmd = 'LC_ALL=C curl -s -L -o /dev/null -w "%{{http_code}}:%{{speed_download}}" -m 5 "{}"'.format(full_url)
+                cmd = 'LC_ALL=C curl -s -L -o /dev/null -w "%{{http_code}}:%{{speed_download}}" -r 0-524287 -m 4 "{}"'.format(full_url)
                 out, err = execShell(cmd)
                 
                 parts = out.strip().split(':')

@@ -1774,6 +1774,11 @@ var index = {
             // 自动更新左侧与顶部的排队任务总数（合并自原 getNet 的接口大合并逻辑）
             if (typeof(net.task_count) !== 'undefined') {
                 $(".task").text(net.task_count);
+                // 任务队列计数下降 = 某个安装/升级任务刚结束：派发 yf:tasks-changed，
+                // 由 public.js 的监听器重拉软件快照（否则「新版本」角标会一直挂着）
+                if (typeof yfWatchTaskIdle === 'function') {
+                    yfWatchTaskIdle(net.task_count);
+                }
             }
 
             //网络IO
