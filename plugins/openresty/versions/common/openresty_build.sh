@@ -379,6 +379,25 @@ Install_openresty()
 		mv -f "$serverPath/openresty/bin/openresty" "$serverPath/openresty/bin/openresty.bak"
 	fi
 
+	# 清理临时构建目录（正常完成或中途失败/爆盘中断均自动触发，避免数 GB 源码残留）
+	_yf_cleanup_build_dirs() {
+		local _d
+		for _d in \
+			"${openrestyDir}/pcre-${pcreVersion}" \
+			"${openrestyDir}/openssl-${opensslVersion}" \
+			"${openrestyDir}/jemalloc-${jemallocVersion}" \
+			"${openrestyDir}/ngx_cache_purge-master" \
+			"${openrestyDir}/nginx-http-concat-master" \
+			"${openrestyDir}/ngx_http_substitutions_filter_module-master" \
+			"${openrestyDir}/openresty-${VERSION}" \
+			"${openrestyDir}/zstd-nginx-module-master"; do
+			if [ -n "${_d}" ] && [ -d "${_d}" ]; then
+				rm -rf "${_d}" 2>/dev/null
+			fi
+		done
+	}
+	trap _yf_cleanup_build_dirs EXIT
+
 	CMD_MAKE=$(which gmake)
 	if [ "$?" == "0" ]; then
 		gmake -j"${cpuCore}" && gmake install && gmake clean
@@ -390,37 +409,8 @@ Install_openresty()
 		exit 1
 	fi
 
-	if [ -d "${openrestyDir}/pcre-${pcreVersion}" ]; then
-		rm -rf "${openrestyDir}/pcre-${pcreVersion}"
-	fi
-
-	if [ -d "${openrestyDir}/openssl-${opensslVersion}" ]; then
-		rm -rf "${openrestyDir}/openssl-${opensslVersion}"
-	fi
-
-	if [ -d "${openrestyDir}/jemalloc-${jemallocVersion}" ]; then
-		rm -rf "${openrestyDir}/jemalloc-${jemallocVersion}"
-	fi
-
-	if [ -d "${openrestyDir}/ngx_cache_purge-master" ]; then
-		rm -rf "${openrestyDir}/ngx_cache_purge-master"
-	fi
-
-	if [ -d "${openrestyDir}/nginx-http-concat-master" ]; then
-		rm -rf "${openrestyDir}/nginx-http-concat-master"
-	fi
-
-	if [ -d "${openrestyDir}/ngx_http_substitutions_filter_module-master" ]; then
-		rm -rf "${openrestyDir}/ngx_http_substitutions_filter_module-master"
-	fi
-
-	if [ -d "${openrestyDir}/openresty-${VERSION}" ]; then
-		rm -rf "${openrestyDir}/openresty-${VERSION}"
-	fi
-
-	if [ -d "${openrestyDir}/zstd-nginx-module-master" ]; then
-		rm -rf "${openrestyDir}/zstd-nginx-module-master"
-	fi
+	_yf_cleanup_build_dirs
+	trap - EXIT
 
 	# 写完整上游版本号（1.31.9.1）。外层 install.sh 看到它以 SERIES 开头就不会覆盖成
 	# 目录名 —— 否则 1.31.1.1 与 1.31.1.2 会同样落成 "1.31.1"，面板永远看不出补丁差。

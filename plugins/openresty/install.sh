@@ -30,6 +30,7 @@ if [ -f "${lockFile}" ];then
     pid=$(cat "${lockFile}")
     if ps -p $pid > /dev/null 2>&1; then
         echo "Another OpenResty installation is already running (PID: $pid). Exiting."
+        echo "[INFO] 后台已有 OpenResty 安装/升级任务正在运行，请等待其完成后再操作，切勿重复点击。"
         exit 1
     fi
 fi
@@ -58,6 +59,55 @@ yf_write_version_pl() {
 	echo "${VERSION}" > "$serverPath/openresty/version.pl"
 }
 
+# 编译前检查可用磁盘空间，防止编译到一半把根分区打满导致线上服务崩溃
+_yf_check_disk_space() {
+	local _min_mb="${YF_OPENRESTY_MIN_DISK_MB:-5120}"
+	local _check_dir="${openrestyDir}"
+	while [ ! -d "${_check_dir}" ] && [ "${_check_dir}" != "/" ]; do
+		_check_dir=$(dirname "${_check_dir}")
+	done
+	local _free_kb
+	_free_kb=$(df -Pk "${_check_dir}" 2>/dev/null | awk 'NR==2 {print $4}')
+	if [ -n "${_free_kb}" ] && [ "${_free_kb}" -gt 0 ] 2>/dev/null; then
+		local _free_mb=$((_free_kb / 1024))
+		if [ "${_free_mb}" -lt "${_min_mb}" ]; then
+			echo "[ERROR] 磁盘可用空间不足：编译 OpenResty 建议至少预留 ${_min_mb}MB，当前 ${_check_dir} 所在分区仅剩 ${_free_mb}MB。" >&2
+			echo "        请先清理 ${serverPath}/source/ 等历史缓存后重试，已中止操作（现有服务未受影响）。" >&2
+			return 1
+		fi
+	fi
+	return 0
+}
+
+# 编译或启动失败时还原升级前的 nginx.bak / openresty.bak 并尝试恢复服务
+_yf_openresty_rollback() {
+	if [ ! -f "${serverPath}/openresty/nginx/sbin/nginx.bak" ]; then
+		return 1
+	fi
+	echo "[WARN] 尝试回滚到升级前的二进制并重新启动..." >&2
+	[ -f "${serverPath}/openresty/nginx/sbin/nginx" ] && mv -f "${serverPath}/openresty/nginx/sbin/nginx" "${serverPath}/openresty/nginx/sbin/nginx.failed" 2>/dev/null
+	mv -f "${serverPath}/openresty/nginx/sbin/nginx.bak" "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
+	chmod +x "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
+	if [ -f "${serverPath}/openresty/bin/openresty.bak" ]; then
+		[ -f "${serverPath}/openresty/bin/openresty" ] && mv -f "${serverPath}/openresty/bin/openresty" "${serverPath}/openresty/bin/openresty.failed" 2>/dev/null
+		mv -f "${serverPath}/openresty/bin/openresty.bak" "${serverPath}/openresty/bin/openresty" 2>/dev/null
+		chmod +x "${serverPath}/openresty/bin/openresty" 2>/dev/null
+	fi
+	if [ -n "${_old_ver}" ]; then
+		echo "${_old_ver}" > "${serverPath}/openresty/version.pl"
+	fi
+	local _rb_out _rb_status
+	_rb_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" start 2>&1)
+	echo "${_rb_out}"
+	_rb_status=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" status 2>/dev/null)
+	if [ "${_rb_status}" = "start" ]; then
+		echo "[WARN] 已回滚到 ${_old_ver:-升级前版本} 并恢复服务；请先排查上方失败原因再升级" >&2
+		return 0
+	fi
+	echo "[ERROR] 回滚后仍未启动，请检查 ${serverPath}/openresty/nginx/logs/error.log" >&2
+	return 1
+}
+
 if id www &> /dev/null ;then 
     echo "www uid is `id -u www`"
     echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
@@ -67,9 +117,11 @@ else
 fi
 
 if [ "${action}" == "upgrade" ];then
-	sh -x $curPath/versions/$2/install.sh $1
+	_yf_check_disk_space || exit 1
+	sh $curPath/versions/$2/install.sh $1
 	if [ "$?" != "0" ];then
-		echo "Sub-script install.sh failed!"
+		echo "Sub-script install.sh failed!" >&2
+		_yf_openresty_rollback
 		exit 1
 	fi
 	
@@ -81,6 +133,12 @@ if [ "${action}" == "upgrade" ];then
 	#初始化 
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
+	_svc_status=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" status 2>/dev/null)
+	if [ "${_svc_status}" != "start" ]; then
+		echo "[ERROR] OpenResty 升级后未能保持运行（status=${_svc_status:-unknown}）" >&2
+		_yf_openresty_rollback
+		exit 1
+	fi
 	exit 0
 fi
 
@@ -116,6 +174,7 @@ fi
 # 预检做两件事：先把缺失的 PHP 配置补成占位（该站点 .php 返回 503，不拖垮全局），
 # 若仍不通过且是升级，则**在停服前中止**——宁可暂不升，也不要把还在跑的服务弄挂。
 if [ "${action}" == "install" ] || [ "${action}" == "upgrade" ];then
+	_yf_check_disk_space || exit 1
 	if [ -x "${serverPath}/openresty/nginx/sbin/nginx" ]; then
 		_yf_precheck_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" conf_precheck 2>&1)
 		case "${_yf_precheck_out}" in
@@ -146,9 +205,10 @@ if [ "${action}" == "install" ] || [ "${action}" == "upgrade" ];then
 	pkill -9 openresty 2>/dev/null
 fi
 
-sh -x $curPath/versions/$2/install.sh $1
+sh $curPath/versions/$2/install.sh $1
 if [ "$?" != "0" ];then
-	echo "Sub-script install.sh failed!"
+	echo "Sub-script install.sh failed!" >&2
+	_yf_openresty_rollback
 	exit 1
 fi
 
@@ -177,23 +237,7 @@ if [ "${action}" == "install" ] && [ -d $serverPath/openresty ];then
 		echo "[ERROR] OpenResty 已安装但未能保持运行（status=${_svc_status:-unknown}）" >&2
 		# 回滚：构建脚本会把旧二进制备份为 nginx.bak，恢复它并重试启动，
 		# 保证「升级失败 ≠ 站点下线」。version.pl 也要改回旧值。
-		if [ -f "${serverPath}/openresty/nginx/sbin/nginx.bak" ]; then
-			echo "[WARN] 尝试回滚到升级前的二进制并重新启动..." >&2
-			mv -f "${serverPath}/openresty/nginx/sbin/nginx" "${serverPath}/openresty/nginx/sbin/nginx.failed" 2>/dev/null
-			mv -f "${serverPath}/openresty/nginx/sbin/nginx.bak" "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
-			chmod +x "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
-			if [ -n "${_old_ver}" ]; then
-				echo "${_old_ver}" > "${serverPath}/openresty/version.pl"
-			fi
-			_rb_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" start 2>&1)
-			echo "${_rb_out}"
-			_rb_status=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" status 2>/dev/null)
-			if [ "${_rb_status}" = "start" ]; then
-				echo "[WARN] 已回滚到 ${_old_ver:-升级前版本} 并恢复服务；请先修复上方配置问题再升级" >&2
-				exit 1
-			fi
-			echo "[ERROR] 回滚后仍未启动，请检查 ${serverPath}/openresty/nginx/logs/error.log" >&2
-		fi
+		_yf_openresty_rollback
 		exit 1
 	fi
 fi
