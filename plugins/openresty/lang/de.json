@@ -82,5 +82,7 @@
     "已提交升级任务，正在后台编译...": "Upgrade gestartet, kompiliere im Hintergrund...",
     "升级任务已提交，可在消息盒子查看进度": "Upgrade gestartet. Fortschritt in Nachrichten.",
     "提交升级任务失败": "Upgrade konnte nicht gestartet werden",
-    "OpenResty 已升级到 {1}": "OpenResty aktualisiert auf {1}"
+    "OpenResty 已升级到 {1}": "OpenResty aktualisiert auf {1}",
+    "跨大版本升级：建议先备份站点配置": "Hauptversions-Upgrade: zuerst Website-Konfiguration sichern",
+    "已安装版本记录为 {1}，但当前二进制是 {2}，请重新安装。": "Eingetragen {1}, Binärdatei aber {2}; bitte neu installieren."
 }

@@ -106,6 +106,7 @@
     "from": "] von",
     "upgrade_to": "Aktualisieren auf",
     "online_update_tip": "Upstream hat {1} veröffentlicht; Upgrade enthält aktuelle Sicherheitsfixes",
+    "cross_major_tip": "Hauptversions-Upgrade kann Konfiguration/Module ändern; vorher sichern",
     "openresty_script_missing": "Installationsskript fehlt und Erzeugung fehlgeschlagen; Plugin-Rechte prüfen",
     "eol_kind_eol": "EOL",
     "eol_kind_removed": "Ausgemustert",

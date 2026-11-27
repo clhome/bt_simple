@@ -3824,6 +3824,7 @@ var lan = {
 			"from":"】À partir de",
 			"upgrade_to":"Passer à",
 			"online_update_tip": "Amont a publié {1} ; la mise à jour inclut les correctifs de sécurité",
+			"cross_major_tip": "Une montée majeure peut changer la configuration/les modules ; sauvegardez d'abord",
 			"openresty_script_missing": "Script d'installation absent et génération échouée ; vérifiez les droits du dossier plugin",
 			"eol_kind_eol": "EOL",
 			"eol_kind_removed": "Retire",

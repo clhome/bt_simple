@@ -140,3 +140,77 @@ GitHub 加速节点测速，样本 URL 被硬编码成面板仓库整仓归档�
       （`public.js` 里补 `addEventListener` 能力判断）；`test_github_download_optimization::test_04`
       用 `curl(){ printf '404'; }` 固定返回，不再受真实代理波动影响
 - [x] 8. 全量门禁：357 模块 / 4590 用例 / 4 项静态门禁 全绿
+
+---
+
+## 追加任务：OpenResty 大版本（1.x → 2.x）升级的提前适配（2026-11-27）
+
+**背景**：新版本检测上线后，若上游从 1.x 跳到 2.x，原来有三处会「看起来正常、实际有问题」：
+
+1. 严格解析只认 4 段版本号；上游若改成 `2.0.0`（三段）/`2.0.1.1-lts`/`-rc1`，会因为页面还有旧的
+   1.31.x 而**解析成功但漏掉大版本**（不报错）；
+2. `checkSetupTask()` / `refreshDynamicStatus()` 只用 `info.json.versions` 匹配任务标题 →
+   `安装[openresty-2.0.0.1]` 不显示「正在安装」，用户可能重复提交（脚本锁会挡，但体验差）；
+3. 安装下拉与面板初始化推荐版本都来自 `info.json.versions`（快照）→ 能升级到 2.x，但**新装选不到 2.x**；
+   跨大版本升级也没有「先备份」提示。
+
+**改造（已验收）**：
+
+- [x] 1. `openresty_release_index.parse_listing_unsupported()`：收集「像 OpenResty 包但版本号不合规」的条目
+      （排除 `ngx_openresty-*`），`refresh()/sync_versions()` 透传；夜间同步任务打印
+      `[WARN] 上游出现无法识别的版本号，面板未采信: …`（不再静默漏大版本）
+- [x] 2. `plugin.py::_appendOnlineVersion()`：把在线索引的最新正式版**并入 `versions`**
+      （数值比较、幂等、绝不降级、只对 openresty），并在 `makePluginInfo()` 与
+      `refreshDynamicStatus()` 两处调用 → 安装下拉、初始化推荐版本、任务状态匹配三者对齐
+- [x] 3. `plugin.py::_openresty_recommended_version()`：面板初始化推荐版本改为「离线索引最新（回退 1.31.9.1）」
+- [x] 4. 跨大版本文案：软件商店 tooltip/确认框（`soft.cross_major_tip`，6 语言）+
+      OpenResty 服务页黄条与确认框（插件语言包 6 语言）
+- [x] 5. 守卫用例：`testsuite/test_openresty_version_sync.py` 新增 4 例（无法识别格式告警 + 日志透传、
+      versions 合并幂等/不降级、2.x 提示与任务匹配、跨大版本文案与 6 语言键）
+- [x] 6. 性能复核：`getIndexList` 仍为 ~2.1–2.3ms（合并索引只是一次小 JSON 读取）
+- [x] 7. 全量门禁：**357 模块 / 4594 用例 / 4 项静态门禁 全绿**
+
+**仍只能等 2.x 真发布再做的事**：`openresty_build.sh` 的 configure 选项/附加模块 master 分支/OpenSSL 版本
+与 2.x 的实际兼容性（编译失败会显式 exit 1，不会假成功），以及 2.x 的 changelog 页规则。
+
+---
+
+## 追加任务：升级后起不来 / 装错目录的适配与自愈（2026-11-27 真机两例）
+
+**现场**：一台升级后正常，另一台起不来，日志：
+```
+nginx: [emerg] open() "/www/server/web_conf/php/conf/enable-php-apt7.1.conf"
+       failed (2: No such file or directory) in .../qouzhou.qzuiouio.com.conf:23
+nginx: configuration file /www/server/openresty/nginx/conf/nginx.conf test failed
+```
+
+**同时发现第二个更严重的 bug**：构建脚本把面板根当成了 `serverPath`（少算一层），
+二进制实际装到 `<面板根>/openresty`，面板却看 `<serverPath>/openresty`
+→ 表现是「version.pl 写着 1.31.9.1，实际跑的还是旧二进制」，另一台“成功”的机器
+很可能是这种情况（需要用 `nginx -v` 核实）。
+
+**改造**：
+
+- [x] 1. **路径修正**（`versions/common/openresty_build.sh`）：`serverPath = dirname(面板根)`，
+      `rootPath = 面板根`，与 `yf.getServerDir()` 对齐；并加历史误装目录告警
+- [x] 2. **幂等判定加二进制复核**：`version.pl` 相同也要 `nginx -v` 版本对得上才“已安装”，
+      否则强制重编（修「装错目录/编译失败却写了版本号」的永远修不好）
+- [x] 3. **启动路径接入 PHP 占位自愈**：`restyOp()` / `restyOp_restart()` 改用
+      `yf.checkWebConfig()`（扫 vhost 补 `enable-php-*.conf` stub → 该站点 .php 返回 503，
+      不再拖垮全局；再按 `nginx -t` 报错动态补，最多 5 次）
+- [x] 4. **启动复核**：systemctl 返回 0 不等于起来了 → 以 pid + 进程存活为准（`status()`），
+      否则报「已下发启动命令但进程未保持运行」并附 journalctl/error.log
+- [x] 5. **升级前预检**（`install.sh` + `index.py conf_precheck`）：停服前先自愈+语法检查；
+      升级场景预检不通过则**中止升级**（现有服务保持运行）
+- [x] 6. **失败自动回滚**：新二进制起不来 → 恢复 `nginx.bak` + 还原 `version.pl` 并重启，
+      回滚成功也如实把任务标记为失败（不会假装成功）
+- [x] 7. **版本记录 vs 二进制交叉核对**：`version_info` 增加 `binary_version` /
+      `version_mismatch`，服务页黄条提示「记录为 X，实际二进制 Y，请重新安装」
+- [x] 8. 新增 `testsuite/test_openresty_start_selfheal.py`（11 例：stub 内容/扫描修复、
+      启动路径接线、预检顺序、回滚、路径推导真跑、二进制复核、版本不一致提示 + 6 语言）
+- [x] 9. 全量门禁：**358 模块 / 4605 用例 / 4 项静态门禁 全绿**
+
+**两台上线机型的恢复步骤**（写进交付说明）：
+1. 先 `.../openresty/nginx/sbin/nginx -v` 核实真实版本（别只看面板）；
+2. 部署新代码后在软件商店点一次「更新/重装」— 路径已修正、缺失 PHP 占位会被自动补；
+3. 运行正常后手工删除历史误装目录 `<面板根>/openresty` 与 `<面板根>/source/openresty`。

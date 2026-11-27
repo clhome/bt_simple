@@ -39,6 +39,13 @@ trap "rm -f ${lockFile}" EXIT
 VERSION=$2
 openrestyDir=${serverPath}/source/openresty
 
+# 升级前先把当前版本号记下来：若新二进制启动失败，回滚时要把 version.pl 改回去，
+# 否则面板会以为已经升级完成（历史上正是这么“显示成功但实际在跑旧版”的）。
+_old_ver=""
+if [ -f "${serverPath}/openresty/version.pl" ]; then
+	_old_ver=$(cat "${serverPath}/openresty/version.pl" 2>/dev/null)
+fi
+
 # 版本脚本会写**完整上游版本号**（1.31.9.1 / 1.31.1.1）。这里只在其缺失或与本次
 # 安装目录无关时才回填目录名（历史行为），否则覆盖会让 1.31.1.1 与 1.31.1.2
 # 都落成 "1.31.1"，面板看不出补丁差异。
@@ -102,6 +109,29 @@ if [ "${action}" == "uninstall" ];then
 	rm -rf $serverPath/openresty
 fi
 
+# 升级/安装前预检：站点配置语法 + 缺失 enable-php-*.conf 占位自愈。
+# 为什么需要（真机 2026-11-27）：用户卸载/降级过 PHP，站点 vhost 里的
+# `include .../web_conf/php/conf/enable-php-apt7.1.conf` 还指着已不存在的文件。
+# 旧进程带着旧配置还能跑，一旦升级（停服→换二进制→启动）就再也起不来。
+# 预检做两件事：先把缺失的 PHP 配置补成占位（该站点 .php 返回 503，不拖垮全局），
+# 若仍不通过且是升级，则**在停服前中止**——宁可暂不升，也不要把还在跑的服务弄挂。
+if [ "${action}" == "install" ] || [ "${action}" == "upgrade" ];then
+	if [ -x "${serverPath}/openresty/nginx/sbin/nginx" ]; then
+		_yf_precheck_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" conf_precheck 2>&1)
+		case "${_yf_precheck_out}" in
+			ERROR*)
+				if [ -n "${_old_ver}" ]; then
+					echo "[ERROR] 升级前配置预检未通过，已中止（现有服务保持运行、未做任何改动）：" >&2
+					echo "${_yf_precheck_out}" >&2
+					exit 1
+				fi
+				echo "[WARN] 配置预检未通过（首次安装继续，安装后会再次自愈并尝试启动）：" >&2
+				echo "${_yf_precheck_out}" >&2
+				;;
+		esac
+	fi
+fi
+
 # 编译安装或升级前，强力停止并清退所有旧的 nginx/openresty 进程，杜绝 80 端口冲突或 Text file busy 故障
 if [ "${action}" == "install" ] || [ "${action}" == "upgrade" ];then
 	if [ -f /usr/lib/systemd/system/openresty.service ] || [ -f /lib/systemd/system/openresty.service ];then
@@ -129,6 +159,41 @@ if [ "${action}" == "install" ] && [ -d $serverPath/openresty ];then
 	echo 'set $PHP_ENV 0;' > $serverPath/web_conf/php/conf/enable-php-00.conf
 
 	#初始化 
-	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py start
-	cd ${rootPath} && python3 ${rootPath}/plugins/openresty/index.py initd_install
+	# 顺序：先 start（restyOp 内部会写 systemd unit）再 initd_install（systemctl enable）——
+	# 反过来会在 unit 还没写入时 enable 失败，白报一句「设置开机自启失败」。
+	_start_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" start 2>&1)
+	echo "${_start_out}"
+	_initd_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" initd_install 2>&1)
+	echo "${_initd_out}"
+
+	# 启动复核：start 可能在配置自愈失败时返回 ERROR，也可能 systemd 返回 0 后进程立即退出。
+	# 以「pid + 进程存活」为准（index.py status），不信任退出码。
+	if [ ! -f "${serverPath}/openresty/nginx/sbin/nginx" ]; then
+		echo "[ERROR] 安装结束后仍找不到 nginx 二进制，安装失败" >&2
+		exit 1
+	fi
+	_svc_status=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" status 2>/dev/null)
+	if [ "${_svc_status}" != "start" ]; then
+		echo "[ERROR] OpenResty 已安装但未能保持运行（status=${_svc_status:-unknown}）" >&2
+		# 回滚：构建脚本会把旧二进制备份为 nginx.bak，恢复它并重试启动，
+		# 保证「升级失败 ≠ 站点下线」。version.pl 也要改回旧值。
+		if [ -f "${serverPath}/openresty/nginx/sbin/nginx.bak" ]; then
+			echo "[WARN] 尝试回滚到升级前的二进制并重新启动..." >&2
+			mv -f "${serverPath}/openresty/nginx/sbin/nginx" "${serverPath}/openresty/nginx/sbin/nginx.failed" 2>/dev/null
+			mv -f "${serverPath}/openresty/nginx/sbin/nginx.bak" "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
+			chmod +x "${serverPath}/openresty/nginx/sbin/nginx" 2>/dev/null
+			if [ -n "${_old_ver}" ]; then
+				echo "${_old_ver}" > "${serverPath}/openresty/version.pl"
+			fi
+			_rb_out=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" start 2>&1)
+			echo "${_rb_out}"
+			_rb_status=$(cd "${rootPath}" && python3 "${rootPath}/plugins/openresty/index.py" status 2>/dev/null)
+			if [ "${_rb_status}" = "start" ]; then
+				echo "[WARN] 已回滚到 ${_old_ver:-升级前版本} 并恢复服务；请先修复上方配置问题再升级" >&2
+				exit 1
+			fi
+			echo "[ERROR] 回滚后仍未启动，请检查 ${serverPath}/openresty/nginx/logs/error.log" >&2
+		fi
+		exit 1
+	fi
 fi

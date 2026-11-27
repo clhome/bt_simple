@@ -36,13 +36,22 @@ export PATH
 
 # 路径一律按**脚本自身位置**解析，不依赖 `pwd`：面板以 `cd <插件目录> && bash install.sh`
 # 调用，但运维手工 `bash versions/1.31.9.1/install.sh install` 时 cwd 是随机的。
+#
+# 目录层级必须与面板一致（`yf.getServerDir()` 是面板根目录的**上一级**）：
+#   <serverPath>/openresty           ← 面板识别的安装根（version.pl / nginx/sbin/nginx）
+#   <serverPath>/source/openresty    ← 源码/依赖缓存
+#   <YF_PANEL_DIR>/scripts/…         ← 面板自带的下载/编译辅助库
+# 注：2026-11-27 曾在这里少算一层（把面板根当成 serverPath），导致二进制装到
+# `<面板根>/openresty` 而面板仍去看 `<serverPath>/openresty` —— 升级后「显示已升级、
+# 实际还是旧二进制」，且启动用的是旧二进制。已修正，并加了下方的冒充检查。
 _build_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)      # .../versions/common
 _versions_dir=$(dirname "${_build_dir}")                      # .../versions
 _plugin_dir=$(dirname "${_versions_dir}")                      # .../openresty
-rootPath=$(dirname "${_plugin_dir}")                           # .../plugins
-serverPath=$(dirname "${rootPath}")                            # .../server
+_plugins_dir=$(dirname "${_plugin_dir}")                        # .../plugins
+YF_PANEL_DIR=$(dirname "${_plugins_dir}")                      # 面板根目录（.../yufeng_panel）
+rootPath=${YF_PANEL_DIR}                                       # 与原版本脚本同名
+serverPath=$(dirname "${YF_PANEL_DIR}")                        # 面板的 server 根（/www/server）
 curPath=${_plugin_dir}
-YF_PANEL_DIR=$(dirname "${rootPath}")                          # 面板根目录
 
 # make 并发自适应（1C512M 机器 -j1），与面板其它插件同一套
 for _yf_jobs_lib in "${YF_PANEL_DIR}/scripts/lib_make_jobs.sh" \
@@ -113,15 +122,42 @@ _yf_ver_ge() {
 	return 0
 }
 
+# 校验「已装二进制」是否真的对应当前目标版本。
+# 防的是这类历史事故：version.pl 被写成 1.31.9.1，但 nginx/sbin/nginx 还是旧的
+# 1.31.1（例如上次装错目录 / 编译失败却写了版本号）——只看 version.pl 会误判“已安装”
+# 并直接 exit 0，导致面板永远修不好。`nginx -v` 形如 `nginx version: openresty/1.31.9.1`。
+_yf_openresty_bin_matches() {
+	local _bin="${serverPath}/openresty/nginx/sbin/nginx"
+	[ -x "${_bin}" ] || return 1
+	local _out
+	_out=$("${_bin}" -v 2>&1)
+	case "${_out}" in
+		*"${VERSION}"*) return 0 ;;
+	esac
+	case "${_out}" in
+		*"${SERIES}"*) return 0 ;;
+	esac
+	return 1
+}
+
 Install_openresty()
 {
+	# 历史误装警告：曾把安装根算成面板根（<面板>/openresty），那份目录面板不会使用。
+	if [ "${YF_PANEL_DIR}" != "${serverPath}" ] && [ -d "${YF_PANEL_DIR}/openresty/nginx/sbin" ]; then
+		echo "[WARN] 检测到历史误装的 OpenResty 目录（面板不会使用）: ${YF_PANEL_DIR}/openresty" >&2
+		echo "[WARN] 确认本次安装正常后，可手工删除该目录释放空间" >&2
+	fi
+
 	if [ "${action}" == "install" ]; then
 		if [ -d "$serverPath/openresty" ] && [ -f "$serverPath/openresty/version.pl" ]; then
 			CURRENT_VERSION=$(cat "$serverPath/openresty/version.pl" 2>/dev/null)
-			# 已是同一版本（完整号，或历史版本脚本只写了三段号）→ 幂等返回
+			# 已是同一版本（完整号，或历史版本脚本只写了三段号）→ 还要复核二进制
 			if [ "${CURRENT_VERSION}" == "${VERSION}" ] || [ "${CURRENT_VERSION}" == "${SERIES}" ]; then
-				echo "OpenResty ${VERSION} is already installed."
-				exit 0
+				if _yf_openresty_bin_matches; then
+					echo "OpenResty ${VERSION} is already installed."
+					exit 0
+				fi
+				echo "[WARN] version.pl 记录 ${CURRENT_VERSION}，但 nginx 二进制版本不匹配，重新编译安装" >&2
 			fi
 		fi
 	fi

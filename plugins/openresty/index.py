@@ -598,11 +598,16 @@ def restyOp(method):
     if not file:
         return 'ERROR: openresty 初始化脚本模板缺失'
 
-    # 启动时,先检查一下配置文件
-    check = getRestyBin() + " -t"
-    check_data = yf.execShell(check)
-    if not check_data[1].find('test is successful') > -1:
-        return check_data[1]
+    # 启动前：配置检测 + 「缺失 PHP 占位配置」自愈（与面板站点管理同一套逻辑）。
+    # 为什么不能用裸 `nginx -t`：用户卸载/降级 PHP 之后，站点 vhost 里的
+    # `include .../web_conf/php/conf/enable-php-<ver>.conf` 仍指向已不存在的文件。
+    # 旧进程带着旧配置还能跑，一旦停服/升级重新读配置，nginx 就直接起不来
+    # （真机 2026-11-27：`enable-php-apt7.1.conf` 缺失 → 整站不可用）。
+    # checkWebConfig() 会先扫 vhost 补 stub（PHP 已卸载的站点返回 503，而不拖垮全局），
+    # 再按 `nginx -t` 报错动态补，最多重试 5 次。
+    check_res = yf.checkWebConfig()
+    if check_res is not True:
+        return str(check_res)
 
     current_os = yf.getOs()
     if current_os == "darwin":
@@ -619,8 +624,19 @@ def restyOp(method):
 
     data = yf.execShell('systemctl ' + method + ' openresty')
     if data[1] == '':
+        # systemctl 退出码 0 不等于「nginx 真起来了」（unit 先返回、worker 再因
+        # 配置/端口问题退出）。start/restart 必须拿 pid + 进程存活复核一遍，
+        # 否则升级任务会报「成功」而站点其实是 down 的。
+        if method in ('start', 'restart'):
+            for _i in range(6):
+                if status() == 'start':
+                    return 'ok'
+                time.sleep(0.5)
+            err_detail = getSystemdErrorDetail()
+            return ('ERROR: OpenResty 已下发启动命令，但进程未保持运行（请查看下方日志）'
+                    + "\n" + err_detail)
         return 'ok'
-    
+
     # 启动失败时追加最详尽的日志细节，让用户秒懂错误原因
     err_detail = getSystemdErrorDetail()
     return data[1] + "\n" + err_detail
@@ -650,11 +666,10 @@ def restyOp_restart():
     if not file:
         return 'ERROR: openresty 初始化脚本模板缺失'
 
-    # 启动时,先检查一下配置文件
-    check = getRestyBin() + " -t"
-    check_data = yf.execShell(check)
-    if not check_data[1].find('test is successful') > -1:
-        return 'ERROR: 配置出错<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
+    # 启动前：配置语法 + 缺失 PHP 占位自愈（与 start 同一套逻辑，避免重启才暴露问题）
+    check_res = yf.checkWebConfig()
+    if check_res is not True:
+        return 'ERROR: 配置出错<br><a style="color:red;">' + str(check_res).replace("\n", '<br>') + '</a>'
 
     if not yf.isAppleSystem():
         threading.Timer(2, op_submit_systemctl_restart).start()
@@ -1041,6 +1056,27 @@ def installPreInspection():
     return 'ok'
 
 
+def confPrecheck():
+    """升级/安装前预检：配置语法 + 缺失 PHP 占位自愈（**不启动服务**）。
+
+    用**当前已装**的二进制跑 `nginx -t`，只回答一个问题：「这套站点配置换完二进制
+    能不能起来」。核心目的是先落实 enable-php-*.conf 占位自愈，而不是等编译 20 分钟
+    之后才发现 nginx 起不来（真机 2026-11-27）。未安装时直接返回 ok（无配置可检）。
+
+    返回 'ok' 或 'ERROR: ...'（install.sh 根据前缀判定）。
+    """
+    if not isInstalled():
+        return 'ok'
+    try:
+        res = yf.checkWebConfig()
+    except Exception as e:                     # noqa: BLE001 —— 预检失败要如实输出，不能静默
+        _log.debug('[openresty] confPrecheck 异常: %s', e)
+        return 'ERROR: ' + str(e)
+    if res is not True:
+        return 'ERROR: ' + str(res)
+    return 'ok'
+
+
 def getInstalledVersion():
     """已装版本（完整上游号优先：1.31.9.1 / 1.31.1.1）。
 
@@ -1072,6 +1108,25 @@ def ensureVersionSyncTask():
         return False
 
 
+def getBinaryVersion():
+    """当前 nginx 二进制真实版本（`nginx -v` → `openresty/1.31.9.1`）。
+
+    为何需要：`version.pl` 只是**记录**，可能与实际二进制不一致（装错目录 /
+    编译失败却写了版本号）。不一致时面板会“显示已升级、实际还在跑旧版”，
+    这是安全修复能否落地的事实层面问题 —— 必须让界面能看出来。
+    """
+    try:
+        if not os.path.exists(getRestyBin()):
+            return ''
+        rc, out, err = yf.execShellRc([getRestyBin(), '-v'])
+        text = (out or '') + (err or '')
+        m = re.search(r'(?:openresty|nginx)/([0-9][0-9A-Za-z.\-]*)', text)
+        return m.group(1).strip() if m else ''
+    except Exception as _e:                      # noqa: BLE001 —— 探测失败不影响页面
+        _log.debug('[openresty] getBinaryVersion 异常: %s', _e)
+        return ''
+
+
 def versionInfo():
     """服务页顶部「有新版本」提示条的数据源（**不联网**，只读缓存/内置表）。
 
@@ -1090,9 +1145,23 @@ def versionInfo():
         'source': '',
         'source_date': '',
         'script_ready': False,
+        'binary_version': '',
+        'version_mismatch': False,
     }
     if not installed:
         return yf.getJson(data)
+
+    # 记录值与二进制实际版本交叉核对（只比前 3 段：OpenResty 的 version.pl 可能写
+    # 1.31.9.1 而 `nginx -v` 报 1.31.9，同属一个 nginx 核心版本）。
+    bin_ver = getBinaryVersion()
+    data['binary_version'] = bin_ver
+    if bin_ver:
+        def _core3(v):
+            return '.'.join(str(v).split('.')[:3])
+        if _core3(bin_ver) != _core3(installed):
+            data['version_mismatch'] = True
+            _log.warning('[openresty] 版本记录与二进制不一致: version.pl=%s binary=%s',
+                         installed, bin_ver)
 
     try:
         from core import openresty_release_index as idx
@@ -1138,6 +1207,8 @@ if __name__ == "__main__":
         print(installPreInspection())
     elif func == 'version_info':
         print(versionInfo())
+    elif func == 'conf_precheck':
+        print(confPrecheck())
     elif func == 'conf':
         print(getConf())
     elif func == 'get_os':

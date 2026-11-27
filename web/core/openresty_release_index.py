@@ -71,6 +71,13 @@ _VERSION_RE = re.compile(r'^(\d+)\.(\d+)\.(\d+)\.(\d+)$')
 #: （否则会从它中间匹配出 `openresty-1.9.7.2`），`-rc1` 之类也不匹配。
 _TARBALL_RE = re.compile(r'(?<![A-Za-z_])openresty-(\d+)\.(\d+)\.(\d+)\.(\d+)\.tar\.gz')
 
+#: 宽容匹配：看得出是 OpenResty 包、但版本号不满足 4 段正式版规则。
+#: 典型：`openresty-2.0.0.tar.gz`（三段）/`openresty-2.0.1.1-lts.tar.gz`/`-rc1`。
+#: **只用于告警**，绝不采信为可安装版本（格式拿不准时宁可不动，也不能把
+#: RC 或拼错的包名推给用户）。上游真改了版本号格式时，夜间任务的日志里会有
+#: 一条 WARN，而不是静默漏掉大版本。
+_LOOSE_TARBALL_RE = re.compile(r'(?<![A-Za-z_])openresty-([0-9][0-9A-Za-z._\-]*)\.tar\.gz')
+
 #: 发布日期（下载页是 "23 November 2026" 这种形态）。
 _DATE_RE = re.compile(r'(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})')
 
@@ -233,6 +240,29 @@ def parse_listing(text):
     return out
 
 
+def parse_listing_unsupported(text):
+    """下载页里「像 OpenResty 包、但版本号不合规」的包名（只用于告警）。
+
+    为什么需要：严格匹配只认 4 段正式版号（`1.31.9.1`）。上游如果改成
+    `2.0.0`（三段）或 `2.0.0.1-lts`（带后缀），严格解析会**一个都拿不到**；
+    但因为页面里还有旧的 1.31.x，解析并不会报错 —— 面板就会静默停在 1.31.x。
+    这里把这类条目单独列出来，由夜间同步任务打 WARN，让人能发现「上游变了」。
+
+    返回形如 `['openresty-2.0.0.tar.gz']`；严格可解析的包**不会**出现在这里。
+    """
+    out = []
+    if not isinstance(text, str) or not text:
+        return out
+    for m in _LOOSE_TARBALL_RE.finditer(text):
+        token = str(m.group(1) or '').strip()
+        if not token or _VERSION_RE.match(token):
+            continue
+        name = 'openresty-%s.tar.gz' % token
+        if name not in out:
+            out.append(name)
+    return out
+
+
 def pick_install_series(versions, keep=2):
     """版本映射 → 面板 `info.json.versions` 应该展示的「近 N 版」。
 
@@ -352,6 +382,7 @@ def refresh(data_dir, fetcher=None, now=None, timeout=FETCH_TIMEOUT):
         payload = ''
         error = '%s: %s' % (exc.__class__.__name__, exc)
     versions = parse_listing(payload)
+    unsupported = parse_listing_unsupported(payload)
     if not versions and not error:
         # 200 但解析不出任何版本 = 典型的内网认证页/网关劫持，必须显式留痕
         error = '官方下载页返回内容无法解析（可能是网络劫持/认证页）'
@@ -373,6 +404,8 @@ def refresh(data_dir, fetcher=None, now=None, timeout=FETCH_TIMEOUT):
         'fetched_at': stamp,
         'source': source,
         'latest': latest_of(merged),
+        # 上游出现了无法识别的版本号格式（大版本改名/RC/后缀包）：logs 里必须看得见
+        'unsupported': unsupported,
     }
 
 
@@ -481,12 +514,13 @@ def sync_versions(plugin_dir, data_dir, fetcher=None, now=None):
     供统一同步任务逐源汇总打印（不抛异常：单源失败不能带走其它源）。
     """
     out = {'latest': '', 'release_date': '', 'source': '', 'error': '',
-           'script': '', 'versions_count': 0}
+           'script': '', 'versions_count': 0, 'unsupported': []}
     try:
         versions, info = refresh(data_dir, fetcher=fetcher, now=now)
         out['source'] = info.get('source') or ''
         out['error'] = info.get('error') or ''
         out['versions_count'] = len(versions or {})
+        out['unsupported'] = list(info.get('unsupported') or [])
         latest = info.get('latest') or ''
         out['latest'] = latest
         out['release_date'] = str((versions or {}).get(latest) or '')

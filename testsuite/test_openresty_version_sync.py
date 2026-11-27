@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEB = os.path.join(ROOT, 'web')
@@ -342,6 +342,114 @@ class TestUnifiedVersionSyncTask(unittest.TestCase):
             self.assertEqual(row['sbody'], 'body')
         finally:
             yf.M = old_M
+
+
+class TestCrossMajorReadiness(unittest.TestCase):
+    """大版本（1.x → 2.x）升级的提前适配：不漏报、不盲报、能装能提示。"""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix='yf_or_major_')
+        self.data_dir = os.path.join(self.tmp, 'data')
+        os.makedirs(self.data_dir, exist_ok=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _write_index(self, versions):
+        with io.open(idx.index_path(self.data_dir), 'w', encoding='utf-8') as fh:
+            json.dump({'schema': idx.SCHEMA, 'fetched_at': 2000000000,
+                       'versions': versions}, fh)
+
+    def test_15_unsupported_version_formats_are_reported(self):
+        """三段号 / 带后缀 / RC 必须在告警里出现（否则大版本改命名会被静默漏掉）。"""
+        page = (
+            '<a href="https://openresty.org/download/openresty-2.0.0.tar.gz">a</a> - 1 March 2027'
+            '<a href="https://openresty.org/download/openresty-2.0.1.1-lts.tar.gz">b</a>'
+            '<a href="https://openresty.org/download/openresty-3.0.0.1-rc1.tar.gz">c</a>'
+            '<a href="https://openresty.org/download/ngx_openresty-1.9.7.2.tar.gz">old</a>'
+            '<a href="https://openresty.org/download/openresty-1.31.9.1.tar.gz">ok</a>'
+        )
+        self.assertEqual(sorted(idx.parse_listing(page)), ['1.31.9.1'])
+        got = idx.parse_listing_unsupported(page)
+        self.assertIn('openresty-2.0.0.tar.gz', got)
+        self.assertIn('openresty-2.0.1.1-lts.tar.gz', got)
+        self.assertIn('openresty-3.0.0.1-rc1.tar.gz', got)
+        # 历史 ngx_openresty 前缀不能被当成「新版本」噪声
+        self.assertFalse(any('ngx_' in name for name in got))
+        # 严格可解析的包不得出现在告警里
+        self.assertNotIn('openresty-1.31.9.1.tar.gz', got)
+
+        _v, info = idx.refresh(self.data_dir, fetcher=lambda url, timeout=None: page, now=1000)
+        self.assertEqual(info['latest'], '1.31.9.1')
+        self.assertEqual(len(info['unsupported']), 3)
+        res = idx.sync_versions(os.path.join(self.tmp, 'openresty'), self.data_dir,
+                                fetcher=lambda url, timeout=None: page, now=1000)
+        self.assertEqual(len(res['unsupported']), 3)
+
+        # 夜间同步任务的日志里必须能看到这条 WARN（否则等于静默漏报）
+        with patch.object(idx, 'sync_versions', return_value={
+                'latest': '1.31.9.1', 'release_date': '', 'source': 'online',
+                'error': '', 'script': '', 'versions_count': 1,
+                'unsupported': ['openresty-2.0.0.tar.gz']}):
+            out = vs.sync_openresty()
+        self.assertTrue(any('WARN' in line and 'openresty-2.0.0.tar.gz' in line
+                            for line in out['lines']), out['lines'])
+
+    def test_16_online_version_is_merged_into_versions(self):
+        """在线索引的最新版必须并入 versions（幂等、不降级、不影响其它插件）。"""
+        from utils.plugin import plugin as YfPlugin
+        self._write_index({'1.31.9.1': '2026-11-23', '2.0.0.1': '2027-03-01'})
+        with patch.object(yf, 'getPanelDataDir', return_value=self.data_dir):
+            p = {'name': 'openresty', 'versions': ['1.31.1', '1.31.9.1']}
+            YfPlugin._appendOnlineVersion(p)
+            self.assertEqual(p['versions'], ['1.31.1', '1.31.9.1', '2.0.0.1'])
+            # 幂等：再跑一次不重复追加
+            YfPlugin._appendOnlineVersion(p)
+            self.assertEqual(p['versions'], ['1.31.1', '1.31.9.1', '2.0.0.1'])
+            # 其它插件不受影响
+            other = {'name': 'php', 'versions': ['82']}
+            YfPlugin._appendOnlineVersion(other)
+            self.assertEqual(other['versions'], ['82'])
+            # 索引推荐版本跟随最新
+            from utils.plugin import _openresty_recommended_version
+            self.assertEqual(_openresty_recommended_version(), '2.0.0.1')
+
+        # 索引里的版本更旧时绝不降级（回退 info.json 原样）
+        self._write_index({'1.29.2.5': '2026-05-25'})
+        with patch.object(yf, 'getPanelDataDir', return_value=self.data_dir):
+            p2 = {'name': 'openresty', 'versions': ['1.31.1', '1.31.9.1']}
+            YfPlugin._appendOnlineVersion(p2)
+            self.assertEqual(p2['versions'], ['1.31.1', '1.31.9.1'])
+
+    def test_17_cross_major_update_and_task_matching(self):
+        """2.x 必须被提示为可升级，且安装任务能被识别成「正在安装」。"""
+        self.assertTrue(idx.needs_update('1.31.9.1', '2.0.0.1'))
+        self.assertTrue(idx.is_newer('2.0.0.1', '1.31.9.1'))
+        # 2.x 没有 changelog 规则时返回空（不能拼出 404 链接）
+        self.assertEqual(idx.changelog_url('2.0.0.1'), '')
+
+        from utils.plugin import plugin as YfPlugin
+        pg = YfPlugin()
+        versions = ['1.31.1', '1.31.9.1', '2.0.0.1']
+        for task in ('安装[openresty-1.31.9.1]', '安装[openresty-2.0.0.1]'):
+            with patch('utils.plugin.thisdb') as db:
+                db.getTaskRunAll.return_value = [{'name': task, 'status': '-1'}]
+                self.assertEqual(pg.checkSetupTask('openresty', versions, False), '-1',
+                                 '任务 %s 未被识别为安装中' % task)
+
+    def test_18_cross_major_warning_is_wired(self):
+        """跨大版本升级必须在商店与插件页都有「先备份」提醒。"""
+        soft_js = io.open(os.path.join(WEB, 'static', 'app', 'soft.js'), encoding='utf-8').read()
+        self.assertIn('cross_major_tip', soft_js)
+        or_js = io.open(os.path.join(ROOT, 'plugins', 'openresty', 'js', 'openresty.js'),
+                        encoding='utf-8').read()
+        self.assertIn('跨大版本升级：建议先备份站点配置', or_js)
+        # 6 国插件语言包都必须有该提醒（Key 集合对齐由 i18n 门禁复核）
+        for lang in ('zh-CN', 'zh-TW', 'en', 'de', 'fr', 'it'):
+            data = json.loads(io.open(
+                os.path.join(ROOT, 'plugins', 'openresty', 'lang', lang + '.json'),
+                encoding='utf-8').read())
+            self.assertIn('跨大版本升级：建议先备份站点配置', data, lang)
 
 
 if __name__ == '__main__':

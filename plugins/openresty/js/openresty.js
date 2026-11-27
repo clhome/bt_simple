@@ -387,16 +387,45 @@ function orVersionCheck() {
 function orRenderVersionTip(d) {
     var $box = $('#orVerTip');
     if (!$box.length) return;
-    if (!d || !d.needs_update || !d.latest) {
+    if (!d || (!d.needs_update && !d.version_mismatch)) {
         orHideVersionTip();
         return;
     }
 
     $box.empty().show();
 
+    // 先处理「version.pl 与二进制不一致」：这种情况下面板会“显示已升级、实际还在跑旧版”，
+    // 只比版本号是看不出来的。提示用户重新安装（下方如有可用新版仍会给升级入口）。
+    if (d.version_mismatch) {
+        $('<span>')
+            .css({ 'color': '#b00020', 'font-weight': 'bold' })
+            .text(msgTpl(pt('已安装版本记录为 {1}，但当前二进制是 {2}，请重新安装。'),
+                [d.installed || '-', d.binary_version || '-']))
+            .appendTo($box);
+    }
+
+    if (!d.needs_update || !d.latest) {
+        return;
+    }
+
+    if (d.version_mismatch) {
+        $('<br/>').appendTo($box);
+    }
+
     var tipText = msgTpl(pt('发现新版本 {1}（发布于 {2}），当前版本 {3} 已落后，建议升级。'),
         [d.latest, d.release_date || '-', d.installed || '-']);
     $('<span>').text(tipText).appendTo($box);
+
+    // 跨大版本（1.x → 2.x）：nginx/OpenResty 大版本常伴随模块与配置变化，
+    // 必须在升级前把「先备份」的提醒摆出来。
+    var curMajor = String(d.installed || '').split('.')[0];
+    var newMajor = String(d.latest || '').split('.')[0];
+    if (curMajor && newMajor && curMajor !== newMajor) {
+        $('<span>')
+            .css({ 'margin-left': '10px', 'color': '#b00020', 'font-weight': 'bold' })
+            .text(pt('跨大版本升级：建议先备份站点配置'))
+            .appendTo($box);
+    }
 
     if (d.changelog) {
         $('<a>')
@@ -420,6 +449,9 @@ function orUpgradeVersion(ver) {
     if (!ver) return;
     var msg = msgTpl(pt('确认将 OpenResty 从 {1} 升级到 {2} 吗？升级会重新编译并重启服务，期间网站短暂中断。'),
         [orInstalledVersion || '-', ver]);
+    if (String(orInstalledVersion || '').split('.')[0] !== String(ver).split('.')[0]) {
+        msg += '<br/><span style="color:#b00020;font-weight:bold">' + pt('跨大版本升级：建议先备份站点配置') + '</span>';
+    }
     layer.confirm(msg, { icon: 3, closeBtn: 1, title: pt('升级确认') }, function (index) {
         layer.close(index);
         var loadT = layer.msg(pt('已提交升级任务，正在后台编译...'), { icon: 16, time: 0, shade: 0.3 });

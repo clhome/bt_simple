@@ -492,6 +492,11 @@ function getSList(isdisplay) {
           var onlineVer = String(plugin.online_update_to).trim();
           var ouTip = t('soft.online_update_tip', '上游已发布新版本 {1}，建议升级以包含最新的安全修复');
           if (typeof ouTip === 'string') { ouTip = ouTip.replace('{1}', onlineVer); }
+          // 跨大版本（1.x → 2.x）：nginx/OpenResty 大版本常伴随模块与配置变化，
+          // 必须显式提醒备份，不能像补丁升级那样“点一下就升”。
+          if (String(onlineVer).split('.')[0] !== String(plugin.setup_version || '').split('.')[0]) {
+            ouTip += ' | ' + t('soft.cross_major_tip', '跨大版本升级：可能涉及配置/模块变化，建议先备份站点配置');
+          }
           onlineUpdateLink = '<a class="btlink" style="color:#ff2020" title="' +
             yfSoftText(ouTip) + '"' +
             ' onclick="softUpdate(\'' + yfSoftJsStr(plugin.name) + '\',\'' + yfSoftJsStr(onlineVer) +
@@ -1470,7 +1475,14 @@ function softUpdate(name, ver, current_ver) {
     layer.msg(t('soft.already_latest', '当前已是最新版本，无需升级'), { icon: 7 });
     return;
   }
-  layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
+  var confirmMsg = (lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || "");
+  // 跨大版本（1.x → 2.x）：在确认框里再提醒一次（标题缩略提示不够显眼）
+  if (String(ver).split('.')[0] !== String(current_ver || '').split('.')[0]) {
+    confirmMsg += '<br/><span style="color:#ff2020">' +
+      t('soft.cross_major_tip', '跨大版本升级：可能涉及配置/模块变化，建议先备份站点配置') +
+      '</span>';
+  }
+  layer.confirm(confirmMsg, {
     icon: 3,
     closeBtn: 1
   }, function () {

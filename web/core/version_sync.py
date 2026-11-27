@@ -122,6 +122,14 @@ def sync_openresty():
         lines.append('  - 最新正式版: %s (发布时间: %s)' % (latest, res.get('release_date') or '-'))
         lines.append('  - 版本安装脚本: %s' % (res.get('script') or '未生成'))
         lines.append('  - 索引来源: %s，共收录 %d 个版本' % (res.get('source') or '-', res.get('versions_count') or 0))
+    # 上游出现了无法识别的版本号（大版本改命名格式/RC/带后缀）：
+    # 严格解析只认 4 段正式版，这类包**不会被采信**，但必须让人看得见，
+    # 否则「2.x 发布了、面板还停 1.31.x」会变成静默事故。
+    unsupported = list(res.get('unsupported') or [])
+    for name in unsupported[:10]:
+        lines.append('  - [WARN] 上游出现无法识别的版本号，面板未采信: %s' % name)
+    if len(unsupported) > 10:
+        lines.append('  - [WARN] 另有 %d 个无法识别的包未列出' % (len(unsupported) - 10))
     return {
         'ok': bool(latest) and not res.get('error'),
         'count': res.get('versions_count') or 0,

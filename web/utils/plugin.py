@@ -574,6 +574,24 @@ SERIES_INDEX_PLUGINS = ('redis',)
 ONLINE_VERSION_INDEX_PLUGINS = ('openresty',)
 
 
+def _openresty_recommended_version(default='1.31.9.1'):
+    """面板初始化安装时的 OpenResty 推荐版本（优先取离线索引里的最新正式版）。
+
+    为什么不再写死常量：`info.json` 是面板发版快照，写死的推荐版会被上游越拉越远
+    （2026-11-27 就还是 1.31.1）。这里读 `data/openresty_release_index.json`（夜间同步
+    维护）+ 内置表，**不联网**；任何异常都回退内置默认值，不让初始化流程因为索引坏掉。
+    """
+    try:
+        from core import openresty_release_index as _idx
+        _versions, meta = _idx.offline_versions(yf.getPanelDataDir())
+        latest = str(meta.get('latest') or '').strip()
+        if _idx.is_version(latest):
+            return latest
+    except Exception as _e:                  # noqa: BLE001
+        _log.debug('[plugin] 解析 openresty 推荐版本失败，回退内置值: %s', _e)
+    return default
+
+
 def _redis_release_index():
     """惰性导入 Redis 发布索引模块。
 
@@ -995,9 +1013,9 @@ class plugin(object):
             return yf.returnData(False, 'ok')
 
         plugin_names = {
-            # 新装默认给上游最新版（1.31.9.1，含 10 项 nginx 安全修复）；
+            # 新装默认给上游最新版（离线索引优先，回退 1.31.9.1；含 10 项 nginx 安全修复）；
             # 旧版目录仍保留，老用户卸载/降级不受影响
-            'openresty': '1.31.9.1',
+            'openresty': _openresty_recommended_version('1.31.9.1'),
             'php': '80',
             'swap': '1.1',
             'mysql': '5.7',
@@ -1310,6 +1328,46 @@ class plugin(object):
             return pInfo
         pInfo['eol_kind'] = kind
         pInfo['eol_upgrade_to'] = target
+        return pInfo
+
+    @staticmethod
+    def _appendOnlineVersion(pInfo):
+        """把在线索引里的最新正式版并入 `versions`（目前只对 openresty 生效）。
+
+        为什么需要：`info.json` 的 `versions` 是**面板发版时的快照**。上游发新版
+        （补丁或大版本）后，夜间同步会自动生成 `versions/<ver>/install.sh`，但：
+          * 安装下拉、面板初始化推荐版本都只读 `versions` → 新用户装不到新版；
+          * `checkSetupTask()` / `refreshDynamicStatus()` 也用 `versions` 匹配任务标题
+            → `安装[openresty-2.0.0.1]` 不显示「正在安装」（实测确实如此）。
+        所以把索引里的最新版并进来。判定：**数值比较**（`2.0.0.1 > 1.31.9.1`）、
+        幂等（不重复、绝不降级），索引不可用时保持 `info.json` 原样。
+
+        索引只读磁盘缓存/内置表，**不联网**（软件列表是同步渲染路径）。
+        """
+        if str(pInfo.get('name') or '').strip().lower() != 'openresty':
+            return pInfo
+        try:
+            from core import openresty_release_index as _idx
+            _versions, meta = _idx.offline_versions(yf.getPanelDataDir())
+            latest = str(meta.get('latest') or '').strip()
+            if not _idx.is_version(latest):
+                return pInfo
+            cur = pInfo.get('versions')
+            if isinstance(cur, str):
+                cur = [cur] if cur.strip() else []
+            elif isinstance(cur, list):
+                cur = [str(v).strip() for v in cur if str(v).strip()]
+            else:
+                cur = []
+            best = ''
+            for v in cur:
+                if not best or _idx.version_tuple(v) > _idx.version_tuple(best):
+                    best = v
+            if _idx.version_tuple(latest) > _idx.version_tuple(best):
+                cur.append(latest)
+            pInfo['versions'] = cur
+        except Exception as _e:              # noqa: BLE001 —— 索引坏了不能让列表 500
+            _log.debug('[plugin] 合并在线版本失败(openresty): %s', _e)
         return pInfo
 
     @staticmethod
@@ -1911,6 +1969,12 @@ class plugin(object):
         if path.find('VERSION') > -1:
             pInfo['path'] = path.replace('VERSION', str(versions))
 
+        # OpenResty：把「在线索引里的最新正式版」并入 versions（幂等，仅当更新时追加）。
+        # 必须在 checkSetupTask 之前 —— 它用 versions 匹配安装任务标题，否则
+        # `安装[openresty-2.0.0.1]` 会被当成「未在安装」（列表可重复点提交）。
+        self._appendOnlineVersion(pInfo)
+        versions = pInfo['versions']
+
         pInfo['task'] = self.checkSetupTask(pInfo['name'], versions, coexist)
         pInfo['display'] = self.checkDisplayIndex(info['name'], pInfo['versions'], coexist)
         pInfo['setup'] = os.path.exists(pInfo['install_checks'])
@@ -2029,6 +2093,8 @@ class plugin(object):
         
         for pInfo in plist:
             name = pInfo['name']
+            # 每次都重新并入在线最新版（进程级静态缓存里的 versions 可能建好后就没变）
+            self._appendOnlineVersion(pInfo)
             version = pInfo['versions']
             coexist = pInfo['coexist']
             install_checks = pInfo['install_checks']

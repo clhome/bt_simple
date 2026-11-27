@@ -3511,6 +3511,7 @@
     "from": "]from ",
     "upgrade_to": "upgrade to ",
     "online_update_tip": "Upstream released {1}; upgrade includes the latest security fixes",
+    "cross_major_tip": "Cross-major upgrade may change config/modules; back up first",
     "openresty_script_missing": "Install script missing and auto-generation failed; check plugin dir permissions",
     "eol_kind_eol": "EOL",
     "eol_kind_removed": "Discontinued",

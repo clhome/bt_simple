@@ -3824,6 +3824,7 @@ var lan = {
 			"from": "】從",
 			"upgrade_to": "升級到",
 			"online_update_tip": "上游已發佈新版本 {1}，建議升級以包含最新的安全修復",
+			"cross_major_tip": "跨大版本升級：可能涉及配置/模組變化，建議先備份站點配置",
 			"openresty_script_missing": "該版本的安裝腳本缺失且自動生成失敗，請檢查外掛目錄權限",
 			"eol_kind_eol": "已過維護期",
 			"eol_kind_removed": "已下架",

@@ -82,5 +82,7 @@
     "已提交升级任务，正在后台编译...": "Mise à jour soumise, compilation en cours...",
     "升级任务已提交，可在消息盒子查看进度": "Mise à jour soumise. Voir la messagerie.",
     "提交升级任务失败": "Échec de la soumission",
-    "OpenResty 已升级到 {1}": "OpenResty mis à jour vers {1}"
+    "OpenResty 已升级到 {1}": "OpenResty mis à jour vers {1}",
+    "跨大版本升级：建议先备份站点配置": "Montée de version majeure : sauvegardez d'abord la configuration",
+    "已安装版本记录为 {1}，但当前二进制是 {2}，请重新安装。": "Version enregistrée {1}, binaire {2} ; réinstallez."
 }
