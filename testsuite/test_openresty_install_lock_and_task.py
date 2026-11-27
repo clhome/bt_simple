@@ -94,6 +94,7 @@ class TestOpenRestyInstallLockAndTask(unittest.TestCase):
 
         try:
             import importlib
+            from flask import Flask
             task_mod = importlib.import_module('admin.task')
         except ImportError:
             return
@@ -104,13 +105,12 @@ class TestOpenRestyInstallLockAndTask(unittest.TestCase):
             with open(log_path, 'w', encoding='utf-8') as f:
                 f.write('line1\n\x00\x00\x00line2\n')
 
-            with mock.patch.object(task_mod.yf, 'getPanelDir', return_value=tmpdir), \
-                 mock.patch.object(task_mod, 'request') as mock_req:
-                mock_req.form = {'id': '77'}
-                res = task_mod.get_task_log_by_id.__wrapped__() \
-                    if hasattr(task_mod.get_task_log_by_id, '__wrapped__') \
-                    else None
-                if res is not None:
+            app = Flask(__name__)
+            with app.test_request_context('/task/get_task_log_by_id', method='POST', data={'id': '77'}), \
+                 mock.patch.object(task_mod.yf, 'getPanelDir', return_value=tmpdir):
+                fn = getattr(task_mod.get_task_log_by_id, '__wrapped__', None)
+                if fn is not None:
+                    res = fn()
                     self.assertTrue(res['status'])
                     self.assertNotIn('\x00', res['msg'])
                     self.assertIn('line1', res['msg'])
