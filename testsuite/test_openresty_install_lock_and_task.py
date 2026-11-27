@@ -93,7 +93,8 @@ class TestOpenRestyInstallLockAndTask(unittest.TestCase):
         self.assertIn(r"re.sub(r'\x00+'", fn_body)
 
         try:
-            from admin.task import __init__ as task_mod
+            import importlib
+            task_mod = importlib.import_module('admin.task')
         except ImportError:
             return
 
