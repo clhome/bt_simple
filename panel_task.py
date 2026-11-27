@@ -62,10 +62,10 @@ def acquirePanelTaskSingletonLock():
     try:
         _PANEL_TASK_LOCK_FP = open(lock_file, 'a+', encoding='utf-8')
     except Exception as _e:
-        _log.warning('[panel_task] 打开单例锁文件失败: %s', _e)
-        return True
+        _log.warning('[panel_task] 打开单例锁文件失败: %s（回退 PID 检测）', _e)
+        _PANEL_TASK_LOCK_FP = None
 
-    if fcntl and hasattr(fcntl, 'flock') and hasattr(fcntl, 'LOCK_EX') and hasattr(fcntl, 'LOCK_NB'):
+    if _PANEL_TASK_LOCK_FP and fcntl and hasattr(fcntl, 'flock') and hasattr(fcntl, 'LOCK_EX') and hasattr(fcntl, 'LOCK_NB'):
         try:
             fcntl.flock(_PANEL_TASK_LOCK_FP.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             return True
@@ -493,16 +493,48 @@ def downloadFile(url, filename, task_id=None):
         writeLogs(str(e), task_id)
         return False
 
+_STALE_TASKS_RECOVERED = False
+
+
+def _is_task_subprocess_alive(task_id):
+    """检查 panel_task_sub.pid 中记录的子进程是否仍在存活，避免重跑仍在执行的任务。"""
+    try:
+        cur_task_pid_file = os.path.join(yf.getPanelDir(), 'tmp', 'panel_task_sub.pid')
+        if not os.path.exists(cur_task_pid_file):
+            return False
+        content = yf.readFile(cur_task_pid_file).strip()
+        if not content or ':' not in content:
+            return False
+        t_id, p_id = content.split(':', 1)
+        if str(t_id).strip() != str(task_id) or not p_id.strip().isdigit():
+            return False
+        pid = int(p_id.strip())
+        if pid <= 1:
+            return False
+        return bool(yf.checkPid(pid))
+    except Exception as _e:
+        _log.debug('[panel_task] 检查任务子进程存活状态异常: %s', _e)
+        return False
+
+
 def runPanelTask():
+    global _STALE_TASKS_RECOVERED
     # 站点过期检查
     siteEdateCheck()
 
     lock_file = yf.getTriggerTaskLockFile()
     try:
         if os.path.exists(lock_file):
-            bash_list = thisdb.getTaskList(status=-1)
-            for task in bash_list:
-                thisdb.setTaskStatus(task['id'], 0)
+            # 仅在守护进程启动后的首次调度时恢复上次异常中断遗留的 -1 任务；
+            # 恢复前先核查子进程是否仍在存活，杜绝并发重跑同一 task_id 并截断日志造成空洞。
+            if not _STALE_TASKS_RECOVERED:
+                _STALE_TASKS_RECOVERED = True
+                bash_list = thisdb.getTaskList(status=-1)
+                for task in bash_list:
+                    if _is_task_subprocess_alive(task['id']):
+                        _log.warning('[panel_task] 任务 %s 子进程仍在运行，跳过重置状态', task['id'])
+                        continue
+                    thisdb.setTaskStatus(task['id'], 0)
 
             run_list = thisdb.getTaskList(status=0)
             for run_task in run_list:

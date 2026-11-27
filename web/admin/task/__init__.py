@@ -80,7 +80,11 @@ def get_task_log_by_id():
     task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(int(task_id))
     if not os.path.exists(task_log_file):
         return yf.returnData(False, 'task.py_msg_ecca58')
-    return yf.returnData(True, yf.readFile(task_log_file))
+    content = yf.readFile(task_log_file)
+    if isinstance(content, str) and '\x00' in content:
+        import re
+        content = re.sub(r'\x00+', '\n', content)
+    return yf.returnData(True, content)
 
 
 @blueprint.route('/get_task_speed', endpoint='get_task_speed', methods=['POST'])

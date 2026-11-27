@@ -25,17 +25,29 @@ sysName=`uname`
 action=$1
 type=$2
 
-lockFile="/var/run/yf_openresty_install.lock"
-if [ -f "${lockFile}" ];then
-    pid=$(cat "${lockFile}")
-    if ps -p $pid > /dev/null 2>&1; then
-        echo "Another OpenResty installation is already running (PID: $pid). Exiting."
+lockFile="${YF_OPENRESTY_LOCK_FILE:-/var/run/yf_openresty_install.lock}"
+# 优先使用 flock 原子文件锁：进程退出/被杀时由内核自动释放，杜绝非原子读写的竞态与误删他人锁文件。
+if command -v flock >/dev/null 2>&1; then
+    exec 9>"${lockFile}"
+    if ! flock -n 9; then
+        pid=$(cat "${lockFile}" 2>/dev/null | tr -d '[:space:]')
+        echo "Another OpenResty installation is already running (PID: ${pid:-unknown}). Exiting."
         echo "[INFO] 后台已有 OpenResty 安装/升级任务正在运行，请等待其完成后再操作，切勿重复点击。"
         exit 1
     fi
+    echo $$ > "${lockFile}"
+else
+    if [ -f "${lockFile}" ]; then
+        pid=$(cat "${lockFile}" 2>/dev/null | tr -d '[:space:]')
+        if [ -n "${pid}" ] && [ "${pid}" -gt 1 ] 2>/dev/null && ps -p "${pid}" > /dev/null 2>&1; then
+            echo "Another OpenResty installation is already running (PID: ${pid}). Exiting."
+            echo "[INFO] 后台已有 OpenResty 安装/升级任务正在运行，请等待其完成后再操作，切勿重复点击。"
+            exit 1
+        fi
+    fi
+    echo $$ > "${lockFile}"
+    trap 'rm -f "${lockFile}"' EXIT
 fi
-echo $$ > "${lockFile}"
-trap "rm -f ${lockFile}" EXIT
 
 VERSION=$2
 openrestyDir=${serverPath}/source/openresty

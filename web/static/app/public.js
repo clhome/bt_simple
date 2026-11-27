@@ -2301,9 +2301,16 @@ function remind(a) {
       var status = g.data[d].status;
       var status_text = t('public.completed', '已完成');
       var cos_text = '';
+      var status_style = '';
       if (status == '1') {
         status_text = t('public.done', '已完成');
         cos_text = t('public.time_taken', '耗时[') + getSFM(g.data[d].end - g.data[d].start) + ']';
+      } else if (status == '2') {
+        status_text = t('public.task_failed', '失败');
+        status_style = ' style="color:#ff2020;"';
+        if (g.data[d].end >= g.data[d].start && g.data[d].start > 0) {
+          cos_text = t('public.time_taken', '耗时[') + getSFM(g.data[d].end - g.data[d].start) + ']';
+        }
       } else if (status == '0') {
         status_text = t('public.processing_1', '处理中');
         cos_text = t('public.waiting_1', '等待中');
@@ -2315,7 +2322,7 @@ function remind(a) {
 				<td><input type="checkbox"></td>\
 				<td>\
 					<div class="titlename c3"><a href="javascript:;" class="btlink task-log-link" data-task-id="' + g.data[d].id + '" data-task-name="' + yfTaskEsc(g.data[d].name) + '">' + yfTaskEsc(g.data[d].name) + '</a>\
-						<span class="rs-status">【' + status_text + '】</span>\
+						<span class="rs-status"' + status_style + '>【' + status_text + '】</span>\
 						<span class="rs-time">' + cos_text + '</span>\
 					</div>\
 				</td>\
